@@ -1,0 +1,93 @@
+# helm-values-epyc.yaml
+# Optimized for AMD EPYC 7702, 64 cores / 128 threads, high memory
+# Namespace: xorb-infra
+
+# PostgreSQL (Bitnami Chart)
+postgresql:
+  primary:
+    persistence:
+      size: 100Gi
+    resources:
+      requests:
+        cpu: "4"
+        memory: "16Gi"
+      limits:
+        cpu: "8"
+        memory: "32Gi"
+  readReplicas:
+    enabled: true
+    replicaCount: 2
+    resources:
+      requests:
+        cpu: "2"
+        memory: "8Gi"
+      limits:
+        cpu: "4"
+        memory: "16Gi"
+
+# Temporal (Temporal.io)
+temporal:
+  server:
+    replicaCount: 4
+    resources:
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+      limits:
+        cpu: "4"
+        memory: "8Gi"
+  postgresql:
+    enabled: true
+    host: 'xorb-postgresql.xorb-infra.svc.cluster.local'
+    user: 'postgres'
+    password:
+      secretKey: postgresql-password
+      secretName: xorb-postgresql
+
+# Qdrant (Qdrant)
+qdrant:
+  replicaCount: 4
+  resources:
+    requests:
+      cpu: "8"
+      memory: "64Gi"
+    limits:
+      cpu: "16"
+      memory: "128Gi"
+  persistence:
+    size: 500Gi
+
+# Neo4j
+neo4j:
+  name: xorb-neo4j
+  standalone:
+    volumes:
+      data:
+        mode: defaultStorageClass
+    passwordFromSecret: xorb-neo4j-secret
+    resources:
+      requests:
+        cpu: "4"
+        memory: "32Gi"
+      limits:
+        cpu: "8"
+        memory: "64Gi"
+    persistence:
+      size: 200Gi
+
+# NATS
+nats:
+  nats:
+    jetstream:
+      enabled: true
+      memStorage:
+        enabled: true
+        size: 16Gi
+    replicas: 3
+    resources:
+      requests:
+        cpu: "1"
+        memory: "2Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"

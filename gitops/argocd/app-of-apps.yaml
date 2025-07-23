@@ -1,0 +1,55 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: xorb-applications
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - name: xorb-postgresql
+        namespace: xorb-infra
+        chart: bitnami/postgresql
+        version: "13.2.25"
+      - name: xorb-temporal
+        namespace: xorb-infra
+        chart: temporalio/temporal
+        version: "0.23.0"
+      - name: xorb-qdrant
+        namespace: xorb-infra
+        chart: qdrant/qdrant
+        version: "0.7.2"
+      - name: xorb-neo4j
+        namespace: xorb-infra
+        chart: neo4j/neo4j
+        version: "5.9.0"
+      - name: xorb-nats
+        namespace: xorb-infra
+        chart: nats/nats
+        version: "0.19.2"
+  template:
+    metadata:
+      name: '{{name}}'
+      namespace: '{{namespace}}'
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/xorb-io/xorb-gitops.git # Replace with your repo URL
+        targetRevision: HEAD
+        path: apps/overlays/production
+        helm:
+          valueFiles:
+          - values.yaml
+          - helm-values-epyc.yaml
+          releaseName: '{{name}}'
+          chart: '{{chart}}'
+          version: '{{version}}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
