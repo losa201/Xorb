@@ -28,7 +28,7 @@ images:
 
 replicas:
 - name: xorb-api
-  count: 1  # Minimal for dev
+  count: 1
 - name: xorb-worker
   count: 2
 - name: xorb-orchestrator
@@ -41,64 +41,10 @@ configMapGenerator:
   - XORB_ENVIRONMENT=development
   - XORB_LOG_LEVEL=DEBUG
   - XORB_DEBUG=true
-  - TEMPORAL_HOST=dev-temporal-frontend.xorb-dev.svc.cluster.local:7233
-  - REDIS_URL=redis://dev-redis-master.xorb-dev.svc.cluster.local:6379
-  - QDRANT_URL=http://dev-qdrant.xorb-dev.svc.cluster.local:6333
-  - NEO4J_URI=bolt://dev-neo4j.xorb-dev.svc.cluster.local:7687
-  - NATS_URL=nats://dev-nats.xorb-dev.svc.cluster.local:4222
+  - MAX_CONCURRENT_AGENTS=4
   - MAX_CONCURRENT_CAMPAIGNS=2
-  - MAX_AGENTS_PER_CAMPAIGN=5
   - WORKER_CONCURRENCY=2
   - AGENT_POOL_SIZE=4
 
-patches:
-- target:
-    kind: Deployment
-    name: xorb-api
-  patch: |-
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/requests/cpu
-      value: "100m"
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/requests/memory
-      value: "256Mi"
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/limits/cpu
-      value: "500m"
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/limits/memory
-      value: "512Mi"
-    
-- target:
-    kind: Deployment
-    name: xorb-worker
-  patch: |-
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/requests/cpu
-      value: "200m"
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/requests/memory
-      value: "512Mi"
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/limits/cpu
-      value: "1"
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/limits/memory
-      value: "1Gi"
-
-- target:
-    kind: Deployment
-    name: xorb-orchestrator
-  patch: |-
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/requests/cpu
-      value: "100m"
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/requests/memory
-      value: "256Mi"
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/limits/cpu
-      value: "500m"
-    - op: replace
-      path: /spec/template/spec/containers/0/resources/limits/memory
-      value: "512Mi"
+patchesStrategicMerge:
+- dev-patches.yaml

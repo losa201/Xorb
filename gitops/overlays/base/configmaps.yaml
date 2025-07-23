@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xorb-config
+  labels:
+    app.kubernetes.io/part-of: xorb
+data:
+  XORB_ENVIRONMENT: "base"
+  XORB_LOG_LEVEL: "INFO"
+  XORB_DEBUG: "false"
+  MAX_CONCURRENT_AGENTS: "16"
+  MAX_CONCURRENT_CAMPAIGNS: "5"
+  WORKER_CONCURRENCY: "4"
+  AGENT_POOL_SIZE: "8"

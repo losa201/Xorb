@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xorb-worker
+  labels:
+    app.kubernetes.io/name: xorb-worker
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/part-of: xorb
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: xorb-worker
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+      labels:
+        app.kubernetes.io/name: xorb-worker
+        app.kubernetes.io/component: worker
+        app.kubernetes.io/part-of: xorb
+    spec:
+      serviceAccountName: xorb-worker
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+      - name: worker
+        image: xorb/worker:2.0.0
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: metrics
+          containerPort: 9090
+          protocol: TCP
+        env:
+        - name: XORB_ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: xorb-config
+              key: XORB_ENVIRONMENT
+        - name: XORB_LOG_LEVEL
+          valueFrom:
+            configMapKeyRef:
+              name: xorb-config
+              key: XORB_LOG_LEVEL
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: xorb-secrets
+              key: DATABASE_URL
+        - name: WORKER_CONCURRENCY
+          value: "4"
+        - name: AGENT_POOL_SIZE
+          value: "8"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: metrics
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: metrics
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "1Gi"
+          limits:
+            cpu: "2"
+            memory: "4Gi"
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+          readOnlyRootFilesystem: true
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: workspace
+          mountPath: /app/workspace
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: workspace
+        emptyDir:
+          sizeLimit: 5Gi

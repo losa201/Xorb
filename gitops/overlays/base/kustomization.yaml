@@ -5,10 +5,10 @@ metadata:
   name: xorb-base
   
 resources:
-- ../../helm/xorb-core/templates/deployment-api.yaml
-- ../../helm/xorb-core/templates/deployment-worker.yaml
-- ../../helm/xorb-core/templates/deployment-orchestrator.yaml
-- ../../helm/xorb-core/templates/services.yaml
+- deployment-api.yaml
+- deployment-worker.yaml
+- deployment-orchestrator.yaml
+- services.yaml
 - rbac.yaml
 - configmaps.yaml
 - secrets.yaml
@@ -31,25 +31,3 @@ images:
   newTag: "2.0.0"
 - name: xorb/orchestrator
   newTag: "2.0.0"
-
-replicas:
-- name: xorb-api
-  count: 2
-- name: xorb-worker
-  count: 4
-- name: xorb-orchestrator
-  count: 2
-
-configMapGenerator:
-- name: xorb-config
-  literals:
-  - XORB_ENVIRONMENT=base
-  - XORB_LOG_LEVEL=INFO
-  - XORB_DEBUG=false
-  
-secretGenerator:
-- name: xorb-secrets
-  literals:
-  - DATABASE_PASSWORD=changeme
-  - JWT_SECRET=changeme
-  - API_KEY=changeme
