@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "xorb.fullname" . }}-ai-reasoning-config
+  labels:
+    {{- include "xorb.labels" . | nindent 4 }}
+    component: ai-reasoning
+data:
+  ai_reasoning_config.yaml: |
+    introspective_reasoning:
+      reflection_depth: {{ .Values.aiReasoning.config.introspective.reflectionDepth | default 3 }}
+      confidence_threshold: {{ .Values.aiReasoning.config.introspective.confidenceThreshold | default 0.7 }}
+      meta_cognitive_analysis: {{ .Values.aiReasoning.config.introspective.metaCognitiveAnalysis | default true }}
+      
+    temporal_memory:
+      episodic_memory_size: {{ .Values.aiReasoning.config.temporal.episodicMemorySize | default 10000 }}
+      semantic_memory_size: {{ .Values.aiReasoning.config.temporal.semanticMemorySize | default 5000 }}
+      forgetting_rate: {{ .Values.aiReasoning.config.temporal.forgettingRate | default 0.1 }}
+      consolidation_interval: {{ .Values.aiReasoning.config.temporal.consolidationInterval | default 3600 }}
+      
+    hierarchical_policy:
+      policy_levels: 4
+      switching_threshold: {{ .Values.aiReasoning.config.hierarchical.switchingThreshold | default 0.8 }}
+      adaptation_rate: {{ .Values.aiReasoning.config.hierarchical.adaptationRate | default 0.05 }}
+      
+    root_cause_attribution:
+      causal_inference_methods:
+        - "granger_causality"
+        - "pc_algorithm" 
+        - "intervention_analysis"
+      confidence_threshold: {{ .Values.aiReasoning.config.rootCause.confidenceThreshold | default 0.6 }}
+      max_causal_depth: {{ .Values.aiReasoning.config.rootCause.maxCausalDepth | default 5 }}
+      
+    uncertainty_governance:
+      uncertainty_types:
+        - "epistemic"
+        - "aleatoric"
+        - "model"
+        - "data"
+      safety_margin: {{ .Values.aiReasoning.config.uncertainty.safetyMargin | default 0.2 }}
+      rollback_threshold: {{ .Values.aiReasoning.config.uncertainty.rollbackThreshold | default 0.9 }}
+      
+    attack_chain_simulation:
+      vae_latent_dim: {{ .Values.aiReasoning.config.attackSim.vaeLatentDim | default 128 }}
+      gan_noise_dim: {{ .Values.aiReasoning.config.attackSim.ganNoiseDim | default 100 }}
+      max_chain_length: {{ .Values.aiReasoning.config.attackSim.maxChainLength | default 10 }}
+      mitre_attack_integration: {{ .Values.aiReasoning.config.attackSim.mitreIntegration | default true }}

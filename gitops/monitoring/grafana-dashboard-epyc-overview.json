@@ -1,0 +1,397 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Xorb 2.0 EPYC Performance Overview",
+    "tags": ["xorb", "epyc", "performance"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "EPYC CCX Utilization Heatmap",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "epyc_ccx_utilization_percent",
+            "legendFormat": "CCX {{ccx}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 9, "w": 12, "x": 0, "y": 0},
+        "options": {
+          "calculate": false,
+          "cellGap": 2,
+          "cellValues": {},
+          "color": {
+            "exponent": 0.5,
+            "fill": "dark-orange",
+            "mode": "spectrum",
+            "reverse": false,
+            "scale": "exponential",
+            "scheme": "Spectral",
+            "steps": 64
+          },
+          "exemplars": {
+            "color": "rgba(255,0,255,0.7)"
+          },
+          "filterValues": {
+            "le": 1e-9
+          },
+          "legend": {
+            "show": false
+          },
+          "rowsFrame": {
+            "layout": "auto"
+          },
+          "tooltip": {
+            "show": true,
+            "yHistogram": false
+          },
+          "yAxis": {
+            "axisPlacement": "left",
+            "reverse": false,
+            "unit": "short"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "scaleDistribution": {
+                "type": "linear"
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "NUMA Memory Locality Ratio",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "avg(epyc_numa_memory_locality_ratio)",
+            "legendFormat": "Memory Locality",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 9, "w": 12, "x": 12, "y": 0},
+        "options": {
+          "colorMode": "value",
+          "graphMode": "area",
+          "justifyMode": "auto",
+          "orientation": "horizontal",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "textMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 0.7},
+                {"color": "green", "value": 0.85}
+              ]
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "DQN Agent Selection Performance",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(xorb_dqn_agent_selections_total[5m])",
+            "legendFormat": "Selections/sec",
+            "refId": "A"
+          },
+          {
+            "expr": "xorb_dqn_selection_accuracy_ratio",
+            "legendFormat": "Accuracy",
+            "refId": "B"
+          },
+          {
+            "expr": "xorb_dqn_q_value_convergence",
+            "legendFormat": "Q-Value Convergence",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 9, "w": 24, "x": 0, "y": 9},
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              },
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "scaleDistribution": {
+                "type": "linear"
+              },
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "red", "value": 80}
+              ]
+            },
+            "unit": "short"
+          }
+        },
+        "options": {
+          "legend": {
+            "calcs": [],
+            "displayMode": "list",
+            "placement": "bottom"
+          },
+          "tooltip": {
+            "mode": "single"
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "EPYC CPU Governor Status",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "epyc_cpu_governor_current",
+            "legendFormat": "{{governor}}",
+            "refId": "A",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 18},
+        "options": {
+          "showHeader": true
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto",
+              "filterable": false
+            },
+            "mappings": [
+              {
+                "options": {
+                  "performance": {
+                    "color": "red",
+                    "index": 0,
+                    "text": "Performance"
+                  },
+                  "ondemand": {
+                    "color": "yellow",
+                    "index": 1,
+                    "text": "On-Demand"
+                  },
+                  "powersave": {
+                    "color": "green",
+                    "index": 2,
+                    "text": "Power Save"
+                  }
+                },
+                "type": "value"
+              }
+            ],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "EPYC L3 Cache Efficiency",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "avg_over_time(epyc_l3_cache_hit_ratio[5m])",
+            "legendFormat": "L3 Hit Ratio",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 18},
+        "options": {
+          "orientation": "auto",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"],
+            "fields": ""
+          },
+          "showThresholdLabels": false,
+          "showThresholdMarkers": true,
+          "text": {}
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 0.8},
+                {"color": "green", "value": 0.9}
+              ]
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Backpressure Controller Actions",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "increase(epyc_backpressure_throttle_actions_total[1m])",
+            "legendFormat": "Throttle Actions",
+            "refId": "A"
+          },
+          {
+            "expr": "increase(epyc_backpressure_migration_actions_total[1m])",
+            "legendFormat": "Migration Actions",
+            "refId": "B"
+          },
+          {
+            "expr": "epyc_backpressure_current_pressure_ratio",
+            "legendFormat": "Current Pressure",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 26},
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "axisLabel": "",
+              "axisPlacement": "auto",
+              "barAlignment": 0,
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "none",
+              "lineInterpolation": "linear",
+              "lineWidth": 1,
+              "pointSize": 5,
+              "showPoints": "never",
+              "spanNulls": false,
+              "stacking": {
+                "group": "A",
+                "mode": "none"
+              },
+              "thresholdsStyle": {
+                "mode": "off"
+              }
+            },
+            "mappings": [],
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"color": "green", "value": null}
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": false,
+            "text": "All",
+            "value": "$__all"
+          },
+          "hide": 0,
+          "includeAll": true,
+          "label": "NUMA Node",
+          "multi": false,
+          "name": "numa_node",
+          "options": [],
+          "query": "label_values(epyc_numa_utilization, numa_node)",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        }
+      ]
+    },
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "grafana",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "refresh": "10s",
+    "schemaVersion": 27,
+    "version": 0,
+    "links": []
+  }
+}

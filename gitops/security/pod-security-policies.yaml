@@ -1,0 +1,236 @@
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: xorb-restricted-psp
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  # Allow specific capabilities for system optimization
+  allowedCapabilities:
+    - SYS_NICE      # For CPU affinity and scheduling
+    - SYS_RESOURCE  # For memory management
+  volumes:
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+    - 'downwardAPI'
+    - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1000
+        max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+      - min: 1000
+        max: 65535
+  seLinux:
+    rule: 'RunAsAny'
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: xorb-system-psp
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+    xorb.ai/system-level: "true"
+spec:
+  privileged: false
+  allowPrivilegeEscalation: true
+  requiredDropCapabilities:
+    - ALL
+  allowedCapabilities:
+    - SYS_ADMIN     # For CPU frequency scaling
+    - SYS_NICE      # For process scheduling
+    - SYS_RESOURCE  # For memory management
+    - DAC_OVERRIDE  # For system file access
+  volumes:
+    - 'hostPath'    # Required for system optimization
+    - 'configMap'
+    - 'emptyDir'
+    - 'projected'
+    - 'secret'
+  allowedHostPaths:
+    - pathPrefix: "/sys/devices/system/cpu"
+      readOnly: false
+    - pathPrefix: "/proc/sys/kernel"
+      readOnly: false
+    - pathPrefix: "/sys/devices/system/node"
+      readOnly: true
+  hostNetwork: true   # Required for system-level optimization
+  hostIPC: false
+  hostPID: true       # Required for process management
+  runAsUser:
+    rule: 'RunAsAny'   # System containers may need root
+  seLinux:
+    rule: 'RunAsAny'
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: xorb-psp-restricted
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames: ['xorb-restricted-psp']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: xorb-psp-system
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+rules:
+- apiGroups: ['policy']
+  resources: ['podsecuritypolicies']
+  verbs: ['use']
+  resourceNames: ['xorb-system-psp']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding  
+metadata:
+  name: xorb-psp-restricted-binding
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+roleRef:
+  kind: ClusterRole
+  name: xorb-psp-restricted
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: xorb-orchestrator
+  namespace: xorb-prod
+- kind: ServiceAccount
+  name: xorb-agent-runner
+  namespace: xorb-prod
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: xorb-psp-system-binding
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+roleRef:
+  kind: ClusterRole
+  name: xorb-psp-system
+  apiGroup: rbac.authorization.k8s.io
+subjects:
+- kind: ServiceAccount
+  name: epyc-system-optimizer
+  namespace: xorb-prod
+---
+# Network Policies for security isolation
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: xorb-orchestrator-netpol
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: xorb-orchestrator
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: xorb
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis
+    ports:
+    - protocol: TCP
+      port: 6379
+  - to:
+    - podSelector:
+        matchLabels:
+          app: postgres
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to: []  # Allow all outbound for agent execution
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 80
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: xorb-redis-netpol
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: redis
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: xorb
+    ports:
+    - protocol: TCP
+      port: 6379
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: xorb-postgres-netpol
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/name: xorb
+    ports:
+    - protocol: TCP
+      port: 5432

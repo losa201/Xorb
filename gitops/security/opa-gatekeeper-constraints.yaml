@@ -1,0 +1,351 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: xorbsecuritybaseline
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  crd:
+    spec:
+      names:
+        kind: XorbSecurityBaseline
+      validation:
+        type: object
+        properties:
+          allowedImages:
+            type: array
+            items:
+              type: string
+          requiredLabels:
+            type: array
+            items:
+              type: string
+          maxReplicas:
+            type: integer
+          epycOptimized:
+            type: boolean
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package xorbsecuritybaseline
+
+        violation[{"msg": msg}] {
+          # Ensure containers use approved base images
+          container := input.review.object.spec.containers[_]
+          not approved_image(container.image)
+          msg := sprintf("Container image '%v' is not from approved registry", [container.image])
+        }
+
+        violation[{"msg": msg}] {
+          # Ensure required security labels are present
+          required := input.parameters.requiredLabels[_]
+          not input.review.object.metadata.labels[required]
+          msg := sprintf("Required security label '%v' is missing", [required])
+        }
+
+        violation[{"msg": msg}] {
+          # Limit replica count for resource management
+          input.review.object.spec.replicas > input.parameters.maxReplicas
+          msg := sprintf("Replica count %v exceeds maximum allowed %v", [input.review.object.spec.replicas, input.parameters.maxReplicas])
+        }
+
+        violation[{"msg": msg}] {
+          # Ensure EPYC-optimized workloads are properly labeled
+          input.parameters.epycOptimized == true
+          not input.review.object.metadata.annotations["xorb.ai/epyc-optimized"]
+          msg := "EPYC-optimized workloads must have xorb.ai/epyc-optimized annotation"
+        }
+
+        violation[{"msg": msg}] {
+          # Prevent privileged containers (except for system components)
+          container := input.review.object.spec.containers[_]
+          container.securityContext.privileged == true
+          not input.review.object.metadata.labels["xorb.ai/system-level"]
+          msg := "Privileged containers are not allowed except for system components"
+        }
+
+        violation[{"msg": msg}] {
+          # Ensure resource limits are set
+          container := input.review.object.spec.containers[_]
+          not container.resources.limits.cpu
+          msg := sprintf("Container '%v' must have CPU limits set", [container.name])
+        }
+
+        violation[{"msg": msg}] {
+          # Ensure resource limits are set
+          container := input.review.object.spec.containers[_]
+          not container.resources.limits.memory
+          msg := sprintf("Container '%v' must have memory limits set", [container.name])
+        }
+
+        approved_image(image) {
+          # Allow images from trusted registries
+          startswith(image, "xorb/")
+        }
+
+        approved_image(image) {
+          startswith(image, "docker.io/library/")
+        }
+
+        approved_image(image) {
+          startswith(image, "gcr.io/distroless/")
+        }
+
+        approved_image(image) {
+          startswith(image, "alpine:")
+        }
+
+        approved_image(image) {
+          startswith(image, "python:")
+        }
+
+        approved_image(image) {
+          startswith(image, "redis:")
+        }
+
+        approved_image(image) {
+          startswith(image, "postgres:")
+        }
+---
+apiVersion: config.gatekeeper.sh/v1alpha1
+kind: XorbSecurityBaseline
+metadata:
+  name: xorb-security-baseline
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  match:
+    - apiGroups: ["apps"]
+      kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+      namespaces: ["xorb-prod"]
+  parameters:
+    allowedImages:
+      - "xorb/"
+      - "docker.io/library/"
+      - "gcr.io/distroless/"
+      - "alpine:"
+      - "python:"
+      - "redis:"
+      - "postgres:"
+    requiredLabels:
+      - "app.kubernetes.io/name"
+      - "app.kubernetes.io/component"
+    maxReplicas: 10
+    epycOptimized: true
+---
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: xorbnumaaffinity
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  crd:
+    spec:
+      names:
+        kind: XorbNUMAffinity
+      validation:
+        type: object
+        properties:
+          requireNumaAnnotations:
+            type: boolean
+          allowedNumaNodes:
+            type: array
+            items:
+              type: integer
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package xorbnumaaffinity
+
+        violation[{"msg": msg}] {
+          # Ensure NUMA annotations are present for EPYC-optimized workloads
+          input.parameters.requireNumaAnnotations == true
+          input.review.object.metadata.annotations["xorb.ai/epyc-optimized"] == "true"
+          not input.review.object.metadata.annotations["numa.kubernetes.io/numa-node"]
+          msg := "EPYC-optimized workloads must specify NUMA node affinity"
+        }
+
+        violation[{"msg": msg}] {
+          # Validate NUMA node assignments
+          numa_node := to_number(input.review.object.metadata.annotations["numa.kubernetes.io/numa-node"])
+          allowed := input.parameters.allowedNumaNodes[_]
+          not numa_node == allowed
+          msg := sprintf("NUMA node %v is not in allowed list", [numa_node])
+        }
+
+        violation[{"msg": msg}] {
+          # Ensure CPU list annotation is present with NUMA node
+          input.review.object.metadata.annotations["numa.kubernetes.io/numa-node"]
+          not input.review.object.metadata.annotations["numa.kubernetes.io/cpu-list"]
+          msg := "NUMA node affinity requires CPU list specification"
+        }
+---
+apiVersion: config.gatekeeper.sh/v1alpha1
+kind: XorbNUMAffinity
+metadata:
+  name: xorb-numa-affinity
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  match:
+    - apiGroups: ["apps"]
+      kinds: ["Deployment", "StatefulSet"]
+      namespaces: ["xorb-prod"]
+  parameters:
+    requireNumaAnnotations: true
+    allowedNumaNodes: [0, 1]
+---
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: xorbresourcelimits
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  crd:
+    spec:
+      names:
+        kind: XorbResourceLimits
+      validation:
+        type: object
+        properties:
+          maxCpuCores:
+            type: integer
+          maxMemoryGi:
+            type: integer
+          epycCoreMultiplier:
+            type: integer
+          enforceEpycAlignment:
+            type: boolean
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package xorbresourcelimits
+
+        violation[{"msg": msg}] {
+          # Enforce maximum CPU limits
+          container := input.review.object.spec.containers[_]
+          cpu_limit := container.resources.limits.cpu
+          cpu_cores := cpu_to_cores(cpu_limit)
+          cpu_cores > input.parameters.maxCpuCores
+          msg := sprintf("Container '%v' CPU limit %v cores exceeds maximum %v", [container.name, cpu_cores, input.parameters.maxCpuCores])
+        }
+
+        violation[{"msg": msg}] {
+          # Enforce maximum memory limits
+          container := input.review.object.spec.containers[_]
+          memory_limit := container.resources.limits.memory
+          memory_gi := memory_to_gi(memory_limit)
+          memory_gi > input.parameters.maxMemoryGi
+          msg := sprintf("Container '%v' memory limit %vGi exceeds maximum %vGi", [container.name, memory_gi, input.parameters.maxMemoryGi])
+        }
+
+        violation[{"msg": msg}] {
+          # Enforce EPYC core alignment for optimized workloads
+          input.parameters.enforceEpycAlignment == true
+          input.review.object.metadata.annotations["xorb.ai/epyc-optimized"] == "true"
+          container := input.review.object.spec.containers[_]
+          cpu_limit := container.resources.limits.cpu
+          cpu_cores := cpu_to_cores(cpu_limit)
+          not epyc_aligned(cpu_cores, input.parameters.epycCoreMultiplier)
+          msg := sprintf("EPYC-optimized container '%v' CPU allocation %v cores not aligned with CCX boundaries", [container.name, cpu_cores])
+        }
+
+        # Helper function to convert CPU resource to core count
+        cpu_to_cores(cpu_str) = cores {
+          endswith(cpu_str, "m")
+          cores := to_number(trim_suffix(cpu_str, "m")) / 1000
+        }
+
+        cpu_to_cores(cpu_str) = cores {
+          not endswith(cpu_str, "m")
+          cores := to_number(cpu_str)
+        }
+
+        # Helper function to convert memory resource to GiB
+        memory_to_gi(memory_str) = gi {
+          endswith(memory_str, "Gi")
+          gi := to_number(trim_suffix(memory_str, "Gi"))
+        }
+
+        memory_to_gi(memory_str) = gi {
+          endswith(memory_str, "Mi")
+          gi := to_number(trim_suffix(memory_str, "Mi")) / 1024
+        }
+
+        memory_to_gi(memory_str) = gi {
+          endswith(memory_str, "G")
+          gi := to_number(trim_suffix(memory_str, "G")) * 0.9313  # GB to GiB conversion
+        }
+
+        # Helper function to check EPYC CCX alignment
+        epyc_aligned(cores, multiplier) {
+          cores > 0
+          cores <= 64  # EPYC 7702 max cores
+          # Check if cores is a multiple of CCX size (4 cores per CCX)
+          remainder := cores - (floor(cores / 4) * 4)
+          remainder == 0
+        }
+---
+apiVersion: config.gatekeeper.sh/v1alpha1
+kind: XorbResourceLimits
+metadata:
+  name: xorb-resource-limits
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/component: security
+spec:
+  match:
+    - apiGroups: ["apps"]
+      kinds: ["Deployment", "StatefulSet", "DaemonSet"]
+      namespaces: ["xorb-prod"]
+  parameters:
+    maxCpuCores: 32
+    maxMemoryGi: 64
+    epycCoreMultiplier: 4  # CCX size
+    enforceEpycAlignment: true
+---
+# OPA Gatekeeper configuration for Xorb namespace
+apiVersion: config.gatekeeper.sh/v1alpha1
+kind: Config
+metadata:
+  name: config
+  namespace: gatekeeper-system
+spec:
+  match:
+    - excludedNamespaces: ["kube-system", "gatekeeper-system"]
+      processes: ["*"]
+  validation:
+    traces:
+      - user:
+          kind:
+            group: "*"
+            version: "*"
+            kind: "*"
+      - target: "xorb-prod"
+  sync:
+    syncOnly:
+      - group: ""
+        version: "v1"
+        kind: "Namespace"
+      - group: ""
+        version: "v1" 
+        kind: "Pod"
+      - group: "apps"
+        version: "v1"
+        kind: "Deployment"
+      - group: "apps"
+        version: "v1"
+        kind: "StatefulSet"
+      - group: "apps"
+        version: "v1"
+        kind: "DaemonSet"

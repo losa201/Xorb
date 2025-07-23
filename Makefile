@@ -1,53 +1,67 @@
-# Xorb 2.0 Development & Operations Makefile
-# EPYC-optimized with GitOps, monitoring, and enhanced developer experience
+# Xorb 2.0 EPYC-Optimized Platform - Enhanced Makefile
+# Developer UX improvements with hot-reload, EPYC optimization, and comprehensive tooling
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
-
-# =============================================================================
-# CONFIGURATION
-# =============================================================================
+.PHONY: help
 
 # Project configuration
 PROJECT_NAME := xorb
 VERSION := 2.0.0
-REGISTRY := registry.xorb.ai
+PYTHON_VERSION := 3.12
 
-# Environment detection
-ENV ?= development
-NAMESPACE := xorb-$(ENV)
-KUBE_CONTEXT ?= $(shell kubectl config current-context)
+# Directories
+SRC_DIR := packages/xorb_core
+TESTS_DIR := tests
+DOCS_DIR := docs
+VENV_DIR := venv
+RESULTS_DIR := optimization_results
 
-# Build configuration
-BUILD_DATE := $(shell date -u +%Y-%m-%dT%H:%M:%S)
-BUILD_COMMIT := $(shell git rev-parse --short HEAD)
-BUILD_BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+# EPYC Configuration
+EPYC_CORES := 64
+NUMA_NODES := 2
+EPYC_MODEL := 7702
 
-# Docker configuration
-DOCKER_BUILDKIT := 1
-DOCKER_COMPOSE_FILE := docker-compose.yml
-ifeq ($(ENV),development)
-	DOCKER_COMPOSE_FILE := docker-compose.yml:docker-compose.dev.yml
-endif
+# Kubernetes configuration
+K8S_NAMESPACE := xorb-prod
+KUBECTL := kubectl
+HELM := helm
 
 # Colors for output
-RED := \033[31m
-GREEN := \033[32m
-YELLOW := \033[33m
-BLUE := \033[34m
-MAGENTA := \033[35m
-CYAN := \033[36m
-WHITE := \033[37m
+RED := \033[0;31m
+GREEN := \033[0;32m
+YELLOW := \033[0;33m
+BLUE := \033[0;34m
+PURPLE := \033[0;35m
+CYAN := \033[0;36m
+WHITE := \033[0;37m
 RESET := \033[0m
 
-# =============================================================================
-# HELP & INFORMATION
-# =============================================================================
+# ============================================================================
+# Help System
+# ============================================================================
 
-.PHONY: help
 help: ## Show this help message
-	@echo -e "$(CYAN)Xorb 2.0 - AI-Powered Security Intelligence Platform$(RESET)"
-	@echo -e "$(CYAN)===============================================$(RESET)"
+	@echo "$(CYAN)Xorb 2.0 EPYC-Optimized Platform - Developer Tools$(RESET)"
+	@echo "$(CYAN)=================================================$(RESET)"
+	@echo ""
+	@echo "$(YELLOW)🚀 Development Commands:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "dev-|setup|install|clean" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@echo ""
+	@echo "$(YELLOW)🔧 EPYC Optimization:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "epyc-|numa-|optimize" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@echo ""
+	@echo "$(YELLOW)🐛 Testing & Quality:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "test|lint|format|check" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@echo ""
+	@echo "$(YELLOW)☸️  Kubernetes & Deployment:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "deploy|k8s-|helm-" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@echo ""
+	@echo "$(YELLOW)📊 Monitoring & Analysis:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "monitor|metrics|benchmark|profile" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@echo ""
+	@echo "$(YELLOW)🔐 Security:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "security|audit|scan" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
 	@echo ""
 	@echo -e "$(YELLOW)Environment:$(RESET) $(ENV)"
 	@echo -e "$(YELLOW)Namespace:$(RESET)   $(NAMESPACE)"
@@ -90,7 +104,12 @@ setup: ## Initial development environment setup
 		echo -e "$(YELLOW)Creating .env from template...$(RESET)"; \
 		cp .env.$(ENV) .env; \
 	fi
-	@if command -v poetry >/dev/null 2>&1; then \
+	@if [ ! -d $(VENV_DIR) ]; then \
+		echo -e "$(YELLOW)Creating virtual environment...$(RESET)"; \
+		python3 -m venv $(VENV_DIR); \
+	fi; \
+	source $(VENV_DIR)/bin/activate; \
+	if grep -q "\[tool\\.poetry\]" pyproject.toml && command -v poetry >/dev/null 2>&1; then \
 		echo -e "$(YELLOW)Installing Python dependencies with Poetry...$(RESET)"; \
 		poetry install --with dev; \
 	else \
@@ -415,37 +434,37 @@ shell: ## Open a shell in the API container
 
 .PHONY: python-shell
 python-shell: ## Open a Python shell with project imports
-	@docker-compose -f $(DOCKER_COMPOSE_FILE) exec api python -c "
-import sys; sys.path.append('/app'); 
-from packages.xorb_core.xorb_core import *; 
-print('Xorb 2.0 Python shell ready!'); 
-import IPython; IPython.start_ipython(argv=[])
-" 2>/dev/null || python -c "
-import sys; sys.path.append('.'); 
-from packages.xorb_core.xorb_core import *; 
-print('Xorb 2.0 Python shell ready!')
+	@docker-compose -f $(DOCKER_COMPOSE_FILE) exec api python -c "\
+import sys; sys.path.append('/app'); \
+from packages.xorb_core.xorb_core import *; \
+print('Xorb 2.0 Python shell ready!'); \
+import IPython; IPython.start_ipython(argv=[])\
+" 2>/dev/null || python -c "\
+import sys; sys.path.append('.'); \
+from packages.xorb_core.xorb_core import *; \
+print('Xorb 2.0 Python shell ready!')\
 "
 
 .PHONY: agent-discovery
 agent-discovery: ## Test agent discovery
 	@echo -e "$(GREEN)Testing agent discovery...$(RESET)"
-	@python -c "
-import asyncio
-from packages.xorb_core.xorb_core.orchestration.enhanced_orchestrator import AgentRegistry
-async def test():
-    registry = AgentRegistry()
-    agents = await registry.discover_agents()
-    print(f'Discovered {len(agents)} agents: {list(agents)}')
-asyncio.run(test())
+	@python -c "\
+import asyncio; \
+from packages.xorb_core.xorb_core.orchestration.enhanced_orchestrator import AgentRegistry; \
+async def test(): \
+    registry = AgentRegistry(); \
+    agents = await registry.discover_agents(); \
+    print(f'Discovered {len(agents)} agents: {list(agents)}'); \
+asyncio.run(test())\
 "
 
 .PHONY: config-validate
 config-validate: ## Validate configuration files
 	@echo -e "$(GREEN)Validating configuration files...$(RESET)"
 	@echo -e "$(YELLOW)Validating YAML files...$(RESET)"
-	@find . -name "*.yaml" -o -name "*.yml" | xargs yamllint || echo "yamllint not available"
+	@find . -name "*.yaml" -o -name "*.yml" | xargs $(VENV_DIR)/bin/yamllint || echo "yamllint not available"
 	@echo -e "$(YELLOW)Validating JSON files...$(RESET)"
-	@find . -name "*.json" | xargs python -m json.tool > /dev/null || echo "JSON validation failed"
+	@find . -name "*.json" -print0 | xargs -0 -n1 $(VENV_DIR)/bin/python -m json.tool > /dev/null || echo "JSON validation failed"
 
 .PHONY: docs
 docs: ## Generate documentation

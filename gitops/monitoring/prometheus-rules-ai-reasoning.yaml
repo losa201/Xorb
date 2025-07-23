@@ -1,0 +1,157 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: xorb-ai-reasoning-alerts
+  labels:
+    app: xorb
+    component: ai-reasoning
+spec:
+  groups:
+  - name: xorb.ai_reasoning.alerts
+    rules:
+    # Introspective Reasoning Alerts
+    - alert: XorbHighReflectionLatency
+      expr: histogram_quantile(0.95, rate(xorb_introspective_reflection_duration_seconds_bucket[5m])) > 2.0
+      for: 2m
+      labels:
+        severity: warning
+        component: introspective_reasoning
+      annotations:
+        summary: "High introspective reflection latency detected"
+        description: "95th percentile reflection latency is {{ $value }}s, exceeding 2s threshold"
+    
+    - alert: XorbLowReflectionConfidence
+      expr: rate(xorb_introspective_low_confidence_reflections_total[5m]) > 0.1
+      for: 3m
+      labels:
+        severity: warning
+        component: introspective_reasoning
+      annotations:
+        summary: "High rate of low-confidence reflections"
+        description: "{{ $value }} low-confidence reflections per second over 5 minutes"
+    
+    # Temporal Memory Alerts
+    - alert: XorbTemporalMemoryFragmentation
+      expr: xorb_temporal_memory_fragmentation_ratio > 0.8
+      for: 5m
+      labels:
+        severity: critical
+        component: temporal_memory
+      annotations:
+        summary: "Temporal memory fragmentation critical"
+        description: "Memory fragmentation ratio is {{ $value }}, exceeding 80% threshold"
+    
+    - alert: XorbMemoryConsolidationFailure
+      expr: increase(xorb_temporal_memory_consolidation_failures_total[10m]) > 5
+      for: 2m
+      labels:
+        severity: warning
+        component: temporal_memory
+      annotations:
+        summary: "Multiple memory consolidation failures"
+        description: "{{ $value }} consolidation failures in last 10 minutes"
+    
+    # Hierarchical Policy Alerts
+    - alert: XorbExcessivePolicySwitching
+      expr: rate(xorb_hierarchical_policy_switches_total[5m]) > 2.0
+      for: 3m
+      labels:
+        severity: warning
+        component: hierarchical_policy
+      annotations:
+        summary: "Excessive policy switching detected"
+        description: "Policy switching rate is {{ $value }}/sec, indicating potential instability"
+    
+    - alert: XorbPolicyDeadlock
+      expr: time() - xorb_hierarchical_policy_last_switch_timestamp > 3600
+      for: 5m
+      labels:
+        severity: critical
+        component: hierarchical_policy
+      annotations:
+        summary: "Policy switching appears deadlocked"
+        description: "No policy switches in over 1 hour, possible deadlock condition"
+    
+    # Root Cause Attribution Alerts
+    - alert: XorbCausalAnalysisTimeout
+      expr: increase(xorb_root_cause_analysis_timeouts_total[10m]) > 3
+      for: 2m
+      labels:
+        severity: warning
+        component: root_cause_attribution
+      annotations:
+        summary: "Causal analysis timeouts increasing"
+        description: "{{ $value }} analysis timeouts in last 10 minutes"
+    
+    - alert: XorbLowCausalConfidence
+      expr: histogram_quantile(0.5, rate(xorb_root_cause_confidence_bucket[10m])) < 0.3
+      for: 5m
+      labels:
+        severity: warning
+        component: root_cause_attribution
+      annotations:
+        summary: "Low causal inference confidence"
+        description: "Median causal confidence is {{ $value }}, below 30% threshold"
+    
+    # Uncertainty Governance Alerts
+    - alert: XorbHighUncertaintyDecisions
+      expr: rate(xorb_uncertainty_high_uncertainty_decisions_total[5m]) > 0.5
+      for: 3m
+      labels:
+        severity: warning
+        component: uncertainty_governance
+      annotations:
+        summary: "High rate of uncertain decisions"
+        description: "{{ $value }} high-uncertainty decisions per second"
+    
+    - alert: XorbGovernanceRollback
+      expr: increase(xorb_uncertainty_governance_rollbacks_total[5m]) > 0
+      for: 1m
+      labels:
+        severity: critical
+        component: uncertainty_governance
+      annotations:
+        summary: "Governance rollback triggered"
+        description: "{{ $value }} governance rollbacks in last 5 minutes"
+    
+    # Attack Chain Simulation Alerts
+    - alert: XorbAttackSimulationFailure
+      expr: rate(xorb_attack_simulation_generation_failures_total[10m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+        component: attack_chain_simulation
+      annotations:
+        summary: "Attack simulation generation failures"
+        description: "{{ $value }} simulation failures per second over 10 minutes"
+    
+    - alert: XorbAttackChainComplexity
+      expr: histogram_quantile(0.95, rate(xorb_attack_chain_complexity_bucket[15m])) > 15
+      for: 5m
+      labels:
+        severity: info
+        component: attack_chain_simulation
+      annotations:
+        summary: "High attack chain complexity detected"
+        description: "95th percentile chain complexity is {{ $value }} steps"
+    
+    # Cross-Component Integration Alerts
+    - alert: XorbAIComponentsDesync
+      expr: abs(xorb_ai_component_sync_timestamp{component="introspective"} - xorb_ai_component_sync_timestamp{component="temporal"}) > 300
+      for: 2m
+      labels:
+        severity: critical
+        component: ai_integration
+      annotations:
+        summary: "AI components are desynchronized"
+        description: "Component timestamps differ by more than 5 minutes"
+    
+    - alert: XorbAIResourceExhaustion
+      expr: sum(rate(container_cpu_usage_seconds_total{pod=~".*ai-reasoning.*"}[5m])) / sum(container_spec_cpu_quota{pod=~".*ai-reasoning.*"} / container_spec_cpu_period{pod=~".*ai-reasoning.*"}) > 0.9
+      for: 3m
+      labels:
+        severity: warning
+        component: ai_reasoning
+      annotations:
+        summary: "AI reasoning components under high CPU load"
+        description: "CPU utilization is {{ $value | humanizePercentage }} of allocated resources"
