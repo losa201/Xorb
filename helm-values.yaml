@@ -1,0 +1,87 @@
+
+# helm-values.yaml
+# Optimized values for Xorb 2.0 stateful services on a single node K3s cluster.
+
+# PostgreSQL (Bitnami Chart)
+postgresql:
+  primary:
+    persistence:
+      size: 5Gi # Adjust as needed
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+
+# Temporal (Temporalio Chart)
+temporal:
+  server:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2000m"
+        memory: "2Gi"
+  cassandra:
+    enabled: false # Use PostgreSQL instead
+  postgresql:
+    enabled: true
+    # Use the PostgreSQL instance deployed by the bitnami chart
+    host: 'xorb-postgresql.xorb.svc.cluster.local' 
+    user: 'postgres'
+    password:
+      secretKey: postgresql-password
+      secretName: xorb-postgresql
+  elasticsearch:
+    enabled: false
+
+# Neo4j (Neo4j Chart)
+neo4j:
+  name: xorb-neo4j
+  standalone:
+    volumes:
+      data:
+        mode: defaultStorageClass
+    passwordFromSecret: xorb-neo4j-secret
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2000m"
+        memory: "2Gi"
+    persistence:
+      size: 5Gi
+
+# Qdrant (Qdrant Chart)
+qdrant:
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+  persistence:
+    size: 5Gi
+
+# NATS (NATS Chart)
+nats:
+  nats:
+    jetstream:
+      enabled: true
+      memStorage:
+        enabled: true
+        size: 2Gi
+    resources:
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"

@@ -1,0 +1,14 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "xorb-api"
+version = "2.0.0"
+dependencies = [
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+    "temporalio>=1.0.0",
+    # This installs the local package in editable mode
+    "xorb-core @ {root:uri}/../../packages/xorb_core"
+]

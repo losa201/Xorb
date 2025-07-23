@@ -1,0 +1,16 @@
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+metadata:
+  name: xorb-api.xorb.svc.cluster.local
+  namespace: xorb
+spec:
+  routes:
+  - name: 'POST /workflow/start'
+    condition:
+      method: POST
+      pathRegex: /workflow/start
+    isRetryable: false
+  - name: 'GET /health'
+    condition:
+      method: GET
+      pathRegex: /health

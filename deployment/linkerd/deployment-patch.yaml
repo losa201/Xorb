@@ -1,0 +1,6 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xorb-api
+  annotations:
+    linkerd.io/inject: enabled

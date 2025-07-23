@@ -1,0 +1,15 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: xorb-api
+  namespace: xorb
+  labels:
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app: xorb-api
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s

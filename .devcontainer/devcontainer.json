@@ -1,0 +1,22 @@
+{
+  "name": "Xorb Development",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11",
+  "postCreateCommand": "poetry install",
+  "forwardPorts": [
+    8000,
+    5432,
+    4222
+  ],
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "njpwerner.autodocstring",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode"
+      ]
+    }
+  }
+}

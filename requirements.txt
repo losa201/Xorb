@@ -108,4 +108,4 @@ colorama>=0.4.0
 # pip install xgboost scikit-learn pandas numpy
 # pip install qdrant-client sentence-transformers torch transformers
 # pip install pytest pytest-asyncio pytest-cov
-# pip install black flake8 mypy pre-commit
+# pip install black flake8 mypy pre-commitstarlette-prometheus

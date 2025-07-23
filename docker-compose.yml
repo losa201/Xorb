@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./services/api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./services/api/app:/app/app
+      - ./packages/xorb_core:/app/packages/xorb_core
+    depends_on:
+      - temporal
+      - postgres
+      - redis
+
+  worker:
+    build:
+      context: ./services/worker
+      dockerfile: Dockerfile
+    volumes:
+      - ./services/worker/app:/app/app
+      - ./packages/xorb_core:/app/packages/xorb_core
+    depends_on:
+      - temporal
+
+  temporal:
+    image: temporalio/auto-setup:1.10.0
+    ports:
+      - "7233:7233"
+      - "8233:8233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_DB=temporal
+      - POSTGRES_SEEDS=postgres
+
+  postgres:
+    image: ankane/pgvector
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=temporal
+      - POSTGRES_PASSWORD=temporal
+      - POSTGRES_DB=temporal
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: services/orchestrator/Dockerfile
+    volumes:
+      - ./services/orchestrator:/app/services/orchestrator
+      - ./packages/xorb_core:/app/packages/xorb_core
+      - ./targets.json:/app/targets.json
+    depends_on:
+      - temporal
