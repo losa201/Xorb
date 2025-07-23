@@ -1,0 +1,129 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.services.worker.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.services.worker.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/part-of: xorb
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.services.worker.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.services.worker.name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+        config.linkerd.io/proxy-cpu-request: "100m"
+        config.linkerd.io/proxy-memory-request: "128Mi"
+        config.linkerd.io/proxy-cpu-limit: "200m"
+        config.linkerd.io/proxy-memory-limit: "256Mi"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+      labels:
+        app.kubernetes.io/name: {{ .Values.services.worker.name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: worker
+        app.kubernetes.io/part-of: xorb
+    spec:
+      serviceAccountName: {{ .Values.services.worker.name }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+      - name: worker
+        securityContext:
+          {{- toYaml .Values.securityContext | nindent 10 }}
+        image: "{{ .Values.global.imageRegistry }}{{ .Values.services.worker.image.repository }}:{{ .Values.services.worker.image.tag }}"
+        imagePullPolicy: {{ .Values.services.worker.image.pullPolicy }}
+        env:
+        - name: XORB_ENVIRONMENT
+          value: {{ .Values.global.xorb.environment }}
+        - name: XORB_LOG_LEVEL
+          value: {{ .Values.global.xorb.logLevel }}
+        - name: XORB_DEBUG
+          value: "{{ .Values.global.xorb.debug }}"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: xorb-database-secret
+              key: database-url
+        - name: TEMPORAL_HOST
+          value: "{{ .Release.Name }}-temporal-frontend.{{ .Release.Namespace }}.svc.cluster.local:7233"
+        - name: REDIS_URL
+          value: "redis://{{ .Release.Name }}-redis-master.{{ .Release.Namespace }}.svc.cluster.local:6379"
+        - name: QDRANT_URL
+          value: "http://{{ .Release.Name }}-qdrant.{{ .Release.Namespace }}.svc.cluster.local:6333"
+        - name: NEO4J_URI
+          value: "bolt://{{ .Release.Name }}-neo4j.{{ .Release.Namespace }}.svc.cluster.local:7687"
+        - name: NATS_URL
+          value: "nats://{{ .Release.Name }}-nats.{{ .Release.Namespace }}.svc.cluster.local:4222"
+        - name: WORKER_CONCURRENCY
+          value: "8"  # EPYC optimized concurrency
+        - name: AGENT_POOL_SIZE
+          value: "16" # More agents for EPYC
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9090
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 10
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 9090
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          {{- toYaml .Values.services.worker.resources | nindent 10 }}
+        volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: agent-cache
+          mountPath: /app/agent-cache
+        - name: shared-workspace
+          mountPath: /app/workspace
+      volumes:
+      - name: tmp
+        emptyDir: {}
+      - name: agent-cache
+        emptyDir:
+          sizeLimit: 2Gi
+      - name: shared-workspace
+        emptyDir:
+          sizeLimit: 5Gi
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---

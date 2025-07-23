@@ -1,0 +1,318 @@
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+metadata:
+  name: xorb-api.xorb-prod.svc.cluster.local
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/component: api
+    app.kubernetes.io/part-of: xorb
+spec:
+  routes:
+  - name: health_check
+    condition:
+      method: GET
+      pathRegex: /health
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 5s
+    retryBudget:
+      retryRatio: 0.2
+      minRetriesPerSecond: 10
+      ttl: 10s
+    
+  - name: ready_check
+    condition:
+      method: GET
+      pathRegex: /ready
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 3s
+    retryBudget:
+      retryRatio: 0.1
+      minRetriesPerSecond: 5
+      ttl: 10s
+      
+  - name: api_campaigns
+    condition:
+      method: POST
+      pathRegex: /api/v1/campaigns
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 400
+          max: 499
+      isFailure: false  # Client errors are not retryable
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 30s
+    retryBudget:
+      retryRatio: 0.1
+      minRetriesPerSecond: 1
+      ttl: 30s
+      
+  - name: api_campaigns_get
+    condition:
+      method: GET
+      pathRegex: /api/v1/campaigns.*
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 404
+          max: 404
+      isFailure: false  # Not found is expected
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 10s
+    retryBudget:
+      retryRatio: 0.2
+      minRetriesPerSecond: 5
+      ttl: 10s
+      
+  - name: api_agents
+    condition:
+      method: GET
+      pathRegex: /api/v1/agents.*
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 15s
+    retryBudget:
+      retryRatio: 0.3
+      minRetriesPerSecond: 10
+      ttl: 15s
+      
+  - name: metrics
+    condition:
+      method: GET
+      pathRegex: /metrics
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 10s
+    retryBudget:
+      retryRatio: 0.1
+      minRetriesPerSecond: 2
+      ttl: 10s
+---
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+metadata:
+  name: xorb-orchestrator.xorb-prod.svc.cluster.local
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/component: orchestrator
+    app.kubernetes.io/part-of: xorb
+spec:
+  routes:
+  - name: health_check
+    condition:
+      method: GET
+      pathRegex: /health
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 5s
+    retryBudget:
+      retryRatio: 0.2
+      minRetriesPerSecond: 10
+      ttl: 10s
+      
+  - name: ready_check
+    condition:
+      method: GET
+      pathRegex: /ready
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 3s
+    retryBudget:
+      retryRatio: 0.1
+      minRetriesPerSecond: 5
+      ttl: 10s
+      
+  - name: campaign_operations
+    condition:
+      method: POST
+      pathRegex: /orchestrator/.*
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 400
+          max: 499
+      isFailure: false  # Client errors are not retryable
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 60s  # Longer timeout for orchestration operations
+    retryBudget:
+      retryRatio: 0.05  # Lower retry ratio for heavy operations
+      minRetriesPerSecond: 1
+      ttl: 60s
+      
+  - name: metrics
+    condition:
+      method: GET
+      pathRegex: /metrics
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 10s
+    retryBudget:
+      retryRatio: 0.1
+      minRetriesPerSecond: 2
+      ttl: 10s
+---
+apiVersion: linkerd.io/v1alpha2
+kind: ServiceProfile
+metadata:
+  name: xorb-worker.xorb-prod.svc.cluster.local
+  namespace: xorb-prod
+  labels:
+    app.kubernetes.io/component: worker
+    app.kubernetes.io/part-of: xorb
+spec:
+  routes:
+  - name: health_check
+    condition:
+      method: GET
+      pathRegex: /health
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 5s
+    retryBudget:
+      retryRatio: 0.2
+      minRetriesPerSecond: 10
+      ttl: 10s
+      
+  - name: ready_check
+    condition:
+      method: GET
+      pathRegex: /ready
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 3s
+    retryBudget:
+      retryRatio: 0.1
+      minRetriesPerSecond: 5
+      ttl: 10s
+      
+  - name: metrics
+    condition:
+      method: GET
+      pathRegex: /metrics
+    responseClasses:
+    - condition:
+        status:
+          min: 200
+          max: 299
+      isFailure: false
+    - condition:
+        status:
+          min: 500
+          max: 599
+      isFailure: true
+    timeout: 10s
+    retryBudget:
+      retryRatio: 0.1
+      minRetriesPerSecond: 2
+      ttl: 10s
+---

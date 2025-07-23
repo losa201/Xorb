@@ -1,0 +1,201 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: xorb-dev
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Xorb 2.0 Development Environment
+  sourceRepos:
+  - 'https://github.com/losa201/Xorb.git'
+  - 'https://charts.bitnami.com/bitnami'
+  - 'https://go.temporal.io/helm-charts'
+  - 'oci://registry-1.docker.io/qdranttech/qdrant-helm'
+  - 'https://helm.neo4j.com/neo4j'
+  - 'https://nats-io.github.io/k8s/helm/charts/'
+  destinations:
+  - namespace: 'xorb-dev'
+    server: https://kubernetes.default.svc
+  - namespace: 'xorb-infra-dev'
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: networking.k8s.io
+    kind: NetworkPolicy
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRole
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Secret
+  - group: ''
+    kind: Service
+  - group: ''
+    kind: ServiceAccount
+  - group: apps
+    kind: Deployment
+  - group: apps
+    kind: StatefulSet
+  - group: networking.k8s.io
+    kind: Ingress
+  - group: autoscaling
+    kind: HorizontalPodAutoscaler
+  roles:
+  - name: dev-admin
+    description: Development environment administrator
+    policies:
+    - p, proj:xorb-dev:dev-admin, applications, *, xorb-dev/*, allow
+    groups:
+    - xorb:developers
+  - name: dev-readonly
+    description: Development environment read-only
+    policies:
+    - p, proj:xorb-dev:dev-readonly, applications, get, xorb-dev/*, allow
+    - p, proj:xorb-dev:dev-readonly, applications, sync, xorb-dev/*, allow
+    groups:
+    - xorb:qa
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: xorb-staging
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Xorb 2.0 Staging Environment
+  sourceRepos:
+  - 'https://github.com/losa201/Xorb.git'
+  - 'https://charts.bitnami.com/bitnami'
+  - 'https://go.temporal.io/helm-charts'
+  - 'oci://registry-1.docker.io/qdranttech/qdrant-helm'
+  - 'https://helm.neo4j.com/neo4j'
+  - 'https://nats-io.github.io/k8s/helm/charts/'
+  destinations:
+  - namespace: 'xorb-staging'
+    server: https://kubernetes.default.svc
+  - namespace: 'xorb-infra-staging'
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: networking.k8s.io
+    kind: NetworkPolicy
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRole
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Secret
+  - group: ''
+    kind: Service
+  - group: ''
+    kind: ServiceAccount
+  - group: apps
+    kind: Deployment
+  - group: apps
+    kind: StatefulSet
+  - group: networking.k8s.io
+    kind: Ingress
+  - group: autoscaling
+    kind: HorizontalPodAutoscaler
+  roles:
+  - name: staging-admin
+    description: Staging environment administrator
+    policies:
+    - p, proj:xorb-staging:staging-admin, applications, *, xorb-staging/*, allow
+    groups:
+    - xorb:devops
+    - xorb:tech-leads
+  - name: staging-readonly
+    description: Staging environment read-only
+    policies:
+    - p, proj:xorb-staging:staging-readonly, applications, get, xorb-staging/*, allow
+    groups:
+    - xorb:developers
+    - xorb:qa
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: xorb-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Xorb 2.0 Production Environment
+  sourceRepos:
+  - 'https://github.com/losa201/Xorb.git'
+  - 'https://charts.bitnami.com/bitnami'  
+  - 'https://go.temporal.io/helm-charts'
+  - 'oci://registry-1.docker.io/qdranttech/qdrant-helm'
+  - 'https://helm.neo4j.com/neo4j'
+  - 'https://nats-io.github.io/k8s/helm/charts/'
+  destinations:
+  - namespace: 'xorb-prod'
+    server: https://kubernetes.default.svc
+  - namespace: 'xorb-infra-prod'
+    server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: networking.k8s.io
+    kind: NetworkPolicy
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRole
+  - group: rbac.authorization.k8s.io
+    kind: ClusterRoleBinding
+  namespaceResourceWhitelist:
+  - group: ''
+    kind: ConfigMap
+  - group: ''
+    kind: Secret
+  - group: ''
+    kind: Service
+  - group: ''
+    kind: ServiceAccount  
+  - group: apps
+    kind: Deployment
+  - group: apps
+    kind: StatefulSet
+  - group: networking.k8s.io
+    kind: Ingress
+  - group: autoscaling
+    kind: HorizontalPodAutoscaler
+  syncWindows:
+  - kind: allow
+    schedule: '0 6 * * 1-5'  # Weekday mornings only
+    duration: 4h
+    applications:
+    - '*'
+    manualSync: false
+  roles:
+  - name: prod-admin
+    description: Production environment administrator
+    policies:
+    - p, proj:xorb-prod:prod-admin, applications, *, xorb-prod/*, allow
+    groups:
+    - xorb:platform-admins
+  - name: prod-deployer
+    description: Production deployment role
+    policies:
+    - p, proj:xorb-prod:prod-deployer, applications, sync, xorb-prod/*, allow
+    - p, proj:xorb-prod:prod-deployer, applications, get, xorb-prod/*, allow
+    groups:
+    - xorb:devops
+  - name: prod-readonly
+    description: Production read-only
+    policies:
+    - p, proj:xorb-prod:prod-readonly, applications, get, xorb-prod/*, allow
+    groups:
+    - xorb:developers
+    - xorb:sre
+---

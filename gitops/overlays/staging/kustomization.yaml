@@ -1,0 +1,104 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: xorb-staging
+
+resources:
+- ../base
+
+namespace: xorb-staging
+
+namePrefix: staging-
+
+commonLabels:
+  xorb.ai/environment: staging
+  
+commonAnnotations:
+  xorb.ai/managed-by: kustomize
+  xorb.ai/environment: staging
+
+images:
+- name: xorb/api
+  newTag: "2.0.0-staging"
+- name: xorb/worker
+  newTag: "2.0.0-staging"
+- name: xorb/orchestrator
+  newTag: "2.0.0-staging"
+
+replicas:
+- name: xorb-api
+  count: 2
+- name: xorb-worker
+  count: 4
+- name: xorb-orchestrator
+  count: 2
+
+configMapGenerator:
+- name: xorb-config
+  behavior: merge
+  literals:
+  - XORB_ENVIRONMENT=staging
+  - XORB_LOG_LEVEL=INFO
+  - XORB_DEBUG=false
+  - TEMPORAL_HOST=staging-temporal-frontend.xorb-staging.svc.cluster.local:7233
+  - REDIS_URL=redis://staging-redis-master.xorb-staging.svc.cluster.local:6379
+  - QDRANT_URL=http://staging-qdrant.xorb-staging.svc.cluster.local:6333
+  - NEO4J_URI=bolt://staging-neo4j.xorb-staging.svc.cluster.local:7687
+  - NATS_URL=nats://staging-nats.xorb-staging.svc.cluster.local:4222
+  - MAX_CONCURRENT_CAMPAIGNS=5
+  - MAX_AGENTS_PER_CAMPAIGN=10
+  - WORKER_CONCURRENCY=4
+  - AGENT_POOL_SIZE=8
+
+patches:
+- target:
+    kind: Deployment
+    name: xorb-api
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "300m"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "768Mi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "1"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "1.5Gi"
+    
+- target:
+    kind: Deployment  
+    name: xorb-worker
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "750m"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "1.5Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "2"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "3Gi"
+
+- target:
+    kind: Deployment
+    name: xorb-orchestrator
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "500m"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "1Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "1"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "2Gi"

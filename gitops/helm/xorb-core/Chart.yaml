@@ -1,0 +1,38 @@
+apiVersion: v2
+name: xorb-core
+description: Xorb 2.0 AI-Powered Security Intelligence Platform - Core Services
+type: application
+version: 2.0.0
+appVersion: "2.0.0"
+keywords:
+  - security
+  - ai
+  - vulnerability-assessment
+  - bug-bounty
+home: https://github.com/losa201/Xorb
+sources:
+  - https://github.com/losa201/Xorb
+maintainers:
+  - name: Xorb Team
+    email: security@xorb.ai
+dependencies:
+  - name: postgresql
+    version: "13.2.25"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: temporal
+    version: "0.23.0"
+    repository: https://go.temporal.io/helm-charts
+    condition: temporal.enabled
+  - name: qdrant
+    version: "0.7.2"
+    repository: oci://registry-1.docker.io/qdranttech/qdrant-helm
+    condition: qdrant.enabled
+  - name: neo4j
+    version: "5.9.0"
+    repository: https://helm.neo4j.com/neo4j
+    condition: neo4j.enabled
+  - name: nats
+    version: "0.19.2"
+    repository: https://nats-io.github.io/k8s/helm/charts/
+    condition: nats.enabled

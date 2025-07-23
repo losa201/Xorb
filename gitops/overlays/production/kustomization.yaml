@@ -1,0 +1,127 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: xorb-production
+
+resources:
+- ../base
+- production-networkpolicies.yaml
+- production-poddisruptionbudgets.yaml
+
+namespace: xorb-prod
+
+namePrefix: prod-
+
+commonLabels:
+  xorb.ai/environment: production
+  
+commonAnnotations:
+  xorb.ai/managed-by: kustomize
+  xorb.ai/environment: production
+  xorb.ai/optimized-for: epyc-7702
+
+images:
+- name: xorb/api
+  newTag: "2.0.0"
+- name: xorb/worker
+  newTag: "2.0.0"
+- name: xorb/orchestrator
+  newTag: "2.0.0"
+
+# EPYC-optimized replica counts
+replicas:
+- name: xorb-api
+  count: 4
+- name: xorb-worker
+  count: 8
+- name: xorb-orchestrator
+  count: 3
+
+configMapGenerator:
+- name: xorb-config
+  behavior: merge
+  literals:
+  - XORB_ENVIRONMENT=production
+  - XORB_LOG_LEVEL=INFO
+  - XORB_DEBUG=false
+  - TEMPORAL_HOST=prod-temporal-frontend.xorb-prod.svc.cluster.local:7233
+  - REDIS_URL=redis://prod-redis-master.xorb-prod.svc.cluster.local:6379
+  - QDRANT_URL=http://prod-qdrant.xorb-prod.svc.cluster.local:6333
+  - NEO4J_URI=bolt://prod-neo4j.xorb-prod.svc.cluster.local:7687
+  - NATS_URL=nats://prod-nats.xorb-prod.svc.cluster.local:4222
+  - MAX_CONCURRENT_CAMPAIGNS=10
+  - MAX_AGENTS_PER_CAMPAIGN=20
+  - WORKER_CONCURRENCY=8
+  - AGENT_POOL_SIZE=16
+
+# EPYC-optimized resource patches
+patches:
+- target:
+    kind: Deployment
+    name: xorb-api
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "500m"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "1Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "2"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "2Gi"
+    - op: add
+      path: /spec/template/spec/nodeSelector
+      value:
+        kubernetes.io/arch: amd64
+        node.kubernetes.io/cpu-family: "EPYC"
+        xorb.ai/optimized-for: epyc-7702
+    
+- target:
+    kind: Deployment
+    name: xorb-worker
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "1"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "2Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "4"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "6Gi"
+    - op: add
+      path: /spec/template/spec/nodeSelector
+      value:
+        kubernetes.io/arch: amd64
+        node.kubernetes.io/cpu-family: "EPYC"
+        xorb.ai/optimized-for: epyc-7702
+
+- target:
+    kind: Deployment
+    name: xorb-orchestrator
+  patch: |-
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/cpu
+      value: "1"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/requests/memory
+      value: "2Gi"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/cpu
+      value: "3"
+    - op: replace
+      path: /spec/template/spec/containers/0/resources/limits/memory
+      value: "4Gi"
+    - op: add
+      path: /spec/template/spec/nodeSelector
+      value:
+        kubernetes.io/arch: amd64
+        node.kubernetes.io/cpu-family: "EPYC"
+        xorb.ai/optimized-for: epyc-7702

@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ..:/workspace:cached
+      - /var/run/docker.sock:/var/run/docker-host.sock:ro
+      - ~/.gitconfig:/home/vscode/.gitconfig:ro
+      - ~/.ssh:/home/vscode/.ssh:ro
+    environment:
+      - DOCKER_HOST=unix:///var/run/docker-host.sock
+      - PYTHONPATH=/workspace:$PYTHONPATH
+      - XORB_ENVIRONMENT=development
+      - XORB_LOG_LEVEL=DEBUG
+      - XORB_DEBUG=true
+    command: sleep infinity
+    user: vscode
+    depends_on:
+      - postgres
+      - redis
+      - temporal
+      - nats
+
+  # Override services for development
+  postgres:
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=xorb_dev
+      - POSTGRES_USER=xorb_dev
+      - POSTGRES_PASSWORD=xorb_dev_password
+
+  redis:
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_dev_data:/data
+
+  temporal:
+    ports:
+      - "7233:7233"
+      - "8233:8233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=xorb_dev
+      - POSTGRES_PWD=xorb_dev_password
+      - POSTGRES_DB=xorb_dev
+      - POSTGRES_SEEDS=postgres
+      - DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml
+
+  nats:
+    image: nats:2.10-alpine
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+      - "6222:6222"
+    command: [
+      "--js",
+      "--http_port", "8222",
+      "--port", "4222",
+      "--cluster_name", "xorb-dev",
+      "--cluster", "nats://0.0.0.0:6222"
+    ]
+    volumes:
+      - nats_dev_data:/data
+
+volumes:
+  postgres_dev_data:
+  redis_dev_data:
+  nats_dev_data:

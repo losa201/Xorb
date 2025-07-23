@@ -1,0 +1,193 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: xorb-environments
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: xorb-applicationset
+    app.kubernetes.io/part-of: xorb-gitops
+spec:
+  generators:
+  # Multi-environment generator with tenant support
+  - matrix:
+      generators:
+      - list:
+          elements:
+          - environment: dev
+            namespace: xorb-dev
+            server: https://kubernetes.default.svc
+            project: xorb-dev
+            repoURL: https://github.com/losa201/Xorb.git
+            targetRevision: develop
+            syncPolicy: |
+              automated:
+                prune: true
+                selfHeal: true
+              syncOptions:
+              - CreateNamespace=true
+              - PrunePropagationPolicy=foreground
+              - PruneLast=true
+          - environment: staging
+            namespace: xorb-staging
+            server: https://kubernetes.default.svc
+            project: xorb-staging
+            repoURL: https://github.com/losa201/Xorb.git
+            targetRevision: main
+            syncPolicy: |
+              automated:
+                prune: true
+                selfHeal: false
+              syncOptions:
+              - CreateNamespace=true
+              - PrunePropagationPolicy=foreground
+          - environment: production
+            namespace: xorb-prod
+            server: https://kubernetes.default.svc
+            project: xorb-prod
+            repoURL: https://github.com/losa201/Xorb.git
+            targetRevision: v2.0.0
+            syncPolicy: |
+              syncOptions:
+              - CreateNamespace=true
+              - PrunePropagationPolicy=foreground
+              - ApplyOutOfSyncOnly=true
+      - list:
+          elements:
+          - tenant: core
+            path: gitops/helm/xorb-core
+            chart: xorb-core
+          - tenant: infra
+            path: gitops/helm/xorb-infra
+            chart: xorb-infra
+  template:
+    metadata:
+      name: 'xorb-{{tenant}}-{{environment}}'
+      namespace: '{{namespace}}'
+      labels:
+        app.kubernetes.io/name: 'xorb-{{tenant}}'
+        app.kubernetes.io/instance: '{{environment}}'
+        app.kubernetes.io/component: '{{tenant}}'
+        app.kubernetes.io/part-of: xorb
+        xorb.ai/environment: '{{environment}}'
+        xorb.ai/tenant: '{{tenant}}'
+      annotations:
+        argocd.argoproj.io/sync-wave: "{{ if eq .tenant \"infra\" }}1{{ else }}2{{ end }}"
+        notifications.argoproj.io/subscribe.on-sync-succeeded.slack: xorb-deployments
+        notifications.argoproj.io/subscribe.on-sync-failed.slack: xorb-alerts
+    spec:
+      project: '{{project}}'
+      source:
+        repoURL: '{{repoURL}}'
+        targetRevision: '{{targetRevision}}'
+        path: '{{path}}'
+        helm:
+          valueFiles:
+          - values.yaml
+          - 'values-{{environment}}.yaml'
+          - '{{ if eq .environment "production" }}values-epyc.yaml{{ end }}'
+          parameters:
+          - name: global.xorb.environment
+            value: '{{environment}}'
+          - name: global.xorb.tenant
+            value: '{{tenant}}'
+          - name: global.imageRegistry
+            value: 'registry.xorb.ai/{{tenant}}/'
+      destination:
+        server: '{{server}}'
+        namespace: '{{namespace}}'
+      syncPolicy: |
+        {{syncPolicy}}
+      ignoreDifferences:
+      - group: apps
+        kind: Deployment
+        jsonPointers:
+        - /spec/replicas
+      - group: ""
+        kind: Secret
+        jsonPointers:
+        - /data
+      revisionHistoryLimit: 10
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: xorb-infrastructure
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: xorb-infra-applicationset
+    app.kubernetes.io/part-of: xorb-gitops
+spec:
+  generators:
+  - matrix:
+      generators:
+      - list:
+          elements:
+          - environment: dev
+            namespace: xorb-infra-dev
+            server: https://kubernetes.default.svc
+            project: xorb-dev
+          - environment: staging
+            namespace: xorb-infra-staging
+            server: https://kubernetes.default.svc
+            project: xorb-staging
+          - environment: production
+            namespace: xorb-infra-prod
+            server: https://kubernetes.default.svc
+            project: xorb-prod
+      - list:
+          elements:
+          - name: postgresql
+            chart: postgresql
+            repo: https://charts.bitnami.com/bitnami
+            version: "13.2.25"
+          - name: temporal
+            chart: temporal
+            repo: https://go.temporal.io/helm-charts
+            version: "0.23.0"
+          - name: qdrant
+            chart: qdrant
+            repo: oci://registry-1.docker.io/qdranttech/qdrant-helm
+            version: "0.7.2"
+          - name: neo4j
+            chart: neo4j
+            repo: https://helm.neo4j.com/neo4j
+            version: "5.9.0"
+          - name: nats
+            chart: nats
+            repo: https://nats-io.github.io/k8s/helm/charts/
+            version: "0.19.2"
+  template:
+    metadata:
+      name: 'xorb-{{name}}-{{environment}}'
+      namespace: '{{namespace}}'
+      labels:
+        app.kubernetes.io/name: 'xorb-{{name}}'
+        app.kubernetes.io/instance: '{{environment}}'
+        app.kubernetes.io/component: infrastructure
+        app.kubernetes.io/part-of: xorb
+        xorb.ai/environment: '{{environment}}'
+        xorb.ai/infrastructure: '{{name}}'
+      annotations:
+        argocd.argoproj.io/sync-wave: "0"
+    spec:
+      project: '{{project}}'
+      source:
+        repoURL: '{{repo}}'
+        chart: '{{chart}}'
+        targetRevision: '{{version}}'
+        helm:
+          valueFiles:
+          - 'values-{{environment}}.yaml'
+          - '{{ if eq .environment "production" }}values-epyc.yaml{{ end }}'
+      destination:
+        server: '{{server}}'
+        namespace: '{{namespace}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+        - ServerSideApply=true
+      revisionHistoryLimit: 5
+---

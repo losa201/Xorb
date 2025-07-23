@@ -1,0 +1,215 @@
+# EPYC 7702 Optimized Values for Xorb 2.0
+# 64 cores / 128 threads, 256MB L3 cache, 16-32GB RAM
+# Tuned for high concurrency with memory efficiency
+
+global:
+  xorb:
+    environment: "production"
+    logLevel: "INFO"
+    
+# Service Configuration - EPYC Optimized
+services:
+  api:
+    replicaCount: 4  # Utilize more cores
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
+      limits:
+        cpu: "2"        # Allow burst to 2 cores per pod
+        memory: "2Gi"
+    autoscaling:
+      enabled: true
+      minReplicas: 4
+      maxReplicas: 16    # Scale up to use more cores
+      targetCPUUtilizationPercentage: 65  # Lower threshold for responsiveness
+      
+  worker:
+    replicaCount: 8      # More workers for EPYC's parallel processing
+    resources:
+      requests:
+        cpu: "1"         # Higher base CPU for compute-intensive tasks
+        memory: "2Gi"
+      limits:
+        cpu: "4"         # Allow burst to 4 cores per worker
+        memory: "6Gi"    # More memory for agent processing
+    autoscaling:
+      enabled: true
+      minReplicas: 8
+      maxReplicas: 32    # Utilize EPYC's thread count
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 75
+      
+  orchestrator:
+    replicaCount: 3      # Active-active with failover
+    resources:
+      requests:
+        cpu: "1"
+        memory: "2Gi"
+      limits:
+        cpu: "3"         # More CPU for campaign management
+        memory: "4Gi"
+
+# EPYC-specific Node Selection
+nodeSelector:
+  kubernetes.io/arch: amd64
+  node.kubernetes.io/cpu-family: "EPYC"
+  xorb.ai/optimized-for: "epyc-7702"
+
+# Affinity Rules for EPYC optimization
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/arch
+          operator: In
+          values: ["amd64"]
+        - key: node.kubernetes.io/cpu-family
+          operator: In
+          values: ["EPYC"]
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/part-of
+            operator: In
+            values: ["xorb"]
+        topologyKey: kubernetes.io/hostname
+
+# Dependencies - EPYC Optimized
+postgresql:
+  enabled: true
+  primary:
+    persistence:
+      size: 200Gi       # Larger storage for production
+    resources:
+      requests:
+        cpu: "4"         # Utilize EPYC cores for DB performance
+        memory: "8Gi"
+      limits:
+        cpu: "8"
+        memory: "16Gi"
+    extendedConfiguration: |
+      max_connections = 400
+      shared_buffers = '4GB'
+      effective_cache_size = '12GB'
+      maintenance_work_mem = '1GB'
+      checkpoint_completion_target = 0.9
+      wal_buffers = '64MB'
+      default_statistics_target = 100
+      random_page_cost = 1.1
+      effective_io_concurrency = 200
+      work_mem = '32MB'
+      min_wal_size = '2GB'
+      max_wal_size = '8GB'
+      max_worker_processes = 16
+      max_parallel_workers_per_gather = 4
+      max_parallel_workers = 16
+      max_parallel_maintenance_workers = 4
+  readReplicas:
+    enabled: true
+    replicaCount: 2     # Read replicas for scaling
+    resources:
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+      limits:
+        cpu: "4"
+        memory: "8Gi"
+
+temporal:
+  enabled: true
+  server:
+    replicaCount: 4     # Higher replica count for EPYC
+    resources:
+      requests:
+        cpu: "2"
+        memory: "4Gi"
+      limits:
+        cpu: "4"
+        memory: "8Gi"
+  worker:
+    replicaCount: 8     # More Temporal workers
+    resources:
+      requests:
+        cpu: "1"
+        memory: "2Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+
+qdrant:
+  enabled: true
+  replicaCount: 4       # Distributed vector storage
+  resources:
+    requests:
+      cpu: "4"          # Vector operations benefit from EPYC's FPU
+      memory: "8Gi"
+    limits:
+      cpu: "8"
+      memory: "16Gi"
+  persistence:
+    size: 500Gi         # Large vector storage
+  config:
+    service:
+      max_request_size_mb: 256
+      grpc_port: 6334
+      http_port: 6333
+    storage:
+      # Optimize for EPYC's cache hierarchy
+      mmap_threshold_kb: 524288  # 512MB
+      performance:
+        max_optimization_threads: 8
+
+neo4j:
+  enabled: true
+  standalone:
+    resources:
+      requests:
+        cpu: "4"          # Graph operations benefit from EPYC
+        memory: "16Gi"
+      limits:
+        cpu: "8"
+        memory: "32Gi"
+    persistence:
+      size: 500Gi
+    # Neo4j performance tuning for EPYC
+    env:
+      NEO4J_server_memory_heap_initial__size: "8g"
+      NEO4J_server_memory_heap_max__size: "24g"
+      NEO4J_server_memory_pagecache_size: "4g"
+      NEO4J_server_tx__log_rotation_retention__policy: "10 files"
+      NEO4J_server_db_tx__log_rotation_size: "100M"
+
+nats:
+  enabled: true
+  nats:
+    jetstream:
+      enabled: true
+      memStorage:
+        enabled: true
+        size: 8Gi       # Large memory for message streaming
+      fileStorage:
+        enabled: true
+        size: 100Gi
+    replicas: 3         # Cluster for HA
+    resources:
+      requests:
+        cpu: "1"
+        memory: "2Gi"
+      limits:
+        cpu: "2"
+        memory: "4Gi"
+
+# Resource Quotas and Limits
+resourceQuota:
+  enabled: true
+  limits:
+    requests.cpu: "50"    # Reserve 50 cores max
+    requests.memory: "100Gi"
+    limits.cpu: "100"     # Burst to 100 cores (78% of EPYC)
+    limits.memory: "200Gi"
+    persistentvolumeclaims: "20"

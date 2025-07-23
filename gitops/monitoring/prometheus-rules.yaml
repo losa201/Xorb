@@ -1,0 +1,197 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: xorb-alerts
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: xorb-alerts
+    app.kubernetes.io/part-of: xorb
+    prometheus: kube-prometheus
+spec:
+  groups:
+  - name: xorb.api.rules
+    interval: 30s
+    rules:
+    - alert: XorbAPIDown
+      expr: up{job="xorb-api-metrics"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: api
+        service: xorb
+      annotations:
+        summary: "Xorb API is down"
+        description: "Xorb API has been down for more than 5 minutes in {{ $labels.environment }} environment."
+        runbook_url: "https://xorb.ai/runbooks/api-down"
+        
+    - alert: XorbAPIHighLatency
+      expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="xorb-api-metrics"}[5m])) > 0.5
+      for: 10m
+      labels:
+        severity: warning
+        component: api
+        service: xorb
+      annotations:
+        summary: "Xorb API high latency"
+        description: "95th percentile latency is {{ $value }}s for {{ $labels.environment }} environment."
+        
+    - alert: XorbAPIHighErrorRate
+      expr: rate(http_requests_total{job="xorb-api-metrics",status=~"5.."}[5m]) / rate(http_requests_total{job="xorb-api-metrics"}[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: warning
+        component: api
+        service: xorb
+      annotations:
+        summary: "Xorb API high error rate"
+        description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.environment }} environment."
+        
+  - name: xorb.orchestrator.rules
+    interval: 30s
+    rules:
+    - alert: XorbOrchestratorDown
+      expr: up{job="xorb-orchestrator-metrics"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: orchestrator
+        service: xorb
+      annotations:
+        summary: "Xorb Orchestrator is down"
+        description: "Xorb Orchestrator has been down for more than 5 minutes in {{ $labels.environment }} environment."
+        runbook_url: "https://xorb.ai/runbooks/orchestrator-down"
+        
+    - alert: XorbCampaignStuck
+      expr: xorb_campaign_duration_seconds{status="running"} > 3600
+      for: 30m
+      labels:
+        severity: warning
+        component: orchestrator
+        service: xorb
+      annotations:
+        summary: "Xorb campaign stuck"
+        description: "Campaign {{ $labels.campaign_id }} has been running for more than 1 hour."
+        
+    - alert: XorbHighFailureCampaigns
+      expr: rate(xorb_campaign_total{status="failed"}[30m]) / rate(xorb_campaign_total[30m]) > 0.2
+      for: 15m
+      labels:
+        severity: warning
+        component: orchestrator
+        service: xorb
+      annotations:
+        summary: "High campaign failure rate"
+        description: "Campaign failure rate is {{ $value | humanizePercentage }} in {{ $labels.environment }} environment."
+        
+  - name: xorb.worker.rules
+    interval: 30s
+    rules:
+    - alert: XorbWorkerDown
+      expr: up{job="xorb-worker-metrics"} == 0
+      for: 5m
+      labels:
+        severity: warning
+        component: worker
+        service: xorb
+      annotations:
+        summary: "Xorb Worker is down"
+        description: "Xorb Worker {{ $labels.pod }} has been down for more than 5 minutes."
+        
+    - alert: XorbAgentExecutionHigh
+      expr: xorb_agent_execution_duration_seconds{quantile="0.95"} > 300
+      for: 10m
+      labels:
+        severity: warning
+        component: worker
+        service: xorb
+      annotations:
+        summary: "High agent execution time"
+        description: "95th percentile agent execution time is {{ $value }}s for agent {{ $labels.agent_type }}."
+        
+    - alert: XorbAgentFailureHigh
+      expr: rate(xorb_agent_executions_total{status="failed"}[15m]) / rate(xorb_agent_executions_total[15m]) > 0.1
+      for: 10m
+      labels:
+        severity: warning
+        component: worker
+        service: xorb
+      annotations:
+        summary: "High agent failure rate"
+        description: "Agent failure rate is {{ $value | humanizePercentage }} for {{ $labels.agent_type }}."
+        
+  - name: xorb.resource.rules
+    interval: 30s
+    rules:
+    - alert: XorbHighCPUUsage
+      expr: rate(container_cpu_usage_seconds_total{namespace=~"xorb-.*",container!="POD",container!=""}[5m]) / container_spec_cpu_quota * container_spec_cpu_period > 0.8
+      for: 10m
+      labels:
+        severity: warning
+        component: resource
+        service: xorb
+      annotations:
+        summary: "High CPU usage"
+        description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is using {{ $value | humanizePercentage }} of CPU."
+        
+    - alert: XorbHighMemoryUsage
+      expr: container_memory_usage_bytes{namespace=~"xorb-.*",container!="POD",container!=""} / container_spec_memory_limit_bytes > 0.9
+      for: 10m
+      labels:
+        severity: warning
+        component: resource
+        service: xorb
+      annotations:
+        summary: "High memory usage"
+        description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is using {{ $value | humanizePercentage }} of memory."
+        
+  - name: xorb.linkerd.rules
+    interval: 30s
+    rules:
+    - alert: XorbLinkerdHighErrorRate
+      expr: sum(rate(response_total{namespace=~"xorb-.*",classification="failure"}[5m])) by (dst_service) / sum(rate(response_total{namespace=~"xorb-.*"}[5m])) by (dst_service) > 0.05
+      for: 5m
+      labels:
+        severity: warning
+        component: linkerd
+        service: xorb
+      annotations:
+        summary: "High Linkerd error rate"
+        description: "Service {{ $labels.dst_service }} has {{ $value | humanizePercentage }} error rate."
+        
+    - alert: XorbLinkerdHighLatency
+      expr: histogram_quantile(0.95, sum(rate(response_latency_ms_bucket{namespace=~"xorb-.*"}[5m])) by (le, dst_service)) > 1000
+      for: 10m
+      labels:
+        severity: warning
+        component: linkerd
+        service: xorb
+      annotations:
+        summary: "High Linkerd latency"
+        description: "Service {{ $labels.dst_service }} has 95th percentile latency of {{ $value }}ms."
+        
+  - name: xorb.epyc.rules
+    interval: 30s
+    rules:
+    - alert: XorbEPYCNodeDown
+      expr: up{job="node-exporter", instance=~".*epyc.*"} == 0
+      for: 2m
+      labels:
+        severity: critical
+        component: infrastructure
+        service: xorb
+      annotations:
+        summary: "EPYC node is down"
+        description: "EPYC node {{ $labels.instance }} has been down for more than 2 minutes."
+        runbook_url: "https://xorb.ai/runbooks/epyc-node-down"
+        
+    - alert: XorbEPYCHighLoad
+      expr: node_load15{instance=~".*epyc.*"} / scalar(count(node_cpu_seconds_total{mode="idle", instance=~".*epyc.*"}) by (instance)) > 0.8
+      for: 15m
+      labels:
+        severity: warning
+        component: infrastructure
+        service: xorb
+      annotations:
+        summary: "EPYC node high load"
+        description: "EPYC node {{ $labels.instance }} has load average of {{ $value }} (15min)."
+---

@@ -1,0 +1,55 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+metadata:
+  name: xorb-base
+  
+resources:
+- ../../helm/xorb-core/templates/deployment-api.yaml
+- ../../helm/xorb-core/templates/deployment-worker.yaml
+- ../../helm/xorb-core/templates/deployment-orchestrator.yaml
+- ../../helm/xorb-core/templates/services.yaml
+- rbac.yaml
+- configmaps.yaml
+- secrets.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: xorb
+  app.kubernetes.io/managed-by: kustomize
+
+commonAnnotations:
+  xorb.ai/version: "2.0.0"
+  
+namePrefix: xorb-
+
+namespace: xorb-system
+
+images:
+- name: xorb/api
+  newTag: "2.0.0"
+- name: xorb/worker  
+  newTag: "2.0.0"
+- name: xorb/orchestrator
+  newTag: "2.0.0"
+
+replicas:
+- name: xorb-api
+  count: 2
+- name: xorb-worker
+  count: 4
+- name: xorb-orchestrator
+  count: 2
+
+configMapGenerator:
+- name: xorb-config
+  literals:
+  - XORB_ENVIRONMENT=base
+  - XORB_LOG_LEVEL=INFO
+  - XORB_DEBUG=false
+  
+secretGenerator:
+- name: xorb-secrets
+  literals:
+  - DATABASE_PASSWORD=changeme
+  - JWT_SECRET=changeme
+  - API_KEY=changeme
