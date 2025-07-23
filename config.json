@@ -1,0 +1,52 @@
+{
+    "redis_url": "redis://localhost:6379/0",
+    "database_url": "sqlite+aiosqlite:///./xorb_enhanced.db",
+    "openrouter_api_key": "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",
+    "llm_providers": {
+        "openrouter": {
+            "api_key": "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",
+            "base_url": "https://openrouter.ai/api/v1",
+            "models": ["qwen/qwen3-235b-a22b-07-25:free"],
+            "daily_budget": 5.0,
+            "enabled": true
+        }
+    },
+    "hackerone_api_key": "",
+    "security_level": "development",
+    "deployment_mode": "development",
+    
+    "enhanced_features": {
+        "ensemble_ml": true,
+        "threat_intelligence": true,
+        "stealth_agents": true,
+        "graph_knowledge": false,
+        "market_intelligence": true,
+        "advanced_monitoring": true
+    },
+    
+    "threat_intelligence": {
+        "update_interval_minutes": 60,
+        "cache_ttl_days": 7,
+        "sources": ["nvd", "github", "urlhaus", "threatfox"]
+    },
+    
+    "stealth_config": {
+        "user_agent_rotation": true,
+        "proxy_rotation": false,
+        "request_delay_min": 1.0,
+        "request_delay_max": 3.0,
+        "fingerprint_randomization": true
+    },
+    
+    "monitoring": {
+        "prometheus_enabled": true,
+        "metrics_port": 8000,
+        "log_level": "INFO"
+    },
+    
+    "ml_config": {
+        "use_ensemble_predictor": true,
+        "fallback_to_simple": true,
+        "model_cache_ttl": 3600
+    }
+}

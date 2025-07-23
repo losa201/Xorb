@@ -1,0 +1,199 @@
+version: '3.8'
+
+services:
+  # Prometheus - Metrics collection and storage
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: xorb-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/rules/:/etc/prometheus/rules/
+      - prometheus-data:/prometheus
+    networks:
+      - xorb-monitoring
+    depends_on:
+      - node-exporter
+      - redis-exporter
+
+  # Grafana - Metrics visualization and dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: xorb-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=xorb_admin_2024
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    networks:
+      - xorb-monitoring
+    depends_on:
+      - prometheus
+
+  # Loki - Log aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: xorb-loki
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    networks:
+      - xorb-monitoring
+
+  # Promtail - Log shipping to Loki
+  promtail:
+    image: grafana/promtail:latest
+    container_name: xorb-promtail
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml
+      - /var/log:/var/log:ro
+      - ./logs:/app/logs:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - xorb-monitoring
+    depends_on:
+      - loki
+
+  # Jaeger - Distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: xorb-jaeger
+    restart: unless-stopped
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # Jaeger collector
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - jaeger-data:/badger
+    networks:
+      - xorb-monitoring
+
+  # Node Exporter - System metrics
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: xorb-node-exporter
+    restart: unless-stopped
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    networks:
+      - xorb-monitoring
+
+  # Redis Exporter - Redis metrics
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: xorb-redis-exporter
+    restart: unless-stopped
+    ports:
+      - "9121:9121"
+    environment:
+      - REDIS_ADDR=redis://host.docker.internal:6379
+    networks:
+      - xorb-monitoring
+
+  # Postgres Exporter - Database metrics (if using PostgreSQL)
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: xorb-postgres-exporter
+    restart: unless-stopped
+    ports:
+      - "9187:9187"
+    environment:
+      - DATA_SOURCE_NAME=postgresql://username:password@host.docker.internal:5432/xorb?sslmode=disable
+    networks:
+      - xorb-monitoring
+    profiles:
+      - postgres
+
+  # AlertManager - Alert routing and management
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: xorb-alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager-data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    networks:
+      - xorb-monitoring
+
+  # Blackbox Exporter - Endpoint monitoring
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: xorb-blackbox-exporter
+    restart: unless-stopped
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox_exporter/config.yml
+    networks:
+      - xorb-monitoring
+
+  # Cadvisor - Container metrics
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: xorb-cadvisor
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg
+    networks:
+      - xorb-monitoring
+    privileged: true
+
+volumes:
+  prometheus-data:
+  grafana-data:
+  loki-data:
+  jaeger-data:
+  alertmanager-data:
+
+networks:
+  xorb-monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

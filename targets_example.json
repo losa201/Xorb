@@ -1,0 +1,22 @@
+[
+  {
+    "url": "https://demo-app.example.com",
+    "technology_stack": ["PHP", "MySQL", "Apache"],
+    "operating_system": "Linux",
+    "web_server": "Apache 2.4",
+    "input_fields": ["username", "password", "search", "comment"],
+    "parameters": ["id", "page", "action", "user_id"],
+    "scope": "Full application testing authorized",
+    "contact": "security@example.com"
+  },
+  {
+    "url": "https://api.vulnerable-app.test",
+    "technology_stack": ["Node.js", "MongoDB", "Express", "JWT"],
+    "operating_system": "Linux",
+    "web_server": "Nginx",
+    "input_fields": ["email", "token", "data"],
+    "parameters": ["endpoint", "method", "payload"],
+    "scope": "API endpoints only",
+    "contact": "devops@vulnerable-app.test"
+  }
+]

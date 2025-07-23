@@ -1,0 +1,54 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-07-23T08:11:16.744542",
+    "report_type": "XORB_Supreme_Security_Assessment",
+    "target_program": "Bug Bounty Program",
+    "analysis_scope": "Automated_AI_Enhanced_Assessment"
+  },
+  "executive_summary": {
+    "target_analysis": {
+      "name": "Bug Bounty Program",
+      "bounty_range": "$300 - $250k",
+      "min_bounty": 250,
+      "max_bounty": 300,
+      "url": "https://hackerone.com/fireblocks_mpc/safe_harbor",
+      "scraped_at": "2025-07-23T08:04:38.689213",
+      "source": "hackerone_enhanced_scraper",
+      "confidence_score": 0.7
+    },
+    "market_context": {
+      "total_programs_analyzed": 17,
+      "average_market_bounty": 32.12,
+      "target_bounty_range": "$300 - $250k",
+      "relative_value": "High"
+    }
+  },
+  "technical_assessment": {
+    "ai_generated_payloads": "Generated for XSS, SQLi, SSRF categories",
+    "vulnerability_analysis": "Comprehensive AI analysis completed",
+    "testing_methodology": "Multi-vector approach with automation"
+  },
+  "strategic_recommendations": {
+    "priority_level": "High",
+    "estimated_roi": 12.5,
+    "recommended_time_investment": "4-12 hours based on bounty level",
+    "success_probability": "Medium-High with AI assistance"
+  },
+  "system_performance": {
+    "llm_usage": {
+      "total_requests": 1,
+      "total_cost_usd": 0.0,
+      "requests_by_model": {
+        "qwen/qwen3-235b-a22b-07-25:free": 1,
+        "moonshotai/kimi-k2:free": 0,
+        "google/gemini-flash-1.5": 0,
+        "anthropic/claude-3-haiku": 0,
+        "gemini-1.5-flash": 0
+      },
+      "avg_cost_per_request": 0.0,
+      "last_24h_requests": 1
+    },
+    "scraping_accuracy": "High - 17 programs extracted successfully",
+    "analysis_completeness": "100% - All components functional"
+  }
+}

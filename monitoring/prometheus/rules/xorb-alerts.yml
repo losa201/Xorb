@@ -1,0 +1,182 @@
+groups:
+  - name: xorb.rules
+    rules:
+    # XORB Application Alerts
+    - alert: XORBApplicationDown
+      expr: up{job="xorb-app"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "XORB application is down"
+        description: "XORB application has been down for more than 1 minute."
+
+    - alert: XORBHighErrorRate
+      expr: rate(xorb_requests_total{status=~"5.."}[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High error rate in XORB"
+        description: "XORB error rate is {{ $value }} errors per second."
+
+    - alert: XORBHighLatency
+      expr: histogram_quantile(0.95, rate(xorb_request_duration_seconds_bucket[5m])) > 1
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High latency in XORB"
+        description: "95th percentile latency is {{ $value }}s."
+
+    # Campaign Alerts
+    - alert: XORBCampaignFailureRate
+      expr: rate(xorb_campaigns_total{status="failed"}[10m]) > 0.05
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High campaign failure rate"
+        description: "Campaign failure rate is {{ $value }} failures per second."
+
+    - alert: XORBLongRunningCampaign
+      expr: time() - xorb_campaign_start_time > 7200  # 2 hours
+      for: 0m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Campaign running for too long"
+        description: "Campaign {{ $labels.campaign_id }} has been running for over 2 hours."
+
+    # Agent Alerts
+    - alert: XORBAgentDown
+      expr: xorb_agents_active < 1
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "No active XORB agents"
+        description: "No agents are currently active."
+
+    - alert: XORBAgentHighFailureRate
+      expr: rate(xorb_agent_tasks_total{status="failed"}[5m]) > 0.1
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High agent task failure rate"
+        description: "Agent {{ $labels.agent_id }} has failure rate of {{ $value }} per second."
+
+    # Knowledge Fabric Alerts
+    - alert: XORBKnowledgeFabricDown
+      expr: up{job="xorb-knowledge-fabric"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Knowledge Fabric is down"
+        description: "XORB Knowledge Fabric has been down for more than 1 minute."
+
+    - alert: XORBKnowledgeAtomGrowthStalled
+      expr: increase(xorb_knowledge_atoms_total[1h]) < 1
+      for: 2h
+      labels:
+        severity: warning
+      annotations:
+        summary: "Knowledge atom growth stalled"
+        description: "No new knowledge atoms created in the last 2 hours."
+
+    # System Resource Alerts
+    - alert: HighCPUUsage
+      expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High CPU usage"
+        description: "CPU usage is above 80% on {{ $labels.instance }}."
+
+    - alert: HighMemoryUsage
+      expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High memory usage"
+        description: "Memory usage is above 85% on {{ $labels.instance }}."
+
+    - alert: DiskSpaceLow
+      expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 90
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Disk space low"
+        description: "Disk usage is above 90% on {{ $labels.instance }}."
+
+    # Redis Alerts
+    - alert: RedisDown
+      expr: up{job="redis"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Redis is down"
+        description: "Redis has been down for more than 1 minute."
+
+    - alert: RedisHighMemoryUsage
+      expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Redis high memory usage"
+        description: "Redis memory usage is above 90%."
+
+    # External API Alerts
+    - alert: ExternalAPIDown
+      expr: probe_success{job="external-apis"} == 0
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "External API is down"
+        description: "External API {{ $labels.instance }} is not responding."
+
+    # Security Alerts
+    - alert: XORBSecurityViolation
+      expr: increase(xorb_security_violations_total[5m]) > 0
+      for: 0m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Security violation detected"
+        description: "Security violation of type {{ $labels.violation_type }} detected."
+
+    - alert: XORBRateLimitExceeded
+      expr: increase(xorb_rate_limit_exceeded_total[1m]) > 10
+      for: 0m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Rate limit exceeded"
+        description: "Rate limit exceeded {{ $value }} times in the last minute."
+
+    # Bounty Intelligence Alerts
+    - alert: XORBBountySubmissionFailed
+      expr: increase(xorb_bounty_submissions_total{status="failed"}[10m]) > 0
+      for: 0m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Bounty submission failed"
+        description: "Bounty submission failed for program {{ $labels.program }}."
+
+    - alert: XORBLowROI
+      expr: xorb_campaign_roi_score < 0.3
+      for: 5m
+      labels:
+        severity: info
+      annotations:
+        summary: "Low ROI campaign detected"
+        description: "Campaign {{ $labels.campaign_id }} has ROI score of {{ $value }}."
