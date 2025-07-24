@@ -1,0 +1,10 @@
+apiVersion: v2
+name: temporal
+description: A Helm chart for Temporal
+type: application
+version: 0.1.0
+appVersion: "1.21.3"
+dependencies:
+- name: temporal
+  version: "0.11.0"
+  repository: "https://temporalio.github.io/helm-charts"

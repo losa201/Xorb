@@ -1,0 +1,18 @@
+# Default values for temporal.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+temporal:
+  server:
+    replicaCount: 1
+  cassandra:
+    enabled: false
+  postgresql:
+    enabled: true
+    postgresql:
+      auth:
+        postgresPassword: "your-password"
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: false

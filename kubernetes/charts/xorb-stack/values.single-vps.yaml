@@ -1,0 +1,163 @@
+#
+# values.single-vps.yaml
+# Tuned for a single 8 vCPU / 16 GB RAM k3s node
+#
+
+# -- Global settings
+global:
+  imageRegistry: "ghcr.io/org"
+  imagePullSecrets: []
+  # - name: ghcr-secret
+  storageClass: "local-path"
+
+# -- xorb-api configuration
+xorb-api:
+  replicaCount: 1
+  image:
+    repository: "xorb-api"
+    tag: "latest" # This will be patched by GitOps
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "2"
+      memory: "1.5Gi"
+  ingress:
+    enabled: true
+    className: "traefik"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    hosts:
+      - host: "api.xorb.example.com"
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+     - secretName: api-xorb-example-com-tls
+       hosts:
+         - api.xorb.example.com
+
+# -- xorb-worker configuration
+xorb-worker:
+  replicaCount: 1
+  image:
+    repository: "xorb-worker"
+    tag: "latest" # This will be patched by GitOps
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "256Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+
+# -- pgvector configuration
+pgvector:
+  persistence:
+    size: "20Gi"
+
+# -- neo4j configuration
+neo4j:
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+  persistence:
+    size: "5Gi"
+  config:
+    dbms.memory.heap.initial_size: "1g"
+    dbms.memory.heap.max_size: "2g"
+
+# -- temporal configuration
+temporal:
+  server:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+      limits:
+        cpu: "1"
+        memory: "1Gi"
+  persistence:
+    # Point to our pgvector instance
+    defaultStore:
+      type: "postgresql"
+      sql:
+        user: "postgres"
+        pluginName: "postgres"
+        databaseName: "temporal"
+        connectAddr: "pgvector-postgresql:5432"
+        existingSecret: "pgvector-postgresql"
+        secretKey: "password"
+    visibilityStore:
+      type: "postgresql"
+      sql:
+        user: "postgres"
+        pluginName: "postgres"
+        databaseName: "temporal_visibility"
+        connectAddr: "pgvector-postgresql:5432"
+        existingSecret: "pgvector-postgresql"
+        secretKey: "password"
+  # Disable upstream charts we don't need
+  postgresql:
+    enabled: false
+  sqlite:
+    enabled: false
+
+# -- kube-prometheus-stack configuration
+kube-prometheus-stack:
+  prometheus:
+    prometheusSpec:
+      replicas: 1
+      resources:
+        requests:
+          cpu: "500m"
+          memory: "1Gi"
+        limits:
+          cpu: "1"
+          memory: "2Gi"
+  grafana:
+    enabled: true
+    ingress:
+      enabled: true
+      ingressClassName: "traefik"
+      annotations:
+        cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      hosts:
+        - "grafana.xorb.example.com"
+      tls:
+        - secretName: grafana-xorb-example-com-tls
+          hosts:
+            - "grafana.xorb.example.com"
+  alertmanager:
+    alertmanagerSpec:
+      replicas: 1
+
+# -- tempo configuration
+tempo:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "1"
+      memory: "1Gi"
+  tempo:
+    search:
+      enabled: true
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/traces
+  persistence:
+    enabled: true
+    size: 10Gi

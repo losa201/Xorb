@@ -1,3 +1,4 @@
+---
 apiVersion: linkerd.io/v1alpha2
 kind: ServiceProfile
 metadata:
@@ -5,12 +6,12 @@ metadata:
   namespace: xorb
 spec:
   routes:
-  - name: 'POST /workflow/start'
-    condition:
-      method: POST
-      pathRegex: /workflow/start
-    isRetryable: false
-  - name: 'GET /health'
-    condition:
-      method: GET
-      pathRegex: /health
+    - name: 'POST /workflow/start'
+      condition:
+        method: POST
+        pathRegex: /workflow/start
+      isRetryable: false
+    - name: 'GET /health'
+      condition:
+        method: GET
+        pathRegex: /health

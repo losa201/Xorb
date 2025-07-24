@@ -1,0 +1,10 @@
+apiVersion: v2
+name: neo4j
+description: A Helm chart for Neo4j
+type: application
+version: 0.1.0
+appVersion: "5.7.0"
+dependencies:
+- name: neo4j
+  version: "5.7.0"
+  repository: "https://helm.neo4j.com/neo4j"

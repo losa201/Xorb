@@ -1,0 +1,24 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: xorb-stack
+  namespace: flux-system
+spec:
+  interval: 1m
+  chart:
+    spec:
+      chart: ./kubernetes/charts/xorb-stack
+      sourceRef:
+        kind: GitRepository
+        name: flux-system
+        namespace: flux-system
+  valuesFromFile:
+    - path: ./kubernetes/charts/xorb-stack/values.single-vps.yaml
+  values:
+    # This will be patched by the GitHub Action
+    xorb-api:
+      image:
+        tag: "latest"
+    xorb-worker:
+      image:
+        tag: "latest"

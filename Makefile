@@ -9,6 +9,7 @@ SHELL := /bin/bash
 PROJECT_NAME := xorb
 VERSION := 2.0.0
 PYTHON_VERSION := 3.12
+PY?=python3
 
 # Directories
 SRC_DIR := packages/xorb_core
@@ -46,22 +47,22 @@ help: ## Show this help message
 	@echo "$(CYAN)=================================================$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)🚀 Development Commands:$(RESET)"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "dev-|setup|install|clean" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "dev-|setup|install|clean" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
 	@echo ""
 	@echo "$(YELLOW)🔧 EPYC Optimization:$(RESET)"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "epyc-|numa-|optimize" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "epyc-|numa-|optimize" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
 	@echo ""
 	@echo "$(YELLOW)🐛 Testing & Quality:$(RESET)"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "test|lint|format|check" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "test|lint|format|check" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
 	@echo ""
 	@echo "$(YELLOW)☸️  Kubernetes & Deployment:$(RESET)"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "deploy|k8s-|helm-" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "deploy|k8s-|helm-" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
 	@echo ""
 	@echo "$(YELLOW)📊 Monitoring & Analysis:$(RESET)"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "monitor|metrics|benchmark|profile" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "monitor|metrics|benchmark|profile" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
 	@echo ""
 	@echo "$(YELLOW)🔐 Security:$(RESET)"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -E "security|audit|scan" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "security|audit|scan" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
 	@echo ""
 	@echo -e "$(YELLOW)Environment:$(RESET) $(ENV)"
 	@echo -e "$(YELLOW)Namespace:$(RESET)   $(NAMESPACE)"
@@ -69,7 +70,7 @@ help: ## Show this help message
 	@echo -e "$(YELLOW)Version:$(RESET)     $(VERSION)"
 	@echo ""
 	@echo -e "$(GREEN)Available commands:$(RESET)"
-	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(CYAN)%-20s$(RESET) %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / {printf "  $(CYAN)%-20s$(RESET) %s\n", $1, $2}' $(MAKEFILE_LIST)
 
 .PHONY: info
 info: ## Show detailed environment information
@@ -84,11 +85,11 @@ info: ## Show detailed environment information
 	@echo -e "$(YELLOW)Build Branch:$(RESET)   $(BUILD_BRANCH)"
 	@echo ""
 	@echo -e "$(CYAN)=== System Information ===$(RESET)"
-	@echo -e "$(YELLOW)Docker:$(RESET)         $$(docker --version 2>/dev/null || echo 'Not available')"
-	@echo -e "$(YELLOW)Kubectl:$(RESET)        $$(kubectl version --client --short 2>/dev/null || echo 'Not available')"
-	@echo -e "$(YELLOW)Helm:$(RESET)           $$(helm version --short 2>/dev/null || echo 'Not available')"
-	@echo -e "$(YELLOW)Python:$(RESET)         $$(python --version 2>/dev/null || echo 'Not available')"
-	@echo -e "$(YELLOW)Poetry:$(RESET)         $$(poetry --version 2>/dev/null || echo 'Not available')"
+	@echo -e "$(YELLOW)Docker:$(RESET)         $(docker --version 2>/dev/null || echo 'Not available')"
+	@echo -e "$(YELLOW)Kubectl:$(RESET)        $(kubectl version --client --short 2>/dev/null || echo 'Not available')"
+	@echo -e "$(YELLOW)Helm:$(RESET)           $(helm version --short 2>/dev/null || echo 'Not available')"
+	@echo -e "$(YELLOW)Python:$(RESET)         $(python --version 2>/dev/null || echo 'Not available')"
+	@echo -e "$(YELLOW)Poetry:$(RESET)         $(poetry --version 2>/dev/null || echo 'Not available')"
 	@echo ""
 	@echo -e "$(CYAN)=== Kubernetes Context ===$(RESET)"
 	@kubectl config get-contexts | grep -E "(CURRENT|$(KUBE_CONTEXT))" || echo "Context not available"
@@ -96,6 +97,9 @@ info: ## Show detailed environment information
 # =============================================================================
 # DEVELOPMENT SETUP
 # =============================================================================
+
+install-dev: ## Install development dependencies
+	$(PY) -m pip install -r requirements.txt -r requirements-dev.txt
 
 .PHONY: setup
 setup: ## Initial development environment setup
@@ -358,9 +362,12 @@ gitops-sync: ## Sync ArgoCD applications
 # =============================================================================
 
 .PHONY: metrics
-metrics: ## Show Prometheus metrics
-	@echo -e "$(GREEN)Fetching Prometheus metrics...$(RESET)"
-	@curl -s http://localhost:9090/metrics | grep xorb_ | head -20 || echo "Metrics endpoint not available"
+metrics: ## Show Prometheus metrics from API
+	@echo -e "$(GREEN)Fetching API Prometheus metrics...$(RESET)"
+	@curl -sf http://localhost:8000/metrics | grep http_requests_total || echo "API metrics endpoint not available"
+	@echo ""
+	@echo -e "$(GREEN)Fetching Worker Prometheus metrics...$(RESET)"
+	@curl -sf http://localhost:9000/metrics | grep xorb_ | head -10 || echo "Worker metrics endpoint not available"
 
 .PHONY: health
 health: ## Check health of all services
