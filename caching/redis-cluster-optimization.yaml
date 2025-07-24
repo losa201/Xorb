@@ -1,0 +1,632 @@
+---
+# Advanced Redis Cluster Configuration for Xorb 2.0
+# High-performance caching with intelligent partitioning and failover
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xorb-cache
+  labels:
+    cache-tier: "advanced"
+
+---
+# Redis Cluster ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cluster-config
+  namespace: xorb-cache
+data:
+  redis.conf: |
+    # Redis Cluster Configuration for Xorb 2.0
+    port 6379
+    cluster-enabled yes
+    cluster-config-file nodes.conf
+    cluster-node-timeout 5000
+    appendonly yes
+    appendfsync everysec
+    
+    # Memory optimization
+    maxmemory 2gb
+    maxmemory-policy allkeys-lru
+    
+    # Persistence settings
+    save 900 1
+    save 300 10
+    save 60 10000
+    
+    # Network optimization
+    tcp-keepalive 300
+    timeout 0
+    tcp-backlog 511
+    
+    # Security
+    protected-mode no
+    requirepass "xorb-redis-cluster-2024"
+    
+    # Performance tuning
+    hash-max-ziplist-entries 512
+    hash-max-ziplist-value 64
+    list-max-ziplist-size -2
+    list-compress-depth 0
+    set-max-intset-entries 512
+    zset-max-ziplist-entries 128
+    zset-max-ziplist-value 64
+    
+    # Cluster specific
+    cluster-migration-barrier 1
+    cluster-require-full-coverage no
+
+  redis-sentinel.conf: |
+    # Redis Sentinel Configuration
+    port 26379
+    sentinel monitor xorb-redis-cluster redis-cluster-0.redis-cluster:6379 2
+    sentinel auth-pass xorb-redis-cluster xorb-redis-cluster-2024
+    sentinel down-after-milliseconds xorb-redis-cluster 5000
+    sentinel parallel-syncs xorb-redis-cluster 1
+    sentinel failover-timeout xorb-redis-cluster 10000
+
+---
+# Redis Cluster StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+  namespace: xorb-cache
+spec:
+  serviceName: redis-cluster
+  replicas: 6  # 3 masters + 3 replicas
+  selector:
+    matchLabels:
+      app: redis-cluster
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9121"
+    spec:
+      securityContext:
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
+      containers:
+      - name: redis
+        image: redis:7.2-alpine
+        ports:
+        - containerPort: 6379
+          name: client
+        - containerPort: 16379
+          name: gossip
+        command:
+        - redis-server
+        - /etc/redis/redis.conf
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: REDIS_CLUSTER_ANNOUNCE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts:
+        - name: conf
+          mountPath: /etc/redis/
+          readOnly: true
+        - name: data
+          mountPath: /data
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - -a
+            - "xorb-redis-cluster-2024"
+            - ping
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+        livenessProbe:
+          exec:
+            command:
+            - redis-cli
+            - -a
+            - "xorb-redis-cluster-2024"
+            - ping
+          initialDelaySeconds: 20
+          periodSeconds: 3
+
+      # Redis Exporter for Prometheus metrics
+      - name: redis-exporter
+        image: oliver006/redis_exporter:latest
+        ports:
+        - containerPort: 9121
+          name: metrics
+        env:
+        - name: REDIS_ADDR
+          value: "redis://localhost:6379"
+        - name: REDIS_PASSWORD
+          value: "xorb-redis-cluster-2024"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+
+      volumes:
+      - name: conf
+        configMap:
+          name: redis-cluster-config
+          defaultMode: 0755
+
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: fast-ssd
+      resources:
+        requests:
+          storage: 20Gi
+
+---
+# Redis Cluster Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster
+  namespace: xorb-cache
+  labels:
+    app: redis-cluster
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+    name: client
+  - port: 16379
+    targetPort: 16379
+    name: gossip
+  clusterIP: None
+  selector:
+    app: redis-cluster
+
+---
+# Redis Cluster Access Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster-access
+  namespace: xorb-cache
+  labels:
+    app: redis-cluster
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+    name: client
+  selector:
+    app: redis-cluster
+
+---
+# Intelligent Cache Manager
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache-manager
+  namespace: xorb-cache
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cache-manager
+  template:
+    metadata:
+      labels:
+        app: cache-manager
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+    spec:
+      containers:
+      - name: cache-manager
+        image: xorb/cache-manager:2.0.0
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: REDIS_CLUSTER_URLS
+          value: "redis-cluster-0.redis-cluster:6379,redis-cluster-1.redis-cluster:6379,redis-cluster-2.redis-cluster:6379"
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: redis-cluster-secrets
+              key: password
+        - name: CACHE_STRATEGIES
+          value: "lru,lfu,ttl,intelligent"
+        - name: PERFORMANCE_MONITORING
+          value: "enabled"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        volumeMounts:
+        - name: cache-strategies
+          mountPath: /etc/cache-strategies
+          readOnly: true
+      volumes:
+      - name: cache-strategies
+        configMap:
+          name: cache-strategies-config
+
+---
+# Cache Strategies Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cache-strategies-config
+  namespace: xorb-cache
+data:
+  strategies.yaml: |
+    cache_strategies:
+      # NVIDIA Embeddings Cache Strategy
+      embeddings:
+        pattern: "embedding:*"
+        ttl: 3600  # 1 hour
+        strategy: "write-through"
+        compression: true
+        partitioning: "consistent-hash"
+        
+      # Query Results Cache Strategy
+      queries:
+        pattern: "query:*"
+        ttl: 300   # 5 minutes
+        strategy: "write-behind"
+        max_size: "100mb"
+        eviction: "lru"
+        
+      # User Sessions Cache Strategy
+      sessions:
+        pattern: "session:*"
+        ttl: 1800  # 30 minutes
+        strategy: "write-through"
+        replication: 2
+        
+      # API Rate Limiting Cache
+      rate_limits:
+        pattern: "rate:*"
+        ttl: 60    # 1 minute
+        strategy: "write-through"
+        high_availability: true
+        
+      # Knowledge Fabric Cache
+      knowledge:
+        pattern: "knowledge:*"
+        ttl: 7200  # 2 hours
+        strategy: "read-through"
+        compression: true
+        intelligent_prefetch: true
+        
+      # Temporary Data Cache
+      temporary:
+        pattern: "temp:*"
+        ttl: 60    # 1 minute
+        strategy: "write-through"
+        memory_only: true
+
+  optimization.yaml: |
+    optimization_rules:
+      # Hot Data Identification
+      hot_data:
+        access_frequency_threshold: 10  # per minute
+        promotion_delay: 300           # 5 minutes
+        hot_tier_memory_limit: "512mb"
+        
+      # Cold Data Management
+      cold_data:
+        access_frequency_threshold: 0.1  # per hour
+        demotion_delay: 3600            # 1 hour
+        cold_storage_compression: true
+        
+      # Intelligent Prefetching
+      prefetching:
+        enabled: true
+        pattern_analysis: true
+        ml_prediction: true
+        prefetch_ratio: 0.2
+        
+      # Performance Monitoring
+      monitoring:
+        hit_rate_target: 0.95
+        latency_target_ms: 1
+        memory_usage_alert: 0.8
+        eviction_rate_alert: 0.1
+
+---
+# Cache Performance Monitor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cache-performance-monitor
+  namespace: xorb-cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cache-performance-monitor
+  template:
+    metadata:
+      labels:
+        app: cache-performance-monitor
+    spec:
+      containers:
+      - name: monitor
+        image: xorb/cache-monitor:2.0.0
+        ports:
+        - containerPort: 8080
+        - containerPort: 9090
+        env:
+        - name: MONITORING_INTERVAL
+          value: "30"
+        - name: REDIS_CLUSTER_URLS
+          value: "redis-cluster-access:6379"
+        - name: PERFORMANCE_THRESHOLDS
+          value: "hit_rate:0.95,latency_ms:1,memory_usage:0.8"
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+
+---
+# Redis Cluster Initialization Job
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: redis-cluster-init
+  namespace: xorb-cache
+spec:
+  template:
+    metadata:
+      labels:
+        app: redis-cluster-init
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: cluster-init
+        image: redis:7.2-alpine
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Waiting for Redis pods to be ready..."
+          sleep 30
+          
+          echo "Creating Redis cluster..."
+          redis-cli -a xorb-redis-cluster-2024 --cluster create \
+            redis-cluster-0.redis-cluster:6379 \
+            redis-cluster-1.redis-cluster:6379 \
+            redis-cluster-2.redis-cluster:6379 \
+            redis-cluster-3.redis-cluster:6379 \
+            redis-cluster-4.redis-cluster:6379 \
+            redis-cluster-5.redis-cluster:6379 \
+            --cluster-replicas 1 --cluster-yes
+          
+          echo "Redis cluster initialization complete"
+          
+          # Verify cluster status
+          redis-cli -a xorb-redis-cluster-2024 -h redis-cluster-0.redis-cluster cluster info
+          redis-cli -a xorb-redis-cluster-2024 -h redis-cluster-0.redis-cluster cluster nodes
+
+---
+# Cache Warming CronJob
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cache-warmer
+  namespace: xorb-cache
+spec:
+  schedule: "0 */6 * * *"  # Every 6 hours
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cache-warmer
+            image: xorb/cache-warmer:2.0.0
+            env:
+            - name: REDIS_CLUSTER_URL
+              value: "redis-cluster-access:6379"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-cluster-secrets
+                  key: password
+            - name: WARMING_STRATEGIES
+              value: "popular_queries,frequent_embeddings,user_sessions"
+            command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Starting cache warming process..."
+              
+              # Warm popular queries
+              python3 /app/warm_popular_queries.py
+              
+              # Pre-generate frequently accessed embeddings
+              python3 /app/warm_embeddings.py
+              
+              # Refresh user session data
+              python3 /app/warm_sessions.py
+              
+              echo "Cache warming completed successfully"
+            resources:
+              requests:
+                cpu: 200m
+                memory: 512Mi
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+          restartPolicy: OnFailure
+
+---
+# Secrets for Redis Cluster
+apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-cluster-secrets
+  namespace: xorb-cache
+type: Opaque
+stringData:
+  password: "xorb-redis-cluster-2024"
+  sentinel-password: "xorb-sentinel-2024"
+
+---
+# Network Policy for Cache Security
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cache-network-policy
+  namespace: xorb-cache
+spec:
+  podSelector:
+    matchLabels:
+      app: redis-cluster
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: xorb-system
+    - namespaceSelector:
+        matchLabels:
+          name: xorb-cache
+    ports:
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 16379
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: xorb-monitoring
+    ports:
+    - protocol: TCP
+      port: 9121  # Redis exporter metrics
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: xorb-cache
+    ports:
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 16379
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+
+---
+# ServiceMonitor for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: redis-cluster-metrics
+  namespace: xorb-cache
+spec:
+  selector:
+    matchLabels:
+      app: redis-cluster
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: cache-manager-metrics
+  namespace: xorb-cache
+spec:
+  selector:
+    matchLabels:
+      app: cache-manager
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+# HorizontalPodAutoscaler for Cache Manager
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cache-manager-hpa
+  namespace: xorb-cache
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cache-manager
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60

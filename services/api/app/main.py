@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from prometheus_fastapi_instrumentator import Instrumentator
 from xorb_core.logging import configure_logging, get_logger
-from .routers import auth, discovery
+from .routers import auth, discovery, embeddings, knowledge
 from .deps import has_role
 
 # Configure structured logging for API service
@@ -29,6 +29,18 @@ app.include_router(
     prefix="/v1",
     tags=["Discovery"],
     dependencies=[Depends(has_role("reader"))],
+)
+app.include_router(
+    embeddings.router,
+    prefix="/v1",
+    tags=["Embeddings"],
+    dependencies=[Depends(has_role("user"))],
+)
+app.include_router(
+    knowledge.router,
+    prefix="/v1/knowledge",
+    tags=["Knowledge Fabric"],
+    dependencies=[Depends(has_role("user"))],
 )
 
 @app.on_event("startup")

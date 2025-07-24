@@ -3,28 +3,55 @@ version: '3.8'
 
 services:
   api:
-    build:
-      context: ./services/api
-      dockerfile: Dockerfile
+    image: python:3.12-slim
     ports:
       - "8000:8000"
+    environment:
+      - POSTGRES_DSN=postgresql://temporal:temporal@postgres:5432/temporal
+      - REDIS_URL=redis://redis:6379/0
+      - TEMPORAL_HOST=temporal:7233
+      - ENABLE_METRICS=true
+      - PYTHONPATH=/app:/app/packages/xorb_core
+      - NVIDIA_API_KEY=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
+      - NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
     volumes:
-      - ./services/api/app:/app/app
-      - ./packages/xorb_core:/app/packages/xorb_core
+      - .:/app
+      - ./requirements.txt:/app/requirements.txt
+    working_dir: /app
+    command: >
+      bash -c "apt-get update && apt-get install -y curl &&
+               pip install fastapi uvicorn[standard] prometheus-fastapi-instrumentator structlog openai python-jose[cryptography] passlib[bcrypt] python-multipart pydantic-settings &&
+               cd services/api &&
+               uvicorn app.main:app --host 0.0.0.0 --port 8000"
     depends_on:
       - temporal
       - postgres
       - redis
+    restart: unless-stopped
 
   worker:
-    build:
-      context: ./services/worker
-      dockerfile: Dockerfile
+    image: python:3.12-slim
+    ports:
+      - "9000:9000"  # Metrics port
+    environment:
+      - TEMPORAL_HOST=temporal:7233
+      - TASK_QUEUE=xorb-task-queue
+      - METRICS_PORT=9000
+      - ENABLE_METRICS=true
+      - PYTHONPATH=/app:/app/packages/xorb_core
     volumes:
-      - ./services/worker/app:/app/app
-      - ./packages/xorb_core:/app/packages/xorb_core
+      - .:/app
+      - ./requirements.txt:/app/requirements.txt
+    working_dir: /app
+    command: >
+      bash -c "apt-get update && apt-get install -y curl &&
+               pip install temporalio prometheus-client structlog sqlalchemy asyncpg redis &&
+               python -m services.worker.app.run_worker"
     depends_on:
       - temporal
+      - postgres
+      - redis
+    restart: unless-stopped
 
   temporal:
     image: temporalio/auto-setup:1.10.0
@@ -51,15 +78,17 @@ services:
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - "6380:6379"
 
   orchestrator:
-    build:
-      context: .
-      dockerfile: services/orchestrator/Dockerfile
+    image: python:3.12-slim
     volumes:
-      - ./services/orchestrator:/app/services/orchestrator
-      - ./packages/xorb_core:/app/packages/xorb_core
+      - .:/app
+      - ./requirements.txt:/app/requirements.txt
       - ./targets.json:/app/targets.json
+    working_dir: /app
+    command: >
+      bash -c "pip install temporalio structlog sqlalchemy asyncpg redis &&
+               python services/orchestrator/main.py"
     depends_on:
       - temporal

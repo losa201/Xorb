@@ -1,0 +1,294 @@
+---
+# Production Monitoring Stack for Xorb 2.0
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xorb-monitoring
+
+---
+# Prometheus Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: xorb-monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    
+    rule_files:
+      - "/etc/prometheus/rules/*.yml"
+    
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              - alertmanager:9093
+    
+    scrape_configs:
+      # Xorb API metrics
+      - job_name: 'xorb-api'
+        static_configs:
+          - targets: ['xorb-api:8000']
+        metrics_path: /metrics
+        scrape_interval: 10s
+        scrape_timeout: 5s
+        
+      # Xorb Worker metrics  
+      - job_name: 'xorb-worker'
+        static_configs:
+          - targets: ['xorb-worker:9000']
+        metrics_path: /metrics
+        scrape_interval: 10s
+        
+      # Cost monitoring
+      - job_name: 'xorb-cost-monitor'
+        static_configs:
+          - targets: ['cost-monitor:8080']
+        metrics_path: /metrics
+        scrape_interval: 30s
+        
+      # Infrastructure monitoring
+      - job_name: 'node-exporter'
+        static_configs:
+          - targets: ['node-exporter:9100']
+          
+      # Database monitoring
+      - job_name: 'postgres-exporter'
+        static_configs:
+          - targets: ['postgres-exporter:9187']
+
+---
+# Prometheus Alerting Rules
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-rules
+  namespace: xorb-monitoring
+data:
+  xorb-alerts.yml: |
+    groups:
+    - name: xorb.rules
+      rules:
+      
+      # Cost monitoring alerts
+      - alert: BudgetThresholdWarning
+        expr: xorb_monthly_cost_usd > 104
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Monthly cost approaching budget limit"
+          description: "Current monthly cost {{ $value }}USD exceeds 80% of $130 budget"
+          
+      - alert: BudgetThresholdCritical
+        expr: xorb_monthly_cost_usd > 123.5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Monthly cost critical - exceeds 95% of budget"
+          description: "Current monthly cost {{ $value }}USD exceeds 95% of $130 budget"
+      
+      # Performance alerts
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(xorb_api_request_duration_seconds_bucket[5m])) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile latency is {{ $value }}s"
+          
+      - alert: HighErrorRate
+        expr: rate(xorb_api_errors_total[5m]) > 0.1
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }} errors/sec"
+          
+      # Resource utilization alerts
+      - alert: HighCPUUsage
+        expr: avg(rate(container_cpu_usage_seconds_total{container!="POD",container!=""}[5m])) by (container) > 0.8
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage"
+          description: "Container {{ $labels.container }} CPU usage is {{ $value }}"
+          
+      - alert: HighMemoryUsage
+        expr: avg(container_memory_usage_bytes{container!="POD",container!=""} / container_spec_memory_limit_bytes) by (container) > 0.9
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High memory usage"
+          description: "Container {{ $labels.container }} memory usage is {{ $value }}"
+          
+      # NVIDIA API monitoring
+      - alert: EmbeddingServiceDown
+        expr: up{job="xorb-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "NVIDIA embeddings service unavailable"
+          description: "Xorb API embedding service has been down for more than 1 minute"
+          
+      - alert: EmbeddingHighLatency
+        expr: xorb_embedding_duration_seconds > 5.0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "NVIDIA embedding generation slow"
+          description: "Embedding generation taking {{ $value }}s (threshold: 5s)"
+
+---
+# Grafana Dashboard ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xorb-dashboard
+  namespace: xorb-monitoring
+data:
+  xorb-overview.json: |
+    {
+      "dashboard": {
+        "id": null,
+        "title": "Xorb 2.0 Production Overview",
+        "tags": ["xorb", "production"],
+        "style": "dark",
+        "timezone": "browser",
+        "refresh": "10s",
+        "time": {
+          "from": "now-1h",
+          "to": "now"
+        },
+        "panels": [
+          {
+            "id": 1,
+            "title": "Monthly Cost Tracking",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "xorb_monthly_cost_usd",
+                "legendFormat": "Current Cost"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "unit": "currencyUSD",
+                "max": 130,
+                "thresholds": {
+                  "steps": [
+                    {"color": "green", "value": 0},
+                    {"color": "yellow", "value": 104},
+                    {"color": "red", "value": 123.5}
+                  ]
+                }
+              }
+            },
+            "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+          },
+          {
+            "id": 2,
+            "title": "API Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(xorb_api_requests_total[5m])",
+                "legendFormat": "Requests/sec"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 6, "y": 0}
+          },
+          {
+            "id": 3,
+            "title": "NVIDIA Embedding Metrics",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(xorb_embedding_requests_total[5m])",
+                "legendFormat": "Embedding Requests/sec"
+              },
+              {
+                "expr": "xorb_embedding_duration_seconds",
+                "legendFormat": "Embedding Latency"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+          },
+          {
+            "id": 4,
+            "title": "Resource Utilization",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "avg(rate(container_cpu_usage_seconds_total[5m])) by (container)",
+                "legendFormat": "CPU - {{ container }}"
+              },
+              {
+                "expr": "avg(container_memory_usage_bytes / container_spec_memory_limit_bytes) by (container)",
+                "legendFormat": "Memory - {{ container }}"
+              }
+            ],
+            "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8}
+          }
+        ]
+      }
+    }
+
+---
+# AlertManager Configuration  
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: xorb-monitoring
+data:
+  alertmanager.yml: |
+    global:
+      smtp_smarthost: 'localhost:587'
+      smtp_from: 'alerts@xorb.ai'
+    
+    route:
+      group_by: ['alertname']
+      group_wait: 10s
+      group_interval: 10s
+      repeat_interval: 1h
+      receiver: 'web.hook'
+      routes:
+      - match:
+          severity: critical
+        receiver: 'critical-alerts'
+      - match:
+          severity: warning  
+        receiver: 'warning-alerts'
+    
+    receivers:
+    - name: 'web.hook'
+      webhook_configs:
+      - url: 'http://localhost:5001/'
+        
+    - name: 'critical-alerts'
+      email_configs:
+      - to: 'ops-team@company.com'
+        subject: '[CRITICAL] Xorb Alert: {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Severity: {{ .Labels.severity }}
+          Time: {{ .StartsAt }}
+          {{ end }}
+          
+    - name: 'warning-alerts'
+      email_configs:
+      - to: 'dev-team@company.com'
+        subject: '[WARNING] Xorb Alert: {{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'

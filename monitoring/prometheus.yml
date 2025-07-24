@@ -1,0 +1,77 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  # - "first_rules.yml"
+  # - "second_rules.yml"
+
+scrape_configs:
+  # Xorb Core Services
+  - job_name: 'xorb-api'
+    static_configs:
+      - targets: ['api:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'xorb-worker'
+    static_configs:
+      - targets: ['worker:9000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Security & Compliance Services
+  - job_name: 'siem-analyzer'
+    static_configs:
+      - targets: ['siem-analyzer:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'cache-manager'
+    static_configs:
+      - targets: ['cache-manager:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'soc2-monitor'
+    static_configs:
+      - targets: ['soc2-monitor:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+
+  - job_name: 'iso27001-monitor'
+    static_configs:
+      - targets: ['iso27001-monitor:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+
+  - job_name: 'cost-monitor'
+    static_configs:
+      - targets: ['cost-monitor:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+
+  # Redis Cluster Metrics
+  - job_name: 'redis-cluster'
+    static_configs:
+      - targets: ['redis-master-1:9121', 'redis-master-2:9121', 'redis-master-3:9121']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Prometheus Self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Infrastructure Services
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+
+  - job_name: 'elasticsearch'
+    static_configs:
+      - targets: ['elasticsearch:9200']
+    metrics_path: '/_prometheus/metrics'
+    scrape_interval: 60s

@@ -1,0 +1,620 @@
+---
+# Automated Compliance Monitoring for SOC2 and ISO27001
+# Continuous compliance validation and audit trail generation
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xorb-compliance
+  labels:
+    compliance-tier: "enterprise"
+
+---
+# SOC2 Compliance Monitor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: soc2-compliance-monitor
+  namespace: xorb-compliance
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: soc2-monitor
+  template:
+    metadata:
+      labels:
+        app: soc2-monitor
+    spec:
+      serviceAccountName: compliance-monitor-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        fsGroup: 65534
+      containers:
+      - name: soc2-monitor
+        image: xorb/compliance-monitor:2.0.0
+        ports:
+        - containerPort: 8080
+        - containerPort: 9090
+        env:
+        - name: COMPLIANCE_FRAMEWORK
+          value: "SOC2"
+        - name: AUDIT_RETENTION_DAYS
+          value: "2555" # 7 years
+        - name: CONTINUOUS_MONITORING
+          value: "true"
+        - name: ELASTICSEARCH_URL
+          valueFrom:
+            secretKeyRef:
+              name: compliance-secrets
+              key: elasticsearch-url
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts:
+        - name: soc2-controls
+          mountPath: /etc/compliance/soc2
+          readOnly: true
+        - name: audit-logs
+          mountPath: /var/log/audit
+      volumes:
+      - name: soc2-controls
+        configMap:
+          name: soc2-controls
+      - name: audit-logs
+        persistentVolumeClaim:
+          claimName: audit-logs-pvc
+
+---
+# ISO27001 Compliance Monitor
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iso27001-compliance-monitor
+  namespace: xorb-compliance
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iso27001-monitor
+  template:
+    metadata:
+      labels:
+        app: iso27001-monitor
+    spec:
+      serviceAccountName: compliance-monitor-sa
+      containers:
+      - name: iso27001-monitor
+        image: xorb/compliance-monitor:2.0.0
+        ports:
+        - containerPort: 8080
+        - containerPort: 9090
+        env:
+        - name: COMPLIANCE_FRAMEWORK
+          value: "ISO27001"
+        - name: RISK_ASSESSMENT_INTERVAL
+          value: "24h"
+        - name: CONTROL_TESTING_ENABLED
+          value: "true"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 2Gi
+        volumeMounts:
+        - name: iso27001-controls
+          mountPath: /etc/compliance/iso27001
+          readOnly: true
+      volumes:
+      - name: iso27001-controls
+        configMap:
+          name: iso27001-controls
+
+---
+# SOC2 Type II Controls Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: soc2-controls
+  namespace: xorb-compliance
+data:
+  security-controls.yaml: |
+    soc2_security_controls:
+      # Security - Access Control
+      access_control:
+        - id: "CC6.1"
+          description: "Access rights are granted to authorized users"
+          automated_checks:
+            - "verify_rbac_policies"
+            - "check_service_accounts"
+            - "validate_jwt_tokens"
+          frequency: "continuous"
+          
+        - id: "CC6.2"
+          description: "Access requests are authorized"
+          automated_checks:
+            - "audit_access_requests"
+            - "verify_approval_process"
+          frequency: "daily"
+          
+        - id: "CC6.3"
+          description: "Access is removed when no longer required"
+          automated_checks:
+            - "check_inactive_accounts"
+            - "verify_access_reviews"
+          frequency: "weekly"
+
+      # Security - Data Protection
+      data_protection:
+        - id: "CC6.7"
+          description: "Data is encrypted in transit and at rest"
+          automated_checks:
+            - "verify_tls_certificates"
+            - "check_database_encryption"
+            - "validate_secret_encryption"
+          frequency: "continuous"
+          
+        - id: "CC6.8"
+          description: "Encryption keys are properly managed"
+          automated_checks:
+            - "check_key_rotation"
+            - "verify_key_access_controls"
+          frequency: "daily"
+
+      # Security - Network Security
+      network_security:
+        - id: "CC6.6"
+          description: "Network security controls are implemented"
+          automated_checks:
+            - "verify_network_policies"
+            - "check_firewall_rules"
+            - "validate_zero_trust_policies"
+          frequency: "continuous"
+
+  availability-controls.yaml: |
+    soc2_availability_controls:
+      # Availability - Monitoring
+      monitoring:
+        - id: "A1.1"
+          description: "System performance is monitored"
+          automated_checks:
+            - "verify_prometheus_metrics"
+            - "check_alert_configurations"
+            - "validate_dashboard_availability"
+          frequency: "continuous"
+          
+        - id: "A1.2"
+          description: "Capacity planning is performed"
+          automated_checks:
+            - "check_resource_utilization"
+            - "verify_scaling_policies"
+            - "validate_cost_monitoring"
+          frequency: "daily"
+
+      # Availability - Backup and Recovery
+      backup_recovery:
+        - id: "A1.3"
+          description: "Data backups are performed regularly"
+          automated_checks:
+            - "verify_backup_schedules"
+            - "test_backup_integrity"
+            - "check_recovery_procedures"
+          frequency: "daily"
+
+  processing-integrity-controls.yaml: |
+    soc2_processing_integrity_controls:
+      data_processing:
+        - id: "PI1.1"
+          description: "Data processing is accurate and complete"
+          automated_checks:
+            - "verify_api_input_validation"
+            - "check_embedding_accuracy"
+            - "validate_data_transformations"
+          frequency: "continuous"
+          
+        - id: "PI1.2"
+          description: "Processing errors are detected and corrected"
+          automated_checks:
+            - "check_error_rates"
+            - "verify_error_handling"
+            - "validate_retry_mechanisms"
+          frequency: "continuous"
+
+---
+# ISO27001 Controls Configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: iso27001-controls
+  namespace: xorb-compliance
+data:
+  information-security-controls.yaml: |
+    iso27001_controls:
+      # A.5 Information Security Policies
+      policies:
+        - id: "A.5.1.1"
+          description: "Information security policy"
+          automated_checks:
+            - "verify_security_policy_exists"
+            - "check_policy_acknowledgment"
+          frequency: "monthly"
+          
+        - id: "A.5.1.2"
+          description: "Review of information security policy"
+          automated_checks:
+            - "check_policy_review_date"
+            - "verify_policy_updates"
+          frequency: "quarterly"
+
+      # A.6 Organization of Information Security
+      organization:
+        - id: "A.6.1.1"
+          description: "Information security roles and responsibilities"
+          automated_checks:
+            - "verify_security_roles"
+            - "check_responsibility_matrix"
+          frequency: "monthly"
+
+      # A.8 Asset Management
+      asset_management:
+        - id: "A.8.1.1"
+          description: "Inventory of assets"
+          automated_checks:
+            - "scan_kubernetes_resources"
+            - "inventory_containers"
+            - "catalog_services"
+          frequency: "daily"
+          
+        - id: "A.8.2.1"
+          description: "Classification of information"
+          automated_checks:
+            - "verify_data_classification_labels"
+            - "check_sensitive_data_handling"
+          frequency: "continuous"
+
+      # A.12 Operations Security
+      operations_security:
+        - id: "A.12.1.2"
+          description: "Change management"
+          automated_checks:
+            - "verify_deployment_approvals"
+            - "check_change_documentation"
+            - "validate_rollback_procedures"
+          frequency: "continuous"
+          
+        - id: "A.12.6.1"
+          description: "Management of technical vulnerabilities"
+          automated_checks:
+            - "run_vulnerability_scans"
+            - "check_patch_management"
+            - "verify_security_updates"
+          frequency: "daily"
+
+      # A.13 Communications Security
+      communications_security:
+        - id: "A.13.1.1"
+          description: "Network controls"
+          automated_checks:
+            - "verify_network_segmentation"
+            - "check_encryption_in_transit"
+            - "validate_firewall_rules"
+          frequency: "continuous"
+          
+        - id: "A.13.2.1"
+          description: "Information transfer policies"
+          automated_checks:
+            - "check_data_transfer_encryption"
+            - "verify_api_security"
+            - "validate_external_connections"
+          frequency: "continuous"
+
+      # A.14 System Acquisition, Development and Maintenance
+      system_development:
+        - id: "A.14.2.1"
+          description: "Secure development policy"
+          automated_checks:
+            - "verify_secure_coding_practices"
+            - "check_code_review_process"
+            - "validate_security_testing"
+          frequency: "continuous"
+
+---
+# Compliance Dashboard Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compliance-dashboard
+  namespace: xorb-compliance
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: compliance-dashboard
+  template:
+    metadata:
+      labels:
+        app: compliance-dashboard
+    spec:
+      containers:
+      - name: dashboard
+        image: xorb/compliance-dashboard:2.0.0
+        ports:
+        - containerPort: 3000
+        env:
+        - name: FRAMEWORKS
+          value: "SOC2,ISO27001"
+        - name: REFRESH_INTERVAL
+          value: "300" # 5 minutes
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+
+---
+# Automated Audit Report Generator
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: audit-report-generator
+  namespace: xorb-compliance
+spec:
+  schedule: "0 2 * * 0" # Weekly on Sunday at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: compliance-monitor-sa
+          containers:
+          - name: report-generator
+            image: xorb/audit-reporter:2.0.0
+            env:
+            - name: REPORT_TYPES
+              value: "SOC2,ISO27001,SUMMARY"
+            - name: OUTPUT_FORMAT
+              value: "PDF,JSON"
+            - name: S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: compliance-secrets
+                  key: audit-bucket
+            command:
+            - /bin/bash
+            - -c
+            - |
+              echo "Generating compliance reports..."
+              
+              # Generate SOC2 report
+              python3 /app/generate_report.py \
+                --framework SOC2 \
+                --period "last_week" \
+                --format PDF \
+                --output "/tmp/soc2_$(date +%Y%m%d).pdf"
+              
+              # Generate ISO27001 report
+              python3 /app/generate_report.py \
+                --framework ISO27001 \
+                --period "last_week" \
+                --format PDF \
+                --output "/tmp/iso27001_$(date +%Y%m%d).pdf"
+              
+              # Upload to secure storage
+              aws s3 cp /tmp/*.pdf s3://$S3_BUCKET/compliance-reports/$(date +%Y/%m)/
+              
+              echo "Reports generated and uploaded successfully"
+            resources:
+              requests:
+                cpu: 200m
+                memory: 512Mi
+              limits:
+                cpu: 1000m
+                memory: 2Gi
+          restartPolicy: OnFailure
+
+---
+# Evidence Collection Service
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: evidence-collector
+  namespace: xorb-compliance
+spec:
+  selector:
+    matchLabels:
+      app: evidence-collector
+  template:
+    metadata:
+      labels:
+        app: evidence-collector
+    spec:
+      serviceAccountName: compliance-monitor-sa
+      containers:
+      - name: collector
+        image: xorb/evidence-collector:2.0.0
+        env:
+        - name: COLLECTION_INTERVAL
+          value: "300" # 5 minutes
+        - name: EVIDENCE_TYPES
+          value: "logs,configs,certificates,policies"
+        securityContext:
+          privileged: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 512Mi
+        volumeMounts:
+        - name: host-logs
+          mountPath: /host/logs
+          readOnly: true
+        - name: evidence-storage
+          mountPath: /evidence
+      volumes:
+      - name: host-logs
+        hostPath:
+          path: /var/log
+      - name: evidence-storage
+        persistentVolumeClaim:
+          claimName: evidence-storage-pvc
+
+---
+# RBAC for Compliance Services
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: compliance-monitor-sa
+  namespace: xorb-compliance
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: compliance-monitor
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps", "secrets", "nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets", "daemonsets"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["networking.k8s.io"]
+  resources: ["networkpolicies"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["security.istio.io"]
+  resources: ["authorizationpolicies", "peerauthentications"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: compliance-monitor
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: compliance-monitor
+subjects:
+- kind: ServiceAccount
+  name: compliance-monitor-sa
+  namespace: xorb-compliance
+
+---
+# Persistent Storage for Audit Logs
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: audit-logs-pvc
+  namespace: xorb-compliance
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: evidence-storage-pvc
+  namespace: xorb-compliance
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 500Gi
+  storageClassName: standard
+
+---
+# Compliance Monitoring Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: soc2-monitor
+  namespace: xorb-compliance
+spec:
+  ports:
+  - port: 8080
+    name: http
+  - port: 9090
+    name: metrics
+  selector:
+    app: soc2-monitor
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iso27001-monitor
+  namespace: xorb-compliance
+spec:
+  ports:
+  - port: 8080
+    name: http
+  - port: 9090
+    name: metrics
+  selector:
+    app: iso27001-monitor
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: compliance-dashboard
+  namespace: xorb-compliance
+spec:
+  ports:
+  - port: 3000
+    name: http
+  selector:
+    app: compliance-dashboard
+
+---
+# ServiceMonitors for Prometheus
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: compliance-metrics
+  namespace: xorb-compliance
+spec:
+  selector:
+    matchLabels:
+      app: soc2-monitor
+  endpoints:
+  - port: metrics
+    interval: 60s
+    path: /metrics
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: iso27001-metrics
+  namespace: xorb-compliance
+spec:
+  selector:
+    matchLabels:
+      app: iso27001-monitor
+  endpoints:
+  - port: metrics
+    interval: 60s
+    path: /metrics

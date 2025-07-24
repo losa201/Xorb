@@ -5,7 +5,8 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel, BaseSettings
+from pydantic import BaseModel
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):

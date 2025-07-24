@@ -1,13 +1,9 @@
 from fastapi import Depends, HTTPException
-from fastapi.security import HTTPBearer
-from xorb_core.security.jwt import verify
+from .security import get_current_user, TokenData
 
-_bearer=HTTPBearer()
-
-def has_role(role:str):
-  def _dep(cred=Depends(_bearer)):
-      user=verify(cred.credentials)
-      if not user or user['role'] not in (role,'admin'):
-          raise HTTPException(403,'Forbidden')
-      return user
-  return _dep
+def has_role(role: str):
+    def _dep(current_user: TokenData = Depends(get_current_user)):
+        if role not in current_user.roles and 'admin' not in current_user.roles:
+            raise HTTPException(403, 'Forbidden')
+        return {"username": current_user.username, "roles": current_user.roles}
+    return _dep

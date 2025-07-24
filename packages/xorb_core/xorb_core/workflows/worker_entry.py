@@ -59,22 +59,53 @@ async def main():
         client = await Client.connect(temporal_host, namespace="default")
         log.info("Connected to Temporal", host=temporal_host)
         
-        # Import workflows and activities
+        # Import enhanced workflows and activities
         try:
-            from services.worker.workflows import DynamicScanWorkflow, DiscoveryWorkflow
-            from services.worker.activities import run_agent, enumerate_subdomains_activity, resolve_dns_activity
+            from xorb_core.workflows.workflows import (
+                DynamicScanWorkflow, 
+                DiscoveryWorkflow, 
+                TargetOnboardingWorkflow,
+                HealthCheckWorkflow
+            )
+            from xorb_core.workflows.activities import (
+                run_agent, 
+                enumerate_subdomains_activity, 
+                resolve_dns_activity,
+                perform_scan,
+                health_check_activity
+            )
             
-            workflows = [DynamicScanWorkflow, DiscoveryWorkflow]
-            activities = [run_agent, enumerate_subdomains_activity, resolve_dns_activity]
+            workflows = [
+                DynamicScanWorkflow, 
+                DiscoveryWorkflow, 
+                TargetOnboardingWorkflow,
+                HealthCheckWorkflow
+            ]
+            activities = [
+                run_agent, 
+                enumerate_subdomains_activity, 
+                resolve_dns_activity,
+                perform_scan,
+                health_check_activity
+            ]
+            
+            log.info("Successfully loaded enhanced workflows and activities",
+                    workflows_count=len(workflows),
+                    activities_count=len(activities))
             
         except ImportError as e:
-            log.warning("Some workflows/activities not available", error=str(e))
-            # Fallback to basic activities if available
+            log.warning("Enhanced workflows not available, trying fallback", error=str(e))
+            # Fallback to legacy activities if available
             try:
                 from services.worker.activities import enumerate_subdomains_activity, resolve_dns_activity
                 from services.worker.workflows import DiscoveryWorkflow
+                from xorb_core.workflows.activities import health_check_activity
+                
                 workflows = [DiscoveryWorkflow]
-                activities = [enumerate_subdomains_activity, resolve_dns_activity]
+                activities = [enumerate_subdomains_activity, resolve_dns_activity, health_check_activity]
+                
+                log.info("Loaded fallback workflows and activities")
+                
             except ImportError:
                 log.error("No workflows/activities available")
                 WORKER_HEALTH.set(0)
