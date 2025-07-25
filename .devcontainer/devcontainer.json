@@ -1,11 +1,9 @@
 {
-  "name": "Xorb 2.0 Development Environment",
+  "name": "Xorb PTaaS Development Environment",
   "dockerComposeFile": [
-    "../docker-compose.yml",
-    "../docker-compose.dev.yml",
-    "docker-compose.devcontainer.yml"
+    "../compose/docker-compose.yml"
   ],
-  "service": "devcontainer",
+  "service": "api",
   "workspaceFolder": "/workspace",
   
   "features": {
@@ -51,10 +49,9 @@
       "extensions": [
         "ms-python.python",
         "ms-python.black-formatter",
-        "ms-python.flake8",
+        "charliermarsh.ruff",
         "ms-python.isort",
         "ms-python.mypy-type-checker",
-        "ms-python.pylint",
         "ms-toolsai.jupyter",
         "ms-toolsai.vscode-jupyter-cell-tags",
         "ms-toolsai.vscode-jupyter-slideshow",
@@ -263,9 +260,9 @@
   ],
   
   "remoteEnv": {
-    "PYTHONPATH": "/workspace:$PYTHONPATH",
-    "XORB_ENVIRONMENT": "development",
-    "XORB_LOG_LEVEL": "DEBUG",
-    "XORB_DEBUG": "true"
+    "PYTHONPATH": "/workspace:/workspace/xorb_common:/workspace/services",
+    "ENVIRONMENT": "development",
+    "DEBUG": "true",
+    "EPYC_OPTIMIZATION": "true"
   }
 }

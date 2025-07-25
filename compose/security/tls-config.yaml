@@ -1,0 +1,57 @@
+# TLS and mTLS Configuration for Xorb PTaaS
+# Self-signed certificates for development, replace with proper CA in production
+
+tls:
+  enabled: true
+  cert_file: /etc/ssl/certs/xorb.crt
+  key_file: /etc/ssl/private/xorb.key
+  ca_file: /etc/ssl/certs/xorb-ca.crt
+
+mtls:
+  enabled: true
+  client_cert_required: true
+  client_ca_file: /etc/ssl/certs/xorb-client-ca.crt
+  
+  # Service-to-service mTLS configuration
+  services:
+    api:
+      cert_file: /etc/ssl/certs/api.crt
+      key_file: /etc/ssl/private/api.key
+    worker:
+      cert_file: /etc/ssl/certs/worker.crt
+      key_file: /etc/ssl/private/worker.key
+    orchestrator:
+      cert_file: /etc/ssl/certs/orchestrator.crt
+      key_file: /etc/ssl/private/orchestrator.key
+    scanner:
+      cert_file: /etc/ssl/certs/scanner.crt
+      key_file: /etc/ssl/private/scanner.key
+    triage:
+      cert_file: /etc/ssl/certs/triage.crt
+      key_file: /etc/ssl/private/triage.key
+    payments:
+      cert_file: /etc/ssl/certs/payments.crt
+      key_file: /etc/ssl/private/payments.key
+
+# Certificate generation settings
+cert_generation:
+  country: "US"
+  state: "CA"
+  locality: "San Francisco"
+  organization: "Xorb Security"
+  organizational_unit: "PTaaS Platform"
+  common_name: "xorb.local"
+  validity_days: 365
+
+# Cipher suites (secure defaults)
+cipher_suites:
+  - "TLS_AES_256_GCM_SHA384"
+  - "TLS_CHACHA20_POLY1305_SHA256"
+  - "TLS_AES_128_GCM_SHA256"
+  - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+  - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+
+# TLS versions
+tls_versions:
+  min: "1.2"
+  max: "1.3"

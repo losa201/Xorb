@@ -1,0 +1,30 @@
+{
+  "campaign_start": "2025-07-24T15:50:20.755435",
+  "targets_processed": 1,
+  "total_findings": 0,
+  "total_cost": 0.001658,
+  "target_results": {
+    "https://hackerone.com/bug-bounty-program": {
+      "target": "https://hackerone.com/bug-bounty-program",
+      "campaign_id": "campaign_1753372222",
+      "start_time": "2025-07-24T15:50:22.757936",
+      "phases": {
+        "analysis": {
+          "target": "https://hackerone.com/bug-bounty-program",
+          "analysis_timestamp": "2025-07-24T15:50:22.758056",
+          "technology_analysis": {},
+          "vulnerability_assessment": {},
+          "attack_surface": {},
+          "recommendations": [],
+          "ai_analysis": {
+            "content": "Fallback payload generation - API unavailable",
+            "confidence": 0.3,
+            "model_used": "fallback_static",
+            "cost": 0.0
+          }
+        },
+        "payload_generation": {
+          "xss": {
+            "payloads": [
+              {
+                "category": 

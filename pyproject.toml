@@ -1,13 +1,16 @@
 
 [tool.poetry]
-name = "xorb"
-version = "0.1.0"
-description = "XORB Security Platform"
-authors = ["Your Name <you@example.com>"]
+name = "xorb-ptaas"
+version = "2.0.0"
+description = "Xorb PTaaS + Bug-Bounty Platform - Single-Node EPYC Deployment"
+authors = ["Xorb Team <team@xorb.ai>"]
+packages = [
+    {include = "xorb_common"},
+    {include = "services"},
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-xorb_core = { path = "packages/xorb_core", develop = true }
 httpx = ">=0.25.0"
 aiohttp = ">=3.8.0"
 requests = ">=2.31.0"
@@ -40,6 +43,23 @@ python-dateutil = ">=2.8.0"
 pytz = ">=2023.3"
 structlog = ">=23.1.0"
 colorama = ">=0.4.0"
+# PTaaS specific dependencies
+nats-py = ">=2.4.0"
+stripe = ">=6.0.0"
+docker = ">=6.1.0"
+nuclei-py = ">=0.1.0"
+openai = ">=1.0.0"
+anthropic = ">=0.7.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = ">=7.4.0"
+pytest-asyncio = ">=0.21.0"
+pytest-cov = ">=4.1.0"
+mypy = ">=1.5.0"
+ruff = ">=0.0.290"
+black = ">=23.7.0"
+pre-commit = ">=3.3.0"
+
 
 [build-system]
 requires = ["poetry-core"]
@@ -47,12 +67,84 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 88
-select = ["E", "F", "W", "I", "C90"]
+target-version = "py312"
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "C90", # mccabe
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "S",   # flake8-bandit
+    "C4",  # flake8-comprehensions
+    "DTZ", # flake8-datetimez
+    "T10", # flake8-debugger
+    "EM",  # flake8-errmsg
+    "LOG", # flake8-logging
+    "G",   # flake8-logging-format
+    "PIE", # flake8-pie
+    "PT",  # flake8-pytest-style
+    "SIM", # flake8-simplify
+    "TID", # flake8-tidy-imports
+    "TCH", # flake8-type-checking
+]
+ignore = [
+    "S101", # assert
+    "S603", # subprocess-without-shell-equals-true
+    "S607", # start-process-with-partial-path
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
 
 [tool.pytest.ini_options]
 pythonpath = [
     ".",
-    "packages/xorb_core",
+    "xorb_common",
     "services/api",
     "services/worker",
+    "services/orchestrator",
+]
+testpaths = ["tests"]
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "security: marks tests as security tests",
+]
+
+[tool.coverage.run]
+source = ["xorb_common", "services"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
 ]

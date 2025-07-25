@@ -1,0 +1,526 @@
+version: '3.9'
+
+services:
+  # Core API service
+  api:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.api.simple
+    container_name: xorb_api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    # EPYC optimization - 3 vCPU cores, 3GB RAM
+    cpu_quota: 300000
+    cpuset: "0-2"
+    mem_limit: 3g
+    mem_reservation: 2g
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=500m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Worker service
+  worker:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.worker.simple
+    container_name: xorb_worker
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - TEMPORAL_HOST=temporal:7233
+    depends_on:
+      - postgres
+      - redis
+      - nats
+      - temporal
+    networks:
+      - xorb-network
+    # EPYC optimization - 4 vCPU cores, 6GB RAM
+    cpu_quota: 400000
+    cpuset: "3-6"
+    mem_limit: 6g
+    mem_reservation: 4g
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=2g
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Orchestrator service
+  orchestrator:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.orchestrator.simple
+    container_name: xorb_orchestrator
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    # EPYC optimization - 1 vCPU core, 1GB RAM
+    cpu_quota: 100000
+    cpuset: "7"
+    mem_limit: 1g
+    mem_reservation: 512m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=200m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Scanner service (Go-native nuclei)
+  scanner:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.scanner-go
+    container_name: xorb_scanner_go
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - PORT=8004
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    # EPYC optimization - 2 vCPU cores, 4GB RAM (enhanced performance)
+    cpu_quota: 200000
+    cpuset: "8-9"
+    mem_limit: 4g
+    mem_reservation: 2g
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    tmpfs:
+      - /tmp:exec,size=1g
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # AI Triage service
+  triage:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.triage
+    container_name: xorb_triage
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    # EPYC optimization - 1 vCPU core, 2GB RAM
+    cpu_quota: 100000
+    cpuset: "9"
+    mem_limit: 2g
+    mem_reservation: 1g
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=500m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Researcher Portal
+  researcher-portal:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.researcher-portal
+    container_name: xorb_researcher_portal
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - API_BASE_URL=http://api:8000
+      - NEXTJS_URL=http://localhost:3000
+    depends_on:
+      - api
+    networks:
+      - xorb-network
+    # EPYC optimization - 0.5 vCPU core, 1GB RAM
+    cpu_quota: 50000
+    cpuset: "10"
+    mem_limit: 1g
+    mem_reservation: 512m
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=200m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Payments service
+  payments:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.payments.simple
+    container_name: xorb_payments
+    ports:
+      - "8002:8002"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - USDC_CONTRACT_ADDRESS=${USDC_CONTRACT_ADDRESS}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - xorb-network
+    # EPYC optimization - 0.5 vCPU core, 512MB RAM
+    cpu_quota: 50000
+    cpuset: "11"
+    mem_limit: 512m
+    mem_reservation: 256m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=100m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Billing service
+  billing:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.billing
+    container_name: xorb_billing
+    ports:
+      - "8006:8006"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_GROWTH_PRICE_ID=${STRIPE_GROWTH_PRICE_ID}
+      - STRIPE_ELITE_PRICE_ID=${STRIPE_ELITE_PRICE_ID}
+      - STRIPE_ENTERPRISE_PRICE_ID=${STRIPE_ENTERPRISE_PRICE_ID}
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - xorb-network
+    # EPYC optimization - 0.5 vCPU core, 1GB RAM
+    cpu_quota: 50000
+    cpuset: "12"
+    mem_limit: 1g
+    mem_reservation: 512m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=200m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Feature Flags service
+  feature-flags:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.feature-flags
+    container_name: xorb_feature_flags
+    ports:
+      - "8007:8007"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - PORT=8007
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    # EPYC optimization - 0.5 vCPU core, 512MB RAM
+    cpu_quota: 50000
+    cpuset: "13"
+    mem_limit: 512m
+    mem_reservation: 256m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=100m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Cost Monitoring service
+  cost-monitor:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.cost-monitor
+    container_name: xorb_cost_monitor
+    ports:
+      - "8008:8008"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - PORT=8008
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    # EPYC optimization - 0.5 vCPU core, 512MB RAM
+    cpu_quota: 50000
+    cpuset: "14"
+    mem_limit: 512m
+    mem_reservation: 256m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=100m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Scheduler service (Rust)
+  scheduler:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.scheduler
+    container_name: xorb_scheduler
+    environment:
+      - NATS_URL=nats://nats:4222
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+    depends_on:
+      - nats
+      - postgres
+    networks:
+      - xorb-network
+    # EPYC optimization - 0.5 vCPU core, 512MB RAM
+    cpu_quota: 50000
+    cpuset: "12"
+    mem_limit: 512m
+    mem_reservation: 256m
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=100m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: xorb_postgres
+    environment:
+      - POSTGRES_DB=xorb_ptaas
+      - POSTGRES_USER=xorb
+      - POSTGRES_PASSWORD=xorb_secure_2024
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - xorb-network
+    # EPYC optimization - 2 vCPU cores, 8GB RAM
+    cpu_quota: 200000
+    cpuset: "13-14"
+    mem_limit: 8g
+    mem_reservation: 6g
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
+      - DAC_OVERRIDE
+    tmpfs:
+      - /tmp:exec,size=1g
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xorb -d xorb_ptaas"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis cache
+  redis:
+    image: redis:7-alpine
+    container_name: xorb_redis
+    command: redis-server --appendonly yes --maxmemory 2gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - xorb-network
+    # EPYC optimization - 1 vCPU core, 2GB RAM
+    cpu_quota: 100000
+    cpuset: "15"
+    mem_limit: 2g
+    mem_reservation: 1g
+    tmpfs:
+      - /tmp:exec,size=200m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # NATS messaging
+  nats:
+    image: nats:2-alpine
+    container_name: xorb_nats
+    command: ["nats-server", "--jetstream", "--store_dir=/data"]
+    volumes:
+      - nats_data:/data
+    networks:
+      - xorb-network
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    # EPYC optimization
+    cpu_quota: 50000
+    mem_limit: 1g
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Temporal workflow engine
+  temporal:
+    image: temporalio/auto-setup:1.20
+    container_name: xorb_temporal
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=xorb
+      - POSTGRES_PWD=xorb_secure_2024
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      - postgres
+    networks:
+      - xorb-network
+    ports:
+      - "7233:7233"
+      - "8080:8080"
+    # EPYC optimization
+    cpu_quota: 100000
+    mem_limit: 2g
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  # Performance Budget Monitor
+  budget-monitor:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.budget-monitor
+    container_name: xorb_budget_monitor
+    environment:
+      - PROMETHEUS_URL=http://localhost:9090
+      - MONITORING_INTERVAL=60
+    networks:
+      - xorb-network
+    volumes:
+      - ./observability/reports:/reports
+    # Minimal resources for monitoring
+    cpu_quota: 50000
+    mem_limit: 256m
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+networks:
+  xorb-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  nats_data:
+    driver: local
+  scanner_data:
+    driver: local

@@ -1,0 +1,147 @@
+# Pre-commit configuration for Xorb PTaaS
+# Ensures code quality and security before commits
+
+repos:
+  # Python code formatting and linting
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.0
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # Python security scanning
+  - repo: https://github.com/PyCQA/bandit
+    rev: '1.7.5'
+    hooks:
+      - id: bandit
+        args: ['-c', 'pyproject.toml']
+        additional_dependencies: ["bandit[toml]"]
+        exclude: ^tests/
+
+  # Python type checking
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.5.1'
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-requests, types-redis, types-PyYAML]
+        args: [--ignore-missing-imports]
+
+  # Docker security scanning
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.12.0
+    hooks:
+      - id: hadolint-docker
+        args: [--ignore, DL3008, --ignore, DL3009]
+        files: ^compose/Dockerfile.*
+
+  # YAML formatting and validation
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+      - id: check-yaml
+        args: [--unsafe]
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-json
+      - id: pretty-format-json
+        args: [--autofix, --no-sort-keys]
+
+  # Shell script linting
+  - repo: https://github.com/shellcheck-py/shellcheck-py
+    rev: v0.9.0.5
+    hooks:
+      - id: shellcheck
+        files: \.(sh|bash)$
+
+  # Dockerfile best practices
+  - repo: https://github.com/AleksaC/hadolint-py
+    rev: v2.12.0.3
+    hooks:
+      - id: hadolint
+        args: [--ignore, DL3008, --ignore, DL3009, --ignore, DL3059]
+
+  # Secret detection
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
+        exclude: poetry.lock
+
+  # Security scanning for dependencies
+  - repo: https://github.com/Lucas-C/pre-commit-hooks-safety
+    rev: v1.3.2
+    hooks:
+      - id: python-safety-dependencies-check
+        args: [--ignore, 51457, --ignore, 52495]  # Known false positives
+
+  # Git commit message formatting
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: 3.10.0
+    hooks:
+      - id: commitizen
+        stages: [commit-msg]
+
+  # Python import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.12.0
+    hooks:
+      - id: isort
+        args: ["--profile", "black", "--filter-files"]
+
+  # Markdown linting
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.37.0
+    hooks:
+      - id: markdownlint
+        args: [--fix]
+        files: \.(md|markdown)$
+
+  # TOML formatting
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.10.0
+    hooks:
+      - id: pretty-format-toml
+        args: [--autofix]
+
+  # Docker Compose validation
+  - repo: local
+    hooks:
+      - id: docker-compose-check
+        name: Docker Compose Syntax Check
+        entry: docker-compose
+        args: [-f, compose/docker-compose.yml, config, --quiet]
+        language: system
+        files: ^compose/docker-compose.*\.yml$
+        pass_filenames: false
+
+  # Custom security hooks
+  - repo: local
+    hooks:
+      - id: check-secrets
+        name: Check for hardcoded secrets
+        entry: bash -c 'if grep -r "password\|secret\|key" --include="*.py" --include="*.yml" --include="*.yaml" --exclude-dir=".git" . | grep -v "# nosec" | grep -v "example" | grep -v "template"; then echo "Potential secrets found!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      - id: check-ports
+        name: Check for exposed debugging ports
+        entry: bash -c 'if grep -r "0\.0\.0\.0.*debug\|5678\|5679" --include="*.py" --include="*.yml" --exclude-dir=".git" .; then echo "Debug ports found!"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      - id: epyc-optimization-check
+        name: EPYC Optimization Validation
+        entry: python scripts/validate-epyc-config.py
+        language: system
+        files: ^compose/docker-compose.*\.yml$
+        pass_filenames: false
+
+# Global configuration
+default_stages: [commit]
+fail_fast: false
+minimum_pre_commit_version: "3.0.0"

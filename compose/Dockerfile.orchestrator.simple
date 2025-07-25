@@ -1,0 +1,44 @@
+# Simple Dockerfile for Orchestrator service using pip
+FROM python:3.12-slim
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -g 1001 xorb && \
+    useradd -r -u 1001 -g xorb -s /bin/false -c "Xorb User" xorb
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install dependencies
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+
+# Copy application code (excluding xorb_common to avoid conflicts)
+COPY --chown=1001:1001 services/orchestrator/ ./services/orchestrator/
+
+# Create temporary directory
+RUN mkdir -p /tmp/xorb/orchestrator_data && chown 1001:1001 /tmp/xorb/orchestrator_data
+
+# Set environment variables (excluding xorb_common to avoid logging conflict)
+ENV PYTHONPATH="/app:/app/packages:/app/services/orchestrator" \
+    PYTHONUNBUFFERED=1 \
+    USER=xorb
+
+# Expose port
+EXPOSE 8001
+
+# Switch to non-root user
+USER 1001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8001/health || exit 1
+
+# Run application
+CMD ["python", "services/orchestrator/simple_main.py"]

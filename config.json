@@ -1,7 +1,7 @@
 {
-    "redis_url": "redis://localhost:6379/0",
+    "redis_url": "redis://localhost:6380/0",
     "database_url": "sqlite+aiosqlite:///./xorb_enhanced.db",
-    "openrouter_api_key": "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",
+    "openrouter_api_key": "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",
     "llm_providers": {
         "openrouter": {
             "api_key": "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",

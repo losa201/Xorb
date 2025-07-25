@@ -1,0 +1,159 @@
+# AlertManager configuration for Xorb PTaaS
+
+global:
+  # SMTP configuration for email alerts
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'xorb-alerts@company.com'
+  smtp_auth_username: 'xorb-alerts@company.com'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+# Templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Routing configuration
+route:
+  group_by: ['alertname', 'service']
+  group_wait: 10s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'default'
+  routes:
+    # Critical alerts go to on-call immediately
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      group_wait: 0s
+      repeat_interval: 1h
+    
+    # Security alerts get special handling
+    - match:
+        service: security
+      receiver: 'security-team'
+      group_wait: 0s
+      repeat_interval: 30m
+    
+    # Payment alerts need immediate attention
+    - match:
+        service: payments
+      receiver: 'finance-alerts'
+      group_wait: 30s
+      repeat_interval: 2h
+    
+    # Database alerts
+    - match_re:
+        service: (database|cache)
+      receiver: 'database-alerts'
+      repeat_interval: 2h
+    
+    # Performance and system alerts
+    - match_re:
+        service: (system|performance)
+      receiver: 'ops-team'
+      repeat_interval: 12h
+
+# Inhibition rules
+inhibit_rules:
+  # Inhibit any warning if the same alert is already critical
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'service', 'instance']
+
+# Receiver configurations
+receivers:
+  - name: 'default'
+    email_configs:
+      - to: 'ops-team@company.com'
+        subject: '[Xorb PTaaS] {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Severity: {{ .Labels.severity }}
+          {{ end }}
+
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'oncall@company.com'
+        subject: '[CRITICAL] Xorb PTaaS Alert - {{ .GroupLabels.alertname }}'
+        body: |
+          🚨 CRITICAL ALERT 🚨
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt }}
+          
+          Dashboard: http://grafana:3001/d/xorb-overview
+          {{ end }}
+    webhook_configs:
+      - url: 'http://api:8000/webhooks/critical-alert'
+        http_config:
+          bearer_token: '${WEBHOOK_TOKEN}'
+
+  - name: 'security-team'
+    email_configs:
+      - to: 'security@company.com,oncall@company.com'
+        subject: '[SECURITY] Xorb PTaaS Security Alert'
+        body: |
+          🔒 SECURITY ALERT 🔒
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Time: {{ .StartsAt }}
+          
+          Immediate investigation required.
+          {{ end }}
+    webhook_configs:
+      - url: 'http://api:8000/webhooks/security-alert'
+        http_config:
+          bearer_token: '${WEBHOOK_TOKEN}'
+
+  - name: 'finance-alerts'
+    email_configs:
+      - to: 'finance@company.com,ops-team@company.com'
+        subject: '[PAYMENTS] Xorb PTaaS Payment System Alert'
+        body: |
+          💳 PAYMENT SYSTEM ALERT 💳
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Time: {{ .StartsAt }}
+          
+          Payment processing may be affected.
+          {{ end }}
+
+  - name: 'database-alerts'
+    email_configs:
+      - to: 'dba@company.com,ops-team@company.com'
+        subject: '[DATABASE] Xorb PTaaS Database Alert'
+        body: |
+          🗄️ DATABASE ALERT 🗄️
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt }}
+          {{ end }}
+
+  - name: 'ops-team'
+    email_configs:
+      - to: 'ops-team@company.com'
+        subject: '[OPS] Xorb PTaaS Operational Alert'
+        body: |
+          ⚙️ OPERATIONAL ALERT ⚙️
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt }}
+          {{ end }}

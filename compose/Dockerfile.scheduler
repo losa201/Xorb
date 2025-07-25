@@ -1,0 +1,53 @@
+# Multi-stage non-root Dockerfile for Scheduler service
+# Rust-based NATS job dispatcher optimized for EPYC
+
+# Builder stage
+FROM rust:1.79-alpine as builder
+
+# Install build dependencies
+RUN apk add --no-cache \
+    musl-dev \
+    openssl-dev \
+    pkgconfig
+
+# Set working directory
+WORKDIR /app
+
+# Copy Rust source
+COPY services/scheduler/Cargo.toml services/scheduler/Cargo.lock ./
+COPY services/scheduler/src ./src/
+
+# Build release binary
+RUN cargo build --release
+
+# Runtime stage
+FROM alpine:3.18 as runtime
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    libgcc
+
+# Create non-root user
+RUN addgroup -g 1001 xorb && \
+    adduser -u 1001 -G xorb -s /bin/sh -D xorb
+
+# Set working directory
+WORKDIR /app
+
+# Copy binary from builder stage
+COPY --from=builder /app/target/release/scheduler /app/scheduler
+RUN chmod +x /app/scheduler
+
+# Create temporary directory
+RUN mkdir -p /tmp/xorb && chown 1001:1001 /tmp/xorb
+
+# Switch to non-root user
+USER 1001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD /app/scheduler --health-check || exit 1
+
+# Run application
+CMD ["/app/scheduler"]

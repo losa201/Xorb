@@ -1,0 +1,267 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Xorb Performance Budgets & SLOs",
+    "tags": ["xorb", "slo", "performance", "budgets"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "API Latency Budget Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "xorb:api_latency_p95_5m",
+            "legendFormat": "P95 Latency",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 0.15},
+                {"color": "red", "value": 0.2}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Scan Queue Lag Budget",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "xorb:scan_queue_age_p95_5m",
+            "legendFormat": "P95 Queue Age",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 240},
+                {"color": "red", "value": 300}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Payout Delay Budget",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "xorb:payout_processing_time_p95_5m",
+            "legendFormat": "P95 Processing Time",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 2700},
+                {"color": "red", "value": 3600}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Service Availability",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "xorb:service_availability_5m",
+            "legendFormat": "Availability",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 0.995},
+                {"color": "green", "value": 0.999}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "API Latency Trends",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "xorb:api_latency_p95_5m",
+            "legendFormat": "P95 Latency",
+            "refId": "A"
+          },
+          {
+            "expr": "xorb:api_latency_p99_5m",
+            "legendFormat": "P99 Latency",
+            "refId": "B"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byName", "options": "Budget Threshold"},
+              "properties": [
+                {"id": "color", "value": {"mode": "fixed", "fixedColor": "red"}},
+                {"id": "custom.fillOpacity", "value": 0}
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 6,
+        "title": "Scan Performance",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "xorb:scan_queue_age_p95_5m",
+            "legendFormat": "Queue Age P95",
+            "refId": "A"
+          },
+          {
+            "expr": "xorb:scan_processing_time_p95_5m",
+            "legendFormat": "Processing Time P95",
+            "refId": "B"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Error Budget Burn Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "xorb:api_error_budget_burn_rate_1h",
+            "legendFormat": "API Error Budget Burn",
+            "refId": "A"
+          },
+          {
+            "expr": "xorb:scan_error_budget_burn_rate_1h",
+            "legendFormat": "Scanner Error Budget Burn",
+            "refId": "B"
+          },
+          {
+            "expr": "xorb:payout_error_budget_burn_rate_1h",
+            "legendFormat": "Payout Error Budget Burn",
+            "refId": "C"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 16},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Resource Budget Status",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "xorb:cpu_utilization_5m",
+            "legendFormat": "CPU Utilization",
+            "refId": "A"
+          },
+          {
+            "expr": "xorb:memory_utilization_5m",
+            "legendFormat": "Memory Utilization",
+            "refId": "B"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "max": 100
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Throughput Budgets",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "xorb:api_requests_per_second_5m",
+            "legendFormat": "API RPS",
+            "refId": "A"
+          },
+          {
+            "expr": "xorb:scan_throughput_5m",
+            "legendFormat": "Scan Throughput",
+            "refId": "B"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "SLO Compliance Heatmap",
+        "type": "heatmap",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"xorb-api\"}[5m]))",
+            "legendFormat": "{{le}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 32},
+        "heatmap": {
+          "yAxis": {
+            "unit": "s",
+            "decimals": 3
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 16,
+    "version": 0
+  }
+}

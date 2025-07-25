@@ -1,0 +1,97 @@
+# Multi-stage non-root Dockerfile for Scanner service
+# Optimized for AMD EPYC 7002 with Nuclei, ZAP, and Trivy
+
+# Builder stage
+FROM python:3.12-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    libpq-dev \
+    libffi-dev \
+    libssl-dev \
+    curl \
+    wget \
+    unzip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN pip install poetry==1.6.1
+
+# Set Poetry configuration
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VENV_IN_PROJECT=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+# Copy Poetry files
+WORKDIR /app
+COPY pyproject.toml poetry.lock* ./
+
+# Install dependencies
+RUN poetry install --only=main --no-root && rm -rf $POETRY_CACHE_DIR
+
+# Download security tools
+RUN mkdir -p /app/tools && \
+    # Download Nuclei
+    curl -sSL https://github.com/projectdiscovery/nuclei/releases/latest/download/nuclei_2.9.15_linux_amd64.zip -o nuclei.zip && \
+    unzip nuclei.zip -d /app/tools && \
+    chmod +x /app/tools/nuclei && \
+    # Download Trivy
+    curl -sSL https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.45.1_Linux-64bit.tar.gz -o trivy.tar.gz && \
+    tar -xzf trivy.tar.gz -C /app/tools && \
+    chmod +x /app/tools/trivy
+
+# Runtime stage
+FROM python:3.12-slim as runtime
+
+# Install runtime dependencies and Java for ZAP
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    curl \
+    wget \
+    openjdk-17-jre-headless \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -g 1001 xorb && \
+    useradd -r -u 1001 -g xorb -s /bin/false -c "Xorb User" xorb
+
+# Set working directory
+WORKDIR /app
+
+# Copy virtual environment from builder stage
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/tools /app/tools
+
+# Download ZAP
+RUN wget -q https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2_14_0_unix.sh -O /tmp/zap_install.sh && \
+    chmod +x /tmp/zap_install.sh && \
+    /tmp/zap_install.sh -q && \
+    rm /tmp/zap_install.sh
+
+# Copy application code
+COPY --chown=1001:1001 xorb_common/ ./xorb_common/
+COPY --chown=1001:1001 services/scanner/ ./services/scanner/
+
+# Create scanner workspace
+RUN mkdir -p /tmp/xorb/scanner_data /tmp/xorb/results && \
+    chown -R 1001:1001 /tmp/xorb
+
+# Set environment variables
+ENV PATH="/app/.venv/bin:/app/tools:$PATH" \
+    PYTHONPATH="/app:/app/xorb_common:/app/services/scanner" \
+    PYTHONUNBUFFERED=1 \
+    USER=xorb \
+    JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+
+# Switch to non-root user
+USER 1001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)"
+
+# Run application
+CMD ["python", "services/scanner/main.py"]

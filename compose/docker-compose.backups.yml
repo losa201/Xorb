@@ -1,0 +1,158 @@
+version: '3.9'
+
+# Backup services for Xorb PTaaS
+# wal-g for PostgreSQL, Redis snapshots, and file backups
+
+services:
+  # PostgreSQL backup with wal-g
+  postgres-backup:
+    image: wal-g/wal-g:latest
+    container_name: xorb_postgres_backup
+    environment:
+      - WALG_S3_PREFIX=s3://xorb-backups/postgres
+      - AWS_ACCESS_KEY_ID=${BACKUP_AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${BACKUP_AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${BACKUP_AWS_REGION:-us-east-1}
+      - PGUSER=xorb
+      - PGPASSWORD=xorb_secure_2024
+      - PGHOST=postgres
+      - PGDATABASE=xorb_ptaas
+      - WALG_COMPRESSION_METHOD=lz4
+      - WALG_DELTA_MAX_STEPS=7
+      - WALG_RETENTION_POLICY=7
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backups/scripts:/scripts:ro
+      - backup_logs:/var/log/backups
+    networks:
+      - xorb-network
+    depends_on:
+      - postgres
+    # EPYC optimization
+    cpus: '0.5'
+    cpu_quota: 50000
+    mem_limit: 1g
+    mem_reservation: 512m
+    cap_drop:
+      - ALL
+    cap_add:
+      - DAC_OVERRIDE
+    tmpfs:
+      - /tmp:exec,size=500m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    command: ["/scripts/postgres-backup.sh"]
+
+  # Redis backup service
+  redis-backup:
+    image: redis:7-alpine
+    container_name: xorb_redis_backup
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - BACKUP_S3_BUCKET=xorb-backups
+      - BACKUP_S3_PREFIX=redis
+      - AWS_ACCESS_KEY_ID=${BACKUP_AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${BACKUP_AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${BACKUP_AWS_REGION:-us-east-1}
+    volumes:
+      - redis_data:/data
+      - ./backups/scripts:/scripts:ro
+      - backup_logs:/var/log/backups
+    networks:
+      - xorb-network
+    depends_on:
+      - redis
+    # EPYC optimization
+    cpus: '0.3'
+    cpu_quota: 30000
+    mem_limit: 512m
+    mem_reservation: 256m
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:exec,size=200m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    command: ["/scripts/redis-backup.sh"]
+
+  # Configuration and logs backup
+  file-backup:
+    image: alpine:3.18
+    container_name: xorb_file_backup
+    environment:
+      - BACKUP_S3_BUCKET=xorb-backups
+      - BACKUP_S3_PREFIX=files
+      - AWS_ACCESS_KEY_ID=${BACKUP_AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${BACKUP_AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${BACKUP_AWS_REGION:-us-east-1}
+    volumes:
+      - ./compose:/backup/compose:ro
+      - ./xorb_common:/backup/xorb_common:ro
+      - ./services:/backup/services:ro
+      - /var/log:/backup/system_logs:ro
+      - ./backups/scripts:/scripts:ro
+      - backup_logs:/var/log/backups
+    networks:
+      - xorb-network
+    # EPYC optimization
+    cpus: '0.2'
+    cpu_quota: 20000
+    mem_limit: 256m
+    mem_reservation: 128m
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:exec,size=100m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    command: ["/scripts/file-backup.sh"]
+
+  # Backup monitoring and reporting
+  backup-monitor:
+    image: python:3.12-alpine
+    container_name: xorb_backup_monitor
+    environment:
+      - PROMETHEUS_GATEWAY=http://prometheus:9090
+      - SLACK_WEBHOOK_URL=${BACKUP_SLACK_WEBHOOK}
+      - EMAIL_SMTP_HOST=${BACKUP_EMAIL_HOST}
+      - EMAIL_FROM=${BACKUP_EMAIL_FROM}
+      - EMAIL_TO=${BACKUP_EMAIL_TO}
+    volumes:
+      - backup_logs:/var/log/backups:ro
+      - ./backups/scripts:/scripts:ro
+    networks:
+      - xorb-network
+      - monitoring
+    depends_on:
+      - prometheus
+    # EPYC optimization
+    cpus: '0.1'
+    cpu_quota: 10000
+    mem_limit: 128m
+    mem_reservation: 64m
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:exec,size=50m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    command: ["/scripts/backup-monitor.py"]
+
+networks:
+  xorb-network:
+    external: true
+  monitoring:
+    external: true
+
+volumes:
+  postgres_data:
+    external: true
+  redis_data:
+    external: true
+  backup_logs:
+    driver: local

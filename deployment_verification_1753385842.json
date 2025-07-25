@@ -1,0 +1,233 @@
+{
+  "timestamp": "2025-07-24T19:37:06.838918",
+  "overall_status": "\u2705 EXCELLENT",
+  "checks": {
+    "databases": {
+      "postgresql": {
+        "status": "connected",
+        "response_time": "< 1s"
+      },
+      "redis": {
+        "status": "connected",
+        "response_time": "< 1s"
+      }
+    },
+    "health": {
+      "temporal": {
+        "status": "unhealthy",
+        "error": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\n  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\n  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\ncurl: (56) Recv failure: Connection reset by peer\n"
+      },
+      "nats": {
+        "status": "unhealthy",
+        "error": "  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current\n                                 Dload  Upload   Total   Spent    Left  Speed\n\n  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\n  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\ncurl: (56) Recv failure: Connection reset by peer\n"
+      }
+    },
+    "monitoring": {
+      "prometheus_config": {
+        "status": "configured"
+      },
+      "grafana_dashboards": {
+        "status": "configured",
+        "count": 2,
+        "dashboards": [
+          "performance-budgets.json",
+          "cost-monitoring.json"
+        ]
+      }
+    },
+    "backup": {
+      "backup_script": {
+        "status": "available"
+      },
+      "b2_lifecycle": {
+        "status": "available"
+      }
+    }
+  },
+  "services": {
+    "xorb_postgres": {
+      "status": "running",
+      "health": "healthy",
+      "uptime": "2025-07-24T19:35:51.735919831Z"
+    },
+    "xorb_redis": {
+      "status": "running",
+      "health": "healthy",
+      "uptime": "2025-07-24T19:35:51.759334661Z"
+    },
+    "xorb_nats": {
+      "status": "running",
+      "health": "unknown",
+      "uptime": "2025-07-24T19:35:51.753602176Z"
+    },
+    "xorb_temporal": {
+      "status": "running",
+      "health": "unknown",
+      "uptime": "2025-07-24T19:35:52.157976414Z"
+    },
+    "xorb_api": {
+      "status": "running",
+      "health": "healthy",
+      "uptime": "2025-07-24T19:36:42.56106829Z"
+    },
+    "xorb_worker": {
+      "status": "running",
+      "health": "healthy",
+      "uptime": "2025-07-24T19:36:42.556748681Z"
+    },
+    "xorb_orchestrator": {
+      "status": "running",
+      "health": "healthy",
+      "uptime": "2025-07-24T19:36:42.572060562Z"
+    }
+  },
+  "endpoints": {
+    "Root": {
+      "status": "success",
+      "response_time": "0.005s",
+      "status_code": 200,
+      "data": {
+        "service": "Xorb PTaaS API",
+        "version": "2.0.0",
+        "status": "operational",
+        "message": "Welcome to Xorb Penetration Testing as a Service",
+        "timestamp": "2025-07-24T19:37:07.041473"
+      }
+    },
+    "Health Check": {
+      "status": "success",
+      "response_time": "0.001s",
+      "status_code": 200,
+      "data": {
+        "status": "healthy",
+        "service": "xorb-api",
+        "timestamp": "2025-07-24T19:37:07.043315"
+      }
+    },
+    "API Status": {
+      "status": "success",
+      "response_time": "0.001s",
+      "status_code": 200,
+      "data": {
+        "api_status": "operational",
+        "services": {
+          "database": "ready",
+          "redis": "ready",
+          "nats": "ready"
+        },
+        "version": "2.0.0",
+        "timestamp": "2025-07-24T19:37:07.044691"
+      }
+    },
+    "Assets": {
+      "status": "success",
+      "response_time": "0.001s",
+      "status_code": 200,
+      "data": {
+        "assets": [],
+        "total": 0,
+        "message": "Asset management system ready"
+      }
+    },
+    "Scans": {
+      "status": "success",
+      "response_time": "0.001s",
+      "status_code": 200,
+      "data": {
+        "scans": [],
+        "total": 0,
+        "message": "Security scanning system ready"
+      }
+    },
+    "Findings": {
+      "status": "success",
+      "response_time": "0.001s",
+      "status_code": 200,
+      "data": {
+        "findings": [],
+        "total": 0,
+        "message": "Findings management system ready"
+      }
+    },
+    "Leaderboard": {
+      "status": "success",
+      "response_time": "0.001s",
+      "status_code": 200,
+      "data": {
+        "leaderboard": [],
+        "message": "Gamification system ready"
+      }
+    },
+    "Compliance": {
+      "status": "success",
+      "response_time": "0.001s",
+      "status_code": 200,
+      "data": {
+        "compliance_status": "ready",
+        "soc2_readiness": "green",
+        "message": "Compliance automation system ready"
+      }
+    }
+  },
+  "performance": {
+    "resource_usage": {
+      "xorb_orchestrator": {
+        "cpu_percent": 0.01,
+        "memory_percent": 3.2,
+        "memory_usage_mb": 32.8
+      },
+      "xorb_worker": {
+        "cpu_percent": 0.0,
+        "memory_percent": 0.23,
+        "memory_usage_mb": 14.43
+      },
+      "xorb_api": {
+        "cpu_percent": 0.02,
+        "memory_percent": 1.07,
+        "memory_usage_mb": 32.88
+      },
+      "xorb_temporal": {
+        "cpu_percent": 0.13,
+        "memory_percent": 3.28,
+        "memory_usage_mb": 67.18
+      },
+      "xorb_redis": {
+        "cpu_percent": 0.05,
+        "memory_percent": 0.16,
+        "memory_usage_mb": 3.36
+      },
+      "xorb_postgres": {
+        "cpu_percent": 0.01,
+        "memory_percent": 1.25,
+        "memory_usage_mb": 102.69
+      },
+      "xorb_nats": {
+        "cpu_percent": 0.0,
+        "memory_percent": 0.37,
+        "memory_usage_mb": 3.81
+      },
+      "xorb_redis_1": {
+        "cpu_percent": 0.06,
+        "memory_percent": 0.01,
+        "memory_usage_mb": 3.76
+      }
+    }
+  },
+  "security": {
+    "environment": {
+      "status": "configured",
+      "jwt_secret": true,
+      "api_keys": true,
+      "stripe_keys": true
+    },
+    "containers": {
+      "status": "hardened",
+      "security_opts": [
+        "no-new-privileges:true"
+      ]
+    }
+  },
+  "success_rate": 100.0,
+  "checks_passed": 17,
+  "total_checks": 17
+}

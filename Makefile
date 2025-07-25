@@ -557,3 +557,64 @@ debug: ## Show debugging information
 	@echo ""
 	@echo -e "$(CYAN)=== Service Health ===$(RESET)"
 	@$(MAKE) health
+
+# =============================================================================
+# XORBCTL CLI BUILD (Phase 4.3)
+# =============================================================================
+
+# Go variables for xorbctl CLI
+BINARY_NAME = xorbctl
+MAIN_PATH = ./cmd/xorbctl
+BUILD_DIR = ./dist
+GO_VERSION = $(shell go version | cut -d' ' -f3)
+
+# xorbctl build flags
+CLI_LDFLAGS = -s -w \
+	-X github.com/xorb/xorbctl/internal/version.Version=$(VERSION) \
+	-X github.com/xorb/xorbctl/internal/version.GitCommit=$(GIT_COMMIT) \
+	-X github.com/xorb/xorbctl/internal/version.GitTag=$(GIT_TAG) \
+	-X github.com/xorb/xorbctl/internal/version.BuildDate=$(BUILD_DATE) \
+	-X github.com/xorb/xorbctl/internal/version.GoVersion=$(GO_VERSION)
+
+.PHONY: build-cli
+build-cli: ## Build xorbctl CLI binary
+	@echo -e "$(GREEN)Building xorbctl CLI...$(RESET)"
+	@mkdir -p $(BUILD_DIR)
+	@cd $(MAIN_PATH) && \
+		CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+		go build -ldflags "$(CLI_LDFLAGS)" -o ../../$(BUILD_DIR)/$(BINARY_NAME) .
+	@echo -e "$(GREEN)xorbctl built: $(BUILD_DIR)/$(BINARY_NAME)$(RESET)"
+
+.PHONY: build-cli-all
+build-cli-all: ## Build xorbctl for all platforms
+	@echo -e "$(GREEN)Building xorbctl for all platforms...$(RESET)"
+	@mkdir -p $(BUILD_DIR)
+	@cd $(MAIN_PATH) && \
+	for os in linux darwin windows; do \
+		for arch in amd64 arm64; do \
+			if [ $$os = "windows" ]; then ext=".exe"; else ext=""; fi; \
+			echo "Building for $$os/$$arch..."; \
+			CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
+			go build -ldflags "$(CLI_LDFLAGS)" -o ../../$(BUILD_DIR)/$(BINARY_NAME)-$$os-$$arch$$ext .; \
+		done; \
+	done
+	@echo -e "$(GREEN)Cross-platform builds completed$(RESET)"
+
+.PHONY: install-cli
+install-cli: build-cli ## Install xorbctl to local system
+	@echo -e "$(GREEN)Installing xorbctl...$(RESET)"
+	@sudo cp $(BUILD_DIR)/$(BINARY_NAME) /usr/local/bin/
+	@sudo chmod +x /usr/local/bin/$(BINARY_NAME)
+	@echo -e "$(GREEN)xorbctl installed to /usr/local/bin/$(RESET)"
+
+.PHONY: test-cli
+test-cli: ## Test xorbctl CLI
+	@echo -e "$(GREEN)Testing xorbctl CLI...$(RESET)"
+	@cd $(MAIN_PATH) && go test ./... -v
+	@echo -e "$(GREEN)CLI tests completed$(RESET)"
+
+.PHONY: cli-deps
+cli-deps: ## Install Go dependencies for xorbctl
+	@echo -e "$(GREEN)Installing Go dependencies for xorbctl...$(RESET)"
+	@cd $(MAIN_PATH) && go mod tidy && go mod download
+	@echo -e "$(GREEN)Go dependencies installed$(RESET)"

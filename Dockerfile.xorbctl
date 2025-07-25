@@ -1,0 +1,50 @@
+# Multi-stage Dockerfile for xorbctl CLI
+# Phase 4.3: Self-Serve CLI (xorbctl) in Go
+
+FROM golang:1.22-alpine AS builder
+
+# Install ca-certificates and git
+RUN apk add --no-cache ca-certificates git
+
+# Set working directory
+WORKDIR /build
+
+# Copy go mod files first for better caching
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Copy source code
+COPY cmd/ cmd/
+COPY internal/ internal/
+
+# Build the binary
+ARG TARGETOS=linux
+ARG TARGETARCH=amd64
+ARG VERSION=dev
+ARG GIT_COMMIT=unknown
+ARG GIT_TAG=unknown
+ARG BUILD_DATE=unknown
+
+RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build \
+    -ldflags="-s -w \
+    -X github.com/xorb/xorbctl/internal/version.Version=${VERSION} \
+    -X github.com/xorb/xorbctl/internal/version.GitCommit=${GIT_COMMIT} \
+    -X github.com/xorb/xorbctl/internal/version.GitTag=${GIT_TAG} \
+    -X github.com/xorb/xorbctl/internal/version.BuildDate=${BUILD_DATE}" \
+    -o xorbctl ./cmd/xorbctl
+
+# Final stage - minimal runtime image
+FROM scratch
+
+# Import ca-certificates from builder
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+
+# Copy the binary
+COPY --from=builder /build/xorbctl /usr/local/bin/xorbctl
+
+# Set user to non-root
+USER 1001:1001
+
+# Set entrypoint
+ENTRYPOINT ["/usr/local/bin/xorbctl"]
+CMD ["--help"]

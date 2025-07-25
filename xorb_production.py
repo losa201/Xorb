@@ -10,16 +10,17 @@ import json
 import sys
 import argparse
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent / 'packages/xorb_core/tests'))
 
-from llm.intelligent_client import IntelligentLLMClient
-from llm.payload_generator import PayloadGenerator, PayloadCategory, TargetContext, PayloadComplexity
-from knowledge_fabric.llm_knowledge_fabric import LLMKnowledgeFabric
+from xorb_common.llm.intelligent_client import IntelligentLLMClient
+from xorb_common.llm.payload_generator import PayloadGenerator, PayloadCategory, TargetContext, PayloadComplexity
+from xorb_common.knowledge_fabric.llm_knowledge_fabric import LLMKnowledgeFabric
 from test_hackerone_scraper import HackerOneOpportunitiesScraper
-from integrations.hackerone_client import HackerOneClient
+from xorb_common.integrations.hackerone_client import HackerOneClient
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s | %(levelname)-8s | %(name)s | %(message)s')
 logger = logging.getLogger(__name__)
@@ -212,7 +213,7 @@ class XORBSupremeProduction:
                 # Store in knowledge fabric
                 atom_ids = []
                 for payload in payloads:
-                    from llm.intelligent_client import LLMResponse, LLMProvider
+                    from xorb_common.llm.intelligent_client import LLMResponse, LLMProvider
                     
                     mock_response = LLMResponse(
                         content=payload.payload,
@@ -221,8 +222,8 @@ class XORBSupremeProduction:
                         tokens_used=100,
                         cost_usd=0.001,
                         confidence_score=payload.success_probability,
-                        generated_at=datetime.utcnow(),
-                        request_id=f"prod_{int(datetime.utcnow().timestamp())}"
+                        generated_at=datetime.now(timezone.utc),
+                        request_id=f"prod_{int(datetime.now(timezone.utc).timestamp())}"
                     )
                     
                     atom_id = await self.knowledge_fabric.store_llm_payload(
@@ -233,7 +234,7 @@ class XORBSupremeProduction:
                     atom_ids.append(atom_id)
                 
                 payload_results[category.value] = {
-                    "payloads": payloads,
+                    "payloads": [p.model_dump() for p in payloads],
                     "atom_ids": atom_ids,
                     "count": len(payloads)
                 }
@@ -253,7 +254,7 @@ class XORBSupremeProduction:
         
         analysis_results = {
             "target": target_url,
-            "analysis_timestamp": datetime.utcnow().isoformat(),
+            "analysis_timestamp": datetime.now(timezone.utc).isoformat(),
             "technology_analysis": {},
             "vulnerability_assessment": {},
             "attack_surface": {},
@@ -276,7 +277,7 @@ class XORBSupremeProduction:
         """
         
         try:
-            from llm.intelligent_client import LLMRequest
+            from xorb_common.llm.intelligent_client import LLMRequest
             request = LLMRequest(
                 task_type="vulnerability_analysis",
                 prompt=tech_analysis_prompt,
@@ -308,8 +309,8 @@ class XORBSupremeProduction:
         
         campaign_results = {
             "target": target_url,
-            "campaign_id": f"campaign_{int(datetime.utcnow().timestamp())}",
-            "start_time": datetime.utcnow().isoformat(),
+            "campaign_id": f"campaign_{int(datetime.now(timezone.utc).timestamp())}",
+            "start_time": datetime.now(timezone.utc).isoformat(),
             "phases": {},
             "findings": [],
             "total_cost": 0.0
@@ -336,7 +337,7 @@ class XORBSupremeProduction:
         report = await self._generate_campaign_report(campaign_results)
         campaign_results["phases"]["reporting"] = report
         
-        campaign_results["end_time"] = datetime.utcnow().isoformat()
+        campaign_results["end_time"] = datetime.now(timezone.utc).isoformat()
         campaign_results["total_cost"] = self._calculate_campaign_cost(campaign_results)
         
         logger.info(f"Campaign completed for {target_url}")
@@ -357,19 +358,19 @@ class XORBSupremeProduction:
         for category, payload_data in payloads.items():
             if "payloads" in payload_data:
                 for payload in payload_data["payloads"][:2]:  # Simulate 2 findings per category
-                    if payload.success_probability > 0.6:  # High confidence payloads
+                    if payload["success_probability"] > 0.6:  # High confidence payloads
                         finding = {
                             "id": f"finding_{len(simulated_findings) + 1}",
                             "category": category,
                             "title": f"Potential {category.replace('_', ' ').title()} Vulnerability", 
-                            "description": payload.description,
-                            "severity": self._calculate_severity(payload.success_probability),
-                            "payload": payload.payload,
-                            "confidence": payload.success_probability,
-                            "detection_difficulty": payload.detection_difficulty,
-                            "remediation": payload.remediation,
-                            "target_parameter": payload.target_parameter,
-                            "expected_result": payload.expected_result
+                            "description": payload["description"],
+                            "severity": self._calculate_severity(payload["success_probability"]),
+                            "payload": payload["payload"],
+                            "confidence": payload["success_probability"],
+                            "detection_difficulty": payload["detection_difficulty"],
+                            "remediation": payload["remediation"],
+                            "target_parameter": payload["target_parameter"],
+                            "expected_result": payload["expected_result"]
                         }
                         simulated_findings.append(finding)
         
@@ -407,7 +408,7 @@ class XORBSupremeProduction:
         High Severity: {len(high_findings)}
         
         Key Findings:
-        {json.dumps(findings[:3], indent=2)}
+        {json.dumps(findings[:3], indent=2, default=str)}
         
         Provide:
         1. Executive summary with business impact
@@ -418,7 +419,7 @@ class XORBSupremeProduction:
         """
         
         try:
-            from llm.intelligent_client import LLMRequest
+            from xorb_common.llm.intelligent_client import LLMRequest
             request = LLMRequest(
                 task_type="report_enhancement",
                 prompt=report_prompt,
@@ -433,7 +434,7 @@ class XORBSupremeProduction:
                 "confidence": response.confidence_score,
                 "model_used": response.model_used,
                 "cost": response.cost_usd,
-                "generated_at": datetime.utcnow().isoformat()
+                "generated_at": datetime.now(timezone.utc).isoformat()
             }
             
         except Exception as e:
@@ -474,7 +475,7 @@ class XORBSupremeProduction:
         logger.info(f"Starting production campaign with {len(targets)} targets")
         
         campaign_summary = {
-            "campaign_start": datetime.utcnow().isoformat(),
+            "campaign_start": datetime.now(timezone.utc).isoformat(),
             "targets_processed": 0,
             "total_findings": 0,
             "total_cost": 0.0,
@@ -505,7 +506,7 @@ class XORBSupremeProduction:
             except Exception as e:
                 logger.error(f"Failed to process target {target_config['url']}: {e}")
         
-        campaign_summary["campaign_end"] = datetime.utcnow().isoformat()
+        campaign_summary["campaign_end"] = datetime.now(timezone.utc).isoformat()
         
         logger.info("Production campaign completed")
         logger.info(f"Targets processed: {campaign_summary['targets_processed']}")
@@ -517,7 +518,7 @@ class XORBSupremeProduction:
     async def get_system_status(self) -> dict:
         """Get comprehensive system status"""
         status = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "system_health": "operational",
             "components": {}
         }
@@ -586,9 +587,7 @@ async def main():
         elif args.discover:
             # Discover opportunities
             opportunities = await xorb.discover_opportunities()
-            print(f"Discovered {len(opportunities)} opportunities")
-            for opp in opportunities[:10]:
-                print(f"- {opp.get('name', 'Unknown')}: Score {opp.get('priority_score', 0)}")
+            print(json.dumps(opportunities, indent=2, default=str))
         
         elif args.targets:
             # Run campaign on specified targets
@@ -598,9 +597,9 @@ async def main():
             results = await xorb.run_production_campaign(targets)
             
             # Save results
-            output_file = f"campaign_results_{int(datetime.utcnow().timestamp())}.json"
+            output_file = f"campaign_results_{int(datetime.now(timezone.utc).timestamp())}.json"
             with open(output_file, 'w') as f:
-                json.dump(results, f, indent=2)
+                json.dump(results, f, indent=2, default=str)
             
             print(f"Campaign completed. Results saved to {output_file}")
         

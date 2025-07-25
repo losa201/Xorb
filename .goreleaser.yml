@@ -1,0 +1,264 @@
+# GoReleaser configuration for xorbctl CLI
+# Phase 4.3: Self-Serve CLI (xorbctl) in Go
+
+version: 2
+
+project_name: xorbctl
+
+before:
+  hooks:
+    - go mod tidy
+    - go generate ./...
+
+builds:
+  - id: xorbctl
+    dir: ./cmd/xorbctl
+    binary: xorbctl
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    goarm:
+      - "7"
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/xorb/xorbctl/internal/version.Version={{.Version}}
+      - -X github.com/xorb/xorbctl/internal/version.GitCommit={{.FullCommit}}
+      - -X github.com/xorb/xorbctl/internal/version.GitTag={{.Tag}}
+      - -X github.com/xorb/xorbctl/internal/version.BuildDate={{.Date}}
+      - -X github.com/xorb/xorbctl/internal/version.GoVersion={{.Env.GOVERSION}}
+
+universal_binaries:
+  - id: xorbctl-darwin
+    ids: 
+      - xorbctl
+    name_template: xorbctl
+    replace: true
+
+archives:
+  - id: xorbctl-archive
+    name_template: >-
+      {{- .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    format_overrides:
+      - goos: windows
+        format: zip
+    builds:
+      - xorbctl
+    files:
+      - README.md
+      - LICENSE
+      - CHANGELOG.md
+
+checksum:
+  name_template: 'checksums.txt'
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^ci:'
+      - '^chore:'
+      - Merge pull request
+      - Merge branch
+  groups:
+    - title: Features
+      regexp: '^.*?feat(\(.+\))??!?:.+$'
+      order: 0
+    - title: 'Bug fixes'
+      regexp: '^.*?fix(\(.+\))??!?:.+$'
+      order: 1
+    - title: 'Performance improvements'
+      regexp: '^.*?perf(\(.+\))??!?:.+$'
+      order: 2
+    - title: Others
+      order: 999
+
+# Homebrew tap
+brews:
+  - name: xorbctl
+    ids:
+      - xorbctl-archive
+    tap:
+      owner: xorb
+      name: homebrew-tap
+      branch: main
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    folder: Formula
+    homepage: https://xorb.io
+    description: "Official CLI for Xorb PTaaS (Penetration Testing as a Service)"
+    license: MIT
+    skip_upload: false
+    dependencies:
+      - name: git
+    install: |
+      bin.install "xorbctl"
+      
+      # Generate completions
+      output = Utils.safe_popen_read("#{bin}/xorbctl", "completion", "bash")
+      (bash_completion/"xorbctl").write output
+      
+      output = Utils.safe_popen_read("#{bin}/xorbctl", "completion", "zsh")
+      (zsh_completion/"_xorbctl").write output
+      
+      output = Utils.safe_popen_read("#{bin}/xorbctl", "completion", "fish")
+      (fish_completion/"xorbctl.fish").write output
+    test: |
+      system "#{bin}/xorbctl version"
+
+# Scoop manifest for Windows
+scoops:
+  - name: xorbctl
+    ids:
+      - xorbctl-archive
+    bucket:
+      owner: xorb
+      name: scoop-bucket
+      branch: main
+      token: "{{ .Env.SCOOP_BUCKET_GITHUB_TOKEN }}"
+    folder: bucket
+    homepage: https://xorb.io
+    description: "Official CLI for Xorb PTaaS (Penetration Testing as a Service)"
+    license: MIT
+
+# Docker images
+dockers:
+  - image_templates:
+      - "ghcr.io/xorb/xorbctl:{{ .Tag }}-amd64"
+      - "ghcr.io/xorb/xorbctl:latest-amd64"
+    dockerfile: Dockerfile.xorbctl
+    use: buildx
+    goos: linux
+    goarch: amd64
+    build_flag_templates:
+      - "--platform=linux/amd64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/xorb/xorb"
+      - "--label=org.opencontainers.image.description=Official CLI for Xorb PTaaS"
+    skip_push: false
+
+  - image_templates:
+      - "ghcr.io/xorb/xorbctl:{{ .Tag }}-arm64"  
+      - "ghcr.io/xorb/xorbctl:latest-arm64"
+    dockerfile: Dockerfile.xorbctl
+    use: buildx
+    goos: linux
+    goarch: arm64
+    build_flag_templates:
+      - "--platform=linux/arm64"
+      - "--label=org.opencontainers.image.created={{.Date}}"
+      - "--label=org.opencontainers.image.title={{.ProjectName}}"
+      - "--label=org.opencontainers.image.revision={{.FullCommit}}"
+      - "--label=org.opencontainers.image.version={{.Version}}"
+      - "--label=org.opencontainers.image.source=https://github.com/xorb/xorb"
+      - "--label=org.opencontainers.image.description=Official CLI for Xorb PTaaS"
+    skip_push: false
+
+docker_manifests:
+  - name_template: "ghcr.io/xorb/xorbctl:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/xorb/xorbctl:{{ .Tag }}-amd64"
+      - "ghcr.io/xorb/xorbctl:{{ .Tag }}-arm64"
+    skip_push: false
+
+  - name_template: "ghcr.io/xorb/xorbctl:latest"
+    image_templates:
+      - "ghcr.io/xorb/xorbctl:latest-amd64"
+      - "ghcr.io/xorb/xorbctl:latest-arm64"
+    skip_push: false
+
+# Release notes
+release:
+  github:
+    owner: xorb
+    name: xorb
+  header: |
+    ## xorbctl {{ .Tag }}
+    
+    Official CLI for Xorb PTaaS (Penetration Testing as a Service)
+    
+    ### Installation
+    
+    #### Homebrew (macOS/Linux)
+    ```bash
+    brew install xorb/tap/xorbctl
+    ```
+    
+    #### Scoop (Windows)
+    ```bash
+    scoop bucket add xorb https://github.com/xorb/scoop-bucket
+    scoop install xorbctl
+    ```
+    
+    #### Manual Installation
+    Download the appropriate binary from the assets below and add it to your PATH.
+    
+  footer: |
+    ### Checksums
+    
+    All checksums are available in the `checksums.txt` file.
+    
+    ### Docker Images
+    
+    ```bash
+    docker pull ghcr.io/xorb/xorbctl:{{ .Tag }}
+    ```
+    
+    ---
+    
+    **Full Changelog**: https://github.com/xorb/xorb/compare/{{ .PreviousTag }}...{{ .Tag }}
+
+# Announce to social media (optional)
+announce:
+  twitter:
+    enabled: false
+  mastodon:
+    enabled: false
+  reddit:
+    enabled: false
+  slack:
+    enabled: false
+  discord:
+    enabled: false
+
+# Sign binaries and archives
+signs:
+  - cmd: cosign
+    env:
+      - COSIGN_EXPERIMENTAL=1
+    certificate: '${artifact}.pem'
+    args:
+      - sign-blob
+      - '--output-certificate=${certificate}'
+      - '--output-signature=${signature}'
+      - '${artifact}'
+      - --yes
+    artifacts: checksum
+    output: true
+
+# SBOM (Software Bill of Materials)
+sboms:
+  - artifacts: archive
+  - id: source
+    artifacts: source

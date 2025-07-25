@@ -1,0 +1,72 @@
+# Multi-stage non-root Dockerfile for AI Triage service
+# GPT-4o powered duplicate detection and severity analysis
+
+# Builder stage
+FROM python:3.12-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    libpq-dev \
+    libffi-dev \
+    libssl-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Poetry
+RUN pip install poetry==1.6.1
+
+# Set Poetry configuration
+ENV POETRY_NO_INTERACTION=1 \
+    POETRY_VENV_IN_PROJECT=1 \
+    POETRY_CACHE_DIR=/tmp/poetry_cache
+
+# Copy Poetry files
+WORKDIR /app
+COPY pyproject.toml poetry.lock* ./
+
+# Install dependencies
+RUN poetry install --only=main --no-root && rm -rf $POETRY_CACHE_DIR
+
+# Runtime stage
+FROM python:3.12-slim as runtime
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -g 1001 xorb && \
+    useradd -r -u 1001 -g xorb -s /bin/false -c "Xorb User" xorb
+
+# Set working directory
+WORKDIR /app
+
+# Copy virtual environment from builder stage
+COPY --from=builder /app/.venv /app/.venv
+
+# Copy application code
+COPY --chown=1001:1001 xorb_common/ ./xorb_common/
+COPY --chown=1001:1001 services/triage/ ./services/triage/
+
+# Create temporary directory
+RUN mkdir -p /tmp/xorb/triage_cache && chown 1001:1001 /tmp/xorb/triage_cache
+
+# Set environment variables
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app:/app/xorb_common:/app/services/triage" \
+    PYTHONUNBUFFERED=1 \
+    USER=xorb
+
+# Switch to non-root user
+USER 1001
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import sys; sys.exit(0)"
+
+# Run application
+CMD ["python", "services/triage/main.py"]
