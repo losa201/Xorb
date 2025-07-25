@@ -2,7 +2,7 @@
 
 import httpx
 from typing import List, Set
-from xorb_core.models.agents import DiscoveryTarget, Finding
+from ..models.agents import DiscoveryTarget, Finding
 
 class SubdomainEnumerationAgent:
     """An agent for discovering subdomains using certificate transparency."""

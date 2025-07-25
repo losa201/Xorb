@@ -1,0 +1,41 @@
+[Unit]
+Description=Xorb Edge Worker (Redis queue processing)
+Documentation=https://docs.xorb.io/edge-worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+Environment=PYTHONUNBUFFERED=1
+Environment=EDGE_NODE=true
+Environment=REDIS_URL=redis://VPS_IP:6379/1
+Environment=NATS_URL=nats://VPS_IP:4222
+Environment=LOG_LEVEL=INFO
+WorkingDirectory=/home/pi/xorb
+ExecStart=/home/pi/xorb/.venv/bin/python -m edge_worker
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=3
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/pi/xorb/logs /tmp
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitCORE=0
+MemoryMax=1G
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

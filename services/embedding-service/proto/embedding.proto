@@ -1,0 +1,96 @@
+syntax = "proto3";
+
+package xorb.embedding.v1;
+
+option go_package = "github.com/xorb/embedding/v1;embeddingpb";
+
+// Embedding service for high-performance vector generation
+service EmbeddingService {
+    // Generate embeddings for a batch of texts
+    rpc EmbedTexts(EmbedRequest) returns (EmbedResponse);
+    
+    // Compute similarity between two embeddings
+    rpc ComputeSimilarity(SimilarityRequest) returns (SimilarityResponse);
+    
+    // Get service health and metrics
+    rpc GetHealth(HealthRequest) returns (HealthResponse);
+    
+    // Clear cache for specific model or all
+    rpc ClearCache(ClearCacheRequest) returns (ClearCacheResponse);
+}
+
+message EmbedRequest {
+    repeated string texts = 1;
+    string model = 2; // default: "nvidia/embed-qa-4"
+    string input_type = 3; // "query", "passage", "classification"
+    bool use_cache = 4; // default: true
+    int32 batch_size = 5; // default: 50
+}
+
+message Embedding {
+    string text = 1;
+    repeated float vector = 2;
+    uint64 created_unix_ms = 3;
+    string cache_key = 4;
+    bool from_cache = 5;
+}
+
+message EmbedResponse {
+    repeated Embedding embeddings = 1;
+    string model = 2;
+    EmbedUsage usage = 3;
+    EmbedMetrics metrics = 4;
+}
+
+message EmbedUsage {
+    int32 total_tokens = 1;
+    int32 cached_tokens = 2;
+    int32 api_tokens = 3;
+    float cost_usd = 4;
+}
+
+message EmbedMetrics {
+    int64 request_duration_ms = 1;
+    int64 api_duration_ms = 2;
+    int32 cache_hits = 3;
+    int32 cache_misses = 4;
+    float cache_hit_rate = 5;
+}
+
+message SimilarityRequest {
+    repeated float embedding1 = 1;
+    repeated float embedding2 = 2;
+    string metric = 3; // "cosine", "euclidean", "dot"
+}
+
+message SimilarityResponse {
+    float similarity = 1;
+    string metric = 2;
+}
+
+message HealthRequest {}
+
+message HealthResponse {
+    string status = 1; // "healthy", "degraded", "unhealthy"
+    map<string, string> details = 2;
+    int64 uptime_seconds = 3;
+    CacheStats cache_stats = 4;
+}
+
+message CacheStats {
+    int32 l1_cache_size = 1;
+    int32 l2_cache_keys = 2;
+    float l1_memory_mb = 3;
+    float cache_hit_rate_1h = 4;
+}
+
+message ClearCacheRequest {
+    string model = 1; // empty = clear all
+    bool l1_only = 2; // only clear local cache
+}
+
+message ClearCacheResponse {
+    int32 l1_keys_cleared = 1;
+    int32 l2_keys_cleared = 2;
+    string status = 3;
+}

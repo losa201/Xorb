@@ -3,8 +3,8 @@ import inspect
 import pkgutil
 from typing import Dict, List, Optional, Type
 
-import xorb_core.agents
-from xorb_core.agents.agent import BaseAgent
+from . import agents
+from .agents.agent import BaseAgent
 
 
 class AgentRegistry:
@@ -24,7 +24,7 @@ class AgentRegistry:
         if self._agents:
             return
 
-        package = xorb_core.agents
+        package = agents
         for _, name, is_pkg in pkgutil.walk_packages(package.__path__, package.__name__ + "."):
             if not is_pkg:
                 module = __import__(name, fromlist="dummy")
@@ -32,7 +32,10 @@ class AgentRegistry:
                     attribute = getattr(module, attribute_name)
                     if (
                         inspect.isclass(attribute)
-                        and issubclass(attribute, BaseAgent)
+                        and hasattr(attribute, 'name')
+                        and hasattr(attribute, 'description')
+                        and hasattr(attribute, 'accepted_target_types')
+                        and hasattr(attribute, 'run')
                         and attribute is not BaseAgent
                         and not inspect.isabstract(attribute)
                     ):

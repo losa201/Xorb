@@ -1,0 +1,227 @@
+#cloud-config
+
+# Xorb VPS Cloud-Init Configuration
+# Hardened deployment on 16 vCPU / 32 GiB EPYC VPS
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose-v2
+  - git
+  - curl
+  - wget
+  - htop
+  - ncdu
+  - unzip
+  - jq
+  - fail2ban
+  - ufw
+  - unattended-upgrades
+
+# Create system users
+users:
+  - name: xorb
+    uid: 10101
+    groups: [docker, sudo]
+    shell: /bin/bash
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    ssh_authorized_keys:
+      - ${SSH_PUBLIC_KEY}
+
+# Security hardening
+runcmd:
+  # Enable and start Docker
+  - systemctl enable docker
+  - systemctl start docker
+  
+  # Create xorb user and setup permissions
+  - usermod -aG docker xorb
+  - mkdir -p /opt/xorb
+  - chown xorb:xorb /opt/xorb
+  
+  # Setup firewall
+  - ufw --force enable
+  - ufw allow ssh
+  - ufw allow 8000/tcp  # API
+  - ufw allow 3000/tcp  # Grafana
+  - ufw allow 9090/tcp  # Prometheus
+  
+  # Configure automatic security updates
+  - echo 'Unattended-Upgrade::Automatic-Reboot "false";' >> /etc/apt/apt.conf.d/50unattended-upgrades
+  - systemctl enable unattended-upgrades
+  
+  # Clone Xorb repository
+  - sudo -u xorb git clone https://github.com/xorb-platform/xorb.git /opt/xorb
+  
+  # Setup secrets directory
+  - sudo -u xorb mkdir -p /opt/xorb/.secrets
+  - sudo -u xorb chmod 700 /opt/xorb/.secrets
+  
+  # Generate default secrets if not provided
+  - |
+    if [ ! -f /opt/xorb/.secrets/postgres_password ]; then
+      sudo -u xorb openssl rand -base64 32 > /opt/xorb/.secrets/postgres_password
+    fi
+  - |
+    if [ ! -f /opt/xorb/.secrets/nvidia_api_key ]; then
+      echo "NVIDIA_API_KEY_PLACEHOLDER" | sudo -u xorb tee /opt/xorb/.secrets/nvidia_api_key
+    fi
+  
+  # Setup environment file
+  - |
+    sudo -u xorb cat > /opt/xorb/.env << 'EOF'
+    XORB_VERSION=2.0.0
+    POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
+    NEO4J_PASSWORD=xorb_neo4j_2024
+    GRAFANA_PASSWORD=xorb_grafana_2024
+    COMPOSE_PROJECT_NAME=xorb
+    COMPOSE_FILE=docker-compose.vps.yml
+    EOF
+  
+  # Copy production compose file
+  - sudo -u xorb cp /opt/xorb/docker-compose.vps.yml /opt/xorb/docker-compose.yml
+  
+  # Pull images
+  - cd /opt/xorb && sudo -u xorb docker compose pull
+  
+  # Create systemd service
+  - |
+    cat > /etc/systemd/system/xorb.service << 'EOF'
+    [Unit]
+    Description=Xorb Security Intelligence Platform
+    Requires=docker.service
+    After=docker.service
+    
+    [Service]
+    Type=oneshot
+    RemainAfterExit=yes
+    WorkingDirectory=/opt/xorb
+    User=xorb
+    Group=xorb
+    Environment=COMPOSE_FILE=docker-compose.yml
+    ExecStart=/usr/bin/docker compose up -d
+    ExecStop=/usr/bin/docker compose down
+    ExecReload=/usr/bin/docker compose restart
+    TimeoutStartSec=300
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+  
+  # Enable and start Xorb service
+  - systemctl daemon-reload
+  - systemctl enable xorb.service
+  
+  # Setup log rotation
+  - |
+    cat > /etc/logrotate.d/xorb << 'EOF'
+    /opt/xorb/logs/*.log {
+        daily
+        missingok
+        rotate 7
+        compress
+        delaycompress
+        copytruncate
+        notifempty
+    }
+    EOF
+  
+  # Setup monitoring cron jobs
+  - |
+    sudo -u xorb crontab - << 'EOF'
+    */5 * * * * cd /opt/xorb && docker compose ps --format json > /tmp/xorb_status.json
+    0 2 * * * cd /opt/xorb && docker system prune -f
+    EOF
+  
+  # Final deployment
+  - cd /opt/xorb && sudo -u xorb docker compose up -d
+  
+  # Wait for services to be ready and run health check
+  - sleep 60
+  - cd /opt/xorb && python3 scripts/verify_hardened_deploy.py
+
+# Write additional configuration files
+write_files:
+  - path: /opt/xorb/scripts/update_xorb.sh
+    permissions: '0755'
+    owner: xorb:xorb
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+      
+      cd /opt/xorb
+      echo "Updating Xorb platform..."
+      
+      # Pull latest changes
+      git pull origin main
+      
+      # Pull latest images
+      docker compose pull
+      
+      # Restart services with zero-downtime
+      docker compose up -d --remove-orphans
+      
+      # Clean up old images
+      docker image prune -f
+      
+      echo "Update completed successfully"
+
+  - path: /opt/xorb/scripts/backup_data.sh
+    permissions: '0755'
+    owner: xorb:xorb
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+      
+      BACKUP_DIR="/opt/xorb/backups/$(date +%Y%m%d_%H%M%S)"
+      mkdir -p "$BACKUP_DIR"
+      
+      echo "Creating backup in $BACKUP_DIR"
+      
+      # Backup PostgreSQL
+      docker compose exec -T postgres pg_dump -U xorb xorb > "$BACKUP_DIR/postgres.sql"
+      
+      # Backup Neo4j
+      docker compose exec -T neo4j cypher-shell -u neo4j -p xorb_neo4j_2024 \
+        "CALL apoc.export.cypher.all('backup.cypher', {})" > "$BACKUP_DIR/neo4j.cypher"
+      
+      # Backup Redis
+      docker compose exec -T redis redis-cli BGSAVE
+      docker compose cp redis:/data/dump.rdb "$BACKUP_DIR/redis.rdb"
+      
+      # Compress backup
+      tar -czf "$BACKUP_DIR.tar.gz" -C "$(dirname "$BACKUP_DIR")" "$(basename "$BACKUP_DIR")"
+      rm -rf "$BACKUP_DIR"
+      
+      echo "Backup completed: $BACKUP_DIR.tar.gz"
+
+# Configure timezone and NTP
+timezone: UTC
+ntp:
+  enabled: true
+  servers:
+    - 0.pool.ntp.org
+    - 1.pool.ntp.org
+    - 2.pool.ntp.org
+
+# Final message
+final_message: |
+  Xorb Security Intelligence Platform deployed successfully!
+  
+  Services available at:
+  - API: http://YOUR_VPS_IP:8000
+  - Grafana: http://YOUR_VPS_IP:3000 (admin/xorb_grafana_2024)
+  - Prometheus: http://YOUR_VPS_IP:9090
+  
+  Management commands:
+  - sudo systemctl status xorb
+  - sudo -u xorb docker compose -f /opt/xorb/docker-compose.yml logs
+  - /opt/xorb/scripts/update_xorb.sh
+  - /opt/xorb/scripts/backup_data.sh
+  
+  Remember to:
+  1. Update NVIDIA API key in /opt/xorb/.secrets/nvidia_api_key
+  2. Configure proper DNS/SSL termination
+  3. Set up backup retention policy

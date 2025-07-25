@@ -6,14 +6,18 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     gcc \
     g++ \
-    curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy only files needed for dependency installation
+COPY poetry.lock pyproject.toml README.md ./
+COPY xorb_core ./xorb_core
+COPY xorb_common ./xorb_common
+COPY services ./services
 
-# Install orchestrator-specific dependencies
+# Install dependencies
+RUN pip install --no-cache-dir -e .
+
+# Install additional orchestrator dependencies
 RUN pip install --no-cache-dir \
     temporalio \
     structlog \
@@ -21,12 +25,12 @@ RUN pip install --no-cache-dir \
     asyncpg \
     redis
 
-# Copy application code
+# Copy the rest of the application code
 COPY . .
 
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash orchestrator
-RUN chown -R orchestrator:worker /app
+RUN chown -R orchestrator:orchestrator /app
 USER orchestrator
 
 # Start the orchestrator service

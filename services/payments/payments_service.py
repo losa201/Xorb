@@ -1,0 +1,1 @@
+print("Payments service started")

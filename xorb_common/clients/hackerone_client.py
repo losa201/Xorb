@@ -1,5 +1,6 @@
 import httpx
-from pydantic import BaseSettings, SecretStr
+from pydantic_settings import BaseSettings
+from pydantic import SecretStr
 from typing import List, Optional
 
 from ..models.hackerone import HackerOneProgram, VulnerabilitySubmission

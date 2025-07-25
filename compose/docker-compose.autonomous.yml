@@ -1,0 +1,291 @@
+version: '3.9'
+
+# Autonomous Mode Docker Compose - Relaxed Security Configuration
+# This configuration removes security constraints for autonomous agent operation
+
+services:
+  # Core API service - Autonomous mode
+  api:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.api.simple
+    container_name: xorb_api_autonomous
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - JWT_SECRET_KEY=autonomous-xorb-secret-key-2024
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-dummy-key}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-dummy-key}
+      # AUTONOMOUS MODE SETTINGS
+      - AUTONOMOUS_MODE=true
+      - BYPASS_ROE_VALIDATION=true
+      - UNRESTRICTED_NETWORK_ACCESS=true
+      - SECURITY_SCAN_BLOCKING=false
+      - AUTONOMOUS_PATCHING_ENABLED=true
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    # RELAXED: Removed security constraints for autonomous operation
+    privileged: true  # Full system access
+    cpu_quota: 400000  # Increased resources
+    cpuset: "0-3"
+    mem_limit: 4g
+    mem_reservation: 3g
+    # Security constraints REMOVED for autonomous mode:
+    # - No cap_drop (agents have full capabilities)
+    # - No read_only filesystem (agents can self-modify)
+    # - No security_opt restrictions
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # High-performance gRPC embedding service - Autonomous
+  embedding-service:
+    build:
+      context: ..
+      dockerfile: services/embedding-service/Dockerfile
+    container_name: xorb_embedding_autonomous
+    ports:
+      - "50051:50051"  # gRPC
+      - "9091:9090"    # Metrics
+    environment:
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-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}
+      - REDIS_URL=redis://redis:6379/1
+      - GRPC_PORT=50051
+      - METRICS_PORT=9090
+      - AUTONOMOUS_MODE=true
+    depends_on:
+      - redis
+    networks:
+      - xorb-network
+    # RELAXED: Enhanced resources and capabilities
+    privileged: true
+    cpu_quota: 300000
+    cpuset: "4-6"
+    mem_limit: 3g
+    mem_reservation: 2g
+    restart: unless-stopped
+
+  # Worker service - Autonomous mode
+  worker:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.worker.simple
+    container_name: xorb_worker_autonomous
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - TEMPORAL_HOST=temporal:7233
+      - AUTONOMOUS_MODE=true
+      - AGENT_COLLABORATION_ENABLED=true
+      - SELF_HEALING_ENABLED=true
+    depends_on:
+      - postgres
+      - redis
+      - nats
+      - temporal
+    networks:
+      - xorb-network
+    # ENHANCED: Maximum autonomous capabilities
+    privileged: true
+    cpu_quota: 600000  # More CPU for autonomous processing
+    cpuset: "7-12"
+    mem_limit: 8g
+    mem_reservation: 6g
+    restart: unless-stopped
+
+  # Orchestrator service - Autonomous mode
+  orchestrator:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.orchestrator.simple
+    container_name: xorb_orchestrator_autonomous
+    ports:
+      - "8001:8001"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - AUTONOMOUS_MODE=true
+      - AGENT_LED_PRIORITIZATION=true
+      - PREDICTIVE_RESOURCE_ALLOCATION=true
+      - COLLABORATIVE_LEARNING=true
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    privileged: true
+    cpu_quota: 200000
+    cpuset: "13-14"
+    mem_limit: 2g
+    mem_reservation: 1g
+    restart: unless-stopped
+
+  # Scanner service - Unrestricted autonomous scanning
+  scanner:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.scanner-go
+    container_name: xorb_scanner_autonomous
+    ports:
+      - "8004:8004"
+    environment:
+      - DATABASE_URL=postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - PORT=8004
+      - UNRESTRICTED_SCANNING=true
+      - BYPASS_NETWORK_RESTRICTIONS=true
+      - AUTONOMOUS_MUTATION=true
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    # ENHANCED: Full network access for autonomous scanning
+    privileged: true
+    network_mode: host  # Full network access
+    cpu_quota: 400000
+    cpuset: "15"
+    mem_limit: 6g
+    mem_reservation: 4g
+    restart: unless-stopped
+
+  # PostgreSQL database - Same as production
+  postgres:
+    image: postgres:15-alpine
+    container_name: xorb_postgres_autonomous
+    environment:
+      - POSTGRES_DB=xorb_ptaas
+      - POSTGRES_USER=xorb
+      - POSTGRES_PASSWORD=xorb_secure_2024
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+    volumes:
+      - postgres_autonomous_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - xorb-network
+    cpu_quota: 200000
+    cpuset: "0-1"
+    mem_limit: 8g
+    mem_reservation: 6g
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xorb -d xorb_ptaas"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis cache - Enhanced for autonomous operations
+  redis:
+    image: redis:7-alpine
+    container_name: xorb_redis_autonomous
+    command: redis-server --appendonly yes --maxmemory 4gb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_autonomous_data:/data
+    networks:
+      - xorb-network
+    cpu_quota: 100000
+    cpuset: "2"
+    mem_limit: 4g  # Increased for autonomous operations
+    mem_reservation: 2g
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # NATS messaging - Enhanced throughput
+  nats:
+    image: nats:2-alpine
+    container_name: xorb_nats_autonomous
+    command: ["nats-server", "--jetstream", "--store_dir=/data", "--max_payload=10MB"]
+    volumes:
+      - nats_autonomous_data:/data
+    networks:
+      - xorb-network
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    cpu_quota: 100000
+    cpuset: "3"
+    mem_limit: 2g
+    restart: unless-stopped
+
+  # Temporal workflow engine
+  temporal:
+    image: temporalio/auto-setup:1.20
+    container_name: xorb_temporal_autonomous
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=xorb
+      - POSTGRES_PWD=xorb_secure_2024
+      - POSTGRES_SEEDS=postgres
+    depends_on:
+      - postgres
+    networks:
+      - xorb-network
+    ports:
+      - "7233:7233"
+      - "8080:8080"
+    cpu_quota: 150000
+    cpuset: "4"
+    mem_limit: 3g
+    restart: unless-stopped
+
+  # Autonomous Agent Monitor
+  agent-monitor:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.agent-monitor
+    container_name: xorb_agent_monitor
+    ports:
+      - "8009:8009"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - NATS_URL=nats://nats:4222
+      - MONITOR_INTERVAL=5
+      - AUTONOMOUS_MODE=true
+    depends_on:
+      - redis
+      - nats
+    networks:
+      - xorb-network
+    privileged: true
+    cpu_quota: 50000
+    mem_limit: 512m
+    restart: unless-stopped
+
+networks:
+  xorb-network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.enable_icc: "true"
+      com.docker.network.bridge.enable_ip_masquerade: "true"
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16  # Different subnet for autonomous mode
+
+volumes:
+  postgres_autonomous_data:
+    driver: local
+  redis_autonomous_data:
+    driver: local
+  nats_autonomous_data:
+    driver: local

@@ -1,4 +1,5 @@
-# AlertManager configuration for Xorb PTaaS
+# AlertManager configuration for Xorb Security Intelligence Platform
+# Production hardened deployment alerting
 
 global:
   # SMTP configuration for email alerts

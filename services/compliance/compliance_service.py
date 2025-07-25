@@ -1,0 +1,1 @@
+print("Compliance service started")

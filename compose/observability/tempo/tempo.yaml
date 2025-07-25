@@ -1,0 +1,60 @@
+# Tempo configuration for Xorb distributed tracing
+
+server:
+  http_listen_port: 3200
+  grpc_listen_port: 9095
+
+distributor:
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+        http:
+          endpoint: 0.0.0.0:4318
+    jaeger:
+      protocols:
+        thrift_http:
+          endpoint: 0.0.0.0:14268
+        grpc:
+          endpoint: 0.0.0.0:14250
+
+ingester:
+  max_block_duration: 5m
+  max_block_bytes: 1_000_000
+  complete_block_timeout: 10m
+
+compactor:
+  compaction:
+    compaction_window: 1h
+    max_compaction_objects: 1000000
+    block_retention: 168h # 7 days
+    compacted_block_retention: 24h
+
+metrics_generator:
+  registry:
+    external_labels:
+      source: tempo
+      cluster: xorb-vps
+  storage:
+    path: /tmp/tempo/generator/wal
+    remote_write:
+      - url: http://prometheus:9090/api/v1/write
+        send_exemplars: true
+
+storage:
+  trace:
+    backend: local
+    wal:
+      path: /tmp/tempo/wal
+    local:
+      path: /tmp/tempo/blocks
+    pool:
+      max_workers: 100
+      queue_depth: 10000
+
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics]
+      generate_native_histograms: true

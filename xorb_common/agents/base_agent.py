@@ -83,6 +83,15 @@ class BaseAgent(ABC):
         
         self.logger = logging.getLogger(f"{self.__class__.__name__}[{self.agent_id[:8]}]")
         
+        # ENHANCED: Multi-agent collaboration capabilities
+        self.collaborative_mode = config.get('collaborative_mode', True)
+        self.peer_agents: Dict[str, 'BaseAgent'] = {}
+        self.shared_knowledge: Dict[str, Any] = {}
+        self.collaboration_events: asyncio.Queue = asyncio.Queue()
+        self.task_delegation_enabled = config.get('task_delegation', True)
+        self.knowledge_sharing_enabled = config.get('knowledge_sharing', True)
+        self.collective_intelligence: Dict[str, Any] = {}
+        
         self._initialize_capabilities()
 
     @property
@@ -328,6 +337,323 @@ class BaseAgent(ABC):
             "last_activity_age": (datetime.utcnow() - self.last_activity).total_seconds()
         }
 
+    # =============================================================================
+    # ENHANCED MULTI-AGENT COLLABORATION METHODS v2.1
+    # =============================================================================
+    
+    async def register_peer_agent(self, peer_agent: 'BaseAgent'):
+        """Register a peer agent for collaboration"""
+        if not self.collaborative_mode:
+            return
+            
+        self.peer_agents[peer_agent.agent_id] = peer_agent
+        self.logger.info(f"🤝 Registered peer agent {peer_agent.agent_id[:8]} ({peer_agent.__class__.__name__})")
+        
+        # Share initial knowledge
+        if self.knowledge_sharing_enabled:
+            await self._share_knowledge_with_peer(peer_agent)
+    
+    async def delegate_task(self, task: AgentTask, preferred_agent_type: Optional[AgentType] = None) -> bool:
+        """Delegate a task to the most suitable peer agent"""
+        if not self.task_delegation_enabled or not self.peer_agents:
+            return False
+        
+        # Find the best suited agent for this task
+        best_agent = await self._find_best_agent_for_task(task, preferred_agent_type)
+        
+        if best_agent and best_agent.agent_id != self.agent_id:
+            await best_agent.add_task(task)
+            self.logger.info(f"🎯 Delegated task {task.task_id[:8]} to agent {best_agent.agent_id[:8]}")
+            
+            # Record collaboration event
+            await self._record_collaboration_event('task_delegation', {
+                'task_id': task.task_id,
+                'delegated_to': best_agent.agent_id,
+                'reason': 'better_suited_capabilities'
+            })
+            
+            return True
+        
+        return False
+    
+    async def share_knowledge(self, knowledge_type: str, knowledge_data: Any):
+        """Share knowledge with all peer agents"""
+        if not self.knowledge_sharing_enabled:
+            return
+        
+        self.shared_knowledge[knowledge_type] = {
+            'data': knowledge_data,
+            'timestamp': datetime.utcnow(),
+            'source_agent': self.agent_id
+        }
+        
+        # Share with all peers
+        for peer_id, peer_agent in self.peer_agents.items():
+            try:
+                await peer_agent.receive_shared_knowledge(knowledge_type, knowledge_data, self.agent_id)
+            except Exception as e:
+                self.logger.warning(f"Failed to share knowledge with {peer_id[:8]}: {e}")
+    
+    async def receive_shared_knowledge(self, knowledge_type: str, knowledge_data: Any, source_agent_id: str):
+        """Receive shared knowledge from a peer agent"""
+        if not self.knowledge_sharing_enabled:
+            return
+        
+        self.shared_knowledge[knowledge_type] = {
+            'data': knowledge_data,
+            'timestamp': datetime.utcnow(),
+            'source_agent': source_agent_id
+        }
+        
+        # Update collective intelligence
+        await self._update_collective_intelligence(knowledge_type, knowledge_data, source_agent_id)
+        
+        self.logger.debug(f"📡 Received knowledge '{knowledge_type}' from agent {source_agent_id[:8]}")
+    
+    async def collaborative_task_execution(self, task: AgentTask) -> AgentResult:
+        """Execute task collaboratively with peer agents"""
+        if not self.collaborative_mode or not self.peer_agents:
+            return await self._execute_task(task)
+        
+        # Check if task can benefit from collaboration
+        if await self._should_collaborate_on_task(task):
+            collaborators = await self._select_collaborators_for_task(task)
+            
+            if collaborators:
+                return await self._execute_collaborative_task(task, collaborators)
+        
+        return await self._execute_task(task)
+    
+    async def assess_task_priorities(self, tasks: List) -> Dict[str, float]:
+        """Assess task priorities for autonomous orchestrator consensus"""
+        priorities = {}
+        
+        for task in tasks:
+            # Base priority assessment
+            priority_score = task.priority
+            
+            # Adjust based on agent capabilities and current load
+            if self._can_handle_task_efficiently(task):
+                priority_score += 2.0  # Boost for tasks we can handle well
+            
+            if self.task_queue.qsize() > 5:
+                priority_score -= 1.0  # Lower priority if overloaded
+            
+            # Check if task benefits from collaboration
+            if await self._task_benefits_from_collaboration(task):
+                priority_score += 1.5  # Boost collaborative tasks
+            
+            priorities[task.task_id] = max(1.0, min(10.0, priority_score))
+        
+        return priorities
+    
+    async def get_learning_insights(self) -> Dict[str, Any]:
+        """Get learning insights for orchestrator collaborative learning"""
+        return {
+            'performance': {
+                'success_rate': self.total_tasks_completed / max(1, self.total_tasks_completed + self.total_errors),
+                'avg_queue_size': self.task_queue.qsize(),
+                'capabilities': [cap.name for cap in self.capabilities if cap.enabled]
+            },
+            'failures': {
+                'total_errors': self.total_errors,
+                'common_failure_types': await self._analyze_failure_patterns()
+            },
+            'optimizations': {
+                'preferred_task_types': await self._get_preferred_task_types(),
+                'peak_performance_hours': await self._analyze_performance_patterns()
+            },
+            'resources': {
+                'current_load': self.task_queue.qsize(),
+                'processing_capacity': await self._estimate_processing_capacity()
+            }
+        }
+    
+    async def receive_collective_insights(self, insights: Dict[str, Any]):
+        """Receive collective insights from orchestrator"""
+        self.collective_intelligence.update(insights)
+        
+        # Apply insights to improve performance
+        await self._apply_collective_insights(insights)
+        
+        self.logger.debug(f"🧠 Applied collective insights from {len(insights.get('performance_patterns', {}))} agents")
+    
+    # =============================================================================
+    # INTERNAL COLLABORATION METHODS
+    # =============================================================================
+    
+    async def _find_best_agent_for_task(self, task: AgentTask, preferred_type: Optional[AgentType] = None) -> Optional['BaseAgent']:
+        """Find the best suited agent for a task"""
+        best_agent = None
+        best_score = 0.0
+        
+        candidates = [self] + list(self.peer_agents.values())
+        
+        for agent in candidates:
+            if not agent._can_handle_task_efficiently(task):
+                continue
+            
+            score = await self._calculate_agent_suitability_score(agent, task, preferred_type)
+            
+            if score > best_score:
+                best_score = score
+                best_agent = agent
+        
+        return best_agent
+    
+    async def _calculate_agent_suitability_score(self, agent: 'BaseAgent', task: AgentTask, preferred_type: Optional[AgentType]) -> float:
+        """Calculate suitability score for an agent to handle a task"""
+        score = 0.0
+        
+        # Check capability match
+        for cap in agent.capabilities:
+            if cap.name == task.task_type or task.task_type in cap.name:
+                score += cap.success_rate * 10
+                score += (1.0 / max(0.1, cap.avg_execution_time)) * 2  # Faster execution is better
+                break
+        
+        # Check agent type preference
+        if preferred_type and agent.agent_type == preferred_type:
+            score += 5.0
+        
+        # Check current load
+        queue_factor = max(0.1, 1.0 - (agent.task_queue.qsize() / 10.0))
+        score *= queue_factor
+        
+        # Check agent status
+        if agent.status == AgentStatus.IDLE:
+            score += 2.0
+        elif agent.status == AgentStatus.ERROR:
+            score = 0.0
+        
+        return score
+    
+    def _can_handle_task_efficiently(self, task: AgentTask) -> bool:
+        """Check if agent can handle task efficiently"""
+        for cap in self.capabilities:
+            if cap.name == task.task_type or task.task_type in cap.name:
+                return cap.enabled and cap.success_rate > 0.5
+        return False
+    
+    async def _should_collaborate_on_task(self, task: AgentTask) -> bool:
+        """Determine if a task would benefit from collaboration"""
+        # Complex tasks benefit from collaboration
+        if task.task_type in ['comprehensive_scan', 'full_recon', 'exploit_chain']:
+            return True
+        
+        # High priority tasks benefit from collaboration
+        if task.priority >= 8:
+            return True
+        
+        # Tasks with historical low success rates benefit from collaboration
+        for cap in self.capabilities:
+            if cap.name == task.task_type and cap.success_rate < 0.7:
+                return True
+        
+        return False
+    
+    async def _select_collaborators_for_task(self, task: AgentTask) -> List['BaseAgent']:
+        """Select appropriate collaborators for a task"""
+        collaborators = []
+        
+        for peer_agent in self.peer_agents.values():
+            if peer_agent.status == AgentStatus.IDLE and peer_agent._can_handle_task_efficiently(task):
+                collaborators.append(peer_agent)
+                
+                if len(collaborators) >= 2:  # Limit to 2 collaborators
+                    break
+        
+        return collaborators
+    
+    async def _execute_collaborative_task(self, task: AgentTask, collaborators: List['BaseAgent']) -> AgentResult:
+        """Execute task with collaboration"""
+        self.logger.info(f"🤝 Executing collaborative task {task.task_id[:8]} with {len(collaborators)} collaborators")
+        
+        # For now, execute normally but record collaboration
+        result = await self._execute_task(task)
+        
+        # Record collaboration
+        await self._record_collaboration_event('collaborative_execution', {
+            'task_id': task.task_id,
+            'collaborators': [agent.agent_id for agent in collaborators],
+            'success': result.success
+        })
+        
+        return result
+    
+    async def _record_collaboration_event(self, event_type: str, event_data: Dict[str, Any]):
+        """Record collaboration event"""
+        event = {
+            'event_type': event_type,
+            'timestamp': datetime.utcnow(),
+            'agent_id': self.agent_id,
+            'data': event_data
+        }
+        
+        await self.collaboration_events.put(event)
+    
+    async def _share_knowledge_with_peer(self, peer_agent: 'BaseAgent'):
+        """Share knowledge with a specific peer agent"""
+        if self.shared_knowledge:
+            for knowledge_type, knowledge_info in self.shared_knowledge.items():
+                await peer_agent.receive_shared_knowledge(
+                    knowledge_type, 
+                    knowledge_info['data'], 
+                    self.agent_id
+                )
+    
+    async def _update_collective_intelligence(self, knowledge_type: str, knowledge_data: Any, source_agent_id: str):
+        """Update collective intelligence with new knowledge"""
+        if 'collective_patterns' not in self.collective_intelligence:
+            self.collective_intelligence['collective_patterns'] = {}
+        
+        self.collective_intelligence['collective_patterns'][knowledge_type] = {
+            'latest_data': knowledge_data,
+            'contributors': self.collective_intelligence['collective_patterns'].get(knowledge_type, {}).get('contributors', []) + [source_agent_id],
+            'last_updated': datetime.utcnow()
+        }
+    
+    async def _task_benefits_from_collaboration(self, task) -> bool:
+        """Check if a task would benefit from collaboration"""
+        return task.task_type in ['comprehensive_scan', 'intelligence_gathering', 'exploit_chain']
+    
+    async def _analyze_failure_patterns(self) -> List[str]:
+        """Analyze common failure patterns"""
+        # This would analyze historical failures
+        return ['timeout_errors', 'network_errors', 'authentication_failures']
+    
+    async def _get_preferred_task_types(self) -> List[str]:
+        """Get task types this agent performs best at"""
+        preferred = []
+        for cap in self.capabilities:
+            if cap.success_rate > 0.8:
+                preferred.append(cap.name)
+        return preferred
+    
+    async def _analyze_performance_patterns(self) -> List[int]:
+        """Analyze performance patterns by hour"""
+        # This would analyze historical performance data
+        return [9, 10, 11, 14, 15, 16]  # Mock peak hours
+    
+    async def _estimate_processing_capacity(self) -> int:
+        """Estimate current processing capacity"""
+        base_capacity = 5  # Base tasks per minute
+        load_factor = max(0.1, 1.0 - (self.task_queue.qsize() / 10.0))
+        return int(base_capacity * load_factor)
+    
+    async def _apply_collective_insights(self, insights: Dict[str, Any]):
+        """Apply collective insights to improve performance"""
+        # Apply performance optimizations based on collective learning
+        performance_patterns = insights.get('performance_patterns', {})
+        
+        for agent_id, patterns in performance_patterns.items():
+            if agent_id != self.agent_id:
+                # Learn from other agents' successful patterns
+                success_rate = patterns.get('success_rate', 0)
+                if success_rate > 0.9:
+                    # This agent is highly successful, learn from their approach
+                    self.logger.debug(f"Learning from high-performing agent {agent_id[:8]}")
+    
     def __str__(self) -> str:
         return f"{self.__class__.__name__}(id={self.agent_id[:8]}, status={self.status.value})"
 

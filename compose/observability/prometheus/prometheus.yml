@@ -1,13 +1,14 @@
-# Prometheus configuration for Xorb PTaaS
-# Optimized for EPYC single-node deployment
+# Prometheus configuration for Xorb Security Intelligence Platform
+# Production hardened deployment on EPYC VPS
 
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
   external_labels:
-    cluster: 'xorb-ptaas'
+    cluster: 'xorb-vps'
     environment: 'production'
     epyc_node: 'primary'
+    version: '2.0.0'
 
 # Alertmanager configuration
 alerting:
@@ -46,7 +47,7 @@ scrape_configs:
     scrape_interval: 10s
     metrics_path: /metrics
 
-  # Xorb API service
+  # Xorb API service (hexagonal architecture)
   - job_name: 'xorb-api'
     static_configs:
       - targets: ['api:8000']
@@ -57,61 +58,38 @@ scrape_configs:
       - source_labels: [__address__]
         target_label: service
         replacement: 'api'
-
-  # Xorb Orchestrator service
-  - job_name: 'xorb-orchestrator'
-    static_configs:
-      - targets: ['orchestrator:8001']
-    metrics_path: /metrics
-    scrape_interval: 10s
-    relabel_configs:
       - source_labels: [__address__]
-        target_label: service
-        replacement: 'orchestrator'
+        target_label: layer
+        replacement: 'interface'
 
-  # Xorb Worker service
+  # Xorb Worker service (hexagonal architecture)
   - job_name: 'xorb-worker'
     static_configs:
-      - targets: ['worker:8003']  # Assuming metrics endpoint
+      - targets: ['worker:8003']
     metrics_path: /metrics
     scrape_interval: 15s
     relabel_configs:
       - source_labels: [__address__]
         target_label: service
         replacement: 'worker'
+      - source_labels: [__address__]
+        target_label: layer
+        replacement: 'application'
 
-  # Xorb Scanner service
-  - job_name: 'xorb-scanner'
+  # Xorb Embedding service (hexagonal architecture)
+  - job_name: 'xorb-embedding'
     static_configs:
-      - targets: ['scanner:8004']
+      - targets: ['embedding:8002']
     metrics_path: /metrics
-    scrape_interval: 30s
+    scrape_interval: 15s
+    scrape_timeout: 10s
     relabel_configs:
       - source_labels: [__address__]
         target_label: service
-        replacement: 'scanner'
-
-  # Xorb Triage service
-  - job_name: 'xorb-triage'
-    static_configs:
-      - targets: ['triage:8005']
-    metrics_path: /metrics
-    scrape_interval: 20s
-    relabel_configs:
+        replacement: 'embedding'
       - source_labels: [__address__]
-        target_label: service
-        replacement: 'triage'
-
-  # Xorb Payments service
-  - job_name: 'xorb-payments'
-    static_configs:
-      - targets: ['payments:8002']
-    metrics_path: /metrics
-    scrape_interval: 30s
-    relabel_configs:
-      - source_labels: [__address__]
-        target_label: service
-        replacement: 'payments'
+        target_label: layer
+        replacement: 'infrastructure'
 
   # PostgreSQL metrics
   - job_name: 'postgres'

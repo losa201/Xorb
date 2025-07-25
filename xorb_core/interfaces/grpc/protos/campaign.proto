@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package xorb.campaign.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/xorb/api/campaign/v1;campaign";
+
+// Campaign management service for internal communication
+service CampaignService {
+  // Get campaign status
+  rpc GetCampaignStatus(CampaignStatusRequest) returns (CampaignStatusResponse);
+  
+  // Stream campaign events for real-time monitoring
+  rpc StreamCampaignEvents(CampaignEventsRequest) returns (stream CampaignEvent);
+}
+
+// Request for campaign status
+message CampaignStatusRequest {
+  string campaign_id = 1;
+}
+
+// Response with campaign status
+message CampaignStatusResponse {
+  string campaign_id = 1;
+  string status = 2;
+  float progress = 3;
+  int32 agents_running = 4;
+  int32 findings_count = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp estimated_completion = 7;
+}
+
+// Request for campaign event stream
+message CampaignEventsRequest {
+  string campaign_id = 1;
+  repeated string event_types = 2;
+}
+
+// Campaign event message
+message CampaignEvent {
+  string event_id = 1;
+  string event_type = 2;
+  string campaign_id = 3;
+  google.protobuf.Timestamp timestamp = 4;
+  string data = 5; // JSON-encoded event data
+}

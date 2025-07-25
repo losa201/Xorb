@@ -1,9 +1,11 @@
----
+
 version: '3.8'
 
 services:
   api:
-    image: python:3.12-slim
+    build:
+      context: .
+      dockerfile: Dockerfile.api
     ports:
       - "8000:8000"
     environment:
@@ -11,18 +13,8 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - TEMPORAL_HOST=temporal:7233
       - ENABLE_METRICS=true
-      - PYTHONPATH=/app:/app/packages/xorb_core
       - NVIDIA_API_KEY=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
       - NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
-    volumes:
-      - .:/app
-      - ./requirements.txt:/app/requirements.txt
-    working_dir: /app
-    command: >
-      bash -c "apt-get update && apt-get install -y curl &&
-               pip install fastapi uvicorn[standard] prometheus-fastapi-instrumentator structlog openai python-jose[cryptography] passlib[bcrypt] python-multipart pydantic-settings &&
-               cd services/api &&
-               uvicorn app.main:app --host 0.0.0.0 --port 8000"
     depends_on:
       - temporal
       - postgres
@@ -30,7 +22,9 @@ services:
     restart: unless-stopped
 
   worker:
-    image: python:3.12-slim
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
     ports:
       - "9000:9000"  # Metrics port
     environment:
@@ -38,20 +32,18 @@ services:
       - TASK_QUEUE=xorb-task-queue
       - METRICS_PORT=9000
       - ENABLE_METRICS=true
-      - PYTHONPATH=/app:/app/packages/xorb_core
-    volumes:
-      - .:/app
-      - ./requirements.txt:/app/requirements.txt
-    working_dir: /app
-    command: >
-      bash -c "apt-get update && apt-get install -y curl &&
-               pip install temporalio prometheus-client structlog sqlalchemy asyncpg redis &&
-               python -m services.worker.app.run_worker"
     depends_on:
       - temporal
       - postgres
       - redis
     restart: unless-stopped
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    depends_on:
+      - temporal
 
   temporal:
     image: temporalio/auto-setup:1.10.0
@@ -80,15 +72,42 @@ services:
     ports:
       - "6380:6379"
 
-  orchestrator:
-    image: python:3.12-slim
-    volumes:
-      - .:/app
-      - ./requirements.txt:/app/requirements.txt
-      - ./targets.json:/app/targets.json
-    working_dir: /app
-    command: >
-      bash -c "pip install temporalio structlog sqlalchemy asyncpg redis &&
-               python services/orchestrator/main.py"
-    depends_on:
-      - temporal
+  triage-vector:
+    build: services/triage/
+    ports:
+      - "8006:8006"
+
+  scanner-go:
+    build: services/scanner-go/
+    ports:
+      - "8080:8080"
+
+  cost-monitor:
+    build: services/cost-monitor/
+    ports:
+      - "8008:8008"
+
+  ai-prioritization:
+    build: services/ai-prioritization/
+    ports:
+      - "8010:8010"
+
+  ai-remediation:
+    build: services/ai-remediation/
+    ports:
+      - "8011:8011"
+
+  ai-learning:
+    build: services/ai-learning/
+    ports:
+      - "8012:8012"
+
+  ai-multimodal:
+    build: services/ai-multimodal/
+    ports:
+      - "8013:8013"
+
+  ai-campaign:
+    build: services/ai-campaign/
+    ports:
+      - "8014:8014"

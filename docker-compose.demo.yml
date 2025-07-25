@@ -1,0 +1,54 @@
+# Xorb Demo Deployment - Core API Service
+version: '3.8'
+
+networks:
+  xorb-demo:
+    driver: bridge
+
+volumes:
+  postgres_data:
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=xorb
+      - POSTGRES_PASSWORD=xorb_demo_2024
+      - POSTGRES_DB=xorb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - xorb-demo
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xorb -d xorb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Xorb API Service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.demo
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - POSTGRES_URL=postgresql://xorb:xorb_demo_2024@postgres:5432/xorb
+      - NVIDIA_API_KEY=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
+      - LOG_LEVEL=INFO
+    volumes:
+      - .:/app:ro
+    networks:
+      - xorb-demo
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3

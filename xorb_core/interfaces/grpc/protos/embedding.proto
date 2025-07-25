@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package xorb.embedding.v1;
+
+option go_package = "github.com/xorb/api/embedding/v1;embedding";
+
+// Embedding service for text vectorization
+service EmbeddingService {
+  // Generate a single embedding
+  rpc GenerateEmbedding(EmbeddingRequest) returns (EmbeddingResponse);
+  
+  // Generate multiple embeddings in batch
+  rpc GenerateBatchEmbeddings(BatchEmbeddingRequest) returns (BatchEmbeddingResponse);
+  
+  // Compute similarity between embeddings
+  rpc ComputeSimilarity(SimilarityRequest) returns (SimilarityResponse);
+}
+
+// Request for single embedding generation
+message EmbeddingRequest {
+  string text = 1;
+  string model = 2;
+  string input_type = 3;
+}
+
+// Response containing embedding vector
+message EmbeddingResponse {
+  repeated float vector = 1;
+  int32 dimension = 2;
+  string model = 3;
+}
+
+// Request for batch embedding generation
+message BatchEmbeddingRequest {
+  repeated string texts = 1;
+  string model = 2;
+  string input_type = 3;
+}
+
+// Response containing multiple embeddings
+message BatchEmbeddingResponse {
+  repeated EmbeddingResponse embeddings = 1;
+  int32 count = 2;
+}
+
+// Request for similarity computation
+message SimilarityRequest {
+  repeated float embedding1 = 1;
+  repeated float embedding2 = 2;
+  string metric = 3;
+}
+
+// Response containing similarity score
+message SimilarityResponse {
+  float similarity = 1;
+  string metric = 2;
+}

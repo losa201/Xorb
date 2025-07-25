@@ -2,7 +2,7 @@
 import httpx
 from typing import List, Set
 from urllib.parse import urlparse
-from xorb_core.models.agents import DiscoveryTarget, Finding
+from ..models.agents import DiscoveryTarget, Finding
 
 class SecurityHeadersAgent:
     """A simple vulnerability scanner that checks for common security headers."""

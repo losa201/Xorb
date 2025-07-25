@@ -1,7 +1,7 @@
 
 import pytest
-from xorb_core.agent_registry import agent_registry
-from xorb_core.models.agents import DiscoveryTarget
+from packages.xorb_core.agent_registry import agent_registry
+from packages.xorb_core.models.agents import DiscoveryTarget
 
 # Ensure agents are loaded for the tests
 agent_registry._discover_agents()

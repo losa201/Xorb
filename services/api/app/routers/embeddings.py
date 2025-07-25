@@ -29,6 +29,16 @@ embedding_duration_seconds = Histogram(
     'Time spent generating embeddings',
     ['model']
 )
+embedding_tokens_total = Counter(
+    'xorb_embedding_tokens_total',
+    'Total tokens processed for embeddings',
+    ['model', 'input_type']
+)
+embedding_cache_hits_total = Counter(
+    'xorb_embedding_cache_hits_total',
+    'Total embedding cache hits',
+    ['cache_type', 'model']
+)
 
 router = APIRouter()
 
@@ -120,6 +130,7 @@ class EmbeddingService:
             duration = time.time() - start_time
             embedding_requests_total.labels(model=model, status="success").inc()
             embedding_duration_seconds.labels(model=model).observe(duration)
+            embedding_tokens_total.labels(model=model, input_type=input_type).inc(total_tokens)
             
             log.info("Embeddings generated successfully", 
                     duration=duration,

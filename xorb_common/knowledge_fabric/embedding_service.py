@@ -9,11 +9,23 @@ import numpy as np
 from dataclasses import dataclass
 from datetime import datetime, timezone
 import structlog
+import hashlib
+import json
+from cachetools import TTLCache
+import redis.asyncio as redis
+from prometheus_client import Counter
 
 from openai import OpenAI
 from ..logging import get_logger
 
 log = get_logger(__name__)
+
+# Prometheus metrics for cache performance
+embedding_cache_hits_total = Counter(
+    'xorb_embedding_cache_hits_total',
+    'Total embedding cache hits',
+    ['cache_type', 'model']
+)
 
 @dataclass
 class EmbeddingResult:
@@ -32,12 +44,14 @@ class KnowledgeEmbeddingService:
         api_key: Optional[str] = None,
         base_url: str = "https://integrate.api.nvidia.com/v1",
         model: str = "nvidia/embed-qa-4",
-        cache_embeddings: bool = True
+        cache_embeddings: bool = True,
+        redis_url: str = "redis://redis:6379/0"
     ):
         self.api_key = api_key or "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"
         self.base_url = base_url
         self.model = model
         self.cache_embeddings = cache_embeddings
+        self.redis_url = redis_url
         
         # Initialize OpenAI client for NVIDIA API
         self.client = OpenAI(
@@ -45,8 +59,11 @@ class KnowledgeEmbeddingService:
             base_url=self.base_url
         )
         
-        # In-memory cache for embeddings
-        self._embedding_cache: Dict[str, EmbeddingResult] = {}
+        # Local TTL cache as L1 (hot cache)
+        self._local_cache = TTLCache(maxsize=10_000, ttl=24*60*60)
+        
+        # Redis connection for persistent cache (L2)
+        self._redis = redis.from_url(self.redis_url, encoding="utf-8", decode_responses=False)
         
         log.info("Knowledge Embedding Service initialized",
                 model=self.model,
@@ -54,8 +71,9 @@ class KnowledgeEmbeddingService:
                 cache_enabled=self.cache_embeddings)
     
     def _cache_key(self, text: str, input_type: str = "query") -> str:
-        """Generate cache key for text and input type"""
-        return f"{self.model}:{input_type}:{hash(text)}"
+        """Generate SHA-1 cache key for text and input type"""
+        text_hash = hashlib.sha1(text.encode('utf-8')).hexdigest()
+        return f"{self.model}:{input_type}:{text_hash}"
     
     async def embed_text(
         self, 
@@ -63,14 +81,36 @@ class KnowledgeEmbeddingService:
         input_type: str = "query",
         metadata: Optional[Dict[str, Any]] = None
     ) -> EmbeddingResult:
-        """Generate embedding for a single text"""
+        """Generate embedding for a single text with SHA-1 deduplication"""
         
         cache_key = self._cache_key(text, input_type)
         
-        # Check cache first
-        if self.cache_embeddings and cache_key in self._embedding_cache:
-            log.debug("Embedding cache hit", text_length=len(text))
-            return self._embedding_cache[cache_key]
+        # Check L1 cache (local) first
+        if self.cache_embeddings and cache_key in self._local_cache:
+            log.debug("Embedding L1 cache hit", text_length=len(text))
+            embedding_cache_hits_total.labels(cache_type="l1", model=self.model).inc()
+            return self._local_cache[cache_key]
+        
+        # Check L2 cache (Redis) 
+        if self.cache_embeddings:
+            try:
+                cached_data = await self._redis.get(cache_key)
+                if cached_data:
+                    embedding_data = json.loads(cached_data)
+                    result = EmbeddingResult(
+                        text=text,
+                        embedding=embedding_data['embedding'],
+                        model=self.model,
+                        timestamp=datetime.fromisoformat(embedding_data['timestamp']),
+                        metadata=embedding_data.get('metadata', {})
+                    )
+                    # Store in L1 cache for next access
+                    self._local_cache[cache_key] = result
+                    log.debug("Embedding L2 cache hit", text_length=len(text))
+                    embedding_cache_hits_total.labels(cache_type="l2", model=self.model).inc()
+                    return result
+            except Exception as e:
+                log.warning("Redis cache read failed", error=str(e))
         
         try:
             log.debug("Generating embedding", 
@@ -98,9 +138,21 @@ class KnowledgeEmbeddingService:
                 metadata=metadata or {}
             )
             
-            # Cache the result
+            # Cache the result in both L1 and L2
             if self.cache_embeddings:
-                self._embedding_cache[cache_key] = result
+                # Store in local cache
+                self._local_cache[cache_key] = result
+                
+                # Store in Redis with 24h TTL
+                try:
+                    cache_data = {
+                        'embedding': embedding,
+                        'timestamp': result.timestamp.isoformat(),
+                        'metadata': result.metadata
+                    }
+                    await self._redis.setex(cache_key, 24*3600, json.dumps(cache_data))
+                except Exception as e:
+                    log.warning("Redis cache write failed", error=str(e))
             
             log.debug("Embedding generated successfully",
                      embedding_dimension=len(embedding),
@@ -149,9 +201,32 @@ class KnowledgeEmbeddingService:
             
             for j, text in enumerate(batch_texts):
                 cache_key = self._cache_key(text, input_type)
+                cached_result = None
                 
-                if self.cache_embeddings and cache_key in self._embedding_cache:
-                    batch_results.append(self._embedding_cache[cache_key])
+                # Check L1 cache first
+                if self.cache_embeddings and cache_key in self._local_cache:
+                    cached_result = self._local_cache[cache_key]
+                
+                # Check L2 cache if not in L1
+                elif self.cache_embeddings:
+                    try:
+                        cached_data = await self._redis.get(cache_key)
+                        if cached_data:
+                            embedding_data = json.loads(cached_data)
+                            cached_result = EmbeddingResult(
+                                text=text,
+                                embedding=embedding_data['embedding'],
+                                model=self.model,
+                                timestamp=datetime.fromisoformat(embedding_data['timestamp']),
+                                metadata=embedding_data.get('metadata', {})
+                            )
+                            # Store in L1 for next access
+                            self._local_cache[cache_key] = cached_result
+                    except Exception as e:
+                        log.warning("Redis batch cache read failed", error=str(e))
+                
+                if cached_result:
+                    batch_results.append(cached_result)
                 else:
                     batch_results.append(None)  # Placeholder
                     uncached_texts.append(text)
@@ -187,10 +262,21 @@ class KnowledgeEmbeddingService:
                         # Update batch results
                         batch_results[original_index] = result
                         
-                        # Cache the result
+                        # Cache the result in both L1 and L2
                         if self.cache_embeddings:
                             cache_key = self._cache_key(text, input_type)
-                            self._embedding_cache[cache_key] = result
+                            self._local_cache[cache_key] = result
+                            
+                            # Store in Redis with 24h TTL
+                            try:
+                                cache_data = {
+                                    'embedding': result.embedding,
+                                    'timestamp': result.timestamp.isoformat(),
+                                    'metadata': result.metadata
+                                }
+                                await self._redis.setex(cache_key, 24*3600, json.dumps(cache_data))
+                            except Exception as e:
+                                log.warning("Redis batch cache write failed", error=str(e))
                 
                 except Exception as e:
                     log.error("Failed to generate batch embeddings",
@@ -335,21 +421,43 @@ class KnowledgeEmbeddingService:
         
         return clusters
     
-    def clear_cache(self):
-        """Clear the embedding cache"""
-        self._embedding_cache.clear()
-        log.info("Embedding cache cleared")
+    async def clear_cache(self):
+        """Clear both L1 and L2 embedding caches"""
+        self._local_cache.clear()
+        try:
+            # Clear Redis cache with pattern matching
+            pattern = f"{self.model}:*"
+            keys = await self._redis.keys(pattern)
+            if keys:
+                await self._redis.delete(*keys)
+            log.info("Embedding caches cleared", local_cleared=True, redis_keys_cleared=len(keys))
+        except Exception as e:
+            log.warning("Failed to clear Redis cache", error=str(e))
+            log.info("Local embedding cache cleared")
     
-    def get_cache_stats(self) -> Dict[str, Any]:
-        """Get cache statistics"""
+    async def get_cache_stats(self) -> Dict[str, Any]:
+        """Get cache statistics for both L1 and L2 caches"""
+        local_size = len(self._local_cache)
+        local_memory_mb = sum(
+            len(result.embedding) * 4  # 4 bytes per float
+            for result in self._local_cache.values()
+        ) / (1024 * 1024)
+        
+        redis_keys = 0
+        try:
+            pattern = f"{self.model}:*"
+            keys = await self._redis.keys(pattern)
+            redis_keys = len(keys)
+        except Exception as e:
+            log.warning("Failed to get Redis cache stats", error=str(e))
+        
         return {
-            "cache_size": len(self._embedding_cache),
             "cache_enabled": self.cache_embeddings,
             "model": self.model,
-            "total_memory_mb": sum(
-                len(result.embedding) * 4  # 4 bytes per float
-                for result in self._embedding_cache.values()
-            ) / (1024 * 1024)
+            "l1_cache_size": local_size,
+            "l1_memory_mb": local_memory_mb,
+            "l2_cache_keys": redis_keys,
+            "total_cached_items": local_size + redis_keys
         }
 
 # Global embedding service instance

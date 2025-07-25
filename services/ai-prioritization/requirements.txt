@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+prometheus-client
+structlog
+openai
+numpy
+scikit-learn
+sqlalchemy
+alembic
+asyncpg
+redis
+temporalio

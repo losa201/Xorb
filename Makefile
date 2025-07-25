@@ -38,16 +38,27 @@ CYAN := \033[0;36m
 WHITE := \033[0;37m
 RESET := \033[0m
 
+# Production deployment configuration
+COMPOSE_FILE_PROD := docker-compose.vps.yml
+SECRETS_DIR := .secrets
+VPS_IP ?= localhost
+
 # ============================================================================
 # Help System
 # ============================================================================
 
 help: ## Show this help message
-	@echo "$(CYAN)Xorb 2.0 EPYC-Optimized Platform - Developer Tools$(RESET)"
-	@echo "$(CYAN)=================================================$(RESET)"
+	@echo "$(CYAN)Xorb 2.0 Security Intelligence Platform - Developer Tools$(RESET)"
+	@echo "$(CYAN)=========================================================$(RESET)"
 	@echo ""
 	@echo "$(YELLOW)🚀 Development Commands:$(RESET)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "dev-|setup|install|clean" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
+	@echo ""
+	@echo "$(YELLOW)🔒 Production Deployment:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "prod-|deploy-|hardening-" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
+	@echo ""
+	@echo "$(YELLOW)🔍 Security & Monitoring:$(RESET)"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "security-|monitor-|verify-" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
 	@echo ""
 	@echo "$(YELLOW)🔧 EPYC Optimization:$(RESET)"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$' $(MAKEFILE_LIST) | grep -E "epyc-|numa-|optimize" | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(RESET) %s\n", $1, $2}'
@@ -216,7 +227,7 @@ build: ## Build Docker images
 .PHONY: build-prod
 build-prod: ## Build production Docker images
 	@echo -e "$(GREEN)Building production Docker images...$(RESET)"
-	@DOCKER_BUILDKIT=$(DOCKER_BUILDKIT) docker-compose -f docker-compose.yml build \
+	@DOCKER_BUILDKIT=$(DOCKER_BUILDKIT) docker-compose -f $(COMPOSE_FILE_PROD) build \
 		--build-arg BUILD_DATE="$(BUILD_DATE)" \
 		--build-arg BUILD_COMMIT="$(BUILD_COMMIT)" \
 		--build-arg BUILD_BRANCH="$(BUILD_BRANCH)"
@@ -485,6 +496,161 @@ docs: ## Generate documentation
 	fi
 
 # =============================================================================
+# PRODUCTION DEPLOYMENT HARDENING
+# =============================================================================
+
+.PHONY: prod-setup-secrets
+prod-setup-secrets: ## Setup production secrets
+	@echo -e "$(GREEN)Setting up production secrets...$(RESET)"
+	@mkdir -p $(SECRETS_DIR)
+	@chmod 700 $(SECRETS_DIR)
+	@if [ ! -f $(SECRETS_DIR)/postgres_password ]; then \
+		openssl rand -base64 32 > $(SECRETS_DIR)/postgres_password; \
+		echo -e "$(YELLOW)Generated PostgreSQL password$(RESET)"; \
+	fi
+	@if [ ! -f $(SECRETS_DIR)/nvidia_api_key ]; then \
+		echo "REPLACE_WITH_YOUR_NVIDIA_API_KEY" > $(SECRETS_DIR)/nvidia_api_key; \
+		echo -e "$(RED)Please update $(SECRETS_DIR)/nvidia_api_key with your actual API key$(RESET)"; \
+	fi
+	@chmod 600 $(SECRETS_DIR)/*
+	@echo -e "$(GREEN)Secrets setup complete$(RESET)"
+
+.PHONY: prod-build
+prod-build: ## Build hardened production images
+	@echo -e "$(GREEN)Building hardened production images...$(RESET)"
+	@docker build -f Dockerfile.api.hardened -t ghcr.io/xorb/xorb-api:$(VERSION) .
+	@docker build -f Dockerfile.worker.hardened -t ghcr.io/xorb/xorb-worker:$(VERSION) .
+	@docker build -f Dockerfile.embedding.hardened -t ghcr.io/xorb/xorb-embedding:$(VERSION) .
+	@echo -e "$(GREEN)Production images built successfully$(RESET)"
+
+.PHONY: prod-deploy
+prod-deploy: prod-build ## Deploy production environment
+	@echo -e "$(GREEN)Deploying hardened production environment...$(RESET)"
+	@docker-compose -f $(COMPOSE_FILE_PROD) up -d
+	@echo -e "$(GREEN)Production deployment complete$(RESET)"
+	@echo -e "$(YELLOW)Run 'make verify-deployment' to validate the deployment$(RESET)"
+
+.PHONY: deploy-edge-worker
+deploy-edge-worker: ## Deploy edge worker to Pi 5
+	@echo -e "$(GREEN)Deploying edge worker to Pi 5...$(RESET)"
+	@if [ -z "$(PI_HOST)" ]; then \
+		echo -e "$(RED)Please set PI_HOST environment variable$(RESET)"; \
+		exit 1; \
+	fi
+	@./scripts/deploy_pi.sh $(PI_HOST) $(VPS_IP)
+
+.PHONY: hardening-check
+hardening-check: ## Run security hardening verification
+	@echo -e "$(GREEN)Running security hardening checks...$(RESET)"
+	@python3 scripts/verify_hardened_deploy.py
+
+# =============================================================================
+# SECURITY & MONITORING
+# =============================================================================
+
+.PHONY: security-scan
+security-scan: ## Run security vulnerability scan
+	@echo -e "$(GREEN)Running security scans...$(RESET)"
+	@echo -e "$(YELLOW)Scanning container images...$(RESET)"
+	@if command -v trivy >/dev/null 2>&1; then \
+		trivy image --severity CRITICAL,HIGH xorb-api:$(VERSION); \
+		trivy image --severity CRITICAL,HIGH xorb-worker:$(VERSION); \
+		trivy image --severity CRITICAL,HIGH xorb-embedding:$(VERSION); \
+	else \
+		echo -e "$(RED)Trivy not installed - install with: curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin$(RESET)"; \
+	fi
+
+.PHONY: monitor-status
+monitor-status: ## Check monitoring stack status
+	@echo -e "$(GREEN)Checking monitoring stack status...$(RESET)"
+	@echo -e "$(YELLOW)Prometheus:$(RESET)"
+	@curl -s http://localhost:9090/-/healthy || echo "Prometheus not available"
+	@echo -e "$(YELLOW)Grafana:$(RESET)"
+	@curl -s http://localhost:3000/api/health || echo "Grafana not available"
+	@echo -e "$(YELLOW)Tempo:$(RESET)"
+	@curl -s http://localhost:3200/ready || echo "Tempo not available"
+
+.PHONY: verify-deployment
+verify-deployment: ## Verify hardened deployment
+	@echo -e "$(GREEN)Verifying hardened deployment...$(RESET)"
+	@python3 scripts/verify_hardened_deploy.py
+
+.PHONY: prod-logs
+prod-logs: ## View production logs
+	@echo -e "$(GREEN)Viewing production logs...$(RESET)"
+	@docker-compose -f $(COMPOSE_FILE_PROD) logs -f --tail=100
+
+.PHONY: prod-status
+prod-status: ## Check production service status
+	@echo -e "$(GREEN)Checking production service status...$(RESET)"
+	@docker-compose -f $(COMPOSE_FILE_PROD) ps
+	@echo ""
+	@echo -e "$(YELLOW)Service Health Checks:$(RESET)"
+	@curl -s http://localhost:8000/health | jq '.' || echo "API health check failed"
+
+.PHONY: prod-backup
+prod-backup: ## Create production backup
+	@echo -e "$(GREEN)Creating production backup...$(RESET)"
+	@./scripts/backup_data.sh
+
+.PHONY: prod-update
+prod-update: ## Update production deployment
+	@echo -e "$(GREEN)Updating production deployment...$(RESET)"
+	@git pull origin main
+	@docker-compose -f $(COMPOSE_FILE_PROD) up -d --remove-orphans
+	@docker image prune -f
+	@echo -e "$(GREEN)Production update complete$(RESET)"
+
+.PHONY: prod-restart
+prod-restart: ## Restart production services
+	@echo -e "$(GREEN)Restarting production services...$(RESET)"
+	@docker-compose -f $(COMPOSE_FILE_PROD) restart
+
+.PHONY: prod-stop
+prod-stop: ## Stop production services
+	@echo -e "$(YELLOW)Stopping production services...$(RESET)"
+	@docker-compose -f $(COMPOSE_FILE_PROD) down
+
+.PHONY: prod-destroy
+prod-destroy: ## Destroy production environment (WARNING: destructive)
+	@echo -e "$(RED)WARNING: This will destroy all production data!$(RESET)"
+	@echo -e "$(RED)Press Ctrl+C to cancel or wait 10 seconds to continue...$(RESET)"
+	@sleep 10
+	@docker-compose -f $(COMPOSE_FILE_PROD) down -v --remove-orphans
+	@docker system prune -af --volumes
+
+# =============================================================================
+# EDGE COMPUTING
+# =============================================================================
+
+.PHONY: edge-status
+edge-status: ## Check edge worker status
+	@echo -e "$(GREEN)Checking edge worker status...$(RESET)"
+	@if [ -z "$(PI_HOST)" ]; then \
+		echo -e "$(RED)Please set PI_HOST environment variable$(RESET)"; \
+		exit 1; \
+	fi
+	@ssh pi@$(PI_HOST) 'sudo systemctl status xorb-edge --no-pager'
+
+.PHONY: edge-logs
+edge-logs: ## View edge worker logs
+	@echo -e "$(GREEN)Viewing edge worker logs...$(RESET)"
+	@if [ -z "$(PI_HOST)" ]; then \
+		echo -e "$(RED)Please set PI_HOST environment variable$(RESET)"; \
+		exit 1; \
+	fi
+	@ssh pi@$(PI_HOST) 'sudo journalctl -u xorb-edge -f'
+
+.PHONY: edge-restart
+edge-restart: ## Restart edge worker
+	@echo -e "$(GREEN)Restarting edge worker...$(RESET)"
+	@if [ -z "$(PI_HOST)" ]; then \
+		echo -e "$(RED)Please set PI_HOST environment variable$(RESET)"; \
+		exit 1; \
+	fi
+	@ssh pi@$(PI_HOST) 'sudo systemctl restart xorb-edge'
+
+# =============================================================================
 # CI/CD PIPELINE COMMANDS
 # =============================================================================
 
@@ -618,3 +784,66 @@ cli-deps: ## Install Go dependencies for xorbctl
 	@echo -e "$(GREEN)Installing Go dependencies for xorbctl...$(RESET)"
 	@cd $(MAIN_PATH) && go mod tidy && go mod download
 	@echo -e "$(GREEN)Go dependencies installed$(RESET)"
+
+# =============================================================================
+# BLUE-GREEN DEPLOYMENT COMMANDS
+# =============================================================================
+
+.PHONY: deploy-green
+deploy-green: ## Deploy to green environment (blue-green strategy)
+	@echo -e "$(GREEN)Deploying to green environment...$(RESET)"
+	@./scripts/blue_green_deployment.sh deploy green
+
+.PHONY: deploy-blue
+deploy-blue: ## Deploy to blue environment (blue-green strategy)
+	@echo -e "$(GREEN)Deploying to blue environment...$(RESET)"
+	@./scripts/blue_green_deployment.sh deploy blue
+
+.PHONY: switch-green
+switch-green: ## Switch traffic to green environment
+	@echo -e "$(GREEN)Switching traffic to green environment...$(RESET)"
+	@./scripts/blue_green_deployment.sh deploy green
+
+.PHONY: switch-blue
+switch-blue: ## Switch traffic to blue environment
+	@echo -e "$(GREEN)Switching traffic to blue environment...$(RESET)"
+	@./scripts/blue_green_deployment.sh deploy blue
+
+.PHONY: bg-deploy
+bg-deploy: ## Deploy using automatic blue-green strategy
+	@echo -e "$(GREEN)Starting blue-green deployment...$(RESET)"
+	@./scripts/blue_green_deployment.sh deploy
+
+.PHONY: bg-status
+bg-status: ## Show blue-green deployment status
+	@echo -e "$(GREEN)Checking blue-green deployment status...$(RESET)"
+	@./scripts/blue_green_deployment.sh status
+
+.PHONY: bg-rollback
+bg-rollback: ## Rollback blue-green deployment
+	@echo -e "$(YELLOW)Rolling back deployment...$(RESET)"
+	@./scripts/blue_green_deployment.sh rollback
+
+.PHONY: bg-cleanup-blue
+bg-cleanup-blue: ## Cleanup blue deployment
+	@echo -e "$(YELLOW)Cleaning up blue deployment...$(RESET)"
+	@./scripts/blue_green_deployment.sh cleanup blue
+
+.PHONY: bg-cleanup-green
+bg-cleanup-green: ## Cleanup green deployment
+	@echo -e "$(YELLOW)Cleaning up green deployment...$(RESET)"
+	@./scripts/blue_green_deployment.sh cleanup green
+
+.PHONY: zero-downtime-deploy
+zero-downtime-deploy: ## Perform zero-downtime deployment with full validation
+	@echo -e "$(GREEN)Starting zero-downtime deployment with full validation...$(RESET)"
+	@$(MAKE) security-scan
+	@$(MAKE) test
+	@$(MAKE) bg-deploy
+	@$(MAKE) verify-deployment
+
+.PHONY: emergency-rollback
+emergency-rollback: ## Emergency rollback with immediate traffic switch
+	@echo -e "$(RED)EMERGENCY ROLLBACK - Switching traffic immediately...$(RESET)"
+	@./scripts/blue_green_deployment.sh rollback
+	@$(MAKE) bg-status

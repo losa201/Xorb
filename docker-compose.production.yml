@@ -420,7 +420,7 @@ services:
       - ENABLE_METRICS=true
       - SECURITY_ENHANCED=true
       - SIEM_ENDPOINT=http://siem-analyzer:8080
-      - PYTHONPATH=/app:/app/packages/xorb_core
+      - PYTHONPATH=/app
       - NVIDIA_API_KEY=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
       - NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
     volumes:
@@ -461,7 +461,7 @@ services:
       - METRICS_PORT=9000
       - ENABLE_METRICS=true
       - SECURITY_ENHANCED=true
-      - PYTHONPATH=/app:/app/packages/xorb_core
+      - PYTHONPATH=/app
       - POSTGRES_DSN=postgresql://xorb_prod:xorb_postgres_secure_2024@postgres:5432/xorb_production
     volumes:
       - .:/app
@@ -487,7 +487,7 @@ services:
     environment:
       - TEMPORAL_HOST=temporal:7233
       - SECURITY_ENHANCED=true
-      - PYTHONPATH=/app:/app/packages/xorb_core
+      - PYTHONPATH=/app
     volumes:
       - .:/app
       - ./targets.json:/app/targets.json

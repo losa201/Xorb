@@ -44,6 +44,44 @@ services:
       retries: 3
       start_period: 40s
 
+  # High-performance gRPC embedding service
+  embedding-service:
+    build:
+      context: ..
+      dockerfile: services/embedding-service/Dockerfile
+    container_name: xorb_embedding_service
+    ports:
+      - "50051:50051"  # gRPC
+      - "9091:9090"    # Metrics
+    environment:
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-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}
+      - REDIS_URL=redis://redis:6379/1
+      - GRPC_PORT=50051
+      - METRICS_PORT=9090
+    depends_on:
+      - redis
+    networks:
+      - xorb-network
+    # EPYC optimization - 2 vCPU cores, 2GB RAM for embeddings
+    cpu_quota: 200000
+    cpuset: "3-4"
+    mem_limit: 2g
+    mem_reservation: 1g
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp:exec,size=200m
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import grpc; channel = grpc.insecure_channel('localhost:50051'); print('healthy')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
   # Worker service
   worker:
     build:
@@ -513,7 +551,7 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: 172.20.0.0/16
+        - subnet: 172.21.0.0/16
 
 volumes:
   postgres_data:

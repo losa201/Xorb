@@ -202,6 +202,26 @@ groups:
           summary: "Researcher portal is down"
           description: "The researcher portal is not accessible."
 
+      - alert: XorbHighEmbeddingTokenUsage
+        expr: rate(xorb_embedding_tokens_total[1m]) > 2000
+        for: 5m
+        labels:
+          severity: warning
+          service: embeddings
+        annotations:
+          summary: "High embedding token usage"
+          description: "Embedding token usage is {{ $value }} tokens per minute, above threshold of 2000/min (120k/hour)."
+
+      - alert: XorbEmbeddingCacheLowHitRate
+        expr: (rate(xorb_embedding_cache_hits_total[10m]) / (rate(xorb_embedding_cache_hits_total[10m]) + rate(xorb_embedding_requests_total{status="success"}[10m]))) * 100 < 50
+        for: 10m
+        labels:
+          severity: info
+          service: embeddings
+        annotations:
+          summary: "Low embedding cache hit rate"
+          description: "Embedding cache hit rate is {{ $value }}%, consider increasing cache TTL or size."
+
   - name: xorb.performance
     rules:
       - alert: XorbEPYCCoreImbalance

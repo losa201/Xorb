@@ -1,0 +1,1 @@
+print("Triage service started")

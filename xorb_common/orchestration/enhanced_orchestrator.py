@@ -41,7 +41,7 @@ from nats.js import JetStreamContext
 from .scheduler import CampaignScheduler
 from .audit_logger import AuditLogger
 from .roe_compliance import RoEValidator
-from .event_system import EventSystem
+from .event_system import EventBus
 from ..agents.base_agent import BaseAgent, AgentCapability, AgentStatus
 
 
@@ -354,7 +354,7 @@ class EnhancedOrchestrator:
         self.scheduler = CampaignScheduler()
         self.audit_logger = AuditLogger()
         self.roe_validator = RoEValidator()
-        self.event_system = EventSystem()
+        self.event_system = EventBus()
         self.metrics = MetricsCollector()
         
         # Execution configuration

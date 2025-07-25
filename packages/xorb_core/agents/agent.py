@@ -1,7 +1,7 @@
 
 from typing import Protocol, List, runtime_checkable, Set
 
-from xorb_core.models.agents import DiscoveryTarget, Finding
+from ..models.agents import DiscoveryTarget, Finding
 
 
 @runtime_checkable

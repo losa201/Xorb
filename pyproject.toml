@@ -5,6 +5,7 @@ version = "2.0.0"
 description = "Xorb PTaaS + Bug-Bounty Platform - Single-Node EPYC Deployment"
 authors = ["Xorb Team <team@xorb.ai>"]
 packages = [
+    {include = "xorb_core"},
     {include = "xorb_common"},
     {include = "services"},
 ]
@@ -43,13 +44,19 @@ python-dateutil = ">=2.8.0"
 pytz = ">=2023.3"
 structlog = ">=23.1.0"
 colorama = ">=0.4.0"
+aiosqlite = ">=0.19.0"
+cachetools = ">=5.3.0"
+grpcio = ">=1.47.0"
+grpcio-tools = ">=1.47.0"
+neo4j = ">=5.19.0"
 # PTaaS specific dependencies
 nats-py = ">=2.4.0"
 stripe = ">=6.0.0"
 docker = ">=6.1.0"
-nuclei-py = ">=0.1.0"
+
 openai = ">=1.0.0"
 anthropic = ">=0.7.0"
+tenacity = ">=8.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=7.4.0"
@@ -120,6 +127,7 @@ strict_equality = true
 [tool.pytest.ini_options]
 pythonpath = [
     ".",
+    "packages",
     "xorb_common",
     "services/api",
     "services/worker",

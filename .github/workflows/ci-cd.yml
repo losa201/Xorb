@@ -169,6 +169,15 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
+    - name: Create remote Pi builder
+      if: secrets.PI_IP != ''
+      env:
+        PI_IP: ${{ secrets.PI_IP }}
+      run: |
+        # Create remote builder for ARM64 builds on Pi
+        docker buildx create tcp://$PI_IP:2376 --name remote-pi --driver-opt network=host || true
+        docker buildx use remote-pi || docker buildx use default
+
     - name: Log in to Container Registry
       uses: docker/login-action@v3
       with:
@@ -193,6 +202,7 @@ jobs:
         context: .
         file: compose/Dockerfile.${{ matrix.service }}
         push: false
+        platforms: linux/amd64,linux/arm64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
@@ -230,6 +240,7 @@ jobs:
         context: .
         file: compose/Dockerfile.${{ matrix.service }}
         push: true
+        platforms: linux/amd64,linux/arm64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha

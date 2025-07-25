@@ -255,7 +255,9 @@ init_database() {
     # Create SQLite database and tables
     poetry run python -c "
 import asyncio
-from knowledge_fabric.models import create_tables
+import sys
+sys.path.insert(0, '.')
+from xorb_common.knowledge_fabric.models import create_tables
 from sqlalchemy.ext.asyncio import create_async_engine
 
 async def init_db():
@@ -291,10 +293,10 @@ import sys
 sys.path.append('.')
 
 try:
-    from orchestration.orchestrator import Orchestrator
-    from knowledge_fabric.core import KnowledgeFabric
-    from agents.base_agent import BaseAgent
-    from integrations.openrouter_client import OpenRouterClient
+    from services.orchestrator.orchestration.orchestrator import Orchestrator
+    from xorb_common.knowledge_fabric.core import KnowledgeFabric
+    from services.worker.agents.base_agent import BaseAgent
+    from xorb_common.integrations.openrouter_client import OpenRouterClient
     print('✓ All core modules import successfully')
 except Exception as e:
     print(f'✗ Module import failed: {e}')
