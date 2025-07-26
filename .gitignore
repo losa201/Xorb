@@ -1,9 +1,3 @@
-# Environment and secrets
-.env
-.env.local
-.env.production
-.env.staging
-
 # Python
 __pycache__/
 *.py[cod]
@@ -22,39 +16,17 @@ parts/
 sdist/
 var/
 wheels/
-share/python-wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
 # Virtual environments
-.env
-.venv
-env/
 venv/
+.venv/
 ENV/
-env.bak/
-venv.bak/
+env/
 
-# Testing
-.coverage
-.pytest_cache/
-.tox/
-.nox/
-htmlcov/
-.coverage.*
-
-# Database files
-*.db
-*.sqlite3
-xorb.db
-
-# Logs
-logs/
-*.log
-
-# IDE
+# IDEs
 .vscode/
 .idea/
 *.swp
@@ -65,24 +37,44 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Temporary files
-tmp/
-temp/
-.tmp/
+# Logs
+*.log
+logs/
+*.log.*
 
-# Browser automation
-playwright/
-.playwright/
-
-# Knowledge fabric cache
-knowledge_cache/
-atom_cache/
-
-# Reports
-reports_output/
-*.cvss
-*.findings
-
-# Monitoring data
+# Data directories
+data/
 prometheus_data/
 grafana_data/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Test coverage
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Results and reports
+campaign_results_*.json
+deployment_verification_*.json
+*.report
+
+# Temporary files
+*.tmp
+*.temp
+
+# Docker
+.docker/
+
+# Secrets
+secrets/
+certs/
+*.pem
+*.key
+*.crt
+
+# Backups
+backups/

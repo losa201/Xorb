@@ -1,0 +1,300 @@
+# Xorb PTaaS Performance Budgets & SLOs
+# Defines strict performance thresholds with error budgets
+# EPYC-optimized for single-node 16vCPU/32GB deployment
+
+groups:
+  - name: xorb.slo.latency
+    interval: 30s
+    rules:
+      # API Response Time SLOs
+      - record: xorb:api_latency_p95_5m
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="xorb-api"}[5m]))
+
+      - record: xorb:api_latency_p99_5m
+        expr: histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job="xorb-api"}[5m]))
+
+      - alert: XorbAPILatencyBudgetExceeded
+        expr: xorb:api_latency_p95_5m > 0.200  # 200ms p95 budget
+        for: 2m
+        labels:
+          severity: critical
+          service: api
+          slo_type: latency
+          budget_type: error_budget
+        annotations:
+          summary: "API latency budget exceeded"
+          description: "95th percentile API latency ({{ $value }}s) exceeds 200ms budget for 2+ minutes"
+          runbook_url: "https://runbook.xorb.ai/slo/api-latency"
+
+      - alert: XorbAPILatencyP99Critical
+        expr: xorb:api_latency_p99_5m > 0.500  # 500ms p99 hard limit
+        for: 1m
+        labels:
+          severity: critical
+          service: api
+          slo_type: latency
+          budget_type: hard_limit
+        annotations:
+          summary: "API p99 latency critical"
+          description: "99th percentile API latency ({{ $value }}s) exceeds 500ms hard limit"
+
+      # Orchestrator Latency SLOs
+      - record: xorb:orchestrator_latency_p95_5m
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="xorb-orchestrator"}[5m]))
+
+      - alert: XorbOrchestratorLatencyBudget
+        expr: xorb:orchestrator_latency_p95_5m > 1.000  # 1s orchestration budget
+        for: 5m
+        labels:
+          severity: warning
+          service: orchestrator
+          slo_type: latency
+        annotations:
+          summary: "Orchestrator latency budget exceeded"
+          description: "95th percentile orchestrator latency ({{ $value }}s) exceeds 1s budget"
+
+  - name: xorb.slo.scan_lag
+    interval: 60s
+    rules:
+      # Scan Queue Lag SLOs - Critical for PTaaS
+      - record: xorb:scan_queue_age_p95_5m
+        expr: histogram_quantile(0.95, rate(xorb_scan_queue_age_seconds_bucket[5m]))
+
+      - record: xorb:scan_processing_time_p95_5m
+        expr: histogram_quantile(0.95, rate(xorb_scan_duration_seconds_bucket[5m]))
+
+      - alert: XorbScanLagCritical
+        expr: xorb:scan_queue_age_p95_5m > 300  # 5min queue budget
+        for: 2m
+        labels:
+          severity: critical
+          service: scanner
+          slo_type: scan_lag
+          budget_type: error_budget
+        annotations:
+          summary: "Scan queue lag critical"
+          description: "95th percentile scan queue age ({{ $value }}s) exceeds 5min budget"
+          runbook_url: "https://runbook.xorb.ai/slo/scan-lag"
+
+      - alert: XorbScanProcessingBudget
+        expr: xorb:scan_processing_time_p95_5m > 1800  # 30min processing budget
+        for: 5m
+        labels:
+          severity: warning
+          service: scanner
+          slo_type: processing_time
+        annotations:
+          summary: "Scan processing time budget exceeded"
+          description: "95th percentile scan processing time ({{ $value }}s) exceeds 30min budget"
+
+      # Scan Failure Rate Budget
+      - record: xorb:scan_error_rate_5m
+        expr: rate(xorb_scanner_scans_failed_total[5m]) / rate(xorb_scanner_scans_total[5m]) * 100
+
+      - alert: XorbScanErrorBudgetExceeded
+        expr: xorb:scan_error_rate_5m > 5  # 5% error budget
+        for: 10m
+        labels:
+          severity: critical
+          service: scanner
+          slo_type: error_rate
+          budget_type: error_budget
+        annotations:
+          summary: "Scan error budget exceeded"
+          description: "Scan error rate ({{ $value }}%) exceeds 5% budget over 10min"
+
+  - name: xorb.slo.payout_delay
+    interval: 120s
+    rules:
+      # Payout Processing SLOs - Critical for researcher satisfaction
+      - record: xorb:payout_processing_time_p95_5m
+        expr: histogram_quantile(0.95, rate(xorb_payout_processing_duration_seconds_bucket[5m]))
+
+      - record: xorb:payout_queue_age_p95_5m
+        expr: histogram_quantile(0.95, rate(xorb_payout_queue_age_seconds_bucket[5m]))
+
+      - alert: XorbPayoutDelayBudgetExceeded
+        expr: xorb:payout_processing_time_p95_5m > 3600  # 1hr processing budget
+        for: 5m
+        labels:
+          severity: critical
+          service: payments
+          slo_type: payout_delay
+          budget_type: error_budget
+        annotations:
+          summary: "Payout processing delay budget exceeded"
+          description: "95th percentile payout processing time ({{ $value }}s) exceeds 1hr budget"
+          runbook_url: "https://runbook.xorb.ai/slo/payout-delay"
+
+      - alert: XorbPayoutQueueCritical
+        expr: xorb:payout_queue_age_p95_5m > 1800  # 30min queue budget
+        for: 2m
+        labels:
+          severity: critical
+          service: payments
+          slo_type: queue_lag
+        annotations:
+          summary: "Payout queue delay critical"
+          description: "95th percentile payout queue age ({{ $value }}s) exceeds 30min budget"
+
+      # Payout Success Rate Budget
+      - record: xorb:payout_success_rate_5m
+        expr: rate(xorb_payments_successful_total[5m]) / rate(xorb_payments_total[5m]) * 100
+
+      - alert: XorbPayoutSuccessBudgetBreach
+        expr: xorb:payout_success_rate_5m < 98  # 98% success rate budget
+        for: 10m
+        labels:
+          severity: critical
+          service: payments
+          slo_type: success_rate
+          budget_type: error_budget
+        annotations:
+          summary: "Payout success rate budget breached"
+          description: "Payout success rate ({{ $value }}%) below 98% budget over 10min"
+
+  - name: xorb.slo.triage_performance
+    interval: 60s
+    rules:
+      # Triage Processing SLOs
+      - record: xorb:triage_processing_time_p95_5m
+        expr: histogram_quantile(0.95, rate(xorb_triage_processing_duration_seconds_bucket[5m]))
+
+      - record: xorb:triage_queue_size_avg_5m
+        expr: avg_over_time(xorb_triage_queue_size[5m])
+
+      - alert: XorbTriageProcessingBudget
+        expr: xorb:triage_processing_time_p95_5m > 600  # 10min triage budget
+        for: 5m
+        labels:
+          severity: warning
+          service: triage
+          slo_type: processing_time
+        annotations:
+          summary: "Triage processing time budget exceeded"
+          description: "95th percentile triage processing time ({{ $value }}s) exceeds 10min budget"
+
+      - alert: XorbTriageQueueBudgetBreach
+        expr: xorb:triage_queue_size_avg_5m > 25  # 25 findings queue budget
+        for: 15m
+        labels:
+          severity: warning
+          service: triage
+          slo_type: queue_size
+        annotations:
+          summary: "Triage queue size budget breached"
+          description: "Average triage queue size ({{ $value }}) exceeds 25 findings budget"
+
+  - name: xorb.slo.availability
+    interval: 60s
+    rules:
+      # Service Availability SLOs (99.9% uptime budget)
+      - record: xorb:service_availability_5m
+        expr: avg_over_time(up{job=~"xorb-.*"}[5m])
+
+      - alert: XorbAvailabilityBudgetBreach
+        expr: xorb:service_availability_5m < 0.999  # 99.9% availability budget
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+          slo_type: availability
+          budget_type: error_budget
+        annotations:
+          summary: "Service availability budget breached"
+          description: "Service {{ $labels.job }} availability ({{ $value | humanizePercentage }}) below 99.9% budget"
+
+  - name: xorb.slo.throughput
+    interval: 30s
+    rules:
+      # API Throughput Budgets
+      - record: xorb:api_requests_per_second_5m
+        expr: rate(http_requests_total{job="xorb-api"}[5m])
+
+      - record: xorb:scan_throughput_5m
+        expr: rate(xorb_scanner_scans_total[5m])
+
+      - alert: XorbAPIThroughputDegradation
+        expr: xorb:api_requests_per_second_5m < 50  # Min 50 RPS capacity
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+          slo_type: throughput
+        annotations:
+          summary: "API throughput degradation"
+          description: "API throughput ({{ $value }} RPS) below minimum 50 RPS capacity"
+
+      - alert: XorbScanThroughputCritical
+        expr: xorb:scan_throughput_5m < 0.1  # Min 1 scan per 10s
+        for: 5m
+        labels:
+          severity: critical
+          service: scanner
+          slo_type: throughput
+        annotations:
+          summary: "Scan throughput critical"
+          description: "Scan throughput ({{ $value }} scans/s) critically low"
+
+  - name: xorb.slo.resource_budgets
+    interval: 60s
+    rules:
+      # EPYC Resource Budget Enforcement
+      - record: xorb:cpu_utilization_5m
+        expr: 100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+      - record: xorb:memory_utilization_5m
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+      - alert: XorbCPUBudgetExceeded
+        expr: xorb:cpu_utilization_5m > 75  # 75% CPU budget for sustained load
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+          slo_type: resource_budget
+        annotations:
+          summary: "CPU budget exceeded"
+          description: "CPU utilization ({{ $value }}%) exceeds 75% sustained budget on EPYC node"
+
+      - alert: XorbMemoryBudgetCritical
+        expr: xorb:memory_utilization_5m > 90  # 90% memory hard limit
+        for: 2m
+        labels:
+          severity: critical
+          service: system
+          slo_type: resource_budget
+          budget_type: hard_limit
+        annotations:
+          summary: "Memory budget critical"
+          description: "Memory utilization ({{ $value }}%) exceeds 90% hard limit on EPYC node"
+
+  - name: xorb.slo.error_budgets
+    interval: 300s  # 5min evaluation for error budget burn rate
+    rules:
+      # Monthly Error Budget Tracking
+      - record: xorb:api_error_budget_burn_rate_1h
+        expr: increase(xorb:api_latency_budget_violations_total[1h]) / 744  # Monthly budget / hours
+
+      - record: xorb:scan_error_budget_burn_rate_1h
+        expr: increase(xorb:scan_error_budget_violations_total[1h]) / 744
+
+      - record: xorb:payout_error_budget_burn_rate_1h
+        expr: increase(xorb:payout_error_budget_violations_total[1h]) / 744
+
+      - alert: XorbErrorBudgetBurnRateCritical
+        expr: |
+          (
+            xorb:api_error_budget_burn_rate_1h > 0.02 or
+            xorb:scan_error_budget_burn_rate_1h > 0.02 or
+            xorb:payout_error_budget_burn_rate_1h > 0.02
+          )
+        for: 15m
+        labels:
+          severity: critical
+          service: slo
+          slo_type: error_budget_burn
+        annotations:
+          summary: "Critical error budget burn rate"
+          description: "Error budget burn rate exceeds 2% of monthly allowance per hour"
+          runbook_url: "https://runbook.xorb.ai/slo/error-budget-burn"

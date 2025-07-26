@@ -1,0 +1,8 @@
+{
+  "timestamp": "2025-07-26T08:21:33.624963",
+  "demo_results": [
+    {
+      "scenario": "Raspberry Pi 5",
+      "profile": "RPI",
+      "config": {
+        "mode": 

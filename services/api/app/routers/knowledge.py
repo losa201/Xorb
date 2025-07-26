@@ -12,13 +12,47 @@ from prometheus_client import Counter, Histogram
 import structlog
 
 from ..deps import has_role
-from xorb_core.logging import get_logger
-from xorb_core.knowledge_fabric.enhanced_atoms import (
-    get_semantic_fabric, 
-    SemanticAtom, 
-    SemanticCluster,
-    AtomType
-)
+
+# Try multiple import paths for compatibility
+try:
+    from packages.xorb_core.xorb_core.logging import get_logger
+except ImportError:
+    try:
+        from xorb_core.logging import get_logger
+    except ImportError:
+        # Fallback logging
+        import logging
+        def get_logger(name):
+            return logging.getLogger(name)
+
+# Mock knowledge fabric for compatibility
+try:
+    from xorb_core.knowledge_fabric.enhanced_atoms import (
+        get_semantic_fabric, 
+        SemanticAtom, 
+        SemanticCluster,
+        AtomType
+    )
+except ImportError:
+    # Create mock classes for compatibility
+    from enum import Enum
+    
+    class AtomType(str, Enum):
+        VULNERABILITY = "vulnerability"
+        ASSET = "asset"
+        THREAT = "threat"
+    
+    class SemanticAtom:
+        def __init__(self, content: str, atom_type: AtomType):
+            self.content = content
+            self.atom_type = atom_type
+    
+    class SemanticCluster:
+        def __init__(self, atoms: List[SemanticAtom]):
+            self.atoms = atoms
+    
+    def get_semantic_fabric():
+        return None
 
 # Initialize logger
 log = get_logger(__name__)

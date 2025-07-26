@@ -13,7 +13,18 @@ from prometheus_client import Counter, Histogram
 import structlog
 
 from ..deps import has_role
-from xorb_core.logging import get_logger
+
+# Try multiple import paths for compatibility
+try:
+    from packages.xorb_core.xorb_core.logging import get_logger
+except ImportError:
+    try:
+        from xorb_core.logging import get_logger
+    except ImportError:
+        # Fallback logging
+        import logging
+        def get_logger(name):
+            return logging.getLogger(name)
 
 # Initialize logger
 log = get_logger(__name__)
@@ -224,11 +235,14 @@ async def list_embedding_models(
     
     return {"object": "list", "data": models}
 
+class SimilarityRequest(BaseModel):
+    text1: str = Field(..., description="First text for comparison")
+    text2: str = Field(..., description="Second text for comparison")
+    model: str = Field(default="nvidia/embed-qa-4", description="Embedding model to use")
+
 @router.post("/embeddings/similarity")
 async def compute_similarity(
-    text1: str = Field(..., description="First text for comparison"),
-    text2: str = Field(..., description="Second text for comparison"),
-    model: str = Field(default="nvidia/embed-qa-4", description="Embedding model to use"),
+    request: SimilarityRequest,
     current_user: dict = Depends(has_role("user"))
 ):
     """Compute semantic similarity between two texts"""
@@ -237,8 +251,8 @@ async def compute_similarity(
     
     # Generate embeddings for both texts
     result = await embedding_service.generate_embeddings(
-        texts=[text1, text2],
-        model=model,
+        texts=[request.text1, request.text2],
+        model=request.model,
         input_type="query"
     )
     
@@ -251,41 +265,44 @@ async def compute_similarity(
     
     return {
         "similarity": float(similarity),
-        "text1": text1,
-        "text2": text2,
-        "model": model,
+        "text1": request.text1,
+        "text2": request.text2,
+        "model": request.model,
         "embedding_dimensions": len(emb1)
     }
 
+class BatchEmbeddingRequest(BaseModel):
+    texts: List[str] = Field(..., description="Texts to embed", max_items=1000)
+    model: str = Field(default="nvidia/embed-qa-4", description="Embedding model to use")
+    batch_size: int = Field(default=50, description="Batch size for processing", le=100)
+    input_type: str = Field(default="query", description="Input type for embeddings")
+
 @router.post("/embeddings/batch")
 async def batch_embeddings(
-    texts: List[str] = Field(..., description="Texts to embed", max_items=1000),
-    model: str = Field(default="nvidia/embed-qa-4", description="Embedding model to use"),
-    batch_size: int = Field(default=50, description="Batch size for processing", le=100),
-    input_type: str = Field(default="query", description="Input type for embeddings"),
+    request: BatchEmbeddingRequest,
     current_user: dict = Depends(has_role("user"))
 ):
     """Process large batches of texts for embedding generation"""
     
-    if len(texts) > 1000:
+    if len(request.texts) > 1000:
         raise HTTPException(status_code=400, detail="Maximum 1000 texts per batch request")
     
     # Process in batches
     all_embeddings = []
     total_processed = 0
     
-    for i in range(0, len(texts), batch_size):
-        batch = texts[i:i + batch_size]
+    for i in range(0, len(request.texts), request.batch_size):
+        batch = request.texts[i:i + request.batch_size]
         
         log.info("Processing batch", 
-                batch_num=i // batch_size + 1,
+                batch_num=i // request.batch_size + 1,
                 batch_size=len(batch),
-                total_texts=len(texts))
+                total_texts=len(request.texts))
         
         batch_result = await embedding_service.generate_embeddings(
             texts=batch,
-            model=model,
-            input_type=input_type
+            model=request.model,
+            input_type=request.input_type
         )
         
         # Adjust indices for global position
@@ -295,11 +312,11 @@ async def batch_embeddings(
             total_processed += 1
     
     # Calculate total usage
-    total_tokens = sum(len(text.split()) for text in texts)
+    total_tokens = sum(len(text.split()) for text in request.texts)
     
     return EmbeddingResponse(
         data=all_embeddings,
-        model=model,
+        model=request.model,
         usage={
             "prompt_tokens": total_tokens,
             "total_tokens": total_tokens

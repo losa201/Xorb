@@ -1,183 +1,245 @@
----
+# Xorb PTaaS Alerting Rules
+# EPYC-optimized thresholds for single-node deployment
+
 groups:
-  - name: xorb.rules
+  - name: xorb.system
     rules:
-    # XORB Application Alerts
-    - alert: XORBApplicationDown
-      expr: up{job="xorb-app"} == 0
-      for: 1m
-      labels:
-        severity: critical
-      annotations:
-        summary: "XORB application is down"
-        description: "XORB application has been down for more than 1 minute."
+      - alert: XorbHighCPUUsage
+        expr: (100 - (avg by (instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage on EPYC node"
+          description: "CPU usage is above 80% on {{ $labels.instance }} for more than 5 minutes."
 
-    - alert: XORBHighErrorRate
-      expr: rate(xorb_requests_total{status=~"5.."}[5m]) > 0.1
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High error rate in XORB"
-        description: "XORB error rate is {{ $value }} errors per second."
+      - alert: XorbHighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage on EPYC node"
+          description: "Memory usage is above 85% on {{ $labels.instance }} for more than 5 minutes."
 
-    - alert: XORBHighLatency
-      expr: histogram_quantile(0.95, rate(xorb_request_duration_seconds_bucket[5m])) > 1
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High latency in XORB"
-        description: "95th percentile latency is {{ $value }}s."
+      - alert: XorbDiskSpaceLow
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100 > 80
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Low disk space"
+          description: "Filesystem {{ $labels.mountpoint }} on {{ $labels.instance }} is {{ $value }}% full."
 
-    # Campaign Alerts
-    - alert: XORBCampaignFailureRate
-      expr: rate(xorb_campaigns_total{status="failed"}[10m]) > 0.05
-      for: 5m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High campaign failure rate"
-        description: "Campaign failure rate is {{ $value }} failures per second."
+      - alert: XorbEPYCNUMAImbalance
+        expr: abs(rate(node_cpu_seconds_total{mode="idle"}[5m]) - on(instance) group_left avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.1
+        for: 10m
+        labels:
+          severity: info
+          service: system
+        annotations:
+          summary: "NUMA node imbalance detected"
+          description: "CPU usage is imbalanced across NUMA nodes on {{ $labels.instance }}."
 
-    - alert: XORBLongRunningCampaign
-      expr: time() - xorb_campaign_start_time > 7200  # 2 hours
-      for: 0m
-      labels:
-        severity: warning
-      annotations:
-        summary: "Campaign running for too long"
-        description: "Campaign {{ $labels.campaign_id }} has been running for over 2 hours."
+  - name: xorb.services
+    rules:
+      - alert: XorbServiceDown
+        expr: up{job=~"xorb-.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.job }}"
+        annotations:
+          summary: "Xorb service is down"
+          description: "Service {{ $labels.job }} on {{ $labels.instance }} has been down for more than 1 minute."
 
-    # Agent Alerts
-    - alert: XORBAgentDown
-      expr: xorb_agents_active < 1
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: "No active XORB agents"
-        description: "No agents are currently active."
+      - alert: XorbAPIHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="xorb-api"}[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: api
+        annotations:
+          summary: "High API latency"
+          description: "95th percentile latency for API requests is {{ $value }}s."
 
-    - alert: XORBAgentHighFailureRate
-      expr: rate(xorb_agent_tasks_total{status="failed"}[5m]) > 0.1
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High agent task failure rate"
-        description: "Agent {{ $labels.agent_id }} has failure rate of {{ $value }} per second."
+      - alert: XorbAPIHighErrorRate
+        expr: rate(http_requests_total{job="xorb-api",status=~"5.."}[5m]) / rate(http_requests_total{job="xorb-api"}[5m]) * 100 > 5
+        for: 5m
+        labels:
+          severity: critical
+          service: api
+        annotations:
+          summary: "High API error rate"
+          description: "API error rate is {{ $value }}% over the last 5 minutes."
 
-    # Knowledge Fabric Alerts
-    - alert: XORBKnowledgeFabricDown
-      expr: up{job="xorb-knowledge-fabric"} == 0
-      for: 1m
-      labels:
-        severity: critical
-      annotations:
-        summary: "Knowledge Fabric is down"
-        description: "XORB Knowledge Fabric has been down for more than 1 minute."
+      - alert: XorbWorkerJobBacklog
+        expr: temporal_workflow_task_queue_backlog > 100
+        for: 10m
+        labels:
+          severity: warning
+          service: worker
+        annotations:
+          summary: "High worker job backlog"
+          description: "Worker job backlog is {{ $value }} tasks."
 
-    - alert: XORBKnowledgeAtomGrowthStalled
-      expr: increase(xorb_knowledge_atoms_total[1h]) < 1
-      for: 2h
-      labels:
-        severity: warning
-      annotations:
-        summary: "Knowledge atom growth stalled"
-        description: "No new knowledge atoms created in the last 2 hours."
+      - alert: XorbScannerFailureRate
+        expr: rate(xorb_scanner_scans_failed_total[5m]) / rate(xorb_scanner_scans_total[5m]) * 100 > 10
+        for: 10m
+        labels:
+          severity: warning
+          service: scanner
+        annotations:
+          summary: "High scanner failure rate"
+          description: "Scanner failure rate is {{ $value }}% over the last 5 minutes."
 
-    # System Resource Alerts
-    - alert: HighCPUUsage
-      expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High CPU usage"
-        description: "CPU usage is above 80% on {{ $labels.instance }}."
+  - name: xorb.database
+    rules:
+      - alert: XorbPostgreSQLDown
+        expr: pg_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL database is not responding."
 
-    - alert: HighMemoryUsage
-      expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: "High memory usage"
-        description: "Memory usage is above 85% on {{ $labels.instance }}."
+      - alert: XorbPostgreSQLHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High PostgreSQL connection usage"
+          description: "PostgreSQL connection usage is {{ $value }}%."
 
-    - alert: DiskSpaceLow
-      expr: (1 - (node_filesystem_avail_bytes / node_filesystem_size_bytes)) * 100 > 90
-      for: 1m
-      labels:
-        severity: critical
-      annotations:
-        summary: "Disk space low"
-        description: "Disk usage is above 90% on {{ $labels.instance }}."
+      - alert: XorbRedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cache
+        annotations:
+          summary: "Redis is down"
+          description: "Redis cache is not responding."
 
-    # Redis Alerts
-    - alert: RedisDown
-      expr: up{job="redis"} == 0
-      for: 1m
-      labels:
-        severity: critical
-      annotations:
-        summary: "Redis is down"
-        description: "Redis has been down for more than 1 minute."
+      - alert: XorbRedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: cache
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value }}%."
 
-    - alert: RedisHighMemoryUsage
-      expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: "Redis high memory usage"
-        description: "Redis memory usage is above 90%."
+  - name: xorb.security
+    rules:
+      - alert: XorbHighFailedAuthRate
+        expr: rate(xorb_auth_failed_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High authentication failure rate"
+          description: "Authentication failure rate is {{ $value }} failures per second."
 
-    # External API Alerts
-    - alert: ExternalAPIDown
-      expr: probe_success{job="external-apis"} == 0
-      for: 2m
-      labels:
-        severity: warning
-      annotations:
-        summary: "External API is down"
-        description: "External API {{ $labels.instance }} is not responding."
+      - alert: XorbSuspiciousActivity
+        expr: rate(xorb_security_violations_total[1m]) > 0
+        for: 0m
+        labels:
+          severity: critical
+          service: security
+        annotations:
+          summary: "Security violation detected"
+          description: "Security violation detected: {{ $labels.violation_type }}."
 
-    # Security Alerts
-    - alert: XORBSecurityViolation
-      expr: increase(xorb_security_violations_total[5m]) > 0
-      for: 0m
-      labels:
-        severity: critical
-      annotations:
-        summary: "Security violation detected"
-        description: "Security violation of type {{ $labels.violation_type }} detected."
+      - alert: XorbCertificateExpiringSoon
+        expr: (x509_cert_expiry - time()) / 86400 < 30
+        for: 1h
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "TLS certificate expiring soon"
+          description: "TLS certificate for {{ $labels.subject }} expires in {{ $value }} days."
 
-    - alert: XORBRateLimitExceeded
-      expr: increase(xorb_rate_limit_exceeded_total[1m]) > 10
-      for: 0m
-      labels:
-        severity: warning
-      annotations:
-        summary: "Rate limit exceeded"
-        description: "Rate limit exceeded {{ $value }} times in the last minute."
+  - name: xorb.ptaas
+    rules:
+      - alert: XorbHighPaymentFailureRate
+        expr: rate(xorb_payments_failed_total[10m]) / rate(xorb_payments_total[10m]) * 100 > 5
+        for: 10m
+        labels:
+          severity: critical
+          service: payments
+        annotations:
+          summary: "High payment failure rate"
+          description: "Payment failure rate is {{ $value }}% over the last 10 minutes."
 
-    # Bounty Intelligence Alerts
-    - alert: XORBBountySubmissionFailed
-      expr: increase(xorb_bounty_submissions_total{status="failed"}[10m]) > 0
-      for: 0m
-      labels:
-        severity: warning
-      annotations:
-        summary: "Bounty submission failed"
-        description: "Bounty submission failed for program {{ $labels.program }}."
+      - alert: XorbTriageBacklog
+        expr: xorb_triage_queue_size > 50
+        for: 15m
+        labels:
+          severity: warning
+          service: triage
+        annotations:
+          summary: "High triage backlog"
+          description: "Triage queue has {{ $value }} findings waiting for analysis."
 
-    - alert: XORBLowROI
-      expr: xorb_campaign_roi_score < 0.3
-      for: 5m
-      labels:
-        severity: info
-      annotations:
-        summary: "Low ROI campaign detected"
-        description: "Campaign {{ $labels.campaign_id }} has ROI score of {{ $value }}."
+      - alert: XorbResearcherPortalDown
+        expr: up{job="researcher-portal"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: portal
+        annotations:
+          summary: "Researcher portal is down"
+          description: "The researcher portal is not accessible."
+
+      - alert: XorbHighEmbeddingTokenUsage
+        expr: rate(xorb_embedding_tokens_total[1m]) > 2000
+        for: 5m
+        labels:
+          severity: warning
+          service: embeddings
+        annotations:
+          summary: "High embedding token usage"
+          description: "Embedding token usage is {{ $value }} tokens per minute, above threshold of 2000/min (120k/hour)."
+
+      - alert: XorbEmbeddingCacheLowHitRate
+        expr: (rate(xorb_embedding_cache_hits_total[10m]) / (rate(xorb_embedding_cache_hits_total[10m]) + rate(xorb_embedding_requests_total{status="success"}[10m]))) * 100 < 50
+        for: 10m
+        labels:
+          severity: info
+          service: embeddings
+        annotations:
+          summary: "Low embedding cache hit rate"
+          description: "Embedding cache hit rate is {{ $value }}%, consider increasing cache TTL or size."
+
+  - name: xorb.performance
+    rules:
+      - alert: XorbEPYCCoreImbalance
+        expr: stddev(rate(node_cpu_seconds_total{mode="user"}[5m])) by (instance) > 0.1
+        for: 10m
+        labels:
+          severity: info
+          service: performance
+        annotations:
+          summary: "EPYC core usage imbalance"
+          description: "CPU usage is imbalanced across EPYC cores on {{ $labels.instance }}."
+
+      - alert: XorbHighContainerRestarts
+        expr: increase(container_start_time_seconds[1h]) > 5
+        for: 0m
+        labels:
+          severity: warning
+          service: containers
+        annotations:
+          summary: "High container restart rate"
+          description: "Container {{ $labels.name }} has restarted {{ $value }} times in the last hour."

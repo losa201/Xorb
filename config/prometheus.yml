@@ -1,0 +1,89 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'xorb-phase12'
+    environment: 'development'
+
+rule_files:
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 5s
+
+  # XORB Orchestrator Agent
+  - job_name: 'xorb-orchestrator'
+    static_configs:
+      - targets: ['orchestrator-agent:8000']
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+    honor_labels: true
+    params:
+      format: ['prometheus']
+
+  # XORB Evolutionary Defense Agent
+  - job_name: 'xorb-evolutionary-defense'
+    static_configs:
+      - targets: ['evolutionary-defense-agent:8001']
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    honor_labels: true
+
+  # XORB Threat Propagation Agent
+  - job_name: 'xorb-threat-propagation'
+    static_configs:
+      - targets: ['threat-propagation-agent:8002']
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    honor_labels: true
+
+  # XORB Autonomous Response Agent
+  - job_name: 'xorb-autonomous-response'
+    static_configs:
+      - targets: ['autonomous-response-agent:8003']
+    scrape_interval: 5s
+    metrics_path: '/metrics'
+    honor_labels: true
+
+  # XORB Ecosystem Integration Agent
+  - job_name: 'xorb-ecosystem-integration'
+    static_configs:
+      - targets: ['ecosystem-integration-agent:8004']
+    scrape_interval: 15s
+    metrics_path: '/metrics'
+    honor_labels: true
+
+  # Redis monitoring
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+
+  # PostgreSQL monitoring
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    scrape_interval: 30s
+
+  # Container and system metrics
+  - job_name: 'docker-containers'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s
+
+# Remote write configuration for long-term storage (optional)
+# remote_write:
+#   - url: "https://prometheus-remote-write-endpoint/api/v1/write"
+#     basic_auth:
+#       username: "xorb"
+#       password: "secure_token"

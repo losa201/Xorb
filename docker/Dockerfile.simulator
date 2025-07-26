@@ -1,0 +1,302 @@
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    redis \
+    asyncio \
+    aioredis \
+    structlog
+
+# Create simulator script
+COPY <<EOF /app/xorb_simulator.py
+#!/usr/bin/env python3
+"""
+XORB System Simulator
+Generates realistic threat signals and system events for testing the XORB ecosystem.
+"""
+
+import asyncio
+import json
+import random
+import time
+from datetime import datetime, timedelta
+from typing import Dict, List, Any
+import aioredis
+import structlog
+
+logger = structlog.get_logger("xorb_simulator")
+
+class XORBSimulator:
+    def __init__(self, redis_url: str = "redis://localhost:6379"):
+        self.redis_url = redis_url
+        self.redis_pool = None
+        self.is_running = False
+        
+        # Simulation parameters
+        self.threat_types = [
+            'malware', 'phishing', 'ddos', 'data_breach', 'insider_threat',
+            'ransomware', 'apt', 'credential_stuffing', 'sql_injection', 'xss'
+        ]
+        
+        self.severity_levels = ['low', 'medium', 'high', 'critical']
+        self.confidence_ranges = {
+            'low': (0.3, 0.6),
+            'medium': (0.6, 0.8),
+            'high': (0.8, 0.95),
+            'critical': (0.85, 1.0)
+        }
+        
+        # IP ranges for simulation
+        self.malicious_ip_ranges = [
+            "192.168.1.", "10.0.0.", "172.16.0.", "203.0.113."
+        ]
+        
+    async def initialize(self):
+        """Initialize Redis connection"""
+        self.redis_pool = aioredis.ConnectionPool.from_url(self.redis_url, max_connections=10)
+        redis = aioredis.Redis(connection_pool=self.redis_pool)
+        
+        # Test connection
+        await redis.ping()
+        logger.info("XORB Simulator initialized", redis_url=self.redis_url)
+        
+    async def start_simulation(self):
+        """Start the threat simulation"""
+        self.is_running = True
+        logger.info("Starting XORB threat simulation")
+        
+        try:
+            # Start simulation loops
+            threat_task = asyncio.create_task(self._threat_generation_loop())
+            coordination_task = asyncio.create_task(self._coordination_simulation_loop())
+            
+            await asyncio.gather(threat_task, coordination_task)
+            
+        except Exception as e:
+            logger.error("Simulation failed", error=str(e))
+            raise
+        finally:
+            self.is_running = False
+    
+    async def _threat_generation_loop(self):
+        """Generate realistic threat signals"""
+        redis = aioredis.Redis(connection_pool=self.redis_pool)
+        
+        while self.is_running:
+            try:
+                # Generate threat signal
+                threat_signal = self._generate_threat_signal()
+                
+                # Send to high priority threats channel (for autonomous response agent)
+                if threat_signal['priority'] == 'critical' and threat_signal['confidence'] >= 0.72:
+                    await redis.lpush('high_priority_threats', json.dumps(threat_signal))
+                    logger.info("Generated critical threat signal", 
+                               threat_id=threat_signal['signal_id'],
+                               threat_type=threat_signal['threat_type'],
+                               confidence=threat_signal['confidence'])
+                
+                # Send to general threat signals queue
+                await redis.lpush('xorb:threat_signals', json.dumps(threat_signal))
+                
+                # Publish to coordination channel for agent communication
+                await redis.publish('xorb:coordination', json.dumps({
+                    'type': 'threat_detected',
+                    'signal_id': threat_signal['signal_id'],
+                    'severity': threat_signal['severity'],
+                    'confidence': threat_signal['confidence'],
+                    'timestamp': datetime.utcnow().isoformat()
+                }))
+                
+                # Variable delay based on threat generation rate
+                simulation_interval = int(os.environ.get('SIMULATION_INTERVAL', '30'))
+                threat_rate = float(os.environ.get('THREAT_GENERATION_RATE', '0.1'))
+                
+                # Higher threat rate = shorter intervals
+                base_delay = simulation_interval
+                actual_delay = max(5, int(base_delay * (1.0 - threat_rate)))
+                
+                await asyncio.sleep(actual_delay)
+                
+            except Exception as e:
+                logger.error("Threat generation failed", error=str(e))
+                await asyncio.sleep(5)
+    
+    async def _coordination_simulation_loop(self):
+        """Simulate agent coordination messages"""
+        redis = aioredis.Redis(connection_pool=self.redis_pool)
+        
+        agent_types = [
+            'orchestrator', 'evolutionary-defense', 'threat-propagation', 
+            'autonomous-response', 'ecosystem-integration'
+        ]
+        
+        while self.is_running:
+            try:
+                # Simulate agent status updates
+                for agent_type in agent_types:
+                    status_update = {
+                        'agent_type': agent_type,
+                        'agent_id': f"{agent_type}-001",
+                        'status': random.choice(['active', 'processing', 'idle']),
+                        'load': random.uniform(0.1, 0.9),
+                        'last_activity': datetime.utcnow().isoformat(),
+                        'metrics': {
+                            'processed_signals': random.randint(10, 100),
+                            'active_processes': random.randint(1, 10),
+                            'memory_usage': random.uniform(0.2, 0.8)
+                        }
+                    }
+                    
+                    await redis.publish('xorb:agent_status', json.dumps(status_update))
+                
+                # Simulate coordination requests
+                if random.random() < 0.3:  # 30% chance
+                    coordination_request = {
+                        'request_id': f"coord_{int(time.time())}",
+                        'from_agent': random.choice(agent_types),
+                        'to_agent': random.choice(agent_types),
+                        'action_type': random.choice(['response_coordination', 'data_sharing', 'status_sync']),
+                        'parameters': {
+                            'priority': random.choice(['low', 'medium', 'high']),
+                            'timeout': random.randint(10, 60)
+                        },
+                        'timestamp': datetime.utcnow().isoformat()
+                    }
+                    
+                    await redis.publish('xorb:coordination', json.dumps(coordination_request))
+                
+                await asyncio.sleep(60)  # Coordination updates every minute
+                
+            except Exception as e:
+                logger.error("Coordination simulation failed", error=str(e))
+                await asyncio.sleep(30)
+    
+    def _generate_threat_signal(self) -> Dict[str, Any]:
+        """Generate a realistic threat signal"""
+        threat_type = random.choice(self.threat_types)
+        severity = random.choice(self.severity_levels)
+        
+        # Generate confidence based on severity
+        confidence_range = self.confidence_ranges[severity]
+        confidence = random.uniform(*confidence_range)
+        
+        # Determine priority
+        if severity == 'critical' and confidence >= 0.85:
+            priority = 'critical'
+        elif severity in ['high', 'critical']:
+            priority = 'high'
+        elif severity == 'medium':
+            priority = 'medium'
+        else:
+            priority = 'low'
+        
+        # Generate source indicators
+        source_indicators = []
+        if threat_type in ['malware', 'ddos', 'data_breach']:
+            # IP-based threats
+            ip_base = random.choice(self.malicious_ip_ranges)
+            source_indicators.append(f"{ip_base}{random.randint(1, 254)}")
+        
+        if threat_type in ['phishing', 'malware']:
+            # Domain-based threats
+            domains = ['malicious-site.com', 'fake-bank.net', 'phishing-page.org']
+            source_indicators.append(random.choice(domains))
+        
+        if threat_type in ['malware', 'ransomware']:
+            # File hash indicators
+            hash_value = ''.join(random.choices('0123456789abcdef', k=64))
+            source_indicators.append(hash_value)
+        
+        # Generate target assets
+        target_assets = []
+        asset_types = ['web-server-01', 'db-server-02', 'mail-server-01', 'workstation-']
+        for _ in range(random.randint(1, 3)):
+            if 'workstation-' in asset_types[-1]:
+                target_assets.append(f"workstation-{random.randint(1, 50):03d}")
+            else:
+                target_assets.append(random.choice(asset_types[:-1]))
+        
+        # Generate recommended actions
+        action_mappings = {
+            'malware': ['quarantine', 'scan', 'patch'],
+            'phishing': ['block_domain', 'user_training', 'email_filter'],
+            'ddos': ['rate_limit', 'block_ip', 'scale_resources'],
+            'data_breach': ['isolate', 'forensics', 'notify_stakeholders'],
+            'insider_threat': ['monitor', 'audit_access', 'investigate'],
+            'ransomware': ['isolate', 'backup_restore', 'decrypt_analysis'],
+            'apt': ['monitor', 'threat_hunt', 'enhance_logging'],
+            'credential_stuffing': ['rate_limit', 'mfa_enforce', 'password_reset'],
+            'sql_injection': ['patch', 'waf_rules', 'input_validation'],
+            'xss': ['sanitize_input', 'csp_headers', 'patch']
+        }
+        
+        recommended_actions = action_mappings.get(threat_type, ['investigate', 'monitor'])
+        
+        signal = {
+            'signal_id': f"signal_{int(time.time())}_{random.randint(1000, 9999)}",
+            'threat_type': threat_type,
+            'severity': severity,
+            'confidence': confidence,
+            'priority': priority,
+            'source_indicators': source_indicators,
+            'target_assets': target_assets,
+            'recommended_actions': recommended_actions,
+            'context': {
+                'detection_method': random.choice(['signature', 'behavioral', 'ml_model', 'threat_intel']),
+                'first_seen': (datetime.utcnow() - timedelta(minutes=random.randint(1, 60))).isoformat(),
+                'attack_vector': random.choice(['network', 'email', 'web', 'endpoint', 'insider']),
+                'geographic_origin': random.choice(['US', 'CN', 'RU', 'KP', 'IR', 'Unknown']),
+                'campaign_id': f"campaign_{random.randint(1000, 9999)}" if random.random() < 0.3 else None
+            },
+            'timestamp': datetime.utcnow().isoformat(),
+            'expiry': (datetime.utcnow() + timedelta(hours=24)).isoformat()
+        }
+        
+        return signal
+    
+    async def shutdown(self):
+        """Shutdown the simulator"""
+        logger.info("Shutting down XORB Simulator")
+        self.is_running = False
+        
+        if self.redis_pool:
+            await self.redis_pool.disconnect()
+
+import os
+
+async def main():
+    redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379')
+    
+    simulator = XORBSimulator(redis_url)
+    
+    try:
+        await simulator.initialize()
+        await simulator.start_simulation()
+    except KeyboardInterrupt:
+        logger.info("Simulator interrupted by user")
+    except Exception as e:
+        logger.error("Simulator failed", error=str(e))
+    finally:
+        await simulator.shutdown()
+
+if __name__ == "__main__":
+    import os
+    # Setup basic logging
+    import logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    asyncio.run(main())
+EOF
+
+RUN chmod +x /app/xorb_simulator.py
+
+# Start the simulator
+CMD ["python", "/app/xorb_simulator.py"]

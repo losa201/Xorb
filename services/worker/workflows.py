@@ -5,8 +5,46 @@ from typing import List, Set
 
 from temporalio import workflow
 
-from xorb_core.agent_registry import agent_registry
-from xorb_core.models.agents import DiscoveryTarget, Finding
+# Try multiple import paths for compatibility
+try:
+    from packages.xorb_core.xorb_core.models import DiscoveryTarget, Finding
+except ImportError:
+    try:
+        from xorb_core.models.agents import DiscoveryTarget, Finding
+    except ImportError:
+        # Fallback model definitions
+        from dataclasses import dataclass
+        from typing import Optional, Dict, Any
+        from datetime import datetime
+        
+        @dataclass
+        class DiscoveryTarget:
+            target_type: str
+            value: str
+            scope: Optional[str] = None
+            metadata: Optional[Dict[str, Any]] = None
+        
+        @dataclass  
+        class Finding:
+            id: str
+            title: str
+            description: str
+            severity: str
+            target: str
+            discovery_method: str
+            timestamp: datetime
+            finding_type: str = "generic"
+            evidence: Dict[str, Any] = None
+
+# Mock agent registry for compatibility
+class MockAgentRegistry:
+    def get_agents_for_target_type(self, target_type: str):
+        return [type('MockAgent', (), {'name': f'mock-agent-{target_type}'})()]
+
+try:
+    from xorb_core.agent_registry import agent_registry
+except ImportError:
+    agent_registry = MockAgentRegistry()
 
 with workflow.unsafe.imports_passed_through():
     from .activities import run_agent

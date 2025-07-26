@@ -1,0 +1,301 @@
+version: '3.8'
+
+services:
+  # Core Databases
+  postgres:
+    image: pgvector/pgvector:pg15
+    environment:
+      POSTGRES_DB: xorb
+      POSTGRES_USER: xorb
+      POSTGRES_PASSWORD: xorb_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xorb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --requirepass redis_password
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  neo4j:
+    image: neo4j:5
+    environment:
+      NEO4J_AUTH: neo4j/neo4j_password
+      NEO4J_PLUGINS: '["apoc"]'
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:23
+    ports:
+      - "8123:8123"
+      - "9000:9000"
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    environment:
+      CLICKHOUSE_DB: xorb
+      CLICKHOUSE_USER: xorb
+      CLICKHOUSE_PASSWORD: clickhouse_password
+
+  qdrant:
+    image: qdrant/qdrant:v1.5.0
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  # Message Systems
+  nats:
+    image: nats:2.9-alpine
+    command: 
+      - "--jetstream"
+      - "--store_dir=/data"
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    volumes:
+      - nats_data:/data
+
+  temporal:
+    image: temporalio/auto-setup:1.20
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=xorb
+      - POSTGRES_PWD=xorb_password
+      - POSTGRES_SEEDS=postgres
+    ports:
+      - "7233:7233"
+    depends_on:
+      - postgres
+
+  # Core XORB Services
+  xorb-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      - XORB_ENV=production
+      - XORB_ADVANCED_FEATURES=true
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - NEO4J_HOST=neo4j
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+      - neo4j
+    volumes:
+      - ./logs:/app/logs
+      - ./.xorb.env:/app/.xorb.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  xorb-orchestrator:
+    build:
+      context: .
+      dockerfile: Dockerfile.orchestrator
+    environment:
+      - XORB_ENV=production
+      - XORB_ADVANCED_FEATURES=true
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - redis
+      - nats
+    volumes:
+      - ./logs:/app/logs
+      - ./.xorb.env:/app/.xorb.env
+
+  xorb-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      - XORB_ENV=production
+      - XORB_ADVANCED_FEATURES=true
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+      - TEMPORAL_HOST=temporal
+    depends_on:
+      - postgres
+      - redis
+      - temporal
+    volumes:
+      - ./logs:/app/logs
+      - ./.xorb.env:/app/.xorb.env
+    deploy:
+      replicas: 2
+
+  # Advanced Feature Services
+  xorb-threat-intel:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+      args:
+        SERVICE_TYPE: threat_intel
+    environment:
+      - XORB_ENV=production
+      - XORB_SERVICE_TYPE=threat_intel
+      - POSTGRES_HOST=postgres
+      - QDRANT_HOST=qdrant
+    depends_on:
+      - postgres
+      - qdrant
+    volumes:
+      - ./logs:/app/logs
+      - ./.xorb.env:/app/.xorb.env
+
+  xorb-vulnerability-mgmt:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+      args:
+        SERVICE_TYPE: vulnerability_mgmt
+    environment:
+      - XORB_ENV=production
+      - XORB_SERVICE_TYPE=vulnerability_mgmt
+      - POSTGRES_HOST=postgres
+    depends_on:
+      - postgres
+    volumes:
+      - ./logs:/app/logs
+      - ./.xorb.env:/app/.xorb.env
+
+  xorb-ai-hunter:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+      args:
+        SERVICE_TYPE: ai_hunter
+    environment:
+      - XORB_ENV=production
+      - XORB_SERVICE_TYPE=ai_hunter
+      - POSTGRES_HOST=postgres
+      - REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./logs:/app/logs
+      - ./.xorb.env:/app/.xorb.env
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:v2.40.0
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:9.0.0
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager_data:/alertmanager
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.35
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+
+  # Log Management
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+
+  # Security Scanner
+  zap:
+    image: zaproxy/zap-stable
+    command: zap-webswing.sh
+    ports:
+      - "8090:8090"
+    volumes:
+      - zap_data:/zap/wrk
+
+volumes:
+  postgres_data:
+  redis_data:
+  neo4j_data:
+  clickhouse_data:
+  qdrant_data:
+  nats_data:
+  prometheus_data:
+  grafana_data:
+  alertmanager_data:
+  elasticsearch_data:
+  zap_data:
+
+networks:
+  default:
+    name: xorb-network
+    driver: bridge

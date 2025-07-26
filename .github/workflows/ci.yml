@@ -1,84 +1,28 @@
-name: Xorb 2.0 CI Pipeline
+name: XORB CI/CD Pipeline
 
 on:
   push:
     branches: [ main, develop ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 env:
-  PYTHON_VERSION: "3.12"
-  PY: python3
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  lint-and-format:
-    runs-on: ubuntu-latest
-    name: Code Quality Checks
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install black flake8 mypy bandit pytest
-    
-    - name: Run formatting check
-      run: |
-        black --check .
-    
-    - name: Run linting
-      run: |
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
-    
-    - name: Run type checking
-      run: |
-        mypy packages/xorb_core/xorb_core --ignore-missing-imports || true
-    
-    - name: Run security scan
-      run: |
-        bandit -r . -f json -o bandit-report.json || true
-
   test:
     runs-on: ubuntu-latest
-    name: Unit Tests
-    
-    steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-    
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-asyncio pytest-cov
-    
-    - name: Run tests
-      run: |
-        pytest tests/ -v --tb=short --cov=packages/xorb_core/xorb_core --cov-report=xml || echo "No tests found yet"
-
-  observability-validation:
-    runs-on: ubuntu-latest
-    name: Observability MVP Validation
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10', '3.11']
     
     services:
       postgres:
-        image: postgres:15
+        image: ankane/pgvector
         env:
-          POSTGRES_PASSWORD: xorb_test
-          POSTGRES_USER: xorb_test
-          POSTGRES_DB: xorb_test
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -86,80 +30,199 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-    
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
       with:
-        python-version: ${{ env.PYTHON_VERSION }}
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
     
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install uvicorn
+        pip install pytest pytest-cov pytest-asyncio
     
-    - name: Start API with metrics
+    - name: Run linting
       run: |
-        export POSTGRES_DSN="postgresql://xorb_test:xorb_test@localhost:5432/xorb_test"
-        export ENABLE_METRICS=true
-        cd services/api
-        uvicorn app.main:app --host 0.0.0.0 --port 8000 &
-        sleep 5
-      
-    - name: Validate API health endpoint
-      run: |
-        curl -f http://localhost:8000/health
+        pip install flake8 black isort mypy
+        flake8 xorb_core/ services/ --max-line-length=88 --extend-ignore=E203,W503
+        black --check xorb_core/ services/
+        isort --check-only xorb_core/ services/
+        mypy xorb_core/ --ignore-missing-imports
     
-    - name: Validate metrics endpoint
+    - name: Run security scan
       run: |
-        curl -sf http://localhost:8000/metrics | grep http_requests_total
-        if [ $? -ne 0 ]; then
-          echo "❌ Metrics validation failed - http_requests_total not found"
-          curl -s http://localhost:8000/metrics | head -20
-          exit 1
-        else
-          echo "✅ Metrics validation passed"
-        fi
+        pip install bandit safety
+        bandit -r xorb_core/ -f json -o bandit-report.json || true
+        safety check --json --output safety-report.json || true
     
-    - name: Test structured logging
+    - name: Run unit tests
       run: |
-        # Make a few requests to generate logs
-        curl -s http://localhost:8000/health > /dev/null
-        curl -s http://localhost:8000/metrics > /dev/null
-        echo "✅ Structured logging validated (check server output for JSON format)"
+        pytest tests/unit/ -v --cov=xorb_core --cov-report=xml
+      env:
+        POSTGRES_DSN: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
     
-    - name: Stop services
+    - name: Run integration tests
       run: |
-        pkill -f uvicorn || true
+        pytest tests/integration/ -v
+      env:
+        POSTGRES_DSN: postgresql://postgres:postgres@localhost:5432/test_db
+        REDIS_URL: redis://localhost:6379/0
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
 
-  build:
+  security:
     runs-on: ubuntu-latest
-    name: Docker Build Test
-    needs: [lint-and-format, test, observability-validation]
-    
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  build:
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    strategy:
+      matrix:
+        service: [api, worker, orchestrator]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     
-    - name: Build API service
-      run: |
-        docker build -f services/api/Dockerfile -t xorb-api:test .
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
     
-    - name: Build Worker service  
-      run: |
-        docker build -f services/worker/Dockerfile -t xorb-worker:test .
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
     
-    - name: Test API container
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: docker/${{ matrix.service }}/Dockerfile
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  e2e-test:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Compose
       run: |
-        docker run --rm -d --name xorb-api-test -p 8001:8000 \
-          -e ENABLE_METRICS=true \
-          xorb-api:test
-        sleep 10
-        curl -f http://localhost:8001/health
-        curl -sf http://localhost:8001/metrics | grep http_requests_total
-        docker stop xorb-api-test
+        docker-compose --version
+    
+    - name: Run E2E tests
+      run: |
+        # Start the full stack
+        docker-compose up -d
+        
+        # Wait for services to be ready
+        sleep 60
+        
+        # Install test dependencies
+        pip install pytest requests
+        
+        # Run E2E tests
+        pytest tests/e2e/ -v
+        
+        # Cleanup
+        docker-compose down -v
+      env:
+        COMPOSE_FILE: docker-compose.yml
+
+  deploy-staging:
+    needs: [test, security, build, e2e-test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment..."
+        XORB_ENV=staging ./scripts/launch/bootstrap.sh
+      env:
+        XORB_ENV: staging
+
+  deploy-production:
+    needs: [test, security, build, e2e-test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment..."
+        XORB_ENV=production ./scripts/launch/bootstrap.sh
+      env:
+        XORB_ENV: production

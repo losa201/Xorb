@@ -5,7 +5,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: docker/api/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -24,7 +24,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: Dockerfile.worker
+      dockerfile: docker/worker/Dockerfile
     ports:
       - "9000:9000"  # Metrics port
     environment:
@@ -41,7 +41,7 @@ services:
   orchestrator:
     build:
       context: .
-      dockerfile: Dockerfile.orchestrator
+      dockerfile: docker/orchestrator/Dockerfile
     depends_on:
       - temporal
 

@@ -1,5 +1,3 @@
----
-# Xorb 2.0 Full Production Deployment with Phase 3 Advanced Security
 version: '3.8'
 
 networks:
@@ -421,29 +419,39 @@ services:
       - SECURITY_ENHANCED=true
       - SIEM_ENDPOINT=http://siem-analyzer:8080
       - PYTHONPATH=/app
-      - NVIDIA_API_KEY=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
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY:-}
       - NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+      - LOG_LEVEL=INFO
+      - MAX_WORKERS=4
+      - CONTAINER_RECOVERY_ENABLED=true
     volumes:
       - .:/app
+      - ./logs:/app/logs
     working_dir: /app
     command: >
       bash -c "
-      pip install fastapi uvicorn[standard] prometheus-fastapi-instrumentator structlog openai python-jose[cryptography] passlib[bcrypt] python-multipart pydantic-settings redis httpx dnspython temporalio &&
-      echo 'Starting Enhanced Xorb API with Phase 3 Security...' &&
+      apt-get update && apt-get install -y curl &&
+      pip install --no-cache-dir fastapi uvicorn[standard] prometheus-fastapi-instrumentator structlog openai python-jose[cryptography] passlib[bcrypt] python-multipart pydantic-settings redis httpx dnspython temporalio aiohttp aiohttp-cors &&
+      echo 'Starting Enhanced Xorb API with Phase 9 Autonomous Features...' &&
       cd services/api &&
-      uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info
+      python -c 'import sys; print(f\"Python path: {sys.path}\")' &&
+      uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level info --workers 1
       "
     depends_on:
-      - postgres
-      - temporal
-      - redis-master-1
-      - siem-analyzer
+      postgres:
+        condition: service_healthy
+      temporal:
+        condition: service_started
+      redis-master-1:
+        condition: service_started
+      siem-analyzer:
+        condition: service_started
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health || exit 1"]
       interval: 30s
       timeout: 10s
-      retries: 3
+      retries: 5
       start_period: 60s
 
   # Enhanced Worker Service

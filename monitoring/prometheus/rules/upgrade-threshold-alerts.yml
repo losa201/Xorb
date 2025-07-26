@@ -1,0 +1,305 @@
+# Xorb Upgrade Threshold Alerts
+# Triggers alerts when system resources exceed thresholds that indicate need for upgrade
+# EPYC-optimized for single-node 16vCPU/32GB deployment
+
+groups:
+  - name: xorb.upgrade_thresholds
+    interval: 60s
+    rules:
+      # CPU Upgrade Thresholds
+      - record: xorb:cpu_utilization_5m
+        expr: 100 - (avg(irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)
+
+      - record: xorb:cpu_utilization_1h
+        expr: avg_over_time(xorb:cpu_utilization_5m[1h])
+
+      - alert: XorbCPUUpgradeThresholdWarning
+        expr: xorb:cpu_utilization_1h > 70
+        for: 30m
+        labels:
+          severity: warning
+          category: upgrade_threshold
+          resource: cpu
+          action: monitor
+        annotations:
+          summary: "CPU utilization approaching upgrade threshold"
+          description: "Average CPU utilization ({{ $value }}%) has been above 70% for 30+ minutes. Consider vertical scaling."
+          current_cores: "16 vCPU"
+          recommended_action: "Monitor closely, prepare for upgrade to 24-32 vCPU"
+          runbook_url: "https://runbook.xorb.ai/upgrade/cpu"
+
+      - alert: XorbCPUUpgradeThresholdCritical
+        expr: xorb:cpu_utilization_1h > 85
+        for: 15m
+        labels:
+          severity: critical
+          category: upgrade_threshold
+          resource: cpu
+          action: upgrade_needed
+        annotations:
+          summary: "CPU upgrade critically needed"
+          description: "Average CPU utilization ({{ $value }}%) has been above 85% for 15+ minutes. Immediate upgrade recommended."
+          current_cores: "16 vCPU"
+          recommended_upgrade: "32-48 vCPU (minimum 2x current capacity)"
+          impact: "Performance degradation likely affecting user experience"
+
+      # Memory Upgrade Thresholds
+      - record: xorb:memory_utilization_5m
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100
+
+      - record: xorb:memory_utilization_1h
+        expr: avg_over_time(xorb:memory_utilization_5m[1h])
+
+      - alert: XorbMemoryUpgradeThresholdWarning
+        expr: xorb:memory_utilization_1h > 70
+        for: 30m
+        labels:
+          severity: warning
+          category: upgrade_threshold
+          resource: memory
+          action: monitor
+        annotations:
+          summary: "Memory utilization approaching upgrade threshold"
+          description: "Average memory utilization ({{ $value }}%) has been above 70% for 30+ minutes."
+          current_memory: "32 GB"
+          recommended_action: "Monitor memory usage patterns, prepare for upgrade to 64 GB"
+          runbook_url: "https://runbook.xorb.ai/upgrade/memory"
+
+      - alert: XorbMemoryUpgradeThresholdCritical
+        expr: xorb:memory_utilization_1h > 85
+        for: 10m
+        labels:
+          severity: critical
+          category: upgrade_threshold
+          resource: memory
+          action: upgrade_needed
+        annotations:
+          summary: "Memory upgrade critically needed"
+          description: "Average memory utilization ({{ $value }}%) has been above 85% for 10+ minutes."
+          current_memory: "32 GB"
+          recommended_upgrade: "64-128 GB (minimum 2x current capacity)"
+          impact: "Risk of OOM kills and service degradation"
+
+      # Storage Upgrade Thresholds
+      - record: xorb:storage_utilization_5m
+        expr: (1 - (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"})) * 100
+
+      - alert: XorbStorageUpgradeThresholdWarning
+        expr: xorb:storage_utilization_5m > 70
+        for: 1h
+        labels:
+          severity: warning
+          category: upgrade_threshold
+          resource: storage
+          action: monitor
+        annotations:
+          summary: "Storage utilization approaching upgrade threshold"
+          description: "Storage utilization on {{ $labels.mountpoint }} is {{ $value }}%"
+          current_storage: "400 GB NVMe + 200 GB SSD"
+          recommended_action: "Plan storage expansion or implement data lifecycle policies"
+
+      - alert: XorbStorageUpgradeThresholdCritical
+        expr: xorb:storage_utilization_5m > 85
+        for: 30m
+        labels:
+          severity: critical
+          category: upgrade_threshold
+          resource: storage
+          action: upgrade_needed
+        annotations:
+          summary: "Storage upgrade critically needed"
+          description: "Storage utilization on {{ $labels.mountpoint }} is {{ $value }}%"
+          recommended_upgrade: "Expand to 1TB+ NVMe or implement tiered storage"
+          impact: "Risk of service failures due to insufficient storage"
+
+  - name: xorb.performance_degradation
+    interval: 60s
+    rules:
+      # Application Performance Degradation (indicating need for more resources)
+      - record: xorb:api_response_time_p95_1h
+        expr: avg_over_time(histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="xorb-api"}[5m]))[1h:5m])
+
+      - alert: XorbAPIPerformanceDegradation
+        expr: xorb:api_response_time_p95_1h > 0.5
+        for: 30m
+        labels:
+          severity: warning
+          category: upgrade_threshold
+          resource: performance
+          action: investigate
+        annotations:
+          summary: "API performance degradation detected"
+          description: "API P95 response time ({{ $value }}s) has degraded over the past hour"
+          threshold: "500ms"
+          recommended_action: "Investigate resource constraints, consider vertical scaling"
+
+      # Database Performance Degradation
+      - record: xorb:db_connections_utilization
+        expr: (pg_stat_database_numbackends / pg_settings_max_connections) * 100
+
+      - alert: XorbDatabaseConnectionsHigh
+        expr: xorb:db_connections_utilization > 70
+        for: 20m
+        labels:
+          severity: warning
+          category: upgrade_threshold
+          resource: database
+          action: tune_or_scale
+        annotations:
+          summary: "Database connection utilization high"
+          description: "Database connection utilization is {{ $value }}%"
+          recommended_action: "Increase connection pool size or scale database vertically"
+
+      # Worker Queue Backlog (indicating need for more workers)
+      - record: xorb:worker_queue_avg_1h
+        expr: avg_over_time(temporal_workflow_task_queue_backlog[1h])
+
+      - alert: XorbWorkerCapacityStrain
+        expr: xorb:worker_queue_avg_1h > 50
+        for: 45m
+        labels:
+          severity: warning
+          category: upgrade_threshold
+          resource: workers
+          action: scale_workers
+        annotations:
+          summary: "Worker capacity strain detected"
+          description: "Average worker queue backlog ({{ $value }}) indicates capacity strain"
+          recommended_action: "Scale worker instances horizontally or increase CPU allocation"
+
+  - name: xorb.predictive_scaling
+    interval: 300s  # 5 minute intervals for predictive metrics
+    rules:
+      # Predictive CPU scaling based on trends
+      - record: xorb:cpu_utilization_trend_6h
+        expr: predict_linear(xorb:cpu_utilization_1h[6h], 3600 * 6)  # Predict 6 hours ahead
+
+      - alert: XorbCPUUpgradePredictive
+        expr: xorb:cpu_utilization_trend_6h > 80
+        for: 30m
+        labels:
+          severity: info
+          category: upgrade_threshold
+          resource: cpu
+          action: plan_upgrade
+        annotations:
+          summary: "Predictive CPU upgrade recommendation"
+          description: "CPU utilization trend suggests {{ $value }}% utilization in 6 hours"
+          recommended_action: "Plan CPU upgrade within next 24-48 hours"
+          current_trend: "Increasing resource usage detected"
+
+      # Predictive Memory scaling
+      - record: xorb:memory_utilization_trend_6h
+        expr: predict_linear(xorb:memory_utilization_1h[6h], 3600 * 6)
+
+      - alert: XorbMemoryUpgradePredictive
+        expr: xorb:memory_utilization_trend_6h > 80
+        for: 30m
+        labels:
+          severity: info
+          category: upgrade_threshold
+          resource: memory
+          action: plan_upgrade
+        annotations:
+          summary: "Predictive memory upgrade recommendation"
+          description: "Memory utilization trend suggests {{ $value }}% utilization in 6 hours"
+          recommended_action: "Plan memory upgrade within next 24-48 hours"
+
+  - name: xorb.workload_growth
+    interval: 300s
+    rules:
+      # Growth in API requests indicating need for scaling
+      - record: xorb:api_requests_growth_24h
+        expr: rate(http_requests_total{job="xorb-api"}[1h]) / rate(http_requests_total{job="xorb-api"}[1h] offset 24h)
+
+      - alert: XorbAPIGrowthUpgradeNeeded
+        expr: xorb:api_requests_growth_24h > 1.5
+        for: 2h
+        labels:
+          severity: info
+          category: upgrade_threshold
+          resource: capacity
+          action: plan_scaling
+        annotations:
+          summary: "API request growth indicates scaling need"
+          description: "API requests have grown {{ $value }}x compared to 24h ago"
+          recommended_action: "Plan capacity upgrade to handle sustained growth"
+
+      # Growth in scan volume
+      - record: xorb:scan_volume_growth_7d
+        expr: rate(xorb_scanner_scans_total[6h]) / rate(xorb_scanner_scans_total[6h] offset 7d)
+
+      - alert: XorbScanVolumeGrowthUpgrade
+        expr: xorb:scan_volume_growth_7d > 2.0
+        for: 4h
+        labels:
+          severity: info
+          category: upgrade_threshold
+          resource: scanning_capacity
+          action: scale_scanners
+        annotations:
+          summary: "Scan volume growth requires capacity planning"
+          description: "Scan volume has grown {{ $value }}x compared to last week"
+          recommended_action: "Scale scanner workers or upgrade node capacity"
+
+  - name: xorb.cost_optimization
+    interval: 3600s  # Hourly cost analysis
+    rules:
+      # Cost efficiency thresholds
+      - record: xorb:cost_per_scan_estimate
+        expr: (xorb:cpu_utilization_1h / 100 * 0.50) / rate(xorb_scanner_scans_total[1h])  # Rough cost estimate
+
+      - alert: XorbCostEfficiencyDegradation
+        expr: xorb:cost_per_scan_estimate > 0.10
+        for: 4h
+        labels:
+          severity: info
+          category: upgrade_threshold
+          resource: cost_efficiency
+          action: optimize
+        annotations:
+          summary: "Cost efficiency degradation detected"
+          description: "Estimated cost per scan ({{ $value }}) suggests resource optimization needed"
+          recommended_action: "Review resource allocation and consider rightsizing"
+
+  - name: xorb.upgrade_readiness
+    interval: 300s
+    rules:
+      # Overall upgrade readiness score
+      - record: xorb:upgrade_readiness_score
+        expr: |
+          (
+            (xorb:cpu_utilization_1h > 70) * 25 +
+            (xorb:memory_utilization_1h > 70) * 25 +
+            (xorb:storage_utilization_5m > 70) * 20 +
+            (xorb:api_response_time_p95_1h > 0.3) * 15 +
+            (xorb:worker_queue_avg_1h > 30) * 15
+          )
+
+      - alert: XorbUpgradeRecommended
+        expr: xorb:upgrade_readiness_score > 50
+        for: 1h
+        labels:
+          severity: info
+          category: upgrade_threshold
+          resource: overall
+          action: plan_upgrade
+        annotations:
+          summary: "System upgrade recommended"
+          description: "Upgrade readiness score is {{ $value }}/100. Multiple metrics indicate upgrade benefits."
+          recommended_action: "Schedule maintenance window for resource upgrade"
+          upgrade_planning_url: "https://docs.xorb.ai/operations/upgrade-planning"
+
+      - alert: XorbUpgradeUrgent
+        expr: xorb:upgrade_readiness_score > 75
+        for: 30m
+        labels:
+          severity: warning
+          category: upgrade_threshold
+          resource: overall
+          action: urgent_upgrade
+        annotations:
+          summary: "System upgrade urgently needed"
+          description: "Upgrade readiness score is {{ $value }}/100. Multiple critical thresholds exceeded."
+          recommended_action: "Schedule immediate upgrade to prevent performance degradation"
+          escalation: "Contact operations team for emergency scaling"

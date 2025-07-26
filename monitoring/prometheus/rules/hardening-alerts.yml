@@ -1,0 +1,212 @@
+# Prometheus Alert Rules for Production Hardening
+# Security and reliability monitoring for Xorb deployment
+
+groups:
+  - name: security_hardening
+    rules:
+      # Container restart loop detection
+      - alert: XorbContainerRestartLoop
+        expr: increase(process_start_time_seconds{job=~"xorb-.*"}[5m]) > 3
+        for: 10m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Container restart loop detected for {{ $labels.job }}"
+          description: "Container {{ $labels.job }} has restarted {{ $value }} times in the last 5 minutes"
+          runbook_url: "https://docs.xorb.io/runbooks/container-restart-loop"
+
+      # High memory usage (potential memory exhaustion attack)
+      - alert: XorbHighMemoryUsage
+        expr: container_memory_usage_bytes{name=~"xorb.*"} / container_spec_memory_limit_bytes{name=~"xorb.*"} > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High memory usage in container {{ $labels.name }}"
+          description: "Container {{ $labels.name }} is using {{ $value | humanizePercentage }} of allocated memory"
+
+      # Suspicious CPU usage patterns
+      - alert: XorbSuspiciousCPUUsage
+        expr: rate(container_cpu_usage_seconds_total{name=~"xorb.*"}[5m]) > 0.95
+        for: 10m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Suspicious CPU usage in container {{ $labels.name }}"
+          description: "Container {{ $labels.name }} has sustained high CPU usage: {{ $value | humanizePercentage }}"
+
+      # Root filesystem usage (read-only compromise detection)
+      - alert: XorbRootFilesystemWrite
+        expr: container_fs_writes_total{device="/dev/mapper/docker"} > 0
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Unauthorized write to read-only filesystem"
+          description: "Write detected to read-only container filesystem"
+
+      # Failed authentication attempts
+      - alert: XorbHighFailedAuthRate
+        expr: rate(http_requests_total{status=~"4[0-9][13]"}[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "High rate of authentication failures"
+          description: "{{ $value }} failed authentication attempts per second"
+
+  - name: infrastructure_health
+    rules:
+      # Database connection failures
+      - alert: XorbDatabaseConnectionFailure
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "Cannot connect to PostgreSQL database"
+
+      # Redis cache unavailable
+      - alert: XorbRedisUnavailable
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Redis cache is unavailable"
+          description: "Cannot connect to Redis cache service"
+
+      # Neo4j graph database down
+      - alert: XorbNeo4jDown
+        expr: up{job="neo4j"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "Neo4j graph database is down"
+          description: "Cannot connect to Neo4j graph database"
+
+      # NATS messaging unavailable
+      - alert: XorbNatsUnavailable
+        expr: up{job="nats"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          category: infrastructure
+        annotations:
+          summary: "NATS messaging service is unavailable"
+          description: "Cannot connect to NATS messaging service"
+
+  - name: application_health
+    rules:
+      # API service health
+      - alert: XorbAPIHealthCheckFailed
+        expr: up{job="xorb-api"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          category: application
+        annotations:
+          summary: "Xorb API service health check failed"
+          description: "API service is not responding to health checks"
+
+      # High API response time
+      - alert: XorbHighAPIResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="xorb-api"}[5m])) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile response time is {{ $value }}s"
+
+      # Embedding service errors
+      - alert: XorbEmbeddingServiceErrors
+        expr: rate(grpc_server_handled_total{job="xorb-embedding",grpc_code!="OK"}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "High error rate in embedding service"
+          description: "Embedding service error rate: {{ $value }} errors/sec"
+
+      # Worker queue backlog
+      - alert: XorbWorkerQueueBacklog
+        expr: redis_list_length{job="redis",key=~".*queue.*"} > 1000
+        for: 5m
+        labels:
+          severity: warning
+          category: application
+        annotations:
+          summary: "Worker queue backlog detected"
+          description: "Queue {{ $labels.key }} has {{ $value }} pending jobs"
+
+  - name: cost_monitoring
+    rules:
+      # High NVIDIA API usage
+      - alert: XorbHighNvidiaAPIUsage
+        expr: increase(nvidia_api_requests_total[1h]) > 10000
+        for: 0m
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "High NVIDIA API usage detected"
+          description: "{{ $value }} API requests in the last hour"
+
+      # Embedding cost threshold
+      - alert: XorbEmbeddingCostThreshold
+        expr: increase(embedding_tokens_total[1h]) * 0.004 > 100
+        for: 0m
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "Embedding cost threshold exceeded"
+          description: "Estimated cost: ${{ $value }} in the last hour"
+
+  - name: security_monitoring
+    rules:
+      # Anomalous network connections
+      - alert: XorbAnomalousNetworkConnections
+        expr: increase(node_netstat_Tcp_CurrEstab[5m]) > 100
+        for: 2m
+        labels:
+          severity: warning
+          category: security
+        annotations:
+          summary: "Anomalous number of network connections"
+          description: "{{ $value }} new TCP connections in 5 minutes"
+
+      # Disk space for potential DoS
+      - alert: XorbLowDiskSpace
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) < 0.1
+        for: 1m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Low disk space - potential DoS"
+          description: "Only {{ $value | humanizePercentage }} disk space remaining"
+
+      # Container privilege escalation
+      - alert: XorbPrivilegeEscalation
+        expr: container_spec_user{name=~"xorb.*"} == 0
+        for: 0m
+        labels:
+          severity: critical
+          category: security
+        annotations:
+          summary: "Container running as root"
+          description: "Container {{ $labels.name }} is running with root privileges"

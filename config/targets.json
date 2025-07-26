@@ -1,0 +1,20 @@
+[
+  {
+    "target_type": "domain",
+    "value": "example.com",
+    "scope": "public",
+    "metadata": {
+      "priority": "high",
+      "description": "Test domain for XORB deployment verification"
+    }
+  },
+  {
+    "target_type": "url", 
+    "value": "https://httpbin.org",
+    "scope": "public",
+    "metadata": {
+      "priority": "medium",
+      "description": "HTTP testing service for verification"
+    }
+  }
+]

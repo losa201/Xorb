@@ -1,100 +1,141 @@
----
+# Prometheus configuration for Xorb Security Intelligence Platform
+# Production hardened deployment on EPYC VPS
+
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
+  external_labels:
+    cluster: 'xorb-vps'
+    environment: 'production'
+    epyc_node: 'primary'
+    version: '2.0.0'
 
-rule_files:
-  - "rules/*.yml"
-
+# Alertmanager configuration
 alerting:
   alertmanagers:
     - static_configs:
         - targets:
           - alertmanager:9093
 
-scrape_configs:
-  # XORB Application Metrics
-  - job_name: 'xorb-app'
-    static_configs:
-      - targets: ['host.docker.internal:8000']
-    metrics_path: '/metrics'
-    scrape_interval: 15s
-    scrape_timeout: 10s
+# Load alerting rules
+rule_files:
+  - "rules/*.yml"
 
+# Scrape configurations
+scrape_configs:
   # Prometheus itself
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
+    scrape_interval: 5s
+    metrics_path: /metrics
 
-  # Node Exporter - System metrics
+  # Node Exporter (system metrics)
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
-
-  # Redis Exporter
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis-exporter:9121']
-
-  # Postgres Exporter (if enabled)
-  - job_name: 'postgres'
-    static_configs:
-      - targets: ['postgres-exporter:9187']
-
-  # Blackbox Exporter - Endpoint monitoring
-  - job_name: 'blackbox'
-    metrics_path: /probe
-    params:
-      module: [http_2xx]
-    static_configs:
-      - targets:
-        - http://host.docker.internal:8000/health
-        - http://host.docker.internal:8000/api/v1/status
+    scrape_interval: 10s
     relabel_configs:
       - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
         target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter:9115
+        replacement: 'epyc-node'
 
-  # Cadvisor - Container metrics
+  # cAdvisor (container metrics)
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']
+    scrape_interval: 10s
+    metrics_path: /metrics
 
-  # XORB Component Metrics
-  - job_name: 'xorb-orchestrator'
+  # Xorb API service (hexagonal architecture)
+  - job_name: 'xorb-api'
     static_configs:
-      - targets: ['host.docker.internal:8001']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  - job_name: 'xorb-agents'
-    static_configs:
-      - targets: ['host.docker.internal:8002']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  - job_name: 'xorb-knowledge-fabric'
-    static_configs:
-      - targets: ['host.docker.internal:8003']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # External service monitoring
-  - job_name: 'external-apis'
-    metrics_path: /probe
-    params:
-      module: [http_2xx]
-    static_configs:
-      - targets:
-        - https://api.openrouter.ai/health
-        - https://api.hackerone.com/v1/health
+      - targets: ['api:8000']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
     relabel_configs:
       - source_labels: [__address__]
-        target_label: __param_target
-      - source_labels: [__param_target]
-        target_label: instance
-      - target_label: __address__
-        replacement: blackbox-exporter:9115
+        target_label: service
+        replacement: 'api'
+      - source_labels: [__address__]
+        target_label: layer
+        replacement: 'interface'
+
+  # Xorb Worker service (hexagonal architecture)
+  - job_name: 'xorb-worker'
+    static_configs:
+      - targets: ['worker:8003']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'worker'
+      - source_labels: [__address__]
+        target_label: layer
+        replacement: 'application'
+
+  # Xorb Embedding service (hexagonal architecture)
+  - job_name: 'xorb-embedding'
+    static_configs:
+      - targets: ['embedding:8002']
+    metrics_path: /metrics
+    scrape_interval: 15s
+    scrape_timeout: 10s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'embedding'
+      - source_labels: [__address__]
+        target_label: layer
+        replacement: 'infrastructure'
+
+  # PostgreSQL metrics
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'postgres'
+
+  # Redis metrics
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'redis'
+
+  # NATS metrics
+  - job_name: 'nats'
+    static_configs:
+      - targets: ['nats:8222']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'nats'
+
+  # Temporal metrics
+  - job_name: 'temporal'
+    static_configs:
+      - targets: ['temporal:8000']
+    metrics_path: /metrics
+    scrape_interval: 30s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: service
+        replacement: 'temporal'
+
+# Remote write configuration for long-term storage (optional)
+# remote_write:
+#   - url: "https://prometheus-remote-write-endpoint"
+#     basic_auth:
+#       username: username
+#       password: password

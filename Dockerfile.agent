@@ -1,0 +1,48 @@
+FROM python:3.11-slim
+
+LABEL org.opencontainers.image.title="XORB Agent Service"
+LABEL org.opencontainers.image.description="XORB 2.0 Specialized Agent Services"
+LABEL org.opencontainers.image.version="2.0.0"
+
+# Build argument for service type
+ARG SERVICE_TYPE=generic
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+COPY requirements-autoconfigure.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements-autoconfigure.txt
+RUN pip install --no-cache-dir prometheus-client structlog cryptography psutil aiohttp scikit-learn numpy
+
+# Copy application code
+COPY xorb_core/ ./xorb_core/
+COPY agents/ ./agents/
+COPY config/ ./config/
+COPY scripts/ ./scripts/
+
+# Create directories
+RUN mkdir -p logs
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV XORB_ENV=production
+ENV XORB_ADVANCED_FEATURES=true
+ENV XORB_SERVICE_TYPE=${SERVICE_TYPE}
+
+# Run service based on type
+CMD python -c "import os; \
+    service_type = os.environ.get('XORB_SERVICE_TYPE', 'generic'); \
+    print(f'Starting XORB agent service: {service_type}'); \
+    exec(open(f'agents/{service_type}_agent.py').read() if os.path.exists(f'agents/{service_type}_agent.py') else open('agents/generic_agent.py').read())"

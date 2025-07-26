@@ -1,0 +1,27 @@
+# XORB Auto-Configuration Dependencies
+# Install with: pip install -r requirements-autoconfigure.txt
+
+# System monitoring and detection
+psutil>=5.8.0
+
+# Docker API
+docker>=6.0.0
+
+# YAML processing for Docker Compose
+PyYAML>=6.0
+
+# Optional: Rich terminal formatting (for dashboard)
+rich>=13.0.0
+
+# Data science libraries for ML components
+numpy>=1.21.0
+scikit-learn>=1.0.0
+
+# Redis client for episodic memory
+redis>=4.0.0
+
+# WebSocket support
+websockets>=10.0
+
+# HTTP client
+aiohttp>=3.8.0

@@ -7,15 +7,13 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
+	"os/exec"
 	"time"
+	"strings"
+	"bufio"
 
 	"github.com/gorilla/mux"
 	"github.com/nats-io/nats.go"
-	"github.com/projectdiscovery/nuclei/v3/pkg/engine"
-	"github.com/projectdiscovery/nuclei/v3/pkg/options"
-	"github.com/projectdiscovery/nuclei/v3/pkg/reporting"
-	"github.com/projectdiscovery/nuclei/v3/pkg/types"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/redis/go-redis/v9"
@@ -133,13 +131,28 @@ type Info struct {
 	Tags        []string `json:"tags"`
 }
 
+// NucleiResult represents the JSON output from nuclei CLI
+type NucleiResult struct {
+	TemplateID   string `json:"template-id"`
+	Info         struct {
+		Name        string   `json:"name"`
+		Author      []string `json:"author"`
+		Severity    string   `json:"severity"`
+		Description string   `json:"description"`
+		Tags        []string `json:"tags"`
+	} `json:"info"`
+	Type      string `json:"type"`
+	Host      string `json:"host"`
+	Matched   string `json:"matched-at"`
+	Timestamp string `json:"timestamp"`
+	Raw       string `json:"raw,omitempty"`
+}
+
 // Scanner represents the nuclei scanner service
 type Scanner struct {
 	db          *gorm.DB
 	redis       *redis.Client
 	nats        *nats.Conn
-	nucleiOpts  *options.Options
-	engine      *engine.Engine
 	activeScans map[string]context.CancelFunc
 }
 
@@ -179,38 +192,10 @@ func NewScanner() (*Scanner, error) {
 		return nil, fmt.Errorf("failed to connect to NATS: %v", err)
 	}
 	
-	// Nuclei configuration
-	nucleiOpts := &options.Options{
-		Templates:         []string{},
-		TemplatesDirectory: "/app/nuclei-templates",
-		Silent:            true,
-		NoColor:           true,
-		JSON:              true,
-		OutputFile:        "",
-		Verbose:           false,
-		Debug:             false,
-		EnableProgressBar: false,
-		Timeout:           30,
-		Retries:           1,
-		RateLimit:         100,
-		Threads:           25,
-		BulkSize:          25,
-		TemplateThreads:   10,
-		JSONRequests:      true,
-	}
-	
-	// Initialize nuclei engine
-	nucleiEngine := engine.New(nucleiOpts)
-	if err := nucleiEngine.LoadTemplates(); err != nil {
-		return nil, fmt.Errorf("failed to load nuclei templates: %v", err)
-	}
-	
 	scanner := &Scanner{
 		db:          db,
 		redis:       rdb,
 		nats:        nc,
-		nucleiOpts:  nucleiOpts,
-		engine:      nucleiEngine,
 		activeScans: make(map[string]context.CancelFunc),
 	}
 	
@@ -268,7 +253,7 @@ func (s *Scanner) handleScanRequest(msg *nats.Msg) {
 	go s.performScan(req)
 }
 
-// performScan executes a nuclei scan
+// performScan executes a nuclei scan using CLI
 func (s *Scanner) performScan(req ScanRequest) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(req.Timeout)*time.Second)
 	defer cancel()
@@ -285,47 +270,98 @@ func (s *Scanner) performScan(req ScanRequest) {
 	
 	startTime := time.Now()
 	
-	// Configure nuclei options for this scan
-	opts := *s.nucleiOpts
-	if len(req.Templates) > 0 {
-		opts.Templates = req.Templates
-	} else {
-		// Use default template categories based on scan type
-		opts.Templates = []string{
-			"cves/",
-			"vulnerabilities/",
-			"exposures/",
-			"misconfigurations/",
-		}
+	// Build nuclei command
+	args := []string{
+		"-json",           // JSON output
+		"-silent",         // Silent mode
+		"-no-color",       // No color output
+		"-no-meta",        // No metadata output
+		"-rate-limit", "100", // Rate limiting
+		"-threads", "25",     // Thread count
 	}
 	
-	// Set targets
-	opts.Targets = req.Targets
+	// Add targets
+	for _, target := range req.Targets {
+		args = append(args, "-target", target)
+	}
+	
+	// Add templates if specified
+	if len(req.Templates) > 0 {
+		for _, template := range req.Templates {
+			args = append(args, "-t", template)
+		}
+	} else {
+		// Use default template categories
+		args = append(args, "-t", "cves/", "-t", "vulnerabilities/", "-t", "exposures/")
+	}
 	
 	// Apply custom options
 	if req.Options != nil {
 		if threads, ok := req.Options["threads"]; ok {
-			if t, err := strconv.Atoi(threads); err == nil {
-				opts.Threads = t
-			}
+			args = append(args, "-threads", threads)
 		}
 		if rateLimit, ok := req.Options["rate_limit"]; ok {
-			if r, err := strconv.Atoi(rateLimit); err == nil {
-				opts.RateLimit = r
-			}
+			args = append(args, "-rate-limit", rateLimit)
 		}
 	}
 	
-	// Create a custom reporter to capture results
-	results := make([]ScanResult, 0)
-	reporter := &CustomReporter{
-		scanID:  req.ID,
-		results: &results,
+	// Execute nuclei command
+	cmd := exec.CommandContext(ctx, "nuclei", args...)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		log.Printf("Failed to create stdout pipe: %v", err)
+		return
 	}
 	
-	// Execute scan
-	err := s.engine.ExecuteWithOpts(ctx, []string{}, &opts, reporter)
+	if err := cmd.Start(); err != nil {
+		log.Printf("Failed to start nuclei command: %v", err)
+		return
+	}
 	
+	// Parse results line by line
+	results := make([]ScanResult, 0)
+	scanner := bufio.NewScanner(stdout)
+	
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "" {
+			continue
+		}
+		
+		var nucleiResult NucleiResult
+		if err := json.Unmarshal([]byte(line), &nucleiResult); err != nil {
+			log.Printf("Failed to parse nuclei result: %v", err)
+			continue
+		}
+		
+		// Convert to our format
+		scanResult := ScanResult{
+			ID:          fmt.Sprintf("%s_%d", req.ID, len(results)),
+			ScanID:      req.ID,
+			Target:      nucleiResult.Host,
+			TemplateID:  nucleiResult.TemplateID,
+			Severity:    nucleiResult.Info.Severity,
+			Description: nucleiResult.Info.Description,
+			Timestamp:   time.Now(),
+			Raw:         nucleiResult.Raw,
+			ScannerType: scannerType,
+			Info: Info{
+				Name:        nucleiResult.Info.Name,
+				Author:      nucleiResult.Info.Author,
+				Severity:    nucleiResult.Info.Severity,
+				Description: nucleiResult.Info.Description,
+				Tags:        nucleiResult.Info.Tags,
+			},
+		}
+		
+		results = append(results, scanResult)
+		
+		// Update findings metrics
+		findingsTotal.WithLabelValues(scanResult.Severity, "vulnerability", scannerType).Inc()
+	}
+	
+	// Wait for command to complete
+	err = cmd.Wait()
 	duration := time.Since(startTime)
 	
 	// Phase 5.2: Update required metrics with proper labels
@@ -335,9 +371,16 @@ func (s *Scanner) performScan(req ScanRequest) {
 	exitCode := 0
 	status := "success"
 	if err != nil {
-		status = "error"
-		exitCode = 1
-		log.Printf("Scan %s failed: %v", req.ID, err)
+		if exitError, ok := err.(*exec.ExitError); ok {
+			exitCode = exitError.ExitCode()
+		} else {
+			exitCode = 1
+		}
+		if exitCode != 0 && len(results) == 0 {
+			// Only treat as error if no results and non-zero exit
+			status = "error"
+			log.Printf("Scan %s failed: %v", req.ID, err)
+		}
 	}
 	
 	// Phase 5.2: Track exit codes
@@ -351,6 +394,7 @@ func (s *Scanner) performScan(req ScanRequest) {
 		results[i].ScannerType = scannerType
 		results[i].ExitCode = exitCode
 		results[i].Duration = duration.Seconds()
+		results[i].Version = s.getScannerVersionInfo(scannerType)
 	}
 	
 	// Store results in database and cache
@@ -362,54 +406,8 @@ func (s *Scanner) performScan(req ScanRequest) {
 	log.Printf("Scan %s completed with %d findings in %v", req.ID, len(results), duration)
 }
 
-// CustomReporter implements the nuclei reporter interface
-type CustomReporter struct {
-	scanID  string
-	results *[]ScanResult
-}
-
-func (r *CustomReporter) WriteFailure(failure reporting.Failure) error {
-	// Handle scan failures
-	return nil
-}
-
-func (r *CustomReporter) WriteResult(result *types.Result) error {
-	// Convert nuclei result to our format
-	scanResult := ScanResult{
-		ID:          fmt.Sprintf("%s_%d", r.scanID, len(*r.results)),
-		ScanID:      r.scanID,
-		Target:      result.Host,
-		TemplateID:  result.TemplateID,
-		Severity:    string(result.Info.SeverityHolder.Severity),
-		Description: result.Info.Description,
-		Timestamp:   time.Now(),
-		Raw:         result.Raw,
-		Info: Info{
-			Name:        result.Info.Name,
-			Author:      result.Info.Authors.ToSlice(),
-			Severity:    string(result.Info.SeverityHolder.Severity),
-			Description: result.Info.Description,
-			Tags:        result.Info.Tags.ToSlice(),
-		},
-	}
-	
-	*r.results = append(*r.results, scanResult)
-	
-	// Phase 5.2: Update findings metrics with scanner type
-	findingsTotal.WithLabelValues(scanResult.Severity, "vulnerability", "nuclei").Inc()
-	
-	return nil
-}
-
-func (r *CustomReporter) Close() error {
-	return nil
-}
-
 // storeScanResults stores scan results in database and cache
 func (s *Scanner) storeScanResults(scanID, orgID string, results []ScanResult, status string, scanErr error) {
-	// Store in PostgreSQL
-	// This would integrate with your existing database schema
-	
 	// Store in Redis cache for quick access
 	resultsJSON, _ := json.Marshal(map[string]interface{}{
 		"scan_id":         scanID,
@@ -428,9 +426,6 @@ func (s *Scanner) storeScanResults(scanID, orgID string, results []ScanResult, s
 func (s *Scanner) publishScanResults(scanID string, results []ScanResult, status string, scanErr error) {
 	// Phase 5.2: Publish individual results as NDJSON to scan.result.* subjects
 	for _, result := range results {
-		// Sign each result with scanner version fingerprint (Phase 5.2 requirement)
-		result.Version = s.getScannerVersionInfo(result.ScannerType)
-		
 		// Publish to scanner-specific subject
 		subject := fmt.Sprintf("scan.result.%s", result.ScannerType)
 		resultJSON, _ := json.Marshal(result)
@@ -463,15 +458,23 @@ func (s *Scanner) publishScanResults(scanID string, results []ScanResult, status
 
 // getScannerVersionInfo returns scanner version fingerprint (Phase 5.2)
 func (s *Scanner) getScannerVersionInfo(scannerType string) ScannerVersionInfo {
+	// Get nuclei version
+	cmd := exec.Command("nuclei", "-version")
+	output, err := cmd.Output()
+	nucleiVersion := "unknown"
+	if err == nil {
+		nucleiVersion = strings.TrimSpace(string(output))
+	}
+	
 	// Create deterministic fingerprint based on scanner versions
 	fingerprint := fmt.Sprintf("%s_%s_%d", 
 		scannerType, 
-		"v3.0.0", // Nuclei version placeholder
+		nucleiVersion,
 		time.Now().Unix()/3600) // Hourly rotation for cache busting
 	
 	version := ScannerVersionInfo{
 		ScannerType:     scannerType,
-		ScannerVersion:  "v3.0.0", // Would be dynamically detected
+		ScannerVersion:  nucleiVersion,
 		ServiceVersion:  "5.2.0",
 		Fingerprint:     fingerprint,
 		BuildTimestamp:  time.Now().Format(time.RFC3339),
@@ -494,7 +497,7 @@ func (s *Scanner) healthCheck(w http.ResponseWriter, r *http.Request) {
 		"status":    "healthy",
 		"service":   "xorb-scanner-go",
 		"version":   "1.0.0",
-		"timestamp": time.Now().ISO8601,
+		"timestamp": time.Now().Format(time.RFC3339),
 	})
 }
 

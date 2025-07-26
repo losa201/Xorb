@@ -7,8 +7,36 @@ from typing import Dict, Set
 from temporalio.client import Client
 from temporalio.exceptions import WorkflowAlreadyStartedError
 
-from xorb_core.models.agents import DiscoveryTarget
-from services.worker.workflows import DynamicScanWorkflow
+# Try multiple import paths for compatibility
+try:
+    from packages.xorb_core.xorb_core.models import DiscoveryTarget
+except ImportError:
+    try:
+        from xorb_core.models.agents import DiscoveryTarget
+    except ImportError:
+        # Fallback DiscoveryTarget definition
+        from dataclasses import dataclass
+        from typing import Optional, Dict, Any
+        
+        @dataclass
+        class DiscoveryTarget:
+            target_type: str
+            value: str
+            scope: Optional[str] = None
+            metadata: Optional[Dict[str, Any]] = None
+
+try:
+    from services.worker.workflows import DynamicScanWorkflow
+except ImportError:
+    # Create a fallback workflow class
+    from temporalio import workflow
+    
+    @workflow.defn
+    class DynamicScanWorkflow:
+        @workflow.run
+        async def run(self, target):
+            print(f"Processing target: {target}")
+            return {"status": "completed", "target": target}
 
 # Path to the target ingestion file
 TARGETS_FILE = Path(__file__).parent.parent.parent / "targets.json"

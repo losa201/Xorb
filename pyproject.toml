@@ -127,26 +127,33 @@ strict_equality = true
 [tool.pytest.ini_options]
 pythonpath = [
     ".",
-    "packages",
-    "xorb_common",
+    "xorb_core",
     "services/api",
     "services/worker",
     "services/orchestrator",
 ]
 testpaths = ["tests"]
-addopts = "-v --tb=short --strict-markers"
+addopts = "-v --tb=short --strict-markers --cov=xorb_core --cov-report=term-missing"
 markers = [
-    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
-    "integration: marks tests as integration tests",
-    "security: marks tests as security tests",
+    "unit: Unit tests",
+    "integration: Integration tests", 
+    "e2e: End-to-end tests",
+    "slow: Slow running tests",
+    "security: Security tests",
+    "agent: Agent-specific tests",
+    "orchestration: Orchestration tests",
+    "knowledge: Knowledge fabric tests",
 ]
+asyncio_mode = "auto"
 
 [tool.coverage.run]
-source = ["xorb_common", "services"]
+source = ["xorb_core", "services"]
 omit = [
     "*/tests/*",
     "*/migrations/*",
     "*/__pycache__/*",
+    "*/venv/*",
+    "*/.venv/*",
 ]
 
 [tool.coverage.report]

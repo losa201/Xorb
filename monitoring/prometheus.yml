@@ -3,75 +3,83 @@ global:
   evaluation_interval: 15s
 
 rule_files:
-  # - "first_rules.yml"
-  # - "second_rules.yml"
+  - "rules/*.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
 
 scrape_configs:
-  # Xorb Core Services
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # XORB Core Services
   - job_name: 'xorb-api'
     static_configs:
       - targets: ['api:8000']
     metrics_path: '/metrics'
-    scrape_interval: 30s
+    scrape_interval: 10s
 
   - job_name: 'xorb-worker'
     static_configs:
       - targets: ['worker:9000']
     metrics_path: '/metrics'
-    scrape_interval: 30s
+    scrape_interval: 10s
 
-  # Security & Compliance Services
-  - job_name: 'siem-analyzer'
+  - job_name: 'xorb-orchestrator'
     static_configs:
-      - targets: ['siem-analyzer:9090']
+      - targets: ['orchestrator:8080']
     metrics_path: '/metrics'
-    scrape_interval: 30s
+    scrape_interval: 10s
 
-  - job_name: 'cache-manager'
+  - job_name: 'xorb-scanner-go'
     static_configs:
-      - targets: ['cache-manager:9090']
+      - targets: ['scanner-go:8004']
     metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  - job_name: 'soc2-monitor'
-    static_configs:
-      - targets: ['soc2-monitor:9090']
-    metrics_path: '/metrics'
-    scrape_interval: 60s
-
-  - job_name: 'iso27001-monitor'
-    static_configs:
-      - targets: ['iso27001-monitor:9090']
-    metrics_path: '/metrics'
-    scrape_interval: 60s
-
-  - job_name: 'cost-monitor'
-    static_configs:
-      - targets: ['cost-monitor:8080']
-    metrics_path: '/metrics'
-    scrape_interval: 60s
-
-  # Redis Cluster Metrics
-  - job_name: 'redis-cluster'
-    static_configs:
-      - targets: ['redis-master-1:9121', 'redis-master-2:9121', 'redis-master-3:9121']
-    metrics_path: '/metrics'
-    scrape_interval: 30s
-
-  # Prometheus Self-monitoring
-  - job_name: 'prometheus'
-    static_configs:
-      - targets: ['localhost:9090']
+    scrape_interval: 15s
 
   # Infrastructure Services
   - job_name: 'postgres'
     static_configs:
       - targets: ['postgres:5432']
-    metrics_path: '/metrics'
-    scrape_interval: 60s
+    scrape_interval: 30s
 
-  - job_name: 'elasticsearch'
+  - job_name: 'redis'
     static_configs:
-      - targets: ['elasticsearch:9200']
-    metrics_path: '/_prometheus/metrics'
-    scrape_interval: 60s
+      - targets: ['redis:6379']
+    scrape_interval: 30s
+
+  - job_name: 'temporal'
+    static_configs:
+      - targets: ['temporal:8233']
+    metrics_path: '/prometheus'
+    scrape_interval: 30s
+
+  - job_name: 'nats'
+    static_configs:
+      - targets: ['nats:8222']
+    metrics_path: '/varz'
+    scrape_interval: 30s
+
+  - job_name: 'neo4j'
+    static_configs:
+      - targets: ['neo4j:2004']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  - job_name: 'qdrant'
+    static_configs:
+      - targets: ['qdrant:6333']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Grafana
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: '/api/metrics'
+    scrape_interval: 30s

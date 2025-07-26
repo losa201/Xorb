@@ -1,0 +1,120 @@
+{
+  "timestamp": "2024-07-26T15:30:45Z",
+  "version": "2.0.0",
+  "system_capabilities": {
+    "os_type": "Linux",
+    "os_version": "6.8.0-64-generic",
+    "architecture": "x86_64",
+    "cpu_cores": 8,
+    "cpu_threads": 8,
+    "cpu_frequency": 2400.0,
+    "ram_total_gb": 8.0,
+    "ram_available_gb": 6.2,
+    "disk_space_gb": 45.8,
+    "is_arm": false,
+    "is_virtualized": true,
+    "docker_version": "24.0.7",
+    "docker_buildkit": true,
+    "docker_compose_version": "2.21.0",
+    "podman_available": false,
+    "network_interfaces": ["eth0", "lo", "docker0"],
+    "dns_servers": ["127.0.0.53", "8.8.8.8"],
+    "system_load": 0.25,
+    "profile": "CLOUD_MEDIUM"
+  },
+  "generated_configuration": {
+    "mode": "ENHANCED",
+    "system_profile": "CLOUD_MEDIUM",
+    "agent_concurrency": 16,
+    "max_concurrent_missions": 5,
+    "worker_threads": 6,
+    "monitoring_enabled": true,
+    "memory_limit_mb": 6553,
+    "cpu_limit": 6.4,
+    "services_enabled": [
+      "postgres",
+      "redis", 
+      "temporal",
+      "nats",
+      "neo4j",
+      "qdrant",
+      "api",
+      "worker",
+      "orchestrator",
+      "scanner-go",
+      "prometheus"
+    ],
+    "resource_limits": {
+      "postgres": {
+        "deploy": {
+          "resources": {
+            "limits": {"memory": "2048M", "cpus": "1.6"},
+            "reservations": {"memory": "1434M", "cpus": "0.8"}
+          }
+        }
+      },
+      "redis": {
+        "deploy": {
+          "resources": {
+            "limits": {"memory": "1228M", "cpus": "0.8"},
+            "reservations": {"memory": "860M", "cpus": "0.4"}
+          }
+        }
+      },
+      "api": {
+        "deploy": {
+          "resources": {
+            "limits": {"memory": "1228M", "cpus": "1.6"},
+            "reservations": {"memory": "860M", "cpus": "0.8"}
+          }
+        }
+      }
+    },
+    "environment_variables": {
+      "XORB_MODE": "CLOUD_MEDIUM",
+      "XORB_AGENT_CONCURRENCY": "16",
+      "XORB_MONITORING_ENABLED": "true",
+      "DOCKER_BUILDKIT": "1"
+    }
+  },
+  "optimization_summary": {
+    "profile_selected": "CLOUD_MEDIUM",
+    "mode_selected": "ENHANCED",
+    "services_enabled": 11,
+    "monitoring_enabled": true,
+    "resource_optimization": {
+      "memory_limit_mb": 6553,
+      "cpu_limit": 6.4,
+      "agent_concurrency": 16,
+      "max_missions": 5
+    }
+  },
+  "deployment_readiness": {
+    "docker_available": true,
+    "buildkit_enabled": true,
+    "compose_available": true,
+    "sufficient_resources": true,
+    "disk_space_available": true
+  },
+  "recommendations": [
+    "System appears well-configured for XORB deployment",
+    "Monitoring enabled for comprehensive observability",
+    "Consider scaling up for production workloads if needed"
+  ],
+  "validation_results": {
+    "configuration_valid": true,
+    "docker_accessible": true,
+    "ports_available": true,
+    "storage_sufficient": true
+  },
+  "deployment_instructions": {
+    "compose_file": "docker-compose.cloud_medium.yml",
+    "env_file": ".xorb.env",
+    "deploy_command": "docker compose -f docker-compose.cloud_medium.yml --env-file .xorb.env up -d",
+    "monitoring_urls": {
+      "api": "http://localhost:8000",
+      "prometheus": "http://localhost:9090",
+      "grafana": "http://localhost:3000"
+    }
+  }
+}

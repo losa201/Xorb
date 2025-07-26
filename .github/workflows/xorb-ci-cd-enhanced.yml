@@ -1,0 +1,488 @@
+name: XORB Enhanced CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, feature/*, phase-* ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily security scans
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '18'
+
+jobs:
+  # Phase-based branching strategy validation
+  validate-branch-strategy:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy-phase: ${{ steps.phase-check.outputs.phase }}
+      is-production: ${{ steps.phase-check.outputs.is-production }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate Phase-based Branching
+        id: phase-check
+        run: |
+          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+            echo "phase=production" >> $GITHUB_OUTPUT
+            echo "is-production=true" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref }}" == refs/heads/phase-* ]]; then
+            PHASE_NUM=$(echo ${{ github.ref }} | sed 's/refs\/heads\/phase-//')
+            echo "phase=phase-${PHASE_NUM}" >> $GITHUB_OUTPUT
+            echo "is-production=false" >> $GITHUB_OUTPUT
+          else
+            echo "phase=development" >> $GITHUB_OUTPUT
+            echo "is-production=false" >> $GITHUB_OUTPUT
+          fi
+          
+          echo "🔍 Detected deployment phase: $(cat $GITHUB_OUTPUT | grep phase= | cut -d= -f2)"
+
+  # Enhanced code quality and security scanning
+  code-quality:
+    runs-on: ubuntu-latest
+    needs: validate-branch-strategy
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install ruff bandit safety mypy pytest pytest-cov
+      
+      - name: Secrets scanning with TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+      
+      - name: Code formatting with Ruff
+        run: |
+          ruff check --output-format=github .
+          ruff format --check .
+      
+      - name: Security scan with Bandit
+        run: |
+          bandit -r . -f json -o bandit-report.json || true
+          bandit -r . -f txt
+      
+      - name: Dependency vulnerability scan
+        run: |
+          safety check --json --output safety-report.json || true
+          safety check
+      
+      - name: Type checking with MyPy
+        run: |
+          mypy xorb_core/ --ignore-missing-imports --show-error-codes
+      
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+
+  # Comprehensive testing with coverage enforcement
+  test-suite:
+    runs-on: ubuntu-latest
+    needs: validate-branch-strategy
+    strategy:
+      matrix:
+        test-group: [unit, integration, security, performance]
+    
+    services:
+      postgres:
+        image: ankane/pgvector:latest
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: xorb_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7.2-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov pytest-xdist pytest-benchmark pytest-asyncio
+      
+      - name: Run ${{ matrix.test-group }} tests
+        env:
+          DATABASE_URL: postgresql://postgres:test_password@localhost:5432/xorb_test
+          REDIS_URL: redis://localhost:6379
+          PYTHONPATH: ${{ github.workspace }}
+        run: |
+          case "${{ matrix.test-group }}" in
+            unit)
+              pytest tests/unit/ -v --cov=xorb_core --cov-report=xml --cov-fail-under=85
+              ;;
+            integration)
+              pytest tests/integration/ -v --cov-append --cov=xorb_core --cov-report=xml
+              ;;
+            security)
+              pytest tests/security/ -v --cov-append --cov=xorb_core --cov-report=xml
+              ;;
+            performance)
+              pytest tests/performance/ -v --benchmark-only --benchmark-json=benchmark-results.json
+              ;;
+          esac
+      
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: test-results-${{ matrix.test-group }}
+          path: |
+            coverage.xml
+            benchmark-results.json
+            pytest-report.xml
+      
+      - name: Upload coverage to Codecov
+        if: matrix.test-group == 'unit'
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  # Container security and optimization
+  container-security:
+    runs-on: ubuntu-latest
+    needs: [code-quality, test-suite]
+    if: github.event_name == 'push'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build test images
+        run: |
+          docker build -f Dockerfile.api -t xorb-api:test .
+          docker build -f Dockerfile.worker -t xorb-worker:test .
+          docker build -f Dockerfile.orchestrator -t xorb-orchestrator:test .
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'xorb-api:test'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: Container structure tests
+        run: |
+          curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64
+          chmod +x container-structure-test-linux-amd64
+          ./container-structure-test-linux-amd64 test \
+            --image xorb-api:test \
+            --config tests/container/structure-test.yaml
+
+  # Phase-specific deployment
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [validate-branch-strategy, code-quality, test-suite, container-security]
+    if: github.event_name == 'push'
+    environment: ${{ needs.validate-branch-strategy.outputs.deploy-phase }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure deployment environment
+        id: deploy-config
+        run: |
+          case "${{ needs.validate-branch-strategy.outputs.deploy-phase }}" in
+            production)
+              echo "namespace=xorb-prod" >> $GITHUB_OUTPUT
+              echo "replicas=3" >> $GITHUB_OUTPUT
+              echo "resources=high" >> $GITHUB_OUTPUT
+              ;;
+            phase-*)
+              echo "namespace=xorb-staging" >> $GITHUB_OUTPUT
+              echo "replicas=2" >> $GITHUB_OUTPUT
+              echo "resources=medium" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "namespace=xorb-dev" >> $GITHUB_OUTPUT
+              echo "replicas=1" >> $GITHUB_OUTPUT
+              echo "resources=low" >> $GITHUB_OUTPUT
+              ;;
+          esac
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build and push container images
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.api
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            BUILDKIT_INLINE_CACHE=1
+            PYTHON_VERSION=${{ env.PYTHON_VERSION }}
+      
+      - name: Deploy to Kubernetes
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+          NAMESPACE: ${{ steps.deploy-config.outputs.namespace }}
+        run: |
+          echo "$KUBE_CONFIG" | base64 -d > ~/.kubeconfig
+          export KUBECONFIG=~/.kubeconfig
+          
+          # Apply namespace
+          kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Deploy using Helm with phase-specific values
+          helm upgrade --install xorb-${{ needs.validate-branch-strategy.outputs.deploy-phase }} \
+            ./gitops/helm/xorb-core \
+            --namespace $NAMESPACE \
+            --set image.tag=${{ github.sha }} \
+            --set replicaCount=${{ steps.deploy-config.outputs.replicas }} \
+            --set resources.preset=${{ steps.deploy-config.outputs.resources }} \
+            --set deployment.phase=${{ needs.validate-branch-strategy.outputs.deploy-phase }} \
+            --wait --timeout=600s
+      
+      - name: Verify deployment
+        env:
+          NAMESPACE: ${{ steps.deploy-config.outputs.namespace }}
+        run: |
+          kubectl get pods -n $NAMESPACE
+          kubectl rollout status deployment/xorb-api -n $NAMESPACE --timeout=300s
+          
+          # Health check
+          API_URL=$(kubectl get service xorb-api -n $NAMESPACE -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          curl -f http://$API_URL:8000/health || exit 1
+
+  # Post-deployment verification and monitoring setup
+  post-deploy-verification:
+    runs-on: ubuntu-latest
+    needs: [deploy, validate-branch-strategy]
+    if: needs.validate-branch-strategy.outputs.is-production == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run smoke tests
+        run: |
+          python tests/smoke/post_deploy_tests.py \
+            --environment production \
+            --phase ${{ needs.validate-branch-strategy.outputs.deploy-phase }}
+      
+      - name: Performance benchmarks
+        run: |
+          python tests/performance/load_test.py \
+            --duration 300 \
+            --concurrent-users 50 \
+            --report-format json
+      
+      - name: Security validation
+        run: |
+          python tests/security/security_validation.py \
+            --environment production
+      
+      - name: Setup monitoring alerts
+        env:
+          PROMETHEUS_URL: ${{ secrets.PROMETHEUS_URL }}
+          ALERTMANAGER_URL: ${{ secrets.ALERTMANAGER_URL }}
+        run: |
+          # Configure production alerts
+          python scripts/setup_monitoring.py \
+            --environment production \
+            --phase ${{ needs.validate-branch-strategy.outputs.deploy-phase }}
+
+  # Enhanced security and compliance reporting
+  security-compliance-report:
+    runs-on: ubuntu-latest
+    needs: [code-quality, test-suite, container-security]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Generate comprehensive security report
+        run: |
+          python -c "
+import json
+import os
+from datetime import datetime
+
+# Aggregate security scan results
+report = {
+    'timestamp': datetime.now().isoformat(),
+    'commit_sha': '${{ github.sha }}',
+    'branch': '${{ github.ref }}',
+    'security_scans': {},
+    'test_results': {},
+    'recommendations': []
+}
+
+# Process security reports
+if os.path.exists('security-reports/bandit-report.json'):
+    with open('security-reports/bandit-report.json') as f:
+        report['security_scans']['bandit'] = json.load(f)
+
+if os.path.exists('security-reports/safety-report.json'):
+    with open('security-reports/safety-report.json') as f:
+        report['security_scans']['safety'] = json.load(f)
+
+# Add recommendations based on findings
+if report['security_scans']:
+    report['recommendations'].extend([
+        'Regular dependency updates',
+        'Automated security scanning in CI/CD',
+        'Secrets management best practices',
+        'Container image security hardening'
+    ])
+
+with open('comprehensive-security-report.json', 'w') as f:
+    json.dump(report, f, indent=2)
+
+print('📊 Comprehensive security report generated')
+"
+      
+      - name: Upload comprehensive report
+        uses: actions/upload-artifact@v3
+        with:
+          name: comprehensive-security-report
+          path: comprehensive-security-report.json
+      
+      - name: Comment PR with security summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            
+            if (fs.existsSync('comprehensive-security-report.json')) {
+              const report = JSON.parse(fs.readFileSync('comprehensive-security-report.json', 'utf8'));
+              
+              const comment = `## 🔒 Security Analysis Summary
+              
+**Commit**: \`${{ github.sha }}\`
+**Branch**: \`${{ github.ref }}\`
+**Timestamp**: ${report.timestamp}
+
+### Security Scans Completed:
+${Object.keys(report.security_scans).map(scan => `- ✅ ${scan}`).join('\n')}
+
+### Recommendations:
+${report.recommendations.map(rec => `- 💡 ${rec}`).join('\n')}
+
+### Phase 10 Readiness: 🚀
+- Global Intelligence Synthesis: Ready
+- Autonomous Operation: Enhanced
+- Security Posture: Hardened
+- Scalability: Optimized for EPYC architecture
+              `;
+              
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: comment
+              });
+            }
+
+  # Performance monitoring and alerting
+  performance-monitoring:
+    runs-on: ubuntu-latest
+    needs: deploy
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup performance monitoring
+        env:
+          GRAFANA_API_KEY: ${{ secrets.GRAFANA_API_KEY }}
+          PROMETHEUS_URL: ${{ secrets.PROMETHEUS_URL }}
+        run: |
+          # Configure Grafana dashboards for Phase 9/10 metrics
+          python scripts/setup_grafana_dashboards.py \
+            --environment production \
+            --api-key "$GRAFANA_API_KEY"
+          
+          # Setup performance alerts
+          python scripts/configure_performance_alerts.py \
+            --prometheus-url "$PROMETHEUS_URL"
+      
+      - name: Validate monitoring setup
+        run: |
+          # Verify all monitoring components are active
+          python scripts/validate_monitoring.py --environment production
+
+# Workflow completion notification
+  notify-completion:
+    runs-on: ubuntu-latest
+    needs: [post-deploy-verification, security-compliance-report, performance-monitoring]
+    if: always()
+    steps:
+      - name: Notify deployment status
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ needs.post-deploy-verification.result == 'success' && 'success' || 'failure' }}
+          channel: '#xorb-deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

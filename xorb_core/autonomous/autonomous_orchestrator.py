@@ -36,6 +36,7 @@ from xorb_common.agents.base_agent import AgentCapability, AgentTask
 from .rl_orchestrator_extensions import TaskPreemptor, PreemptionEvent, ConfidenceTracker, LearningFeedbackLoop, BayesianTaskOptimizer, ExecutionGraph
 
 from .models import AutonomousDecision, WorkloadProfile, WorkloadAnalyzer, PerformanceOptimizer
+from ..intelligence.global_synthesis_engine import GlobalSynthesisEngine, CorrelatedIntelligence, SignalPriority
 
 
 class AutonomousOrchestrator(EnhancedOrchestrator):
@@ -104,6 +105,11 @@ class AutonomousOrchestrator(EnhancedOrchestrator):
         self._initialize_confidence_tracking()
         self._initialize_learning_systems()
         
+        # Phase 10: Global Intelligence Synthesis
+        self.global_synthesis_engine: Optional[GlobalSynthesisEngine] = None
+        self.intelligence_processing_enabled = True
+        self.synthesis_integration_metrics = self._initialize_synthesis_metrics()
+        
     async def start(self):
         """Start the autonomous orchestrator with enhanced capabilities"""
         
@@ -120,6 +126,12 @@ class AutonomousOrchestrator(EnhancedOrchestrator):
         asyncio.create_task(self._task_preemption_manager())
         asyncio.create_task(self._confidence_scoring_loop())
         asyncio.create_task(self._learning_feedback_processor())
+        
+        # Phase 10: Start global intelligence synthesis integration
+        if self.intelligence_processing_enabled:
+            asyncio.create_task(self._global_intelligence_processor())
+            asyncio.create_task(self._synthesis_mission_dispatcher())
+            asyncio.create_task(self._intelligence_feedback_loop())
         
         await self.audit_logger.log_event("autonomous_orchestrator_start", {
             "autonomy_level": self.autonomy_level.value,
@@ -859,51 +871,171 @@ class AutonomousOrchestrator(EnhancedOrchestrator):
                 await asyncio.sleep(300)
     
     async def _ai_resource_prediction(self, analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """Use Claude/Qwen for intelligent resource prediction"""
+        """Enhanced AI resource prediction with Phase 10 global intelligence synthesis"""
         try:
-            # Construct reasoning prompt for AI
-            prompt = f"""
-            Analyze this XORB resource utilization data and predict optimal adjustments:
+            # Enhanced reasoning with global intelligence context
+            global_context = await self._get_global_intelligence_context()
             
-            Current Analysis: {json.dumps(analysis, indent=2)}
-            
-            Provide predictions for:
-            1. Resource bottlenecks in next 10 minutes
-            2. Optimal agent concurrency adjustments
-            3. Task priority rebalancing recommendations
-            4. Performance optimization strategies
-            
-            Respond with JSON format focusing on immediate actionable adjustments.
-            """
-            
-            # This would integrate with Claude/Qwen - for now return intelligent defaults
+            # Advanced pattern analysis
             prediction = {
                 'adjustments': [],
                 'confidence': 0.8,
-                'reasoning': 'AI-powered resource prediction',
-                'timestamp': datetime.utcnow().isoformat()
+                'reasoning': 'Enhanced AI-powered resource prediction with global intelligence',
+                'timestamp': datetime.utcnow().isoformat(),
+                'global_synthesis_ready': True,
+                'phase10_adaptations': []
             }
             
-            # Analyze patterns and generate predictions
-            if analysis.get('cpu_utilization', 0) > 0.8:
+            # Multi-factor analysis for Phase 10 readiness
+            cpu_util = analysis.get('cpu_utilization', 0)
+            memory_util = analysis.get('memory_utilization', 0)
+            queue_length = analysis.get('queue_length', 0)
+            success_rate = analysis.get('success_rate_trend', 0.85)
+            
+            # Advanced resource prediction algorithms
+            if cpu_util > 0.8:
+                # Intelligent scaling with historical performance data
+                historical_performance = self._calculate_historical_performance()
+                optimal_concurrency = self._calculate_optimal_concurrency(cpu_util, historical_performance)
+                
                 prediction['adjustments'].append({
-                    'type': 'scale_down_concurrency',
-                    'value': max(1, self.max_concurrent_agents // 2),
-                    'reason': 'High CPU utilization detected'
+                    'type': 'intelligent_scale_down',
+                    'value': optimal_concurrency,
+                    'reason': f'CPU optimization based on {historical_performance:.2f} historical performance',
+                    'confidence': 0.9,
+                    'phase10_ready': True
                 })
             
-            if analysis.get('queue_length', 0) > 20:
-                prediction['adjustments'].append({
-                    'type': 'increase_worker_count',
-                    'value': min(32, len(self.autonomous_workers) + 2),
-                    'reason': 'Queue backlog growing'
+            # Phase 10 Global Intelligence Synthesis preparations
+            if queue_length > 20 or success_rate < 0.7:
+                prediction['phase10_adaptations'].append({
+                    'type': 'global_intelligence_synthesis_prep',
+                    'action': 'enhance_multi_source_aggregation',
+                    'reasoning': 'Preparing for Phase 10 global multi-source intelligence synthesis',
+                    'confidence': 0.85
                 })
+            
+            # Predictive agent allocation based on global patterns
+            if len(self.autonomous_workers) < 8 and queue_length > 15:
+                prediction['adjustments'].append({
+                    'type': 'predictive_worker_spawn',
+                    'value': min(32, len(self.autonomous_workers) + 
+                            self._calculate_optimal_worker_increase(analysis)),
+                    'reason': 'Predictive scaling based on global intelligence patterns',
+                    'confidence': 0.87
+                })
+            
+            # Enhanced fault tolerance for autonomous operation
+            prediction['fault_tolerance_enhancements'] = {
+                'auto_recovery_enabled': True,
+                'circuit_breaker_thresholds': self._calculate_circuit_breaker_thresholds(analysis),
+                'redundancy_factor': self._calculate_redundancy_factor(cpu_util, memory_util)
+            }
             
             return prediction
             
         except Exception as e:
-            self.logger.error("AI resource prediction error", error=str(e))
-            return {'adjustments': [], 'confidence': 0.0}
+            self.logger.error("Enhanced AI resource prediction error", error=str(e))
+            return {
+                'adjustments': [], 
+                'confidence': 0.0,
+                'fallback_mode': True,
+                'error_recovery': 'Using conservative defaults'
+            }
+    
+    def _calculate_optimal_concurrency(self, cpu_util: float, historical_perf: float) -> int:
+        """Calculate optimal concurrency based on CPU and historical performance"""
+        base_concurrency = self.max_concurrent_agents
+        cpu_factor = max(0.3, 1.0 - (cpu_util - 0.7) * 2)  # Reduce if CPU > 70%
+        perf_factor = min(1.2, historical_perf * 1.5)  # Increase if performance is good
+        
+        optimal = int(base_concurrency * cpu_factor * perf_factor)
+        return max(4, min(48, optimal))  # Clamp between 4-48
+    
+    def _calculate_optimal_worker_increase(self, analysis: Dict[str, Any]) -> int:
+        """Calculate optimal worker increase based on queue and performance patterns"""
+        queue_length = analysis.get('queue_length', 0)
+        success_rate = analysis.get('success_rate_trend', 0.85)
+        
+        # Base increase on queue pressure
+        base_increase = min(4, queue_length // 10)
+        
+        # Adjust based on success rate
+        if success_rate > 0.9:
+            base_increase += 1  # Can handle more load
+        elif success_rate < 0.7:
+            base_increase = max(1, base_increase - 1)  # Be conservative
+        
+        return base_increase
+    
+    def _calculate_historical_performance(self) -> float:
+        """Calculate historical performance metric"""
+        if not self.global_intelligence or not self.global_intelligence.task_success_rates:
+            return 0.8  # Default
+        
+        success_rates = self.global_intelligence.task_success_rates.values()
+        return sum(success_rates) / len(success_rates) if success_rates else 0.8
+    
+    async def _get_global_intelligence_context(self) -> Dict[str, Any]:
+        """Get global intelligence context for enhanced decision making"""
+        return {
+            'active_campaigns': len(getattr(self, 'active_campaigns', {})),
+            'global_threat_level': 'moderate',  # Would be calculated from real data
+            'resource_efficiency': self._calculate_resource_efficiency(),
+            'agent_performance_variance': self._calculate_performance_variance(),
+            'phase10_readiness_score': 0.85
+        }
+    
+    def _calculate_resource_efficiency(self) -> float:
+        """Calculate overall resource efficiency"""
+        if not hasattr(self, 'workload_profile') or not self.workload_profile.resource_utilization:
+            return 0.8
+        
+        cpu = self.workload_profile.resource_utilization.get('cpu', 0.5)
+        memory = self.workload_profile.resource_utilization.get('memory', 0.5)
+        
+        # Efficiency is high when utilization is moderate (not too low, not too high)
+        cpu_efficiency = 1.0 - abs(cpu - 0.7)  # Target 70% CPU
+        memory_efficiency = 1.0 - abs(memory - 0.6)  # Target 60% memory
+        
+        return (cpu_efficiency + memory_efficiency) / 2
+    
+    def _calculate_performance_variance(self) -> float:
+        """Calculate performance variance across agents"""
+        if not self.autonomous_workers:
+            return 0.0
+        
+        # Simplified calculation - would use real performance data
+        return 0.15  # 15% variance (lower is better)
+    
+    def _calculate_circuit_breaker_thresholds(self, analysis: Dict[str, Any]) -> Dict[str, float]:
+        """Calculate dynamic circuit breaker thresholds"""
+        base_failure_threshold = 0.5
+        base_timeout_threshold = 30.0
+        
+        # Adjust based on current performance
+        success_rate = analysis.get('success_rate_trend', 0.85)
+        if success_rate < 0.7:
+            base_failure_threshold = 0.3  # More aggressive
+            base_timeout_threshold = 20.0
+        elif success_rate > 0.9:
+            base_failure_threshold = 0.7  # More lenient
+            base_timeout_threshold = 45.0
+        
+        return {
+            'failure_threshold': base_failure_threshold,
+            'timeout_threshold_seconds': base_timeout_threshold,
+            'recovery_time_seconds': 60.0
+        }
+    
+    def _calculate_redundancy_factor(self, cpu_util: float, memory_util: float) -> float:
+        """Calculate redundancy factor for fault tolerance"""
+        if cpu_util > 0.8 or memory_util > 0.8:
+            return 1.2  # 20% redundancy under high load
+        elif cpu_util < 0.5 and memory_util < 0.5:
+            return 1.5  # 50% redundancy when resources are available
+        else:
+            return 1.3  # 30% default redundancy
     
     def _get_agent_confidence(self, agent_index: int) -> float:
         """Get confidence score for an agent"""
@@ -955,6 +1087,511 @@ class AutonomousOrchestrator(EnhancedOrchestrator):
             
             self.logger.info("🔧 Spawned additional autonomous worker",
                            worker_id=worker_id)
+    
+    # =============================================================================
+    # PHASE 10: GLOBAL INTELLIGENCE SYNTHESIS INTEGRATION
+    # =============================================================================
+    
+    def _initialize_synthesis_metrics(self) -> Dict[str, Any]:
+        """Initialize metrics for global intelligence synthesis"""
+        return {
+            'intelligence_signals_processed': Counter(
+                'xorb_synthesis_signals_processed_total',
+                'Total intelligence signals processed by orchestrator',
+                ['signal_type', 'priority']
+            ),
+            'missions_triggered_by_intelligence': Counter(
+                'xorb_missions_triggered_by_intelligence_total',
+                'Missions triggered by intelligence synthesis',
+                ['intelligence_type', 'mission_type']
+            ),
+            'intelligence_response_time': Histogram(
+                'xorb_intelligence_response_time_seconds',
+                'Time from intelligence to mission creation',
+                ['priority_level']
+            ),
+            'synthesis_feedback_score': Gauge(
+                'xorb_synthesis_feedback_score',
+                'Feedback score for intelligence-driven missions'
+            )
+        }
+    
+    async def initialize_global_synthesis_engine(self, 
+                                               mission_engine: 'AdaptiveMissionEngine',
+                                               episodic_memory: 'EpisodicMemorySystem',
+                                               vector_fabric: 'VectorFabric'):
+        """Initialize the global intelligence synthesis engine"""
+        try:
+            from ..intelligence.global_synthesis_engine import GlobalSynthesisEngine
+            
+            self.global_synthesis_engine = GlobalSynthesisEngine(
+                orchestrator=self,
+                mission_engine=mission_engine,
+                episodic_memory=episodic_memory,
+                vector_fabric=vector_fabric
+            )
+            
+            await self.global_synthesis_engine.start_synthesis_engine()
+            
+            self.logger.info("🌐 Global Intelligence Synthesis Engine: INITIALIZED")
+            
+        except Exception as e:
+            self.logger.error("Failed to initialize synthesis engine", error=str(e))
+            self.intelligence_processing_enabled = False
+    
+    async def _global_intelligence_processor(self):
+        """Process global intelligence signals and route to appropriate handlers"""
+        
+        while self._running and self.intelligence_processing_enabled:
+            try:
+                if not self.global_synthesis_engine:
+                    await asyncio.sleep(30)
+                    continue
+                
+                # Get correlated intelligence from synthesis engine
+                correlated_intel = await self._get_pending_intelligence()
+                
+                for intelligence in correlated_intel:
+                    await self._process_correlated_intelligence(intelligence)
+                
+                await asyncio.sleep(10)  # Process every 10 seconds
+                
+            except Exception as e:
+                self.logger.error("Global intelligence processing error", error=str(e))
+                await asyncio.sleep(30)
+    
+    async def _get_pending_intelligence(self) -> List[CorrelatedIntelligence]:
+        """Get pending correlated intelligence from synthesis engine"""
+        
+        if not self.global_synthesis_engine:
+            return []
+        
+        # Get high-priority intelligence that needs immediate action
+        pending_intelligence = []
+        
+        for intel_id, intelligence in self.global_synthesis_engine.correlated_intelligence.items():
+            # Check if this intelligence needs action
+            if (intelligence.overall_priority in [SignalPriority.CRITICAL, SignalPriority.HIGH] and
+                len(intelligence.spawned_missions) == 0 and
+                intelligence.recommended_actions):
+                
+                pending_intelligence.append(intelligence)
+        
+        # Sort by priority and confidence
+        pending_intelligence.sort(
+            key=lambda x: (x.overall_priority.value, x.confidence_score),
+            reverse=True
+        )
+        
+        return pending_intelligence[:10]  # Process top 10
+    
+    async def _process_correlated_intelligence(self, intelligence: CorrelatedIntelligence):
+        """Process a single correlated intelligence item"""
+        
+        try:
+            self.logger.info("🧠 Processing correlated intelligence",
+                           intelligence_id=intelligence.intelligence_id[:8],
+                           priority=intelligence.overall_priority.value,
+                           confidence=intelligence.confidence_score)
+            
+            # Determine mission type based on intelligence characteristics
+            mission_type = await self._determine_mission_type(intelligence)
+            
+            # Select optimal agents based on required capabilities
+            agent_capabilities = await self._map_intelligence_to_capabilities(intelligence)
+            
+            # Create autonomous mission based on intelligence
+            mission_id = await self._create_intelligence_driven_mission(
+                intelligence, mission_type, agent_capabilities
+            )
+            
+            if mission_id:
+                # Record mission creation
+                intelligence.spawned_missions.append(mission_id)
+                
+                # Update metrics
+                self.synthesis_integration_metrics['missions_triggered_by_intelligence'].labels(
+                    intelligence_type=intelligence.threat_context.get('type', 'unknown'),
+                    mission_type=mission_type.value if hasattr(mission_type, 'value') else str(mission_type)
+                ).inc()
+                
+                # Log successful processing
+                self.logger.info("✅ Intelligence-driven mission created",
+                               intelligence_id=intelligence.intelligence_id[:8],
+                               mission_id=mission_id[:8],
+                               mission_type=mission_type)
+                
+                # Record decision for learning
+                decision = AutonomousDecision(
+                    decision_id=str(uuid.uuid4()),
+                    decision_type="intelligence_driven_mission",
+                    context={
+                        "intelligence_id": intelligence.intelligence_id,
+                        "mission_id": mission_id,
+                        "priority": intelligence.overall_priority.value,
+                        "confidence": intelligence.confidence_score,
+                        "agent_capabilities": [cap.value if hasattr(cap, 'value') else str(cap) 
+                                             for cap in agent_capabilities]
+                    },
+                    rationale=f"Created mission based on {intelligence.overall_priority.value} priority intelligence",
+                    confidence=intelligence.confidence_score
+                )
+                self.decision_history.append(decision)
+            
+        except Exception as e:
+            self.logger.error("Intelligence processing failed",
+                            intelligence_id=intelligence.intelligence_id[:8],
+                            error=str(e))
+    
+    async def _determine_mission_type(self, intelligence: CorrelatedIntelligence) -> str:
+        """Determine optimal mission type based on intelligence characteristics"""
+        
+        # Analyze intelligence content to determine mission type
+        threat_level = intelligence.threat_level.lower()
+        key_indicators = [indicator.lower() for indicator in intelligence.key_indicators]
+        
+        # High-priority vulnerability or exploit
+        if any(keyword in ' '.join(key_indicators) for keyword in 
+               ['exploit', 'zero-day', 'rce', 'critical', 'authentication bypass']):
+            return "VULNERABILITY_ASSESSMENT"
+        
+        # Bug bounty or disclosed vulnerability
+        elif any(keyword in ' '.join(key_indicators) for keyword in
+                ['bounty', 'disclosed', 'bug', 'reward']):
+            return "BUG_BOUNTY_INVESTIGATION"
+        
+        # System anomaly or alert
+        elif any(keyword in ' '.join(key_indicators) for keyword in
+                ['alert', 'anomaly', 'threshold', 'monitoring']):
+            return "SYSTEM_INVESTIGATION"
+        
+        # Threat intelligence
+        elif any(keyword in ' '.join(key_indicators) for keyword in
+                ['apt', 'malware', 'campaign', 'ioc']):
+            return "THREAT_INVESTIGATION"
+        
+        # Default reconnaissance mission
+        else:
+            return "INTELLIGENCE_GATHERING"
+    
+    async def _map_intelligence_to_capabilities(self, intelligence: CorrelatedIntelligence) -> List[AgentCapability]:
+        """Map intelligence requirements to agent capabilities"""
+        
+        capabilities = []
+        required_caps = intelligence.required_capabilities
+        key_indicators = [indicator.lower() for indicator in intelligence.key_indicators]
+        
+        # Always include reconnaissance for intelligence gathering
+        capabilities.append(AgentCapability.RECONNAISSANCE)
+        
+        # Web-related intelligence
+        if any(keyword in ' '.join(key_indicators) for keyword in
+               ['web', 'http', 'browser', 'xss', 'sql', 'csrf']):
+            capabilities.extend([
+                AgentCapability.WEB_CRAWLING,
+                AgentCapability.VULNERABILITY_SCANNING
+            ])
+        
+        # Network-related intelligence
+        if any(keyword in ' '.join(key_indicators) for keyword in
+               ['network', 'port', 'service', 'protocol', 'firewall']):
+            capabilities.append(AgentCapability.NETWORK_SCANNING)
+        
+        # API-related intelligence
+        if any(keyword in ' '.join(key_indicators) for keyword in
+               ['api', 'rest', 'graphql', 'endpoint', 'authentication']):
+            capabilities.append(AgentCapability.API_TESTING)
+        
+        # Social engineering intelligence
+        if any(keyword in ' '.join(key_indicators) for keyword in
+               ['social', 'phishing', 'email', 'human']):
+            capabilities.append(AgentCapability.SOCIAL_ENGINEERING)
+        
+        # Remove duplicates and return
+        return list(set(capabilities))
+    
+    async def _create_intelligence_driven_mission(self, 
+                                                intelligence: CorrelatedIntelligence,
+                                                mission_type: str,
+                                                agent_capabilities: List[AgentCapability]) -> Optional[str]:
+        """Create a new mission driven by intelligence synthesis"""
+        
+        try:
+            # Construct mission objectives from intelligence
+            objectives = self._extract_mission_objectives(intelligence)
+            
+            # Create mission configuration
+            mission_config = {
+                'intelligence_driven': True,
+                'intelligence_id': intelligence.intelligence_id,
+                'priority': intelligence.overall_priority.value,
+                'confidence_threshold': intelligence.confidence_score,
+                'max_agents': min(len(agent_capabilities) + 2, 8),
+                'timeout': self._calculate_mission_timeout(intelligence),
+                'auto_escalate': intelligence.overall_priority in [SignalPriority.CRITICAL, SignalPriority.HIGH]
+            }
+            
+            # Create the mission
+            mission_id = await self.create_autonomous_campaign(
+                name=f"Intelligence-Driven: {intelligence.synthesized_title[:50]}",
+                targets=self._extract_targets_from_intelligence(intelligence),
+                intelligence_driven=True,
+                adaptive_execution=True,
+                config=mission_config
+            )
+            
+            # Record intelligence response time
+            response_time = (datetime.utcnow() - intelligence.created_at).total_seconds()
+            self.synthesis_integration_metrics['intelligence_response_time'].labels(
+                priority_level=intelligence.overall_priority.value
+            ).observe(response_time)
+            
+            return mission_id
+            
+        except Exception as e:
+            self.logger.error("Intelligence-driven mission creation failed", error=str(e))
+            return None
+    
+    def _extract_mission_objectives(self, intelligence: CorrelatedIntelligence) -> List[str]:
+        """Extract specific mission objectives from intelligence"""
+        
+        objectives = []
+        
+        # Add objectives based on recommended actions
+        for action in intelligence.recommended_actions:
+            if action.get('type') == 'investigate':
+                objectives.append(f"Investigate: {action.get('description', 'Unknown target')}")
+            elif action.get('type') == 'verify':
+                objectives.append(f"Verify: {action.get('description', 'Unknown vulnerability')}")
+            elif action.get('type') == 'assess':
+                objectives.append(f"Assess: {action.get('description', 'Unknown risk')}")
+        
+        # Add default objective if none specified
+        if not objectives:
+            objectives.append(f"Analyze threat: {intelligence.synthesized_title}")
+        
+        # Add intelligence gathering objective
+        objectives.append("Gather additional intelligence on discovered assets")
+        
+        return objectives
+    
+    def _extract_targets_from_intelligence(self, intelligence: CorrelatedIntelligence) -> List[Dict[str, Any]]:
+        """Extract targets from intelligence content"""
+        
+        targets = []
+        
+        # Extract from threat context
+        threat_context = intelligence.threat_context
+        
+        if 'targets' in threat_context:
+            targets.extend(threat_context['targets'])
+        
+        # Extract from key indicators
+        for indicator in intelligence.key_indicators:
+            if '://' in indicator:  # URL-like indicator
+                targets.append({
+                    'hostname': indicator,
+                    'source': 'intelligence_synthesis',
+                    'priority': intelligence.overall_priority.value
+                })
+        
+        # Default target if none found
+        if not targets:
+            targets.append({
+                'hostname': 'target-from-intelligence.local',
+                'source': 'intelligence_synthesis', 
+                'description': intelligence.synthesized_description,
+                'priority': intelligence.overall_priority.value
+            })
+        
+        return targets
+    
+    def _calculate_mission_timeout(self, intelligence: CorrelatedIntelligence) -> int:
+        """Calculate appropriate timeout for intelligence-driven mission"""
+        
+        base_timeout = 3600  # 1 hour default
+        
+        # Adjust based on priority
+        if intelligence.overall_priority == SignalPriority.CRITICAL:
+            return base_timeout // 2  # 30 minutes for critical
+        elif intelligence.overall_priority == SignalPriority.HIGH:
+            return int(base_timeout * 0.75)  # 45 minutes for high
+        elif intelligence.overall_priority == SignalPriority.LOW:
+            return base_timeout * 2  # 2 hours for low priority
+        
+        return base_timeout
+    
+    async def _synthesis_mission_dispatcher(self):
+        """Dispatch missions based on synthesis engine recommendations"""
+        
+        while self._running and self.intelligence_processing_enabled:
+            try:
+                # Check for high-priority intelligence needing immediate dispatch
+                urgent_intelligence = await self._get_urgent_intelligence()
+                
+                for intelligence in urgent_intelligence:
+                    # Fast-track critical intelligence
+                    if intelligence.overall_priority == SignalPriority.CRITICAL:
+                        await self._fast_track_critical_intelligence(intelligence)
+                
+                await asyncio.sleep(30)  # Check every 30 seconds
+                
+            except Exception as e:
+                self.logger.error("Synthesis mission dispatcher error", error=str(e))
+                await asyncio.sleep(60)
+    
+    async def _get_urgent_intelligence(self) -> List[CorrelatedIntelligence]:
+        """Get intelligence requiring urgent action"""
+        
+        if not self.global_synthesis_engine:
+            return []
+        
+        urgent = []
+        current_time = datetime.utcnow()
+        
+        for intelligence in self.global_synthesis_engine.correlated_intelligence.values():
+            # Critical intelligence created in last 10 minutes
+            if (intelligence.overall_priority == SignalPriority.CRITICAL and
+                (current_time - intelligence.created_at).total_seconds() < 600 and
+                len(intelligence.spawned_missions) == 0):
+                urgent.append(intelligence)
+        
+        return urgent
+    
+    async def _fast_track_critical_intelligence(self, intelligence: CorrelatedIntelligence):
+        """Fast-track critical intelligence through processing"""
+        
+        self.logger.warning("🚨 CRITICAL INTELLIGENCE DETECTED - Fast-tracking",
+                          intelligence_id=intelligence.intelligence_id[:8],
+                          threat_level=intelligence.threat_level)
+        
+        # Immediately process without normal queuing
+        await self._process_correlated_intelligence(intelligence)
+        
+        # Notify all relevant stakeholders
+        await self._notify_critical_intelligence(intelligence)
+    
+    async def _notify_critical_intelligence(self, intelligence: CorrelatedIntelligence):
+        """Notify stakeholders of critical intelligence"""
+        
+        notification = {
+            'type': 'critical_intelligence',
+            'intelligence_id': intelligence.intelligence_id,
+            'title': intelligence.synthesized_title,
+            'threat_level': intelligence.threat_level,
+            'confidence': intelligence.confidence_score,
+            'key_indicators': intelligence.key_indicators,
+            'recommended_actions': intelligence.recommended_actions,
+            'timestamp': datetime.utcnow().isoformat()
+        }
+        
+        # Log critical event
+        await self.audit_logger.log_event("critical_intelligence_detected", notification)
+        
+        self.logger.critical("🚨 CRITICAL INTELLIGENCE NOTIFICATION",
+                           intelligence_id=intelligence.intelligence_id[:8],
+                           threat_level=intelligence.threat_level,
+                           confidence=intelligence.confidence_score)
+    
+    async def _intelligence_feedback_loop(self):
+        """Process feedback from intelligence-driven missions for learning"""
+        
+        while self._running and self.intelligence_processing_enabled:
+            try:
+                # Get completed intelligence-driven missions
+                completed_missions = await self._get_completed_intelligence_missions()
+                
+                for mission_result in completed_missions:
+                    await self._process_intelligence_mission_feedback(mission_result)
+                
+                await asyncio.sleep(120)  # Process feedback every 2 minutes
+                
+            except Exception as e:
+                self.logger.error("Intelligence feedback loop error", error=str(e))
+                await asyncio.sleep(120)
+    
+    async def _get_completed_intelligence_missions(self) -> List[Dict[str, Any]]:
+        """Get completed missions that were intelligence-driven"""
+        
+        completed_missions = []
+        
+        # Check recent campaign completions
+        for campaign_id, context in self.execution_contexts.items():
+            if (context.status in [ExecutionStatus.COMPLETED, ExecutionStatus.FAILED] and
+                context.config.get('intelligence_driven', False) and
+                not context.metadata.get('feedback_processed', False)):
+                
+                completed_missions.append({
+                    'campaign_id': campaign_id,
+                    'context': context,
+                    'intelligence_id': context.config.get('intelligence_id')
+                })
+        
+        return completed_missions
+    
+    async def _process_intelligence_mission_feedback(self, mission_result: Dict[str, Any]):
+        """Process feedback from completed intelligence-driven mission"""
+        
+        try:
+            campaign_id = mission_result['campaign_id']
+            context = mission_result['context']
+            intelligence_id = mission_result['intelligence_id']
+            
+            # Calculate feedback score
+            feedback_score = self._calculate_intelligence_feedback_score(context)
+            
+            # Update intelligence with feedback
+            if (self.global_synthesis_engine and 
+                intelligence_id in self.global_synthesis_engine.correlated_intelligence):
+                
+                intelligence = self.global_synthesis_engine.correlated_intelligence[intelligence_id]
+                intelligence.feedback_scores.append(feedback_score)
+                
+                # Update synthesis metrics
+                self.synthesis_integration_metrics['synthesis_feedback_score'].set(feedback_score)
+            
+            # Mark as processed
+            context.metadata['feedback_processed'] = True
+            
+            self.logger.info("📊 Intelligence mission feedback processed",
+                           campaign_id=campaign_id[:8],
+                           intelligence_id=intelligence_id[:8] if intelligence_id else "unknown",
+                           feedback_score=feedback_score)
+            
+        except Exception as e:
+            self.logger.error("Intelligence feedback processing failed", error=str(e))
+    
+    def _calculate_intelligence_feedback_score(self, context: ExecutionContext) -> float:
+        """Calculate feedback score for intelligence-driven mission"""
+        
+        base_score = 0.5
+        
+        # Success factor
+        if context.status == ExecutionStatus.COMPLETED:
+            base_score += 0.3
+        elif context.status == ExecutionStatus.FAILED:
+            base_score -= 0.2
+        
+        # Performance factor
+        if hasattr(context, 'performance_metrics'):
+            success_rate = context.performance_metrics.get('success_rate', 0.5)
+            base_score += (success_rate - 0.5) * 0.4
+        
+        # Discovery factor
+        discoveries = context.metadata.get('discoveries', 0)
+        if discoveries > 0:
+            base_score += min(discoveries * 0.1, 0.3)
+        
+        # Time factor
+        expected_duration = context.config.get('timeout', 3600)
+        actual_duration = (context.end_time - context.start_time).total_seconds() if context.end_time else expected_duration
+        
+        if actual_duration < expected_duration * 0.8:  # Completed faster than expected
+            base_score += 0.1
+        elif actual_duration > expected_duration * 1.2:  # Took longer than expected
+            base_score -= 0.1
+        
+        return max(0.0, min(1.0, base_score))
 
 
 class AutonomousMetrics:

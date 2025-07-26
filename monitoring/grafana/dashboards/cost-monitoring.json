@@ -1,0 +1,249 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Xorb Cost Monitoring Dashboard",
+    "tags": ["xorb", "costs", "billing", "monitoring"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Monthly Cost",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(xorb_monthly_costs_dollars)",
+            "legendFormat": "Total Cost",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 500},
+                {"color": "red", "value": 1000}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Cost by Service",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "xorb_monthly_costs_dollars",
+            "legendFormat": "{{service}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Cost by Category",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (category) (xorb_monthly_costs_dollars)",
+            "legendFormat": "{{category}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "GPT Token Usage",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(rate(xorb_gpt_token_usage_total[24h]) * 86400)",
+            "legendFormat": "Tokens/Day",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Daily Cost Trend",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum(increase(xorb_cost_tracking_total[1d]))",
+            "legendFormat": "Daily Costs",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "AI Service Costs",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "xorb_monthly_costs_dollars{category=\"ai_services\"}",
+            "legendFormat": "{{service}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Token Usage by Model",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "sum by (model) (rate(xorb_gpt_token_usage_total[5m]))",
+            "legendFormat": "{{model}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 16},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "reqps"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Stripe Fees",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(xorb_stripe_fees_total[5m])",
+            "legendFormat": "Stripe Fees",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 16},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "S3 Storage Usage",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "xorb_s3_storage_bytes",
+            "legendFormat": "{{bucket}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 16},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "bytes"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Cost Efficiency Metrics",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "xorb_monthly_costs_dollars / on() (sum(xorb_scheduler_scans_scheduled_total) or vector(1))",
+            "legendFormat": "Cost per Scan",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24}
+      },
+      {
+        "id": 11,
+        "title": "Budget vs Actual",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "xorb_monthly_costs_dollars",
+            "legendFormat": "Actual: {{service}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "max": 1000
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Cost Alerts Status",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"cost-monitor\"} |= \"budget\" or \"alert\"",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 32}
+      }
+    ],
+    "time": {
+      "from": "now-30d",
+      "to": "now"
+    },
+    "refresh": "5m",
+    "schemaVersion": 16,
+    "version": 0,
+    "annotations": {
+      "list": [
+        {
+          "name": "Cost Alerts",
+          "datasource": "prometheus",
+          "enable": true,
+          "expr": "ALERTS{alertname=~\".*Cost.*|.*Budget.*\"}",
+          "iconColor": "red",
+          "titleFormat": "{{alertname}}",
+          "textFormat": "{{description}}"
+        }
+      ]
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "time_range",
+          "type": "interval",
+          "query": "1d,7d,30d,90d",
+          "current": {
+            "text": "30d",
+            "value": "30d"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,37 +1,22 @@
 """
-Xorb Core - Hexagonal Architecture Implementation
-Domain-Driven Design with Clean Architecture Principles
+XORB Core - Autonomous Security Intelligence Platform
 
-Layer Architecture:
-- Domain: Pure business logic and entities
-- Application: Use cases and abstract ports
-- Infrastructure: Concrete implementations and external integrations
-- Interfaces: REST/gRPC APIs and external interfaces
-
-Dependencies flow inward: Interfaces -> Application -> Domain
-Infrastructure is dependency-injected into Application layer
+This package contains the core components of the XORB ecosystem.
 """
-
-from __future__ import annotations
-
 __version__ = "2.0.0"
-__author__ = "Xorb Security Intelligence Team"
-__license__ = "MIT"
+
+from .agents import *
+from .orchestration import *
+from .knowledge_fabric import *
+from .security import *
 
 __all__ = [
-    "__version__",
-    "__author__",
-    "__license__",
-
-    # Core modules
-    "domain",
-    "application",
+    "agents",
+    "orchestration", 
+    "knowledge_fabric",
+    "security",
+    "llm",
+    "utils",
     "infrastructure",
-    "interfaces"
+    "common"
 ]
-
-# Layer imports (optional - consumers can import layers directly)
-from . import domain
-from . import application
-from . import infrastructure
-from . import interfaces

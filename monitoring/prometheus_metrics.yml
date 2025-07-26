@@ -1,0 +1,210 @@
+# XORB Autonomous Health Manager - Prometheus Metrics Configuration
+# Comprehensive metrics for monitoring health, performance, and autonomous operations
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'xorb-autonomous'
+    datacenter: 'on-premises'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "xorb_health_rules.yml"
+  - "xorb_autonomous_rules.yml"
+
+# Scrape configuration for XORB services
+scrape_configs:
+  # ============================================================================
+  # CORE XORB SERVICES
+  # ============================================================================
+  
+  - job_name: 'xorb-api'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['api:8000']
+    metrics_path: /metrics
+    scrape_timeout: 5s
+    honor_labels: true
+    
+  - job_name: 'xorb-worker'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['worker:9000']
+    metrics_path: /metrics
+    scrape_timeout: 5s
+    
+  - job_name: 'xorb-orchestrator'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['orchestrator:8080']
+    metrics_path: /metrics
+    scrape_timeout: 5s
+    
+  - job_name: 'xorb-scanner-go'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['scanner-go:8004']
+    metrics_path: /metrics
+    scrape_timeout: 5s
+
+  # ============================================================================
+  # AUTONOMOUS HEALTH MANAGER
+  # ============================================================================
+  
+  - job_name: 'xorb-autonomous-health'
+    scrape_interval: 5s  # High frequency for health monitoring
+    static_configs:
+      - targets: ['api:9091']  # Autonomous health manager metrics port
+    metrics_path: /metrics
+    scrape_timeout: 3s
+    honor_labels: true
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: 'xorb_component'
+        replacement: 'autonomous_health'
+
+  # ============================================================================
+  # INFRASTRUCTURE SERVICES
+  # ============================================================================
+  
+  - job_name: 'postgres-exporter'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['postgres:5432']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    
+  - job_name: 'redis-exporter'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    
+  - job_name: 'temporal-server'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['temporal:8233']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    
+  - job_name: 'nats-server'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['nats:8222']
+    metrics_path: /varz
+    scrape_timeout: 10s
+    
+  - job_name: 'neo4j-metrics'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['neo4j:2004']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    
+  - job_name: 'qdrant-metrics'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['qdrant:6333']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # ============================================================================
+  # DOCKER HOST METRICS
+  # ============================================================================
+  
+  - job_name: 'node-exporter'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['host.docker.internal:9100']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    
+  - job_name: 'cadvisor'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['host.docker.internal:8080']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+  # ============================================================================
+  # MONITORING INFRASTRUCTURE
+  # ============================================================================
+  
+  - job_name: 'prometheus'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    
+  - job_name: 'grafana'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+    
+  - job_name: 'alertmanager'
+    scrape_interval: 30s
+    static_configs:
+      - targets: ['alertmanager:9093']
+    metrics_path: /metrics
+    scrape_timeout: 10s
+
+# ============================================================================
+# CUSTOM METRIC DEFINITIONS FOR XORB AUTONOMOUS OPERATIONS
+# ============================================================================
+
+# Health Status Metrics:
+# - xorb_service_health_status{service, state} - Current health state (0-1)
+# - xorb_service_response_time_seconds{service} - Response time histogram
+# - xorb_service_memory_usage_percent{service} - Memory utilization
+# - xorb_service_cpu_usage_percent{service} - CPU utilization
+# - xorb_service_uptime_seconds{service} - Service uptime
+
+# Failure & Recovery Metrics:
+# - xorb_agent_failure_count{agent_type, error_category} - Failure counter
+# - xorb_self_healing_trigger_total{service, remediation_type} - Auto-healing counter
+# - xorb_remediation_duration_seconds{service, remediation_type} - Remediation time
+# - xorb_autonomous_repair_success_ratio{service, time_window} - Success rate
+
+# ML Classification Metrics:
+# - xorb_error_classification_accuracy - ML model accuracy
+# - xorb_error_classification_confidence{category} - Classification confidence
+# - xorb_remediation_prediction_accuracy - Remediation prediction accuracy
+
+# Operational Intelligence:
+# - xorb_episodic_memory_events_total{event_type} - Memory events
+# - xorb_knowledge_graph_nodes{type} - Graph node count
+# - xorb_knowledge_graph_relationships{type} - Graph relationship count
+# - xorb_campaign_execution_duration_seconds{campaign_type} - Campaign timing
+# - xorb_agent_discovery_total{discovery_method} - Agent discovery events
+
+# Resource Utilization:
+# - xorb_concurrent_agents_active - Active agent count
+# - xorb_concurrent_campaigns_active - Active campaign count
+# - xorb_queue_depth{queue_type} - Queue depth metrics
+# - xorb_database_connection_pool{database, state} - Connection pool usage
+# - xorb_cache_hit_ratio{cache_type} - Cache performance
+
+# Security & Compliance:
+# - xorb_roe_violations_total{violation_type} - ROE violation counter
+# - xorb_security_scan_findings{severity, category} - Security findings
+# - xorb_compliance_check_status{check_type} - Compliance status
+# - xorb_audit_events_total{event_type} - Audit event counter
+
+# Performance Metrics:
+# - xorb_throughput_requests_per_second{service} - Request throughput
+# - xorb_latency_percentile{service, percentile} - Latency distribution
+# - xorb_error_rate{service, error_type} - Error rates
+# - xorb_saturation_percent{resource_type} - Resource saturation
