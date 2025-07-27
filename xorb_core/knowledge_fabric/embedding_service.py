@@ -47,7 +47,7 @@ class KnowledgeEmbeddingService:
         cache_embeddings: bool = True,
         redis_url: str = "redis://redis:6379/0"
     ):
-        self.api_key = api_key or "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"
+        self.api_key = api_key or os.getenv("NVIDIA_API_KEY", "your_nvidia_api_key_here")
         self.base_url = base_url
         self.model = model
         self.cache_embeddings = cache_embeddings

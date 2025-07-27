@@ -76,7 +76,7 @@ class EmbeddingService:
     """Service for generating embeddings using NVIDIA API"""
     
     def __init__(self):
-        self.api_key = os.getenv("NVIDIA_API_KEY", "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")
+        self.api_key = os.getenv("NVIDIA_API_KEY", "your_nvidia_api_key_here")
         self.base_url = os.getenv("NVIDIA_BASE_URL", "https://integrate.api.nvidia.com/v1")
         
         self.client = OpenAI(

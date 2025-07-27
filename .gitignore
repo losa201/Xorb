@@ -69,12 +69,27 @@ deployment_verification_*.json
 # Docker
 .docker/
 
-# Secrets
+# Secrets and API Keys
 secrets/
+.secrets/
 certs/
 *.pem
 *.key
 *.crt
+*api_key*
+*token*
+nvidia_api_key
+openrouter_key
+*.secret
+.env.*
 
 # Backups
 backups/
+pre_cleanup_*/
+
+# XORB-specific sensitive data
+xorb_results_sensitive/
+campaign_data_private/
+agent_memory_exports/
+monitoring/sensitive/
+telemetry/private/

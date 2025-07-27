@@ -125,7 +125,7 @@ class NVIDIAQAZeroDayEngine:
     
     def __init__(self):
         self.engine_id = f"NVIDIA-QA-{str(uuid.uuid4())[:8].upper()}"
-        self.nvidia_api_key = "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"
+        self.nvidia_api_key = os.getenv("NVIDIA_API_KEY", "your_nvidia_api_key_here")
         self.nvidia_api_base = "https://integrate.api.nvidia.com/v1"
         
         # Discovery tracking

@@ -13,7 +13,7 @@ services:
       - REDIS_URL=redis://redis:6379/0
       - TEMPORAL_HOST=temporal:7233
       - ENABLE_METRICS=true
-      - NVIDIA_API_KEY=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
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
       - NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
     depends_on:
       - temporal

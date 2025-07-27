@@ -79,7 +79,7 @@ active_connections = Gauge(
 @dataclass
 class EmbeddingConfig:
     """Configuration for embedding service"""
-    nvidia_api_key: str = "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"
+    nvidia_api_key: str = os.getenv("NVIDIA_API_KEY", "your_nvidia_api_key_here")
     nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
     redis_url: str = "redis://redis:6379/1"  # Use DB 1 for embedding service
     default_model: str = "nvidia/embed-qa-4"
