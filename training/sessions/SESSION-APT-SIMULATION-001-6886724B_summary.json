@@ -1,0 +1,67 @@
+{
+  "session_id": "SESSION-APT-SIMULATION-001-6886724B",
+  "scenario_title": "Advanced Persistent Threat Simulation",
+  "duration_minutes": 0.08342596666666666,
+  "participants": [
+    {
+      "name": "Alex Chen",
+      "role": "red_team",
+      "skill_level": "expert"
+    },
+    {
+      "name": "Jordan Martinez",
+      "role": "red_team",
+      "skill_level": "advanced"
+    },
+    {
+      "name": "Taylor Johnson",
+      "role": "blue_team",
+      "skill_level": "expert"
+    },
+    {
+      "name": "Morgan Davis",
+      "role": "blue_team",
+      "skill_level": "advanced"
+    },
+    {
+      "name": "Casey Wilson",
+      "role": "blue_team",
+      "skill_level": "intermediate"
+    },
+    {
+      "name": "Dr. Avery Kim",
+      "role": "purple_facilitator",
+      "skill_level": "expert"
+    }
+  ],
+  "red_team_performance": {
+    "objectives_completed": 1,
+    "techniques_attempted": [
+      "network_scanning",
+      "osint_gathering",
+      "initial_access"
+    ],
+    "success_rate": 0.25
+  },
+  "blue_team_performance": {
+    "detections_made": 5,
+    "incidents_responded": 1,
+    "response_time": 19.22042862171041
+  },
+  "facilitator_observations": [
+    "Blue team detected reconnaissance activity",
+    "Attack detected and blocked",
+    "Incident response completed in 19.2 minutes"
+  ],
+  "learning_outcomes": [
+    "Identify APT tactics and techniques",
+    "Implement effective detection mechanisms",
+    "Coordinate incident response activities",
+    "Develop threat hunting capabilities"
+  ],
+  "success_criteria_met": {
+    "red_team_objectives": false,
+    "blue_team_detections": true,
+    "blue_team_response_time": true
+  }
+}

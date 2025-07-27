@@ -1,0 +1,57 @@
+{
+  "session_id": "SESSION-PHISHING-DEFENSE-002-6886724B",
+  "scenario_title": "Phishing Campaign Defense Workshop",
+  "duration_minutes": 0.16687371666666667,
+  "participants": [
+    {
+      "name": "Sam Thompson",
+      "role": "red_team",
+      "skill_level": "intermediate"
+    },
+    {
+      "name": "Morgan Davis",
+      "role": "blue_team",
+      "skill_level": "advanced"
+    },
+    {
+      "name": "River Garcia",
+      "role": "blue_team",
+      "skill_level": "beginner"
+    },
+    {
+      "name": "Jamie Rodriguez",
+      "role": "purple_facilitator",
+      "skill_level": "advanced"
+    }
+  ],
+  "red_team_performance": {
+    "objectives_completed": 1,
+    "techniques_attempted": [
+      "network_scanning",
+      "osint_gathering",
+      "initial_access"
+    ],
+    "success_rate": 0.25
+  },
+  "blue_team_performance": {
+    "detections_made": 5,
+    "incidents_responded": 1,
+    "response_time": 37.61182445683595
+  },
+  "facilitator_observations": [
+    "Blue team detected reconnaissance activity",
+    "Attack detected and blocked",
+    "Incident response completed in 37.6 minutes"
+  ],
+  "learning_outcomes": [
+    "Recognize phishing indicators",
+    "Implement email security controls",
+    "Educate end users effectively",
+    "Respond to phishing incidents"
+  ],
+  "success_criteria_met": {
+    "red_team_objectives": true,
+    "blue_team_detections": true,
+    "blue_team_response_time": true
+  }
+}

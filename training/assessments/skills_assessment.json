@@ -1,0 +1,104 @@
+{
+  "assessment_time": "2025-07-27T18:39:17.160556+00:00",
+  "session_id": "PURPLE-TEAM-6886724B",
+  "participant_assessments": {
+    "RT-001": {
+      "participant_name": "Alex Chen",
+      "role": "red_team",
+      "skill_level": "expert",
+      "performance_score": 0.9625,
+      "satisfaction_score": 0.7957282934866132,
+      "skill_improvement": 0.15267437223927183,
+      "collaboration_rating": 0.8694666668612436,
+      "scenario_completed": "APT-SIMULATION-001"
+    },
+    "RT-002": {
+      "participant_name": "Jordan Martinez",
+      "role": "red_team",
+      "skill_level": "advanced",
+      "performance_score": 0.875,
+      "satisfaction_score": 0.8225996037799423,
+      "skill_improvement": 0.13666293084824666,
+      "collaboration_rating": 0.9631246699997794,
+      "scenario_completed": "APT-SIMULATION-001"
+    },
+    "RT-003": {
+      "participant_name": "Sam Thompson",
+      "role": "red_team",
+      "skill_level": "intermediate",
+      "performance_score": 0.7875,
+      "satisfaction_score": 0.9458036763894043,
+      "skill_improvement": 0.20477765382878643,
+      "collaboration_rating": 0.9026998926322296,
+      "scenario_completed": "PHISHING-DEFENSE-002"
+    },
+    "BT-001": {
+      "participant_name": "Taylor Johnson",
+      "role": "blue_team",
+      "skill_level": "expert",
+      "performance_score": 1.0,
+      "satisfaction_score": 0.9163043045996838,
+      "skill_improvement": 0.1422360508158259,
+      "collaboration_rating": 0.9162777146753949,
+      "scenario_completed": "APT-SIMULATION-001"
+    },
+    "BT-002": {
+      "participant_name": "Morgan Davis",
+      "role": "blue_team",
+      "skill_level": "advanced",
+      "performance_score": 0.9099999999999999,
+      "satisfaction_score": 0.877701029617948,
+      "skill_improvement": 0.28928878850634787,
+      "collaboration_rating": 0.8736526357558732,
+      "scenario_completed": "APT-SIMULATION-001"
+    },
+    "BT-003": {
+      "participant_name": "Casey Wilson",
+      "role": "blue_team",
+      "skill_level": "intermediate",
+      "performance_score": 0.8190000000000001,
+      "satisfaction_score": 0.7981996071115138,
+      "skill_improvement": 0.1900846715221216,
+      "collaboration_rating": 0.8861264802742467,
+      "scenario_completed": "APT-SIMULATION-001"
+    },
+    "BT-004": {
+      "participant_name": "River Garcia",
+      "role": "blue_team",
+      "skill_level": "beginner",
+      "performance_score": 0.728,
+      "satisfaction_score": 0.9117021727761605,
+      "skill_improvement": 0.2622936742701728,
+      "collaboration_rating": 0.9605922633982047,
+      "scenario_completed": "PHISHING-DEFENSE-002"
+    },
+    "PF-001": {
+      "participant_name": "Dr. Avery Kim",
+      "role": "purple_facilitator",
+      "skill_level": "expert",
+      "performance_score": 0.77,
+      "satisfaction_score": 0.937504806585564,
+      "skill_improvement": 0.17778430609526996,
+      "collaboration_rating": 0.9107884611597896,
+      "scenario_completed": "APT-SIMULATION-001"
+    },
+    "PF-002": {
+      "participant_name": "Jamie Rodriguez",
+      "role": "purple_facilitator",
+      "skill_level": "advanced",
+      "performance_score": 0.7,
+      "satisfaction_score": 0.8709055418735481,
+      "skill_improvement": 0.16589908389716002,
+      "collaboration_rating": 0.8807393191269657,
+      "scenario_completed": "PHISHING-DEFENSE-002"
+    }
+  },
+  "overall_metrics": {
+    "total_scenarios_completed": 2,
+    "participant_satisfaction": 0.8751610040244864,
+    "skill_improvement_rate": 0.19130017022480036,
+    "collaboration_effectiveness": 0.9475714720468627,
+    "knowledge_retention_score": 0.8267831783124733,
+    "real_world_application": 0.8919823621101729
+  }
+}

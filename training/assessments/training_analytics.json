@@ -1,0 +1,40 @@
+{
+  "analytics_generated": "2025-07-27T18:39:17.161066+00:00",
+  "session_id": "PURPLE-TEAM-6886724B",
+  "scenario_analytics": {
+    "APT-SIMULATION-001": {
+      "title": "Advanced Persistent Threat Simulation",
+      "sessions_completed": 1,
+      "average_duration_minutes": 0.08342596666666666,
+      "average_satisfaction": 0.8280886016645169,
+      "difficulty_appropriate": true,
+      "learning_effectiveness": 0.9304799445984058
+    },
+    "PHISHING-DEFENSE-002": {
+      "title": "Phishing Campaign Defense Workshop",
+      "sessions_completed": 1,
+      "average_duration_minutes": 0.16687371666666667,
+      "average_satisfaction": 0.9320364287733314,
+      "difficulty_appropriate": true,
+      "learning_effectiveness": 0.8137032933287108
+    }
+  },
+  "collaboration_analysis": {
+    "cross_team_communication": 0.8366143661138489,
+    "knowledge_sharing_effectiveness": 0.8400474089122125,
+    "conflict_resolution_success": 0.9786939226181319,
+    "facilitator_effectiveness": 0.9744371050148696
+  },
+  "skills_development": {
+    "technical_skills_improvement": 0.16054582292565303,
+    "communication_skills_improvement": 0.2095042798361277,
+    "teamwork_skills_improvement": 0.1653802099897163,
+    "problem_solving_improvement": 0.3572556613783767
+  },
+  "recommendations": [
+    "Increase hands-on technical exercises",
+    "Enhance cross-team communication protocols",
+    "Develop more advanced scenario variations",
+    "Implement continuous feedback mechanisms"
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "session_id": "PURPLE-TEAM-6886724B",
+  "platform_type": "purple_team_training",
+  "timestamp": "2025-07-27T18:39:17.161294+00:00",
+  "duration_seconds": 10.015229,
+  "status": "successful",
+  "training_platform_summary": {
+    "scenarios_available": 5,
+    "total_participants": 9,
+    "active_sessions": 2,
+    "participation_rate_percent": 100.0,
+    "scenarios_completed": 2
+  },
+  "team_composition": {
+    "red_team_members": 3,
+    "blue_team_members": 4,
+    "purple_facilitators": 2,
+    "skill_level_distribution": {
+      "beginner": 1,
+      "intermediate": 2,
+      "advanced": 3,
+      "expert": 3
+    }
+  },
+  "training_effectiveness": {
+    "participant_satisfaction": 0.8751610040244864,
+    "skill_improvement_rate": 0.19130017022480036,
+    "collaboration_effectiveness": 0.9475714720468627,
+    "knowledge_retention_score": 0.8267831783124733,
+    "real_world_application": 0.8919823621101729
+  },
+  "scenario_diversity": {
+    "exercise_types_available": 5,
+    "difficulty_levels_covered": 2,
+    "total_learning_objectives": 20,
+    "average_scenario_duration": 156.0
+  },
+  "collaboration_features": {
+    "real_time_coordination": true,
+    "cross_team_communication": true,
+    "facilitator_guidance": true,
+    "performance_tracking": true,
+    "knowledge_sharing_platform": true,
+    "post_exercise_analysis": true
+  },
+  "certification_pathway": {
+    "purple_team_certification_available": true,
+    "skill_badges_earned": 18,
+    "competency_assessments_completed": 2,
+    "continuing_education_credits": 13
+  }
+}

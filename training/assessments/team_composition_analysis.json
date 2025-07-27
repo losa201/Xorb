@@ -1,0 +1,43 @@
+{
+  "analysis_time": "2025-07-27T18:39:07.146976+00:00",
+  "session_id": "PURPLE-TEAM-6886724B",
+  "team_analysis": {
+    "red_team": {
+      "count": 3,
+      "skill_distribution": {
+        "beginner": 0,
+        "intermediate": 1,
+        "advanced": 1,
+        "expert": 1
+      }
+    },
+    "blue_team": {
+      "count": 4,
+      "skill_distribution": {
+        "beginner": 1,
+        "intermediate": 1,
+        "advanced": 1,
+        "expert": 1
+      }
+    },
+    "purple_facilitator": {
+      "count": 2,
+      "skill_distribution": {
+        "beginner": 0,
+        "intermediate": 0,
+        "advanced": 1,
+        "expert": 1
+      }
+    },
+    "observer": {
+      "count": 0,
+      "skill_distribution": {
+        "beginner": 0,
+        "intermediate": 0,
+        "advanced": 0,
+        "expert": 0
+      }
+    }
+  },
+  "total_participants": 9
+}
