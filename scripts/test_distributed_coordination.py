@@ -1,3 +1,5 @@
+from typing import Dict, List, Any, Optional
+
 #!/usr/bin/env python3
 """
 Distributed Campaign Coordination Test Script
@@ -7,6 +9,7 @@ Demonstrates multi-node orchestration with consensus algorithms
 import asyncio
 import sys
 import os
+import aiofiles
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from xorb_core.orchestration.distributed_campaign_coordinator import (
@@ -24,12 +27,12 @@ logger = logging.getLogger(__name__)
 class MockReconAgent(BaseAgent):
     """Mock reconnaissance agent for testing"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.capabilities = [AgentCapability.RECONNAISSANCE]
         self.name = "MockReconAgent"
     
-    async def execute(self, target: str, **kwargs):
+    async def execute(self, target: str, **kwargs) -> None:
         await asyncio.sleep(2)  # Simulate work
         return {
             "status": "success",
@@ -40,12 +43,12 @@ class MockReconAgent(BaseAgent):
 class MockExploitAgent(BaseAgent):
     """Mock exploitation agent for testing"""
     
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
         self.capabilities = [AgentCapability.EXPLOITATION]
         self.name = "MockExploitAgent"
     
-    async def execute(self, target: str, **kwargs):
+    async def execute(self, target: str, **kwargs) -> None:
         await asyncio.sleep(3)  # Simulate work
         return {
             "status": "success",
@@ -54,7 +57,7 @@ class MockExploitAgent(BaseAgent):
             "confidence": 0.92
         }
 
-async def setup_test_nodes():
+async def setup_test_nodes() -> None:
     """Setup multiple coordinator nodes for testing"""
     
     # Node 1 - Primary Coordinator
@@ -81,7 +84,7 @@ async def setup_test_nodes():
     
     return [node1, node2, node3]
 
-async def test_node_discovery():
+async def test_node_discovery() -> None:
     """Test automatic node discovery and registration"""
     logger.info("=== Testing Node Discovery ===")
     
@@ -107,7 +110,7 @@ async def test_node_discovery():
     
     logger.info("✅ Node discovery test passed")
 
-async def test_consensus_algorithm():
+async def test_consensus_algorithm() -> None:
     """Test consensus algorithm for leader election"""
     logger.info("=== Testing Consensus Algorithm ===")
     
@@ -144,7 +147,7 @@ async def test_consensus_algorithm():
     
     logger.info("✅ Consensus algorithm test passed")
 
-async def test_distributed_campaign_execution():
+async def test_distributed_campaign_execution() -> None:
     """Test end-to-end distributed campaign execution"""
     logger.info("=== Testing Distributed Campaign Execution ===")
     
@@ -197,7 +200,7 @@ async def test_distributed_campaign_execution():
     
     logger.info("✅ Distributed campaign execution test passed")
 
-async def test_fault_tolerance():
+async def test_fault_tolerance() -> None:
     """Test fault tolerance and node failure handling"""
     logger.info("=== Testing Fault Tolerance ===")
     
@@ -244,7 +247,7 @@ async def test_fault_tolerance():
     
     logger.info("✅ Fault tolerance test passed")
 
-async def main():
+async def main() -> None:
     """Run all distributed coordination tests"""
     logger.info("Starting Distributed Campaign Coordination Tests")
     logger.info("=" * 60)

@@ -1,0 +1,53 @@
+{
+  "report_id": "EXEC-46D59AA2",
+  "report_type": "executive_summary",
+  "generated_at": "2025-07-27T17:28:32.176086",
+  "reporting_period": "Last 30 Days",
+  "executive_highlights": {
+    "total_value_delivered": 1735500.0,
+    "average_roi": 607.0,
+    "security_posture_improvement": "23.4%",
+    "threat_detection_rate": 94.7,
+    "operational_efficiency": 96.4
+  },
+  "key_achievements": [
+    "Delivered $1,735,500 in security value",
+    "Achieved 607% average ROI across campaigns",
+    "Maintained 94.7% threat detection rate",
+    "Reduced mean time to detection to 4.2 minutes",
+    "Sustained 99.7% system availability"
+  ],
+  "critical_insights": [
+    "Identified 3 high-impact threats",
+    "Advanced persistent threats showing increased sophistication",
+    "Zero-day exploits remain highest business impact category",
+    "Supply chain attacks trending upward",
+    "Agent performance improved 15.7% with memory enhancement"
+  ],
+  "strategic_recommendations": [
+    "Expand threat hunting capabilities to counter APT evolution",
+    "Invest in zero-day protection mechanisms",
+    "Enhance supply chain security monitoring",
+    "Scale agent memory system across all operations",
+    "Implement advanced behavioral analytics"
+  ],
+  "risk_assessment": {
+    "overall_risk_level": "Medium",
+    "high_impact_threats": 2,
+    "critical_impact_threats": 1,
+    "risk_reduction_achieved": "67.8%",
+    "residual_risk_factors": [
+      "Zero-day vulnerability exposure",
+      "Advanced social engineering campaigns",
+      "Supply chain compromise potential"
+    ]
+  },
+  "financial_performance": {
+    "total_investment": 281000.0,
+    "total_value_generated": 1735500.0,
+    "net_value": 1454500.0,
+    "roi_percentage": 517.6156583629894,
+    "cost_avoidance": 1214850.0,
+    "efficiency_gains": 520650.0
+  }
+}

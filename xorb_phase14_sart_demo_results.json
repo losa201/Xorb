@@ -1,0 +1,60 @@
+{
+  "demo_id": "PHASE14-SART-DEMO-A3B85737",
+  "timestamp": "2025-07-27T11:29:59.026373",
+  "runtime_seconds": 9.029796838760376,
+  "initialization": {
+    "red_agents_created": 5,
+    "blue_agents_created": 3,
+    "threat_types": [
+      "zero_day_exploit",
+      "advanced_evasion",
+      "stealth_persistence",
+      "lateral_movement",
+      "data_exfiltration"
+    ],
+    "defense_modes": [
+      "proactive_hunting",
+      "behavioral_analysis",
+      "signature_detection"
+    ]
+  },
+  "training_performance": {
+    "windows_completed": 6,
+    "total_scenarios": 48,
+    "total_detections": 30,
+    "overall_detection_rate": 0.625,
+    "avg_decision_quality": 0.6166666666666667,
+    "avg_response_time": 1.0822157582226548
+  },
+  "adversarial_learning": {
+    "claude_critiques_generated": 6,
+    "swarm_reconfigurations": 0,
+    "performance_improvements": [
+      -0.20000000000000007,
+      0.050000000000000044,
+      0.03749999999999998,
+      -0.16249999999999998,
+      -0.08750000000000002
+    ],
+    "avg_improvement": -0.07250000000000001
+  },
+  "closed_feedback_loops": {
+    "red_blue_adaptation": "active",
+    "performance_based_reconfiguration": "operational",
+    "claude_critique_integration": "continuous",
+    "reinforcement_learning": "q_learning_based"
+  },
+  "optimization_targets": {
+    "evasion_resilient_detection": 0.8333333333333334,
+    "resource_aware_countermeasures": 0.9240301597920922,
+    "time_to_response_reduction": 0.4588921208886726
+  },
+  "final_assessment": {
+    "sart_status": "operational",
+    "continuous_training": "active",
+    "adversarial_effectiveness": "moderate",
+    "swarm_responsiveness": "adaptive",
+    "claude_integration": "seamless",
+    "deployment_ready": true
+  }
+}

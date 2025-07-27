@@ -1,10 +1,13 @@
+import logging
+logger = logging.getLogger(__name__)
+
 #!/usr/bin/env python3
 """
 Xorb 2.0 Phase 3 Deployment Verification Script
 Comprehensive health check and status report
 """
 
-import requests
+import aiohttp
 import json
 import time
 import sys
@@ -13,26 +16,30 @@ from typing import Dict, List, Tuple
 def check_service(name: str, url: str, timeout: int = 5) -> Tuple[bool, str]:
     """Check if a service is responding"""
     try:
-        response = requests.get(url, timeout=timeout)
+        response = await session.get(url, timeout=timeout)
         if response.status_code == 200:
             return True, f"✅ {name}: Healthy (HTTP {response.status_code})"
         else:
             return False, f"❌ {name}: Error (HTTP {response.status_code})"
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectionError as e:
+        logger.exception("Error in operation: %s", e)
         return False, f"🔴 {name}: Connection refused"
-    except requests.exceptions.Timeout:
+    except requests.exceptions.Timeout as e:
+        logger.exception("Error in operation: %s", e)
         return False, f"⏰ {name}: Timeout"
-    except Exception as e:
+    except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
         return False, f"❌ {name}: {str(e)}"
 
 def get_service_info(url: str) -> Dict:
     """Get detailed service information"""
     try:
-        response = requests.get(url, timeout=5)
+        response = await session.get(url, timeout=5)
         if response.status_code == 200:
             return response.json()
         return {"error": f"HTTP {response.status_code}"}
-    except Exception as e:
+    except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
         return {"error": str(e)}
 
 def main():

@@ -1,0 +1,62 @@
+[
+  {
+    "insight_id": "TI-001",
+    "threat_category": "Advanced Persistent Threats",
+    "sophistication_trend": "increasing",
+    "attack_frequency": 23,
+    "success_rate": 15.7,
+    "business_impact": "high",
+    "recommended_actions": [
+      "Enhance endpoint detection capabilities",
+      "Implement advanced behavioral analytics",
+      "Increase threat hunting frequency"
+    ],
+    "confidence_level": 0.89,
+    "timestamp": 1753637312.1750438
+  },
+  {
+    "insight_id": "TI-002",
+    "threat_category": "Zero-Day Exploits",
+    "sophistication_trend": "stable",
+    "attack_frequency": 8,
+    "success_rate": 32.1,
+    "business_impact": "critical",
+    "recommended_actions": [
+      "Deploy virtual patching mechanisms",
+      "Enhance vulnerability management",
+      "Implement zero-trust architecture"
+    ],
+    "confidence_level": 0.94,
+    "timestamp": 1753637312.1750479
+  },
+  {
+    "insight_id": "TI-003",
+    "threat_category": "Supply Chain Attacks",
+    "sophistication_trend": "increasing",
+    "attack_frequency": 12,
+    "success_rate": 28.6,
+    "business_impact": "high",
+    "recommended_actions": [
+      "Implement software composition analysis",
+      "Enhance vendor security assessments",
+      "Deploy supply chain monitoring"
+    ],
+    "confidence_level": 0.87,
+    "timestamp": 1753637312.1750498
+  },
+  {
+    "insight_id": "TI-004",
+    "threat_category": "Social Engineering",
+    "sophistication_trend": "increasing",
+    "attack_frequency": 45,
+    "success_rate": 19.3,
+    "business_impact": "medium",
+    "recommended_actions": [
+      "Enhance security awareness training",
+      "Deploy advanced email security",
+      "Implement human risk scoring"
+    ],
+    "confidence_level": 0.91,
+    "timestamp": 1753637312.175051
+  }
+]

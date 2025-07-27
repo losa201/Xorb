@@ -1,3 +1,5 @@
+from typing import Dict, List, Any, Optional
+
 #!/usr/bin/env python3
 """
 Advanced Stealth and Evasion Test Script
@@ -7,6 +9,7 @@ Tests sophisticated evasion techniques and stealth capabilities
 import asyncio
 import sys
 import os
+import aiofiles
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from xorb_core.evasion.advanced_stealth import (
@@ -21,7 +24,7 @@ import random
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-async def test_stealth_session_creation():
+async def test_stealth_session_creation() -> None:
     """Test stealth session creation and configuration"""
     logger.info("=== Testing Stealth Session Creation ===")
     
@@ -63,7 +66,7 @@ async def test_stealth_session_creation():
     
     logger.info("✅ Stealth session creation test passed")
 
-async def test_evasion_technique_selection():
+async def test_evasion_technique_selection() -> None:
     """Test evasion technique optimization and selection"""
     logger.info("=== Testing Evasion Technique Selection ===")
     
@@ -98,7 +101,7 @@ async def test_evasion_technique_selection():
     
     logger.info("✅ Evasion technique selection test passed")
 
-async def test_stealth_request_execution():
+async def test_stealth_request_execution() -> None:
     """Test stealth request execution with evasion techniques"""
     logger.info("=== Testing Stealth Request Execution ===")
     
@@ -140,7 +143,7 @@ async def test_stealth_request_execution():
     await stealth_engine.close_stealth_session(session.session_id)
     logger.info("✅ Stealth request execution test passed")
 
-async def test_timing_evasion():
+async def test_timing_evasion() -> None:
     """Test timing evasion techniques"""
     logger.info("=== Testing Timing Evasion ===")
     
@@ -174,7 +177,7 @@ async def test_timing_evasion():
     await stealth_engine.close_stealth_session(session.session_id)
     logger.info("✅ Timing evasion test passed")
 
-async def test_dns_tunneling():
+async def test_dns_tunneling() -> None:
     """Test DNS tunneling implementation"""
     logger.info("=== Testing DNS Tunneling ===")
     
@@ -213,7 +216,7 @@ async def test_dns_tunneling():
     await stealth_engine.close_stealth_session(session.session_id)
     logger.info("✅ DNS tunneling test passed")
 
-async def test_steganography():
+async def test_steganography() -> None:
     """Test steganographic data hiding"""
     logger.info("=== Testing Steganography ===")
     
@@ -263,7 +266,7 @@ async def test_steganography():
     
     logger.info("✅ Steganography test passed")
 
-async def test_protocol_obfuscation():
+async def test_protocol_obfuscation() -> None:
     """Test protocol obfuscation techniques"""
     logger.info("=== Testing Protocol Obfuscation ===")
     
@@ -302,7 +305,7 @@ async def test_protocol_obfuscation():
     await stealth_engine.close_stealth_session(session.session_id)
     logger.info("✅ Protocol obfuscation test passed")
 
-async def test_behavioral_mimicry():
+async def test_behavioral_mimicry() -> None:
     """Test behavioral mimicry implementation"""
     logger.info("=== Testing Behavioral Mimicry ===")
     
@@ -336,7 +339,7 @@ async def test_behavioral_mimicry():
     await stealth_engine.close_stealth_session(session.session_id)
     logger.info("✅ Behavioral mimicry test passed")
 
-async def test_anti_forensics():
+async def test_anti_forensics() -> None:
     """Test anti-forensics techniques"""
     logger.info("=== Testing Anti-Forensics ===")
     
@@ -364,7 +367,7 @@ async def test_anti_forensics():
     await stealth_engine.close_stealth_session(session.session_id)
     logger.info("✅ Anti-forensics test passed")
 
-async def test_session_metrics():
+async def test_session_metrics() -> None:
     """Test session metrics and monitoring"""
     logger.info("=== Testing Session Metrics ===")
     
@@ -406,7 +409,7 @@ async def test_session_metrics():
     await stealth_engine.close_stealth_session(session.session_id)
     logger.info("✅ Session metrics test passed")
 
-async def test_evasion_profiles():
+async def test_evasion_profiles() -> None:
     """Test evasion profile effectiveness ratings"""
     logger.info("=== Testing Evasion Profiles ===")
     
@@ -441,7 +444,7 @@ async def test_evasion_profiles():
     
     logger.info("✅ Evasion profiles test passed")
 
-async def main():
+async def main() -> None:
     """Run all advanced stealth and evasion tests"""
     logger.info("Starting Advanced Stealth and Evasion Tests")
     logger.info("=" * 70)

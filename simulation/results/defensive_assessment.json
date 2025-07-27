@@ -1,0 +1,53 @@
+{
+  "assessment_time": "2025-07-27T18:12:19.976090+00:00",
+  "session_id": "REDTEAM-SIM-68866C00",
+  "phase_analysis": {
+    "reconnaissance": {
+      "techniques_tested": 5,
+      "success_rate": 0.4,
+      "average_detection_time": 40.87058823529411,
+      "defensive_gap": "LOW"
+    },
+    "initial_access": {
+      "techniques_tested": 5,
+      "success_rate": 0.6,
+      "average_detection_time": 100.4,
+      "defensive_gap": "MEDIUM"
+    },
+    "privilege_escalation": {
+      "techniques_tested": 5,
+      "success_rate": 0.6,
+      "average_detection_time": 89.96078431372548,
+      "defensive_gap": "MEDIUM"
+    },
+    "credential_access": {
+      "techniques_tested": 5,
+      "success_rate": 0.6,
+      "average_detection_time": 87.27058823529411,
+      "defensive_gap": "MEDIUM"
+    },
+    "discovery": {
+      "techniques_tested": 5,
+      "success_rate": 0.8,
+      "average_detection_time": 86.70588235294117,
+      "defensive_gap": "HIGH"
+    },
+    "lateral_movement": {
+      "techniques_tested": 5,
+      "success_rate": 0.4,
+      "average_detection_time": 68.4470588235294,
+      "defensive_gap": "LOW"
+    }
+  },
+  "high_risk_phases": [
+    "discovery"
+  ],
+  "overall_metrics": {
+    "total_techniques_attempted": 30,
+    "successful_techniques": 17,
+    "detection_rate": 0.43333333333333335,
+    "average_detection_time": 77.838779956427,
+    "stealth_effectiveness": 0.34435303073241513,
+    "defensive_gaps_identified": 1
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "session_id": "SWARM-CONSCIOUSNESS-688664C2",
+  "orchestration_type": "decentralized_swarm_consciousness",
+  "timestamp": "2025-07-27T17:51:22.640991+00:00",
+  "duration_seconds": 600.031993,
+  "status": "partial",
+  "consciousness_summary": {
+    "total_agents": 32,
+    "consciousness_cycles": 10,
+    "breakthrough_behaviors": 10,
+    "swarm_convergence_rate": 0.0,
+    "emotional_reasoning_accuracy": 0.0
+  },
+  "success_criteria_assessment": {
+    "red_team_detection_improvement": {
+      "achieved": 0.9964622647389207,
+      "target": 20.0,
+      "success": false
+    },
+    "swarm_convergence": {
+      "achieved": 0.0,
+      "target": 85.0,
+      "success": false
+    },
+    "breakthrough_behaviors": {
+      "achieved": 10,
+      "target": 5,
+      "success": true
+    },
+    "autonomous_execution": {
+      "achieved": 10,
+      "target": 10,
+      "success": true
+    }
+  },
+  "overall_success_rate": 50.0,
+  "swarm_intelligence_metrics": {
+    "intent_broadcasting_cycles": 55,
+    "consensus_achievements": 0,
+    "reflective_cycles_completed": 20,
+    "agent_uplift_score": 0.7469851308348376,
+    "emotional_stability": 28.125
+  },
+  "autonomous_evolution": {
+    "gpu_acceleration_used": false,
+    "decentralized_decision_making": true,
+    "emotional_modulation_active": true,
+    "memory_integration_cycles": 32,
+    "breakthrough_detection_active": true
+  },
+  "final_metrics": {
+    "red_team_detection_improvement": 0.9964622647389207,
+    "swarm_convergence_rate": 0.0,
+    "breakthrough_behaviors": 10,
+    "autonomous_cycles_completed": 10,
+    "emotional_reasoning_accuracy": 0.0
+  }
+}

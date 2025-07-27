@@ -1,0 +1,397 @@
+{
+  "threat_landscape": {
+    "dashboard_id": "DASH-THREAT-C3DD5E",
+    "dashboard_type": "threat_landscape",
+    "title": "XORB Threat Landscape Intelligence",
+    "generated_at": "2025-07-27T17:28:32.177050",
+    "widgets": {
+      "threat_category_distribution": {
+        "type": "pie_chart",
+        "data": {
+          "Advanced Persistent Threats": 28.7,
+          "Zero-Day Exploits": 15.3,
+          "Supply Chain Attacks": 18.9,
+          "Social Engineering": 37.1
+        },
+        "title": "Threat Category Distribution (Last 30 Days)"
+      },
+      "sophistication_trend": {
+        "type": "line_chart",
+        "data": {
+          "dates": [
+            "2025-07-01",
+            "2025-07-08",
+            "2025-07-15",
+            "2025-07-22",
+            "2025-07-27"
+          ],
+          "sophistication_scores": [
+            7.2,
+            7.8,
+            8.1,
+            8.6,
+            8.9
+          ]
+        },
+        "title": "Threat Sophistication Trend"
+      },
+      "attack_success_rates": {
+        "type": "bar_chart",
+        "data": {
+          "APT": 15.7,
+          "Zero-Day": 32.1,
+          "Supply Chain": 28.6,
+          "Social Engineering": 19.3
+        },
+        "title": "Attack Success Rates by Category"
+      },
+      "threat_intelligence_alerts": {
+        "type": "alert_list",
+        "data": [
+          {
+            "level": "HIGH",
+            "message": "New APT campaign targeting financial sector"
+          },
+          {
+            "level": "CRITICAL",
+            "message": "Zero-day exploit in enterprise software detected"
+          },
+          {
+            "level": "MEDIUM",
+            "message": "Supply chain compromise indicators identified"
+          }
+        ],
+        "title": "Active Threat Intelligence Alerts"
+      },
+      "geographic_threat_map": {
+        "type": "heatmap",
+        "data": {
+          "regions": [
+            "North America",
+            "Europe",
+            "Asia-Pacific",
+            "Latin America"
+          ],
+          "threat_density": [
+            8.7,
+            6.4,
+            9.2,
+            4.1
+          ]
+        },
+        "title": "Global Threat Activity Heatmap"
+      }
+    },
+    "refresh_interval": 300,
+    "data_sources": [
+      "threat_intelligence",
+      "vector_memories",
+      "operational_logs"
+    ]
+  },
+  "agent_performance": {
+    "dashboard_id": "DASH-AGENT-8A8434",
+    "dashboard_type": "agent_monitoring",
+    "title": "XORB Agent Performance Analytics",
+    "generated_at": "2025-07-27T17:28:32.177196",
+    "widgets": {
+      "agent_efficiency_overview": {
+        "type": "gauge",
+        "data": {
+          "current_value": 83.80886808265674,
+          "target_value": 85.0,
+          "status": "at_risk"
+        },
+        "title": "Overall Agent Efficiency"
+      },
+      "task_completion_rates": {
+        "type": "bar_chart",
+        "data": {
+          "stealth_reconnaissance": 87.15683741346312,
+          "network_monitor": 89.70707008698233,
+          "penetration_tester": 97.73461792754642,
+          "defense_optimizer": 88.57036253554244,
+          "forensics_expert": 95.20614727391343,
+          "vulnerability_scanner": 88.96778059892486,
+          "endpoint_analyzer": 91.92497757298655,
+          "exploit_framework": 94.51489443933139,
+          "incident_responder": 97.73501049928399,
+          "intelligence_collector": 85.71290937218265,
+          "threat_hunter": 97.32646650083998,
+          "security_analyst": 86.95288904741204
+        },
+        "title": "Task Completion Rates by Agent Type"
+      },
+      "learning_velocity_trends": {
+        "type": "line_chart",
+        "data": {
+          "agent_types": [
+            "stealth_reconnaissance",
+            "vulnerability_scanner",
+            "exploit_framework",
+            "network_monitor",
+            "endpoint_analyzer",
+            "threat_hunter"
+          ],
+          "learning_scores": [
+            82.13521304199989,
+            86.11987069915132,
+            65.26024898659458,
+            87.06393744883967,
+            66.1786137182448,
+            69.4172457153904
+          ]
+        },
+        "title": "Agent Learning Velocity"
+      },
+      "error_rate_analysis": {
+        "type": "scatter_plot",
+        "data": {
+          "x_values": [
+            87.37014400601541,
+            92.82465082006301,
+            78.60150504849578,
+            82.86528718938179,
+            84.57886649530637,
+            80.24830852125115,
+            81.0554884856034,
+            80.5770767415131,
+            88.18464483875704,
+            78.2283724150967,
+            87.84490370284722,
+            83.3271687275499
+          ],
+          "y_values": [
+            6.0421190262116165,
+            4.183987677411754,
+            4.399851139413624,
+            3.800875520036383,
+            4.888200451736919,
+            7.720980070382534,
+            5.317032242757544,
+            3.4265650424033707,
+            7.800184475162959,
+            2.403087512644806,
+            7.275670902188888,
+            3.896482981745656
+          ],
+          "labels": [
+            "stealth_reconnaissance",
+            "vulnerability_scanner",
+            "exploit_framework",
+            "network_monitor",
+            "endpoint_analyzer",
+            "threat_hunter",
+            "incident_responder",
+            "forensics_expert",
+            "intelligence_collector",
+            "penetration_tester",
+            "security_analyst",
+            "defense_optimizer"
+          ]
+        },
+        "title": "Efficiency vs Error Rate Analysis"
+      },
+      "top_performers": {
+        "type": "table",
+        "data": {
+          "headers": [
+            "Agent ID",
+            "Type",
+            "Efficiency",
+            "Completion Rate",
+            "Cost Effectiveness"
+          ],
+          "rows": [
+            [
+              "AGENT-VULNERABILITY_SCANNER-001",
+              "vulnerability_scanner",
+              "92.8%",
+              "89.0%",
+              "69.3%"
+            ],
+            [
+              "AGENT-INTELLIGENCE_COLLECTOR-008",
+              "intelligence_collector",
+              "88.2%",
+              "85.7%",
+              "71.8%"
+            ],
+            [
+              "AGENT-SECURITY_ANALYST-010",
+              "security_analyst",
+              "87.8%",
+              "87.0%",
+              "70.2%"
+            ],
+            [
+              "AGENT-STEALTH_RECONNAISSANCE-000",
+              "stealth_reconnaissance",
+              "87.4%",
+              "87.2%",
+              "81.4%"
+            ],
+            [
+              "AGENT-ENDPOINT_ANALYZER-004",
+              "endpoint_analyzer",
+              "84.6%",
+              "91.9%",
+              "78.0%"
+            ]
+          ]
+        },
+        "title": "Top 5 Performing Agents"
+      }
+    },
+    "refresh_interval": 120,
+    "data_sources": [
+      "agent_memory",
+      "operational_logs",
+      "campaign_executions"
+    ]
+  },
+  "operations_center": {
+    "dashboard_id": "DASH-OPS-3146DC",
+    "dashboard_type": "operations_center",
+    "title": "XORB Operations Center - Real-Time Status",
+    "generated_at": "2025-07-27T17:28:32.177375",
+    "widgets": {
+      "system_status": {
+        "type": "status_grid",
+        "data": {
+          "components": [
+            {
+              "name": "Agent Fleet",
+              "status": "operational",
+              "health": 98.7
+            },
+            {
+              "name": "Memory System",
+              "status": "operational",
+              "health": 99.2
+            },
+            {
+              "name": "Threat Intelligence",
+              "status": "operational",
+              "health": 97.4
+            },
+            {
+              "name": "Campaign Engine",
+              "status": "operational",
+              "health": 96.8
+            },
+            {
+              "name": "Vector Database",
+              "status": "operational",
+              "health": 99.1
+            },
+            {
+              "name": "Analytics Engine",
+              "status": "operational",
+              "health": 95.3
+            }
+          ]
+        },
+        "title": "System Component Health"
+      },
+      "active_campaigns": {
+        "type": "live_list",
+        "data": [
+          {
+            "id": "CAMP-TH-001",
+            "type": "Threat Hunting",
+            "status": "executing",
+            "progress": 73
+          },
+          {
+            "id": "CAMP-VA-002",
+            "type": "Vulnerability Assessment",
+            "status": "completed",
+            "progress": 100
+          },
+          {
+            "id": "CAMP-IR-003",
+            "type": "Incident Response",
+            "status": "planning",
+            "progress": 15
+          }
+        ],
+        "title": "Active Security Campaigns"
+      },
+      "real_time_metrics": {
+        "type": "metric_tiles",
+        "data": {
+          "active_agents": 20,
+          "running_tasks": 47,
+          "threats_detected": 3,
+          "incidents_active": 1,
+          "system_load": 67.3,
+          "response_time": 245
+        },
+        "title": "Real-Time Operational Metrics"
+      },
+      "alert_feed": {
+        "type": "scrolling_feed",
+        "data": [
+          {
+            "timestamp": "16:45:32",
+            "level": "INFO",
+            "message": "Campaign CAMP-TH-001 reached 75% completion"
+          },
+          {
+            "timestamp": "16:44:18",
+            "level": "WARN",
+            "message": "Agent AGENT-NET-005 reporting elevated error rate"
+          },
+          {
+            "timestamp": "16:43:07",
+            "level": "INFO",
+            "message": "Threat intelligence update: 23 new indicators"
+          },
+          {
+            "timestamp": "16:42:45",
+            "level": "HIGH",
+            "message": "Suspicious activity detected on network segment 10.0.5.0/24"
+          }
+        ],
+        "title": "Live Alert Feed"
+      },
+      "geographic_operations": {
+        "type": "world_map",
+        "data": {
+          "agent_locations": [
+            {
+              "location": "datacenter_alpha",
+              "lat": 37.7749,
+              "lng": -122.4194,
+              "agents": 5
+            },
+            {
+              "location": "datacenter_beta",
+              "lat": 40.7128,
+              "lng": -74.006,
+              "agents": 4
+            },
+            {
+              "location": "cloud_region_us",
+              "lat": 39.0458,
+              "lng": -76.6413,
+              "agents": 3
+            },
+            {
+              "location": "field_office_sf",
+              "lat": 37.7849,
+              "lng": -122.4094,
+              "agents": 2
+            }
+          ]
+        },
+        "title": "Global Agent Deployment"
+      }
+    },
+    "refresh_interval": 30,
+    "data_sources": [
+      "all_systems"
+    ]
+  }
+}

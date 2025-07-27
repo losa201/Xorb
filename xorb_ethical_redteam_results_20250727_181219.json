@@ -1,0 +1,51 @@
+{
+  "session_id": "REDTEAM-SIM-68866C00",
+  "simulation_type": "ethical_red_team",
+  "timestamp": "2025-07-27T18:12:19.978591+00:00",
+  "duration_seconds": 3.024821,
+  "status": "successful",
+  "ethical_compliance": {
+    "constraints_enforced": true,
+    "sandbox_network_only": "192.168.56.0/24",
+    "destructive_actions_disabled": true,
+    "audit_logging_complete": true,
+    "threat_level_capped": 8
+  },
+  "simulation_summary": {
+    "targets_tested": 5,
+    "techniques_available": 6,
+    "simulations_executed": 30,
+    "successful_techniques": 17,
+    "detection_rate_percent": 93.33333333333333
+  },
+  "performance_metrics": {
+    "total_techniques_attempted": 30,
+    "successful_techniques": 17,
+    "detection_rate": 0.43333333333333335,
+    "average_detection_time": 77.838779956427,
+    "stealth_effectiveness": 0.34435303073241513,
+    "defensive_gaps_identified": 1
+  },
+  "defensive_insights": {
+    "high_risk_attack_phases": 1,
+    "average_detection_time_seconds": 77.838779956427,
+    "stealth_effectiveness_score": 0.34435303073241513,
+    "recommended_improvements": [
+      "Enhanced monitoring for lateral movement techniques",
+      "Improved credential access detection",
+      "Faster incident response procedures"
+    ]
+  },
+  "training_outcomes": {
+    "replay_scenarios_generated": 10,
+    "mitre_attack_phases_covered": 6,
+    "purple_team_exercises_ready": true,
+    "defensive_training_materials": true
+  },
+  "qwen3_enhancement": {
+    "intelligent_technique_selection": true,
+    "adaptive_evasion_testing": true,
+    "learning_based_improvements": true,
+    "ethical_constraint_validation": true
+  }
+}

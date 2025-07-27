@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 #!/usr/bin/env python3
 """
 Advanced Evasion & Stealth Agent Demonstration
@@ -54,6 +56,7 @@ structlog.configure(
 logger = structlog.get_logger(__name__)
 
 
+@dataclass
 class AdvancedEvasionDemo:
     """Comprehensive demonstration of advanced evasion capabilities."""
     
@@ -640,17 +643,17 @@ class AdvancedEvasionDemo:
         
         # Save detailed report
         report_path = Path(__file__).parent.parent / "advanced_evasion_demo_report.json"
-        with open(report_path, 'w') as f:
+        async with aiofiles.open(report_path, 'w') as f:
             json.dump(comprehensive_report, f, indent=2, default=str)
         
         # Save detection signatures analysis
         signatures_path = Path(__file__).parent.parent / "detection_signatures_analysis.json"
-        with open(signatures_path, 'w') as f:
+        async with aiofiles.open(signatures_path, 'w') as f:
             json.dump(self.demo_results.get("detection_signatures", {}), f, indent=2)
         
         # Save performance benchmarks
         benchmarks_path = Path(__file__).parent.parent / "performance_benchmarks.json"
-        with open(benchmarks_path, 'w') as f:
+        async with aiofiles.open(benchmarks_path, 'w') as f:
             json.dump(self.demo_results.get("performance_benchmarks", {}), f, indent=2)
         
         logger.info("Comprehensive report generated",

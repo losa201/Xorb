@@ -1,0 +1,59 @@
+[
+  {
+    "campaign_id": "CAMP-THREAT-HUNT-001",
+    "campaign_type": "threat_hunting",
+    "total_cost": 125000.0,
+    "value_generated": 487500.0,
+    "roi_percentage": 290.0,
+    "time_to_value": 14.5,
+    "risk_reduction": 67.8,
+    "business_outcomes": [
+      "Identified 3 advanced persistent threats",
+      "Prevented potential $2.3M in damages",
+      "Enhanced threat detection capabilities"
+    ],
+    "success_factors": [
+      "Memory-enhanced agent performance",
+      "Cross-functional team coordination",
+      "Real-time intelligence integration"
+    ]
+  },
+  {
+    "campaign_id": "CAMP-VULN-ASSESS-001",
+    "campaign_type": "vulnerability_assessment",
+    "total_cost": 89000.0,
+    "value_generated": 356000.0,
+    "roi_percentage": 300.0,
+    "time_to_value": 7.2,
+    "risk_reduction": 43.5,
+    "business_outcomes": [
+      "Discovered 47 critical vulnerabilities",
+      "Reduced attack surface by 38%",
+      "Improved compliance posture"
+    ],
+    "success_factors": [
+      "Automated scanning capabilities",
+      "Expert manual validation",
+      "Prioritized remediation planning"
+    ]
+  },
+  {
+    "campaign_id": "CAMP-INCIDENT-RESP-001",
+    "campaign_type": "incident_response",
+    "total_cost": 67000.0,
+    "value_generated": 892000.0,
+    "roi_percentage": 1231.0,
+    "time_to_value": 2.8,
+    "risk_reduction": 89.2,
+    "business_outcomes": [
+      "Contained security incident in 47 minutes",
+      "Prevented data exfiltration",
+      "Restored operations within 4 hours"
+    ],
+    "success_factors": [
+      "Rapid response coordination",
+      "Advanced forensics capabilities",
+      "Effective containment procedures"
+    ]
+  }
+]

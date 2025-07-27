@@ -1,3 +1,5 @@
+from typing import Dict, List, Any, Optional
+
 #!/usr/bin/env python3
 """
 Security Hardening: Generate secure secrets for production deployment
@@ -9,20 +11,20 @@ import string
 from cryptography.fernet import Fernet
 import base64
 
-def generate_strong_password(length=32):
+def generate_strong_password(length=32) -> None:
     """Generate cryptographically secure password"""
     alphabet = string.ascii_letters + string.digits + "!@#$%^&*"
     return ''.join(secrets.choice(alphabet) for _ in range(length))
 
-def generate_jwt_secret():
+def generate_jwt_secret() -> None:
     """Generate JWT secret key"""
     return base64.urlsafe_b64encode(os.urandom(64)).decode('utf-8')
 
-def generate_encryption_key():
+def generate_encryption_key() -> None:
     """Generate Fernet encryption key"""
     return Fernet.generate_key().decode('utf-8')
 
-def create_production_secrets():
+def create_production_secrets() -> None:
     """Create production-ready secrets"""
     
     secrets_config = {
@@ -57,7 +59,7 @@ def create_production_secrets():
     
     return secrets_config
 
-def write_kubernetes_secrets(secrets_config):
+def write_kubernetes_secrets(secrets_config) -> None:
     """Write Kubernetes secret manifests"""
     
     k8s_secrets = f"""---
@@ -105,7 +107,7 @@ stringData:
     
     print("✅ Kubernetes secrets written to kubernetes/secrets/production-secrets.yaml")
 
-def write_docker_env(secrets_config):
+def write_docker_env(secrets_config) -> None:
     """Write Docker environment file"""
     
     env_content = "\n".join([f"{key}={value}" for key, value in secrets_config.items()])
@@ -116,7 +118,7 @@ def write_docker_env(secrets_config):
     os.chmod("/root/Xorb/.env.production.secure", 0o600)  # Restrict permissions
     print("✅ Docker environment written to .env.production.secure")
 
-def main():
+def main() -> None:
     """Generate and write all production secrets"""
     print("🔒 Generating production-grade secrets...")
     

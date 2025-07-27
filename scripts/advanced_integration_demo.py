@@ -1,3 +1,5 @@
+from typing import Dict, List, Any, Optional
+
 #!/usr/bin/env python3
 """
 Advanced XORB Integration Demonstration
@@ -51,13 +53,13 @@ logger = structlog.get_logger(__name__)
 class XORBIntegrationDemo:
     """Comprehensive integration demonstration."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.agent_registry = None
         self.resource_manager = None
         self.metrics_manager = None
         self.logging_system = None
         
-    async def initialize_systems(self):
+    async def initialize_systems(self) -> None:
         """Initialize all XORB advanced systems."""
         print("🚀 Initializing XORB Advanced Systems...")
         
@@ -86,7 +88,7 @@ class XORBIntegrationDemo:
         
         print("✅ All systems initialized successfully!")
         
-    async def demo_agent_discovery(self):
+    async def demo_agent_discovery(self) -> None:
         """Demonstrate agent discovery capabilities."""
         print("\n🔍 AGENT DISCOVERY DEMONSTRATION")
         print("=" * 50)
@@ -113,7 +115,7 @@ class XORBIntegrationDemo:
             details=stats
         )
         
-    async def demo_resource_management(self):
+    async def demo_resource_management(self) -> None:
         """Demonstrate dynamic resource management."""
         print("\n⚙️ RESOURCE MANAGEMENT DEMONSTRATION")
         print("=" * 50)
@@ -184,7 +186,7 @@ class XORBIntegrationDemo:
         except asyncio.CancelledError:
             pass
         
-    async def demo_advanced_metrics(self):
+    async def demo_advanced_metrics(self) -> None:
         """Demonstrate advanced metrics collection."""
         print("\n📊 ADVANCED METRICS DEMONSTRATION")
         print("=" * 50)
@@ -241,7 +243,7 @@ class XORBIntegrationDemo:
         except asyncio.CancelledError:
             pass
         
-    async def demo_logging_and_audit(self):
+    async def demo_logging_and_audit(self) -> None:
         """Demonstrate comprehensive logging and audit trails."""
         print("\n📝 LOGGING & AUDIT DEMONSTRATION")
         print("=" * 50)
@@ -323,7 +325,7 @@ class XORBIntegrationDemo:
         except asyncio.CancelledError:
             pass
         
-    async def demo_integration_scenarios(self):
+    async def demo_integration_scenarios(self) -> None:
         """Demonstrate integrated scenarios."""
         print("\n🔄 INTEGRATION SCENARIOS")
         print("=" * 50)
@@ -394,7 +396,7 @@ class XORBIntegrationDemo:
         print("   • Health metrics updated")
         print("   • Recovery audit logged")
         
-    async def generate_summary_report(self):
+    async def generate_summary_report(self) -> None:
         """Generate comprehensive summary report."""
         print("\n📊 COMPREHENSIVE SUMMARY REPORT")
         print("=" * 50)
@@ -445,7 +447,7 @@ class XORBIntegrationDemo:
         )
 
 
-async def main():
+async def main() -> None:
     """Main demonstration function."""
     print("🎯 XORB Advanced Integration Demonstration")
     print("=" * 60)

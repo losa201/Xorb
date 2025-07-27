@@ -1,0 +1,110 @@
+[
+  {
+    "metric_id": "SEC-001",
+    "metric_name": "Threat Detection Rate",
+    "metric_type": "security",
+    "current_value": 94.7,
+    "previous_value": 91.2,
+    "target_value": 95.0,
+    "unit": "percentage",
+    "trend": "increasing",
+    "status": "on_track",
+    "timestamp": 1753637312.1749425
+  },
+  {
+    "metric_id": "SEC-002",
+    "metric_name": "Mean Time to Detection (MTTD)",
+    "metric_type": "security",
+    "current_value": 4.2,
+    "previous_value": 6.8,
+    "target_value": 5.0,
+    "unit": "minutes",
+    "trend": "decreasing",
+    "status": "on_track",
+    "timestamp": 1753637312.1749618
+  },
+  {
+    "metric_id": "SEC-003",
+    "metric_name": "False Positive Rate",
+    "metric_type": "security",
+    "current_value": 2.1,
+    "previous_value": 3.7,
+    "target_value": 2.0,
+    "unit": "percentage",
+    "trend": "decreasing",
+    "status": "at_risk",
+    "timestamp": 1753637312.1749644
+  },
+  {
+    "metric_id": "OPS-001",
+    "metric_name": "Agent Utilization Rate",
+    "metric_type": "operational",
+    "current_value": 87.3,
+    "previous_value": 82.1,
+    "target_value": 85.0,
+    "unit": "percentage",
+    "trend": "increasing",
+    "status": "on_track",
+    "timestamp": 1753637312.1749668
+  },
+  {
+    "metric_id": "OPS-002",
+    "metric_name": "Campaign Success Rate",
+    "metric_type": "operational",
+    "current_value": 96.4,
+    "previous_value": 94.1,
+    "target_value": 95.0,
+    "unit": "percentage",
+    "trend": "increasing",
+    "status": "on_track",
+    "timestamp": 1753637312.174968
+  },
+  {
+    "metric_id": "OPS-003",
+    "metric_name": "System Availability",
+    "metric_type": "operational",
+    "current_value": 99.7,
+    "previous_value": 99.2,
+    "target_value": 99.5,
+    "unit": "percentage",
+    "trend": "increasing",
+    "status": "on_track",
+    "timestamp": 1753637312.1749697
+  },
+  {
+    "metric_id": "BIZ-001",
+    "metric_name": "Security ROI",
+    "metric_type": "business",
+    "current_value": 342.0,
+    "previous_value": 298.0,
+    "target_value": 300.0,
+    "unit": "percentage",
+    "trend": "increasing",
+    "status": "on_track",
+    "timestamp": 1753637312.174971
+  },
+  {
+    "metric_id": "BIZ-002",
+    "metric_name": "Risk Reduction",
+    "metric_type": "business",
+    "current_value": 78.5,
+    "previous_value": 71.2,
+    "target_value": 75.0,
+    "unit": "percentage",
+    "trend": "increasing",
+    "status": "on_track",
+    "timestamp": 1753637312.1749725
+  },
+  {
+    "metric_id": "BIZ-003",
+    "metric_name": "Compliance Score",
+    "metric_type": "business",
+    "current_value": 92.8,
+    "previous_value": 89.4,
+    "target_value": 90.0,
+    "unit": "percentage",
+    "trend": "increasing",
+    "status": "on_track",
+    "timestamp": 1753637312.1749737
+  }
+]

@@ -1,3 +1,8 @@
+from typing import Dict, List, Any, Optional
+
+import logging
+logger = logging.getLogger(__name__)
+
 #!/usr/bin/env python3
 """
 AI-Powered Threat Hunting Demonstration
@@ -40,11 +45,11 @@ logger = structlog.get_logger(__name__)
 class AIThreatHuntingDemo:
     """Comprehensive AI threat hunting demonstration."""
     
-    def __init__(self):
+    def __init__(self) -> None:
         self.demo_data_points = []
         self.demo_session_ids = []
         
-    async def run_demo(self):
+    async def run_demo(self) -> None:
         """Run the complete AI threat hunting demonstration."""
         print("🤖 AI-POWERED THREAT HUNTING DEMONSTRATION")
         print("=" * 60)
@@ -71,14 +76,15 @@ class AIThreatHuntingDemo:
             # Generate final report
             await self._generate_summary_report()
             
-        except Exception as e:
+        except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
             print(f"❌ Demo failed: {e}")
             import traceback
             traceback.print_exc()
         finally:
             await self._cleanup_systems()
     
-    async def _initialize_systems(self):
+    async def _initialize_systems(self) -> None:
         """Initialize the AI threat hunting systems."""
         print("\n🚀 Initializing AI Threat Hunting Systems...")
         
@@ -129,7 +135,7 @@ class AIThreatHuntingDemo:
         
         print("✅ AI threat hunting systems initialized")
     
-    async def _demo_data_ingestion(self):
+    async def _demo_data_ingestion(self) -> None:
         """Demonstrate data ingestion and preprocessing."""
         print("\n📊 DATA INGESTION & PREPROCESSING DEMONSTRATION")
         print("-" * 55)
@@ -229,7 +235,7 @@ class AIThreatHuntingDemo:
         
         print("\n✅ Data ingestion completed")
     
-    async def _demo_anomaly_detection(self):
+    async def _demo_anomaly_detection(self) -> None:
         """Demonstrate anomaly detection capabilities."""
         print("\n🔍 ANOMALY DETECTION DEMONSTRATION")
         print("-" * 50)
@@ -280,7 +286,7 @@ class AIThreatHuntingDemo:
         print("\n✅ Anomaly detection completed")
         return all_anomalies
     
-    async def _demo_threat_hypothesis_generation(self):
+    async def _demo_threat_hypothesis_generation(self) -> None:
         """Demonstrate AI threat hypothesis generation."""
         print("\n🧠 AI THREAT HYPOTHESIS GENERATION DEMONSTRATION")
         print("-" * 60)
@@ -338,7 +344,7 @@ class AIThreatHuntingDemo:
         print("\n✅ Threat hypothesis generation completed")
         return hypotheses
     
-    async def _demo_automated_hunting(self):
+    async def _demo_automated_hunting(self) -> None:
         """Demonstrate automated threat hunting sessions."""
         print("\n🎯 AUTOMATED THREAT HUNTING DEMONSTRATION")
         print("-" * 55)
@@ -404,7 +410,7 @@ class AIThreatHuntingDemo:
         
         print("\n✅ Automated hunting demonstration completed")
     
-    async def _demo_threat_correlation(self):
+    async def _demo_threat_correlation(self) -> None:
         """Demonstrate threat intelligence correlation."""
         print("\n🔗 THREAT INTELLIGENCE CORRELATION DEMONSTRATION")
         print("-" * 60)
@@ -494,7 +500,7 @@ class AIThreatHuntingDemo:
         
         print("\n✅ Threat correlation analysis completed")
     
-    async def _demo_reporting_analytics(self):
+    async def _demo_reporting_analytics(self) -> None:
         """Demonstrate reporting and analytics capabilities."""
         print("\n📈 REPORTING & ANALYTICS DEMONSTRATION")
         print("-" * 50)
@@ -583,7 +589,7 @@ class AIThreatHuntingDemo:
         
         print("\n✅ Reporting and analytics completed")
     
-    async def _generate_summary_report(self):
+    async def _generate_summary_report(self) -> None:
         """Generate comprehensive summary report."""
         print("\n📊 COMPREHENSIVE AI THREAT HUNTING SUMMARY")
         print("=" * 55)
@@ -624,7 +630,7 @@ class AIThreatHuntingDemo:
         print(f"\n✅ AI THREAT HUNTING DEMONSTRATION COMPLETE")
         print(f"All advanced AI-powered threat hunting capabilities successfully demonstrated!")
     
-    async def _cleanup_systems(self):
+    async def _cleanup_systems(self) -> None:
         """Clean up the demonstration systems."""
         print("\n🧹 Cleaning up demonstration...")
         
@@ -639,7 +645,7 @@ class AIThreatHuntingDemo:
         print("✅ Cleanup completed")
 
 
-async def main():
+async def main() -> None:
     """Main demonstration function."""
     demo = AIThreatHuntingDemo()
     await demo.run_demo()

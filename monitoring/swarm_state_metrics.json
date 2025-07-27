@@ -1,0 +1,22 @@
+{
+  "timestamp": "2025-07-27T17:50:52.927907+00:00",
+  "session_id": "SWARM-CONSCIOUSNESS-688664C2",
+  "swarm_health": {
+    "active_agents": 32,
+    "total_agents": 32,
+    "health_percentage": 100.0,
+    "consensus_intents": 0,
+    "emotional_stability": 28.125
+  },
+  "performance_status": {
+    "red_team_improvement": 0.9964622647389207,
+    "target_improvement": 20.0,
+    "swarm_convergence": 0.0,
+    "target_convergence": 85.0,
+    "breakthrough_count": 10,
+    "autonomous_cycles": 10,
+    "emotional_reasoning": 0.0
+  },
+  "agent_uplift_score": 0.7469851308348376,
+  "swarm_convergence_delta": 0.0
+}

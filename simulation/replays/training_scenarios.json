@@ -1,0 +1,261 @@
+{
+  "creation_time": "2025-07-27T18:12:19.977046+00:00",
+  "session_id": "REDTEAM-SIM-68866C00",
+  "replay_scenarios": [
+    {
+      "scenario_id": "REPLAY-SIM-68866C00-c951",
+      "technique": {
+        "id": "T1595.001",
+        "mitre_id": "T1595.001",
+        "phase": "reconnaissance",
+        "description": "Active Scanning: Scanning IP Blocks"
+      },
+      "target": {
+        "id": "WEB-SERVER-01",
+        "type": "Ubuntu 20.04",
+        "vulnerability_level": "moderate"
+      },
+      "outcome": {
+        "success": false,
+        "detection_time": 25.76470588235294,
+        "stealth_score": 0.1,
+        "defensive_response": "TECHNIQUE_BLOCKED"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against moderate vulnerability systems",
+        "Detection time: 25.8s",
+        "Defensive response: TECHNIQUE_BLOCKED"
+      ]
+    },
+    {
+      "scenario_id": "REPLAY-SIM-68866C01-6dcd",
+      "technique": {
+        "id": "T1595.001",
+        "mitre_id": "T1595.001",
+        "phase": "reconnaissance",
+        "description": "Active Scanning: Scanning IP Blocks"
+      },
+      "target": {
+        "id": "DB-SERVER-01",
+        "type": "CentOS 8",
+        "vulnerability_level": "high"
+      },
+      "outcome": {
+        "success": true,
+        "detection_time": 2.3529411764705883,
+        "stealth_score": 0.1,
+        "defensive_response": "AUTOMATED_BLOCKING"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against high vulnerability systems",
+        "Detection time: 2.4s",
+        "Defensive response: AUTOMATED_BLOCKING"
+      ]
+    },
+    {
+      "scenario_id": "REPLAY-SIM-68866C01-8328",
+      "technique": {
+        "id": "T1595.001",
+        "mitre_id": "T1595.001",
+        "phase": "reconnaissance",
+        "description": "Active Scanning: Scanning IP Blocks"
+      },
+      "target": {
+        "id": "FILE-SERVER-01",
+        "type": "Windows Server 2019",
+        "vulnerability_level": "low"
+      },
+      "outcome": {
+        "success": false,
+        "detection_time": 6.823529411764706,
+        "stealth_score": 0.1,
+        "defensive_response": "TECHNIQUE_BLOCKED"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against low vulnerability systems",
+        "Detection time: 6.8s",
+        "Defensive response: TECHNIQUE_BLOCKED"
+      ]
+    },
+    {
+      "scenario_id": "REPLAY-SIM-68866C01-d095",
+      "technique": {
+        "id": "T1595.001",
+        "mitre_id": "T1595.001",
+        "phase": "reconnaissance",
+        "description": "Active Scanning: Scanning IP Blocks"
+      },
+      "target": {
+        "id": "WORKSTATION-01",
+        "type": "Windows 10",
+        "vulnerability_level": "moderate"
+      },
+      "outcome": {
+        "success": false,
+        "detection_time": 5.88235294117647,
+        "stealth_score": 0.1,
+        "defensive_response": "TECHNIQUE_BLOCKED"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against moderate vulnerability systems",
+        "Detection time: 5.9s",
+        "Defensive response: TECHNIQUE_BLOCKED"
+      ]
+    },
+    {
+      "scenario_id": "REPLAY-SIM-68866C01-595f",
+      "technique": {
+        "id": "T1595.001",
+        "mitre_id": "T1595.001",
+        "phase": "reconnaissance",
+        "description": "Active Scanning: Scanning IP Blocks"
+      },
+      "target": {
+        "id": "IOT-DEVICE-01",
+        "type": "Embedded Linux",
+        "vulnerability_level": "critical"
+      },
+      "outcome": {
+        "success": true,
+        "detection_time": 163.52941176470586,
+        "stealth_score": 0.6330935251798561,
+        "defensive_response": "MANUAL_INVESTIGATION"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against critical vulnerability systems",
+        "Detection time: 163.5s",
+        "Defensive response: MANUAL_INVESTIGATION"
+      ]
+    },
+    {
+      "scenario_id": "REPLAY-SIM-68866C01-3f14",
+      "technique": {
+        "id": "T1190",
+        "mitre_id": "T1190",
+        "phase": "initial_access",
+        "description": "Exploit Public-Facing Application"
+      },
+      "target": {
+        "id": "WEB-SERVER-01",
+        "type": "Ubuntu 20.04",
+        "vulnerability_level": "moderate"
+      },
+      "outcome": {
+        "success": false,
+        "detection_time": 14.352941176470589,
+        "stealth_score": 0.1,
+        "defensive_response": "TECHNIQUE_BLOCKED"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against moderate vulnerability systems",
+        "Detection time: 14.4s",
+        "Defensive response: TECHNIQUE_BLOCKED"
+      ]
+    },
+    {
+      "scenario_id": "REPLAY-SIM-68866C01-27f4",
+      "technique": {
+        "id": "T1190",
+        "mitre_id": "T1190",
+        "phase": "initial_access",
+        "description": "Exploit Public-Facing Application"
+      },
+      "target": {
+        "id": "DB-SERVER-01",
+        "type": "CentOS 8",
+        "vulnerability_level": "high"
+      },
+      "outcome": {
+        "success": true,
+        "detection_time": 127.05882352941177,
+        "stealth_score": 0.5277777777777778,
+        "defensive_response": "MANUAL_INVESTIGATION"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against high vulnerability systems",
+        "Detection time: 127.1s",
+        "Defensive response: MANUAL_INVESTIGATION"
+      ]
+    },
+    {
+      "scenario_id": "REPLAY-SIM-68866C01-ff47",
+      "technique": {
+        "id": "T1190",
+        "mitre_id": "T1190",
+        "phase": "initial_access",
+        "description": "Exploit Public-Facing Application"
+      },
+      "target": {
+        "id": "FILE-SERVER-01",
+        "type": "Windows Server 2019",
+        "vulnerability_level": "low"
+      },
+      "outcome": {
+        "success": false,
+        "detection_time": 1.7647058823529411,
+        "stealth_score": 0.1,
+        "defensive_response": "TECHNIQUE_BLOCKED"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against low vulnerability systems",
+        "Detection time: 1.8s",
+        "Defensive response: TECHNIQUE_BLOCKED"
+      ]
+    },
+    {
+      "scenario_id": "REPLAY-SIM-68866C01-2802",
+      "technique": {
+        "id": "T1190",
+        "mitre_id": "T1190",
+        "phase": "initial_access",
+        "description": "Exploit Public-Facing Application"
+      },
+      "target": {
+        "id": "WORKSTATION-01",
+        "type": "Windows 10",
+        "vulnerability_level": "moderate"
+      },
+      "outcome": {
+        "success": true,
+        "detection_time": 300.0,
+        "stealth_score": 0.8,
+        "defensive_response": "MANUAL_INVESTIGATION"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against moderate vulnerability systems",
+        "Detection time: 300.0s",
+        "Defensive response: MANUAL_INVESTIGATION"
+      ]
+    },
+    {
+      "scenario_id": "REPLAY-SIM-68866C01-693b",
+      "technique": {
+        "id": "T1190",
+        "mitre_id": "T1190",
+        "phase": "initial_access",
+        "description": "Exploit Public-Facing Application"
+      },
+      "target": {
+        "id": "IOT-DEVICE-01",
+        "type": "Embedded Linux",
+        "vulnerability_level": "critical"
+      },
+      "outcome": {
+        "success": true,
+        "detection_time": 58.8235294117647,
+        "stealth_score": 0.1,
+        "defensive_response": "AUTOMATED_BLOCKING"
+      },
+      "learning_objectives": [
+        "Technique effectiveness against critical vulnerability systems",
+        "Detection time: 58.8s",
+        "Defensive response: AUTOMATED_BLOCKING"
+      ]
+    }
+  ],
+  "usage_instructions": {
+    "purpose": "Purple team training and defensive improvement",
+    "target_audience": "Security analysts and incident responders",
+    "ethical_notice": "All scenarios are simulated and for educational use only"
+  }
+}

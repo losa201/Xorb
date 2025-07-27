@@ -1,0 +1,32 @@
+[
+  {
+    "alert_id": "ALERT-F6A5A9",
+    "level": "medium",
+    "category": "performance",
+    "title": "False Positive Rate At Risk",
+    "description": "Metric False Positive Rate is trending away from target",
+    "current_value": 2.1,
+    "target_value": 2.0,
+    "recommended_actions": [
+      "Review security processes",
+      "Implement corrective measures",
+      "Monitor trend closely"
+    ],
+    "timestamp": 1753637312.1759164
+  },
+  {
+    "alert_id": "ALERT-5656F4",
+    "level": "high",
+    "category": "threat_intelligence",
+    "title": "Critical Threat: Zero-Day Exploits",
+    "description": "High-impact threats detected in Zero-Day Exploits",
+    "attack_frequency": 8,
+    "success_rate": 32.1,
+    "recommended_actions": [
+      "Deploy virtual patching mechanisms",
+      "Enhance vulnerability management",
+      "Implement zero-trust architecture"
+    ],
+    "timestamp": 1753637312.1759245
+  }
+]

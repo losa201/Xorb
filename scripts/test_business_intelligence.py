@@ -1,3 +1,5 @@
+from typing import Dict, List, Any, Optional
+
 #!/usr/bin/env python3
 """
 Business Intelligence and Reporting Test Script
@@ -7,6 +9,7 @@ Tests comprehensive reporting capabilities and dashboard generation
 import asyncio
 import sys
 import os
+import aiofiles
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from xorb_core.reporting.business_intelligence import (
@@ -21,7 +24,7 @@ from pathlib import Path
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-async def test_report_generation():
+async def test_report_generation() -> None:
     """Test comprehensive report generation"""
     logger.info("=== Testing Report Generation ===")
     
@@ -49,7 +52,7 @@ async def test_report_generation():
     
     logger.info("✅ Report generation test passed")
 
-async def test_report_export():
+async def test_report_export() -> None:
     """Test report export to different formats"""
     logger.info("=== Testing Report Export ===")
     
@@ -74,7 +77,7 @@ async def test_report_export():
     
     logger.info("✅ Report export test passed")
 
-async def test_data_source_integration():
+async def test_data_source_integration() -> None:
     """Test data source registration and integration"""
     logger.info("=== Testing Data Source Integration ===")
     
@@ -97,7 +100,7 @@ async def test_data_source_integration():
     
     logger.info("✅ Data source integration test passed")
 
-async def test_scheduled_reports():
+async def test_scheduled_reports() -> None:
     """Test scheduled report functionality"""
     logger.info("=== Testing Scheduled Reports ===")
     
@@ -125,7 +128,7 @@ async def test_scheduled_reports():
     
     logger.info("✅ Scheduled reports test passed")
 
-async def test_dashboard_functionality():
+async def test_dashboard_functionality() -> None:
     """Test interactive dashboard functionality"""
     logger.info("=== Testing Dashboard Functionality ===")
     
@@ -144,7 +147,7 @@ async def test_dashboard_functionality():
     logger.info(f"Dashboard data: {json.dumps(dashboard_data, indent=2, default=str)}")
     logger.info("✅ Dashboard functionality test passed")
 
-async def test_metric_calculations():
+async def test_metric_calculations() -> None:
     """Test metric calculation and status determination"""
     logger.info("=== Testing Metric Calculations ===")
     
@@ -172,7 +175,7 @@ async def test_metric_calculations():
     logger.info(f"Verified {len(security_section.metrics)} metrics in security section")
     logger.info("✅ Metric calculations test passed")
 
-async def test_chart_generation():
+async def test_chart_generation() -> None:
     """Test chart and visualization generation"""
     logger.info("=== Testing Chart Generation ===")
     
@@ -197,7 +200,7 @@ async def test_chart_generation():
     logger.info(f"Generated {chart_count} charts across all sections")
     logger.info("✅ Chart generation test passed")
 
-async def test_compliance_reporting():
+async def test_compliance_reporting() -> None:
     """Test compliance-specific reporting features"""
     logger.info("=== Testing Compliance Reporting ===")
     
@@ -222,7 +225,7 @@ async def test_compliance_reporting():
     logger.info(f"Generated compliance report with {len(compliance_sections)} sections")
     logger.info("✅ Compliance reporting test passed")
 
-async def test_performance_metrics():
+async def test_performance_metrics() -> None:
     """Test performance and operational metrics"""
     logger.info("=== Testing Performance Metrics ===")
     
@@ -243,7 +246,7 @@ async def test_performance_metrics():
     logger.info(f"Found {len(performance_metrics)} performance metrics")
     logger.info("✅ Performance metrics test passed")
 
-async def test_recommendation_engine():
+async def test_recommendation_engine() -> None:
     """Test recommendation generation"""
     logger.info("=== Testing Recommendation Engine ===")
     
@@ -266,7 +269,7 @@ async def test_recommendation_engine():
     logger.info(f"Generated {section_recs} section-level recommendations")
     logger.info("✅ Recommendation engine test passed")
 
-async def test_report_caching():
+async def test_report_caching() -> None:
     """Test report caching functionality"""
     logger.info("=== Testing Report Caching ===")
     
@@ -285,7 +288,7 @@ async def test_report_caching():
     logger.info(f"Report {report1.report_id} successfully cached and retrieved")
     logger.info("✅ Report caching test passed")
 
-async def main():
+async def main() -> None:
     """Run all business intelligence tests"""
     logger.info("Starting Business Intelligence and Reporting Tests")
     logger.info("=" * 70)

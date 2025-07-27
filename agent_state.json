@@ -1,0 +1,894 @@
+{
+  "timestamp": 1753633020.2145607,
+  "orchestrator_id": "XORB-PHASE2-DCB04FF1",
+  "evolution_cycles_completed": 1,
+  "agents": {
+    "AGENT-001": {
+      "cluster": "analyst",
+      "performance_score": 0.8834959921392218,
+      "capabilities": {
+        "stealth": 0.6393091850610788,
+        "remediation": 0.7101058325098657,
+        "detection": 0.8409608695999798,
+        "adaptation": 0.5142006149559522,
+        "learning": 0.5841388016775981
+      },
+      "evolution_cycles": 0,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-002": {
+      "cluster": "offensive",
+      "performance_score": 0.7409738444762775,
+      "capabilities": {
+        "stealth": 0.9963957040939224,
+        "remediation": 0.7002033174407045,
+        "detection": 0.7400174818395441,
+        "adaptation": 0.603320870804307,
+        "learning": 0.664931848202909
+      },
+      "evolution_cycles": 4,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-003": {
+      "cluster": "defensive",
+      "performance_score": 0.7126683051739235,
+      "capabilities": {
+        "stealth": 0.5633276156275094,
+        "remediation": 0.9048457319064799,
+        "detection": 0.7676549555674471,
+        "adaptation": 0.6020936891963778,
+        "learning": 0.6844929052074346
+      },
+      "evolution_cycles": 5,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-004": {
+      "cluster": "analyst",
+      "performance_score": 0.6927355326270714,
+      "capabilities": {
+        "stealth": 0.5999274587952613,
+        "remediation": 0.8448651126207869,
+        "detection": 0.8884096563941003,
+        "adaptation": 0.5191363347229526,
+        "learning": 0.6131956554578705
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.17,
+      "emergent_behaviors": []
+    },
+    "AGENT-005": {
+      "cluster": "defensive",
+      "performance_score": 0.704663406578889,
+      "capabilities": {
+        "stealth": 0.6029057046229505,
+        "remediation": 0.8580870704931187,
+        "detection": 0.8257108717607292,
+        "adaptation": 0.6520180066363808,
+        "learning": 0.5243425437503545
+      },
+      "evolution_cycles": 1,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-006": {
+      "cluster": "analyst",
+      "performance_score": 0.8882655966124477,
+      "capabilities": {
+        "stealth": 0.5706089564803134,
+        "remediation": 0.6979783973812753,
+        "detection": 0.8692572776386056,
+        "adaptation": 0.4439048098829701,
+        "learning": 0.609042737846614
+      },
+      "evolution_cycles": 2,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-007": {
+      "cluster": "analyst",
+      "performance_score": 0.7821503631045716,
+      "capabilities": {
+        "stealth": 0.5583467998422782,
+        "remediation": 0.8590666020641455,
+        "detection": 0.996620813876413,
+        "adaptation": 0.7929103779824461,
+        "learning": 0.7045328984625621
+      },
+      "evolution_cycles": 8,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-008": {
+      "cluster": "offensive",
+      "performance_score": 0.8953881510036203,
+      "capabilities": {
+        "stealth": 0.857637606620715,
+        "remediation": 0.7494566619285945,
+        "detection": 0.7524022210672016,
+        "adaptation": 0.5072345667608871,
+        "learning": 0.7403879051734565
+      },
+      "evolution_cycles": 0,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-009": {
+      "cluster": "analyst",
+      "performance_score": 0.9382915548099866,
+      "capabilities": {
+        "stealth": 0.7380995479425617,
+        "remediation": 0.8202412607341008,
+        "detection": 0.9200620293639201,
+        "adaptation": 0.6386019110247256,
+        "learning": 0.7842420371127257
+      },
+      "evolution_cycles": 9,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-010": {
+      "cluster": "hybrid",
+      "performance_score": 0.7229711553428059,
+      "capabilities": {
+        "stealth": 0.7343466162299184,
+        "remediation": 0.6444980290538987,
+        "detection": 0.7572606591648169,
+        "adaptation": 0.6512720960415647,
+        "learning": 0.8773644006631248
+      },
+      "evolution_cycles": 1,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-011": {
+      "cluster": "analyst",
+      "performance_score": 0.7487481158412288,
+      "capabilities": {
+        "stealth": 0.8113180601976471,
+        "remediation": 0.679318922715044,
+        "detection": 0.9118495651782581,
+        "adaptation": 0.45330416735713197,
+        "learning": 0.8894734953943193
+      },
+      "evolution_cycles": 3,
+      "learning_rate": 0.17,
+      "emergent_behaviors": []
+    },
+    "AGENT-012": {
+      "cluster": "hybrid",
+      "performance_score": 0.7673055829904102,
+      "capabilities": {
+        "stealth": 0.6705240245019269,
+        "remediation": 0.8073550470725249,
+        "detection": 0.7492101514944042,
+        "adaptation": 0.7562152087756591,
+        "learning": 0.8264716646322722
+      },
+      "evolution_cycles": 0,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-013": {
+      "cluster": "offensive",
+      "performance_score": 0.8982739436224293,
+      "capabilities": {
+        "stealth": 0.866105740985081,
+        "remediation": 0.7036424613978383,
+        "detection": 0.7133297891436597,
+        "adaptation": 0.6456790745214958,
+        "learning": 0.5152399629031282
+      },
+      "evolution_cycles": 9,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-014": {
+      "cluster": "offensive",
+      "performance_score": 0.7573822833695703,
+      "capabilities": {
+        "stealth": 0.9473826255478301,
+        "remediation": 0.7922793530091793,
+        "detection": 0.71308446249964,
+        "adaptation": 0.6806805684793978,
+        "learning": 0.6457928296172102
+      },
+      "evolution_cycles": 5,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-015": {
+      "cluster": "analyst",
+      "performance_score": 0.8235762257549608,
+      "capabilities": {
+        "stealth": 0.8184155291826618,
+        "remediation": 0.8651911661777473,
+        "detection": 0.883474889722935,
+        "adaptation": 0.7308159663812752,
+        "learning": 0.8199835773101847
+      },
+      "evolution_cycles": 1,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-016": {
+      "cluster": "analyst",
+      "performance_score": 0.7591755470060843,
+      "capabilities": {
+        "stealth": 0.608759936335001,
+        "remediation": 0.8915955863964551,
+        "detection": 0.9820885549152244,
+        "adaptation": 0.674663039307951,
+        "learning": 0.6408747837466857
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-017": {
+      "cluster": "offensive",
+      "performance_score": 0.7583429511854363,
+      "capabilities": {
+        "stealth": 0.8863751875155255,
+        "remediation": 0.8209131139066723,
+        "detection": 0.7487958375406166,
+        "adaptation": 0.5917527421386222,
+        "learning": 0.743877874825745
+      },
+      "evolution_cycles": 6,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-018": {
+      "cluster": "hybrid",
+      "performance_score": 0.644105474582894,
+      "capabilities": {
+        "stealth": 0.6415607935965225,
+        "remediation": 0.6397598295369208,
+        "detection": 0.7413515871145097,
+        "adaptation": 0.5194069540157052,
+        "learning": 0.6656396934632289
+      },
+      "evolution_cycles": 5,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-019": {
+      "cluster": "analyst",
+      "performance_score": 0.8860764950013345,
+      "capabilities": {
+        "stealth": 0.7973938824980009,
+        "remediation": 0.9097488561686072,
+        "detection": 0.9265658468944507,
+        "adaptation": 0.556545526472853,
+        "learning": 0.5869096334701923
+      },
+      "evolution_cycles": 5,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-020": {
+      "cluster": "analyst",
+      "performance_score": 0.7140491740106861,
+      "capabilities": {
+        "stealth": 0.6579379088449813,
+        "remediation": 0.7724538396996904,
+        "detection": 0.9016473762469824,
+        "adaptation": 0.47221872575492563,
+        "learning": 0.7707997675574704
+      },
+      "evolution_cycles": 1,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-021": {
+      "cluster": "hybrid",
+      "performance_score": 0.8627027047802003,
+      "capabilities": {
+        "stealth": 0.6780128183705144,
+        "remediation": 0.5972073489877874,
+        "detection": 0.7712449213029917,
+        "adaptation": 0.5704433888894039,
+        "learning": 0.5778552284986069
+      },
+      "evolution_cycles": 0,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-022": {
+      "cluster": "defensive",
+      "performance_score": 0.7366177810379353,
+      "capabilities": {
+        "stealth": 0.7606928823096135,
+        "remediation": 0.9263609244907308,
+        "detection": 0.7939465599265846,
+        "adaptation": 0.6089515216418289,
+        "learning": 0.5931370168209187
+      },
+      "evolution_cycles": 1,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-023": {
+      "cluster": "analyst",
+      "performance_score": 0.7165655315167788,
+      "capabilities": {
+        "stealth": 0.7669270301381224,
+        "remediation": 0.6671651037983727,
+        "detection": 0.882039418211423,
+        "adaptation": 0.5398758955016415,
+        "learning": 0.7314809765345883
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-024": {
+      "cluster": "defensive",
+      "performance_score": 0.6727575846732577,
+      "capabilities": {
+        "stealth": 0.5210834837321668,
+        "remediation": 0.8973674775346453,
+        "detection": 0.8267334140598602,
+        "adaptation": 0.5461788144773304,
+        "learning": 0.5724247335622858
+      },
+      "evolution_cycles": 5,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-025": {
+      "cluster": "hybrid",
+      "performance_score": 0.6584978112559151,
+      "capabilities": {
+        "stealth": 0.5886845538720012,
+        "remediation": 0.7350697694753233,
+        "detection": 0.7300173299746953,
+        "adaptation": 0.6656390481028585,
+        "learning": 0.564960336301947
+      },
+      "evolution_cycles": 3,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-026": {
+      "cluster": "offensive",
+      "performance_score": 0.7216730910164355,
+      "capabilities": {
+        "stealth": 0.9838650358788552,
+        "remediation": 0.622657934085341,
+        "detection": 0.7658748940963795,
+        "adaptation": 0.47617100639752774,
+        "learning": 0.7597965846240746
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-027": {
+      "cluster": "analyst",
+      "performance_score": 0.6768697429837179,
+      "capabilities": {
+        "stealth": 0.5197169839203805,
+        "remediation": 0.6425553696485714,
+        "detection": 0.9402021382143477,
+        "adaptation": 0.4704157204651949,
+        "learning": 0.8647060871557684
+      },
+      "evolution_cycles": 0,
+      "learning_rate": 0.17,
+      "emergent_behaviors": []
+    },
+    "AGENT-028": {
+      "cluster": "analyst",
+      "performance_score": 0.7666677572389596,
+      "capabilities": {
+        "stealth": 0.7840719175241931,
+        "remediation": 0.8169373305048085,
+        "detection": 0.8621241498491587,
+        "adaptation": 0.6434166453456105,
+        "learning": 0.7166149219048047
+      },
+      "evolution_cycles": 5,
+      "learning_rate": 0.17,
+      "emergent_behaviors": []
+    },
+    "AGENT-029": {
+      "cluster": "analyst",
+      "performance_score": 0.7397709169801571,
+      "capabilities": {
+        "stealth": 0.6311458139199938,
+        "remediation": 0.798756583747786,
+        "detection": 0.9477258227357599,
+        "adaptation": 0.6721677057843627,
+        "learning": 0.6523271021853345
+      },
+      "evolution_cycles": 8,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-030": {
+      "cluster": "hybrid",
+      "performance_score": 0.762786589662795,
+      "capabilities": {
+        "stealth": 0.7815759611209583,
+        "remediation": 0.7255162827096686,
+        "detection": 0.7836715635699449,
+        "adaptation": 0.7692726644512903,
+        "learning": 0.753896476462113
+      },
+      "evolution_cycles": 9,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-031": {
+      "cluster": "hybrid",
+      "performance_score": 0.8889466468410006,
+      "capabilities": {
+        "stealth": 0.74487432155581,
+        "remediation": 0.6847358452061189,
+        "detection": 0.7770944574153285,
+        "adaptation": 0.7804208996676032,
+        "learning": 0.6134808871726084
+      },
+      "evolution_cycles": 1,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-032": {
+      "cluster": "analyst",
+      "performance_score": 0.8526054244620895,
+      "capabilities": {
+        "stealth": 0.7474751984295607,
+        "remediation": 0.5901502861423762,
+        "detection": 0.8423554331387417,
+        "adaptation": 0.6079826464729375,
+        "learning": 0.6278745722273836
+      },
+      "evolution_cycles": 5,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-033": {
+      "cluster": "analyst",
+      "performance_score": 0.7466122449415225,
+      "capabilities": {
+        "stealth": 0.6995293037423317,
+        "remediation": 0.8600639250033649,
+        "detection": 0.9294709995673922,
+        "adaptation": 0.4872805502859849,
+        "learning": 0.7766935085163296
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.17,
+      "emergent_behaviors": []
+    },
+    "AGENT-034": {
+      "cluster": "analyst",
+      "performance_score": 0.7560831214716528,
+      "capabilities": {
+        "stealth": 0.5797490404943153,
+        "remediation": 0.7208193671554348,
+        "detection": 0.8667621473653183,
+        "adaptation": 0.7600144084601164,
+        "learning": 0.8553603550860416
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-035": {
+      "cluster": "hybrid",
+      "performance_score": 0.6656337422228212,
+      "capabilities": {
+        "stealth": 0.6122890874214897,
+        "remediation": 0.6713210913194675,
+        "detection": 0.7888554970573339,
+        "adaptation": 0.6175342108223465,
+        "learning": 0.6381688244934687
+      },
+      "evolution_cycles": 4,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-036": {
+      "cluster": "analyst",
+      "performance_score": 0.7408976678572048,
+      "capabilities": {
+        "stealth": 0.776421183969969,
+        "remediation": 0.6447267074706551,
+        "detection": 0.8913628091088451,
+        "adaptation": 0.8033037570757084,
+        "learning": 0.6082004118323072
+      },
+      "evolution_cycles": 9,
+      "learning_rate": 0.17,
+      "emergent_behaviors": []
+    },
+    "AGENT-037": {
+      "cluster": "analyst",
+      "performance_score": 0.732150312273628,
+      "capabilities": {
+        "stealth": 0.6510889882449832,
+        "remediation": 0.6418250787606505,
+        "detection": 0.9117429475085016,
+        "adaptation": 0.6612810777949372,
+        "learning": 0.7985391488139111
+      },
+      "evolution_cycles": 1,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-038": {
+      "cluster": "analyst",
+      "performance_score": 0.9559502891682703,
+      "capabilities": {
+        "stealth": 0.5642188349993019,
+        "remediation": 0.7100469407878381,
+        "detection": 0.8546602500952327,
+        "adaptation": 0.6549769865089251,
+        "learning": 0.6573955559712105
+      },
+      "evolution_cycles": 4,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-039": {
+      "cluster": "analyst",
+      "performance_score": 0.7862531640764108,
+      "capabilities": {
+        "stealth": 0.786866576019184,
+        "remediation": 0.8166085503052989,
+        "detection": 0.9538074023393661,
+        "adaptation": 0.6061932232732438,
+        "learning": 0.7682695770916373
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-040": {
+      "cluster": "offensive",
+      "performance_score": 0.7772052673863457,
+      "capabilities": {
+        "stealth": 0.9850466715343802,
+        "remediation": 0.6379548174523597,
+        "detection": 0.7808063483484304,
+        "adaptation": 0.7802742891099693,
+        "learning": 0.7081509642816831
+      },
+      "evolution_cycles": 3,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-041": {
+      "cluster": "analyst",
+      "performance_score": 0.906817913363741,
+      "capabilities": {
+        "stealth": 0.6697557743518084,
+        "remediation": 0.8151522550717633,
+        "detection": 0.8777263731955222,
+        "adaptation": 0.6552583219575115,
+        "learning": 0.5877305184960057
+      },
+      "evolution_cycles": 6,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-042": {
+      "cluster": "hybrid",
+      "performance_score": 0.6895216160972806,
+      "capabilities": {
+        "stealth": 0.5590051624043086,
+        "remediation": 0.7859534345509506,
+        "detection": 0.7723050885701986,
+        "adaptation": 0.5634053291914819,
+        "learning": 0.8050122141440986
+      },
+      "evolution_cycles": 3,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-043": {
+      "cluster": "analyst",
+      "performance_score": 0.7899641448689948,
+      "capabilities": {
+        "stealth": 0.7547209805213485,
+        "remediation": 0.7437506861579146,
+        "detection": 0.9262911233706148,
+        "adaptation": 0.6369350350787752,
+        "learning": 0.8883797490154423
+      },
+      "evolution_cycles": 2,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-044": {
+      "cluster": "hybrid",
+      "performance_score": 0.6773161987126307,
+      "capabilities": {
+        "stealth": 0.7903851018867605,
+        "remediation": 0.6466885502768566,
+        "detection": 0.7776080032443072,
+        "adaptation": 0.5859579185673381,
+        "learning": 0.5459783537427492
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-045": {
+      "cluster": "analyst",
+      "performance_score": 0.9656092024848594,
+      "capabilities": {
+        "stealth": 0.6224013617266029,
+        "remediation": 0.6716858528000683,
+        "detection": 0.8536307855301923,
+        "adaptation": 0.5242544651959681,
+        "learning": 0.718056945225133
+      },
+      "evolution_cycles": 4,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-046": {
+      "cluster": "analyst",
+      "performance_score": 0.8066161039854427,
+      "capabilities": {
+        "stealth": 0.8399653287809123,
+        "remediation": 0.8267751689858558,
+        "detection": 0.9243199325419746,
+        "adaptation": 0.715717146075018,
+        "learning": 0.7263029435434524
+      },
+      "evolution_cycles": 6,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-047": {
+      "cluster": "analyst",
+      "performance_score": 0.7316417929888746,
+      "capabilities": {
+        "stealth": 0.6235845594980146,
+        "remediation": 0.6537096307230539,
+        "detection": 0.9094872005133574,
+        "adaptation": 0.7319999543646069,
+        "learning": 0.7375905868132064
+      },
+      "evolution_cycles": 6,
+      "learning_rate": 0.17,
+      "emergent_behaviors": []
+    },
+    "AGENT-048": {
+      "cluster": "analyst",
+      "performance_score": 0.6734334725149347,
+      "capabilities": {
+        "stealth": 0.6283313425613194,
+        "remediation": 0.6148679823697891,
+        "detection": 0.8990632281111804,
+        "adaptation": 0.6133764065087187,
+        "learning": 0.5968423706238425
+      },
+      "evolution_cycles": 5,
+      "learning_rate": 0.17,
+      "emergent_behaviors": []
+    },
+    "AGENT-049": {
+      "cluster": "hybrid",
+      "performance_score": 0.7460281387230252,
+      "capabilities": {
+        "stealth": 0.8165573665728887,
+        "remediation": 0.6638403045699492,
+        "detection": 0.7969385266457476,
+        "adaptation": 0.8089417194464771,
+        "learning": 0.6438627763800633
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-050": {
+      "cluster": "offensive",
+      "performance_score": 0.8769920985720672,
+      "capabilities": {
+        "stealth": 0.9434115136678802,
+        "remediation": 0.8899748358896765,
+        "detection": 0.7556723188677668,
+        "adaptation": 0.4236639363104069,
+        "learning": 0.7936387580646903
+      },
+      "evolution_cycles": 8,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-051": {
+      "cluster": "analyst",
+      "performance_score": 0.744896693179278,
+      "capabilities": {
+        "stealth": 0.5422180185931309,
+        "remediation": 0.8379910514896018,
+        "detection": 0.9675321789251106,
+        "adaptation": 0.5191845572118907,
+        "learning": 0.8605185565771599
+      },
+      "evolution_cycles": 4,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-052": {
+      "cluster": "defensive",
+      "performance_score": 0.7060848872487359,
+      "capabilities": {
+        "stealth": 0.5348094340834993,
+        "remediation": 0.924136505743485,
+        "detection": 0.7700455779875167,
+        "adaptation": 0.5343173339576638,
+        "learning": 0.7671155844715141
+      },
+      "evolution_cycles": 4,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-053": {
+      "cluster": "analyst",
+      "performance_score": 0.9620380023119723,
+      "capabilities": {
+        "stealth": 0.7069196525763488,
+        "remediation": 0.7601179174910812,
+        "detection": 0.8213946530012999,
+        "adaptation": 0.6102594930792042,
+        "learning": 0.5529904606965816
+      },
+      "evolution_cycles": 9,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-054": {
+      "cluster": "offensive",
+      "performance_score": 0.7034096131483328,
+      "capabilities": {
+        "stealth": 0.9033147384495493,
+        "remediation": 0.7126120374935418,
+        "detection": 0.7086495588199812,
+        "adaptation": 0.546122465227803,
+        "learning": 0.6761292310553825
+      },
+      "evolution_cycles": 0,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-055": {
+      "cluster": "analyst",
+      "performance_score": 0.7814828619735431,
+      "capabilities": {
+        "stealth": 0.9320963997480209,
+        "remediation": 0.6801131421460116,
+        "detection": 0.9904106194241238,
+        "adaptation": 0.6200250776425197,
+        "learning": 0.685534797679888
+      },
+      "evolution_cycles": 10,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-056": {
+      "cluster": "analyst",
+      "performance_score": 0.7858705949199548,
+      "capabilities": {
+        "stealth": 0.7798248965672916,
+        "remediation": 0.8479436592191996,
+        "detection": 0.8670228047497458,
+        "adaptation": 0.5378215131217519,
+        "learning": 0.8972425637378492
+      },
+      "evolution_cycles": 1,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-057": {
+      "cluster": "analyst",
+      "performance_score": 0.6956681371889706,
+      "capabilities": {
+        "stealth": 0.6349868891589884,
+        "remediation": 0.6088560680131887,
+        "detection": 0.9466064700437613,
+        "adaptation": 0.6351423271503085,
+        "learning": 0.658663541838529
+      },
+      "evolution_cycles": 5,
+      "learning_rate": 0.12000000000000001,
+      "emergent_behaviors": []
+    },
+    "AGENT-058": {
+      "cluster": "hybrid",
+      "performance_score": 0.6861933537881352,
+      "capabilities": {
+        "stealth": 0.7797144925042043,
+        "remediation": 0.7043887273544769,
+        "detection": 0.7700782596175759,
+        "adaptation": 0.5872814753739706,
+        "learning": 0.5895038140904486
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    },
+    "AGENT-059": {
+      "cluster": "analyst",
+      "performance_score": 0.9545949659306834,
+      "capabilities": {
+        "stealth": 0.7190007132471359,
+        "remediation": 0.7423398679074723,
+        "detection": 0.9520410701384305,
+        "adaptation": 0.6758118773131402,
+        "learning": 0.751530347131493
+      },
+      "evolution_cycles": 7,
+      "learning_rate": 0.15000000000000002,
+      "emergent_behaviors": []
+    },
+    "AGENT-060": {
+      "cluster": "hybrid",
+      "performance_score": 0.7409586810699025,
+      "capabilities": {
+        "stealth": 0.7414792970885715,
+        "remediation": 0.7655553463760899,
+        "detection": 0.7847228792200629,
+        "adaptation": 0.7850770380663915,
+        "learning": 0.6279588445983968
+      },
+      "evolution_cycles": 8,
+      "learning_rate": 0.1,
+      "emergent_behaviors": []
+    }
+  },
+  "clusters": {
+    "CLUSTER-DEFENSIVE": {
+      "cluster_type": "defensive",
+      "agent_count": 5,
+      "cluster_intelligence": 0.7065583929425483,
+      "emergence_events": 0,
+      "shared_knowledge": {
+        "cluster_expertise": "defensive",
+        "optimization_strategies": [],
+        "learned_patterns": []
+      }
+    },
+    "CLUSTER-OFFENSIVE": {
+      "cluster_type": "offensive",
+      "agent_count": 9,
+      "cluster_intelligence": 0.7921823604200573,
+      "emergence_events": 0,
+      "shared_knowledge": {
+        "cluster_expertise": "offensive",
+        "optimization_strategies": [],
+        "learned_patterns": []
+      }
+    },
+    "CLUSTER-ANALYST": {
+      "cluster_type": "analyst",
+      "agent_count": 33,
+      "cluster_intelligence": 0.7995643835027041,
+      "emergence_events": 0,
+      "shared_knowledge": {
+        "cluster_expertise": "analyst",
+        "optimization_strategies": [],
+        "learned_patterns": []
+      }
+    },
+    "CLUSTER-HYBRID": {
+      "cluster_type": "hybrid",
+      "agent_count": 13,
+      "cluster_intelligence": 0.7317667458515243,
+      "emergence_events": 0,
+      "shared_knowledge": {
+        "cluster_expertise": "hybrid",
+        "optimization_strategies": [],
+        "learned_patterns": []
+      }
+    }
+  },
+  "emergence_events": 0
+}

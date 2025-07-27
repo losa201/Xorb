@@ -1,0 +1,110 @@
+{
+  "session_id": "ML-SECURITY-68866D03",
+  "analysis_type": "advanced_ml_security_models",
+  "timestamp": "2025-07-27T18:16:36.602835+00:00",
+  "duration_seconds": 0.927454,
+  "status": "successful",
+  "model_summary": {
+    "total_models_trained": 6,
+    "models_types": [
+      "anomaly_detection",
+      "threat_prediction",
+      "behavioral_analysis",
+      "vulnerability_assessment",
+      "malware_classification",
+      "network_intrusion"
+    ],
+    "feature_dimensions": 256,
+    "ensemble_models": 3,
+    "optimization_techniques": 4
+  },
+  "performance_metrics": {
+    "average_accuracy": 0.9229736050932793,
+    "average_precision": 0.8604309188688584,
+    "average_recall": 0.9043096854288128,
+    "average_f1_score": 0.8816583624580455,
+    "model_performances": {
+      "anomaly_detection": {
+        "model_id": "anomaly_detection_v1.0",
+        "accuracy": 0.9739644280094542,
+        "precision": 0.8854651364347415,
+        "recall": 0.9390325778031197,
+        "f1_score": 0.9114624843127709,
+        "false_positive_rate": 0.02087354952320196,
+        "training_samples": 10000,
+        "evaluation_time": "2025-07-27 18:16:36.560778+00:00"
+      },
+      "threat_prediction": {
+        "model_id": "threat_prediction_v1.0",
+        "accuracy": 0.965467132021946,
+        "precision": 0.8221246222481134,
+        "recall": 0.9064987770815277,
+        "f1_score": 0.8622525472761008,
+        "false_positive_rate": 0.015713579349693908,
+        "training_samples": 10000,
+        "evaluation_time": "2025-07-27 18:16:36.560914+00:00"
+      },
+      "behavioral_analysis": {
+        "model_id": "behavioral_analysis_v1.0",
+        "accuracy": 0.8945665868239999,
+        "precision": 0.8788131372817519,
+        "recall": 0.8968063455449506,
+        "f1_score": 0.8877185744863341,
+        "false_positive_rate": 0.021448844898298673,
+        "training_samples": 10000,
+        "evaluation_time": "2025-07-27 18:16:36.560979+00:00"
+      },
+      "vulnerability_assessment": {
+        "model_id": "vulnerability_assessment_v1.0",
+        "accuracy": 0.887796709366138,
+        "precision": 0.854841245026052,
+        "recall": 0.8798808936398047,
+        "f1_score": 0.8671803533586737,
+        "false_positive_rate": 0.041864867704883686,
+        "training_samples": 10000,
+        "evaluation_time": "2025-07-27 18:16:36.561040+00:00"
+      },
+      "malware_classification": {
+        "model_id": "malware_classification_v1.0",
+        "accuracy": 0.9366889867293587,
+        "precision": 0.8463852458940968,
+        "recall": 0.9057606531176997,
+        "f1_score": 0.8750669148529173,
+        "false_positive_rate": 0.014463683399009546,
+        "training_samples": 10000,
+        "evaluation_time": "2025-07-27 18:16:36.561112+00:00"
+      },
+      "network_intrusion": {
+        "model_id": "network_intrusion_v1.0",
+        "accuracy": 0.8793577876087793,
+        "precision": 0.8749561263283946,
+        "recall": 0.8978788653857752,
+        "f1_score": 0.886269300461476,
+        "false_positive_rate": 0.04021017595585795,
+        "training_samples": 10000,
+        "evaluation_time": "2025-07-27 18:16:36.561182+00:00"
+      }
+    }
+  },
+  "threat_intelligence": {
+    "threats_predicted": 0,
+    "anomalies_detected": 0,
+    "critical_threats": 0,
+    "high_confidence_predictions": 0
+  },
+  "ml_capabilities": {
+    "real_time_analysis": true,
+    "anomaly_detection": true,
+    "threat_prediction": true,
+    "behavioral_analysis": true,
+    "ensemble_methods": true,
+    "quantum_optimization": true,
+    "federated_learning": true
+  },
+  "deployment_readiness": {
+    "models_trained": true,
+    "performance_validated": "True",
+    "optimization_complete": true,
+    "production_ready": true
+  }
+}

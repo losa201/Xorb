@@ -1,3 +1,8 @@
+from dataclasses import dataclass
+
+import logging
+logger = logging.getLogger(__name__)
+
 #!/usr/bin/env python3
 """
 Xorb PTaaS Deployment Verification Script
@@ -12,16 +17,19 @@ from datetime import datetime
 from typing import Dict, List, Optional, Tuple
 import sys
 import os
+import aiofiles
 
 try:
     import aiohttp
     import docker
-except ImportError:
+except ImportError as e:
+        logger.exception("Error in operation: %s", e)
     print("Installing required dependencies...")
-    subprocess.run([sys.executable, "-m", "pip", "install", "--break-system-packages", "aiohttp", "docker"])
+    await asyncio.create_subprocess_exec([sys.executable, "-m", "pip", "install", "--break-system-packages", "aiohttp", "docker"])
     import aiohttp
     import docker
 
+@dataclass
 class DeploymentVerifier:
     """Comprehensive deployment verification for Xorb PTaaS"""
     
@@ -89,7 +97,8 @@ class DeploymentVerifier:
             
             self.results["services"] = service_status
             
-        except Exception as e:
+        except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
             print(f"  ❌ Docker service check failed: {e}")
             self.results["checks"]["docker_services"] = {"status": "failed", "error": str(e)}
     
@@ -112,7 +121,8 @@ class DeploymentVerifier:
                 db_checks["postgresql"] = {"status": "failed", "error": result.stderr}
                 print("  ❌ PostgreSQL: Connection failed")
                 
-        except Exception as e:
+        except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
             db_checks["postgresql"] = {"status": "error", "error": str(e)}
             print(f"  ❌ PostgreSQL: {e}")
         
@@ -129,7 +139,8 @@ class DeploymentVerifier:
                 db_checks["redis"] = {"status": "failed", "error": result.stderr}
                 print("  ❌ Redis: Connection failed")
                 
-        except Exception as e:
+        except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
             db_checks["redis"] = {"status": "error", "error": str(e)}
             print(f"  ❌ Redis: {e}")
         
@@ -176,7 +187,8 @@ class DeploymentVerifier:
                             }
                             print(f"  ❌ {endpoint['name']}: {response.status}")
                             
-                except Exception as e:
+                except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
                     endpoint_results[endpoint["name"]] = {
                         "status": "error",
                         "error": str(e)
@@ -204,7 +216,8 @@ class DeploymentVerifier:
                 health_checks["temporal"] = {"status": "unhealthy", "error": result.stderr}
                 print("  ❌ Temporal: Unhealthy")
                 
-        except Exception as e:
+        except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
             health_checks["temporal"] = {"status": "error", "error": str(e)}
             print(f"  ❌ Temporal: {e}")
         
@@ -221,7 +234,8 @@ class DeploymentVerifier:
                 health_checks["nats"] = {"status": "unhealthy", "error": result.stderr}
                 print("  ❌ NATS: Unhealthy")
                 
-        except Exception as e:
+        except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
             health_checks["nats"] = {"status": "error", "error": str(e)}
             print(f"  ❌ NATS: {e}")
         
@@ -267,7 +281,7 @@ class DeploymentVerifier:
         # Check environment variables
         env_file = "/root/Xorb/.env"
         if os.path.exists(env_file):
-            with open(env_file, 'r') as f:
+            async with aiofiles.open(env_file, 'r') as f:
                 env_content = f.read()
                 
             security_checks["environment"] = {
@@ -296,7 +310,8 @@ class DeploymentVerifier:
             else:
                 print("  ⚠️  Containers: Basic security")
                 
-        except Exception as e:
+        except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
             security_checks["containers"] = {"status": "error", "error": str(e)}
             print(f"  ❌ Containers: {e}")
         
@@ -365,7 +380,8 @@ class DeploymentVerifier:
             performance_checks["resource_usage"] = resource_usage
             print("  ✅ Performance: Resource usage collected")
             
-        except Exception as e:
+        except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
             performance_checks["resource_usage"] = {"status": "error", "error": str(e)}
             print(f"  ❌ Performance: {e}")
         
@@ -444,7 +460,7 @@ async def main():
     
     # Save results to file
     output_file = f"/root/Xorb/deployment_verification_{int(time.time())}.json"
-    with open(output_file, 'w') as f:
+    async with aiofiles.open(output_file, 'w') as f:
         json.dump(results, f, indent=2)
     
     print(f"\n📄 Full results saved to: {output_file}")
@@ -455,9 +471,11 @@ if __name__ == "__main__":
     try:
         results = asyncio.run(main())
         sys.exit(0 if results.get("success_rate", 0) >= 75 else 1)
-    except KeyboardInterrupt:
+    except KeyboardInterrupt as e:
+        logger.exception("Error in operation: %s", e)
         print("\n⚠️  Verification interrupted by user")
         sys.exit(1)
-    except Exception as e:
+    except Exception as e as e:
+        logger.exception("Error in operation: %s", e)
         print(f"\n❌ Verification failed: {e}")
         sys.exit(1)

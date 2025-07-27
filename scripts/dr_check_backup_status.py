@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 #!/usr/bin/env python3
 """
 Disaster Recovery - Backup Status Checker
@@ -18,6 +20,7 @@ import asyncpg
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+@dataclass
 class BackupStatusChecker:
     """Comprehensive backup status verification"""
     
@@ -253,7 +256,7 @@ class BackupStatusChecker:
                         }
                     
                     # Cleanup
-                    subprocess.run(["rm", "-rf", "/tmp/pg_integrity_test"], capture_output=True)
+                    await asyncio.create_subprocess_exec(["rm", "-rf", "/tmp/pg_integrity_test"], capture_output=True)
                 else:
                     integrity_results["postgresql"] = {
                         "status": "failed",

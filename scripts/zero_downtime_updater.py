@@ -93,7 +93,8 @@ class ZeroDowntimeUpdater:
         try:
             # Load Kubernetes configuration
             config.load_incluster_config()
-        except:
+        except Exception as e:
+        logger.exception("Error occurred: %s", e)
             try:
                 config.load_kube_config()
             except Exception as e:
@@ -513,7 +514,8 @@ class ZeroDowntimeUpdater:
             )
             
             return service.spec.selector.get('color', 'blue')
-        except:
+        except Exception as e:
+        logger.exception("Error occurred: %s", e)
             return 'blue'  # Default to blue
     
     async def build_and_push_images(self, target_color: str) -> bool:
