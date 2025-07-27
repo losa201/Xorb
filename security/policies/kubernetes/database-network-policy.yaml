@@ -1,0 +1,65 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: xorb-database-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: xorb-postgres
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: xorb-api
+    - podSelector:
+        matchLabels:
+          app: xorb-orchestrator
+    - podSelector:
+        matchLabels:
+          app: xorb-worker
+    ports:
+    - protocol: TCP
+      port: 5432
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: xorb-redis-network-policy
+spec:
+  podSelector:
+    matchLabels:
+      app: xorb-redis
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: xorb-api
+    - podSelector:
+        matchLabels:
+          app: xorb-orchestrator
+    - podSelector:
+        matchLabels:
+          app: xorb-worker
+    ports:
+    - protocol: TCP
+      port: 6379
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

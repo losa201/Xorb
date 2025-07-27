@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xorb-region-config
+data:
+  region: "eu-west-1"
+  cloud_provider: "aws"
+  availability_zones: "3"
+  network_cidr: "10.0.0.0/16"
+  enable_multi_az: "true"
+  enable_encryption: "true"
+  backup_region: "us-east-1"

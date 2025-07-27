@@ -1,0 +1,29 @@
+groups:
+  - name: xorb-platform
+    rules:
+      - alert: XORBServiceDown
+        expr: up{job=~"xorb-.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "XORB service {{ $labels.job }} is down"
+          description: "Service {{ $labels.job }} has been down for more than 1 minute"
+          
+      - alert: XORBHighResponseTime
+        expr: http_request_duration_seconds{job=~"xorb-.*"} > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High response time for {{ $labels.job }}"
+          description: "Response time is {{ $value }}s for {{ $labels.job }}"
+          
+      - alert: XORBHighMemoryUsage
+        expr: process_resident_memory_bytes{job=~"xorb-.*"} / 1024 / 1024 > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage for {{ $labels.job }}"
+          description: "Memory usage is {{ $value }}MB for {{ $labels.job }}"
