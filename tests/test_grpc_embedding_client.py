@@ -5,7 +5,7 @@ Test suite for gRPC embedding client
 import pytest
 import asyncio
 from unittest.mock import AsyncMock, patch, MagicMock
-from xorb_common.clients.embedding_grpc_client import EmbeddingGRPCClient, EmbeddingResult, EmbeddingMetrics
+from xorb_core.clients.embedding_grpc_client import EmbeddingGRPCClient, EmbeddingResult, EmbeddingMetrics
 
 
 @pytest.mark.asyncio
@@ -238,7 +238,7 @@ async def test_batch_processing():
 async def test_global_client_management():
     """Test global client instance management"""
     
-    from xorb_common.clients.embedding_grpc_client import get_embedding_client, close_embedding_client
+    from xorb_core.clients.embedding_grpc_client import get_embedding_client, close_embedding_client
     
     with patch('grpc.aio.insecure_channel') as mock_channel:
         mock_channel_instance = AsyncMock()

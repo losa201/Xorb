@@ -1,0 +1,97 @@
+groups:
+  - name: xorb_security_alerts
+    rules:
+      # Critical Security Alerts
+      - alert: CriticalVulnerabilityDetected
+        expr: xorb_vulnerabilities_critical > 0
+        for: 0m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "Critical vulnerability detected"
+          description: "{{ $value }} critical vulnerabilities have been detected and require immediate attention."
+          
+      - alert: ActiveThreatDetected
+        expr: xorb_active_threats_total > 5
+        for: 2m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "Multiple active threats detected"
+          description: "{{ $value }} active threats detected. Immediate investigation required."
+          
+      - alert: SLABreachCritical
+        expr: xorb_sla_compliance_rate < 0.8
+        for: 5m
+        labels:
+          severity: critical
+          team: security
+        annotations:
+          summary: "SLA compliance critically low"
+          description: "SLA compliance rate is {{ $value | humanizePercentage }}. Critical threshold breached."
+          
+      # High Priority Alerts  
+      - alert: HighVulnerabilityCount
+        expr: xorb_vulnerabilities_high > 10
+        for: 5m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "High number of high-severity vulnerabilities"
+          description: "{{ $value }} high-severity vulnerabilities detected. Review and prioritize remediation."
+          
+      - alert: ThreatDetectionRateHigh
+        expr: rate(xorb_threat_detections_total[5m]) > 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Elevated threat detection rate"
+          description: "Threat detection rate is {{ $value | humanize }} per second. Potential security incident."
+          
+      - alert: MeanTimeToResolutionHigh
+        expr: xorb_mean_time_to_resolution > 72
+        for: 15m
+        labels:
+          severity: warning
+          team: security
+        annotations:
+          summary: "Mean time to resolution is high"
+          description: "MTTR is {{ $value }} hours. Response times need improvement."
+
+  - name: xorb_operational_alerts
+    rules:
+      # Service Health Alerts
+      - alert: XORBServiceDown
+        expr: up{job=~"xorb-.*"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: platform
+        annotations:
+          summary: "XORB service is down"
+          description: "Service {{ $labels.job }} on {{ $labels.instance }} has been down for more than 1 minute."
+          
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 80% for more than 5 minutes"
+
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+          team: platform
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 5 minutes"

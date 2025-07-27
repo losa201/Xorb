@@ -1,5 +1,5 @@
 
-version: '3.8'
+
 
 services:
   api:
@@ -26,7 +26,7 @@ services:
       context: .
       dockerfile: docker/worker/Dockerfile
     ports:
-      - "9000:9000"  # Metrics port
+      - "9001:9000"  # Metrics port
     environment:
       - TEMPORAL_HOST=temporal:7233
       - TASK_QUEUE=xorb-task-queue

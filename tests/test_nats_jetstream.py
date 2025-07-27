@@ -6,7 +6,7 @@ import pytest
 import asyncio
 import json
 from unittest.mock import AsyncMock, patch, MagicMock
-from xorb_common.events.nats_jetstream import (
+from xorb_core.events.nats_jetstream import (
     XorbEventBus, CloudEvent, EventType,
     publish_atom_created, publish_scan_completed
 )
@@ -252,7 +252,7 @@ async def test_stream_purging():
 async def test_convenience_functions():
     """Test convenience functions for common events"""
     
-    with patch('xorb_common.events.nats_jetstream.get_event_bus') as mock_get_bus:
+    with patch('xorb_core.events.nats_jetstream.get_event_bus') as mock_get_bus:
         mock_bus = AsyncMock()
         mock_get_bus.return_value = mock_bus
         
@@ -293,7 +293,7 @@ async def test_convenience_functions():
 async def test_global_event_bus():
     """Test global event bus management"""
     
-    from xorb_common.events.nats_jetstream import get_event_bus, close_event_bus
+    from xorb_core.events.nats_jetstream import get_event_bus, close_event_bus
     
     with patch('nats.connect') as mock_connect:
         mock_nc = AsyncMock()

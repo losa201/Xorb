@@ -34,7 +34,7 @@ from xorb_core.autonomous.monitoring import (
     AutonomousMonitor, Alert, AlertSeverity, ResourceMetrics,
     ResourcePredictor, SecurityComplianceMonitor
 )
-from xorb_common.agents.base_agent import AgentTask, AgentResult, AgentCapability
+from xorb_core.agents.base_agent import AgentTask, AgentResult, AgentCapability
 
 
 class TestAutonomousWorker:
@@ -410,7 +410,7 @@ class TestAutonomousOrchestrator:
         """Test workload profile updating"""
         
         # Add mock active executions
-        from xorb_common.orchestration.enhanced_orchestrator import ExecutionContext
+        from xorb_core.orchestration.enhanced_orchestrator import ExecutionContext
         mock_context = Mock(spec=ExecutionContext)
         mock_context.agent_name = "test_agent"
         

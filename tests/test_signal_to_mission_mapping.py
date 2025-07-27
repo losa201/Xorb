@@ -21,7 +21,7 @@ from xorb_core.intelligence.global_synthesis_engine import (
     IntelligenceSignal, CorrelatedIntelligence, SignalPriority, IntelligenceSourceType
 )
 from xorb_core.autonomous.autonomous_orchestrator import AutonomousOrchestrator
-from xorb_common.agents.base_agent import AgentCapability, AgentTask
+from xorb_core.agents.base_agent import AgentCapability, AgentTask
 
 
 class TestSignalClassification:

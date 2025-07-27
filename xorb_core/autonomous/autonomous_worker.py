@@ -64,7 +64,7 @@ class AgentResult:
 
 
 
-from xorb_common.orchestration.enhanced_orchestrator import EnhancedOrchestrator, ExecutionContext, ExecutionStatus
+from xorb_core.orchestration.enhanced_orchestrator import EnhancedOrchestrator, ExecutionContext, ExecutionStatus
 
 
 class AutonomyLevel(str, Enum):

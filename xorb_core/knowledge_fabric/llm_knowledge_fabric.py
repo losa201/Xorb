@@ -14,10 +14,10 @@ from dataclasses import dataclass
 from enum import Enum
 from pydantic import BaseModel
 
-from xorb_common.knowledge_fabric.core import KnowledgeFabric
-from xorb_common.knowledge_fabric.atom import KnowledgeAtom, AtomType, Source
-from xorb_common.llm.intelligent_client import IntelligentLLMClient, LLMResponse, TaskType
-from xorb_common.llm.payload_generator import PayloadGenerator, GeneratedPayload, PayloadCategory
+from xorb_core.knowledge_fabric.core import KnowledgeFabric
+from xorb_core.knowledge_fabric.atom import KnowledgeAtom, AtomType, Source
+from xorb_core.llm.intelligent_client import IntelligentLLMClient, LLMResponse, TaskType
+from xorb_core.llm.payload_generator import PayloadGenerator, GeneratedPayload, PayloadCategory
 
 logger = logging.getLogger(__name__)
 

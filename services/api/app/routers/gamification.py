@@ -17,7 +17,7 @@ import redis
 from ..database import get_db
 from ..deps import get_current_active_user, get_current_researcher
 from ..models import Researcher, Finding, Badge, ResearcherBadge, RatingHistory
-from xorb_common.gamification.glicko2 import ResearcherRatingSystem, GlickoRating
+from xorb_core.gamification.glicko2 import ResearcherRatingSystem, GlickoRating
 
 logger = logging.getLogger(__name__)
 

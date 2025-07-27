@@ -50,9 +50,9 @@ class QuickDeploy:
             (self.create_config, "Generating configuration"),
             
             # Start services
-            ("docker-compose -f docker-compose.unified.yml up -d postgres redis", "Starting databases"),
+            ("docker-compose --env-file config/local/.xorb.env -f docker-compose.local.yml up -d postgres redis", "Starting databases"),
             (lambda: time.sleep(20), "Waiting for databases"),
-            ("docker-compose -f docker-compose.unified.yml up -d", "Starting all services"),
+            ("docker-compose --env-file config/local/.xorb.env -f docker-compose.local.yml up -d", "Starting all services"),
             (lambda: time.sleep(30), "Waiting for services"),
             
             # Validation
@@ -100,8 +100,22 @@ REDIS_PORT=6379
 # Performance
 XORB_MAX_CONCURRENT_AGENTS=8
 XORB_WORKER_PROCESSES=4
+
+# Service Configuration (for Docker Compose)
+CACHE_SIZE_MB=1024
+LOG_LEVEL=INFO
+ORCHESTRATOR_WORKERS=4
+MAX_CONCURRENT_AGENTS=8
+
+# Resource Limits
+MEMORY_LIMIT_API=2g
+MEMORY_LIMIT_WORKER=1g
+MEMORY_LIMIT_ORCHESTRATOR=1g
+CPU_LIMIT_API=4.0
+CPU_LIMIT_WORKER=2.0
+CPU_LIMIT_ORCHESTRATOR=2.0
 """
-        with open(".xorb.env", "w") as f:
+        with open("config/local/.xorb.env", "w") as f:
             f.write(config)
     
     def test_deployment(self):
@@ -136,8 +150,8 @@ XORB_WORKER_PROCESSES=4
         
         print("\n📊 Management:")
         print("   • Status: make -f Makefile.advanced status-report")
-        print("   • Stop: docker-compose -f docker-compose.unified.yml down")
-        print("   • Logs: docker-compose -f docker-compose.unified.yml logs -f")
+        print("   • Stop: docker-compose -f docker-compose.local.yml down")
+        print("   • Logs: docker-compose -f docker-compose.local.yml logs -f")
     
     def print_failure(self):
         """Print failure message."""
@@ -146,7 +160,7 @@ XORB_WORKER_PROCESSES=4
         print("   1. Check Docker: docker --version")
         print("   2. Check services: docker-compose ps")
         print("   3. Check logs: docker-compose logs")
-        print("   4. Manual start: docker-compose -f docker-compose.unified.yml up -d")
+        print("   4. Manual start: docker-compose -f docker-compose.local.yml up -d")
 
 if __name__ == "__main__":
     deployer = QuickDeploy()

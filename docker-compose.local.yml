@@ -1,0 +1,282 @@
+version: '3.8'
+
+networks:
+  xorb-local:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: xorb0
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  neo4j_data:
+    driver: local
+  qdrant_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+services:
+  # Core Database Services
+  postgres:
+    image: postgres:15-alpine
+    container_name: xorb-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: xorb
+      POSTGRES_USER: xorb
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-xorb_secure_pass}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_db.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - xorb-local
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT_DB:-2g}
+          cpus: "${CPU_LIMIT_DB:-1.0}"
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    image: redis:7-alpine
+    container_name: xorb-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory ${CACHE_SIZE_MB}mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - xorb-local
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT_CACHE:-512m}
+          cpus: "0.5"
+    security_opt:
+      - no-new-privileges:true
+
+  neo4j:
+    image: neo4j:5-community
+    container_name: xorb-neo4j
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD:-xorb_graph_pass}
+      NEO4J_PLUGINS: '["apoc"]'
+      NEO4J_dbms_memory_heap_initial__size: 256m
+      NEO4J_dbms_memory_heap_max__size: ${NEO4J_HEAP:-1g}
+    volumes:
+      - neo4j_data:/data
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    networks:
+      - xorb-local
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT_GRAPH:-1g}
+          cpus: "2.0"
+    security_opt:
+      - no-new-privileges:true
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: xorb-qdrant
+    restart: unless-stopped
+    volumes:
+      - qdrant_data:/qdrant/storage
+    ports:
+      - "6333:6333"
+    networks:
+      - xorb-local
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT_VECTOR:-512m}
+          cpus: "1.0"
+    security_opt:
+      - no-new-privileges:true
+
+  # XORB Core Services
+  xorb-api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+      args:
+        ARCH: amd64
+    container_name: xorb-api
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgresql://xorb:${POSTGRES_PASSWORD:-xorb_secure_pass}@postgres:5432/xorb
+      - REDIS_URL=redis://redis:6379
+      - NEO4J_URL=bolt://neo4j:7687
+      - QDRANT_URL=http://qdrant:6333
+      - LOG_LEVEL=${LOG_LEVEL}
+      - MAX_WORKERS=${ORCHESTRATOR_WORKERS}
+    volumes:
+      - ./config/local:/app/config:ro
+      - ./logs:/app/logs
+    ports:
+      - "8000:8000"
+    networks:
+      - xorb-local
+    depends_on:
+      - postgres
+      - redis
+      - neo4j
+      - qdrant
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT_API}
+          cpus: "${CPU_LIMIT_API}"
+    security_opt:
+      - no-new-privileges:true
+
+  xorb-orchestrator:
+    build:
+      context: .
+      dockerfile: services/orchestrator/Dockerfile
+      args:
+        ARCH: amd64
+    container_name: xorb-orchestrator
+    restart: unless-stopped
+    environment:
+      - API_URL=http://xorb-api:8000
+      - DATABASE_URL=postgresql://xorb:${POSTGRES_PASSWORD:-xorb_secure_pass}@postgres:5432/xorb
+      - REDIS_URL=redis://redis:6379
+      - MAX_CONCURRENT_AGENTS=${MAX_CONCURRENT_AGENTS}
+      - LOG_LEVEL=${LOG_LEVEL}
+    volumes:
+      - ./config/local:/app/config:ro
+      - ./logs:/app/logs
+    ports:
+      - "8080:8080"
+    networks:
+      - xorb-local
+    depends_on:
+      - xorb-api
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT_ORCHESTRATOR:-1g}
+          cpus: "${CPU_LIMIT_ORCHESTRATOR:-2.0}"
+    security_opt:
+      - no-new-privileges:true
+
+  xorb-worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+      args:
+        ARCH: amd64
+    container_name: xorb-worker
+    restart: unless-stopped
+    environment:
+      - ORCHESTRATOR_URL=http://xorb-orchestrator:8080
+      - DATABASE_URL=postgresql://xorb:${POSTGRES_PASSWORD:-xorb_secure_pass}@postgres:5432/xorb
+      - REDIS_URL=redis://redis:6379
+      - LOG_LEVEL=${LOG_LEVEL}
+    volumes:
+      - ./config/local:/app/config:ro
+      - ./logs:/app/logs
+    ports:
+      - "9090:9090"
+    networks:
+      - xorb-local
+    depends_on:
+      - xorb-orchestrator
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT_WORKER}
+          cpus: "${CPU_LIMIT_WORKER}"
+    security_opt:
+      - no-new-privileges:true
+
+  # Monitoring Services
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: xorb-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./config/local/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/local/xorb_rules.yml:/etc/prometheus/xorb_rules.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9091}:9090"
+    networks:
+      - xorb-local
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT_MONITORING:-512m}
+          cpus: "1.0"
+    security_opt:
+      - no-new-privileges:true
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: xorb-grafana
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-xorb_admin}
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    ports:
+      - "3000:3000"
+    networks:
+      - xorb-local
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          memory: ${MEMORY_LIMIT_DASHBOARD:-256m}
+          cpus: "0.5"
+    security_opt:
+      - no-new-privileges:true
+
+  # System monitoring
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: xorb-node-exporter
+    restart: unless-stopped
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)(1475633|/)'
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - xorb-local
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+          cpus: "0.1"
+    security_opt:
+      - no-new-privileges:true

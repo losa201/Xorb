@@ -453,7 +453,7 @@ class XorbBootstrapDashboard:
         """Show deployment URLs in text mode"""
         print("\n🌐 SERVICE URLS:")
         print("   API:              http://localhost:8000")
-        print("   Worker Metrics:   http://localhost:9000/metrics")
+        print("   Worker Metrics:   http://localhost:9001/metrics")
         print("   Orchestrator:     http://localhost:8080")
         print("   Prometheus:       http://localhost:9090")
         print("   Grafana:          http://localhost:3000 (admin/xorb_admin_2024)")

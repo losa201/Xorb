@@ -34,8 +34,8 @@ from ..autonomous.autonomous_orchestrator import AutonomousOrchestrator
 from ..mission.adaptive_mission_engine import AdaptiveMissionEngine, MissionType
 from ..llm.enhanced_multi_provider_client import EnhancedMultiProviderClient
 from ..knowledge_fabric.vector_fabric import VectorFabric
-from xorb_common.integrations.hackerone_client import HackerOneClient
-from xorb_common.intelligence.semantic_cache import SemanticCache
+from xorb_core.integrations.hackerone_client import HackerOneClient
+from xorb_core.intelligence.semantic_cache import SemanticCache
 
 
 class IntelligenceSourceType(Enum):

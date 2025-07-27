@@ -378,7 +378,7 @@ metrics: ## Show Prometheus metrics from API
 	@curl -sf http://localhost:8000/metrics | grep http_requests_total || echo "API metrics endpoint not available"
 	@echo ""
 	@echo -e "$(GREEN)Fetching Worker Prometheus metrics...$(RESET)"
-	@curl -sf http://localhost:9000/metrics | grep xorb_ | head -10 || echo "Worker metrics endpoint not available"
+	@curl -sf http://localhost:9001/metrics | grep xorb_ | head -10 || echo "Worker metrics endpoint not available"
 
 .PHONY: health
 health: ## Check health of all services
@@ -847,3 +847,27 @@ emergency-rollback: ## Emergency rollback with immediate traffic switch
 	@echo -e "$(RED)EMERGENCY ROLLBACK - Switching traffic immediately...$(RESET)"
 	@./scripts/blue_green_deployment.sh rollback
 	@$(MAKE) bg-status
+
+# =============================================================================
+# DISTRIBUTED COORDINATION TESTING
+# =============================================================================
+
+.PHONY: test-coordination
+test-coordination: ## Test distributed campaign coordination
+	@echo -e "$(GREEN)Testing distributed coordination...$(RESET)"
+	@python scripts/test_distributed_coordination.py
+
+.PHONY: test-reporting
+test-reporting: ## Test business intelligence and reporting
+	@echo -e "$(GREEN)Testing business intelligence and reporting...$(RESET)"
+	@python scripts/test_business_intelligence.py
+
+.PHONY: test-stealth
+test-stealth: ## Test advanced stealth and evasion techniques
+	@echo -e "$(GREEN)Testing advanced stealth and evasion...$(RESET)"
+	@python scripts/test_advanced_stealth.py
+
+.PHONY: test-ml
+test-ml: ## Test advanced machine learning models
+	@echo -e "$(GREEN)Testing advanced ML models...$(RESET)"
+	@python scripts/test_ml_models.py

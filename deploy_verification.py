@@ -262,7 +262,7 @@ if __name__ == "__main__":
     root_dir = Path(__file__).parent
     sys.path.insert(0, str(root_dir))
     sys.path.insert(0, str(root_dir / "packages"))
-    sys.path.insert(0, str(root_dir / "xorb_common"))
+    sys.path.insert(0, str(root_dir / "xorb_core"))
     
     # Run verification
     exit_code = asyncio.run(main())

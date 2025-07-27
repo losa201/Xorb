@@ -20,7 +20,7 @@ import structlog
 import redis.asyncio as redis
 from prometheus_client import Counter, Histogram, Gauge, CollectorRegistry
 
-from xorb_common.agents.base_agent import AgentCapability, AgentTask, AgentResult
+from xorb_core.agents.base_agent import AgentCapability, AgentTask, AgentResult
 from .models import AutonomousDecision, WorkloadProfile
 
 

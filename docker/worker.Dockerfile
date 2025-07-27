@@ -29,7 +29,7 @@ USER worker
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD curl -f http://localhost:9000/metrics || exit 1
+    CMD curl -f http://localhost:9001/metrics || exit 1
 
 # Default command runs the worker entry point
 CMD ["python", "-m", "xorb_core.workflows.worker_entry"]

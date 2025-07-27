@@ -316,7 +316,7 @@ show_access_info() {
     echo -e "\n${BLUE}=== 🛠️ Useful Commands ===${NC}"
     echo "  Enter API shell: docker compose ${COMPOSE_FILES[*]} exec api bash"
     echo "  Check health:    curl http://localhost:8000/health"
-    echo "  View metrics:    curl http://localhost:9000/metrics"
+    echo "  echo "  View metrics:    curl http://localhost:9001/metrics""
     
     echo -e "\n${GREEN}🚀 XORB is now running autonomously! 🤖${NC}"
     echo -e "${YELLOW}💡 Tip: Monitor the orchestrator logs to see autonomous mission execution${NC}"

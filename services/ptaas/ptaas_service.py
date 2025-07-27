@@ -21,11 +21,11 @@ import redis.asyncio as redis
 from prometheus_client import Counter, Histogram, Gauge, generate_latest
 
 # Xorb imports
-from xorb_common.auth.jwt_auth import verify_jwt_token
-from xorb_common.database.postgresql import get_db_pool
-from xorb_common.events.cloud_events import CloudEventPublisher
-from xorb_common.logging.structured_logger import get_logger
-from xorb_common.metrics.prometheus_metrics import XorbMetrics
+from xorb_core.auth.jwt_auth import verify_jwt_token
+from xorb_core.database.postgresql import get_db_pool
+from xorb_core.events.cloud_events import CloudEventPublisher
+from xorb_core.logging.structured_logger import get_logger
+from xorb_core.metrics.prometheus_metrics import XorbMetrics
 
 logger = get_logger(__name__)
 

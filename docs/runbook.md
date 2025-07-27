@@ -119,7 +119,7 @@ scrape_configs:
 1. Ensure worker service is running and healthy
 2. Check worker logs for startup errors or missing dependencies
 3. Verify Temporal connection is successful
-4. Test worker metrics endpoint: `curl -f http://localhost:9000/metrics`
+4. Test worker metrics endpoint: `curl -f http://localhost:9001/metrics`
 
 ## Development Testing
 

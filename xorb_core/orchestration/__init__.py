@@ -11,10 +11,8 @@ from .dynamic_resource_manager import (
     DynamicResourceManager,
     LocalResourceProvider,
     KubernetesResourceProvider,
-    CloudResourceProvider,
     create_development_policy,
-    create_production_policy,
-    create_staging_policy
+    create_epyc_optimized_policy
 )
 
 from .distributed_campaign_coordinator import (
@@ -39,10 +37,8 @@ __all__ = [
     "DynamicResourceManager",
     "LocalResourceProvider",
     "KubernetesResourceProvider",
-    "CloudResourceProvider",
     "create_development_policy",
-    "create_production_policy",
-    "create_staging_policy",
+    "create_epyc_optimized_policy",
     "NodeInfo",
     "NodeRole",
     "CampaignState",

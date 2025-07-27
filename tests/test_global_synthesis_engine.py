@@ -26,7 +26,7 @@ from xorb_core.intelligence.global_synthesis_engine import (
 from xorb_core.autonomous.autonomous_orchestrator import AutonomousOrchestrator
 from xorb_core.mission.adaptive_mission_engine import AdaptiveMissionEngine
 from xorb_core.autonomous.episodic_memory_system import EpisodicMemorySystem
-from xorb_common.knowledge_fabric.vector_fabric import VectorFabric
+from xorb_core.knowledge_fabric.vector_fabric import VectorFabric
 
 
 class TestGlobalSynthesisEngine:
@@ -561,7 +561,7 @@ class TestIntelligenceDrivenMissions:
         
         # Mock the orchestrator method
         with patch.object(synthesis_engine.orchestrator, '_map_intelligence_to_capabilities') as mock_map:
-            from xorb_common.agents.base_agent import AgentCapability
+            from xorb_core.agents.base_agent import AgentCapability
             expected_capabilities = [
                 AgentCapability.RECONNAISSANCE,
                 AgentCapability.WEB_CRAWLING,

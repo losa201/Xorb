@@ -7,7 +7,7 @@ import asyncio
 import json
 import hashlib
 from unittest.mock import AsyncMock, patch, MagicMock
-from xorb_common.knowledge_fabric.embedding_service import KnowledgeEmbeddingService, EmbeddingResult
+from xorb_core.knowledge_fabric.embedding_service import KnowledgeEmbeddingService, EmbeddingResult
 
 
 @pytest.mark.asyncio

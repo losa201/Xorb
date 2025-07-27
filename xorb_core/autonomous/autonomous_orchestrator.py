@@ -27,12 +27,12 @@ import structlog
 import redis.asyncio as redis
 from prometheus_client import Counter, Histogram, Gauge, CollectorRegistry
 
-from xorb_common.orchestration.enhanced_orchestrator import (
+from xorb_core.orchestration.enhanced_orchestrator import (
     EnhancedOrchestrator, ExecutionContext, ExecutionStatus, 
     AgentRegistry, MetricsCollector
 )
 from .autonomous_worker import AutonomousWorker, AutonomyLevel, WorkerIntelligence, ResourceMonitor
-from xorb_common.agents.base_agent import AgentCapability, AgentTask
+from xorb_core.agents.base_agent import AgentCapability, AgentTask
 from .rl_orchestrator_extensions import TaskPreemptor, PreemptionEvent, ConfidenceTracker, LearningFeedbackLoop, BayesianTaskOptimizer, ExecutionGraph
 
 from .models import AutonomousDecision, WorkloadProfile, WorkloadAnalyzer, PerformanceOptimizer
