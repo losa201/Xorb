@@ -855,17 +855,32 @@ emergency-rollback: ## Emergency rollback with immediate traffic switch
 .PHONY: test-coordination
 test-coordination: ## Test distributed campaign coordination
 	@echo -e "$(GREEN)Testing distributed coordination...$(RESET)"
-	@python scripts/test_distributed_coordination.py
+	@pytest tests/test_distributed_coordination.py -v --tb=short
+
+.PHONY: demo-coordination
+demo-coordination: ## Run distributed coordination demonstration
+	@echo -e "$(GREEN)Running distributed coordination demonstration...$(RESET)"
+	@python scripts/demo_distributed_coordination.py
 
 .PHONY: test-reporting
 test-reporting: ## Test business intelligence and reporting
 	@echo -e "$(GREEN)Testing business intelligence and reporting...$(RESET)"
-	@python scripts/test_business_intelligence.py
+	@python scripts/demo_business_intelligence.py
+
+.PHONY: demo-reporting
+demo-reporting: ## Run business intelligence demonstration
+	@echo -e "$(GREEN)Running business intelligence demonstration...$(RESET)"
+	@python scripts/demo_business_intelligence.py
 
 .PHONY: test-stealth
 test-stealth: ## Test advanced stealth and evasion techniques
 	@echo -e "$(GREEN)Testing advanced stealth and evasion...$(RESET)"
-	@python scripts/test_advanced_stealth.py
+	@pytest tests/test_advanced_evasion_agent.py -v --tb=short
+
+.PHONY: demo-stealth
+demo-stealth: ## Run advanced evasion demonstration
+	@echo -e "$(GREEN)Running advanced evasion demonstration...$(RESET)"
+	@python scripts/demo_advanced_evasion.py
 
 .PHONY: test-ml
 test-ml: ## Test advanced machine learning models

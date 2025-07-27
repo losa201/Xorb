@@ -1,0 +1,295 @@
+{
+  "demo_id": "COORD-6AB8CB48",
+  "timestamp": "2025-07-27T08:43:58.055114",
+  "demo_type": "Comprehensive Distributed Coordination",
+  "classification": "OPERATIONAL",
+  "cluster_information": {
+    "coordinator_node": "node_e8614674",
+    "cluster_size": 4,
+    "node_roles": [
+      "analyzer",
+      "coordinator",
+      "specialist",
+      "worker"
+    ],
+    "total_capabilities": [
+      "evasion",
+      "analysis",
+      "intelligence",
+      "exploitation",
+      "reporting",
+      "scanning",
+      "steganography"
+    ],
+    "cluster_health": "optimal"
+  },
+  "consensus_tests": {
+    "raft": {
+      "protocol": "raft",
+      "initiated_by": "node_e8614674",
+      "timestamp": "2025-07-27T08:43:58.055192",
+      "proposal_id": "PROP-C05CD13A",
+      "participants": [
+        "node_47a4477c",
+        "node_4e85525a",
+        "node_befe00d1",
+        "node_2612c8dd"
+      ],
+      "rounds": 3,
+      "consensus_reached": true,
+      "execution_time_ms": 100.15,
+      "leader": "node_47a4477c",
+      "votes": {
+        "node_47a4477c": "accept",
+        "node_4e85525a": "accept",
+        "node_befe00d1": "accept",
+        "node_2612c8dd": "accept"
+      }
+    },
+    "pbft": {
+      "protocol": "pbft",
+      "initiated_by": "node_e8614674",
+      "timestamp": "2025-07-27T08:43:58.455614",
+      "proposal_id": "PROP-82A9D9D7",
+      "participants": [
+        "node_47a4477c",
+        "node_4e85525a",
+        "node_befe00d1",
+        "node_2612c8dd"
+      ],
+      "rounds": 4,
+      "consensus_reached": true,
+      "execution_time_ms": 100.16,
+      "byzantine_tolerance": 1,
+      "signatures_verified": 4
+    }
+  },
+  "campaign_coordination": {
+    "campaign_id": "CAMP-6C56519C",
+    "name": "Advanced Multi-Vector Assessment",
+    "coordinator": "node_e8614674",
+    "timestamp": "2025-07-27T08:43:58.856147",
+    "status": "completed",
+    "phases": [
+      "planning",
+      "deployment",
+      "execution",
+      "analysis",
+      "reporting"
+    ],
+    "current_phase": "reporting",
+    "task_distribution": {
+      "distribution_algorithm": "capability_load_balanced",
+      "tasks": {
+        "reconnaissance": {
+          "assigned_to": [
+            {
+              "node_id": "node_47a4477c",
+              "role": "coordinator",
+              "load": 23.4,
+              "match_score": 1
+            },
+            {
+              "node_id": "node_4e85525a",
+              "role": "worker",
+              "load": 67.2,
+              "match_score": 1
+            }
+          ],
+          "capabilities_required": [
+            "scanning"
+          ]
+        },
+        "vulnerability_assessment": {
+          "assigned_to": [
+            {
+              "node_id": "node_47a4477c",
+              "role": "coordinator",
+              "load": 23.4,
+              "match_score": 2
+            },
+            {
+              "node_id": "node_befe00d1",
+              "role": "analyzer",
+              "load": 45.8,
+              "match_score": 1
+            }
+          ],
+          "capabilities_required": [
+            "scanning",
+            "analysis"
+          ]
+        },
+        "exploitation": {
+          "assigned_to": [
+            {
+              "node_id": "node_2612c8dd",
+              "role": "specialist",
+              "load": 12.1,
+              "match_score": 1
+            },
+            {
+              "node_id": "node_4e85525a",
+              "role": "worker",
+              "load": 67.2,
+              "match_score": 1
+            }
+          ],
+          "capabilities_required": [
+            "exploitation"
+          ]
+        },
+        "stealth_operations": {
+          "assigned_to": [
+            {
+              "node_id": "node_2612c8dd",
+              "role": "specialist",
+              "load": 12.1,
+              "match_score": 2
+            }
+          ],
+          "capabilities_required": [
+            "evasion",
+            "steganography"
+          ]
+        },
+        "intelligence_gathering": {
+          "assigned_to": [
+            {
+              "node_id": "node_befe00d1",
+              "role": "analyzer",
+              "load": 45.8,
+              "match_score": 2
+            },
+            {
+              "node_id": "node_47a4477c",
+              "role": "coordinator",
+              "load": 23.4,
+              "match_score": 1
+            }
+          ],
+          "capabilities_required": [
+            "intelligence",
+            "analysis"
+          ]
+        },
+        "reporting": {
+          "assigned_to": [
+            {
+              "node_id": "node_47a4477c",
+              "role": "coordinator",
+              "load": 23.4,
+              "match_score": 1
+            },
+            {
+              "node_id": "node_befe00d1",
+              "role": "analyzer",
+              "load": 45.8,
+              "match_score": 1
+            }
+          ],
+          "capabilities_required": [
+            "reporting"
+          ]
+        }
+      },
+      "total_assignments": 11,
+      "load_balance_score": 94.7,
+      "redundancy_factor": 2.0
+    },
+    "deployment_status": {
+      "deployment_protocol": "rolling_deployment",
+      "nodes_deployed": 4,
+      "deployment_success_rate": 100.0,
+      "sync_mechanisms": [
+        "config_sync",
+        "state_replication",
+        "heartbeat_monitoring"
+      ],
+      "deployment_time_seconds": 12.4,
+      "health_checks_passed": 4
+    },
+    "execution_metrics": {
+      "monitoring_protocol": "real_time_telemetry",
+      "active_agents": 15,
+      "concurrent_operations": 8,
+      "cross_node_communications": 23,
+      "load_balancing_efficiency": 92.1,
+      "fault_tolerance_active": true,
+      "performance_metrics": {
+        "avg_response_time_ms": 847,
+        "throughput_ops_per_sec": 34.2,
+        "error_rate_percent": 0.8,
+        "resource_utilization": 73.4
+      }
+    },
+    "analysis_results": {
+      "aggregation_method": "weighted_consensus",
+      "data_sources": 4,
+      "analysis_confidence": 96.3,
+      "correlation_strength": 0.87,
+      "anomaly_detection": {
+        "anomalies_detected": 7,
+        "false_positives": 1,
+        "high_confidence_alerts": 4
+      },
+      "intelligence_fusion": {
+        "data_points_processed": 1247,
+        "patterns_identified": 23,
+        "threat_indicators": 12,
+        "actionable_intelligence": 8
+      }
+    },
+    "final_report": {
+      "report_generation": "distributed_consensus",
+      "contributing_nodes": 4,
+      "data_integrity_verified": true,
+      "report_sections": [
+        "executive_summary",
+        "technical_findings",
+        "risk_assessment",
+        "recommendations",
+        "appendices",
+        "raw_data"
+      ],
+      "quality_metrics": {
+        "completeness": 98.7,
+        "accuracy": 96.4,
+        "timeliness": 99.1,
+        "relevance": 94.8
+      },
+      "distribution_metrics": {
+        "total_data_points": 2847,
+        "processing_time_seconds": 23.7,
+        "cross_validation_score": 95.2
+      }
+    }
+  },
+  "fault_tolerance_test": {
+    "test_id": "FT-1A6F67E9",
+    "timestamp": "2025-07-27T08:44:00.057315",
+    "test_scenario": "single_node_failure",
+    "failed_node": "node_4e85525a",
+    "cluster_size_before": 3,
+    "cluster_size_after": 2,
+    "recovery_actions": [
+      "workload_redistribution",
+      "consensus_reconfiguration",
+      "state_synchronization",
+      "health_monitoring_adjustment"
+    ],
+    "recovery_time_seconds": 0.8,
+    "data_loss": "none",
+    "service_interruption": "minimal",
+    "consensus_maintained": true,
+    "cluster_stability": "restored",
+    "fault_tolerance_grade": "A+"
+  },
+  "performance_metrics": {
+    "coordination_efficiency": 94.8,
+    "consensus_speed": "sub_second",
+    "fault_recovery_time": "< 1 second",
+    "load_distribution": "balanced",
+    "communication_overhead": "minimal"
+  }
+}

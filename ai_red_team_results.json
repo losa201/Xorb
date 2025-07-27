@@ -1,0 +1,439 @@
+{
+  "campaign_id": "CAMPAIGN-37DB2825",
+  "orchestrator_id": "REDTEAM-8C43346B",
+  "timestamp": "2025-07-27T09:19:53.263539",
+  "duration_seconds": 7.421597719192505,
+  "missions_executed": 4,
+  "agent_performance": {
+    "recon_shadow": {
+      "missions_executed": 1,
+      "success_rate": 0,
+      "stealth_effectiveness": 0,
+      "detection_avoidance": 0,
+      "learning_progress": 0.0
+    },
+    "evade_specter": {
+      "missions_executed": 1,
+      "success_rate": 0,
+      "stealth_effectiveness": 0,
+      "detection_avoidance": 0,
+      "learning_progress": 0.0
+    },
+    "exploit_forge": {
+      "missions_executed": 1,
+      "success_rate": 0,
+      "stealth_effectiveness": 0,
+      "detection_avoidance": 0,
+      "learning_progress": 0.0
+    },
+    "protocol_phantom": {
+      "missions_executed": 1,
+      "success_rate": 0,
+      "stealth_effectiveness": 0,
+      "detection_avoidance": 0,
+      "learning_progress": 0.0
+    }
+  },
+  "campaign_results": [
+    {
+      "mission_id": "7e873caf-0bd4-4757-98e1-2ad79bc855c1",
+      "agent_id": "recon_shadow_5952c145",
+      "status": "completed",
+      "execution_time": 1.5049595832824707,
+      "intel_result": {
+        "target_analysis": {
+          "environment_type": "government_system",
+          "estimated_security_level": "high",
+          "defensive_technologies": [
+            "ids",
+            "dlp",
+            "behavioral_analytics",
+            "firewall"
+          ],
+          "attack_surface": {
+            "network_exposure": 0.16206295390980088,
+            "web_applications": 30,
+            "exposed_services": 23,
+            "employee_count": 2178
+          }
+        },
+        "threat_landscape": {
+          "active_threats": 5,
+          "threat_sophistication": "basic",
+          "recent_incidents": 4,
+          "defensive_alertness": 0.8799369885425115,
+          "attribution_risk": 0.199139192170772
+        },
+        "defensive_posture": {
+          "detection_capability": 0.48244163113831623,
+          "response_time": 760.9965519969692,
+          "coverage_gaps": [
+            "legacy_systems",
+            "social_engineering"
+          ],
+          "monitoring_blind_spots": 10,
+          "patch_compliance": 0.7455349871528181
+        },
+        "optimal_techniques": [
+          "whois_analysis",
+          "leak_detection",
+          "social_profiling"
+        ]
+      },
+      "execution_result": {
+        "dns_enumeration": {
+          "subdomains_found": 69,
+          "mx_records": 4,
+          "txt_records": 26,
+          "zone_transfer_possible": true,
+          "dns_wildcards": 5
+        },
+        "osint_intelligence": {
+          "company_profiles": 5,
+          "employee_linkedin": 277,
+          "technology_stack": [
+            "aws",
+            "office365",
+            "azure",
+            "salesforce"
+          ],
+          "recent_news": 57,
+          "financial_data": true
+        },
+        "social_intel": {
+          "employee_posts": 146,
+          "technology_mentions": 16,
+          "location_intel": 50,
+          "org_chart_insights": false,
+          "upcoming_events": 8
+        },
+        "dark_web_intel": {
+          "credential_leaks": 2,
+          "corporate_data_sales": 0,
+          "insider_chatter": false,
+          "attack_planning": false,
+          "vulnerability_discussions": 0
+        }
+      },
+      "learning_result": {
+        "learning_signals": [
+          {
+            "type": "success",
+            "value": 74.82673570636072,
+            "techniques": [
+              "passive_dns",
+              "social_profiling",
+              "whois_analysis"
+            ]
+          },
+          {
+            "type": "stealth_success",
+            "value": 85.34935739393603,
+            "detection_prob": 0.031046099904573153
+          }
+        ],
+        "model_updates": 2,
+        "adaptation_applied": true
+      },
+      "final_metrics": {
+        "success_score": 74.82673570636072,
+        "stealth_score": 85.34935739393603,
+        "detection_probability": 0.031046099904573153
+      }
+    },
+    {
+      "mission_id": "4a2dcac6-3409-4454-9e9c-0c9bed39251e",
+      "agent_id": "evade_specter_02f85b22",
+      "status": "completed",
+      "execution_time": 1.6038789749145508,
+      "intel_result": {
+        "target_analysis": {
+          "environment_type": "corporate_network",
+          "estimated_security_level": "high",
+          "defensive_technologies": [
+            "siem",
+            "endpoint_protection",
+            "firewall",
+            "behavioral_analytics"
+          ],
+          "attack_surface": {
+            "network_exposure": 0.25469136724181574,
+            "web_applications": 34,
+            "exposed_services": 20,
+            "employee_count": 330
+          }
+        },
+        "threat_landscape": {
+          "active_threats": 15,
+          "threat_sophistication": "nation_state",
+          "recent_incidents": 0,
+          "defensive_alertness": 0.6794039109751009,
+          "attribution_risk": 0.2401867929716793
+        },
+        "defensive_posture": {
+          "detection_capability": 0.7272872494194724,
+          "response_time": 543.9113207212533,
+          "coverage_gaps": [
+            "insider_threats"
+          ],
+          "monitoring_blind_spots": 9,
+          "patch_compliance": 0.6754361032082139
+        },
+        "optimal_techniques": [
+          "timing_variance",
+          "protocol_morphing",
+          "anti_forensics"
+        ]
+      },
+      "execution_result": {
+        "timing_evasion": {
+          "technique": "timing_evasion",
+          "pattern": "gaussian",
+          "effectiveness": 74.6241881337115,
+          "detection_events": 5,
+          "baseline_improvement": 35.974625765696345
+        },
+        "protocol_evasion": {
+          "technique": "protocol_evasion",
+          "protocol": "dhcp",
+          "effectiveness": 95.56466009443061,
+          "bandwidth_overhead": 6.718510173154362,
+          "detection_resistance": 0.9642312068539278
+        },
+        "behavioral_evasion": {
+          "technique": "behavioral_evasion",
+          "mimicked_behavior": "email_activity",
+          "effectiveness": 89.86493424356513,
+          "anomaly_score": 0.134415954201017,
+          "blending_quality": 0.7575951258300484
+        },
+        "signature_evasion": {
+          "technique": "signature_evasion",
+          "method": "metamorphic",
+          "effectiveness": 85.70046391216027,
+          "signature_matches": 0,
+          "av_detection_rate": 0.13095108491182378
+        }
+      },
+      "learning_result": {
+        "learning_signals": [
+          {
+            "type": "success",
+            "value": 86.43856159596687,
+            "techniques": [
+              "timing_evasion",
+              "protocol_evasion",
+              "behavioral_evasion",
+              "signature_evasion"
+            ]
+          },
+          {
+            "type": "stealth_success",
+            "value": 86.43856159596687,
+            "detection_prob": 0.13561438404033122
+          }
+        ],
+        "model_updates": 2,
+        "adaptation_applied": true
+      },
+      "final_metrics": {
+        "success_score": 86.43856159596687,
+        "stealth_score": 86.43856159596687,
+        "detection_probability": 0.13561438404033122
+      }
+    },
+    {
+      "mission_id": "78da362b-5019-4845-ad36-aaf83552b964",
+      "agent_id": "exploit_forge_2452e2f5",
+      "status": "completed",
+      "execution_time": 1.90460205078125,
+      "intel_result": {
+        "target_analysis": {
+          "environment_type": "government_system",
+          "estimated_security_level": "military",
+          "defensive_technologies": [
+            "endpoint_protection",
+            "siem"
+          ],
+          "attack_surface": {
+            "network_exposure": 0.4855127909331871,
+            "web_applications": 45,
+            "exposed_services": 63,
+            "employee_count": 7333
+          }
+        },
+        "threat_landscape": {
+          "active_threats": 18,
+          "threat_sophistication": "nation_state",
+          "recent_incidents": 0,
+          "defensive_alertness": 0.7192732164947262,
+          "attribution_risk": 0.1732236199857223
+        },
+        "defensive_posture": {
+          "detection_capability": 0.4608997037570065,
+          "response_time": 2271.757843788546,
+          "coverage_gaps": [
+            "legacy_systems",
+            "insider_threats",
+            "social_engineering"
+          ],
+          "monitoring_blind_spots": 8,
+          "patch_compliance": 0.606180075698173
+        },
+        "optimal_techniques": [
+          "buffer_overflow",
+          "lateral_movement",
+          "injection_attacks"
+        ]
+      },
+      "execution_result": {
+        "web_exploits": {
+          "exploit_type": "xss",
+          "successful": false,
+          "detected": false,
+          "payload_variations": 5,
+          "response_time": 1.5235276926638746
+        },
+        "network_exploits": {
+          "exploit_type": "protocol_abuse",
+          "successful": true,
+          "detected": true,
+          "services_tested": 38,
+          "firewall_bypassed": true
+        },
+        "privilege_escalation": {
+          "escalation_method": "token_manipulation",
+          "successful": true,
+          "detected": false,
+          "privileges_gained": "system",
+          "edr_bypassed": false
+        },
+        "persistence_mechanisms": {
+          "persistence_method": "registry_keys",
+          "successful": true,
+          "detected": true,
+          "survival_time": 20.6483712404498,
+          "removal_difficulty": "medium"
+        }
+      },
+      "learning_result": {
+        "learning_signals": [
+          {
+            "type": "success",
+            "value": 75.0,
+            "techniques": [
+              "web_exploits",
+              "network_exploits",
+              "privilege_escalation",
+              "persistence_mechanisms"
+            ]
+          }
+        ],
+        "model_updates": 1,
+        "adaptation_applied": true
+      },
+      "final_metrics": {
+        "success_score": 75.0,
+        "stealth_score": 50.0,
+        "detection_probability": 0.5
+      }
+    },
+    {
+      "mission_id": "7c946ab0-f50c-4249-8f46-d2585497ad54",
+      "agent_id": "protocol_phantom_c8ff4e04",
+      "status": "completed",
+      "execution_time": 1.604321002960205,
+      "intel_result": {
+        "target_analysis": {
+          "environment_type": "corporate_network",
+          "estimated_security_level": "military",
+          "defensive_technologies": [
+            "ids",
+            "siem",
+            "firewall"
+          ],
+          "attack_surface": {
+            "network_exposure": 0.1202716388960758,
+            "web_applications": 31,
+            "exposed_services": 39,
+            "employee_count": 8239
+          }
+        },
+        "threat_landscape": {
+          "active_threats": 25,
+          "threat_sophistication": "nation_state",
+          "recent_incidents": 1,
+          "defensive_alertness": 0.7606161402675138,
+          "attribution_risk": 0.3753212885537468
+        },
+        "defensive_posture": {
+          "detection_capability": 0.8964235990102059,
+          "response_time": 2585.800232240858,
+          "coverage_gaps": [
+            "social_engineering",
+            "cloud_misconfig"
+          ],
+          "monitoring_blind_spots": 9,
+          "patch_compliance": 0.8114426035296521
+        },
+        "optimal_techniques": [
+          "voip_mimicry",
+          "icmp_covert",
+          "streaming_simulation"
+        ]
+      },
+      "execution_result": {
+        "voip_mimicry": {
+          "protocol": "rtp",
+          "detection_rate": 0.30099636789365264,
+          "bandwidth_efficiency": 0.8345974599761791,
+          "jitter_variance": 42.767832669921376,
+          "packet_loss_simulation": 0.046169784514430594
+        },
+        "gaming_simulation": {
+          "game_type": "rts",
+          "detection_rate": 0.22471095753886572,
+          "latency_profile": 74.63891712112333,
+          "burst_patterns": 17,
+          "session_duration": 45.58854718985507
+        },
+        "streaming_mimicry": {
+          "stream_type": "audio",
+          "quality": "1080p",
+          "detection_rate": 0.3790961364312347,
+          "bitrate_variance": 0.11857066414897373,
+          "buffer_simulation": true
+        },
+        "dns_covert_channel": {
+          "encoding_method": "base64",
+          "detection_rate": 0.4317057451938009,
+          "throughput_bpm": 568.2124719012118,
+          "subdomain_rotation": false,
+          "query_spacing": 24.64420580365542
+        }
+      },
+      "learning_result": {
+        "learning_signals": [
+          {
+            "type": "failure",
+            "value": 66.58726982356116,
+            "techniques": [
+              "voip_mimicry",
+              "gaming_simulation",
+              "streaming_mimicry",
+              "dns_covert_channel"
+            ]
+          }
+        ],
+        "model_updates": 1,
+        "adaptation_applied": true
+      },
+      "final_metrics": {
+        "success_score": 66.58726982356116,
+        "stealth_score": 66.58726982356116,
+        "detection_probability": 0.3341273017643885
+      }
+    }
+  ],
+  "overall_effectiveness": 75.71314178147219
+}

@@ -1,0 +1,32 @@
+{
+  "timestamp": "2025-07-27T08:26:00Z",
+  "architecture": "x86_64",
+  "cpu_model": "AMD EPYC-Rome Processor",
+  "cpu_cores": 16,
+  "threads_per_core": 1,
+  "total_threads": 16,
+  "memory_total_gb": 30,
+  "memory_available_gb": 28,
+  "swap_enabled": false,
+  "numa_nodes": 1,
+  "hypervisor": "KVM",
+  "optimization_profile": "server",
+  "recommended_agents": 12,
+  "recommended_worker_threads": 8,
+  "cache_size_mb": 2048,
+  "analysis": {
+    "profile_type": "High-Performance Server",
+    "strengths": [
+      "AMD EPYC architecture optimized for concurrent workloads",
+      "High core count (16) suitable for agent orchestration",
+      "Abundant memory (30GB) for knowledge fabric",
+      "No swap ensures consistent performance"
+    ],
+    "optimizations": [
+      "CPU affinity for orchestrator processes",
+      "Large Redis cache allocation",
+      "High concurrency agent deployment",
+      "Memory-based temporary storage"
+    ]
+  }
+}
