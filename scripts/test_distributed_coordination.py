@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from typing import Dict, List, Any, Optional
 
 #!/usr/bin/env python3
@@ -24,6 +26,7 @@ import time
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+@dataclass
 class MockReconAgent(BaseAgent):
     """Mock reconnaissance agent for testing"""
     

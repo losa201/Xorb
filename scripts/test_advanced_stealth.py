@@ -9,8 +9,14 @@ Tests sophisticated evasion techniques and stealth capabilities
 import asyncio
 import sys
 import os
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
 import aiofiles
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, Path(os.path.dirname(__file__), '..'))
 
 from xorb_core.evasion.advanced_stealth import (
     AdvancedStealthEngine, EvasionTechnique, DetectionVector,

@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from typing import Dict, List, Any, Optional
 
 import logging
@@ -42,6 +44,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
+@dataclass
 class AIThreatHuntingDemo:
     """Comprehensive AI threat hunting demonstration."""
     

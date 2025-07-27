@@ -9,8 +9,14 @@ Tests comprehensive reporting capabilities and dashboard generation
 import asyncio
 import sys
 import os
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
+from pathlib import Path
 import aiofiles
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+sys.path.insert(0, Path(os.path.dirname(__file__), '..'))
 
 from xorb_core.reporting.business_intelligence import (
     BusinessIntelligenceEngine, ReportType, ReportFormat,
@@ -70,7 +76,7 @@ async def test_report_export() -> None:
         output_path = await bi_engine.export_report(report, format)
         
         # Verify file was created
-        assert Path(output_path).exists(), f"Export file {output_path} should exist"
+        assert Path(output_path.exists(), f"Export file {output_path} should exist"
         assert Path(output_path).stat().st_size > 0, f"Export file should not be empty"
         
         logger.info(f"✅ Exported to {output_path}")
@@ -316,7 +322,7 @@ async def main() -> None:
         
         # Cleanup test files
         import shutil
-        if Path("reports").exists():
+        if Path("reports".exists():
             shutil.rmtree("reports")
             logger.info("🧹 Cleaned up test report files")
         

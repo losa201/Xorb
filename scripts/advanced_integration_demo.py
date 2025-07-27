@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from typing import Dict, List, Any, Optional
 
 #!/usr/bin/env python3
@@ -50,6 +52,7 @@ import structlog
 logger = structlog.get_logger(__name__)
 
 
+@dataclass
 class XORBIntegrationDemo:
     """Comprehensive integration demonstration."""
     

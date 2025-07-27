@@ -1,0 +1,86 @@
+{
+  "check_id": "READINESS-20250727_193447",
+  "timestamp": "2025-07-27T19:34:47.853145",
+  "status": "ready",
+  "live_tests": {
+    "docker": {
+      "docker_daemon": {
+        "status": "pass",
+        "message": "Docker daemon running",
+        "details": "Available"
+      },
+      "docker_compose": {
+        "status": "pass",
+        "message": "Docker Compose available",
+        "details": "docker-compose version 1.29.2, build unknown"
+      }
+    },
+    "deployment": {
+      "core_services_start": {
+        "status": "pass",
+        "message": "Core services started successfully",
+        "details": "Creating network \"xorb_default\" with the default driver\nCreating xorb_redis_1 ... \nCreating xorb_postgres_1 ... \nCreating xorb_postgres_1 ... done\nCreating xorb_redis_1    ... done"
+      },
+      "postgres_health": {
+        "status": "pass",
+        "message": "PostgreSQL healthy",
+        "details": "/var/run/postgresql:5432 - accepting connections"
+      },
+      "redis_health": {
+        "status": "pass",
+        "message": "Redis healthy",
+        "details": "PONG"
+      },
+      "container_status": {
+        "status": "pass",
+        "message": "2 containers running",
+        "details": "NAMES             STATUS\nxorb_redis_1      Up 8 seconds\nxorb_postgres_1   Up 8 seconds"
+      }
+    },
+    "configuration": {
+      "compose_validation": {
+        "status": "pass",
+        "message": "Configuration valid (14 services)",
+        "details": "temporal, orchestrator, postgres, redis, worker, api, triage-vector, scanner-go, cost-monitor, ai-prioritization, ai-remediation, ai-learning, ai-multimodal, ai-campaign"
+      },
+      "inter_service_network": {
+        "status": "pass",
+        "message": "Inter-service networking functional",
+        "details": "Services can communicate"
+      }
+    },
+    "environment": {
+      "env_template": {
+        "status": "pass",
+        "message": "Environment template complete"
+      },
+      "env_injection": {
+        "status": "pass",
+        "message": "Environment variable injection working",
+        "details": "Variables properly substituted in configuration"
+      }
+    },
+    "cleanup": {
+      "cleanup": {
+        "status": "pass",
+        "message": "Test environment cleaned up",
+        "details": "Stopping xorb_redis_1    ... \nStopping xorb_postgres_1 ... \nStopping xorb_postgres_1 ... done\nStopping xorb_redis_1    ... done\nRemoving xorb_redis_1    ... \nRemoving xorb_postgres_1 ... \nRemoving xorb_postgres_1 ... done\nRemoving xorb_redis_1    ... done\nRemoving network xorb_default"
+      },
+      "cleanup_verification": {
+        "status": "pass",
+        "message": "No test containers remaining",
+        "details": "Clean state verified"
+      }
+    }
+  },
+  "summary": {
+    "total_checks": 12,
+    "passed": 12,
+    "warnings": 0,
+    "failed": 0,
+    "success_rate": 100.0,
+    "readiness_level": "READY",
+    "deployment_ready": true,
+    "production_ready": true
+  }
+}
