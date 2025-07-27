@@ -37,7 +37,7 @@ services:
     environment:
       <<: *common-env
       SERVICE_NAME: xorb-api
-      ENABLE_METRICS: true
+      ENABLE_METRICS: "true"
       NVIDIA_BASE_URL: https://integrate.api.nvidia.com/v1
     volumes:
       - api-logs:/app/logs:rw
@@ -104,7 +104,7 @@ services:
       <<: *common-env
       SERVICE_NAME: xorb-orchestrator
       MAX_CONCURRENT_AGENTS: ${MAX_CONCURRENT_AGENTS:-32}
-      ENABLE_METRICS: true
+      ENABLE_METRICS: "true"
     volumes:
       - orchestrator-logs:/app/logs:rw
     depends_on:
@@ -262,12 +262,12 @@ services:
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
-      GF_SECURITY_DISABLE_GRAVATAR: true
-      GF_SECURITY_COOKIE_SECURE: true
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_SECURITY_COOKIE_SECURE: "true"
       GF_SECURITY_COOKIE_SAMESITE: strict
-      GF_SECURITY_CONTENT_TYPE_PROTECTION: true
+      GF_SECURITY_CONTENT_TYPE_PROTECTION: "true"
       GF_SECURITY_X_CONTENT_TYPE_OPTIONS: nosniff
-      GF_SECURITY_X_XSS_PROTECTION: true
+      GF_SECURITY_X_XSS_PROTECTION: "true"
     volumes:
       - grafana-data:/var/lib/grafana:rw
       - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
