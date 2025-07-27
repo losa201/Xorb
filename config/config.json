@@ -1,10 +1,10 @@
 {
     "redis_url": "redis://localhost:6380/0",
     "database_url": "sqlite+aiosqlite:///./xorb_enhanced.db",
-    "openrouter_api_key": "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",
+    "openrouter_api_key": "${OPENROUTER_API_KEY}",
     "llm_providers": {
         "openrouter": {
-            "api_key": "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",
+            "api_key": "${OPENROUTER_API_KEY}",
             "base_url": "https://openrouter.ai/api/v1",
             "models": ["qwen/qwen3-235b-a22b-07-25:free"],
             "daily_budget": 5.0,

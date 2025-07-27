@@ -1,0 +1,62 @@
+# XORB Platform Code Ownership and Review Requirements
+# This file defines ownership for different parts of the XORB codebase
+# All changes require approval from designated code owners
+
+# Global ownership - all files require review
+* @xorb-team/core-maintainers
+
+# Security-critical files require security team approval
+.github/workflows/ @xorb-team/security-team @xorb-team/devops-team
+docker/ @xorb-team/security-team @xorb-team/devops-team
+*.yml @xorb-team/devops-team
+*.yaml @xorb-team/devops-team
+Dockerfile* @xorb-team/security-team @xorb-team/devops-team
+
+# Infrastructure and deployment
+docker-compose*.yml @xorb-team/devops-team @xorb-team/security-team
+gitops/ @xorb-team/devops-team
+monitoring/ @xorb-team/devops-team
+scripts/deployment* @xorb-team/devops-team
+
+# Security and secrets management
+.env.example @xorb-team/security-team
+.gitignore @xorb-team/security-team
+SECURITY*.md @xorb-team/security-team
+*security* @xorb-team/security-team
+
+# Core XORB platform code
+packages/xorb_core/ @xorb-team/core-maintainers @xorb-team/ai-team
+services/ @xorb-team/core-maintainers @xorb-team/backend-team
+
+# AI and ML components
+*ai* @xorb-team/ai-team
+*ml* @xorb-team/ai-team
+*agent* @xorb-team/ai-team
+*swarm* @xorb-team/ai-team
+*autonomous* @xorb-team/ai-team
+
+# Documentation requires technical writing review
+*.md @xorb-team/docs-team
+docs/ @xorb-team/docs-team
+
+# Configuration files
+pyproject.toml @xorb-team/core-maintainers
+requirements*.txt @xorb-team/core-maintainers
+Makefile @xorb-team/devops-team
+
+# Database and data management
+*database* @xorb-team/data-team
+*postgres* @xorb-team/data-team
+*redis* @xorb-team/data-team
+*neo4j* @xorb-team/data-team
+*clickhouse* @xorb-team/data-team
+
+# Testing requires approval from test engineers
+tests/ @xorb-team/qa-team @xorb-team/core-maintainers
+*test* @xorb-team/qa-team
+
+# Emergency bypass for critical security fixes
+# These files can be modified in emergency situations
+# but still require post-incident review
+.github/workflows/emergency.yml @xorb-team/security-team
+scripts/emergency* @xorb-team/security-team

@@ -111,7 +111,7 @@ class CostMonitoringService:
         
         # OpenRouter configuration
         self.openrouter_api_key = os.getenv("OPENROUTER_API_KEY", 
-            "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")
+            os.getenv("OPENROUTER_API_KEY", ""))
         self.openrouter_base_url = "https://openrouter.ai/api/v1"
         
         # Plan limits for overage detection

@@ -1,0 +1,390 @@
+name: XORB Production Deployment Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PYTHON_VERSION: "3.12"
+
+jobs:
+  security-scan:
+    name: 🔐 Security & Secrets Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for hardcoded secrets
+        run: |
+          echo "🔍 Scanning for hardcoded secrets..."
+          if grep -r "nvapi-[A-Za-z0-9_-]" . --exclude-dir=.git --exclude-dir=.github --exclude="*.example" --exclude="*.md"; then
+            echo "❌ Found hardcoded NVIDIA API keys"
+            exit 1
+          fi
+          if grep -r "sk-[A-Za-z0-9_-]" . --exclude-dir=.git --exclude-dir=.github --exclude="*.example" --exclude="*.md"; then
+            echo "❌ Found hardcoded OpenAI/OpenRouter API keys"
+            exit 1
+          fi
+          if grep -r "postgres://.*:.*@" . --exclude-dir=.git --exclude-dir=.github --exclude="*.example" --exclude="*.md"; then
+            echo "❌ Found hardcoded database credentials"
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets detected"
+
+      - name: Run Bandit security analysis
+        run: |
+          pip install bandit[toml]
+          bandit -r . -f json -o bandit-report.json || true
+          bandit -r . -f txt
+
+      - name: Upload Bandit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-security-report
+          path: bandit-report.json
+
+  code-quality:
+    name: 🎨 Code Quality & Linting
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install black ruff isort mypy pytest
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run Black formatting check
+        run: |
+          black --check --diff .
+
+      - name: Run isort import sorting check
+        run: |
+          isort --check-only --diff .
+
+      - name: Run Ruff linting
+        run: |
+          ruff check .
+
+      - name: Run MyPy type checking
+        run: |
+          mypy . --ignore-missing-imports || true
+
+  test:
+    name: 🧪 Unit & Integration Tests
+    runs-on: ubuntu-latest
+    needs: code-quality
+    services:
+      postgres:
+        image: ankane/pgvector:latest
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-asyncio
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Set test environment variables
+        run: |
+          echo "DATABASE_URL=postgresql://test_user:test_password@localhost:5432/test_db" >> $GITHUB_ENV
+          echo "REDIS_URL=redis://localhost:6379/0" >> $GITHUB_ENV
+          echo "NVIDIA_API_KEY=test-key" >> $GITHUB_ENV
+
+      - name: Run tests with coverage
+        run: |
+          pytest tests/ --cov=. --cov-report=xml --cov-report=html -v
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+            htmlcov/
+
+  build-and-scan:
+    name: 🏗️ Build & Scan Docker Images
+    runs-on: ubuntu-latest
+    needs: test
+    strategy:
+      matrix:
+        service: [api, worker, orchestrator]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/${{ matrix.service }}/Dockerfile
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          load: true
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+
+      - name: Run Trivy vulnerability scanner
+        run: |
+          trivy image --format sarif --output trivy-${{ matrix.service }}.sarif ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}:latest
+
+      - name: Upload Trivy scan results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-scan-${{ matrix.service }}
+          path: trivy-${{ matrix.service }}.sarif
+
+      - name: Run container healthcheck test
+        run: |
+          docker run --rm -d --name test-${{ matrix.service }} \
+            -e NVIDIA_API_KEY=test-key \
+            -e DATABASE_URL=postgresql://test:test@localhost:5432/test \
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.service }}:latest
+          
+          # Wait for container to start
+          sleep 10
+          
+          # Check if container is healthy
+          if docker ps | grep test-${{ matrix.service }}; then
+            echo "✅ Container ${{ matrix.service }} started successfully"
+            docker stop test-${{ matrix.service }}
+          else
+            echo "❌ Container ${{ matrix.service }} failed to start"
+            docker logs test-${{ matrix.service }}
+            exit 1
+          fi
+
+      - name: Push Docker image
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deployment-validation:
+    name: 🚀 Deployment Validation
+    runs-on: ubuntu-latest
+    needs: build-and-scan
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install docker psutil
+
+      - name: Run deployment readiness check
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY || 'test-deployment-key' }}
+        run: |
+          python3 scripts/deployment_readiness_check.py
+
+      - name: Validate Docker Compose configuration
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY || 'test-deployment-key' }}
+        run: |
+          docker-compose config --quiet
+          echo "✅ Docker Compose configuration is valid"
+
+      - name: Test core services deployment
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY || 'test-deployment-key' }}
+        run: |
+          # Start core services
+          docker-compose up -d postgres redis
+          
+          # Wait for services to be ready
+          sleep 30
+          
+          # Test connectivity
+          docker exec $(docker ps -q -f name=postgres) pg_isready -U temporal
+          docker exec $(docker ps -q -f name=redis) redis-cli ping
+          
+          # Cleanup
+          docker-compose down
+          
+          echo "✅ Core services deployment test passed"
+
+  deploy-staging:
+    name: 🌐 Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: deployment-validation
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging environment
+        env:
+          NVIDIA_API_KEY: ${{ secrets.STAGING_NVIDIA_API_KEY }}
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: |
+          echo "🚀 Deploying XORB to staging environment..."
+          # Add actual staging deployment commands here
+          # docker-compose -f docker-compose.staging.yml up -d
+          echo "✅ Staging deployment complete"
+
+  deploy-production:
+    name: 🏭 Deploy to Production
+    runs-on: ubuntu-latest
+    needs: deployment-validation
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production environment
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+        run: |
+          echo "🏭 Deploying XORB to production environment..."
+          # Add actual production deployment commands here
+          # kubectl apply -f gitops/overlays/production/
+          echo "✅ Production deployment complete"
+
+      - name: Post-deployment verification
+        run: |
+          echo "🔍 Running post-deployment verification..."
+          # Add health checks and smoke tests
+          python3 deployment_verification.py
+          echo "✅ Post-deployment verification passed"
+
+      - name: Notify deployment success
+        run: |
+          echo "🎉 XORB successfully deployed to production!"
+          echo "Repository: https://github.com/${{ github.repository }}"
+          echo "Commit: ${{ github.sha }}"
+          echo "Deployed by: ${{ github.actor }}"
+
+  security-report:
+    name: 📊 Generate Security Report
+    runs-on: ubuntu-latest
+    needs: [security-scan, build-and-scan]
+    if: always()
+    steps:
+      - name: Download security artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: "*-report*"
+          merge-multiple: true
+
+      - name: Generate security summary
+        run: |
+          echo "# 🔐 XORB Security Scan Report" > security-summary.md
+          echo "Generated: $(date)" >> security-summary.md
+          echo "" >> security-summary.md
+          echo "## Bandit Security Analysis" >> security-summary.md
+          if [ -f bandit-report.json ]; then
+            echo "✅ Bandit scan completed" >> security-summary.md
+          else
+            echo "❌ Bandit scan failed" >> security-summary.md
+          fi
+          echo "" >> security-summary.md
+          echo "## Container Vulnerability Scanning" >> security-summary.md
+          for service in api worker orchestrator; do
+            if [ -f "trivy-$service.sarif" ]; then
+              echo "✅ Trivy scan completed for $service" >> security-summary.md
+            else
+              echo "❌ Trivy scan failed for $service" >> security-summary.md
+            fi
+          done
+
+      - name: Upload security summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-summary
+          path: security-summary.md

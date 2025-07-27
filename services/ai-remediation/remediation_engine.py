@@ -1274,7 +1274,7 @@ async def main():
         "redis_url": os.getenv("REDIS_URL", "redis://redis:6379/0"),
         "openai_api_key": os.getenv("OPENAI_API_KEY"),
         "openrouter_api_key": os.getenv("OPENROUTER_API_KEY", 
-                                       "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")
+                                       os.getenv("OPENROUTER_API_KEY", ""))
     }
     
     engine = AutonomousRemediationEngine()

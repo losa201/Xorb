@@ -8,6 +8,7 @@ import asyncio
 import logging
 import json
 import sys
+import os
 from pathlib import Path
 
 # Add current directory to path
@@ -25,7 +26,7 @@ async def test_llm_integration():
     
     # Load configuration
     config = {
-        "openrouter_api_key": "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",
+        "openrouter_api_key": os.getenv("OPENROUTER_API_KEY", "test-key-placeholder"),
         "redis_url": "redis://localhost:6379/0",
         "database_url": "sqlite+aiosqlite:///./xorb_enhanced.db"
     }
