@@ -29,7 +29,7 @@ services:
   api:
     build:
       context: .
-      dockerfile: docker/api/Dockerfile
+      dockerfile: services/api/Dockerfile
       target: production
     image: ghcr.io/losa201/xorb-api:latest
     ports:
@@ -60,7 +60,7 @@ services:
   worker:
     build:
       context: .
-      dockerfile: docker/worker/Dockerfile
+      dockerfile: services/worker/Dockerfile
       target: production
     image: ghcr.io/losa201/xorb-worker:latest
     ports:
@@ -95,7 +95,7 @@ services:
   orchestrator:
     build:
       context: .
-      dockerfile: docker/orchestrator/Dockerfile
+      dockerfile: services/orchestrator/Dockerfile
       target: production
     image: ghcr.io/losa201/xorb-orchestrator:latest
     ports:

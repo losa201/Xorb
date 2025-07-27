@@ -1,4 +1,5 @@
-FROM python:3.12-slim
+# Multi-stage build for production optimization
+FROM python:3.12-slim as base
 
 # Set working directory
 WORKDIR /app
@@ -16,6 +17,15 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt uvicorn
 
+# Development stage
+FROM base as development
+COPY . .
+ENV PYTHONPATH=/app:/app/packages/xorb_core
+EXPOSE 8000
+CMD ["uvicorn", "services.api.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# Production stage
+FROM base as production
 # Copy the entire project structure to maintain imports
 COPY . .
 
