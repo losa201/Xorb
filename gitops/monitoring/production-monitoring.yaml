@@ -1,0 +1,240 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xorb-monitoring-config
+  namespace: xorb-system
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'xorb-production'
+        environment: 'production'
+
+    rule_files:
+      - "xorb_rules.yml"
+
+    scrape_configs:
+      # XORB Core Services
+      - job_name: 'xorb-api'
+        static_configs:
+          - targets: ['xorb-api:8000']
+        metrics_path: /metrics
+        scrape_interval: 10s
+
+      - job_name: 'xorb-orchestrator'
+        static_configs:
+          - targets: ['xorb-orchestrator:8001']
+        metrics_path: /metrics
+        scrape_interval: 10s
+
+      - job_name: 'xorb-worker'
+        static_configs:
+          - targets: ['xorb-worker:8002']
+        metrics_path: /metrics
+        scrape_interval: 10s
+
+      # Infrastructure
+      - job_name: 'redis'
+        static_configs:
+          - targets: ['redis:6379']
+        metrics_path: /metrics
+
+      - job_name: 'postgresql'
+        static_configs:
+          - targets: ['postgresql:5432']
+        metrics_path: /metrics
+
+      - job_name: 'nats'
+        static_configs:
+          - targets: ['nats:8222']
+        metrics_path: /metrics
+
+      # Node metrics
+      - job_name: 'node-exporter'
+        static_configs:
+          - targets: ['node-exporter:9100']
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets: ['alertmanager:9093']
+
+  xorb_rules.yml: |
+    groups:
+      - name: xorb.rules
+        rules:
+          # Performance Rules
+          - alert: XorbHighLatency
+            expr: histogram_quantile(0.95, xorb_agent_execution_duration_seconds) > 30
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "XORB agent execution latency is high"
+              description: "95th percentile latency is {{ $value }}s"
+
+          - alert: XorbLowThroughput
+            expr: rate(xorb_agent_executions_total[5m]) < 10
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "XORB agent execution throughput is low"
+              description: "Current rate: {{ $value }} executions/sec"
+
+          # Error Rate Rules
+          - alert: XorbHighErrorRate
+            expr: rate(xorb_agent_executions_total{status="failed"}[5m]) / rate(xorb_agent_executions_total[5m]) > 0.1
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "XORB agent failure rate is high"
+              description: "Error rate is {{ $value | humanizePercentage }}"
+
+          # Resource Rules
+          - alert: XorbHighMemoryUsage
+            expr: process_resident_memory_bytes{job=~"xorb-.*"} > 2e9
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "XORB service high memory usage"
+              description: "Memory usage: {{ $value | humanizeBytes }}"
+
+          - alert: XorbHighCPUUsage
+            expr: rate(process_cpu_seconds_total{job=~"xorb-.*"}[5m]) > 0.8
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "XORB service high CPU usage"
+              description: "CPU usage: {{ $value | humanizePercentage }}"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: xorb-system
+  labels:
+    app: prometheus
+    component: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+    spec:
+      serviceAccountName: prometheus
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.45.0
+        args:
+          - '--config.file=/etc/prometheus/prometheus.yml'
+          - '--storage.tsdb.path=/prometheus/'
+          - '--web.console.libraries=/etc/prometheus/console_libraries'
+          - '--web.console.templates=/etc/prometheus/consoles'
+          - '--storage.tsdb.retention.time=90d'
+          - '--web.enable-lifecycle'
+          - '--web.enable-admin-api'
+          - '--storage.tsdb.min-block-duration=2h'
+          - '--storage.tsdb.max-block-duration=2h'
+        ports:
+        - containerPort: 9090
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus/
+        - name: prometheus-storage
+          mountPath: /prometheus/
+        resources:
+          requests:
+            memory: 2Gi
+            cpu: 1000m
+          limits:
+            memory: 4Gi
+            cpu: 2000m
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: xorb-monitoring-config
+      - name: prometheus-storage
+        persistentVolumeClaim:
+          claimName: prometheus-storage
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: xorb-system
+  labels:
+    app: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - port: 9090
+    targetPort: 9090
+    name: prometheus
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-storage
+  namespace: xorb-system
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: fast-ssd
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: prometheus
+  namespace: xorb-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: prometheus
+rules:
+- apiGroups: [""]
+  resources:
+  - nodes
+  - nodes/proxy
+  - services
+  - endpoints
+  - pods
+  verbs: ["get", "list", "watch"]
+- apiGroups:
+  - extensions
+  resources:
+  - ingresses
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: prometheus
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: prometheus
+subjects:
+- kind: ServiceAccount
+  name: prometheus
+  namespace: xorb-system

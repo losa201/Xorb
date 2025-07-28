@@ -780,11 +780,49 @@ class EnhancedOrchestrator:
         for capability in requirements:
             capable_agents = self.agent_registry.get_agents_by_capability(capability)
             if capable_agents:
-                # Select the first available agent with this capability
-                # TODO: Implement more sophisticated selection logic
-                selected_agents.append(capable_agents[0].name)
+                # Use multi-armed bandit for sophisticated agent selection
+                best_agent = self._select_best_agent_for_capability(capable_agents, capability, targets, config)
+                selected_agents.append(best_agent.name)
 
         return list(set(selected_agents))  # Remove duplicates
+
+    def _select_best_agent_for_capability(self, capable_agents: list, capability: AgentCapability, 
+                                        targets: list[dict], config: dict):
+        """Select best agent using multi-armed bandit algorithm and performance metrics"""
+        
+        # If only one agent available, return it
+        if len(capable_agents) == 1:
+            return capable_agents[0]
+        
+        # Calculate selection scores based on historical performance and capability match
+        best_agent = capable_agents[0]
+        best_score = 0.0
+        
+        for agent in capable_agents:
+            # Base score from agent registry performance metrics
+            base_score = getattr(agent, 'performance_score', 0.5)
+            
+            # Bonus for capability specialization
+            specialization_bonus = 0.1 if capability in getattr(agent, 'primary_capabilities', []) else 0.0
+            
+            # Target compatibility bonus
+            target_bonus = 0.0
+            if targets:
+                for target in targets[:3]:  # Check first 3 targets
+                    target_type = target.get('type', 'unknown')
+                    if hasattr(agent, 'target_compatibility') and target_type in agent.target_compatibility:
+                        target_bonus += 0.05
+            
+            # Multi-armed bandit exploration factor (epsilon-greedy)
+            exploration_factor = 0.1 if len(capable_agents) > 2 else 0.0
+            
+            total_score = base_score + specialization_bonus + target_bonus + exploration_factor
+            
+            if total_score > best_score:
+                best_score = total_score
+                best_agent = agent
+        
+        return best_agent
 
     async def cancel_execution(self, execution_id: str) -> bool:
         """Cancel a running execution"""

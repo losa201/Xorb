@@ -1,0 +1,302 @@
+name: XORB CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PYTHON_VERSION: '3.12'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12']
+    
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: xorb_test
+          POSTGRES_USER: xorb_test
+          POSTGRES_DB: xorb_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-cov pytest-asyncio pytest-xdist
+
+    - name: Run linting
+      run: |
+        python -m pip install ruff black isort
+        ruff check . --output-format=github
+        black --check .
+        isort --check-only .
+
+    - name: Run security scan
+      run: |
+        python -m pip install bandit safety
+        bandit -r . -f json -o bandit-report.json || true
+        safety check
+
+    - name: Run tests
+      run: |
+        pytest tests/ -v --cov=xorb_core --cov-report=xml --cov-report=term-missing --tb=short -x
+      env:
+        REDIS_URL: redis://localhost:6379
+        DATABASE_URL: postgresql://xorb_test:xorb_test@localhost:5432/xorb_test
+        ENVIRONMENT: test
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: Run performance tests
+      run: |
+        python scripts/test_performance.py --duration=30 --agents=8
+      env:
+        XORB_TEST_MODE: performance
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+  build:
+    name: Build and Test Docker Images
+    runs-on: ubuntu-latest
+    needs: [test, security]
+    if: github.event_name == 'push'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push API image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./compose/Dockerfile.api
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/api:${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push Orchestrator image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./compose/Dockerfile.orchestrator
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/orchestrator:${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Build and push Worker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: ./compose/Dockerfile.worker
+        push: true
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/worker:${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'push'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Start test environment
+      run: |
+        docker-compose -f docker-compose.test.yml up -d
+        sleep 30  # Wait for services to be ready
+
+    - name: Run integration tests
+      run: |
+        docker-compose -f docker-compose.test.yml exec -T api python -m pytest tests/integration/ -v
+        docker-compose -f docker-compose.test.yml exec -T orchestrator python scripts/test_orchestration.py
+
+    - name: Run load tests
+      run: |
+        docker-compose -f docker-compose.test.yml exec -T api python scripts/load_test.py --duration=60 --concurrent=10
+
+    - name: Collect logs
+      if: always()
+      run: |
+        docker-compose -f docker-compose.test.yml logs > integration-test-logs.txt
+
+    - name: Upload logs
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: integration-test-logs
+        path: integration-test-logs.txt
+
+    - name: Cleanup
+      if: always()
+      run: |
+        docker-compose -f docker-compose.test.yml down -v
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [integration-test]
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'v3.12.0'
+
+    - name: Deploy to staging
+      run: |
+        kubectl config set-context staging
+        helm upgrade --install xorb-staging ./gitops/helm/xorb \
+          --namespace xorb-staging \
+          --create-namespace \
+          --values ./gitops/overlays/staging/values.yaml \
+          --set image.tag=${{ github.sha }}
+
+    - name: Run smoke tests
+      run: |
+        kubectl wait --for=condition=available --timeout=300s deployment/xorb-api -n xorb-staging
+        python scripts/smoke_test.py --endpoint https://staging.xorb.example.com
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [integration-test]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'v1.28.0'
+
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: 'v3.12.0'
+
+    - name: Deploy to production
+      run: |
+        kubectl config set-context production
+        helm upgrade --install xorb-production ./gitops/helm/xorb \
+          --namespace xorb-production \
+          --create-namespace \
+          --values ./gitops/overlays/production/values.yaml \
+          --set image.tag=${{ github.sha }}
+
+    - name: Run production smoke tests
+      run: |
+        kubectl wait --for=condition=available --timeout=600s deployment/xorb-api -n xorb-production
+        python scripts/smoke_test.py --endpoint https://xorb.example.com
+
+    - name: Notify deployment
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        text: 'XORB Production deployment completed successfully!'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+      if: always()

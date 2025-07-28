@@ -12,16 +12,51 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+import aiohttp
+import asyncio
+from typing import Optional
 
 std_logging.basicConfig(level=std_logging.INFO)
 logger = std_logging.getLogger(__name__)
 
+# Global connection pool for external services
+http_session: Optional[aiohttp.ClientSession] = None
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager"""
+    """Application lifespan manager with connection pooling"""
+    global http_session
+    
     logger.info("🚀 Starting Xorb PTaaS API Service")
     logger.info(f"Environment: {os.getenv('ENVIRONMENT', 'development')}")
+    
+    # Initialize connection pool with optimized settings
+    timeout = aiohttp.ClientTimeout(total=30, connect=10)
+    connector = aiohttp.TCPConnector(
+        limit=100,  # Total connection pool size
+        limit_per_host=20,  # Per-host connection limit
+        ttl_dns_cache=300,  # DNS cache TTL
+        use_dns_cache=True,
+        keepalive_timeout=60,
+        enable_cleanup_closed=True
+    )
+    
+    http_session = aiohttp.ClientSession(
+        connector=connector,
+        timeout=timeout,
+        headers={"User-Agent": "Xorb-API/2.0.0"}
+    )
+    
+    logger.info("✅ HTTP connection pool initialized")
+    
     yield
+    
+    # Cleanup connection pool
+    if http_session:
+        await http_session.close()
+        logger.info("✅ HTTP connection pool closed")
+    
     logger.info("📴 Shutting down Xorb PTaaS API Service")
 
 # Create FastAPI app
@@ -31,6 +66,9 @@ app = FastAPI(
     version="2.0.0",
     lifespan=lifespan
 )
+
+# Add performance optimization middleware
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 # Add CORS middleware
 app.add_middleware(
