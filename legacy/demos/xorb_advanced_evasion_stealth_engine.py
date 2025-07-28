@@ -13,13 +13,11 @@ import logging
 import random
 import time
 import uuid
-import base64
-import hashlib
+from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 # Configure enhanced logging
 logging.basicConfig(
@@ -67,10 +65,10 @@ class EvasionTechnique:
     category: EvasionCategory
     stealth_level: StealthLevel
     description: str
-    technical_details: Dict[str, Any]
+    technical_details: dict[str, Any]
     defensive_purpose: str
-    detection_challenges: List[str]
-    countermeasures: List[str]
+    detection_challenges: list[str]
+    countermeasures: list[str]
     effectiveness_score: float
     complexity: str
     timestamp: float
@@ -80,12 +78,12 @@ class StealthOperation:
     """Stealth operation for security validation"""
     operation_id: str
     operation_type: DefensiveTestType
-    target_controls: List[str]
-    evasion_techniques: List[str]
-    stealth_parameters: Dict[str, Any]
-    success_criteria: List[str]
-    defensive_objectives: List[str]
-    results: Optional[Dict[str, Any]]
+    target_controls: list[str]
+    evasion_techniques: list[str]
+    stealth_parameters: dict[str, Any]
+    success_criteria: list[str]
+    defensive_objectives: list[str]
+    results: dict[str, Any] | None
     status: str
     created_at: float
 
@@ -94,11 +92,11 @@ class DetectionBypassTest:
     """Detection bypass test for defensive validation"""
     test_id: str
     target_system: str
-    detection_methods: List[str]
-    bypass_techniques: List[str]
-    test_scenarios: List[Dict[str, Any]]
-    validation_metrics: Dict[str, float]
-    recommendations: List[str]
+    detection_methods: list[str]
+    bypass_techniques: list[str]
+    test_scenarios: list[dict[str, Any]]
+    validation_metrics: dict[str, float]
+    recommendations: list[str]
     timestamp: float
 
 class XorbAdvancedEvasionEngine:
@@ -108,35 +106,35 @@ class XorbAdvancedEvasionEngine:
     Provides sophisticated evasion techniques for defensive security research,
     red team validation, and security control effectiveness testing.
     """
-    
+
     def __init__(self):
         self.engine_id = f"STEALTH-{uuid.uuid4().hex[:8].upper()}"
         self.session_id = f"EVASION-{uuid.uuid4().hex[:8].upper()}"
         self.start_time = time.time()
-        
+
         # Evasion technique library
-        self.evasion_techniques: Dict[str, EvasionTechnique] = {}
-        self.stealth_operations: List[StealthOperation] = []
-        self.detection_tests: List[DetectionBypassTest] = []
-        
+        self.evasion_techniques: dict[str, EvasionTechnique] = {}
+        self.stealth_operations: list[StealthOperation] = []
+        self.detection_tests: list[DetectionBypassTest] = []
+
         # Performance tracking
         self.techniques_developed = 0
         self.operations_executed = 0
         self.bypasses_validated = 0
         self.defensive_improvements = 0
-        
+
         logger.info(f"🥷 XORB Advanced Evasion Engine initialized: {self.engine_id}")
-        logger.info(f"🥷 XORB ADVANCED EVASION AND STEALTH RESEARCH LAUNCHED")
+        logger.info("🥷 XORB ADVANCED EVASION AND STEALTH RESEARCH LAUNCHED")
         logger.info(f"🆔 Session ID: {self.session_id}")
         logger.info("🛡️ PURPOSE: Defensive Security Research and Control Validation")
         logger.info("")
         logger.info("🚀 INITIATING ADVANCED EVASION RESEARCH...")
         logger.info("")
-    
+
     def initialize_evasion_technique_library(self) -> None:
         """Initialize comprehensive evasion technique library"""
         techniques = []
-        
+
         # Anti-Detection Techniques
         techniques.extend([
             EvasionTechnique(
@@ -167,7 +165,7 @@ class XorbAdvancedEvasionEngine:
                 timestamp=time.time()
             ),
             EvasionTechnique(
-                technique_id="AD-002", 
+                technique_id="AD-002",
                 name="Timing-Based Detection Avoidance",
                 category=EvasionCategory.TEMPORAL_EVASION,
                 stealth_level=StealthLevel.INTERMEDIATE,
@@ -194,7 +192,7 @@ class XorbAdvancedEvasionEngine:
                 timestamp=time.time()
             )
         ])
-        
+
         # Traffic Obfuscation Techniques
         techniques.extend([
             EvasionTechnique(
@@ -252,7 +250,7 @@ class XorbAdvancedEvasionEngine:
                 timestamp=time.time()
             )
         ])
-        
+
         # Behavioral Mimicry Techniques
         techniques.extend([
             EvasionTechnique(
@@ -310,7 +308,7 @@ class XorbAdvancedEvasionEngine:
                 timestamp=time.time()
             )
         ])
-        
+
         # Living Off the Land Techniques
         techniques.extend([
             EvasionTechnique(
@@ -341,7 +339,7 @@ class XorbAdvancedEvasionEngine:
                 timestamp=time.time()
             )
         ])
-        
+
         # Steganographic Hiding Techniques
         techniques.extend([
             EvasionTechnique(
@@ -372,24 +370,24 @@ class XorbAdvancedEvasionEngine:
                 timestamp=time.time()
             )
         ])
-        
+
         # Store techniques in library
         for technique in techniques:
             self.evasion_techniques[technique.technique_id] = technique
             self.techniques_developed += 1
-        
+
         logger.info(f"🥷 Initialized evasion technique library: {len(techniques)} techniques")
         logger.info(f"   Categories: {len(set(t.category for t in techniques))}")
         logger.info(f"   Stealth Levels: {len(set(t.stealth_level for t in techniques))}")
-    
-    def create_stealth_operation(self, operation_type: DefensiveTestType, 
-                                target_controls: List[str]) -> StealthOperation:
+
+    def create_stealth_operation(self, operation_type: DefensiveTestType,
+                                target_controls: list[str]) -> StealthOperation:
         """Create a stealth operation for defensive testing"""
         operation_id = f"STEALTH-OP-{uuid.uuid4().hex[:8].upper()}"
-        
+
         # Select appropriate evasion techniques based on target controls
         selected_techniques = self._select_techniques_for_targets(target_controls)
-        
+
         # Define stealth parameters
         stealth_parameters = {
             "stealth_level": random.choice(list(StealthLevel)).value,
@@ -398,10 +396,10 @@ class XorbAdvancedEvasionEngine:
             "noise_generation": random.choice([True, False]),
             "adaptive_behavior": True
         }
-        
+
         # Define success criteria based on operation type
         success_criteria = self._define_success_criteria(operation_type)
-        
+
         # Define defensive objectives
         defensive_objectives = [
             f"Validate effectiveness of {control}" for control in target_controls
@@ -410,7 +408,7 @@ class XorbAdvancedEvasionEngine:
             "Test response procedures and timing",
             "Evaluate false positive rates"
         ]
-        
+
         operation = StealthOperation(
             operation_id=operation_id,
             operation_type=operation_type,
@@ -423,19 +421,19 @@ class XorbAdvancedEvasionEngine:
             status="planned",
             created_at=time.time()
         )
-        
+
         self.stealth_operations.append(operation)
         logger.info(f"🎯 Created stealth operation: {operation_id}")
         logger.info(f"   Type: {operation_type.value}")
         logger.info(f"   Target Controls: {len(target_controls)}")
         logger.info(f"   Techniques: {len(selected_techniques)}")
-        
+
         return operation
-    
-    def _select_techniques_for_targets(self, target_controls: List[str]) -> List[str]:
+
+    def _select_techniques_for_targets(self, target_controls: list[str]) -> list[str]:
         """Select appropriate evasion techniques for target controls"""
         selected = []
-        
+
         # Map control types to effective technique categories
         control_technique_map = {
             "signature_detection": [EvasionCategory.SIGNATURE_EVASION, EvasionCategory.ANTI_DETECTION],
@@ -444,21 +442,21 @@ class XorbAdvancedEvasionEngine:
             "data_loss_prevention": [EvasionCategory.STEGANOGRAPHIC_HIDING, EvasionCategory.TRAFFIC_OBFUSCATION],
             "behavioral_analysis": [EvasionCategory.BEHAVIORAL_MIMICRY, EvasionCategory.TEMPORAL_EVASION]
         }
-        
+
         for control in target_controls:
             relevant_categories = []
             for control_type, categories in control_technique_map.items():
                 if control_type in control.lower():
                     relevant_categories.extend(categories)
-            
+
             # Select techniques from relevant categories
             for technique in self.evasion_techniques.values():
                 if technique.category in relevant_categories:
                     selected.append(technique.technique_id)
-        
+
         return list(set(selected))[:3]  # Limit to 3 techniques per operation
-    
-    def _define_success_criteria(self, operation_type: DefensiveTestType) -> List[str]:
+
+    def _define_success_criteria(self, operation_type: DefensiveTestType) -> list[str]:
         """Define success criteria for operation type"""
         criteria_map = {
             DefensiveTestType.DETECTION_BYPASS: [
@@ -487,18 +485,18 @@ class XorbAdvancedEvasionEngine:
                 "Identify signature improvement opportunities"
             ]
         }
-        
+
         return criteria_map.get(operation_type, ["Complete operation successfully"])
-    
-    async def execute_stealth_operation(self, operation: StealthOperation) -> Dict[str, Any]:
+
+    async def execute_stealth_operation(self, operation: StealthOperation) -> dict[str, Any]:
         """Execute stealth operation for defensive validation"""
         operation.status = "executing"
         start_time = time.time()
-        
+
         logger.info(f"🎭 Executing stealth operation: {operation.operation_id}")
         logger.info(f"   Type: {operation.operation_type.value}")
         logger.info(f"   Techniques: {len(operation.evasion_techniques)}")
-        
+
         # Simulate operation execution
         results = {
             "operation_id": operation.operation_id,
@@ -512,78 +510,78 @@ class XorbAdvancedEvasionEngine:
             "defensive_insights": [],
             "recommendations": []
         }
-        
+
         # Execute each evasion technique
         for technique_id in operation.evasion_techniques:
             technique = self.evasion_techniques[technique_id]
-            
+
             # Simulate technique execution
             execution_result = await self._simulate_technique_execution(technique, operation)
             results["techniques_executed"].append(execution_result)
-            
+
             logger.info(f"🔧 Executed technique: {technique.name}")
             logger.info(f"   Success: {execution_result['success']}")
             logger.info(f"   Detection Risk: {execution_result['detection_risk']:.2f}")
-        
+
         # Calculate operation results
         execution_duration = random.uniform(1800, 3600)  # 30-60 minutes
         await asyncio.sleep(min(execution_duration / 1000, 2.0))  # Scale down for demo
-        
+
         end_time = time.time()
         results["end_time"] = end_time
         results["duration"] = end_time - start_time
-        
+
         # Calculate stealth score
         technique_scores = [t["stealth_effectiveness"] for t in results["techniques_executed"]]
         results["stealth_score"] = sum(technique_scores) / len(technique_scores) if technique_scores else 0
-        
+
         # Generate detection events (some operations may be detected)
         detection_probability = 1.0 - results["stealth_score"]
         if random.random() < detection_probability:
             detection_events = self._generate_detection_events(operation, results)
             results["detection_events"] = detection_events
-        
+
         # Evaluate objectives
         objectives_met = self._evaluate_objectives(operation, results)
         results["objectives_met"] = objectives_met
-        
+
         # Generate defensive insights
         insights = self._generate_defensive_insights(operation, results)
         results["defensive_insights"] = insights
-        
+
         # Generate recommendations
         recommendations = self._generate_recommendations(operation, results)
         results["recommendations"] = recommendations
-        
+
         operation.results = results
         operation.status = "completed"
         self.operations_executed += 1
-        
+
         logger.info(f"✅ Stealth operation completed: {operation.operation_id}")
         logger.info(f"   Duration: {results['duration']:.1f}s")
         logger.info(f"   Stealth Score: {results['stealth_score']:.2f}")
         logger.info(f"   Detection Events: {len(results['detection_events'])}")
         logger.info(f"   Objectives Met: {len(objectives_met)}")
-        
+
         return results
-    
-    async def _simulate_technique_execution(self, technique: EvasionTechnique, 
-                                          operation: StealthOperation) -> Dict[str, Any]:
+
+    async def _simulate_technique_execution(self, technique: EvasionTechnique,
+                                          operation: StealthOperation) -> dict[str, Any]:
         """Simulate evasion technique execution"""
         # Calculate execution parameters
         base_effectiveness = technique.effectiveness_score
         stealth_modifier = operation.stealth_parameters.get("stealth_level", 3) / 5.0
-        
+
         stealth_effectiveness = min(0.95, base_effectiveness * stealth_modifier)
         detection_risk = 1.0 - stealth_effectiveness
-        
+
         # Simulate execution success
         success_probability = stealth_effectiveness * 0.9  # 90% correlation with stealth
         success = random.random() < success_probability
-        
+
         # Generate execution artifacts
         artifacts = self._generate_execution_artifacts(technique, success)
-        
+
         result = {
             "technique_id": technique.technique_id,
             "technique_name": technique.name,
@@ -594,10 +592,10 @@ class XorbAdvancedEvasionEngine:
             "defensive_value": self._calculate_defensive_value(technique, success),
             "timestamp": time.time()
         }
-        
+
         return result
-    
-    def _generate_execution_artifacts(self, technique: EvasionTechnique, success: bool) -> Dict[str, Any]:
+
+    def _generate_execution_artifacts(self, technique: EvasionTechnique, success: bool) -> dict[str, Any]:
         """Generate execution artifacts for analysis"""
         artifacts = {
             "technique_category": technique.category.value,
@@ -605,7 +603,7 @@ class XorbAdvancedEvasionEngine:
             "execution_success": success,
             "complexity_rating": technique.complexity
         }
-        
+
         # Add technique-specific artifacts
         if technique.category == EvasionCategory.TRAFFIC_OBFUSCATION:
             artifacts.update({
@@ -625,10 +623,10 @@ class XorbAdvancedEvasionEngine:
                 "entropy_changes": random.uniform(0.1, 0.9),
                 "pattern_variations": random.randint(3, 15)
             })
-        
+
         return artifacts
-    
-    def _calculate_defensive_value(self, technique: EvasionTechnique, success: bool) -> Dict[str, Any]:
+
+    def _calculate_defensive_value(self, technique: EvasionTechnique, success: bool) -> dict[str, Any]:
         """Calculate defensive value of technique execution"""
         value = {
             "detection_improvement_potential": technique.effectiveness_score * 0.8,
@@ -636,15 +634,15 @@ class XorbAdvancedEvasionEngine:
             "security_awareness_value": technique.stealth_level.value * 0.1,
             "training_value": 0.7 if success else 0.3
         }
-        
+
         value["total_defensive_value"] = sum(value.values()) / len(value)
         return value
-    
-    def _generate_detection_events(self, operation: StealthOperation, 
-                                 results: Dict[str, Any]) -> List[Dict[str, Any]]:
+
+    def _generate_detection_events(self, operation: StealthOperation,
+                                 results: dict[str, Any]) -> list[dict[str, Any]]:
         """Generate simulated detection events"""
         events = []
-        
+
         # Generate events based on detection probability
         for technique_result in results["techniques_executed"]:
             if random.random() < technique_result["detection_risk"] * 0.3:  # Partial detection
@@ -652,7 +650,7 @@ class XorbAdvancedEvasionEngine:
                     "event_id": f"DET-{uuid.uuid4().hex[:8].upper()}",
                     "technique_id": technique_result["technique_id"],
                     "detection_type": random.choice([
-                        "signature_match", "behavioral_anomaly", "network_anomaly", 
+                        "signature_match", "behavioral_anomaly", "network_anomaly",
                         "process_anomaly", "file_system_anomaly"
                     ]),
                     "confidence": random.uniform(0.6, 0.95),
@@ -661,47 +659,47 @@ class XorbAdvancedEvasionEngine:
                     "details": f"Suspicious activity detected for {technique_result['technique_name']}"
                 }
                 events.append(event)
-        
+
         return events
-    
-    def _evaluate_objectives(self, operation: StealthOperation, 
-                           results: Dict[str, Any]) -> List[str]:
+
+    def _evaluate_objectives(self, operation: StealthOperation,
+                           results: dict[str, Any]) -> list[str]:
         """Evaluate which objectives were met"""
         met_objectives = []
-        
+
         # Evaluate based on operation type and results
         stealth_score = results["stealth_score"]
         detection_count = len(results["detection_events"])
-        
+
         if operation.operation_type == DefensiveTestType.DETECTION_BYPASS:
             if stealth_score > 0.7:
                 met_objectives.append("Maintained high stealth throughout operation")
             if detection_count == 0:
                 met_objectives.append("Completed operation without detection")
-        
+
         elif operation.operation_type == DefensiveTestType.EVASION_VALIDATION:
             if stealth_score > 0.6:
                 met_objectives.append("Validated evasion technique effectiveness")
             if detection_count > 0:
                 met_objectives.append("Identified detection capabilities")
-        
+
         # Add general objectives
         if len(results["techniques_executed"]) == len(operation.evasion_techniques):
             met_objectives.append("Executed all planned techniques")
-        
+
         if results["duration"] > 300:  # 5 minutes minimum
             met_objectives.append("Sustained operation for meaningful duration")
-        
+
         return met_objectives
-    
-    def _generate_defensive_insights(self, operation: StealthOperation, 
-                                   results: Dict[str, Any]) -> List[str]:
+
+    def _generate_defensive_insights(self, operation: StealthOperation,
+                                   results: dict[str, Any]) -> list[str]:
         """Generate defensive insights from operation"""
         insights = []
-        
+
         stealth_score = results["stealth_score"]
         detection_events = results["detection_events"]
-        
+
         # Stealth effectiveness insights
         if stealth_score > 0.8:
             insights.append("High stealth effectiveness indicates potential detection gaps")
@@ -709,36 +707,36 @@ class XorbAdvancedEvasionEngine:
         elif stealth_score < 0.5:
             insights.append("Strong detection capabilities demonstrated")
             insights.append("Current security controls showing good effectiveness")
-        
+
         # Detection pattern insights
         if detection_events:
             detection_types = [e["detection_type"] for e in detection_events]
             most_common = max(set(detection_types), key=detection_types.count)
             insights.append(f"Most effective detection method: {most_common}")
-            
+
             avg_confidence = sum(e["confidence"] for e in detection_events) / len(detection_events)
             if avg_confidence > 0.8:
                 insights.append("High detection confidence indicates reliable signatures")
             else:
                 insights.append("Lower detection confidence suggests need for tuning")
-        
+
         # Technique-specific insights
         for technique_result in results["techniques_executed"]:
             if technique_result["detection_risk"] > 0.7:
                 insights.append(f"Technique {technique_result['technique_name']} shows high detection risk")
             elif technique_result["stealth_effectiveness"] > 0.9:
                 insights.append(f"Technique {technique_result['technique_name']} demonstrates evasion effectiveness")
-        
+
         return insights
-    
-    def _generate_recommendations(self, operation: StealthOperation, 
-                                results: Dict[str, Any]) -> List[str]:
+
+    def _generate_recommendations(self, operation: StealthOperation,
+                                results: dict[str, Any]) -> list[str]:
         """Generate security improvement recommendations"""
         recommendations = []
-        
+
         stealth_score = results["stealth_score"]
         detection_events = results["detection_events"]
-        
+
         # General recommendations based on results
         if stealth_score > 0.7:
             recommendations.extend([
@@ -746,30 +744,30 @@ class XorbAdvancedEvasionEngine:
                 "Implement advanced machine learning detection models",
                 "Consider deployment of additional monitoring points"
             ])
-        
+
         if len(detection_events) == 0:
             recommendations.extend([
                 "Review and tune existing detection rules",
                 "Implement additional detection methods",
                 "Consider threat hunting activities"
             ])
-        
+
         # Technique-specific recommendations
         executed_techniques = [self.evasion_techniques[r["technique_id"]] for r in results["techniques_executed"]]
-        
+
         for technique in executed_techniques:
             # Add countermeasures as recommendations
             recommendations.extend(technique.countermeasures[:2])  # Top 2 countermeasures
-        
+
         # Remove duplicates and limit recommendations
         unique_recommendations = list(set(recommendations))
         return unique_recommendations[:8]  # Limit to 8 recommendations
-    
-    def create_detection_bypass_test(self, target_system: str, 
-                                   detection_methods: List[str]) -> DetectionBypassTest:
+
+    def create_detection_bypass_test(self, target_system: str,
+                                   detection_methods: list[str]) -> DetectionBypassTest:
         """Create comprehensive detection bypass test"""
         test_id = f"BYPASS-{uuid.uuid4().hex[:8].upper()}"
-        
+
         # Select bypass techniques for detection methods
         bypass_techniques = []
         for method in detection_methods:
@@ -780,7 +778,7 @@ class XorbAdvancedEvasionEngine:
                 ])
             ]
             bypass_techniques.extend(relevant_techniques[:2])
-        
+
         # Create test scenarios
         test_scenarios = [
             {
@@ -792,7 +790,7 @@ class XorbAdvancedEvasionEngine:
             }
             for i, method in enumerate(detection_methods)
         ]
-        
+
         # Define validation metrics
         validation_metrics = {
             "evasion_success_rate": 0.0,
@@ -801,7 +799,7 @@ class XorbAdvancedEvasionEngine:
             "false_negative_rate": 0.0,
             "response_time": 0.0
         }
-        
+
         test = DetectionBypassTest(
             test_id=test_id,
             target_system=target_system,
@@ -812,24 +810,24 @@ class XorbAdvancedEvasionEngine:
             recommendations=[],
             timestamp=time.time()
         )
-        
+
         self.detection_tests.append(test)
         self.bypasses_validated += 1
-        
+
         logger.info(f"🧪 Created detection bypass test: {test_id}")
         logger.info(f"   Target System: {target_system}")
         logger.info(f"   Detection Methods: {len(detection_methods)}")
         logger.info(f"   Test Scenarios: {len(test_scenarios)}")
-        
+
         return test
-    
-    def generate_defensive_research_report(self) -> Dict[str, Any]:
+
+    def generate_defensive_research_report(self) -> dict[str, Any]:
         """Generate comprehensive defensive research report"""
         # Calculate summary statistics
         total_techniques = len(self.evasion_techniques)
         total_operations = len(self.stealth_operations)
         completed_operations = len([op for op in self.stealth_operations if op.status == "completed"])
-        
+
         # Analyze technique effectiveness
         technique_effectiveness = {}
         for category in EvasionCategory:
@@ -837,24 +835,24 @@ class XorbAdvancedEvasionEngine:
             if category_techniques:
                 avg_effectiveness = sum(t.effectiveness_score for t in category_techniques) / len(category_techniques)
                 technique_effectiveness[category.value] = avg_effectiveness
-        
+
         # Generate insights from completed operations
         operation_insights = []
         defensive_improvements = []
-        
+
         for operation in self.stealth_operations:
             if operation.results:
                 stealth_score = operation.results.get("stealth_score", 0)
                 detection_count = len(operation.results.get("detection_events", []))
-                
+
                 if stealth_score > 0.8:
                     operation_insights.append(f"Operation {operation.operation_id} demonstrated significant evasion capabilities")
-                
+
                 if detection_count > 0:
                     operation_insights.append(f"Operation {operation.operation_id} validated detection effectiveness")
-                
+
                 defensive_improvements.extend(operation.results.get("recommendations", []))
-        
+
         report = {
             "report_id": f"DEF-RESEARCH-{uuid.uuid4().hex[:8].upper()}",
             "generated_at": datetime.now().isoformat(),
@@ -894,7 +892,7 @@ class XorbAdvancedEvasionEngine:
             "countermeasure_analysis": self._analyze_countermeasures(),
             "risk_assessment": {
                 "high_risk_techniques": [
-                    t.technique_id for t in self.evasion_techniques.values() 
+                    t.technique_id for t in self.evasion_techniques.values()
                     if t.effectiveness_score > 0.8 and t.stealth_level.value >= 4
                 ],
                 "mitigation_priorities": [
@@ -905,10 +903,10 @@ class XorbAdvancedEvasionEngine:
                 ]
             }
         }
-        
-        logger.info(f"📊 Generated defensive research report")
+
+        logger.info("📊 Generated defensive research report")
         return report
-    
+
     def _calculate_avg_stealth_score(self) -> float:
         """Calculate average stealth score across operations"""
         scores = []
@@ -916,7 +914,7 @@ class XorbAdvancedEvasionEngine:
             if operation.results:
                 scores.append(operation.results.get("stealth_score", 0))
         return sum(scores) / len(scores) if scores else 0.0
-    
+
     def _count_detection_events(self) -> int:
         """Count total detection events across operations"""
         total = 0
@@ -924,21 +922,21 @@ class XorbAdvancedEvasionEngine:
             if operation.results:
                 total += len(operation.results.get("detection_events", []))
         return total
-    
-    def _analyze_countermeasures(self) -> Dict[str, Any]:
+
+    def _analyze_countermeasures(self) -> dict[str, Any]:
         """Analyze countermeasures across all techniques"""
         all_countermeasures = []
         for technique in self.evasion_techniques.values():
             all_countermeasures.extend(technique.countermeasures)
-        
+
         # Count frequency of countermeasures
         countermeasure_frequency = {}
         for cm in all_countermeasures:
             countermeasure_frequency[cm] = countermeasure_frequency.get(cm, 0) + 1
-        
+
         # Get top countermeasures
         top_countermeasures = sorted(countermeasure_frequency.items(), key=lambda x: x[1], reverse=True)[:5]
-        
+
         return {
             "total_countermeasures": len(set(all_countermeasures)),
             "most_common": dict(top_countermeasures),
@@ -948,74 +946,74 @@ class XorbAdvancedEvasionEngine:
 async def main():
     """Main demonstration function"""
     evasion_engine = XorbAdvancedEvasionEngine()
-    
+
     # Initialize evasion technique library
     logger.info("🥷 Initializing advanced evasion technique library...")
     evasion_engine.initialize_evasion_technique_library()
-    
+
     # Create stealth operations for different defensive test types
     logger.info("🎭 Creating stealth operations for defensive validation...")
-    
+
     operations = []
-    
+
     # Detection bypass operation
     op1 = evasion_engine.create_stealth_operation(
         DefensiveTestType.DETECTION_BYPASS,
         ["signature_detection", "network_monitoring", "endpoint_detection"]
     )
     operations.append(op1)
-    
+
     # Evasion validation operation
     op2 = evasion_engine.create_stealth_operation(
         DefensiveTestType.EVASION_VALIDATION,
         ["behavioral_analysis", "anomaly_detection"]
     )
     operations.append(op2)
-    
+
     # Control effectiveness operation
     op3 = evasion_engine.create_stealth_operation(
         DefensiveTestType.CONTROL_EFFECTIVENESS,
         ["data_loss_prevention", "application_control"]
     )
     operations.append(op3)
-    
+
     # Execute stealth operations
     logger.info("⚡ Executing stealth operations...")
     for operation in operations:
         await evasion_engine.execute_stealth_operation(operation)
-    
+
     # Create detection bypass tests
     logger.info("🧪 Creating detection bypass tests...")
     test1 = evasion_engine.create_detection_bypass_test(
         "enterprise_network",
         ["signature_based_detection", "behavioral_analysis", "network_monitoring"]
     )
-    
+
     test2 = evasion_engine.create_detection_bypass_test(
         "endpoint_systems",
         ["antivirus_scanning", "process_monitoring", "file_system_protection"]
     )
-    
+
     # Generate defensive research report
     logger.info("📊 Generating defensive research report...")
     research_report = evasion_engine.generate_defensive_research_report()
-    
+
     # Save research data
     reports_path = Path("/root/Xorb/reports")
     reports_path.mkdir(exist_ok=True)
-    
+
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     with open(reports_path / f"defensive_research_report_{timestamp}.json", 'w') as f:
         json.dump(research_report, f, indent=2)
-    
+
     logger.info("")
     logger.info("🏆 ADVANCED EVASION AND STEALTH RESEARCH COMPLETE")
-    logger.info(f"🥷 Research Statistics:")
+    logger.info("🥷 Research Statistics:")
     logger.info(f"   Evasion Techniques Developed: {evasion_engine.techniques_developed}")
     logger.info(f"   Stealth Operations Executed: {evasion_engine.operations_executed}")
     logger.info(f"   Detection Bypass Tests: {evasion_engine.bypasses_validated}")
     logger.info(f"   Defensive Improvements Identified: {len(research_report['security_improvements'])}")
-    
+
     logger.info("")
     logger.info("🛡️ Defensive Value Summary:")
     logger.info(f"   Average Stealth Score: {evasion_engine._calculate_avg_stealth_score():.2f}")

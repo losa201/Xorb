@@ -5,20 +5,18 @@ Handles campaign lifecycle, researcher assignment, and test orchestration
 """
 
 import asyncio
-import logging
-import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
-from enum import Enum
 import json
+import uuid
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Any
 
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from pydantic import BaseModel, Field
-import asyncpg
 import redis.asyncio as redis
-from prometheus_client import Counter, Histogram, Gauge, generate_latest
+from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from prometheus_client import Counter, Gauge, Histogram, generate_latest
+from pydantic import BaseModel, Field
 
 # Xorb imports
 from xorb_core.auth.jwt_auth import verify_jwt_token
@@ -57,10 +55,10 @@ class SeverityLevel(str, Enum):
 @dataclass
 class RulesOfEngagement:
     """Rules of Engagement for PTaaS campaigns"""
-    allowed_domains: List[str]
-    forbidden_domains: List[str]
-    allowed_ports: List[int]
-    forbidden_techniques: List[str]
+    allowed_domains: list[str]
+    forbidden_domains: list[str]
+    allowed_ports: list[int]
+    forbidden_techniques: list[str]
     max_request_rate: int
     business_hours_only: bool
     data_exfiltration_allowed: bool
@@ -72,14 +70,14 @@ class RulesOfEngagement:
 class PTaaSCampaignRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str = Field(..., min_length=1)
-    target_domains: List[str] = Field(..., min_items=1)
+    target_domains: list[str] = Field(..., min_items=1)
     test_type: TestType
     severity_threshold: SeverityLevel = SeverityLevel.MEDIUM
-    scheduled_start: Optional[datetime] = None
-    scheduled_end: Optional[datetime] = None
+    scheduled_start: datetime | None = None
+    scheduled_end: datetime | None = None
     max_budget: float = Field(gt=0)
-    rules_of_engagement: Dict[str, Any]
-    required_skills: List[str] = []
+    rules_of_engagement: dict[str, Any]
+    required_skills: list[str] = []
     auto_assign_researchers: bool = True
 
 class PTaaSCampaignResponse(BaseModel):
@@ -87,19 +85,19 @@ class PTaaSCampaignResponse(BaseModel):
     name: str
     description: str
     status: CampaignStatus
-    target_domains: List[str]
+    target_domains: list[str]
     test_type: TestType
     created_at: datetime
     created_by: str
-    scheduled_start: Optional[datetime]
-    scheduled_end: Optional[datetime]
-    actual_start: Optional[datetime]
-    actual_end: Optional[datetime]
+    scheduled_start: datetime | None
+    scheduled_end: datetime | None
+    actual_start: datetime | None
+    actual_end: datetime | None
     max_budget: float
     spent_budget: float
     findings_count: int
-    assigned_researchers: List[Dict[str, Any]]
-    rules_of_engagement: Dict[str, Any]
+    assigned_researchers: list[dict[str, Any]]
+    rules_of_engagement: dict[str, Any]
 
 class PTaaSService:
     def __init__(self):
@@ -109,7 +107,7 @@ class PTaaSService:
         self.event_publisher = None
         self.metrics = XorbMetrics("ptaas")
         self.security = HTTPBearer()
-        
+
         self._setup_routes()
 
     async def startup(self):
@@ -118,10 +116,10 @@ class PTaaSService:
             self.db_pool = await get_db_pool()
             self.redis_client = redis.Redis.from_url("redis://localhost:6379")
             self.event_publisher = CloudEventPublisher("ptaas-service")
-            
+
             # Initialize database schemas
             await self._init_database()
-            
+
             logger.info("PTaaS service started successfully")
         except Exception as e:
             logger.error(f"Failed to start PTaaS service: {e}")
@@ -191,7 +189,7 @@ class PTaaSService:
 
     def _setup_routes(self):
         """Setup FastAPI routes"""
-        
+
         @self.app.post("/campaigns", response_model=PTaaSCampaignResponse)
         async def create_campaign(
             request: PTaaSCampaignRequest,
@@ -200,18 +198,18 @@ class PTaaSService:
         ):
             user_id = await self._verify_token(credentials.credentials)
             campaign = await self._create_campaign(request, user_id)
-            
+
             # Trigger researcher assignment in background
             if request.auto_assign_researchers:
                 background_tasks.add_task(self._assign_researchers, campaign["id"])
-            
+
             ptaas_campaigns_total.labels(status="created").inc()
-            
+
             return PTaaSCampaignResponse(**campaign)
 
-        @self.app.get("/campaigns", response_model=List[PTaaSCampaignResponse])
+        @self.app.get("/campaigns", response_model=list[PTaaSCampaignResponse])
         async def list_campaigns(
-            status: Optional[CampaignStatus] = None,
+            status: CampaignStatus | None = None,
             credentials: HTTPAuthorizationCredentials = Depends(self.security)
         ):
             user_id = await self._verify_token(credentials.credentials)
@@ -237,10 +235,10 @@ class PTaaSService:
         ):
             user_id = await self._verify_token(credentials.credentials)
             await self._start_campaign(campaign_id, user_id)
-            
+
             # Trigger test execution in background
             background_tasks.add_task(self._execute_campaign_tests, campaign_id)
-            
+
             return {"status": "started", "campaign_id": campaign_id}
 
         @self.app.post("/campaigns/{campaign_id}/pause")
@@ -278,13 +276,13 @@ class PTaaSService:
             logger.error(f"Token verification failed: {e}")
             raise HTTPException(status_code=401, detail="Invalid authentication token")
 
-    async def _create_campaign(self, request: PTaaSCampaignRequest, user_id: str) -> Dict[str, Any]:
+    async def _create_campaign(self, request: PTaaSCampaignRequest, user_id: str) -> dict[str, Any]:
         """Create a new PTaaS campaign"""
         campaign_id = str(uuid.uuid4())
-        
+
         # Validate Rules of Engagement
         await self._validate_roe(request.rules_of_engagement)
-        
+
         async with self.db_pool.acquire() as conn:
             campaign_data = await conn.fetchrow("""
                 INSERT INTO ptaas_campaigns (
@@ -293,14 +291,14 @@ class PTaaSService:
                     scheduled_end, max_budget, rules_of_engagement
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 RETURNING *
-            """, 
+            """,
                 campaign_id, request.name, request.description,
                 json.dumps(request.target_domains), request.test_type.value,
                 request.severity_threshold.value, user_id,
                 request.scheduled_start, request.scheduled_end,
                 request.max_budget, json.dumps(request.rules_of_engagement)
             )
-        
+
         # Publish campaign creation event
         await self.event_publisher.publish({
             "type": "ptaas.campaign.created",
@@ -311,9 +309,9 @@ class PTaaSService:
                 "test_type": request.test_type.value
             }
         })
-        
+
         logger.info(f"Created PTaaS campaign {campaign_id} for user {user_id}")
-        
+
         return {
             "id": str(campaign_data["id"]),
             "name": campaign_data["name"],
@@ -334,19 +332,19 @@ class PTaaSService:
             "rules_of_engagement": json.loads(campaign_data["rules_of_engagement"])
         }
 
-    async def _validate_roe(self, roe_data: Dict[str, Any]):
+    async def _validate_roe(self, roe_data: dict[str, Any]):
         """Validate Rules of Engagement"""
         required_fields = [
             "allowed_domains", "notification_email", "emergency_contact"
         ]
-        
+
         for field in required_fields:
             if field not in roe_data:
                 raise HTTPException(
-                    status_code=400, 
+                    status_code=400,
                     detail=f"Missing required RoE field: {field}"
                 )
-        
+
         # Validate domain format
         allowed_domains = roe_data.get("allowed_domains", [])
         if not allowed_domains:
@@ -361,40 +359,40 @@ class PTaaSService:
             # Get campaign details
             async with self.db_pool.acquire() as conn:
                 campaign = await conn.fetchrow(
-                    "SELECT * FROM ptaas_campaigns WHERE id = $1", 
+                    "SELECT * FROM ptaas_campaigns WHERE id = $1",
                     uuid.UUID(campaign_id)
                 )
-                
+
                 if not campaign:
                     logger.error(f"Campaign {campaign_id} not found for researcher assignment")
                     return
-                
+
                 # Get available researchers from researcher service
                 # This would call the researcher management service
                 available_researchers = await self._get_available_researchers(
                     test_type=campaign["test_type"],
                     required_skills=json.loads(campaign.get("metadata", "{}")).get("required_skills", [])
                 )
-                
+
                 # Assign top researchers
                 for researcher in available_researchers[:3]:  # Assign top 3
                     await conn.execute("""
                         INSERT INTO ptaas_campaign_researchers 
                         (campaign_id, researcher_id, skills, allocation_percentage)
                         VALUES ($1, $2, $3, $4)
-                    """, 
-                        uuid.UUID(campaign_id), 
+                    """,
+                        uuid.UUID(campaign_id),
                         uuid.UUID(researcher["id"]),
                         json.dumps(researcher.get("skills", [])),
                         33  # Split 100% among 3 researchers
                     )
-                
+
             logger.info(f"Assigned {len(available_researchers)} researchers to campaign {campaign_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to assign researchers to campaign {campaign_id}: {e}")
 
-    async def _get_available_researchers(self, test_type: str, required_skills: List[str]) -> List[Dict[str, Any]]:
+    async def _get_available_researchers(self, test_type: str, required_skills: list[str]) -> list[dict[str, Any]]:
         """Get available researchers matching criteria"""
         # This would integrate with the researcher management service
         # For now, return mock data
@@ -408,30 +406,30 @@ class PTaaSService:
             },
             {
                 "id": str(uuid.uuid4()),
-                "username": "sec_researcher_2", 
+                "username": "sec_researcher_2",
                 "skills": ["mobile", "api", "crypto"],
                 "rating": 1750,
                 "availability": "available"
             }
         ]
 
-    async def _list_campaigns(self, user_id: str, status: Optional[CampaignStatus]) -> List[Dict[str, Any]]:
+    async def _list_campaigns(self, user_id: str, status: CampaignStatus | None) -> list[dict[str, Any]]:
         """List campaigns for user"""
         query = "SELECT * FROM ptaas_campaigns WHERE created_by = $1"
         params = [uuid.UUID(user_id)]
-        
+
         if status:
             query += " AND status = $2"
             params.append(status.value)
-            
+
         query += " ORDER BY created_at DESC"
-        
+
         async with self.db_pool.acquire() as conn:
             campaigns = await conn.fetch(query, *params)
-            
+
         return [self._campaign_row_to_dict(campaign) for campaign in campaigns]
 
-    async def _get_campaign(self, campaign_id: str, user_id: str) -> Optional[Dict[str, Any]]:
+    async def _get_campaign(self, campaign_id: str, user_id: str) -> dict[str, Any] | None:
         """Get specific campaign"""
         async with self.db_pool.acquire() as conn:
             campaign = await conn.fetchrow("""
@@ -442,13 +440,13 @@ class PTaaSService:
                 WHERE c.id = $1 AND c.created_by = $2
                 GROUP BY c.id
             """, uuid.UUID(campaign_id), uuid.UUID(user_id))
-            
+
             if not campaign:
                 return None
-                
+
         return self._campaign_row_to_dict(campaign)
 
-    def _campaign_row_to_dict(self, row) -> Dict[str, Any]:
+    def _campaign_row_to_dict(self, row) -> dict[str, Any]:
         """Convert database row to dictionary"""
         return {
             "id": str(row["id"]),
@@ -494,16 +492,16 @@ class PTaaSService:
             # This would integrate with the Xorb orchestrator
             # to trigger automated security tests
             logger.info(f"Starting automated tests for campaign {campaign_id}")
-            
+
             # Placeholder for orchestrator integration
             await asyncio.sleep(5)  # Simulate test execution
-            
+
             logger.info(f"Completed automated tests for campaign {campaign_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to execute tests for campaign {campaign_id}: {e}")
 
-    async def _get_campaign_findings(self, campaign_id: str, user_id: str) -> List[Dict[str, Any]]:
+    async def _get_campaign_findings(self, campaign_id: str, user_id: str) -> list[dict[str, Any]]:
         """Get findings for a campaign"""
         # This would integrate with the bug bounty service
         # For now return mock data
@@ -526,7 +524,7 @@ service = PTaaSService()
 async def startup_event():
     await service.startup()
 
-@service.app.on_event("shutdown") 
+@service.app.on_event("shutdown")
 async def shutdown_event():
     await service.shutdown()
 

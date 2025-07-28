@@ -1,8 +1,6 @@
 import asyncio
 import json
-import time
 from pathlib import Path
-from typing import Dict, Set
 
 from temporalio.client import Client
 from temporalio.exceptions import WorkflowAlreadyStartedError
@@ -16,21 +14,21 @@ except ImportError:
     except ImportError:
         # Fallback DiscoveryTarget definition
         from dataclasses import dataclass
-        from typing import Optional, Dict, Any
-        
+        from typing import Any
+
         @dataclass
         class DiscoveryTarget:
             target_type: str
             value: str
-            scope: Optional[str] = None
-            metadata: Optional[Dict[str, Any]] = None
+            scope: str | None = None
+            metadata: dict[str, Any] | None = None
 
 try:
     from services.worker.workflows import DynamicScanWorkflow
 except ImportError:
     # Create a fallback workflow class
     from temporalio import workflow
-    
+
     @workflow.defn
     class DynamicScanWorkflow:
         @workflow.run
@@ -42,12 +40,12 @@ except ImportError:
 TARGETS_FILE = Path(__file__).parent.parent.parent / "targets.json"
 
 # A simple in-memory set to track processed targets to avoid duplicates
-PROCESSED_TARGETS: Set[str] = set()
+PROCESSED_TARGETS: set[str] = set()
 
 async def main():
     """The main loop for the autonomous orchestrator."""
     print("Starting autonomous orchestrator...")
-    
+
     try:
         client = await Client.connect("temporal:7233", namespace="default")
     except Exception as e:
@@ -58,7 +56,7 @@ async def main():
 
     while True:
         try:
-            with open(TARGETS_FILE, 'r') as f:
+            with open(TARGETS_FILE) as f:
                 targets_data = json.load(f)
         except (FileNotFoundError, json.JSONDecodeError):
             # If the file doesn't exist or is empty/corrupt, wait and try again

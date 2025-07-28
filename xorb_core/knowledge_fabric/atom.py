@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 
-import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Dict, Any, List, Optional, Set
-from dataclasses import dataclass, field
-from enum import Enum
-import json
 import hashlib
+import json
+import uuid
+from dataclasses import dataclass, field
+from datetime import UTC, datetime, timedelta
+from enum import Enum
+from typing import Any
 
 
 class AtomType(str, Enum):
@@ -31,10 +31,10 @@ class ConfidenceLevel(str, Enum):
 class Source:
     name: str
     type: str  # "llm", "agent", "manual", "import", "validation"
-    version: Optional[str] = None
+    version: str | None = None
     timestamp: datetime = field(default_factory=datetime.utcnow)
     reliability_score: float = 0.5
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -46,28 +46,28 @@ class ValidationResult:
     notes: str = ""
 
 
-@dataclass 
+@dataclass
 class KnowledgeAtom:
     atom_type: AtomType
     title: str
-    content: Dict[str, Any]
-    id: Optional[str] = None
+    content: dict[str, Any]
+    id: str | None = None
     confidence: float = 0.5
     predictive_score: float = 0.0
-    tags: Set[str] = field(default_factory=set)
-    sources: List[Source] = field(default_factory=list)
+    tags: set[str] = field(default_factory=set)
+    sources: list[Source] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
-    expires_at: Optional[datetime] = None
-    validation_results: List[ValidationResult] = field(default_factory=list)
-    related_atoms: Set[str] = field(default_factory=set)
+    expires_at: datetime | None = None
+    validation_results: list[ValidationResult] = field(default_factory=list)
+    related_atoms: set[str] = field(default_factory=set)
     usage_count: int = 0
     success_rate: float = 0.0
-    
+
     def __post_init__(self):
         if not self.id:
             self.id = str(uuid.uuid4())
-        
+
         if not self.expires_at and self.atom_type in [AtomType.TARGET_INFO, AtomType.INTELLIGENCE]:
             self.expires_at = self.created_at + timedelta(days=7)
 
@@ -88,7 +88,7 @@ class KnowledgeAtom:
     def is_expired(self) -> bool:
         if not self.expires_at:
             return False
-        return datetime.now(timezone.utc) > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
     @property
     def content_hash(self) -> str:
@@ -98,21 +98,21 @@ class KnowledgeAtom:
     def add_source(self, source: Source):
         self.sources.append(source)
         self._recalculate_confidence()
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def add_validation(self, result: ValidationResult):
         self.validation_results.append(result)
         if result.confidence_adjustment != 0:
             self.confidence = max(0.0, min(1.0, self.confidence + result.confidence_adjustment))
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def add_related_atom(self, atom_id: str, bidirectional: bool = True):
         self.related_atoms.add(atom_id)
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
     def record_usage(self, success: bool = True):
         self.usage_count += 1
-        
+
         if self.usage_count == 1:
             self.success_rate = 1.0 if success else 0.0
         else:
@@ -120,25 +120,25 @@ class KnowledgeAtom:
             if success:
                 success_count += 1
             self.success_rate = success_count / self.usage_count
-        
-        self._recalculate_predictive_score()
-        self.updated_at = datetime.now(timezone.utc)
 
-    def update_content(self, new_content: Dict[str, Any], source: Optional[Source] = None):
+        self._recalculate_predictive_score()
+        self.updated_at = datetime.now(UTC)
+
+    def update_content(self, new_content: dict[str, Any], source: Source | None = None):
         old_hash = self.content_hash
         self.content.update(new_content)
         new_hash = self.content_hash
-        
+
         if old_hash != new_hash and source:
             self.add_source(source)
-        
-        self.updated_at = datetime.now(timezone.utc)
+
+        self.updated_at = datetime.now(UTC)
 
     def _recalculate_confidence(self):
         if not self.sources:
             self.confidence = 0.5
             return
-        
+
         source_weights = {
             "validation": 0.4,
             "agent": 0.3,
@@ -146,41 +146,41 @@ class KnowledgeAtom:
             "manual": 0.5,
             "import": 0.1
         }
-        
+
         total_weight = 0
         weighted_confidence = 0
-        
+
         for source in self.sources:
             weight = source_weights.get(source.type, 0.1)
             reliability = source.reliability_score
-            
+
             total_weight += weight
             weighted_confidence += weight * reliability
-        
+
         if total_weight > 0:
             base_confidence = weighted_confidence / total_weight
-            
+
             validation_boost = len([v for v in self.validation_results if v.is_valid]) * 0.1
             validation_penalty = len([v for v in self.validation_results if not v.is_valid]) * 0.2
-            
+
             self.confidence = max(0.0, min(1.0, base_confidence + validation_boost - validation_penalty))
 
     def _recalculate_predictive_score(self):
         base_score = self.confidence * 0.5
-        
+
         usage_factor = min(1.0, self.usage_count / 10.0) * 0.3
         success_factor = self.success_rate * 0.2
-        
+
         age_factor = 0.0
         if self.created_at:
-            age_days = (datetime.now(timezone.utc) - self.created_at).days
+            age_days = (datetime.now(UTC) - self.created_at).days
             age_factor = max(0.0, 1.0 - (age_days / 30.0)) * 0.1
-        
+
         relationship_factor = min(1.0, len(self.related_atoms) / 5.0) * 0.1
-        
+
         self.predictive_score = base_score + usage_factor + success_factor + age_factor + relationship_factor
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "atom_type": self.atom_type.value,
@@ -220,7 +220,7 @@ class KnowledgeAtom:
         }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'KnowledgeAtom':
+    def from_dict(cls, data: dict[str, Any]) -> 'KnowledgeAtom':
         sources = []
         for source_data in data.get("sources", []):
             source = Source(
@@ -232,7 +232,7 @@ class KnowledgeAtom:
                 metadata=source_data.get("metadata", {})
             )
             sources.append(source)
-        
+
         validation_results = []
         for validation_data in data.get("validation_results", []):
             validation = ValidationResult(
@@ -243,7 +243,7 @@ class KnowledgeAtom:
                 notes=validation_data.get("notes", "")
             )
             validation_results.append(validation)
-        
+
         atom = cls(
             id=data["id"],
             atom_type=AtomType(data["atom_type"]),
@@ -261,7 +261,7 @@ class KnowledgeAtom:
             usage_count=data.get("usage_count", 0),
             success_rate=data.get("success_rate", 0.0)
         )
-        
+
         return atom
 
     def __str__(self) -> str:

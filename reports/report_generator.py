@@ -2,11 +2,11 @@
 
 import json
 import logging
+from dataclasses import dataclass
 from datetime import datetime
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, field
 from enum import Enum
+from pathlib import Path
+from typing import Any
 
 import jinja2
 from pydantic import BaseModel, Field, validator
@@ -44,21 +44,21 @@ class CVSSMetrics:
     confidentiality_impact: str  # None, Low, High
     integrity_impact: str  # None, Low, High
     availability_impact: str  # None, Low, High
-    
+
     # Temporal Metrics (Optional)
-    exploit_code_maturity: Optional[str] = None
-    remediation_level: Optional[str] = None
-    report_confidence: Optional[str] = None
-    
+    exploit_code_maturity: str | None = None
+    remediation_level: str | None = None
+    report_confidence: str | None = None
+
     # Environmental Metrics (Optional)
-    modified_attack_vector: Optional[str] = None
-    modified_attack_complexity: Optional[str] = None
-    modified_privileges_required: Optional[str] = None
-    modified_user_interaction: Optional[str] = None
-    modified_scope: Optional[str] = None
-    modified_confidentiality: Optional[str] = None
-    modified_integrity: Optional[str] = None
-    modified_availability: Optional[str] = None
+    modified_attack_vector: str | None = None
+    modified_attack_complexity: str | None = None
+    modified_privileges_required: str | None = None
+    modified_user_interaction: str | None = None
+    modified_scope: str | None = None
+    modified_confidentiality: str | None = None
+    modified_integrity: str | None = None
+    modified_availability: str | None = None
 
 
 class Finding(BaseModel):
@@ -66,22 +66,22 @@ class Finding(BaseModel):
     title: str
     description: str
     severity: SeverityLevel
-    cvss_score: Optional[float] = None
-    cvss_vector: Optional[str] = None
-    cvss_metrics: Optional[Dict[str, Any]] = None
-    
-    affected_targets: List[str] = Field(default_factory=list)
-    proof_of_concept: Optional[str] = None
+    cvss_score: float | None = None
+    cvss_vector: str | None = None
+    cvss_metrics: dict[str, Any] | None = None
+
+    affected_targets: list[str] = Field(default_factory=list)
+    proof_of_concept: str | None = None
     remediation: str = ""
-    references: List[str] = Field(default_factory=list)
-    
+    references: list[str] = Field(default_factory=list)
+
     discovered_at: datetime = Field(default_factory=datetime.utcnow)
-    agent_id: Optional[str] = None
-    campaign_id: Optional[str] = None
-    
-    evidence: List[Dict[str, Any]] = Field(default_factory=list)
-    tags: List[str] = Field(default_factory=list)
-    
+    agent_id: str | None = None
+    campaign_id: str | None = None
+
+    evidence: list[dict[str, Any]] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+
     @validator('severity')
     def validate_severity(cls, v):
         if isinstance(v, str):
@@ -101,25 +101,25 @@ class ReportMetadata(BaseModel):
     generated_at: datetime = Field(default_factory=datetime.utcnow)
     generated_by: str = "XORB Security Platform"
     version: str = "1.0.0"
-    
-    targets: List[str] = Field(default_factory=list)
+
+    targets: list[str] = Field(default_factory=list)
     scope: str = ""
     methodology: str = ""
-    
-    start_time: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    duration_hours: Optional[float] = None
-    
+
+    start_time: datetime | None = None
+    end_time: datetime | None = None
+    duration_hours: float | None = None
+
     executive_summary: str = ""
-    recommendations: List[str] = Field(default_factory=list)
-    
-    technical_details: Dict[str, Any] = Field(default_factory=dict)
+    recommendations: list[str] = Field(default_factory=list)
+
+    technical_details: dict[str, Any] = Field(default_factory=dict)
 
 
 class SecurityReport:
     def __init__(self, metadata: ReportMetadata):
         self.metadata = metadata
-        self.findings: List[Finding] = []
+        self.findings: list[Finding] = []
         self.logger = logging.getLogger(__name__)
 
     def add_finding(self, finding: Finding):
@@ -127,21 +127,21 @@ class SecurityReport:
         self.findings.append(finding)
         self.logger.debug(f"Added finding: {finding.title}")
 
-    def calculate_risk_summary(self) -> Dict[str, Any]:
+    def calculate_risk_summary(self) -> dict[str, Any]:
         """Calculate risk summary statistics"""
         severity_counts = {severity.value: 0 for severity in SeverityLevel}
         total_cvss = 0.0
         cvss_count = 0
-        
+
         for finding in self.findings:
             severity_counts[finding.severity.value] += 1
-            
+
             if finding.cvss_score:
                 total_cvss += finding.cvss_score
                 cvss_count += 1
-        
+
         avg_cvss = total_cvss / cvss_count if cvss_count > 0 else 0.0
-        
+
         # Calculate overall risk level
         if severity_counts["critical"] > 0:
             overall_risk = "CRITICAL"
@@ -153,7 +153,7 @@ class SecurityReport:
             overall_risk = "LOW"
         else:
             overall_risk = "INFO"
-        
+
         return {
             "overall_risk": overall_risk,
             "total_findings": len(self.findings),
@@ -167,7 +167,7 @@ class CVSSCalculator:
     def __init__(self, version: CVSSVersion = CVSSVersion.V3_1):
         self.version = version
         self.logger = logging.getLogger(__name__)
-        
+
         # CVSS 3.1 scoring values
         self.base_scores = {
             "attack_vector": {"network": 0.85, "adjacent": 0.62, "local": 0.55, "physical": 0.2},
@@ -187,28 +187,28 @@ class CVSSCalculator:
             ac = self.base_scores["attack_complexity"][metrics.attack_complexity.lower()]
             pr = self.base_scores["privileges_required"][metrics.privileges_required.lower()]
             ui = self.base_scores["user_interaction"][metrics.user_interaction.lower()]
-            
+
             # Adjust PR for scope
             if metrics.scope.lower() == "changed":
                 if metrics.privileges_required.lower() == "low":
                     pr = 0.68
                 elif metrics.privileges_required.lower() == "high":
                     pr = 0.5
-            
+
             exploitability = 8.22 * av * ac * pr * ui
-            
+
             # Impact Score
             c = self.base_scores["confidentiality_impact"][metrics.confidentiality_impact.lower()]
             i = self.base_scores["integrity_impact"][metrics.integrity_impact.lower()]
             a = self.base_scores["availability_impact"][metrics.availability_impact.lower()]
-            
+
             impact_base = 1 - ((1 - c) * (1 - i) * (1 - a))
-            
+
             if metrics.scope.lower() == "unchanged":
                 impact = 6.42 * impact_base
             else:  # Changed
                 impact = 7.52 * (impact_base - 0.029) - 3.25 * pow(impact_base - 0.02, 15)
-            
+
             # Base Score
             if impact <= 0:
                 base_score = 0.0
@@ -217,12 +217,12 @@ class CVSSCalculator:
                     base_score = min(impact + exploitability, 10.0)
                 else:  # Changed
                     base_score = min(1.08 * (impact + exploitability), 10.0)
-            
+
             # Round up to nearest 0.1
             base_score = round(base_score * 10) / 10.0
-            
+
             return base_score
-            
+
         except Exception as e:
             self.logger.error(f"Error calculating CVSS score: {e}")
             return 0.0
@@ -230,7 +230,7 @@ class CVSSCalculator:
     def generate_vector_string(self, metrics: CVSSMetrics) -> str:
         """Generate CVSS vector string"""
         vector_parts = [
-            f"CVSS:3.1",
+            "CVSS:3.1",
             f"AV:{metrics.attack_vector[0].upper()}",
             f"AC:{metrics.attack_complexity[0].upper()}",
             f"PR:{metrics.privileges_required[0].upper()}",
@@ -240,7 +240,7 @@ class CVSSCalculator:
             f"I:{metrics.integrity_impact[0].upper()}",
             f"A:{metrics.availability_impact[0].upper()}"
         ]
-        
+
         return "/".join(vector_parts)
 
     def severity_from_score(self, score: float) -> SeverityLevel:
@@ -261,10 +261,10 @@ class ReportGenerator:
     def __init__(self, output_dir: str = "./reports_output"):
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.cvss_calculator = CVSSCalculator()
         self.logger = logging.getLogger(__name__)
-        
+
         # Setup Jinja2 for templating
         template_dir = Path(__file__).parent / "templates"
         template_dir.mkdir(exist_ok=True)
@@ -272,23 +272,23 @@ class ReportGenerator:
             loader=jinja2.FileSystemLoader(template_dir),
             autoescape=jinja2.select_autoescape(['html', 'xml'])
         )
-        
+
         self._create_default_templates()
 
-    def generate_report(self, report: SecurityReport, formats: List[ReportFormat] = None) -> Dict[str, str]:
+    def generate_report(self, report: SecurityReport, formats: list[ReportFormat] = None) -> dict[str, str]:
         """Generate report in specified formats"""
         if formats is None:
             formats = [ReportFormat.MARKDOWN, ReportFormat.JSON]
-        
+
         generated_files = {}
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         campaign_id = report.metadata.campaign_id
-        
+
         try:
             for format_type in formats:
                 filename = f"security_report_{campaign_id}_{timestamp}.{format_type.value}"
                 filepath = self.output_dir / filename
-                
+
                 if format_type == ReportFormat.MARKDOWN:
                     content = self._generate_markdown_report(report)
                 elif format_type == ReportFormat.JSON:
@@ -298,17 +298,17 @@ class ReportGenerator:
                 else:
                     self.logger.warning(f"Unsupported format: {format_type}")
                     continue
-                
+
                 with open(filepath, 'w', encoding='utf-8') as f:
                     f.write(content)
-                
+
                 generated_files[format_type.value] = str(filepath)
                 self.logger.info(f"Generated {format_type.value} report: {filepath}")
-        
+
         except Exception as e:
             self.logger.error(f"Error generating report: {e}")
             raise
-        
+
         return generated_files
 
     def add_cvss_to_finding(self, finding: Finding, metrics: CVSSMetrics) -> Finding:
@@ -317,7 +317,7 @@ class ReportGenerator:
             base_score = self.cvss_calculator.calculate_base_score(metrics)
             vector_string = self.cvss_calculator.generate_vector_string(metrics)
             severity = self.cvss_calculator.severity_from_score(base_score)
-            
+
             finding.cvss_score = base_score
             finding.cvss_vector = vector_string
             finding.cvss_metrics = {
@@ -331,9 +331,9 @@ class ReportGenerator:
                 "availability_impact": metrics.availability_impact
             }
             finding.severity = severity
-            
+
             return finding
-            
+
         except Exception as e:
             self.logger.error(f"Error adding CVSS to finding {finding.id}: {e}")
             return finding
@@ -343,7 +343,7 @@ class ReportGenerator:
         try:
             template = self.jinja_env.get_template("security_report.md")
             risk_summary = report.calculate_risk_summary()
-            
+
             return template.render(
                 metadata=report.metadata,
                 findings=report.findings,
@@ -358,16 +358,16 @@ class ReportGenerator:
         """Generate JSON report"""
         try:
             risk_summary = report.calculate_risk_summary()
-            
+
             report_data = {
                 "metadata": report.metadata.dict(),
                 "risk_summary": risk_summary,
                 "findings": [finding.dict() for finding in report.findings],
                 "generated_at": datetime.utcnow().isoformat()
             }
-            
+
             return json.dumps(report_data, indent=2, default=str)
-            
+
         except Exception as e:
             self.logger.error(f"Error generating JSON report: {e}")
             return json.dumps({"error": str(e)})
@@ -377,7 +377,7 @@ class ReportGenerator:
         try:
             template = self.jinja_env.get_template("security_report.html")
             risk_summary = report.calculate_risk_summary()
-            
+
             return template.render(
                 metadata=report.metadata,
                 findings=report.findings,
@@ -391,7 +391,7 @@ class ReportGenerator:
     def _create_default_templates(self):
         """Create default report templates"""
         template_dir = Path(__file__).parent / "templates"
-        
+
         # Markdown template
         md_template = """# Security Assessment Report
 
@@ -547,41 +547,41 @@ class ReportGenerator:
         # Write templates to disk
         with open(template_dir / "security_report.md", 'w') as f:
             f.write(md_template)
-        
+
         with open(template_dir / "security_report.html", 'w') as f:
             f.write(html_template)
 
     def _fallback_markdown_report(self, report: SecurityReport) -> str:
         """Fallback markdown report generation"""
         content = [
-            f"# Security Assessment Report",
-            f"",
+            "# Security Assessment Report",
+            "",
             f"**Campaign:** {report.metadata.campaign_id}",
             f"**Generated:** {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}",
-            f"",
+            "",
             f"## Findings ({len(report.findings)} total)",
-            f""
+            ""
         ]
-        
+
         for i, finding in enumerate(report.findings, 1):
             content.extend([
                 f"### {i}. {finding.title}",
                 f"**Severity:** {finding.severity.value.upper()}",
                 f"**Description:** {finding.description}",
                 f"**Remediation:** {finding.remediation}",
-                f""
+                ""
             ])
-        
+
         return "\n".join(content)
 
-    def create_finding_from_dict(self, finding_data: Dict[str, Any]) -> Finding:
+    def create_finding_from_dict(self, finding_data: dict[str, Any]) -> Finding:
         """Create Finding object from dictionary data"""
         return Finding(**finding_data)
 
-    def batch_generate_reports(self, reports: List[SecurityReport], formats: List[ReportFormat] = None) -> Dict[str, List[str]]:
+    def batch_generate_reports(self, reports: list[SecurityReport], formats: list[ReportFormat] = None) -> dict[str, list[str]]:
         """Generate multiple reports in batch"""
         results = {"successful": [], "failed": []}
-        
+
         for report in reports:
             try:
                 files = self.generate_report(report, formats)
@@ -595,5 +595,5 @@ class ReportGenerator:
                     "campaign_id": report.metadata.campaign_id,
                     "error": str(e)
                 })
-        
+
         return results

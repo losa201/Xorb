@@ -9,44 +9,38 @@ to achieve the goals of the use case.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
-from typing import List, Optional, Tuple
 from uuid import UUID
 
 from ..domain import (
-    Agent,
     AgentCapability,
+    # Events
+    AgentExecutionCompleted,
+    AgentExecutionStarted,
     AgentId,
+    # Services
+    AgentSelectionService,
     AtomId,
     AtomType,
     BudgetLimit,
     Campaign,
     CampaignId,
+    CampaignOrchestratorService,
+    CampaignStarted,
     CampaignStatus,
     Embedding,
+    EmbeddingGenerated,
     Finding,
+    FindingDiscovered,
     FindingId,
     FindingStatus,
-    KnowledgeAtom,
-    Severity,
-    Target,
-    TargetId,
-    # Events
-    AgentExecutionCompleted,
-    AgentExecutionStarted,
-    CampaignCompleted,
-    CampaignStarted,
-    EmbeddingGenerated,
-    FindingDiscovered,
     FindingTriaged,
+    KnowledgeAtom,
     KnowledgeAtomCreated,
-    # Services
-    AgentSelectionService,
-    BudgetManagementService,
-    CampaignOrchestratorService,
-    SimilarityService,
-    TriageService
+    Severity,
+    TargetId,
+    TriageService,
 )
 from .ports import (
     AgentRepository,
@@ -58,23 +52,23 @@ from .ports import (
     KnowledgeAtomRepository,
     NotificationService,
     SecurityScanner,
-    TargetRepository
+    TargetRepository,
 )
 
 __all__ = [
     # Command DTOs
     "CreateCampaignCommand",
-    "StartCampaignCommand", 
+    "StartCampaignCommand",
     "ExecuteAgentCommand",
     "TriageFindingCommand",
     "GenerateEmbeddingCommand",
     "CreateKnowledgeAtomCommand",
-    
+
     # Query DTOs
     "SearchSimilarFindingsQuery",
     "GetCampaignStatusQuery",
     "ListActiveCampaignsQuery",
-    
+
     # Use Cases
     "CreateCampaignUseCase",
     "StartCampaignUseCase",
@@ -95,7 +89,7 @@ class CreateCampaignCommand:
     max_cost_usd: Decimal
     max_duration_hours: int
     max_api_calls: int
-    required_capabilities: List[AgentCapability]
+    required_capabilities: list[AgentCapability]
     max_agents: int = 5
 
 
@@ -118,7 +112,7 @@ class TriageFindingCommand:
     """Command to triage a finding"""
     finding_id: FindingId
     new_status: FindingStatus
-    reasoning: Optional[str] = None
+    reasoning: str | None = None
 
 
 @dataclass(frozen=True)
@@ -135,12 +129,12 @@ class CreateKnowledgeAtomCommand:
     content: str
     atom_type: str
     confidence: float
-    tags: List[str]
-    source: Optional[str] = None
+    tags: list[str]
+    source: str | None = None
 
 
 # Query DTOs
-@dataclass(frozen=True)  
+@dataclass(frozen=True)
 class SearchSimilarFindingsQuery:
     """Query to search for similar findings"""
     finding_id: FindingId
@@ -163,7 +157,7 @@ class ListActiveCampaignsQuery:
 # Use Cases
 class CreateCampaignUseCase:
     """Use case for creating a new campaign"""
-    
+
     def __init__(
         self,
         target_repository: TargetRepository,
@@ -175,22 +169,22 @@ class CreateCampaignUseCase:
         self._agent_repository = agent_repository
         self._campaign_repository = campaign_repository
         self._event_publisher = event_publisher
-    
+
     async def execute(self, command: CreateCampaignCommand) -> CampaignId:
         """Execute the create campaign use case"""
-        
+
         # Fetch target
         target = await self._target_repository.find_by_id(command.target_id)
         if not target:
             raise ValueError(f"Target {command.target_id} not found")
-        
+
         # Create budget limit
         budget = BudgetLimit(
             max_cost_usd=command.max_cost_usd,
             max_duration_hours=command.max_duration_hours,
             max_api_calls=command.max_api_calls
         )
-        
+
         # Select agents
         available_agents = await self._agent_repository.find_active_agents()
         selected_agents = AgentSelectionService.select_agents_for_target(
@@ -200,10 +194,10 @@ class CreateCampaignUseCase:
             budget_limit=budget,
             max_agents=command.max_agents
         )
-        
+
         if not selected_agents:
             raise ValueError("No suitable agents found for campaign")
-        
+
         # Create campaign
         campaign_id = CampaignId.generate()
         campaign = Campaign(
@@ -211,14 +205,14 @@ class CreateCampaignUseCase:
             name=command.name,
             target=target,
             budget=budget,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             status=CampaignStatus.QUEUED,
             scheduled_agents=[agent.id for agent in selected_agents]
         )
-        
+
         # Save campaign
         await self._campaign_repository.save(campaign)
-        
+
         # Publish event (async, fire-and-forget)
         await self._event_publisher.publish(
             CampaignStarted(
@@ -231,13 +225,13 @@ class CreateCampaignUseCase:
                 budget_limit_usd=float(command.max_cost_usd)
             )
         )
-        
+
         return campaign_id
 
 
 class StartCampaignUseCase:
     """Use case for starting a campaign"""
-    
+
     def __init__(
         self,
         campaign_repository: CampaignRepository,
@@ -247,24 +241,24 @@ class StartCampaignUseCase:
         self._campaign_repository = campaign_repository
         self._event_publisher = event_publisher
         self._notification_service = notification_service
-    
+
     async def execute(self, command: StartCampaignCommand) -> None:
         """Execute the start campaign use case"""
-        
+
         # Fetch campaign
         campaign = await self._campaign_repository.find_by_id(command.campaign_id)
         if not campaign:
             raise ValueError(f"Campaign {command.campaign_id} not found")
-        
+
         # Check if campaign can be started
         can_start, issues = CampaignOrchestratorService.can_start_campaign(campaign)
         if not can_start:
             raise ValueError(f"Cannot start campaign: {'; '.join(issues)}")
-        
+
         # Start campaign
         campaign.start_campaign()
         await self._campaign_repository.save(campaign)
-        
+
         # Send notification
         await self._notification_service.send_campaign_update(
             campaign_id=command.campaign_id,
@@ -275,7 +269,7 @@ class StartCampaignUseCase:
 
 class ExecuteAgentUseCase:
     """Use case for executing an agent"""
-    
+
     def __init__(
         self,
         agent_repository: AgentRepository,
@@ -289,19 +283,19 @@ class ExecuteAgentUseCase:
         self._finding_repository = finding_repository
         self._security_scanner = security_scanner
         self._event_publisher = event_publisher
-    
-    async def execute(self, command: ExecuteAgentCommand) -> List[FindingId]:
+
+    async def execute(self, command: ExecuteAgentCommand) -> list[FindingId]:
         """Execute an agent and return discovered findings"""
-        
+
         # Fetch agent and campaign
         agent = await self._agent_repository.find_by_id(command.agent_id)
         if not agent:
             raise ValueError(f"Agent {command.agent_id} not found")
-        
+
         campaign = await self._campaign_repository.find_by_id(command.campaign_id)
         if not campaign:
             raise ValueError(f"Campaign {command.campaign_id} not found")
-        
+
         # Publish start event
         await self._event_publisher.publish(
             AgentExecutionStarted(
@@ -312,14 +306,14 @@ class ExecuteAgentUseCase:
                 estimated_cost_usd=float(agent.cost_per_execution)
             )
         )
-        
+
         try:
             # Execute security scan
             scan_results = await self._security_scanner.scan_target(
                 target=campaign.target,
                 scan_config=command.scan_config
             )
-            
+
             # Process scan results into findings
             findings = []
             for result in scan_results.get("findings", []):
@@ -331,14 +325,14 @@ class ExecuteAgentUseCase:
                     title=result.get("title", "Unknown Finding"),
                     description=result.get("description", ""),
                     severity=Severity(result.get("severity", "info")),
-                    created_at=datetime.now(timezone.utc),
+                    created_at=datetime.now(UTC),
                     evidence=result.get("evidence", {})
                 )
-                
+
                 await self._finding_repository.save(finding)
                 campaign.add_finding(finding_id)
                 findings.append(finding_id)
-                
+
                 # Publish finding discovered event
                 await self._event_publisher.publish(
                     FindingDiscovered(
@@ -350,10 +344,10 @@ class ExecuteAgentUseCase:
                         target_info=campaign.target.name
                     )
                 )
-            
+
             # Update campaign
             await self._campaign_repository.save(campaign)
-            
+
             # Publish completion event
             await self._event_publisher.publish(
                 AgentExecutionCompleted(
@@ -366,9 +360,9 @@ class ExecuteAgentUseCase:
                     success=True
                 )
             )
-            
+
             return findings
-            
+
         except Exception as e:
             # Publish failure event
             await self._event_publisher.publish(
@@ -388,7 +382,7 @@ class ExecuteAgentUseCase:
 
 class TriageFindingUseCase:
     """Use case for triaging findings"""
-    
+
     def __init__(
         self,
         finding_repository: FindingRepository,
@@ -396,25 +390,25 @@ class TriageFindingUseCase:
     ) -> None:
         self._finding_repository = finding_repository
         self._event_publisher = event_publisher
-    
+
     async def execute(self, command: TriageFindingCommand) -> None:
         """Execute the triage finding use case"""
-        
+
         # Fetch finding
         finding = await self._finding_repository.find_by_id(command.finding_id)
         if not finding:
             raise ValueError(f"Finding {command.finding_id} not found")
-        
+
         # Store previous status
         previous_status = finding.status
-        
+
         # Update finding status
         finding.update_status(command.new_status)
         await self._finding_repository.save(finding)
-        
+
         # Calculate confidence score
         confidence_score = TriageService.calculate_priority_score(finding)
-        
+
         # Publish triage event
         await self._event_publisher.publish(
             FindingTriaged(
@@ -430,7 +424,7 @@ class TriageFindingUseCase:
 
 class SearchSimilarFindingsUseCase:
     """Use case for searching similar findings"""
-    
+
     def __init__(
         self,
         finding_repository: FindingRepository,
@@ -438,43 +432,43 @@ class SearchSimilarFindingsUseCase:
     ) -> None:
         self._finding_repository = finding_repository
         self._cache_service = cache_service
-    
+
     async def execute(
-        self, 
+        self,
         query: SearchSimilarFindingsQuery
-    ) -> List[Tuple[Finding, float]]:
+    ) -> list[tuple[Finding, float]]:
         """Execute the search similar findings use case"""
-        
+
         # Check cache first
         cache_key = f"similar_findings:{query.finding_id}:{query.similarity_threshold}"
         cached_result = await self._cache_service.get(cache_key)
         if cached_result:
             return cached_result
-        
+
         # Fetch target finding
         target_finding = await self._finding_repository.find_by_id(query.finding_id)
         if not target_finding:
             raise ValueError(f"Finding {query.finding_id} not found")
-        
+
         if not target_finding.embedding:
             return []  # Cannot find similar findings without embedding
-        
+
         # Find similar findings
         similar_findings = await self._finding_repository.find_similar(
             embedding=target_finding.embedding,
             threshold=query.similarity_threshold,
             limit=query.max_results
         )
-        
+
         # Cache result for 1 hour
         await self._cache_service.set(cache_key, similar_findings, ttl_seconds=3600)
-        
+
         return similar_findings
 
 
 class GenerateEmbeddingUseCase:
     """Use case for generating embeddings"""
-    
+
     def __init__(
         self,
         embedding_service: EmbeddingService,
@@ -484,28 +478,28 @@ class GenerateEmbeddingUseCase:
         self._embedding_service = embedding_service
         self._event_publisher = event_publisher
         self._cache_service = cache_service
-    
+
     async def execute(self, command: GenerateEmbeddingCommand) -> Embedding:
         """Execute the generate embedding use case"""
-        
+
         # Check cache first
         cache_key = f"embedding:{command.model}:{command.input_type}:{hash(command.text)}"
         cached_embedding = await self._cache_service.get(cache_key)
         if cached_embedding:
             return cached_embedding
-        
+
         # Generate embedding
-        start_time = datetime.now(timezone.utc)
+        start_time = datetime.now(UTC)
         embedding = await self._embedding_service.generate_embedding(
             text=command.text,
             model=command.model,
             input_type=command.input_type
         )
-        end_time = datetime.now(timezone.utc)
-        
+        end_time = datetime.now(UTC)
+
         # Cache embedding
         await self._cache_service.set(cache_key, embedding, ttl_seconds=86400)  # 24 hours
-        
+
         # Publish event
         await self._event_publisher.publish(
             EmbeddingGenerated(
@@ -517,13 +511,13 @@ class GenerateEmbeddingUseCase:
                 cached=False
             )
         )
-        
+
         return embedding
 
 
 class CreateKnowledgeAtomUseCase:
     """Use case for creating knowledge atoms"""
-    
+
     def __init__(
         self,
         knowledge_repository: KnowledgeAtomRepository,
@@ -533,10 +527,10 @@ class CreateKnowledgeAtomUseCase:
         self._knowledge_repository = knowledge_repository
         self._embedding_service = embedding_service
         self._event_publisher = event_publisher
-    
+
     async def execute(self, command: CreateKnowledgeAtomCommand) -> AtomId:
         """Execute the create knowledge atom use case"""
-        
+
         # Create atom
         atom_id = AtomId.generate()
         atom = KnowledgeAtom(
@@ -544,21 +538,21 @@ class CreateKnowledgeAtomUseCase:
             content=command.content,
             atom_type=AtomType(command.atom_type),
             confidence=command.confidence,
-            created_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
             tags=set(command.tags),
             source=command.source
         )
-        
+
         # Generate embedding for content
         embedding = await self._embedding_service.generate_embedding(
             text=command.content,
             input_type="passage"  # Knowledge atoms are passages
         )
         atom.set_embedding(embedding)
-        
+
         # Save atom
         await self._knowledge_repository.save(atom)
-        
+
         # Publish event
         await self._event_publisher.publish(
             KnowledgeAtomCreated(
@@ -570,5 +564,5 @@ class CreateKnowledgeAtomUseCase:
                 tags=tuple(command.tags)
             )
         )
-        
+
         return atom_id

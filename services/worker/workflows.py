@@ -1,7 +1,6 @@
 
 from collections import deque
 from datetime import timedelta
-from typing import List, Set
 
 from temporalio import workflow
 
@@ -14,17 +13,17 @@ except ImportError:
     except ImportError:
         # Fallback model definitions
         from dataclasses import dataclass
-        from typing import Optional, Dict, Any
         from datetime import datetime
-        
+        from typing import Any
+
         @dataclass
         class DiscoveryTarget:
             target_type: str
             value: str
-            scope: Optional[str] = None
-            metadata: Optional[Dict[str, Any]] = None
-        
-        @dataclass  
+            scope: str | None = None
+            metadata: dict[str, Any] | None = None
+
+        @dataclass
         class Finding:
             id: str
             title: str
@@ -34,7 +33,7 @@ except ImportError:
             discovery_method: str
             timestamp: datetime
             finding_type: str = "generic"
-            evidence: Dict[str, Any] = None
+            evidence: dict[str, Any] = None
 
 # Mock agent registry for compatibility
 class MockAgentRegistry:
@@ -58,14 +57,14 @@ class DynamicScanWorkflow:
     """
 
     @workflow.run
-    async def run(self, initial_target: DiscoveryTarget) -> List[Finding]:
-        all_findings: List[Finding] = []
-        
+    async def run(self, initial_target: DiscoveryTarget) -> list[Finding]:
+        all_findings: list[Finding] = []
+
         # Use a deque as a queue for targets to be processed
         target_queue = deque([initial_target])
-        
+
         # Keep track of processed targets to avoid redundant scans
-        processed_targets: Set[str] = {f"{initial_target.target_type}::{initial_target.value}"}
+        processed_targets: set[str] = {f"{initial_target.target_type}::{initial_target.value}"}
 
         # Get all agents that can handle the initial target type
         initial_agents = agent_registry.get_agents_for_target_type(initial_target.target_type)
@@ -93,11 +92,11 @@ class DynamicScanWorkflow:
 
     async def _schedule_agent_runs(
         self,
-        agents_to_run: List,
+        agents_to_run: list,
         target: DiscoveryTarget,
-        all_findings: List[Finding],
+        all_findings: list[Finding],
         target_queue: deque,
-        processed_targets: Set[str],
+        processed_targets: set[str],
     ):
         """Helper to schedule and process a batch of agent activities."""
         activity_promises = []
@@ -115,7 +114,7 @@ class DynamicScanWorkflow:
         for findings_list in results:
             if not findings_list:
                 continue
-            
+
             all_findings.extend(findings_list)
 
             # This is the core of the dynamic workflow:

@@ -6,8 +6,8 @@ Centralized database connection management with async support.
 
 import asyncio
 import logging
-from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
+
 try:
     import aioredis
 except ImportError:
@@ -15,7 +15,11 @@ except ImportError:
 
 try:
     from sqlalchemy import create_engine
-    from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+    from sqlalchemy.ext.asyncio import (
+        AsyncSession,
+        async_sessionmaker,
+        create_async_engine,
+    )
     from sqlalchemy.orm import sessionmaker
 except ImportError:
     create_engine = None
@@ -44,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 class DatabaseManager:
     """Manages all database connections for XORB."""
-    
+
     def __init__(self):
         self._postgres_engine = None
         self._postgres_async_engine = None
@@ -53,7 +57,7 @@ class DatabaseManager:
         self._qdrant_client = None
         self._session_factory = None
         self._async_session_factory = None
-    
+
     async def initialize(self):
         """Initialize all database connections."""
         await self._init_postgres()
@@ -61,7 +65,7 @@ class DatabaseManager:
         await self._init_neo4j()
         await self._init_qdrant()
         logger.info("Database manager initialized")
-    
+
     async def _init_postgres(self):
         """Initialize PostgreSQL connections."""
         if not create_engine or not create_async_engine:
@@ -76,7 +80,7 @@ class DatabaseManager:
                 pool_pre_ping=True,
                 pool_recycle=3600
             )
-            
+
             # Async engine for application use
             async_url = config.database.postgres_url.replace("postgresql://", "postgresql+asyncpg://")
             self._postgres_async_engine = create_async_engine(
@@ -86,19 +90,19 @@ class DatabaseManager:
                 pool_pre_ping=True,
                 pool_recycle=3600
             )
-            
+
             self._session_factory = sessionmaker(bind=self._postgres_engine)
             self._async_session_factory = async_sessionmaker(
                 bind=self._postgres_async_engine,
                 class_=AsyncSession,
                 expire_on_commit=False
             )
-            
+
             logger.info("PostgreSQL connections initialized")
-            
+
         except Exception as e:
             raise ConfigurationError(f"Failed to initialize PostgreSQL: {e}")
-    
+
     async def _init_redis(self):
         """Initialize Redis connection."""
         if not aioredis:
@@ -112,15 +116,15 @@ class DatabaseManager:
                 socket_keepalive_options={},
                 health_check_interval=30
             )
-            
+
             # Test connection
             redis = aioredis.Redis(connection_pool=self._redis_pool)
             await redis.ping()
             logger.info("Redis connection initialized")
-            
+
         except Exception as e:
             raise ConfigurationError(f"Failed to initialize Redis: {e}")
-    
+
     async def _init_neo4j(self):
         """Initialize Neo4j connection."""
         if not GraphDatabase:
@@ -134,16 +138,16 @@ class DatabaseManager:
                 max_connection_pool_size=50,
                 connection_acquisition_timeout=60
             )
-            
+
             # Test connection
             await asyncio.get_event_loop().run_in_executor(
                 None, self._neo4j_driver.verify_connectivity
             )
             logger.info("Neo4j connection initialized")
-            
+
         except Exception as e:
             raise ConfigurationError(f"Failed to initialize Neo4j: {e}")
-    
+
     async def _init_qdrant(self):
         """Initialize Qdrant connection."""
         if not qdrant_client:
@@ -155,22 +159,22 @@ class DatabaseManager:
                 port=config.database.qdrant_port,
                 timeout=60
             )
-            
+
             # Test connection
             collections = await asyncio.get_event_loop().run_in_executor(
                 None, self._qdrant_client.get_collections
             )
             logger.info("Qdrant connection initialized")
-            
+
         except Exception as e:
             raise ConfigurationError(f"Failed to initialize Qdrant: {e}")
-    
+
     @asynccontextmanager
     async def get_postgres_session(self):
         """Get async PostgreSQL session."""
         if not self._async_session_factory:
             raise ConfigurationError("PostgreSQL not initialized")
-            
+
         async with self._async_session_factory() as session:
             try:
                 yield session
@@ -178,29 +182,29 @@ class DatabaseManager:
             except Exception:
                 await session.rollback()
                 raise
-    
+
     async def get_redis(self):
         """Get Redis client."""
         if not aioredis or not self._redis_pool:
             raise ConfigurationError("Redis not initialized or aioredis not available")
         return aioredis.Redis(connection_pool=self._redis_pool)
-    
+
     def get_neo4j_session(self):
         """Get Neo4j session."""
         if not self._neo4j_driver:
             raise ConfigurationError("Neo4j not initialized")
         return self._neo4j_driver.session()
-    
+
     def get_qdrant_client(self):
         """Get Qdrant client."""
         if not qdrant_client or not self._qdrant_client:
             raise ConfigurationError("Qdrant not initialized or qdrant_client not available")
         return self._qdrant_client
-    
-    async def health_check(self) -> Dict[str, bool]:
+
+    async def health_check(self) -> dict[str, bool]:
         """Check health of all database connections."""
         health = {}
-        
+
         # PostgreSQL
         try:
             async with self.get_postgres_session() as session:
@@ -208,7 +212,7 @@ class DatabaseManager:
             health['postgres'] = True
         except Exception:
             health['postgres'] = False
-        
+
         # Redis
         try:
             redis = await self.get_redis()
@@ -216,7 +220,7 @@ class DatabaseManager:
             health['redis'] = True
         except Exception:
             health['redis'] = False
-        
+
         # Neo4j
         try:
             with self.get_neo4j_session() as session:
@@ -224,7 +228,7 @@ class DatabaseManager:
             health['neo4j'] = True
         except Exception:
             health['neo4j'] = False
-        
+
         # Qdrant
         try:
             client = self.get_qdrant_client()
@@ -234,25 +238,25 @@ class DatabaseManager:
             health['qdrant'] = True
         except Exception:
             health['qdrant'] = False
-        
+
         return health
-    
+
     async def close(self):
         """Close all database connections."""
         if self._postgres_async_engine:
             await self._postgres_async_engine.dispose()
-        
+
         if self._postgres_engine:
             self._postgres_engine.dispose()
-        
+
         if self._redis_pool:
             await self._redis_pool.disconnect()
-        
+
         if self._neo4j_driver:
             await asyncio.get_event_loop().run_in_executor(
                 None, self._neo4j_driver.close
             )
-        
+
         logger.info("Database connections closed")
 
 

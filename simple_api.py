@@ -5,19 +5,19 @@ Production-ready API service without Docker complexity
 """
 
 import json
-import time
 import os
-from http.server import HTTPServer, BaseHTTPRequestHandler
-from urllib.parse import urlparse, parse_qs
-import threading
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse
+
 
 class XORBAPIHandler(BaseHTTPRequestHandler):
-    
+
     def do_GET(self):
         """Handle GET requests"""
         parsed_path = urlparse(self.path)
         path = parsed_path.path
-        
+
         # Route handling
         if path == "/":
             self.send_json_response({
@@ -27,13 +27,13 @@ class XORBAPIHandler(BaseHTTPRequestHandler):
                 "message": "Enterprise-grade cybersecurity orchestration platform",
                 "endpoints": {
                     "health": "/health",
-                    "metrics": "/metrics", 
+                    "metrics": "/metrics",
                     "status": "/api/v1/status",
                     "agents": "/api/v1/agents",
                     "campaigns": "/api/v1/campaigns"
                 }
             })
-        
+
         elif path == "/health":
             self.send_json_response({
                 "status": "healthy",
@@ -42,7 +42,7 @@ class XORBAPIHandler(BaseHTTPRequestHandler):
                 "timestamp": time.time(),
                 "uptime": time.time() - start_time
             })
-        
+
         elif path == "/metrics":
             metrics_data = f"""# HELP xorb_api_requests_total Total API requests
 # TYPE xorb_api_requests_total counter
@@ -60,7 +60,7 @@ xorb_api_health 1
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
             self.wfile.write(metrics_data.encode())
-        
+
         elif path == "/api/v1/status":
             self.send_json_response({
                 "api": {
@@ -83,14 +83,14 @@ xorb_api_health 1
                 },
                 "capabilities": [
                     "agent_orchestration",
-                    "campaign_management", 
+                    "campaign_management",
                     "threat_intelligence",
                     "vulnerability_assessment",
                     "performance_monitoring",
                     "ai_powered_analysis"
                 ]
             })
-        
+
         elif path == "/api/v1/agents":
             self.send_json_response({
                 "agents": [
@@ -103,7 +103,7 @@ xorb_api_health 1
                         "last_active": time.time() - 300
                     },
                     {
-                        "id": "vuln-001", 
+                        "id": "vuln-001",
                         "name": "VulnAgent",
                         "type": "vulnerability_assessment",
                         "capabilities": ["cve_scan", "web_app_scan", "ssl_check"],
@@ -113,7 +113,7 @@ xorb_api_health 1
                     {
                         "id": "threat-001",
                         "name": "ThreatHuntAgent",
-                        "type": "threat_hunting", 
+                        "type": "threat_hunting",
                         "capabilities": ["ioc_hunt", "behavior_analysis", "threat_intelligence"],
                         "status": "available",
                         "last_active": time.time() - 420
@@ -123,7 +123,7 @@ xorb_api_health 1
                 "available_count": 3,
                 "registry_status": "operational"
             })
-        
+
         elif path == "/api/v1/campaigns":
             self.send_json_response({
                 "campaigns": [
@@ -138,7 +138,7 @@ xorb_api_health 1
                         "agents_used": ["recon-001", "vuln-001"]
                     },
                     {
-                        "id": "campaign-002", 
+                        "id": "campaign-002",
                         "name": "Threat Hunting Campaign",
                         "status": "running",
                         "created_at": time.time() - 1200,
@@ -151,20 +151,20 @@ xorb_api_health 1
                 "running_count": 1,
                 "completed_count": 1
             })
-        
+
         else:
             self.send_error(404, "Endpoint not found")
-    
+
     def do_POST(self):
         """Handle POST requests"""
         if self.path == "/api/v1/campaigns":
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length)
-            
+
             try:
                 campaign_data = json.loads(post_data.decode('utf-8'))
                 campaign_id = f"campaign-{int(time.time())}"
-                
+
                 response = {
                     "message": "Campaign created successfully",
                     "campaign": {
@@ -182,12 +182,12 @@ xorb_api_health 1
                 self.send_json_response({"error": str(e)}, status=400)
         else:
             self.send_error(404, "Endpoint not found")
-    
+
     def send_json_response(self, data, status=200):
         """Send JSON response"""
         global request_count
         request_count += 1
-        
+
         self.send_response(status)
         self.send_header('Content-type', 'application/json')
         self.send_header('Access-Control-Allow-Origin', '*')
@@ -195,7 +195,7 @@ xorb_api_health 1
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
         self.wfile.write(json.dumps(data, indent=2).encode())
-    
+
     def log_message(self, format, *args):
         """Custom log format"""
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] API: {format % args}")
@@ -208,19 +208,19 @@ def main():
     """Start the XORB API server"""
     global start_time
     start_time = time.time()
-    
+
     host = os.getenv("API_HOST", "0.0.0.0")
     port = int(os.getenv("API_PORT", "8000"))
-    
+
     server = HTTPServer((host, port), XORBAPIHandler)
-    
+
     print(f"🚀 XORB API Server starting on {host}:{port}")
     print(f"📊 Environment: {os.getenv('ENVIRONMENT', 'production')}")
     print(f"🔑 NVIDIA API Key: {'configured' if os.getenv('NVIDIA_API_KEY') else 'not set'}")
     print(f"📋 Health check: http://{host}:{port}/health")
     print(f"📈 Metrics: http://{host}:{port}/metrics")
     print(f"📖 Documentation: http://{host}:{port}/")
-    
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:

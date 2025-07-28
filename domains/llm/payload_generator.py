@@ -4,16 +4,16 @@ LLM-Powered Payload Generator for XORB Supreme
 Generates context-aware security payloads using AI
 """
 
-import asyncio
-import logging
 import json
+import logging
 import re
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
+
 from pydantic import BaseModel, Field
 
-from .intelligent_client import IntelligentLLMClient, LLMRequest, TaskType, LLMResponse
+from .intelligent_client import IntelligentLLMClient, LLMRequest, LLMResponse, TaskType
 
 logger = logging.getLogger(__name__)
 
@@ -38,36 +38,36 @@ class PayloadComplexity(Enum):
 @dataclass
 class TargetContext:
     """Context information about the target system"""
-    url: Optional[str] = None
-    technology_stack: List[str] = None
-    operating_system: Optional[str] = None
-    web_server: Optional[str] = None
-    application_type: Optional[str] = None
-    input_fields: List[str] = None
-    known_endpoints: List[str] = None
-    security_headers: Dict[str, str] = None
-    cookies: Dict[str, str] = None
-    parameters: List[str] = None
+    url: str | None = None
+    technology_stack: list[str] = None
+    operating_system: str | None = None
+    web_server: str | None = None
+    application_type: str | None = None
+    input_fields: list[str] = None
+    known_endpoints: list[str] = None
+    security_headers: dict[str, str] = None
+    cookies: dict[str, str] = None
+    parameters: list[str] = None
 
 class GeneratedPayload(BaseModel):
     category: PayloadCategory
     complexity: PayloadComplexity
     payload: str
     description: str
-    target_parameter: Optional[str] = None
+    target_parameter: str | None = None
     expected_result: str
     detection_difficulty: int = Field(ge=1, le=5)  # 1=easy to detect, 5=hard
     success_probability: float = Field(ge=0.0, le=1.0)
     remediation: str
-    references: List[str] = Field(default_factory=list)
-    metadata: Dict[str, Any] = Field(default_factory=dict)
+    references: list[str] = Field(default_factory=list)
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 class PayloadGenerator:
     def __init__(self, llm_client: IntelligentLLMClient):
         self.llm_client = llm_client
         self.payload_templates = self._load_payload_templates()
-        
-    def _load_payload_templates(self) -> Dict[PayloadCategory, Dict[str, Any]]:
+
+    def _load_payload_templates(self) -> dict[PayloadCategory, dict[str, Any]]:
         """Load base payload templates for each category"""
         return {
             PayloadCategory.XSS: {
@@ -108,19 +108,19 @@ class PayloadGenerator:
                 "injection_points": ["parameter", "header", "file_upload", "api"]
             }
         }
-    
+
     async def generate_contextual_payloads(
-        self, 
+        self,
         category: PayloadCategory,
         target_context: TargetContext,
         complexity: PayloadComplexity = PayloadComplexity.INTERMEDIATE,
         count: int = 5
-    ) -> List[GeneratedPayload]:
+    ) -> list[GeneratedPayload]:
         """Generate context-aware payloads using LLM"""
-        
+
         # Build detailed prompt for LLM
         prompt = self._build_payload_prompt(category, target_context, complexity, count)
-        
+
         request = LLMRequest(
             task_type=TaskType.PAYLOAD_GENERATION,
             prompt=prompt,
@@ -129,23 +129,23 @@ class PayloadGenerator:
             temperature=0.8,  # Higher creativity for payload generation
             structured_output=True
         )
-        
+
         try:
             response = await self.llm_client.generate_payload(request)
             payloads = self._parse_llm_payloads(response, category, complexity)
-            
+
             # Enhance with static knowledge if needed
             if len(payloads) < count:
                 static_payloads = self._generate_static_fallback(category, target_context, count - len(payloads))
                 payloads.extend(static_payloads)
-            
+
             return payloads[:count]
-            
+
         except Exception as e:
             logger.error(f"LLM payload generation failed: {e}")
             # Fallback to template-based generation
             return self._generate_static_fallback(category, target_context, count)
-    
+
     def _build_payload_prompt(
         self,
         category: PayloadCategory,
@@ -154,7 +154,7 @@ class PayloadGenerator:
         count: int
     ) -> str:
         """Build detailed prompt for LLM payload generation"""
-        
+
         # Base prompt structure
         prompt_parts = [
             f"Generate {count} {complexity.value} {category.value.replace('_', ' ')} payloads for security testing.",
@@ -168,7 +168,7 @@ class PayloadGenerator:
             "",
             "TARGET CONTEXT:"
         ]
-        
+
         # Add target context details
         if target_context.url:
             prompt_parts.append(f"- URL: {target_context.url}")
@@ -182,7 +182,7 @@ class PayloadGenerator:
             prompt_parts.append(f"- Input Fields: {', '.join(target_context.input_fields)}")
         if target_context.parameters:
             prompt_parts.append(f"- Parameters: {', '.join(target_context.parameters)}")
-        
+
         # Add category-specific guidance
         category_guidance = {
             PayloadCategory.XSS: "Focus on bypassing common filters, CSP, and WAF detection.",
@@ -190,10 +190,10 @@ class PayloadGenerator:
             PayloadCategory.SSRF: "Target cloud metadata services, internal services, and protocol smuggling.",
             PayloadCategory.RCE: "Consider OS command injection, code execution, and file upload vectors."
         }
-        
+
         if category in category_guidance:
             prompt_parts.extend(["", "SPECIFIC GUIDANCE:", f"- {category_guidance[category]}"])
-        
+
         # Request structured output
         prompt_parts.extend([
             "",
@@ -208,10 +208,10 @@ class PayloadGenerator:
             "- remediation: how to fix/prevent this vulnerability",
             "- references: relevant CVE, CWE, or documentation links"
         ])
-        
+
         return "\n".join(prompt_parts)
-    
-    def _serialize_target_context(self, context: TargetContext) -> Dict[str, Any]:
+
+    def _serialize_target_context(self, context: TargetContext) -> dict[str, Any]:
         """Convert target context to serializable format"""
         return {
             "url": context.url,
@@ -224,16 +224,16 @@ class PayloadGenerator:
             "security_headers": context.security_headers or {},
             "parameters": context.parameters or []
         }
-    
+
     def _parse_llm_payloads(
         self,
         response: LLMResponse,
         category: PayloadCategory,
         complexity: PayloadComplexity
-    ) -> List[GeneratedPayload]:
+    ) -> list[GeneratedPayload]:
         """Parse LLM response into structured payloads"""
         payloads = []
-        
+
         try:
             # Try to parse as JSON first
             if response.content.strip().startswith('[') or response.content.strip().startswith('{'):
@@ -245,7 +245,7 @@ class PayloadGenerator:
             else:
                 # Parse text-based response
                 payload_data = self._parse_text_payloads(response.content)
-            
+
             for item in payload_data:
                 if isinstance(item, dict) and "payload" in item:
                     payload = GeneratedPayload(
@@ -266,22 +266,22 @@ class PayloadGenerator:
                         }
                     )
                     payloads.append(payload)
-        
+
         except Exception as e:
             logger.error(f"Failed to parse LLM payloads: {e}")
             # Fallback: extract payloads from text
             payloads = self._extract_payloads_from_text(response.content, category, complexity)
-        
+
         return payloads
-    
-    def _parse_text_payloads(self, content: str) -> List[Dict[str, Any]]:
+
+    def _parse_text_payloads(self, content: str) -> list[dict[str, Any]]:
         """Parse payloads from text-based LLM response"""
         payloads = []
-        
+
         # Look for payload patterns in text
         payload_blocks = re.findall(r'(?:payload|example):\s*(.+?)(?:\n|$)', content, re.IGNORECASE)
         description_blocks = re.findall(r'(?:description|explanation):\s*(.+?)(?:\n|$)', content, re.IGNORECASE)
-        
+
         for i, payload in enumerate(payload_blocks):
             description = description_blocks[i] if i < len(description_blocks) else "Generated payload"
             payloads.append({
@@ -290,18 +290,18 @@ class PayloadGenerator:
                 "detection_difficulty": 3,
                 "success_probability": 0.6
             })
-        
+
         return payloads
-    
+
     def _extract_payloads_from_text(
         self,
         content: str,
         category: PayloadCategory,
         complexity: PayloadComplexity
-    ) -> List[GeneratedPayload]:
+    ) -> list[GeneratedPayload]:
         """Extract payloads from unstructured text response"""
         payloads = []
-        
+
         # Use regex patterns to find potential payloads
         patterns = {
             PayloadCategory.XSS: [
@@ -320,7 +320,7 @@ class PayloadGenerator:
                 r'gopher://[^\s]*'
             ]
         }
-        
+
         if category in patterns:
             for pattern in patterns[category]:
                 matches = re.findall(pattern, content, re.IGNORECASE | re.MULTILINE)
@@ -336,24 +336,24 @@ class PayloadGenerator:
                         remediation="Implement proper input validation and output encoding"
                     )
                     payloads.append(payload)
-        
+
         return payloads
-    
+
     def _generate_static_fallback(
         self,
         category: PayloadCategory,
         target_context: TargetContext,
         count: int
-    ) -> List[GeneratedPayload]:
+    ) -> list[GeneratedPayload]:
         """Generate fallback payloads using static templates"""
         payloads = []
-        
+
         if category not in self.payload_templates:
             return payloads
-        
+
         templates = self.payload_templates[category]
         basic_payloads = templates.get("basic_templates", [])
-        
+
         for i, template in enumerate(basic_payloads[:count]):
             payload = GeneratedPayload(
                 category=category,
@@ -367,16 +367,16 @@ class PayloadGenerator:
                 metadata={"source": "static_template", "template_index": i}
             )
             payloads.append(payload)
-        
+
         return payloads
-    
+
     async def generate_chained_payloads(
         self,
-        categories: List[PayloadCategory],
+        categories: list[PayloadCategory],
         target_context: TargetContext
-    ) -> List[GeneratedPayload]:
+    ) -> list[GeneratedPayload]:
         """Generate chained exploitation payloads"""
-        
+
         prompt = f"""
         Generate a chained exploitation sequence using these vulnerability types:
         {', '.join([cat.value for cat in categories])}
@@ -394,7 +394,7 @@ class PayloadGenerator:
         - Expected intermediate results
         - Final objective achievement
         """
-        
+
         request = LLMRequest(
             task_type=TaskType.EXPLOITATION_STRATEGY,
             prompt=prompt,
@@ -402,31 +402,31 @@ class PayloadGenerator:
             max_tokens=3000,
             temperature=0.7
         )
-        
+
         try:
             response = await self.llm_client.generate_payload(request)
             return self._parse_chained_payloads(response, categories)
         except Exception as e:
             logger.error(f"Chained payload generation failed: {e}")
             return []
-    
+
     def _parse_chained_payloads(
         self,
         response: LLMResponse,
-        categories: List[PayloadCategory]
-    ) -> List[GeneratedPayload]:
+        categories: list[PayloadCategory]
+    ) -> list[GeneratedPayload]:
         """Parse chained payload response"""
         # Implementation would parse the LLM response for chained payloads
         # This is a simplified version
         return []
-    
+
     async def enhance_payload_with_context(
         self,
         base_payload: GeneratedPayload,
-        additional_context: Dict[str, Any]
+        additional_context: dict[str, Any]
     ) -> GeneratedPayload:
         """Enhance existing payload with additional context"""
-        
+
         prompt = f"""
         Enhance this security payload based on additional context:
         
@@ -443,7 +443,7 @@ class PayloadGenerator:
         - Reduces detection likelihood
         - Maintains ethical testing principles
         """
-        
+
         request = LLMRequest(
             task_type=TaskType.PAYLOAD_GENERATION,
             prompt=prompt,
@@ -451,11 +451,11 @@ class PayloadGenerator:
             max_tokens=1500,
             temperature=0.6
         )
-        
+
         try:
             response = await self.llm_client.generate_payload(request)
             enhanced_payloads = self._parse_llm_payloads(response, base_payload.category, base_payload.complexity)
-            
+
             if enhanced_payloads:
                 enhanced = enhanced_payloads[0]
                 enhanced.metadata.update({
@@ -463,13 +463,13 @@ class PayloadGenerator:
                     "enhancement_context": additional_context
                 })
                 return enhanced
-            
+
         except Exception as e:
             logger.error(f"Payload enhancement failed: {e}")
-        
+
         return base_payload
-    
-    def get_generation_stats(self) -> Dict[str, Any]:
+
+    def get_generation_stats(self) -> dict[str, Any]:
         """Get payload generation statistics"""
         return {
             "supported_categories": len(PayloadCategory),

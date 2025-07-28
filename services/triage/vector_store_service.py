@@ -5,53 +5,49 @@ MiniLM embeddings + FAISS vector search + GPT-4o reranking
 Phase 5.1 - Smart Triage Optimization
 """
 
-import asyncio
 import hashlib
 import json
-import logging
 import pickle
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Union
-from dataclasses import dataclass, asdict
-from pathlib import Path
+from dataclasses import dataclass
+from datetime import datetime
 
-import numpy as np
-import faiss
-import asyncpg
 import aioredis
+import asyncpg
+import faiss
+import numpy as np
 import openai
-from sentence_transformers import SentenceTransformer
-from prometheus_client import Counter, Histogram, Gauge
 import structlog
+from prometheus_client import Counter, Gauge, Histogram
+from sentence_transformers import SentenceTransformer
 
 # Configure structured logging
 logger = structlog.get_logger("xorb.vector_store")
 
 # Prometheus metrics for Phase 5.1 requirements
 triage_dedupe_saved_tokens_total = Counter(
-    'triage_dedupe_saved_tokens_total', 
+    'triage_dedupe_saved_tokens_total',
     'Total tokens saved through deduplication'
 )
 triage_false_positive_score = Gauge(
-    'triage_false_positive_score', 
+    'triage_false_positive_score',
     'Current false positive detection score'
 )
 embedding_generation_duration = Histogram(
-    'embedding_generation_duration_seconds', 
+    'embedding_generation_duration_seconds',
     'Time to generate embeddings'
 )
 faiss_similarity_search_duration = Histogram(
-    'faiss_similarity_search_duration_seconds', 
+    'faiss_similarity_search_duration_seconds',
     'FAISS similarity search duration'
 )
 vector_store_cache_hits = Counter(
-    'vector_store_cache_hits_total', 
+    'vector_store_cache_hits_total',
     'Cache hits in vector store operations'
 )
 gpt_rerank_operations = Counter(
-    'gpt_rerank_operations_total', 
-    'GPT reranking operations', 
+    'gpt_rerank_operations_total',
+    'GPT reranking operations',
     ['result']
 )
 
@@ -64,7 +60,7 @@ class VulnerabilityVector:
     severity: str
     target: str
     embedding: np.ndarray
-    metadata: Dict
+    metadata: dict
     created_at: datetime
     fingerprint: str
 
@@ -78,78 +74,78 @@ class SimilarityResult:
     severity: str
     target: str
     created_at: datetime
-    metadata: Dict
+    metadata: dict
 
 @dataclass
 class DeduplicationResult:
     """Deduplication analysis result"""
     is_duplicate: bool
     confidence: float
-    duplicate_of: Optional[str]
-    similar_findings: List[SimilarityResult]
-    gpt_analysis: Optional[str]
+    duplicate_of: str | None
+    similar_findings: list[SimilarityResult]
+    gpt_analysis: str | None
     tokens_saved: int
     processing_time: float
     reasoning: str
 
 class VectorStoreService:
     """High-performance vector store for vulnerability deduplication"""
-    
+
     def __init__(self):
         self.db_pool = None
         self.redis = None
         self.embedding_model = None
         self.faiss_index = None
         self.openai_client = None
-        
+
         # Configuration
         self.embedding_dim = 384  # MiniLM L6 v2 dimension
         self.similarity_threshold = 0.85
         self.top_k_similar = 10
         self.cache_ttl = 86400 * 7  # 7 days
-        
+
         # In-memory state
-        self.vulnerability_vectors: Dict[str, VulnerabilityVector] = {}
-        self.id_to_index_mapping: Dict[str, int] = {}
-        self.index_to_id_mapping: Dict[int, str] = {}
+        self.vulnerability_vectors: dict[str, VulnerabilityVector] = {}
+        self.id_to_index_mapping: dict[str, int] = {}
+        self.index_to_id_mapping: dict[int, str] = {}
         self.next_index = 0
-        
+
         # Cache for embeddings
         self.embedding_cache = {}
-        
+
     async def initialize(self):
         """Initialize vector store service"""
         logger.info("Initializing Vector Store Service...")
-        
+
         # Database connection
         database_url = os.getenv("DATABASE_URL", "postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas")
         self.db_pool = await asyncpg.create_pool(database_url, min_size=5, max_size=20)
-        
+
         # Redis connection
         redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
         self.redis = await aioredis.from_url(redis_url)
-        
+
         # Initialize MiniLM model
         logger.info("Loading MiniLM embedding model...")
         self.embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-        
+
         # Initialize FAISS index with inner product for cosine similarity
         logger.info("Initializing FAISS index...")
         self.faiss_index = faiss.IndexFlatIP(self.embedding_dim)
-        
+
         # Initialize OpenAI client
         self.openai_client = openai.AsyncOpenAI(
             api_key=os.getenv("OPENAI_API_KEY")
         )
-        
+
         # Create database tables
         await self._create_vector_tables()
-        
+
         # Load existing vectors
         await self._load_existing_vectors()
-        
+
         logger.info(f"Vector Store initialized with {len(self.vulnerability_vectors)} vectors")
-        
+
     async def _create_vector_tables(self):
         """Create database tables for vector storage"""
         async with self.db_pool.acquire() as conn:
@@ -180,7 +176,7 @@ class VectorStoreService:
                 CREATE INDEX IF NOT EXISTS idx_vulnerability_vectors_created_at 
                 ON vulnerability_vectors(created_at);
             """)
-            
+
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS deduplication_results (
                     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -205,7 +201,7 @@ class VectorStoreService:
                 CREATE INDEX IF NOT EXISTS idx_deduplication_results_created_at 
                 ON deduplication_results(created_at);
             """)
-    
+
     async def _load_existing_vectors(self):
         """Load existing vectors from database and rebuild FAISS index"""
         async with self.db_pool.acquire() as conn:
@@ -216,19 +212,19 @@ class VectorStoreService:
                 ORDER BY created_at DESC
                 LIMIT 50000
             """)
-            
+
             if not rows:
                 logger.info("No existing vectors found")
                 return
-                
+
             logger.info(f"Loading {len(rows)} existing vectors...")
-            
+
             embeddings_list = []
-            
+
             for row in rows:
                 # Deserialize embedding
                 embedding = pickle.loads(row['embedding'])
-                
+
                 vuln_vector = VulnerabilityVector(
                     id=row['vulnerability_id'],
                     title=row['title'],
@@ -240,33 +236,33 @@ class VectorStoreService:
                     created_at=row['created_at'],
                     fingerprint=row['fingerprint']
                 )
-                
+
                 # Add to in-memory storage
                 self.vulnerability_vectors[row['vulnerability_id']] = vuln_vector
                 self.id_to_index_mapping[row['vulnerability_id']] = self.next_index
                 self.index_to_id_mapping[self.next_index] = row['vulnerability_id']
-                
+
                 embeddings_list.append(embedding)
                 self.next_index += 1
-            
+
             # Build FAISS index
             if embeddings_list:
                 embeddings_matrix = np.array(embeddings_list).astype('float32')
                 # Normalize for cosine similarity
                 faiss.normalize_L2(embeddings_matrix)
                 self.faiss_index.add(embeddings_matrix)
-                
+
             logger.info(f"FAISS index built with {len(embeddings_list)} vectors")
-    
+
     async def generate_embedding(self, text: str) -> np.ndarray:
         """Generate embedding for text with caching"""
         text_hash = hashlib.sha256(text.encode()).hexdigest()
-        
+
         # Check local cache first
         if text_hash in self.embedding_cache:
             vector_store_cache_hits.inc()
             return self.embedding_cache[text_hash]
-        
+
         # Check Redis cache
         try:
             cached_embedding = await self.redis.get(f"embedding:{text_hash}")
@@ -277,24 +273,24 @@ class VectorStoreService:
                 return embedding
         except Exception as e:
             logger.warning(f"Redis cache error: {e}")
-        
+
         # Generate new embedding
         with embedding_generation_duration.time():
             embedding = self.embedding_model.encode(text, convert_to_numpy=True)
-        
+
         # Cache the embedding
         self.embedding_cache[text_hash] = embedding
         try:
             await self.redis.setex(
-                f"embedding:{text_hash}", 
-                self.cache_ttl, 
+                f"embedding:{text_hash}",
+                self.cache_ttl,
                 pickle.dumps(embedding)
             )
         except Exception as e:
             logger.warning(f"Failed to cache embedding: {e}")
-        
+
         return embedding
-    
+
     def _create_vulnerability_fingerprint(self, title: str, description: str, target: str) -> str:
         """Create fingerprint for vulnerability"""
         normalized_data = {
@@ -304,7 +300,7 @@ class VectorStoreService:
         }
         data_str = json.dumps(normalized_data, sort_keys=True)
         return hashlib.sha256(data_str.encode()).hexdigest()
-    
+
     def _normalize_target(self, target: str) -> str:
         """Normalize target for consistent fingerprinting"""
         import re
@@ -316,31 +312,31 @@ class VectorStoreService:
         # Remove www
         target = re.sub(r'^www\.', '', target)
         return target
-    
+
     def _create_vulnerability_text(self, title: str, description: str, target: str, severity: str) -> str:
         """Create text representation for embedding"""
         return f"{title} {description} {target} {severity}"
-    
+
     async def add_vulnerability_vector(
-        self, 
+        self,
         vulnerability_id: str,
         title: str,
         description: str,
         severity: str,
         target: str,
-        metadata: Dict = None
+        metadata: dict = None
     ) -> VulnerabilityVector:
         """Add vulnerability vector to store"""
         if metadata is None:
             metadata = {}
-            
+
         # Create fingerprint
         fingerprint = self._create_vulnerability_fingerprint(title, description, target)
-        
+
         # Generate embedding
         vuln_text = self._create_vulnerability_text(title, description, target, severity)
         embedding = await self.generate_embedding(vuln_text)
-        
+
         # Create vulnerability vector
         vuln_vector = VulnerabilityVector(
             id=vulnerability_id,
@@ -353,7 +349,7 @@ class VectorStoreService:
             created_at=datetime.utcnow(),
             fingerprint=fingerprint
         )
-        
+
         # Store in database
         async with self.db_pool.acquire() as conn:
             await conn.execute("""
@@ -369,12 +365,12 @@ class VectorStoreService:
                     metadata = EXCLUDED.metadata,
                     fingerprint = EXCLUDED.fingerprint,
                     updated_at = NOW()
-            """, vulnerability_id, title, description, severity, target, 
+            """, vulnerability_id, title, description, severity, target,
                 pickle.dumps(embedding), json.dumps(metadata), fingerprint)
-        
+
         # Add to in-memory storage
         self.vulnerability_vectors[vulnerability_id] = vuln_vector
-        
+
         # Add to FAISS index
         if vulnerability_id not in self.id_to_index_mapping:
             index = self.next_index
@@ -383,27 +379,27 @@ class VectorStoreService:
             self.next_index += 1
         else:
             index = self.id_to_index_mapping[vulnerability_id]
-        
+
         # Normalize and add to FAISS
         embedding_normalized = embedding.reshape(1, -1).astype('float32')
         faiss.normalize_L2(embedding_normalized)
-        
+
         if index >= self.faiss_index.ntotal:
             self.faiss_index.add(embedding_normalized)
         else:
             # Update existing vector in FAISS (reconstruct index)
             await self._rebuild_faiss_index()
-        
+
         logger.info(f"Added vulnerability vector: {vulnerability_id}")
         return vuln_vector
-    
+
     async def _rebuild_faiss_index(self):
         """Rebuild FAISS index from scratch"""
         logger.info("Rebuilding FAISS index...")
-        
+
         self.faiss_index = faiss.IndexFlatIP(self.embedding_dim)
         embeddings_list = []
-        
+
         # Collect all embeddings in order
         for i in range(self.next_index):
             if i in self.index_to_id_mapping:
@@ -413,57 +409,57 @@ class VectorStoreService:
                 else:
                     # Fill with zero vector for missing entries
                     embeddings_list.append(np.zeros(self.embedding_dim))
-        
+
         if embeddings_list:
             embeddings_matrix = np.array(embeddings_list).astype('float32')
             faiss.normalize_L2(embeddings_matrix)
             self.faiss_index.add(embeddings_matrix)
-        
+
         logger.info(f"FAISS index rebuilt with {len(embeddings_list)} vectors")
-    
+
     async def find_similar_vulnerabilities(
-        self, 
+        self,
         vulnerability_id: str,
         title: str,
         description: str,
         severity: str,
         target: str,
         k: int = None
-    ) -> List[SimilarityResult]:
+    ) -> list[SimilarityResult]:
         """Find similar vulnerabilities using FAISS search"""
         if k is None:
             k = self.top_k_similar
-            
+
         if self.faiss_index.ntotal == 0:
             return []
-        
+
         # Generate query embedding
         query_text = self._create_vulnerability_text(title, description, target, severity)
         query_embedding = await self.generate_embedding(query_text)
-        
+
         with faiss_similarity_search_duration.time():
             # Normalize query embedding
             query_embedding_norm = query_embedding.reshape(1, -1).astype('float32')
             faiss.normalize_L2(query_embedding_norm)
-            
+
             # Search FAISS index
             similarities, indices = self.faiss_index.search(query_embedding_norm, k + 1)  # +1 to exclude self
-            
+
             similar_results = []
-            for similarity, index in zip(similarities[0], indices[0]):
+            for similarity, index in zip(similarities[0], indices[0], strict=False):
                 if index == -1:  # Invalid index
                     continue
-                    
+
                 if index in self.index_to_id_mapping:
                     similar_vuln_id = self.index_to_id_mapping[index]
-                    
+
                     # Skip self
                     if similar_vuln_id == vulnerability_id:
                         continue
-                    
+
                     if similar_vuln_id in self.vulnerability_vectors:
                         vuln_vector = self.vulnerability_vectors[similar_vuln_id]
-                        
+
                         similar_result = SimilarityResult(
                             vulnerability_id=similar_vuln_id,
                             similarity_score=float(similarity),
@@ -475,9 +471,9 @@ class VectorStoreService:
                             metadata=vuln_vector.metadata
                         )
                         similar_results.append(similar_result)
-            
+
             return similar_results[:k]  # Ensure we don't exceed k results
-    
+
     async def detect_duplicate(
         self,
         vulnerability_id: str,
@@ -490,11 +486,11 @@ class VectorStoreService:
         """Detect if vulnerability is duplicate with GPT-4o fallback"""
         start_time = time.time()
         tokens_saved = 0
-        
+
         # Check fingerprint-based exact duplicates first
         fingerprint = self._create_vulnerability_fingerprint(title, description, target)
         exact_duplicate = await self._check_fingerprint_duplicate(fingerprint, vulnerability_id)
-        
+
         if exact_duplicate:
             processing_time = time.time() - start_time
             return DeduplicationResult(
@@ -507,12 +503,12 @@ class VectorStoreService:
                 processing_time=processing_time,
                 reasoning="Exact duplicate detected via fingerprint matching"
             )
-        
+
         # Find similar vulnerabilities
         similar_findings = await self.find_similar_vulnerabilities(
             vulnerability_id, title, description, severity, target
         )
-        
+
         if not similar_findings:
             processing_time = time.time() - start_time
             return DeduplicationResult(
@@ -525,14 +521,14 @@ class VectorStoreService:
                 processing_time=processing_time,
                 reasoning="No similar vulnerabilities found"
             )
-        
+
         # Check if top similarity exceeds threshold
         top_similar = similar_findings[0]
         if top_similar.similarity_score > self.similarity_threshold:
             # High confidence duplicate based on similarity alone
             tokens_saved = 300  # Estimated tokens saved by avoiding GPT
             triage_dedupe_saved_tokens_total.inc(tokens_saved)
-            
+
             processing_time = time.time() - start_time
             return DeduplicationResult(
                 is_duplicate=True,
@@ -544,37 +540,37 @@ class VectorStoreService:
                 processing_time=processing_time,
                 reasoning=f"High similarity ({top_similar.similarity_score:.3f}) to existing vulnerability"
             )
-        
+
         # Use GPT-4o for borderline cases if enabled
         gpt_analysis = None
         final_confidence = top_similar.similarity_score
         is_duplicate = False
-        
+
         if use_gpt_fallback and top_similar.similarity_score > 0.70:  # GPT threshold
             try:
                 gpt_result = await self._gpt_analyze_duplicates(
                     title, description, target, similar_findings[:3]
                 )
                 gpt_analysis = gpt_result['analysis']
-                
+
                 if gpt_result['is_duplicate']:
                     is_duplicate = True
                     final_confidence = max(final_confidence, gpt_result['confidence'])
                     gpt_rerank_operations.labels(result='duplicate').inc()
                 else:
                     gpt_rerank_operations.labels(result='unique').inc()
-                    
+
             except Exception as e:
                 logger.error(f"GPT analysis failed: {e}")
                 gpt_rerank_operations.labels(result='error').inc()
-        
+
         # Calculate tokens saved
         if is_duplicate:
             tokens_saved = 400  # Estimated tokens saved
             triage_dedupe_saved_tokens_total.inc(tokens_saved)
-        
+
         processing_time = time.time() - start_time
-        
+
         result = DeduplicationResult(
             is_duplicate=is_duplicate,
             confidence=final_confidence,
@@ -585,13 +581,13 @@ class VectorStoreService:
             processing_time=processing_time,
             reasoning=self._build_reasoning(is_duplicate, top_similar, gpt_analysis, final_confidence)
         )
-        
+
         # Store result in database
         await self._store_deduplication_result(result)
-        
+
         return result
-    
-    async def _check_fingerprint_duplicate(self, fingerprint: str, exclude_id: str) -> Optional[str]:
+
+    async def _check_fingerprint_duplicate(self, fingerprint: str, exclude_id: str) -> str | None:
         """Check for exact fingerprint duplicates"""
         async with self.db_pool.acquire() as conn:
             row = await conn.fetchrow("""
@@ -600,18 +596,18 @@ class VectorStoreService:
                 WHERE fingerprint = $1 AND vulnerability_id != $2
                 LIMIT 1
             """, fingerprint, exclude_id)
-            
+
             return row['vulnerability_id'] if row else None
-    
+
     async def _gpt_analyze_duplicates(
-        self, 
-        title: str, 
-        description: str, 
-        target: str, 
-        similar_findings: List[SimilarityResult]
-    ) -> Dict:
+        self,
+        title: str,
+        description: str,
+        target: str,
+        similar_findings: list[SimilarityResult]
+    ) -> dict:
         """Use GPT-4o to analyze potential duplicates"""
-        
+
         prompt = f"""
         Analyze if this vulnerability is a duplicate of any similar findings:
         
@@ -622,7 +618,7 @@ class VectorStoreService:
         
         SIMILAR FINDINGS:
         """
-        
+
         for i, finding in enumerate(similar_findings, 1):
             prompt += f"""
         {i}. Title: {finding.title}
@@ -630,7 +626,7 @@ class VectorStoreService:
            Target: {finding.target}
            Similarity: {finding.similarity_score:.3f}
         """
-        
+
         prompt += """
         
         Determine if the new vulnerability is a duplicate of any similar finding.
@@ -648,7 +644,7 @@ class VectorStoreService:
             "analysis": "brief explanation"
         }
         """
-        
+
         try:
             response = await self.openai_client.chat.completions.create(
                 model="gpt-4",
@@ -659,17 +655,17 @@ class VectorStoreService:
                 temperature=0.1,
                 max_tokens=300
             )
-            
+
             result = json.loads(response.choices[0].message.content)
-            
+
             # If GPT identified a duplicate, map back to vulnerability ID
             if result['is_duplicate'] and result.get('duplicate_of_index'):
                 idx = result['duplicate_of_index'] - 1  # Convert to 0-based
                 if 0 <= idx < len(similar_findings):
                     result['duplicate_of'] = similar_findings[idx].vulnerability_id
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"GPT analysis failed: {e}")
             return {
@@ -677,12 +673,12 @@ class VectorStoreService:
                 "confidence": 0.0,
                 "analysis": f"Analysis failed: {str(e)}"
             }
-    
+
     def _build_reasoning(
-        self, 
-        is_duplicate: bool, 
-        top_similar: SimilarityResult, 
-        gpt_analysis: Optional[str],
+        self,
+        is_duplicate: bool,
+        top_similar: SimilarityResult,
+        gpt_analysis: str | None,
         confidence: float
     ) -> str:
         """Build human-readable reasoning"""
@@ -696,9 +692,9 @@ class VectorStoreService:
             reason = f"Unique vulnerability (highest similarity: {top_similar.similarity_score:.3f})"
             if gpt_analysis:
                 reason += f" - GPT confirmed uniqueness: {gpt_analysis}"
-        
+
         return reason
-    
+
     async def _store_deduplication_result(self, result: DeduplicationResult):
         """Store deduplication result in database"""
         try:
@@ -709,14 +705,14 @@ class VectorStoreService:
                      similar_findings_count, gpt_analysis, tokens_saved, 
                      processing_time, reasoning)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                """, 
+                """,
                 result.vulnerability_id, result.is_duplicate, result.confidence,
                 result.duplicate_of, len(result.similar_findings), result.gpt_analysis,
                 result.tokens_saved, result.processing_time, result.reasoning)
         except Exception as e:
             logger.error(f"Failed to store deduplication result: {e}")
-    
-    async def get_statistics(self) -> Dict:
+
+    async def get_statistics(self) -> dict:
         """Get vector store statistics"""
         async with self.db_pool.acquire() as conn:
             # Get general stats
@@ -727,7 +723,7 @@ class VectorStoreService:
                     COUNT(*) FILTER (WHERE created_at > NOW() - INTERVAL '24 hours') as recent_vectors
                 FROM vulnerability_vectors
             """)
-            
+
             # Get deduplication stats
             dedupe_stats = await conn.fetchrow("""
                 SELECT 
@@ -739,7 +735,7 @@ class VectorStoreService:
                 FROM deduplication_results
                 WHERE created_at > NOW() - INTERVAL '24 hours'
             """)
-            
+
             return {
                 'vector_store': {
                     'total_vectors': stats['total_vectors'],

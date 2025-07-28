@@ -1,9 +1,9 @@
+
 from fastapi import APIRouter, BackgroundTasks
 from temporalio.client import Client
-from typing import List
 
-from xorb_core.models.agents import Finding
 from services.worker.app.workflows import DiscoveryWorkflow
+from xorb_core.models.agents import Finding
 
 router = APIRouter()
 
@@ -21,7 +21,7 @@ async def start_discovery(domain: str, background_tasks: BackgroundTasks):
     )
     return {"status": "workflow_started", "workflow_id": handle.id}
 
-@router.get("/discover/{workflow_id}", response_model=List[Finding])
+@router.get("/discover/{workflow_id}", response_model=list[Finding])
 async def get_discovery_results(workflow_id: str):
     """
     Retrieve the results of a completed discovery workflow.

@@ -4,17 +4,18 @@ XORB OCI Bundle Creator
 Creates offline deployment bundles for airgapped environments
 """
 
-import os
-import sys
-import subprocess
-import tarfile
-import json
-import shutil
 import argparse
+import json
+import logging
+import os
+import shutil
+import subprocess
+import sys
+import tarfile
 from datetime import datetime
 from pathlib import Path
+
 import docker
-import logging
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -28,62 +29,62 @@ class XorbOCIBundler:
         self.bundle_path = self.output_dir / f"{self.bundle_name}.tar.gz"
         self.temp_dir = Path("/tmp") / self.bundle_name
         self.docker_client = docker.from_env()
-        
+
         # XORB images to include
         self.xorb_images = [
             "postgres:15-alpine",
-            "redis:7-alpine", 
+            "redis:7-alpine",
             "neo4j:5-community",
             "qdrant/qdrant:latest",
             "prom/prometheus:latest",
             "grafana/grafana:latest",
             "prom/node-exporter:latest"
         ]
-        
+
         # XORB service images (to be built)
         self.xorb_services = [
             "xorb-api",
-            "xorb-orchestrator", 
+            "xorb-orchestrator",
             "xorb-worker"
         ]
-    
+
     def detect_architecture(self):
         """Detect system architecture"""
         arch_map = {
             "x86_64": "amd64",
-            "aarch64": "arm64", 
+            "aarch64": "arm64",
             "armv7l": "arm"
         }
-        
+
         uname_arch = subprocess.check_output(["uname", "-m"]).decode().strip()
         return arch_map.get(uname_arch, uname_arch)
-    
+
     def create_bundle_structure(self):
         """Create bundle directory structure"""
         logger.info(f"Creating bundle structure in {self.temp_dir}")
-        
+
         # Create directory structure
         directories = [
             "images",
-            "config", 
+            "config",
             "scripts",
             "docs",
             "systemd",
             "data"
         ]
-        
+
         for directory in directories:
             (self.temp_dir / directory).mkdir(parents=True, exist_ok=True)
-        
+
         logger.info("Bundle structure created")
-    
+
     def export_docker_images(self):
         """Export all required Docker images"""
         logger.info("Exporting Docker images...")
-        
+
         all_images = self.xorb_images + self.xorb_services
         images_dir = self.temp_dir / "images"
-        
+
         # Create images manifest
         manifest = {
             "format_version": "1.0",
@@ -91,11 +92,11 @@ class XorbOCIBundler:
             "architecture": self.detect_architecture(),
             "images": []
         }
-        
+
         for image in all_images:
             try:
                 logger.info(f"Exporting image: {image}")
-                
+
                 # Pull/build image if needed
                 if image in self.xorb_services:
                     # Build XORB service image
@@ -103,16 +104,16 @@ class XorbOCIBundler:
                 else:
                     # Pull external image
                     self.docker_client.images.pull(image)
-                
+
                 # Export image to tar
                 docker_image = self.docker_client.images.get(image)
                 image_filename = f"{image.replace(':', '_').replace('/', '_')}.tar"
                 image_path = images_dir / image_filename
-                
+
                 with open(image_path, 'wb') as f:
                     for chunk in docker_image.save():
                         f.write(chunk)
-                
+
                 # Add to manifest
                 manifest["images"].append({
                     "name": image,
@@ -120,33 +121,33 @@ class XorbOCIBundler:
                     "size": image_path.stat().st_size,
                     "id": docker_image.id
                 })
-                
+
                 logger.info(f"Exported {image} -> {image_filename}")
-                
+
             except Exception as e:
                 logger.error(f"Failed to export {image}: {e}")
-        
+
         # Save manifest
         with open(images_dir / "manifest.json", 'w') as f:
             json.dump(manifest, f, indent=2)
-        
+
         logger.info(f"Exported {len(manifest['images'])} Docker images")
-    
+
     def _build_xorb_service(self, service_name):
         """Build XORB service image"""
         dockerfile_map = {
             "xorb-api": "services/api/Dockerfile",
-            "xorb-orchestrator": "services/orchestrator/Dockerfile", 
+            "xorb-orchestrator": "services/orchestrator/Dockerfile",
             "xorb-worker": "services/worker/Dockerfile"
         }
-        
+
         dockerfile_path = dockerfile_map.get(service_name)
         if not dockerfile_path or not Path(dockerfile_path).exists():
             logger.warning(f"Dockerfile not found for {service_name}, skipping")
             return
-        
+
         logger.info(f"Building {service_name}...")
-        
+
         try:
             # Build image
             image, logs = self.docker_client.images.build(
@@ -155,26 +156,26 @@ class XorbOCIBundler:
                 tag=service_name,
                 buildargs={"ARCH": self.detect_architecture()}
             )
-            
+
             logger.info(f"Built {service_name} successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to build {service_name}: {e}")
-    
+
     def copy_configuration(self):
         """Copy configuration files"""
         logger.info("Copying configuration files...")
-        
+
         config_dir = self.temp_dir / "config"
-        
+
         # Copy configuration files
         config_files = [
             "docker-compose.local.yml",
-            "docker-compose.complete.yml", 
+            "docker-compose.complete.yml",
             "config/local",
             ".env.example"
         ]
-        
+
         for config_file in config_files:
             src_path = Path(config_file)
             if src_path.exists():
@@ -185,21 +186,21 @@ class XorbOCIBundler:
                 logger.info(f"Copied {config_file}")
             else:
                 logger.warning(f"Configuration file not found: {config_file}")
-    
+
     def copy_scripts(self):
         """Copy installation and management scripts"""
         logger.info("Copying scripts...")
-        
+
         scripts_dir = self.temp_dir / "scripts"
-        
+
         # Copy essential scripts
         script_files = [
             "autodeploy.sh",
             "scripts/monitor",
-            "scripts/security", 
+            "scripts/security",
             "scripts/test"
         ]
-        
+
         for script_file in script_files:
             src_path = Path(script_file)
             if src_path.exists():
@@ -212,34 +213,34 @@ class XorbOCIBundler:
                 logger.info(f"Copied {script_file}")
             else:
                 logger.warning(f"Script not found: {script_file}")
-    
+
     def copy_systemd_files(self):
         """Copy systemd service files"""
         logger.info("Copying systemd files...")
-        
+
         systemd_dir = self.temp_dir / "systemd"
         src_systemd = Path("systemd")
-        
+
         if src_systemd.exists():
             shutil.copytree(src_systemd, systemd_dir, dirs_exist_ok=True)
             logger.info("Copied systemd service files")
         else:
             logger.warning("Systemd directory not found")
-    
+
     def copy_documentation(self):
         """Copy documentation"""
         logger.info("Copying documentation...")
-        
+
         docs_dir = self.temp_dir / "docs"
-        
+
         # Copy documentation files
         doc_files = [
             "README.md",
-            "DEPLOYMENT_GUIDE.md", 
+            "DEPLOYMENT_GUIDE.md",
             "CLAUDE.md",
             "docs"
         ]
-        
+
         for doc_file in doc_files:
             src_path = Path(doc_file)
             if src_path.exists():
@@ -248,23 +249,23 @@ class XorbOCIBundler:
                 else:
                     shutil.copy2(src_path, docs_dir)
                 logger.info(f"Copied {doc_file}")
-    
+
     def copy_data(self):
         """Copy sample/seed data if requested"""
         if not self.include_data:
             return
-        
+
         logger.info("Copying data files...")
-        
+
         data_dir = self.temp_dir / "data"
-        
+
         # Copy data files
         data_files = [
             "data",
-            "seeds", 
+            "seeds",
             "migrations"
         ]
-        
+
         for data_file in data_files:
             src_path = Path(data_file)
             if src_path.exists():
@@ -273,13 +274,13 @@ class XorbOCIBundler:
                 else:
                     shutil.copy2(src_path, data_dir)
                 logger.info(f"Copied {data_file}")
-    
+
     def create_installer_script(self):
         """Create offline installer script"""
         logger.info("Creating installer script...")
-        
+
         installer_script = self.temp_dir / "install_xorb_offline.sh"
-        
+
         with open(installer_script, 'w') as f:
             f.write('''#!/bin/bash
 
@@ -432,15 +433,15 @@ main() {
 
 main "$@"
 ''')
-        
+
         # Make installer executable
         os.chmod(installer_script, 0o755)
         logger.info("Installer script created")
-    
+
     def create_bundle_metadata(self):
         """Create bundle metadata file"""
         logger.info("Creating bundle metadata...")
-        
+
         metadata = {
             "bundle_name": self.bundle_name,
             "version": "2.0.0",
@@ -469,10 +470,10 @@ main "$@"
                 "requires_internet": False
             }
         }
-        
+
         with open(self.temp_dir / "bundle_metadata.json", 'w') as f:
             json.dump(metadata, f, indent=2)
-        
+
         # Create README for the bundle
         readme_content = f"""# XORB Offline Deployment Bundle
 
@@ -519,47 +520,47 @@ This bundle contains everything needed to deploy XORB in an offline/airgapped en
 ## Support
 Refer to the documentation in the `docs/` directory for detailed installation and configuration instructions.
 """
-        
+
         with open(self.temp_dir / "README.txt", 'w') as f:
             f.write(readme_content)
-        
+
         logger.info("Bundle metadata created")
-    
+
     def create_tar_bundle(self):
         """Create final tar.gz bundle"""
         logger.info(f"Creating bundle archive: {self.bundle_path}")
-        
+
         # Ensure output directory exists
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Create tar.gz bundle
         with tarfile.open(self.bundle_path, 'w:gz') as tar:
             tar.add(self.temp_dir, arcname=self.bundle_name)
-        
+
         # Get bundle size
         bundle_size_mb = self.bundle_path.stat().st_size / 1024 / 1024
-        
+
         logger.info(f"Bundle created: {self.bundle_path} ({bundle_size_mb:.1f}MB)")
-        
+
         # Create checksum
         checksum_file = self.bundle_path.with_suffix('.sha256')
         subprocess.run(['sha256sum', str(self.bundle_path)], stdout=open(checksum_file, 'w'))
-        
+
         logger.info(f"Checksum created: {checksum_file}")
-    
+
     def cleanup(self):
         """Clean up temporary files"""
         logger.info("Cleaning up temporary files...")
-        
+
         if self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)
-        
+
         logger.info("Cleanup completed")
-    
+
     def create_bundle(self):
         """Create complete OCI bundle"""
         logger.info(f"Creating XORB OCI bundle: {self.bundle_name}")
-        
+
         try:
             self.create_bundle_structure()
             self.export_docker_images()
@@ -571,15 +572,15 @@ Refer to the documentation in the `docs/` directory for detailed installation an
             self.create_installer_script()
             self.create_bundle_metadata()
             self.create_tar_bundle()
-            
+
             logger.info("Bundle creation completed successfully!")
-            
+
             return {
                 "bundle_path": str(self.bundle_path),
                 "bundle_size_mb": self.bundle_path.stat().st_size / 1024 / 1024,
                 "checksum_file": str(self.bundle_path.with_suffix('.sha256'))
             }
-            
+
         except Exception as e:
             logger.error(f"Bundle creation failed: {e}")
             raise
@@ -588,31 +589,31 @@ Refer to the documentation in the `docs/` directory for detailed installation an
 
 def main():
     parser = argparse.ArgumentParser(description="Create XORB OCI deployment bundle")
-    parser.add_argument("--output-dir", default="deployment", 
+    parser.add_argument("--output-dir", default="deployment",
                        help="Output directory for bundle (default: deployment)")
     parser.add_argument("--include-data", action="store_true",
                        help="Include sample/seed data in bundle")
     parser.add_argument("--verbose", "-v", action="store_true",
                        help="Enable verbose logging")
-    
+
     args = parser.parse_args()
-    
+
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
-    
+
     try:
         bundler = XorbOCIBundler(args.output_dir, args.include_data)
         result = bundler.create_bundle()
-        
-        print(f"\\n🎉 XORB OCI Bundle created successfully!")
+
+        print("\\n🎉 XORB OCI Bundle created successfully!")
         print(f"Bundle: {result['bundle_path']}")
         print(f"Size: {result['bundle_size_mb']:.1f}MB")
         print(f"Checksum: {result['checksum_file']}")
-        print(f"\\nTo deploy in airgapped environment:")
-        print(f"1. Transfer bundle to target system")
+        print("\\nTo deploy in airgapped environment:")
+        print("1. Transfer bundle to target system")
         print(f"2. Extract: tar -xzf {Path(result['bundle_path']).name}")
-        print(f"3. Install: ./install_xorb_offline.sh")
-        
+        print("3. Install: ./install_xorb_offline.sh")
+
     except Exception as e:
         logger.error(f"Failed to create bundle: {e}")
         sys.exit(1)

@@ -6,8 +6,8 @@ Core data models and domain entities.
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from uuid import uuid4, UUID
+from typing import Any
+from uuid import uuid4
 
 from .enums import AgentType, CampaignStatus, ThreatSeverity
 
@@ -18,24 +18,24 @@ class Agent:
     id: str = field(default_factory=lambda: str(uuid4()))
     name: str = ""
     agent_type: AgentType = AgentType.RECONNAISSANCE
-    capabilities: List[str] = field(default_factory=list)
+    capabilities: list[str] = field(default_factory=list)
     status: str = "idle"
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     created_at: datetime = field(default_factory=datetime.utcnow)
     updated_at: datetime = field(default_factory=datetime.utcnow)
 
 
-@dataclass  
+@dataclass
 class Target:
     """Target model for security testing."""
     id: str = field(default_factory=lambda: str(uuid4()))
     url: str = ""
     name: str = ""
     description: str = ""
-    scope: List[str] = field(default_factory=list)
-    out_of_scope: List[str] = field(default_factory=list)
-    authorization: Dict[str, Any] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    scope: list[str] = field(default_factory=list)
+    out_of_scope: list[str] = field(default_factory=list)
+    authorization: dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -45,13 +45,13 @@ class Campaign:
     name: str = ""
     description: str = ""
     status: CampaignStatus = CampaignStatus.PENDING
-    targets: List[Target] = field(default_factory=list)
-    agent_requirements: List[AgentType] = field(default_factory=list)
+    targets: list[Target] = field(default_factory=list)
+    agent_requirements: list[AgentType] = field(default_factory=list)
     max_duration: int = 3600  # seconds
     created_at: datetime = field(default_factory=datetime.utcnow)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    results: Dict[str, Any] = field(default_factory=dict)
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    results: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -61,8 +61,8 @@ class Vulnerability:
     title: str = ""
     description: str = ""
     severity: ThreatSeverity = ThreatSeverity.INFO
-    cvss_score: Optional[float] = None
-    cve_id: Optional[str] = None
+    cvss_score: float | None = None
+    cve_id: str | None = None
     affected_asset: str = ""
     proof_of_concept: str = ""
     remediation: str = ""
@@ -79,7 +79,7 @@ class ThreatIntelligence:
     indicator_value: str = ""
     confidence: float = 0.0
     severity: ThreatSeverity = ThreatSeverity.INFO
-    tags: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
     first_seen: datetime = field(default_factory=datetime.utcnow)
     last_seen: datetime = field(default_factory=datetime.utcnow)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)

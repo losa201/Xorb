@@ -5,23 +5,24 @@ Campaign management and agent orchestration
 """
 
 import json
-import time
 import os
 import threading
-from http.server import HTTPServer, BaseHTTPRequestHandler
+import time
+from http.server import BaseHTTPRequestHandler, HTTPServer
 from urllib.parse import urlparse
 
+
 class XORBOrchestratorHandler(BaseHTTPRequestHandler):
-    
+
     def do_GET(self):
         """Handle GET requests"""
         parsed_path = urlparse(self.path)
         path = parsed_path.path
-        
+
         if path == "/":
             self.send_json_response({
                 "service": "XORB Orchestrator Service",
-                "version": "2.0.0", 
+                "version": "2.0.0",
                 "status": "operational",
                 "message": "Campaign management and agent orchestration",
                 "capabilities": [
@@ -31,7 +32,7 @@ class XORBOrchestratorHandler(BaseHTTPRequestHandler):
                     "resource_optimization"
                 ]
             })
-        
+
         elif path == "/health":
             self.send_json_response({
                 "status": "healthy",
@@ -42,7 +43,7 @@ class XORBOrchestratorHandler(BaseHTTPRequestHandler):
                 "active_campaigns": len(active_campaigns),
                 "total_executions": execution_count
             })
-        
+
         elif path == "/metrics":
             metrics_data = f"""# HELP xorb_orchestrator_campaigns_total Total campaigns managed
 # TYPE xorb_orchestrator_campaigns_total counter
@@ -64,7 +65,7 @@ xorb_orchestrator_health 1
             self.send_header('Content-type', 'text/plain')
             self.end_headers()
             self.wfile.write(metrics_data.encode())
-        
+
         elif path == "/api/v1/orchestrator/status":
             self.send_json_response({
                 "orchestrator": {
@@ -86,7 +87,7 @@ xorb_orchestrator_health 1
                     "queue_depth": 0
                 }
             })
-        
+
         elif path == "/api/v1/orchestrator/campaigns":
             self.send_json_response({
                 "campaigns": list(active_campaigns.values()),
@@ -94,14 +95,14 @@ xorb_orchestrator_health 1
                 "running_count": len([c for c in active_campaigns.values() if c["status"] == "running"]),
                 "completed_count": len([c for c in active_campaigns.values() if c["status"] == "completed"])
             })
-        
+
         elif path == "/api/v1/orchestrator/agents":
             self.send_json_response({
                 "available_agents": [
                     {
                         "id": "orchestrator-recon-001",
                         "name": "Orchestrated ReconAgent",
-                        "type": "reconnaissance", 
+                        "type": "reconnaissance",
                         "status": "idle",
                         "current_campaign": None,
                         "executions_today": 15,
@@ -117,7 +118,7 @@ xorb_orchestrator_health 1
                         "success_rate": "97.8%"
                     },
                     {
-                        "id": "orchestrator-threat-001", 
+                        "id": "orchestrator-threat-001",
                         "name": "Orchestrated ThreatHuntAgent",
                         "type": "threat_hunting",
                         "status": "idle",
@@ -129,20 +130,20 @@ xorb_orchestrator_health 1
                 "agent_pool_status": "optimal",
                 "load_balancing": "active"
             })
-        
+
         else:
             self.send_error(404, "Endpoint not found")
-    
+
     def do_POST(self):
         """Handle POST requests"""
         if self.path == "/api/v1/orchestrator/campaigns":
             content_length = int(self.headers.get('Content-Length', 0))
             post_data = self.rfile.read(content_length)
-            
+
             try:
                 campaign_data = json.loads(post_data.decode('utf-8'))
                 campaign_id = f"orchestrator-campaign-{int(time.time())}"
-                
+
                 new_campaign = {
                     "id": campaign_id,
                     "name": campaign_data.get("name", "Orchestrated Campaign"),
@@ -158,12 +159,12 @@ xorb_orchestrator_health 1
                         "priority": "normal"
                     }
                 }
-                
+
                 active_campaigns[campaign_id] = new_campaign
-                
+
                 # Simulate campaign start
                 threading.Thread(target=self.simulate_campaign_execution, args=(campaign_id,)).start()
-                
+
                 response = {
                     "message": "Campaign orchestrated successfully",
                     "campaign": new_campaign,
@@ -174,32 +175,32 @@ xorb_orchestrator_health 1
                 self.send_json_response({"error": str(e)}, status=400)
         else:
             self.send_error(404, "Endpoint not found")
-    
+
     def simulate_campaign_execution(self, campaign_id):
         """Simulate campaign execution in background"""
         global execution_count
-        
+
         if campaign_id not in active_campaigns:
             return
-        
+
         campaign = active_campaigns[campaign_id]
         campaign["status"] = "running"
         campaign["started_at"] = time.time()
-        
+
         # Simulate execution phases
         phases = ["initialization", "agent_deployment", "execution", "analysis", "completion"]
-        
+
         for i, phase in enumerate(phases):
             time.sleep(2)  # Simulate work
             campaign["current_phase"] = phase
             campaign["progress"] = int((i + 1) / len(phases) * 100)
             execution_count += 1
-        
+
         campaign["status"] = "completed"
         campaign["completed_at"] = time.time()
         campaign["execution_time"] = campaign["completed_at"] - campaign["started_at"]
         campaign["findings"] = 12 + (len(campaign["targets"]) * 3)
-    
+
     def send_json_response(self, data, status=200):
         """Send JSON response"""
         self.send_response(status)
@@ -209,7 +210,7 @@ xorb_orchestrator_health 1
         self.send_header('Access-Control-Allow-Headers', 'Content-Type')
         self.end_headers()
         self.wfile.write(json.dumps(data, indent=2).encode())
-    
+
     def log_message(self, format, *args):
         """Custom log format"""
         print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] ORCHESTRATOR: {format % args}")
@@ -234,19 +235,19 @@ def main():
     """Start the XORB Orchestrator server"""
     global start_time
     start_time = time.time()
-    
+
     host = os.getenv("ORCHESTRATOR_HOST", "0.0.0.0")
     port = int(os.getenv("ORCHESTRATOR_PORT", "8080"))
-    
+
     server = HTTPServer((host, port), XORBOrchestratorHandler)
-    
+
     print(f"🎭 XORB Orchestrator Service starting on {host}:{port}")
     print(f"📊 Environment: {os.getenv('ENVIRONMENT', 'production')}")
-    print(f"🤖 Max concurrent agents: 32")
+    print("🤖 Max concurrent agents: 32")
     print(f"📋 Health check: http://{host}:{port}/health")
     print(f"📈 Metrics: http://{host}:{port}/metrics")
     print(f"🎯 Campaign management: http://{host}:{port}/api/v1/orchestrator/campaigns")
-    
+
     try:
         server.serve_forever()
     except KeyboardInterrupt:

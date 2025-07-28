@@ -4,10 +4,11 @@ import asyncio
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-# Import the registry to ensure agents are discovered on startup
-from xorb_core.agent_registry import agent_registry
 from services.worker.activities import run_agent
 from services.worker.workflows import DynamicScanWorkflow
+
+# Import the registry to ensure agents are discovered on startup
+from xorb_core.agent_registry import agent_registry
 
 
 async def main():

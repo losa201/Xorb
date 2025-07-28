@@ -1,8 +1,10 @@
 
-import httpx
-from typing import List, Set
 from urllib.parse import urlparse
+
+import httpx
+
 from ..models.agents import DiscoveryTarget, Finding
+
 
 class SecurityHeadersAgent:
     """A simple vulnerability scanner that checks for common security headers."""
@@ -16,10 +18,10 @@ class SecurityHeadersAgent:
         return "Checks a web page for the presence of essential security headers."
 
     @property
-    def accepted_target_types(self) -> Set[str]:
+    def accepted_target_types(self) -> set[str]:
         return {"url"}
 
-    async def run(self, target: DiscoveryTarget) -> List[Finding]:
+    async def run(self, target: DiscoveryTarget) -> list[Finding]:
         if target.target_type not in self.accepted_target_types:
             return []
 
@@ -65,5 +67,5 @@ class SecurityHeadersAgent:
             print(f"Request error for {target.value}: {e}")
         except Exception as e:
             print(f"An unexpected error occurred while scanning {target.value}: {e}")
-            
+
         return findings

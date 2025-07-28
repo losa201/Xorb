@@ -6,20 +6,19 @@ ecosystem, including executive dashboards, campaign analytics, threat intelligen
 reporting, compliance tracking, and predictive security insights.
 """
 
-import asyncio
 import json
+import sqlite3
 import time
 import uuid
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field, asdict
-from datetime import datetime, timezone, timedelta
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set, Union, Tuple, Callable
-from collections import defaultdict, Counter
-import sqlite3
+from typing import Any
+
 try:
-    import pandas as pd
     import numpy as np
+    import pandas as pd
     HAS_PANDAS = True
 except ImportError:
     HAS_PANDAS = False
@@ -28,15 +27,15 @@ except ImportError:
         @staticmethod
         def DataFrame(data):
             return data
-    
+
     class np:
         @staticmethod
         def mean(data):
             return sum(data) / len(data) if data else 0
-from pathlib import Path
 
 import structlog
-from prometheus_client import Counter as PrometheusCounter, Gauge, Histogram
+from prometheus_client import Counter as PrometheusCounter
+from prometheus_client import Histogram
 
 # Metrics
 BI_REPORT_GENERATION = PrometheusCounter('xorb_bi_reports_generated_total', 'BI reports generated', ['report_type', 'format'])
@@ -86,10 +85,10 @@ class ComplianceFramework(Enum):
 class MetricData:
     """Container for metric data points."""
     metric_name: str
-    value: Union[int, float, str]
+    value: int | float | str
     timestamp: float
-    tags: Dict[str, str] = field(default_factory=dict)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    tags: dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -99,15 +98,15 @@ class ReportConfiguration:
     format: ReportFormat
     title: str
     description: str
-    time_range: Tuple[datetime, datetime]
-    include_sections: List[str] = field(default_factory=list)
-    filters: Dict[str, Any] = field(default_factory=dict)
-    output_path: Optional[str] = None
-    template: Optional[str] = None
-    recipients: List[str] = field(default_factory=list)
-    schedule: Optional[str] = None  # Cron-like schedule
-    
-    def to_dict(self) -> Dict[str, Any]:
+    time_range: tuple[datetime, datetime]
+    include_sections: list[str] = field(default_factory=list)
+    filters: dict[str, Any] = field(default_factory=dict)
+    output_path: str | None = None
+    template: str | None = None
+    recipients: list[str] = field(default_factory=list)
+    schedule: str | None = None  # Cron-like schedule
+
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "report_type": self.report_type.value,
@@ -132,9 +131,9 @@ class DashboardWidget:
     title: str
     data_source: str
     query: str
-    visualization_config: Dict[str, Any] = field(default_factory=dict)
+    visualization_config: dict[str, Any] = field(default_factory=dict)
     refresh_interval: int = 300  # seconds
-    position: Dict[str, int] = field(default_factory=dict)  # x, y, width, height
+    position: dict[str, int] = field(default_factory=dict)  # x, y, width, height
 
 
 @dataclass
@@ -143,36 +142,34 @@ class Dashboard:
     dashboard_id: str
     title: str
     description: str
-    widgets: List[DashboardWidget] = field(default_factory=list)
+    widgets: list[DashboardWidget] = field(default_factory=list)
     layout: str = "grid"  # grid, tabs, accordion
     auto_refresh: bool = True
     refresh_interval: int = 300
-    access_control: List[str] = field(default_factory=list)
+    access_control: list[str] = field(default_factory=list)
     created_at: float = field(default_factory=time.time)
     updated_at: float = field(default_factory=time.time)
 
 
 class IDataSource(ABC):
     """Interface for data sources."""
-    
+
     @abstractmethod
-    async def query(self, query: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+    async def query(self, query: str, parameters: dict[str, Any] = None) -> list[dict[str, Any]]:
         """Execute query and return results."""
-        pass
-    
+
     @abstractmethod
-    async def get_metrics(self, metric_names: List[str], time_range: Tuple[datetime, datetime]) -> List[MetricData]:
+    async def get_metrics(self, metric_names: list[str], time_range: tuple[datetime, datetime]) -> list[MetricData]:
         """Get specific metrics for time range."""
-        pass
 
 
 class SQLiteDataSource(IDataSource):
     """SQLite data source for local analytics."""
-    
+
     def __init__(self, db_path: str = "xorb_analytics.db"):
         self.db_path = db_path
         self._init_database()
-    
+
     def _init_database(self):
         """Initialize analytics database."""
         with sqlite3.connect(self.db_path) as conn:
@@ -259,41 +256,41 @@ class SQLiteDataSource(IDataSource):
                 CREATE INDEX IF NOT EXISTS idx_compliance_framework ON compliance_events(framework);
                 CREATE INDEX IF NOT EXISTS idx_metrics_name_timestamp ON metrics(metric_name, timestamp);
             """)
-    
-    async def query(self, query: str, parameters: Dict[str, Any] = None) -> List[Dict[str, Any]]:
+
+    async def query(self, query: str, parameters: dict[str, Any] = None) -> list[dict[str, Any]]:
         """Execute SQL query and return results."""
         with BI_QUERY_EXECUTION.time():
             with sqlite3.connect(self.db_path) as conn:
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
-                
+
                 if parameters:
                     cursor.execute(query, parameters)
                 else:
                     cursor.execute(query)
-                
+
                 return [dict(row) for row in cursor.fetchall()]
-    
-    async def get_metrics(self, metric_names: List[str], time_range: Tuple[datetime, datetime]) -> List[MetricData]:
+
+    async def get_metrics(self, metric_names: list[str], time_range: tuple[datetime, datetime]) -> list[MetricData]:
         """Get specific metrics for time range."""
         start_time = time_range[0].timestamp()
         end_time = time_range[1].timestamp()
-        
+
         query = """
             SELECT metric_name, value, timestamp, tags, metadata
             FROM metrics
             WHERE metric_name IN ({}) AND timestamp BETWEEN ? AND ?
             ORDER BY timestamp
         """.format(','.join('?' * len(metric_names)))
-        
+
         parameters = metric_names + [start_time, end_time]
         results = await self.query(query, parameters)
-        
+
         metrics = []
         for row in results:
             tags = json.loads(row['tags']) if row['tags'] else {}
             metadata = json.loads(row['metadata']) if row['metadata'] else {}
-            
+
             metrics.append(MetricData(
                 metric_name=row['metric_name'],
                 value=row['value'],
@@ -301,10 +298,10 @@ class SQLiteDataSource(IDataSource):
                 tags=tags,
                 metadata=metadata
             ))
-        
+
         return metrics
-    
-    async def insert_campaign_data(self, campaign_data: Dict[str, Any]):
+
+    async def insert_campaign_data(self, campaign_data: dict[str, Any]):
         """Insert campaign analytics data."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
@@ -328,8 +325,8 @@ class SQLiteDataSource(IDataSource):
                 json.dumps(campaign_data.get('participating_nodes', [])),
                 json.dumps(campaign_data.get('metadata', {}))
             ))
-    
-    async def insert_agent_performance(self, agent_data: Dict[str, Any]):
+
+    async def insert_agent_performance(self, agent_data: dict[str, Any]):
         """Insert agent performance data."""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute("""
@@ -353,16 +350,16 @@ class SQLiteDataSource(IDataSource):
 
 class BusinessIntelligenceEngine:
     """Main business intelligence and reporting engine."""
-    
-    def __init__(self, data_sources: List[IDataSource] = None):
+
+    def __init__(self, data_sources: list[IDataSource] = None):
         self.data_sources = data_sources or [SQLiteDataSource()]
         self.report_generators = {}
-        self.dashboards: Dict[str, Dashboard] = {}
-        self.scheduled_reports: Dict[str, ReportConfiguration] = {}
-        
+        self.dashboards: dict[str, Dashboard] = {}
+        self.scheduled_reports: dict[str, ReportConfiguration] = {}
+
         # Initialize report generators
         self._init_report_generators()
-    
+
     def _init_report_generators(self):
         """Initialize report generators for different report types."""
         self.report_generators = {
@@ -377,25 +374,25 @@ class BusinessIntelligenceEngine:
             ReportType.PREDICTIVE_INSIGHTS: self._generate_predictive_insights,
             ReportType.OPERATIONAL_METRICS: self._generate_operational_metrics
         }
-    
-    async def generate_report(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def generate_report(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate a comprehensive report based on configuration."""
-        logger.info("Generating report", 
+        logger.info("Generating report",
                    report_type=config.report_type.value,
                    format=config.format.value,
                    title=config.title)
-        
+
         start_time = time.time()
-        
+
         try:
             # Get report generator
             generator = self.report_generators.get(config.report_type)
             if not generator:
                 raise ValueError(f"No generator found for report type: {config.report_type}")
-            
+
             # Generate report data
             report_data = await generator(config)
-            
+
             # Add metadata
             report_data.update({
                 "report_metadata": {
@@ -403,47 +400,47 @@ class BusinessIntelligenceEngine:
                     "description": config.description,
                     "report_type": config.report_type.value,
                     "format": config.format.value,
-                    "generated_at": datetime.now(timezone.utc).isoformat(),
+                    "generated_at": datetime.now(UTC).isoformat(),
                     "time_range": [config.time_range[0].isoformat(), config.time_range[1].isoformat()],
                     "generation_time_seconds": time.time() - start_time,
                     "filters": config.filters,
                     "data_sources": len(self.data_sources)
                 }
             })
-            
+
             # Format report output
             formatted_report = await self._format_report(report_data, config)
-            
+
             # Update metrics
             BI_REPORT_GENERATION.labels(
                 report_type=config.report_type.value,
                 format=config.format.value
             ).inc()
-            
+
             logger.info("Report generated successfully",
                        report_type=config.report_type.value,
                        generation_time=time.time() - start_time,
                        data_points=len(report_data.get('data_points', [])))
-            
+
             return formatted_report
-            
+
         except Exception as e:
-            logger.error("Report generation failed", 
+            logger.error("Report generation failed",
                         report_type=config.report_type.value,
-                        error=str(e), 
+                        error=str(e),
                         exc_info=True)
             raise
-    
-    async def _generate_executive_summary(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_executive_summary(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate executive summary report."""
         data_source = self.data_sources[0]
-        
+
         # Get high-level metrics
         total_campaigns = await data_source.query(
             "SELECT COUNT(*) as count FROM campaigns WHERE created_at BETWEEN ? AND ?",
             [config.time_range[0].timestamp(), config.time_range[1].timestamp()]
         )
-        
+
         campaign_success_rate = await data_source.query("""
             SELECT 
                 AVG(CASE WHEN state = 'completed' THEN 1.0 ELSE 0.0 END) * 100 as success_rate,
@@ -451,7 +448,7 @@ class BusinessIntelligenceEngine:
             FROM campaigns 
             WHERE created_at BETWEEN ? AND ?
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         vulnerability_summary = await data_source.query("""
             SELECT 
                 severity,
@@ -461,7 +458,7 @@ class BusinessIntelligenceEngine:
             WHERE discovered_at BETWEEN ? AND ?
             GROUP BY severity
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         return {
             "executive_summary": {
                 "total_campaigns": total_campaigns[0]['count'] if total_campaigns else 0,
@@ -480,11 +477,11 @@ class BusinessIntelligenceEngine:
             },
             "data_points": total_campaigns + campaign_success_rate + vulnerability_summary
         }
-    
-    async def _generate_campaign_analytics(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_campaign_analytics(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate detailed campaign analytics."""
         data_source = self.data_sources[0]
-        
+
         # Campaign performance over time
         campaign_trends = await data_source.query("""
             SELECT 
@@ -498,7 +495,7 @@ class BusinessIntelligenceEngine:
             GROUP BY DATE(created_at, 'unixepoch')
             ORDER BY date
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         # Agent utilization
         agent_utilization = await data_source.query("""
             SELECT 
@@ -509,7 +506,7 @@ class BusinessIntelligenceEngine:
             FROM agents 
             GROUP BY agent_type
         """)
-        
+
         # Campaign duration analysis
         duration_analysis = await data_source.query("""
             SELECT 
@@ -521,7 +518,7 @@ class BusinessIntelligenceEngine:
             WHERE completed_at IS NOT NULL AND started_at IS NOT NULL
             AND created_at BETWEEN ? AND ?
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         return {
             "campaign_analytics": {
                 "trends": campaign_trends,
@@ -535,11 +532,11 @@ class BusinessIntelligenceEngine:
             },
             "data_points": campaign_trends + agent_utilization + duration_analysis
         }
-    
-    async def _generate_threat_landscape(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_threat_landscape(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate threat landscape analysis."""
         data_source = self.data_sources[0]
-        
+
         # Threat intelligence summary
         threat_summary = await data_source.query("""
             SELECT 
@@ -552,7 +549,7 @@ class BusinessIntelligenceEngine:
             WHERE first_seen BETWEEN ? AND ?
             GROUP BY indicator_type, source
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         # Severity distribution
         severity_distribution = await data_source.query("""
             SELECT 
@@ -563,7 +560,7 @@ class BusinessIntelligenceEngine:
             WHERE first_seen BETWEEN ? AND ?
             GROUP BY severity
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         # Geographic threat distribution (simulated)
         geographic_threats = [
             {"country": "United States", "threat_count": 1245, "severity_avg": 6.2},
@@ -572,7 +569,7 @@ class BusinessIntelligenceEngine:
             {"country": "North Korea", "threat_count": 231, "severity_avg": 8.9},
             {"country": "Iran", "threat_count": 198, "severity_avg": 7.8}
         ]
-        
+
         return {
             "threat_landscape": {
                 "threat_summary": threat_summary,
@@ -591,11 +588,11 @@ class BusinessIntelligenceEngine:
             },
             "data_points": threat_summary + severity_distribution
         }
-    
-    async def _generate_vulnerability_trends(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_vulnerability_trends(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate vulnerability trend analysis."""
         data_source = self.data_sources[0]
-        
+
         # Vulnerability discovery trends
         discovery_trends = await data_source.query("""
             SELECT 
@@ -608,7 +605,7 @@ class BusinessIntelligenceEngine:
             GROUP BY DATE(discovered_at, 'unixepoch'), severity
             ORDER BY date
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         # Remediation metrics
         remediation_metrics = await data_source.query("""
             SELECT 
@@ -620,7 +617,7 @@ class BusinessIntelligenceEngine:
             WHERE discovered_at BETWEEN ? AND ?
             GROUP BY severity
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         # Category analysis
         category_analysis = await data_source.query("""
             SELECT 
@@ -633,7 +630,7 @@ class BusinessIntelligenceEngine:
             GROUP BY category
             ORDER BY count DESC
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         return {
             "vulnerability_trends": {
                 "discovery_trends": discovery_trends,
@@ -654,11 +651,11 @@ class BusinessIntelligenceEngine:
             },
             "data_points": discovery_trends + remediation_metrics + category_analysis
         }
-    
-    async def _generate_agent_performance(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_agent_performance(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate agent performance analysis."""
         data_source = self.data_sources[0]
-        
+
         # Agent execution statistics
         agent_stats = await data_source.query("""
             SELECT 
@@ -673,7 +670,7 @@ class BusinessIntelligenceEngine:
             WHERE total_executions > 0
             ORDER BY total_executions DESC
         """)
-        
+
         # Performance trends (simulated time series)
         performance_trends = [
             {"date": "2024-01-15", "avg_execution_time": 245.3, "success_rate": 94.2, "total_executions": 1247},
@@ -682,7 +679,7 @@ class BusinessIntelligenceEngine:
             {"date": "2024-01-18", "avg_execution_time": 234.9, "success_rate": 96.3, "total_executions": 1423},
             {"date": "2024-01-19", "avg_execution_time": 242.1, "success_rate": 95.7, "total_executions": 1378}
         ]
-        
+
         # Agent type performance comparison
         type_performance = await data_source.query("""
             SELECT 
@@ -694,7 +691,7 @@ class BusinessIntelligenceEngine:
             FROM agents 
             GROUP BY agent_type
         """)
-        
+
         return {
             "agent_performance": {
                 "individual_agents": agent_stats,
@@ -709,11 +706,11 @@ class BusinessIntelligenceEngine:
             },
             "data_points": agent_stats + type_performance
         }
-    
-    async def _generate_compliance_status(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_compliance_status(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate compliance status report."""
         data_source = self.data_sources[0]
-        
+
         # Compliance framework status
         compliance_status = await data_source.query("""
             SELECT 
@@ -727,7 +724,7 @@ class BusinessIntelligenceEngine:
             WHERE assessment_date BETWEEN ? AND ?
             ORDER BY framework, control_id
         """, [config.time_range[0].timestamp(), config.time_range[1].timestamp()])
-        
+
         # Framework compliance summary
         framework_summary = {}
         for event in compliance_status:
@@ -735,7 +732,7 @@ class BusinessIntelligenceEngine:
             if framework not in framework_summary:
                 framework_summary[framework] = {'compliant': 0, 'non_compliant': 0, 'in_progress': 0}
             framework_summary[framework][event['status']] += 1
-        
+
         # Compliance trends
         compliance_trends = {
             "SOC2": {"current": 87.3, "previous": 84.1, "trend": "improving"},
@@ -743,7 +740,7 @@ class BusinessIntelligenceEngine:
             "HIPAA": {"current": 89.7, "previous": 88.2, "trend": "improving"},
             "ISO_27001": {"current": 85.4, "previous": 86.1, "trend": "declining"}
         }
-        
+
         return {
             "compliance_status": {
                 "detailed_status": compliance_status,
@@ -762,8 +759,8 @@ class BusinessIntelligenceEngine:
             },
             "data_points": compliance_status
         }
-    
-    async def _generate_security_posture(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_security_posture(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate overall security posture assessment."""
         # This would integrate with multiple data sources for comprehensive assessment
         security_metrics = {
@@ -776,9 +773,9 @@ class BusinessIntelligenceEngine:
             "endpoint_security": 86.5,
             "security_awareness": 82.3
         }
-        
+
         overall_score = sum(security_metrics.values()) / len(security_metrics)
-        
+
         return {
             "security_posture": {
                 "overall_score": overall_score,
@@ -803,8 +800,8 @@ class BusinessIntelligenceEngine:
             },
             "data_points": []
         }
-    
-    async def _generate_roi_analysis(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_roi_analysis(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate return on investment analysis."""
         # Simulated ROI calculations
         roi_metrics = {
@@ -816,7 +813,7 @@ class BusinessIntelligenceEngine:
             "total_benefits": 11230000,
             "roi_percentage": 358.4
         }
-        
+
         return {
             "roi_analysis": {
                 "investment_summary": roi_metrics,
@@ -840,8 +837,8 @@ class BusinessIntelligenceEngine:
             },
             "data_points": []
         }
-    
-    async def _generate_predictive_insights(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_predictive_insights(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate predictive security insights using ML models."""
         # Simulated predictive analytics
         predictions = {
@@ -874,16 +871,16 @@ class BusinessIntelligenceEngine:
                 {"type": "System Performance", "anomaly_score": 0.18, "trend": "decreasing"}
             ]
         }
-        
+
         return {
             "predictive_insights": predictions,
             "data_points": []
         }
-    
-    async def _generate_operational_metrics(self, config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _generate_operational_metrics(self, config: ReportConfiguration) -> dict[str, Any]:
         """Generate operational metrics and KPIs."""
         data_source = self.data_sources[0]
-        
+
         # System performance metrics
         performance_metrics = {
             "average_response_time": 245.7,  # ms
@@ -897,7 +894,7 @@ class BusinessIntelligenceEngine:
                 "network": 34.2
             }
         }
-        
+
         # Operational KPIs
         operational_kpis = {
             "mean_time_to_detection": 8.7,      # minutes
@@ -907,7 +904,7 @@ class BusinessIntelligenceEngine:
             "alert_fatigue_score": 6.3,         # 1-10 scale
             "analyst_productivity": 87.2        # %
         }
-        
+
         return {
             "operational_metrics": {
                 "performance_metrics": performance_metrics,
@@ -926,33 +923,33 @@ class BusinessIntelligenceEngine:
             },
             "data_points": []
         }
-    
-    async def _format_report(self, report_data: Dict[str, Any], config: ReportConfiguration) -> Dict[str, Any]:
+
+    async def _format_report(self, report_data: dict[str, Any], config: ReportConfiguration) -> dict[str, Any]:
         """Format report according to specified format."""
         if config.format == ReportFormat.JSON:
             return report_data
-        
+
         elif config.format == ReportFormat.HTML:
             # Generate HTML report
             html_content = self._generate_html_report(report_data, config)
             return {"content": html_content, "content_type": "text/html"}
-        
+
         elif config.format == ReportFormat.PDF:
             # Generate PDF report (placeholder)
             return {"content": "PDF generation not implemented", "content_type": "application/pdf"}
-        
+
         elif config.format == ReportFormat.CSV:
             # Convert data to CSV format
             csv_content = self._generate_csv_report(report_data, config)
             return {"content": csv_content, "content_type": "text/csv"}
-        
+
         else:
             return report_data
-    
-    def _generate_html_report(self, report_data: Dict[str, Any], config: ReportConfiguration) -> str:
+
+    def _generate_html_report(self, report_data: dict[str, Any], config: ReportConfiguration) -> str:
         """Generate HTML report content."""
         metadata = report_data.get("report_metadata", {})
-        
+
         html = f"""
         <!DOCTYPE html>
         <html>
@@ -975,7 +972,7 @@ class BusinessIntelligenceEngine:
                 <p>Generated: {metadata.get('generated_at', 'Unknown')}</p>
             </div>
         """
-        
+
         # Add report sections based on report type
         for section_name, section_data in report_data.items():
             if section_name != "report_metadata" and section_name != "data_points":
@@ -985,21 +982,21 @@ class BusinessIntelligenceEngine:
                     <pre>{json.dumps(section_data, indent=2)}</pre>
                 </div>
                 """
-        
+
         html += """
         </body>
         </html>
         """
-        
+
         return html
-    
-    def _generate_csv_report(self, report_data: Dict[str, Any], config: ReportConfiguration) -> str:
+
+    def _generate_csv_report(self, report_data: dict[str, Any], config: ReportConfiguration) -> str:
         """Generate CSV report content."""
         data_points = report_data.get("data_points", [])
-        
+
         if not data_points:
             return "No data available for CSV export"
-        
+
         if HAS_PANDAS:
             # Convert to pandas DataFrame for easy CSV generation
             df = pd.DataFrame(data_points)
@@ -1008,33 +1005,33 @@ class BusinessIntelligenceEngine:
             # Simple CSV generation without pandas
             if not data_points:
                 return "No data available"
-            
+
             headers = list(data_points[0].keys()) if data_points else []
             csv_lines = [",".join(headers)]
-            
+
             for row in data_points:
                 csv_lines.append(",".join(str(row.get(h, "")) for h in headers))
-            
+
             return "\n".join(csv_lines)
-    
+
     def create_dashboard(self, dashboard: Dashboard) -> str:
         """Create and register a new dashboard."""
         self.dashboards[dashboard.dashboard_id] = dashboard
-        
+
         BI_DASHBOARD_VIEWS.labels(dashboard_type=dashboard.title).inc()
-        
-        logger.info("Dashboard created", 
+
+        logger.info("Dashboard created",
                    dashboard_id=dashboard.dashboard_id,
                    title=dashboard.title,
                    widgets=len(dashboard.widgets))
-        
+
         return dashboard.dashboard_id
-    
-    def get_dashboard(self, dashboard_id: str) -> Optional[Dashboard]:
+
+    def get_dashboard(self, dashboard_id: str) -> Dashboard | None:
         """Get dashboard configuration."""
         return self.dashboards.get(dashboard_id)
-    
-    def list_dashboards(self) -> List[Dict[str, Any]]:
+
+    def list_dashboards(self) -> list[dict[str, Any]]:
         """List all available dashboards."""
         return [
             {
@@ -1047,25 +1044,25 @@ class BusinessIntelligenceEngine:
             }
             for dashboard in self.dashboards.values()
         ]
-    
+
     async def schedule_report(self, config: ReportConfiguration) -> str:
         """Schedule a report for automatic generation."""
         report_id = str(uuid.uuid4())
         self.scheduled_reports[report_id] = config
-        
-        logger.info("Report scheduled", 
+
+        logger.info("Report scheduled",
                    report_id=report_id,
                    report_type=config.report_type.value,
                    schedule=config.schedule)
-        
+
         return report_id
-    
-    async def get_report_status(self, report_id: str) -> Dict[str, Any]:
+
+    async def get_report_status(self, report_id: str) -> dict[str, Any]:
         """Get status of a scheduled report."""
         config = self.scheduled_reports.get(report_id)
         if not config:
             return {"status": "not_found"}
-        
+
         return {
             "status": "scheduled",
             "report_id": report_id,
@@ -1082,7 +1079,7 @@ bi_engine = BusinessIntelligenceEngine()
 async def initialize_business_intelligence():
     """Initialize the business intelligence system."""
     logger.info("Initializing business intelligence system")
-    
+
     # Create default dashboards
     executive_dashboard = Dashboard(
         dashboard_id="executive_overview",
@@ -1108,7 +1105,7 @@ async def initialize_business_intelligence():
             )
         ]
     )
-    
+
     operational_dashboard = Dashboard(
         dashboard_id="operational_metrics",
         title="Operational Metrics",
@@ -1132,10 +1129,10 @@ async def initialize_business_intelligence():
             )
         ]
     )
-    
+
     bi_engine.create_dashboard(executive_dashboard)
     bi_engine.create_dashboard(operational_dashboard)
-    
+
     logger.info("Business intelligence system initialized")
 
 

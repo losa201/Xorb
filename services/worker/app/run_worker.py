@@ -1,9 +1,11 @@
 import asyncio
+
 from temporalio.client import Client
 from temporalio.worker import Worker
 
 from .activities import enumerate_subdomains_activity, resolve_dns_activity
 from .workflows import DiscoveryWorkflow
+
 
 async def main():
     client = await Client.connect("temporal:7233")

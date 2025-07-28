@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any, Dict, List, Optional
+from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel, Field, validator
@@ -18,7 +18,7 @@ __all__ = [
     "CreateCampaignRequest",
     "StartCampaignRequest",
     "CampaignResponse",
-    "FindingResponse", 
+    "FindingResponse",
     "TriageFindingRequest",
     "EmbeddingRequest",
     "KnowledgeAtomResponse",
@@ -29,16 +29,16 @@ __all__ = [
 
 class CreateCampaignRequest(BaseModel):
     """Request to create a new campaign"""
-    
+
     name: str = Field(..., min_length=1, max_length=255)
     target_id: UUID
     max_cost_usd: Decimal = Field(..., gt=0, le=10000)
     max_duration_hours: int = Field(..., gt=0, le=168)  # Max 1 week
     max_api_calls: int = Field(..., gt=0, le=100000)
-    required_capabilities: List[str] = Field(..., min_items=1)
+    required_capabilities: list[str] = Field(..., min_items=1)
     max_agents: int = Field(default=5, gt=0, le=20)
     auto_start: bool = Field(default=False)
-    
+
     @validator('required_capabilities')
     def validate_capabilities(cls, v):
         """Validate agent capabilities"""
@@ -47,11 +47,11 @@ class CreateCampaignRequest(BaseModel):
             "vulnerability_assessment", "content_discovery", "ssl_analysis",
             "dns_enumeration", "network_mapping", "payload_generation"
         }
-        
+
         for capability in v:
             if capability not in valid_capabilities:
                 raise ValueError(f"Invalid capability: {capability}")
-        
+
         return v
 
     class Config:
@@ -71,10 +71,10 @@ class CreateCampaignRequest(BaseModel):
 
 class StartCampaignRequest(BaseModel):
     """Request to start an existing campaign"""
-    
+
     campaign_id: UUID
     force_start: bool = Field(default=False)
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -86,7 +86,7 @@ class StartCampaignRequest(BaseModel):
 
 class CampaignResponse(BaseModel):
     """Campaign information response"""
-    
+
     id: UUID
     name: str
     target_name: str
@@ -96,10 +96,10 @@ class CampaignResponse(BaseModel):
     agents_total: int
     findings_discovered: int
     created_at: datetime
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    estimated_completion: Optional[datetime] = None
-    
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    estimated_completion: datetime | None = None
+
     class Config:
         schema_extra = {
             "example": {
@@ -121,7 +121,7 @@ class CampaignResponse(BaseModel):
 
 class FindingResponse(BaseModel):
     """Security finding response"""
-    
+
     id: UUID
     campaign_id: UUID
     agent_id: UUID
@@ -130,11 +130,11 @@ class FindingResponse(BaseModel):
     severity: str
     status: str
     created_at: datetime
-    updated_at: Optional[datetime] = None
-    evidence: Dict[str, Any] = Field(default_factory=dict)
-    similar_findings_count: Optional[int] = None
-    confidence_score: Optional[float] = Field(None, ge=0, le=1)
-    
+    updated_at: datetime | None = None
+    evidence: dict[str, Any] = Field(default_factory=dict)
+    similar_findings_count: int | None = None
+    confidence_score: float | None = Field(None, ge=0, le=1)
+
     class Config:
         schema_extra = {
             "example": {
@@ -161,11 +161,11 @@ class FindingResponse(BaseModel):
 
 class TriageFindingRequest(BaseModel):
     """Request to triage a finding"""
-    
+
     finding_id: UUID
     new_status: str
-    reasoning: Optional[str] = Field(None, max_length=1000)
-    
+    reasoning: str | None = Field(None, max_length=1000)
+
     @validator('new_status')
     def validate_status(cls, v):
         """Validate finding status"""
@@ -173,7 +173,7 @@ class TriageFindingRequest(BaseModel):
         if v not in valid_statuses:
             raise ValueError(f"Invalid status: {v}")
         return v
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -186,11 +186,11 @@ class TriageFindingRequest(BaseModel):
 
 class EmbeddingRequest(BaseModel):
     """Request to generate embeddings"""
-    
+
     text: str = Field(..., min_length=1, max_length=10000)
     model: str = Field(default="nvidia/embed-qa-4")
     input_type: str = Field(default="query")
-    
+
     @validator('input_type')
     def validate_input_type(cls, v):
         """Validate input type"""
@@ -198,7 +198,7 @@ class EmbeddingRequest(BaseModel):
         if v not in valid_types:
             raise ValueError(f"Invalid input_type: {v}")
         return v
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -211,18 +211,18 @@ class EmbeddingRequest(BaseModel):
 
 class KnowledgeAtomResponse(BaseModel):
     """Knowledge atom response"""
-    
+
     id: UUID
     content: str
     atom_type: str
     confidence: float = Field(..., ge=0, le=1)
-    tags: List[str]
-    source: Optional[str] = None
+    tags: list[str]
+    source: str | None = None
     created_at: datetime
-    updated_at: Optional[datetime] = None
-    embedding_dimension: Optional[int] = None
-    related_atoms_count: Optional[int] = None
-    
+    updated_at: datetime | None = None
+    embedding_dimension: int | None = None
+    related_atoms_count: int | None = None
+
     class Config:
         schema_extra = {
             "example": {
@@ -242,12 +242,12 @@ class KnowledgeAtomResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     """Error response model"""
-    
+
     error: str
     message: str
-    details: Optional[Dict[str, Any]] = None
+    details: dict[str, Any] | None = None
     timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -264,12 +264,12 @@ class ErrorResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Health check response"""
-    
+
     status: str
     version: str
     timestamp: datetime = Field(default_factory=lambda: datetime.utcnow())
-    dependencies: Dict[str, str] = Field(default_factory=dict)
-    
+    dependencies: dict[str, str] = Field(default_factory=dict)
+
     class Config:
         schema_extra = {
             "example": {

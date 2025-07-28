@@ -5,8 +5,8 @@ Revises: 003_ptaas_v1
 Create Date: 2024-01-15 10:00:00.000000
 """
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers
@@ -17,29 +17,29 @@ depends_on = None
 
 def upgrade():
     """Add gamification columns to researchers table"""
-    
+
     # Add Glicko-2 rating columns
     op.add_column('researchers', sa.Column('rating', sa.Float(), nullable=False, default=1500.0))
     op.add_column('researchers', sa.Column('rd', sa.Float(), nullable=False, default=350.0))
     op.add_column('researchers', sa.Column('vol', sa.Float(), nullable=False, default=0.06))
     op.add_column('researchers', sa.Column('last_competition', sa.DateTime(timezone=True), nullable=True))
-    
+
     # Add gamification stats
     op.add_column('researchers', sa.Column('total_findings', sa.Integer(), nullable=False, default=0))
     op.add_column('researchers', sa.Column('accepted_findings', sa.Integer(), nullable=False, default=0))
     op.add_column('researchers', sa.Column('duplicate_findings', sa.Integer(), nullable=False, default=0))
     op.add_column('researchers', sa.Column('false_positive_findings', sa.Integer(), nullable=False, default=0))
     op.add_column('researchers', sa.Column('total_earnings', sa.Numeric(precision=10, scale=2), nullable=False, default=0.0))
-    
-    # Add badge and tier information  
+
+    # Add badge and tier information
     op.add_column('researchers', sa.Column('current_tier', sa.String(50), nullable=False, default='Bronze'))
     op.add_column('researchers', sa.Column('badges_earned', postgresql.JSONB(), nullable=False, default='[]'))
     op.add_column('researchers', sa.Column('tier_history', postgresql.JSONB(), nullable=False, default='[]'))
-    
+
     # Add leaderboard preferences
     op.add_column('researchers', sa.Column('leaderboard_visible', sa.Boolean(), nullable=False, default=True))
     op.add_column('researchers', sa.Column('handle_anonymous', sa.Boolean(), nullable=False, default=False))
-    
+
     # Create badges table for badge definitions
     op.create_table('badges',
         sa.Column('id', sa.String(50), primary_key=True),
@@ -53,7 +53,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('active', sa.Boolean(), nullable=False, default=True)
     )
-    
+
     # Create researcher_badges junction table
     op.create_table('researcher_badges',
         sa.Column('id', sa.UUID(), primary_key=True, server_default=sa.text('gen_random_uuid()')),
@@ -63,7 +63,7 @@ def upgrade():
         sa.Column('org_id', sa.UUID(), sa.ForeignKey('orgs.id', ondelete='CASCADE'), nullable=False),
         sa.UniqueConstraint('researcher_id', 'badge_id', name='unique_researcher_badge')
     )
-    
+
     # Create rating_history table for tracking rating changes
     op.create_table('rating_history',
         sa.Column('id', sa.UUID(), primary_key=True, server_default=sa.text('gen_random_uuid()')),
@@ -80,7 +80,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
         sa.Column('org_id', sa.UUID(), sa.ForeignKey('orgs.id', ondelete='CASCADE'), nullable=False)
     )
-    
+
     # Add indexes for performance
     op.create_index('ix_researchers_rating', 'researchers', ['rating'], unique=False)
     op.create_index('ix_researchers_current_tier', 'researchers', ['current_tier'], unique=False)
@@ -88,7 +88,7 @@ def upgrade():
     op.create_index('ix_researcher_badges_researcher_id', 'researcher_badges', ['researcher_id'], unique=False)
     op.create_index('ix_rating_history_researcher_id', 'rating_history', ['researcher_id'], unique=False)
     op.create_index('ix_rating_history_created_at', 'rating_history', ['created_at'], unique=False)
-    
+
     # Add RLS policies for gamification tables
     op.execute("""
         ALTER TABLE researcher_badges ENABLE ROW LEVEL SECURITY;
@@ -97,7 +97,7 @@ def upgrade():
             FOR ALL TO authenticated_role
             USING (org_id = current_setting('app.current_org_id')::uuid);
     """)
-    
+
     op.execute("""
         ALTER TABLE rating_history ENABLE ROW LEVEL SECURITY;
         
@@ -105,7 +105,7 @@ def upgrade():
             FOR ALL TO authenticated_role
             USING (org_id = current_setting('app.current_org_id')::uuid);
     """)
-    
+
     # Insert default badges
     op.execute("""
         INSERT INTO badges (id, name, description, svg_icon, criteria, tier_requirement, rating_requirement) VALUES
@@ -153,7 +153,7 @@ def upgrade():
 
 def downgrade():
     """Remove gamification features"""
-    
+
     # Drop indexes
     op.drop_index('ix_rating_history_created_at', table_name='rating_history')
     op.drop_index('ix_rating_history_researcher_id', table_name='rating_history')
@@ -161,12 +161,12 @@ def downgrade():
     op.drop_index('ix_researchers_leaderboard_visible', table_name='researchers')
     op.drop_index('ix_researchers_current_tier', table_name='researchers')
     op.drop_index('ix_researchers_rating', table_name='researchers')
-    
+
     # Drop tables
     op.drop_table('rating_history')
     op.drop_table('researcher_badges')
     op.drop_table('badges')
-    
+
     # Remove columns from researchers table
     op.drop_column('researchers', 'handle_anonymous')
     op.drop_column('researchers', 'leaderboard_visible')

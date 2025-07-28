@@ -8,7 +8,6 @@ or doesn't naturally fit within any single entity.
 from __future__ import annotations
 
 from decimal import Decimal
-from typing import List, Optional, Set, Tuple
 
 from .models import (
     Agent,
@@ -20,12 +19,12 @@ from .models import (
     Finding,
     KnowledgeAtom,
     Severity,
-    Target
+    Target,
 )
 
 __all__ = [
     "AgentSelectionService",
-    "BudgetManagementService", 
+    "BudgetManagementService",
     "SimilarityService",
     "TriageService",
     "CampaignOrchestratorService"
@@ -34,15 +33,15 @@ __all__ = [
 
 class AgentSelectionService:
     """Domain service for selecting optimal agents for campaigns"""
-    
+
     @staticmethod
     def select_agents_for_target(
         target: Target,
-        available_agents: List[Agent],
-        required_capabilities: Set[AgentCapability],
+        available_agents: list[Agent],
+        required_capabilities: set[AgentCapability],
         budget_limit: BudgetLimit,
         max_agents: int = 5
-    ) -> List[Agent]:
+    ) -> list[Agent]:
         """
         Select optimal agents for a target based on capabilities and budget
         
@@ -63,7 +62,7 @@ class AgentSelectionService:
                 agent.can_handle_capability(cap) for cap in required_capabilities
             )
         ]
-        
+
         # Calculate cost efficiency (capabilities per dollar)
         def agent_efficiency(agent: Agent) -> float:
             matching_caps = len(
@@ -72,52 +71,52 @@ class AgentSelectionService:
             if agent.cost_per_execution == 0:
                 return float('inf')
             return matching_caps / float(agent.cost_per_execution)
-        
+
         # Sort by efficiency (descending) then by cost (ascending)
         capable_agents.sort(
             key=lambda a: (-agent_efficiency(a), a.cost_per_execution)
         )
-        
+
         # Select agents within budget
         selected_agents = []
         total_cost = Decimal('0')
-        
+
         for agent in capable_agents:
             if len(selected_agents) >= max_agents:
                 break
-                
+
             projected_cost = total_cost + agent.cost_per_execution
             if projected_cost <= budget_limit.max_cost_usd:
                 selected_agents.append(agent)
                 total_cost = projected_cost
-        
+
         return selected_agents
 
 
 class BudgetManagementService:
     """Domain service for managing campaign budgets"""
-    
+
     @staticmethod
     def calculate_projected_cost(
-        agents: List[Agent],
+        agents: list[Agent],
         estimated_executions_per_agent: int = 1
     ) -> Decimal:
         """Calculate projected cost for agent executions"""
         total_cost = Decimal('0')
-        
+
         for agent in agents:
             agent_cost = agent.cost_per_execution * estimated_executions_per_agent
             total_cost += agent_cost
-        
+
         return total_cost
-    
+
     @staticmethod
     def is_budget_exceeded(
         campaign: Campaign,
         current_cost: Decimal,
         duration_hours: int,
         api_calls: int
-    ) -> Tuple[bool, List[str]]:
+    ) -> tuple[bool, list[str]]:
         """
         Check if budget limits are exceeded
         
@@ -125,24 +124,24 @@ class BudgetManagementService:
             Tuple of (is_exceeded, list_of_violations)
         """
         violations = []
-        
+
         if current_cost > campaign.budget.max_cost_usd:
             violations.append(
                 f"Cost ${current_cost} exceeds limit ${campaign.budget.max_cost_usd}"
             )
-        
+
         if duration_hours > campaign.budget.max_duration_hours:
             violations.append(
                 f"Duration {duration_hours}h exceeds limit {campaign.budget.max_duration_hours}h"
             )
-        
+
         if api_calls > campaign.budget.max_api_calls:
             violations.append(
                 f"API calls {api_calls} exceeds limit {campaign.budget.max_api_calls}"
             )
-        
+
         return len(violations) > 0, violations
-    
+
     @staticmethod
     def calculate_budget_utilization(
         campaign: Campaign,
@@ -160,25 +159,25 @@ class BudgetManagementService:
 
 class SimilarityService:
     """Domain service for computing semantic similarity between entities"""
-    
+
     @staticmethod
     def compute_cosine_similarity(
-        embedding1: Embedding, 
+        embedding1: Embedding,
         embedding2: Embedding
     ) -> float:
         """Compute cosine similarity between two embeddings"""
         if embedding1.dimension != embedding2.dimension:
             raise ValueError("Embeddings must have the same dimension")
-        
+
         return embedding1.similarity_cosine(embedding2)
-    
+
     @staticmethod
     def find_similar_findings(
         target_finding: Finding,
-        candidate_findings: List[Finding],
+        candidate_findings: list[Finding],
         similarity_threshold: float = 0.8,
         max_results: int = 10
-    ) -> List[Tuple[Finding, float]]:
+    ) -> list[tuple[Finding, float]]:
         """
         Find findings similar to the target finding
         
@@ -193,57 +192,57 @@ class SimilarityService:
         """
         if not target_finding.embedding:
             return []
-        
+
         similar_findings = []
-        
+
         for candidate in candidate_findings:
             if candidate.id == target_finding.id or not candidate.embedding:
                 continue
-            
+
             similarity = SimilarityService.compute_cosine_similarity(
                 target_finding.embedding,
                 candidate.embedding
             )
-            
+
             if similarity >= similarity_threshold:
                 similar_findings.append((candidate, similarity))
-        
+
         # Sort by similarity (descending) and limit results
         similar_findings.sort(key=lambda x: x[1], reverse=True)
         return similar_findings[:max_results]
-    
+
     @staticmethod
     def find_similar_knowledge_atoms(
         target_atom: KnowledgeAtom,
-        candidate_atoms: List[KnowledgeAtom],
+        candidate_atoms: list[KnowledgeAtom],
         similarity_threshold: float = 0.7,
         max_results: int = 5
-    ) -> List[Tuple[KnowledgeAtom, float]]:
+    ) -> list[tuple[KnowledgeAtom, float]]:
         """Find knowledge atoms similar to the target atom"""
         if not target_atom.embedding:
             return []
-        
+
         similar_atoms = []
-        
+
         for candidate in candidate_atoms:
             if candidate.id == target_atom.id or not candidate.embedding:
                 continue
-            
+
             similarity = SimilarityService.compute_cosine_similarity(
                 target_atom.embedding,
                 candidate.embedding
             )
-            
+
             if similarity >= similarity_threshold:
                 similar_atoms.append((candidate, similarity))
-        
+
         similar_atoms.sort(key=lambda x: x[1], reverse=True)
         return similar_atoms[:max_results]
 
 
 class TriageService:
     """Domain service for triaging security findings"""
-    
+
     @staticmethod
     def calculate_priority_score(finding: Finding) -> float:
         """
@@ -260,20 +259,20 @@ class TriageService:
             Severity.LOW: 0.4,
             Severity.INFO: 0.2
         }
-        
+
         base_score = severity_scores[finding.severity]
-        
+
         # Adjust based on evidence quality (number of evidence items)
         evidence_bonus = min(len(finding.evidence) * 0.05, 0.2)
-        
+
         return min(base_score + evidence_bonus, 1.0)
-    
+
     @staticmethod
     def is_likely_duplicate(
         finding: Finding,
-        existing_findings: List[Finding],
+        existing_findings: list[Finding],
         similarity_threshold: float = 0.9
-    ) -> Optional[Finding]:
+    ) -> Finding | None:
         """
         Check if finding is likely a duplicate of an existing finding
         
@@ -285,39 +284,39 @@ class TriageService:
             similarity_threshold,
             max_results=1
         )
-        
+
         if similar_findings:
             original_finding, similarity = similar_findings[0]
             # Additional checks for duplicate detection
-            if (finding.title.lower() == original_finding.title.lower() or 
+            if (finding.title.lower() == original_finding.title.lower() or
                 similarity > 0.95):
                 return original_finding
-        
+
         return None
-    
+
     @staticmethod
     def suggest_remediation_priority(
-        findings: List[Finding]
-    ) -> List[Finding]:
+        findings: list[Finding]
+    ) -> list[Finding]:
         """
         Sort findings by suggested remediation priority
         
         Priority based on severity, exploitability, and impact
         """
-        def priority_key(finding: Finding) -> Tuple[float, int]:
+        def priority_key(finding: Finding) -> tuple[float, int]:
             priority_score = TriageService.calculate_priority_score(finding)
             # Secondary sort by creation time (newer first)
             timestamp_score = int(finding.created_at.timestamp())
             return (-priority_score, -timestamp_score)
-        
+
         return sorted(findings, key=priority_key)
 
 
 class CampaignOrchestratorService:
     """Domain service for orchestrating campaign execution"""
-    
+
     @staticmethod
-    def can_start_campaign(campaign: Campaign) -> Tuple[bool, List[str]]:
+    def can_start_campaign(campaign: Campaign) -> tuple[bool, list[str]]:
         """
         Check if campaign can be started
         
@@ -325,21 +324,21 @@ class CampaignOrchestratorService:
             Tuple of (can_start, list_of_blocking_issues)
         """
         issues = []
-        
+
         if campaign.status != CampaignStatus.QUEUED:
             issues.append(f"Campaign status is {campaign.status}, must be QUEUED")
-        
+
         if not campaign.scheduled_agents:
             issues.append("No agents scheduled for campaign")
-        
+
         if not campaign.target.scope.domains and not campaign.target.scope.ip_ranges:
             issues.append("Target has no domains or IP ranges in scope")
-        
+
         return len(issues) == 0, issues
-    
+
     @staticmethod
     def estimate_campaign_duration(
-        agents: List[Agent],
+        agents: list[Agent],
         parallel_execution: bool = True
     ) -> int:
         """
@@ -354,14 +353,14 @@ class CampaignOrchestratorService:
         """
         if not agents:
             return 0
-        
+
         if parallel_execution:
             # Duration is the longest-running agent
             return max(agent.average_duration_minutes for agent in agents)
         else:
             # Duration is sum of all agents
             return sum(agent.average_duration_minutes for agent in agents)
-    
+
     @staticmethod
     def should_continue_campaign(
         campaign: Campaign,
@@ -369,7 +368,7 @@ class CampaignOrchestratorService:
         duration_hours: int,
         api_calls: int,
         error_rate: float = 0.0
-    ) -> Tuple[bool, str]:
+    ) -> tuple[bool, str]:
         """
         Determine if campaign should continue execution
         
@@ -380,16 +379,16 @@ class CampaignOrchestratorService:
         is_exceeded, violations = BudgetManagementService.is_budget_exceeded(
             campaign, current_cost, duration_hours, api_calls
         )
-        
+
         if is_exceeded:
             return False, f"Budget exceeded: {'; '.join(violations)}"
-        
+
         # Check error rate
         if error_rate > 0.5:  # More than 50% errors
             return False, f"High error rate: {error_rate:.1%}"
-        
+
         # Check if campaign is in valid running state
         if campaign.status != CampaignStatus.RUNNING:
             return False, f"Campaign status is {campaign.status}"
-        
+
         return True, "Continue execution"

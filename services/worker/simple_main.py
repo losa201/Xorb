@@ -4,13 +4,13 @@ Xorb PTaaS Worker Service - Simple Version
 Minimal worker with HTTP health endpoint
 """
 
-import os
-import sys
 import asyncio
+import os
 from datetime import datetime
+
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 
 # Simple app for health checks
 app = FastAPI(
@@ -71,31 +71,31 @@ async def worker_status():
 
 class SimpleWorker:
     """Simple worker implementation"""
-    
+
     def __init__(self):
         self.running = False
-        
+
     async def start(self):
         """Start the worker"""
         self.running = True
         worker_state["running"] = True
         worker_state["started_at"] = datetime.now().isoformat()
-        
+
         print(f"🚀 Starting Xorb PTaaS Worker - {datetime.now().isoformat()}")
         print("📋 Worker ready to process tasks")
-        
+
         try:
             while self.running:
                 # Simulate task processing
                 await asyncio.sleep(30)
                 worker_state["tasks_processed"] += 1
                 print(f"💼 Worker heartbeat - Tasks processed: {worker_state['tasks_processed']}")
-                
+
         except Exception as e:
             print(f"❌ Worker error: {e}")
         finally:
             await self.stop()
-    
+
     async def stop(self):
         """Stop the worker"""
         self.running = False
@@ -113,9 +113,9 @@ async def startup_event():
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "9090"))
-    
+
     print(f"🚀 Starting Xorb PTaaS Worker on {host}:{port}")
-    
+
     uvicorn.run(
         "simple_main:app",
         host=host,

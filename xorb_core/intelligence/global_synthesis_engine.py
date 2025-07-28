@@ -10,32 +10,30 @@ Architecture: Ingest → Normalize → Fuse → Interpret → Act → Learn
 """
 
 import asyncio
-import json
-import logging
+import hashlib
 import time
 import uuid
-import hashlib
+from collections import defaultdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Set, Tuple, Union, Callable
-from dataclasses import dataclass, field, asdict
 from enum import Enum
-from collections import defaultdict, deque
-import heapq
-from concurrent.futures import ThreadPoolExecutor
+from typing import Any
 
-import structlog
 import aiohttp
 import feedparser
-from prometheus_client import Counter, Histogram, Gauge
+import structlog
+from prometheus_client import Counter, Gauge, Histogram
+
+from xorb_core.integrations.hackerone_client import HackerOneClient
+from xorb_core.intelligence.semantic_cache import SemanticCache
+
+from ..autonomous.autonomous_orchestrator import AutonomousOrchestrator
 
 # XORB Internal Imports
 from ..autonomous.episodic_memory_system import EpisodicMemorySystem, MemoryRecord
-from ..autonomous.autonomous_orchestrator import AutonomousOrchestrator
-from ..mission.adaptive_mission_engine import AdaptiveMissionEngine, MissionType
-from ..llm.enhanced_multi_provider_client import EnhancedMultiProviderClient
 from ..knowledge_fabric.vector_fabric import VectorFabric
-from xorb_core.integrations.hackerone_client import HackerOneClient
-from xorb_core.intelligence.semantic_cache import SemanticCache
+from ..llm.enhanced_multi_provider_client import EnhancedMultiProviderClient
+from ..mission.adaptive_mission_engine import AdaptiveMissionEngine
 
 
 class IntelligenceSourceType(Enum):
@@ -79,32 +77,32 @@ class IntelligenceSource:
     source_type: IntelligenceSourceType
     name: str
     url: str
-    
+
     # Authentication and access
-    api_key: Optional[str] = None
-    credentials: Optional[Dict[str, str]] = None
-    headers: Dict[str, str] = field(default_factory=dict)
-    
+    api_key: str | None = None
+    credentials: dict[str, str] | None = None
+    headers: dict[str, str] = field(default_factory=dict)
+
     # Processing configuration
     poll_interval: int = 300  # seconds
     batch_size: int = 100
     rate_limit: int = 60  # requests per minute
-    
+
     # Quality and reliability
     confidence_weight: float = 1.0
     reliability_score: float = 0.8
     historical_accuracy: float = 0.85
-    
+
     # Status and metrics
     active: bool = True
-    last_poll: Optional[datetime] = None
+    last_poll: datetime | None = None
     total_signals: int = 0
     error_count: int = 0
-    
+
     # Filtering and processing
-    include_patterns: List[str] = field(default_factory=list)
-    exclude_patterns: List[str] = field(default_factory=list)
-    priority_keywords: List[str] = field(default_factory=list)
+    include_patterns: list[str] = field(default_factory=list)
+    exclude_patterns: list[str] = field(default_factory=list)
+    priority_keywords: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -113,43 +111,43 @@ class IntelligenceSignal:
     signal_id: str
     source_id: str
     source_type: IntelligenceSourceType
-    
+
     # Core content
     title: str
     description: str
-    content: Dict[str, Any]
-    raw_data: Dict[str, Any]
-    
+    content: dict[str, Any]
+    raw_data: dict[str, Any]
+
     # Metadata
     timestamp: datetime
     discovered_at: datetime
-    url: Optional[str] = None
-    tags: List[str] = field(default_factory=list)
-    
+    url: str | None = None
+    tags: list[str] = field(default_factory=list)
+
     # Classification
     signal_type: str = "unknown"
     priority: SignalPriority = SignalPriority.MEDIUM
     confidence: float = 0.5
-    
+
     # Processing status
     status: IntelligenceSignalStatus = IntelligenceSignalStatus.RAW
-    processing_history: List[Dict[str, Any]] = field(default_factory=list)
-    
+    processing_history: list[dict[str, Any]] = field(default_factory=list)
+
     # Correlation data
-    related_signals: List[str] = field(default_factory=list)
+    related_signals: list[str] = field(default_factory=list)
     correlation_score: float = 0.0
-    deduplication_hash: Optional[str] = None
-    
+    deduplication_hash: str | None = None
+
     # Action tracking
-    triggered_missions: List[str] = field(default_factory=list)
-    agent_assignments: List[str] = field(default_factory=list)
-    
+    triggered_missions: list[str] = field(default_factory=list)
+    agent_assignments: list[str] = field(default_factory=list)
+
     def __post_init__(self):
         if self.discovered_at is None:
             self.discovered_at = datetime.utcnow()
         if self.deduplication_hash is None:
             self.deduplication_hash = self._generate_dedup_hash()
-    
+
     def _generate_dedup_hash(self) -> str:
         """Generate deduplication hash from content"""
         content_str = f"{self.title}|{self.description}|{self.source_type.value}"
@@ -161,32 +159,32 @@ class CorrelatedIntelligence:
     """Correlated and fused intelligence ready for action"""
     intelligence_id: str
     primary_signal_id: str
-    related_signal_ids: List[str]
-    
+    related_signal_ids: list[str]
+
     # Synthesized content
     synthesized_title: str
     synthesized_description: str
-    key_indicators: List[str]
-    threat_context: Dict[str, Any]
-    
+    key_indicators: list[str]
+    threat_context: dict[str, Any]
+
     # Assessment
     overall_priority: SignalPriority
     confidence_score: float
     threat_level: str
-    impact_assessment: Dict[str, Any]
-    
+    impact_assessment: dict[str, Any]
+
     # Action recommendations
-    recommended_actions: List[Dict[str, Any]]
-    required_capabilities: List[str]
+    recommended_actions: list[dict[str, Any]]
+    required_capabilities: list[str]
     estimated_effort: str
-    
+
     # Temporal data
     created_at: datetime
-    expires_at: Optional[datetime] = None
-    
+    expires_at: datetime | None = None
+
     # Mission tracking
-    spawned_missions: List[str] = field(default_factory=list)
-    feedback_scores: List[float] = field(default_factory=list)
+    spawned_missions: list[str] = field(default_factory=list)
+    feedback_scores: list[float] = field(default_factory=list)
 
 
 class GlobalSynthesisEngine:
@@ -201,63 +199,63 @@ class GlobalSynthesisEngine:
     5. Act: Route to appropriate agents/missions
     6. Learn: Continuously improve from feedback
     """
-    
-    def __init__(self, 
+
+    def __init__(self,
                  orchestrator: AutonomousOrchestrator,
                  mission_engine: AdaptiveMissionEngine,
                  episodic_memory: EpisodicMemorySystem,
                  vector_fabric: VectorFabric):
-        
+
         self.orchestrator = orchestrator
         self.mission_engine = mission_engine
         self.episodic_memory = episodic_memory
         self.vector_fabric = vector_fabric
-        
+
         self.logger = structlog.get_logger("GlobalSynthesisEngine")
-        
+
         # Intelligence sources and processing
-        self.intelligence_sources: Dict[str, IntelligenceSource] = {}
-        self.raw_signals: Dict[str, IntelligenceSignal] = {}
-        self.correlated_intelligence: Dict[str, CorrelatedIntelligence] = {}
-        
+        self.intelligence_sources: dict[str, IntelligenceSource] = {}
+        self.raw_signals: dict[str, IntelligenceSignal] = {}
+        self.correlated_intelligence: dict[str, CorrelatedIntelligence] = {}
+
         # Processing queues and state
         self.ingestion_queue: asyncio.Queue = asyncio.Queue()
         self.normalization_queue: asyncio.Queue = asyncio.Queue()
         self.correlation_queue: asyncio.Queue = asyncio.Queue()
         self.action_queue: asyncio.Queue = asyncio.Queue()
-        
+
         # Deduplication and correlation
-        self.deduplication_cache: Dict[str, str] = {}  # hash -> signal_id
-        self.correlation_graph: Dict[str, Set[str]] = defaultdict(set)
-        self.signal_embeddings: Dict[str, List[float]] = {}
-        
+        self.deduplication_cache: dict[str, str] = {}  # hash -> signal_id
+        self.correlation_graph: dict[str, set[str]] = defaultdict(set)
+        self.signal_embeddings: dict[str, list[float]] = {}
+
         # Learning and optimization
-        self.source_performance: Dict[str, Dict[str, float]] = defaultdict(dict)
-        self.signal_effectiveness: Dict[str, float] = {}
-        self.correlation_patterns: Dict[str, int] = defaultdict(int)
-        
+        self.source_performance: dict[str, dict[str, float]] = defaultdict(dict)
+        self.signal_effectiveness: dict[str, float] = {}
+        self.correlation_patterns: dict[str, int] = defaultdict(int)
+
         # External integrations
         self.llm_client = EnhancedMultiProviderClient()
         self.semantic_cache = SemanticCache()
         self.hackerone_client = HackerOneClient()
-        
+
         # Metrics and monitoring
         self.synthesis_metrics = self._initialize_metrics()
-        
+
         # Configuration
         self.max_signals_memory = 50000
         self.correlation_threshold = 0.75
         self.processing_batch_size = 50
         self.max_concurrent_sources = 20
-        
+
         # State management
         self._running = False
-        self._processing_tasks: List[asyncio.Task] = []
-        
-    def _initialize_metrics(self) -> Dict[str, Any]:
+        self._processing_tasks: list[asyncio.Task] = []
+
+    def _initialize_metrics(self) -> dict[str, Any]:
         """Initialize Prometheus metrics"""
         return {
-            'signals_ingested': Counter('xorb_synthesis_signals_ingested_total', 
+            'signals_ingested': Counter('xorb_synthesis_signals_ingested_total',
                                       'Total signals ingested', ['source_type']),
             'signals_correlated': Counter('xorb_synthesis_signals_correlated_total',
                                         'Total signals correlated'),
@@ -274,16 +272,16 @@ class GlobalSynthesisEngine:
             'pending_signals': Gauge('xorb_synthesis_pending_signals',
                                    'Number of pending signals', ['queue'])
         }
-    
+
     async def start_synthesis_engine(self):
         """Start the global intelligence synthesis engine"""
         self.logger.info("🌐 Starting Global Intelligence Synthesis Engine")
-        
+
         self._running = True
-        
+
         # Initialize intelligence sources
         await self._initialize_intelligence_sources()
-        
+
         # Start processing pipelines
         self._processing_tasks = [
             asyncio.create_task(self._ingestion_pipeline()),
@@ -294,23 +292,23 @@ class GlobalSynthesisEngine:
             asyncio.create_task(self._source_monitoring_loop()),
             asyncio.create_task(self._metrics_collection_loop())
         ]
-        
+
         # Start source pollers
         for source in self.intelligence_sources.values():
             if source.active:
                 task = asyncio.create_task(self._source_poller(source))
                 self._processing_tasks.append(task)
-        
+
         self.logger.info("🚀 Global Intelligence Synthesis Engine: ACTIVE")
-        
+
         # Update metrics
         self.synthesis_metrics['active_sources'].set(
             len([s for s in self.intelligence_sources.values() if s.active])
         )
-    
+
     async def _initialize_intelligence_sources(self):
         """Initialize and configure intelligence sources"""
-        
+
         # CVE/NVD Feed
         cve_source = IntelligenceSource(
             source_id="cve_nvd",
@@ -322,7 +320,7 @@ class GlobalSynthesisEngine:
             reliability_score=0.98,
             priority_keywords=["critical", "high", "remote", "authentication"]
         )
-        
+
         # HackerOne Platform
         hackerone_source = IntelligenceSource(
             source_id="hackerone_main",
@@ -335,7 +333,7 @@ class GlobalSynthesisEngine:
             reliability_score=0.90,
             priority_keywords=["bounty", "disclosed", "triaged"]
         )
-        
+
         # OSINT RSS Feeds
         osint_source = IntelligenceSource(
             source_id="osint_threatpost",
@@ -347,7 +345,7 @@ class GlobalSynthesisEngine:
             reliability_score=0.75,
             priority_keywords=["vulnerability", "exploit", "zero-day", "apt"]
         )
-        
+
         # Internal Mission History
         internal_source = IntelligenceSource(
             source_id="internal_missions",
@@ -359,7 +357,7 @@ class GlobalSynthesisEngine:
             reliability_score=0.95,
             priority_keywords=["success", "failure", "anomaly", "pattern"]
         )
-        
+
         # Prometheus Alerts
         prometheus_source = IntelligenceSource(
             source_id="prometheus_alerts",
@@ -371,60 +369,60 @@ class GlobalSynthesisEngine:
             reliability_score=0.95,
             priority_keywords=["critical", "warning", "anomaly", "threshold"]
         )
-        
+
         # Store sources
         sources = [cve_source, hackerone_source, osint_source, internal_source, prometheus_source]
         for source in sources:
             self.intelligence_sources[source.source_id] = source
-        
+
         self.logger.info(f"📡 Initialized {len(sources)} intelligence sources")
-    
+
     async def _source_poller(self, source: IntelligenceSource):
         """Poll a specific intelligence source for new data"""
-        
+
         while self._running:
             try:
                 self.logger.debug(f"🔍 Polling source: {source.name}")
-                
+
                 # Check if source is active and within rate limits
                 if not source.active:
                     await asyncio.sleep(source.poll_interval)
                     continue
-                
+
                 # Poll the source
                 signals = await self._poll_intelligence_source(source)
-                
+
                 # Queue signals for ingestion
                 for signal in signals:
                     await self.ingestion_queue.put(signal)
-                
+
                 # Update source metrics
                 source.last_poll = datetime.utcnow()
                 source.total_signals += len(signals)
-                
+
                 if signals:
                     self.logger.info(f"📥 Ingested {len(signals)} signals from {source.name}")
-                
+
                 # Update reliability metrics
                 self.synthesis_metrics['source_reliability'].labels(
                     source_id=source.source_id
                 ).set(source.reliability_score)
-                
+
                 await asyncio.sleep(source.poll_interval)
-                
+
             except Exception as e:
                 source.error_count += 1
                 self.logger.error(f"❌ Source polling error: {source.name}", error=str(e))
-                
+
                 # Exponential backoff on errors
                 backoff_time = min(source.poll_interval * (2 ** min(source.error_count, 5)), 3600)
                 await asyncio.sleep(backoff_time)
-    
-    async def _poll_intelligence_source(self, source: IntelligenceSource) -> List[IntelligenceSignal]:
+
+    async def _poll_intelligence_source(self, source: IntelligenceSource) -> list[IntelligenceSignal]:
         """Poll a specific source and return normalized signals"""
-        
+
         signals = []
-        
+
         try:
             if source.source_type == IntelligenceSourceType.CVE_NVD:
                 signals = await self._poll_cve_nvd(source)
@@ -436,45 +434,45 @@ class GlobalSynthesisEngine:
                 signals = await self._poll_internal_missions(source)
             elif source.source_type == IntelligenceSourceType.PROMETHEUS_ALERTS:
                 signals = await self._poll_prometheus_alerts(source)
-            
+
             # Apply source-specific filtering
             signals = self._filter_signals(signals, source)
-            
+
             # Update metrics
             self.synthesis_metrics['signals_ingested'].labels(
                 source_type=source.source_type.value
             ).inc(len(signals))
-            
+
         except Exception as e:
             self.logger.error(f"Source polling failed: {source.name}", error=str(e))
-        
+
         return signals
-    
-    async def _poll_cve_nvd(self, source: IntelligenceSource) -> List[IntelligenceSignal]:
+
+    async def _poll_cve_nvd(self, source: IntelligenceSource) -> list[IntelligenceSignal]:
         """Poll CVE/NVD for new vulnerabilities"""
         signals = []
-        
+
         try:
             # Calculate time window for recent CVEs
             since = datetime.utcnow() - timedelta(hours=24)
-            
+
             url = f"{source.url}?lastModStartDate={since.isoformat()}"
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(url, headers=source.headers) as response:
                     if response.status == 200:
                         data = await response.json()
-                        
+
                         for vuln in data.get('vulnerabilities', []):
                             cve_data = vuln.get('cve', {})
-                            
+
                             # Extract key information
                             cve_id = cve_data.get('id', 'Unknown')
                             description = self._extract_cve_description(cve_data)
-                            
+
                             # Calculate priority based on CVSS score
                             priority = self._calculate_cve_priority(cve_data)
-                            
+
                             signal = IntelligenceSignal(
                                 signal_id=f"cve_{cve_id}_{int(time.time())}",
                                 source_id=source.source_id,
@@ -495,22 +493,22 @@ class GlobalSynthesisEngine:
                                 signal_type="vulnerability",
                                 tags=['cve', 'vulnerability', 'nvd']
                             )
-                            
+
                             signals.append(signal)
-                    
+
         except Exception as e:
             self.logger.error("CVE/NVD polling failed", error=str(e))
-        
+
         return signals
-    
-    async def _poll_hackerone(self, source: IntelligenceSource) -> List[IntelligenceSignal]:
+
+    async def _poll_hackerone(self, source: IntelligenceSource) -> list[IntelligenceSignal]:
         """Poll HackerOne for new disclosed reports"""
         signals = []
-        
+
         try:
             if self.hackerone_client:
                 reports = await self.hackerone_client.get_disclosed_reports(limit=50)
-                
+
                 for report in reports:
                     signal = IntelligenceSignal(
                         signal_id=f"h1_{report.get('id')}_{int(time.time())}",
@@ -534,27 +532,27 @@ class GlobalSynthesisEngine:
                         tags=['hackerone', 'bounty', 'disclosed', 'vulnerability'],
                         url=f"https://hackerone.com/reports/{report.get('id')}"
                     )
-                    
+
                     signals.append(signal)
-                    
+
         except Exception as e:
             self.logger.error("HackerOne polling failed", error=str(e))
-        
+
         return signals
-    
-    async def _poll_rss_feed(self, source: IntelligenceSource) -> List[IntelligenceSignal]:
+
+    async def _poll_rss_feed(self, source: IntelligenceSource) -> list[IntelligenceSignal]:
         """Poll RSS feeds for threat intelligence"""
         signals = []
-        
+
         try:
             feed = feedparser.parse(source.url)
-            
+
             for entry in feed.entries[:source.batch_size]:
                 # Skip old entries
                 entry_date = datetime(*entry.published_parsed[:6])
                 if entry_date < datetime.utcnow() - timedelta(days=7):
                     continue
-                
+
                 signal = IntelligenceSignal(
                     signal_id=f"rss_{hashlib.md5(entry.link.encode()).hexdigest()[:12]}",
                     source_id=source.source_id,
@@ -573,18 +571,18 @@ class GlobalSynthesisEngine:
                     tags=['osint', 'rss', 'threat_intel'],
                     url=entry.link
                 )
-                
+
                 signals.append(signal)
-                
+
         except Exception as e:
             self.logger.error("RSS feed polling failed", error=str(e))
-        
+
         return signals
-    
-    async def _poll_internal_missions(self, source: IntelligenceSource) -> List[IntelligenceSignal]:
+
+    async def _poll_internal_missions(self, source: IntelligenceSource) -> list[IntelligenceSignal]:
         """Poll internal mission results for intelligence"""
         signals = []
-        
+
         try:
             # Get recent mission completions from episodic memory
             recent_memories = await self.episodic_memory.query_memories(
@@ -592,7 +590,7 @@ class GlobalSynthesisEngine:
                 time_range=timedelta(hours=1),
                 limit=20
             )
-            
+
             for memory in recent_memories:
                 if memory.success_metrics and memory.insights:
                     signal = IntelligenceSignal(
@@ -614,24 +612,24 @@ class GlobalSynthesisEngine:
                         signal_type="mission_intelligence",
                         tags=['internal', 'mission', 'performance', 'insights']
                     )
-                    
+
                     signals.append(signal)
-                    
+
         except Exception as e:
             self.logger.error("Internal mission polling failed", error=str(e))
-        
+
         return signals
-    
-    async def _poll_prometheus_alerts(self, source: IntelligenceSource) -> List[IntelligenceSignal]:
+
+    async def _poll_prometheus_alerts(self, source: IntelligenceSource) -> list[IntelligenceSignal]:
         """Poll Prometheus alerts for system intelligence"""
         signals = []
-        
+
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(source.url) as response:
                     if response.status == 200:
                         data = await response.json()
-                        
+
                         for alert in data.get('data', {}).get('alerts', []):
                             signal = IntelligenceSignal(
                                 signal_id=f"alert_{alert.get('fingerprint', str(uuid.uuid4())[:8])}",
@@ -654,21 +652,21 @@ class GlobalSynthesisEngine:
                                 signal_type="system_alert",
                                 tags=['prometheus', 'alert', 'system', 'monitoring']
                             )
-                            
+
                             signals.append(signal)
-                            
+
         except Exception as e:
             self.logger.error("Prometheus alerts polling failed", error=str(e))
-        
+
         return signals
-    
+
     async def _ingestion_pipeline(self):
         """Process raw signals through ingestion pipeline"""
-        
+
         while self._running:
             try:
                 signals_batch = []
-                
+
                 # Collect batch of signals
                 for _ in range(self.processing_batch_size):
                     try:
@@ -676,49 +674,49 @@ class GlobalSynthesisEngine:
                             self.ingestion_queue.get(), timeout=1.0
                         )
                         signals_batch.append(signal)
-                    except asyncio.TimeoutError:
+                    except TimeoutError:
                         break
-                
+
                 if not signals_batch:
                     await asyncio.sleep(1)
                     continue
-                
+
                 # Process batch
                 with self.synthesis_metrics['processing_duration'].labels(stage='ingestion').time():
                     processed_signals = await self._process_ingestion_batch(signals_batch)
-                
+
                 # Queue for normalization
                 for signal in processed_signals:
                     await self.normalization_queue.put(signal)
-                
+
                 # Update metrics
                 self.synthesis_metrics['pending_signals'].labels(queue='ingestion').set(
                     self.ingestion_queue.qsize()
                 )
-                
+
             except Exception as e:
                 self.logger.error("Ingestion pipeline error", error=str(e))
                 await asyncio.sleep(5)
-    
-    async def _process_ingestion_batch(self, signals: List[IntelligenceSignal]) -> List[IntelligenceSignal]:
+
+    async def _process_ingestion_batch(self, signals: list[IntelligenceSignal]) -> list[IntelligenceSignal]:
         """Process a batch of signals through ingestion"""
-        
+
         processed_signals = []
-        
+
         for signal in signals:
             try:
                 # Deduplication check
                 if signal.deduplication_hash in self.deduplication_cache:
                     existing_id = self.deduplication_cache[signal.deduplication_hash]
-                    self.logger.debug(f"🔄 Duplicate signal detected", 
+                    self.logger.debug("🔄 Duplicate signal detected",
                                     new_id=signal.signal_id[:8],
                                     existing_id=existing_id[:8])
                     continue
-                
+
                 # Store signal
                 self.raw_signals[signal.signal_id] = signal
                 self.deduplication_cache[signal.deduplication_hash] = signal.signal_id
-                
+
                 # Initial processing
                 signal.status = IntelligenceSignalStatus.NORMALIZED
                 signal.processing_history.append({
@@ -726,21 +724,21 @@ class GlobalSynthesisEngine:
                     'timestamp': datetime.utcnow().isoformat(),
                     'processor': 'ingestion_pipeline'
                 })
-                
+
                 processed_signals.append(signal)
-                
+
             except Exception as e:
                 self.logger.error(f"Signal ingestion failed: {signal.signal_id[:8]}", error=str(e))
-        
+
         # Memory management
         if len(self.raw_signals) > self.max_signals_memory:
             await self._cleanup_old_signals()
-        
+
         return processed_signals
-    
-    async def get_synthesis_status(self) -> Dict[str, Any]:
+
+    async def get_synthesis_status(self) -> dict[str, Any]:
         """Get comprehensive synthesis engine status"""
-        
+
         return {
             'synthesis_engine': {
                 'status': 'running' if self._running else 'stopped',
@@ -785,26 +783,26 @@ class GlobalSynthesisEngine:
                 'source_reliability_avg': self._calculate_average_source_reliability()
             }
         }
-    
+
     # Placeholder methods for additional pipeline stages
     async def _normalization_pipeline(self): pass
-    async def _correlation_pipeline(self): pass  
+    async def _correlation_pipeline(self): pass
     async def _action_pipeline(self): pass
     async def _learning_pipeline(self): pass
     async def _source_monitoring_loop(self): pass
     async def _metrics_collection_loop(self): pass
-    
+
     # Helper methods (simplified implementations)
-    def _get_hackerone_api_key(self) -> Optional[str]: return None
-    def _filter_signals(self, signals: List[IntelligenceSignal], source: IntelligenceSource) -> List[IntelligenceSignal]: return signals
-    def _extract_cve_description(self, cve_data: Dict) -> str: return cve_data.get('descriptions', [{}])[0].get('value', '')
-    def _calculate_cve_priority(self, cve_data: Dict) -> SignalPriority: return SignalPriority.MEDIUM
-    def _extract_cvss_score(self, cve_data: Dict) -> float: return 0.0
-    def _extract_affected_products(self, cve_data: Dict) -> List[str]: return []
-    def _calculate_hackerone_priority(self, report: Dict) -> SignalPriority: return SignalPriority.MEDIUM
+    def _get_hackerone_api_key(self) -> str | None: return None
+    def _filter_signals(self, signals: list[IntelligenceSignal], source: IntelligenceSource) -> list[IntelligenceSignal]: return signals
+    def _extract_cve_description(self, cve_data: dict) -> str: return cve_data.get('descriptions', [{}])[0].get('value', '')
+    def _calculate_cve_priority(self, cve_data: dict) -> SignalPriority: return SignalPriority.MEDIUM
+    def _extract_cvss_score(self, cve_data: dict) -> float: return 0.0
+    def _extract_affected_products(self, cve_data: dict) -> list[str]: return []
+    def _calculate_hackerone_priority(self, report: dict) -> SignalPriority: return SignalPriority.MEDIUM
     def _calculate_rss_priority(self, entry: Any, source: IntelligenceSource) -> SignalPriority: return SignalPriority.MEDIUM
     def _calculate_internal_priority(self, memory: MemoryRecord) -> SignalPriority: return SignalPriority.MEDIUM
-    def _calculate_alert_priority(self, alert: Dict) -> SignalPriority: return SignalPriority.MEDIUM
+    def _calculate_alert_priority(self, alert: dict) -> SignalPriority: return SignalPriority.MEDIUM
     async def _cleanup_old_signals(self): pass
     def _calculate_correlation_accuracy(self) -> float: return 0.85
     def _calculate_average_processing_time(self) -> float: return 0.5

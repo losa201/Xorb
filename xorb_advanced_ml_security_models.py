@@ -15,16 +15,15 @@ Classification: INTERNAL - XORB ML SECURITY INTELLIGENCE
 
 import asyncio
 import json
-import numpy as np
-import time
-import random
-import math
-from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple, Any
 import logging
-from dataclasses import dataclass, asdict
+import math
+import random
+import time
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
 from enum import Enum
+
+import numpy as np
 
 # Configure logging
 logging.basicConfig(
@@ -72,7 +71,7 @@ class ThreatPrediction:
     threat_level: ThreatLevel
     probability: float
     confidence_score: float
-    features_analyzed: List[str]
+    features_analyzed: list[str]
     prediction_time: datetime
     model_version: str
 
@@ -82,10 +81,10 @@ class AnomalyDetection:
     """Anomaly detection result."""
     anomaly_id: str
     anomaly_score: float
-    feature_vector: List[float]
+    feature_vector: list[float]
     baseline_deviation: float
     detection_time: datetime
-    affected_systems: List[str]
+    affected_systems: list[str]
 
 
 @dataclass
@@ -114,40 +113,40 @@ class XorbAdvancedMLSecurityModels:
     - Multi-dimensional feature engineering
     - Quantum-inspired optimization algorithms
     """
-    
+
     def __init__(self):
         self.session_id = f"ML-SECURITY-{int(time.time()):08X}"
-        self.start_time = datetime.now(timezone.utc)
-        
+        self.start_time = datetime.now(UTC)
+
         # Model configuration
         self.models = {}
         self.feature_extractors = {}
         self.performance_metrics = {}
         self.threat_predictions = []
         self.anomaly_detections = []
-        
+
         # ML parameters
         self.feature_dimensions = 256
         self.ensemble_size = 5
         self.learning_rate = 0.001
         self.batch_size = 32
         self.epochs = 100
-        
+
         # Security thresholds
         self.anomaly_threshold = 0.7
         self.threat_threshold = 0.6
         self.confidence_threshold = 0.8
-        
+
         # Initialize model architectures
         self._initialize_model_architectures()
-        
+
         logger.info(f"🤖 Initializing ML Security Models {self.session_id}")
         logger.info(f"📊 Feature Dimensions: {self.feature_dimensions}")
         logger.info(f"🎯 Ensemble Size: {self.ensemble_size}")
-    
+
     def _initialize_model_architectures(self):
         """Initialize various ML model architectures."""
-        
+
         # Neural Network Architectures
         self.models = {
             ModelType.ANOMALY_DETECTION: {
@@ -193,35 +192,35 @@ class XorbAdvancedMLSecurityModels:
                 'trained': False
             }
         }
-    
-    async def train_security_models(self) -> Dict:
+
+    async def train_security_models(self) -> dict:
         """Train all security ML models with synthetic data."""
-        
+
         try:
             logger.info("🎓 Training Advanced ML Security Models")
-            
+
             # Phase 1: Generate Training Data
             training_data = await self._generate_training_data()
-            
+
             # Phase 2: Feature Engineering
             engineered_features = await self._engineer_security_features(training_data)
-            
+
             # Phase 3: Train Individual Models
             training_results = {}
             for model_type in ModelType:
                 logger.info(f"🔧 Training {model_type.value} model")
                 result = await self._train_model(model_type, engineered_features)
                 training_results[model_type.value] = result
-            
+
             # Phase 4: Model Ensemble Creation
             ensemble_results = await self._create_model_ensembles()
-            
+
             # Phase 5: Performance Evaluation
             evaluation_results = await self._evaluate_model_performance()
-            
+
             # Phase 6: Model Optimization
             optimization_results = await self._optimize_models()
-            
+
             return {
                 'training_data': training_data,
                 'training_results': training_results,
@@ -229,16 +228,16 @@ class XorbAdvancedMLSecurityModels:
                 'evaluation_results': evaluation_results,
                 'optimization_results': optimization_results
             }
-            
+
         except Exception as e:
             logger.error(f"❌ Model training failed: {e}")
             return {"status": "failed", "error": str(e)}
-    
-    async def _generate_training_data(self) -> Dict:
+
+    async def _generate_training_data(self) -> dict:
         """Generate comprehensive synthetic training data."""
-        
+
         logger.info("📊 Generating Synthetic Security Training Data")
-        
+
         # Network traffic patterns
         network_samples = []
         for i in range(10000):
@@ -254,7 +253,7 @@ class XorbAdvancedMLSecurityModels:
                 'is_malicious': random.random() < 0.1  # 10% malicious
             }
             network_samples.append(sample)
-        
+
         # System behavior patterns
         system_samples = []
         for i in range(8000):
@@ -270,7 +269,7 @@ class XorbAdvancedMLSecurityModels:
                 'is_anomalous': random.random() < 0.05  # 5% anomalous
             }
             system_samples.append(sample)
-        
+
         # Vulnerability patterns
         vulnerability_samples = []
         for i in range(5000):
@@ -286,7 +285,7 @@ class XorbAdvancedMLSecurityModels:
                 'severity': random.choice(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
             }
             vulnerability_samples.append(sample)
-        
+
         # Malware signatures
         malware_samples = []
         for i in range(6000):
@@ -302,7 +301,7 @@ class XorbAdvancedMLSecurityModels:
                 'malware_family': random.choice(['trojan', 'worm', 'virus', 'ransomware', 'adware', 'benign'])
             }
             malware_samples.append(sample)
-        
+
         training_data = {
             'network_traffic': network_samples,
             'system_behavior': system_samples,
@@ -310,17 +309,17 @@ class XorbAdvancedMLSecurityModels:
             'malware_signatures': malware_samples,
             'total_samples': len(network_samples) + len(system_samples) + len(vulnerability_samples) + len(malware_samples)
         }
-        
+
         logger.info(f"✅ Generated {training_data['total_samples']} training samples")
         return training_data
-    
-    async def _engineer_security_features(self, training_data: Dict) -> Dict:
+
+    async def _engineer_security_features(self, training_data: dict) -> dict:
         """Advanced feature engineering for security data."""
-        
+
         logger.info("🔧 Engineering Security Features")
-        
+
         engineered_features = {}
-        
+
         # Network traffic feature engineering
         network_features = []
         for sample in training_data['network_traffic']:
@@ -334,25 +333,25 @@ class XorbAdvancedMLSecurityModels:
                 sample['dst_port'] / 65535.0,  # Normalized port
                 hash(sample['flags']) % 100 / 100.0,  # Flags encoding
             ]
-            
+
             # Add statistical features
             features.extend([
                 np.sin(sample['packet_size'] / 1500.0 * 2 * np.pi),  # Cyclic encoding
                 np.cos(sample['packet_size'] / 1500.0 * 2 * np.pi),
                 sample['bytes_per_second'] / sample['packets_per_second'] if sample['packets_per_second'] > 0 else 0,  # Bytes per packet
             ])
-            
+
             # Pad to feature dimensions
             while len(features) < self.feature_dimensions:
                 features.append(0.0)
-            
+
             network_features.append({
                 'features': features[:self.feature_dimensions],
                 'label': 1 if sample['is_malicious'] else 0
             })
-        
+
         engineered_features['network_traffic'] = network_features
-        
+
         # System behavior feature engineering
         system_features = []
         for sample in training_data['system_behavior']:
@@ -366,30 +365,30 @@ class XorbAdvancedMLSecurityModels:
                 sample['registry_changes'] / 100.0,
                 sample['network_connections'] / 1000.0,
             ]
-            
+
             # Add derived features
             features.extend([
                 sample['cpu_usage'] * sample['memory_usage'] / 10000.0,  # Resource interaction
                 sample['disk_io'] / (sample['file_operations'] + 1),  # IO efficiency
                 sample['network_connections'] / (sample['process_count'] + 1),  # Connection density
             ])
-            
+
             # Pad to feature dimensions
             while len(features) < self.feature_dimensions:
                 features.append(random.uniform(-0.1, 0.1))  # Add noise
-            
+
             system_features.append({
                 'features': features[:self.feature_dimensions],
                 'label': 1 if sample['is_anomalous'] else 0
             })
-        
+
         engineered_features['system_behavior'] = system_features
-        
+
         # Vulnerability feature engineering
         vulnerability_features = []
         severity_map = {'LOW': 0.25, 'MEDIUM': 0.5, 'HIGH': 0.75, 'CRITICAL': 1.0}
         complexity_map = {'LOW': 0.33, 'MEDIUM': 0.66, 'HIGH': 1.0}
-        
+
         for sample in training_data['vulnerabilities']:
             features = [
                 sample['cve_score'] / 10.0,
@@ -401,42 +400,42 @@ class XorbAdvancedMLSecurityModels:
                 hash(sample['integrity_impact']) % 100 / 100.0,
                 hash(sample['availability_impact']) % 100 / 100.0,
             ]
-            
+
             # Pad to feature dimensions
             while len(features) < self.feature_dimensions:
                 features.append(0.0)
-            
+
             vulnerability_features.append({
                 'features': features[:self.feature_dimensions],
                 'label': severity_map[sample['severity']]
             })
-        
+
         engineered_features['vulnerabilities'] = vulnerability_features
-        
+
         logger.info(f"✅ Engineered features for {len(engineered_features)} datasets")
         return engineered_features
-    
-    async def _train_model(self, model_type: ModelType, features: Dict) -> Dict:
+
+    async def _train_model(self, model_type: ModelType, features: dict) -> dict:
         """Train individual ML model."""
-        
+
         model_config = self.models[model_type]
-        
+
         # Simulate training process
         training_epochs = random.randint(50, 150)
         initial_loss = random.uniform(0.8, 1.2)
         final_loss = random.uniform(0.05, 0.2)
-        
+
         # Calculate training metrics
         accuracy = random.uniform(0.85, 0.98)
         precision = random.uniform(0.82, 0.96)
         recall = random.uniform(0.79, 0.94)
         f1_score = 2 * (precision * recall) / (precision + recall)
-        
+
         # Mark model as trained
         model_config['trained'] = True
         model_config['training_epochs'] = training_epochs
         model_config['final_loss'] = final_loss
-        
+
         performance = ModelPerformance(
             model_id=f"{model_type.value}_v1.0",
             accuracy=accuracy,
@@ -445,11 +444,11 @@ class XorbAdvancedMLSecurityModels:
             f1_score=f1_score,
             false_positive_rate=random.uniform(0.01, 0.05),
             training_samples=len(features.get('network_traffic', [])),
-            evaluation_time=datetime.now(timezone.utc)
+            evaluation_time=datetime.now(UTC)
         )
-        
+
         self.performance_metrics[model_type.value] = performance
-        
+
         return {
             'model_type': model_type.value,
             'training_epochs': training_epochs,
@@ -458,12 +457,12 @@ class XorbAdvancedMLSecurityModels:
             'performance': asdict(performance),
             'status': 'trained'
         }
-    
-    async def _create_model_ensembles(self) -> Dict:
+
+    async def _create_model_ensembles(self) -> dict:
         """Create ensemble models for improved performance."""
-        
+
         logger.info("🎭 Creating Model Ensembles")
-        
+
         # Threat Detection Ensemble
         threat_ensemble = {
             'name': 'ThreatDetectionEnsemble',
@@ -476,7 +475,7 @@ class XorbAdvancedMLSecurityModels:
             'weights': [0.35, 0.4, 0.25],
             'ensemble_accuracy': random.uniform(0.92, 0.99)
         }
-        
+
         # Malware Analysis Ensemble
         malware_ensemble = {
             'name': 'MalwareAnalysisEnsemble',
@@ -489,7 +488,7 @@ class XorbAdvancedMLSecurityModels:
             'weights': [0.5, 0.3, 0.2],
             'ensemble_accuracy': random.uniform(0.89, 0.97)
         }
-        
+
         # Vulnerability Assessment Ensemble
         vulnerability_ensemble = {
             'name': 'VulnerabilityAssessmentEnsemble',
@@ -501,35 +500,35 @@ class XorbAdvancedMLSecurityModels:
             'weights': [0.7, 0.3],
             'ensemble_accuracy': random.uniform(0.86, 0.95)
         }
-        
+
         ensembles = {
             'threat_detection': threat_ensemble,
             'malware_analysis': malware_ensemble,
             'vulnerability_assessment': vulnerability_ensemble
         }
-        
+
         logger.info(f"✅ Created {len(ensembles)} ensemble models")
         return ensembles
-    
-    async def _evaluate_model_performance(self) -> Dict:
+
+    async def _evaluate_model_performance(self) -> dict:
         """Evaluate all trained models on test data."""
-        
+
         logger.info("📊 Evaluating Model Performance")
-        
+
         evaluation_results = {}
-        
+
         for model_type, performance in self.performance_metrics.items():
             # Simulate cross-validation
             cv_scores = [random.uniform(0.8, 0.95) for _ in range(5)]
             cv_mean = np.mean(cv_scores)
             cv_std = np.std(cv_scores)
-            
+
             # Simulate ROC-AUC scores
             roc_auc = random.uniform(0.85, 0.98)
-            
+
             # Simulate precision-recall curve
             pr_auc = random.uniform(0.82, 0.96)
-            
+
             evaluation_results[model_type] = {
                 'cross_validation': {
                     'scores': cv_scores,
@@ -541,17 +540,17 @@ class XorbAdvancedMLSecurityModels:
                 'baseline_performance': performance.accuracy,
                 'improvement_over_baseline': random.uniform(0.05, 0.15)
             }
-        
+
         logger.info(f"✅ Evaluated {len(evaluation_results)} models")
         return evaluation_results
-    
-    async def _optimize_models(self) -> Dict:
+
+    async def _optimize_models(self) -> dict:
         """Optimize models using advanced techniques."""
-        
+
         logger.info("⚡ Optimizing Models with Advanced Techniques")
-        
+
         optimization_results = {}
-        
+
         # Hyperparameter optimization
         hyperparameter_optimization = {
             'method': 'bayesian_optimization',
@@ -565,7 +564,7 @@ class XorbAdvancedMLSecurityModels:
             },
             'improvement': random.uniform(0.02, 0.08)
         }
-        
+
         # Neural architecture search
         architecture_search = {
             'method': 'evolutionary_nas',
@@ -579,7 +578,7 @@ class XorbAdvancedMLSecurityModels:
             },
             'improvement': random.uniform(0.03, 0.12)
         }
-        
+
         # Quantum-inspired optimization
         quantum_optimization = {
             'method': 'quantum_annealing',
@@ -589,7 +588,7 @@ class XorbAdvancedMLSecurityModels:
             'convergence_iterations': random.randint(100, 500),
             'improvement': random.uniform(0.01, 0.06)
         }
-        
+
         # Federated learning optimization
         federated_optimization = {
             'method': 'federated_averaging',
@@ -599,7 +598,7 @@ class XorbAdvancedMLSecurityModels:
             'privacy_preservation': 'differential_privacy',
             'improvement': random.uniform(0.02, 0.09)
         }
-        
+
         optimization_results = {
             'hyperparameter_optimization': hyperparameter_optimization,
             'architecture_search': architecture_search,
@@ -612,36 +611,36 @@ class XorbAdvancedMLSecurityModels:
                 federated_optimization['improvement']
             ])
         }
-        
+
         logger.info(f"✅ Optimization complete - Total improvement: {optimization_results['total_improvement']:.3f}")
         return optimization_results
-    
-    async def perform_real_time_analysis(self) -> Dict:
+
+    async def perform_real_time_analysis(self) -> dict:
         """Perform real-time security analysis using trained models."""
-        
+
         logger.info("🔍 Performing Real-Time Security Analysis")
-        
+
         # Generate real-time security events
         analysis_results = []
-        
+
         for i in range(50):  # Analyze 50 security events
-            
+
             # Generate random security event
             event = self._generate_security_event()
-            
+
             # Threat prediction
             threat_pred = await self._predict_threat(event)
             if threat_pred:
                 self.threat_predictions.append(threat_pred)
-            
+
             # Anomaly detection
             anomaly = await self._detect_anomaly(event)
             if anomaly:
                 self.anomaly_detections.append(anomaly)
-            
+
             # Behavioral analysis
             behavior_analysis = await self._analyze_behavior(event)
-            
+
             analysis_results.append({
                 'event_id': event['event_id'],
                 'threat_prediction': asdict(threat_pred) if threat_pred else None,
@@ -649,7 +648,7 @@ class XorbAdvancedMLSecurityModels:
                 'behavior_analysis': behavior_analysis,
                 'processing_time': random.uniform(0.01, 0.05)
             })
-        
+
         summary = {
             'total_events_analyzed': len(analysis_results),
             'threats_detected': len(self.threat_predictions),
@@ -657,21 +656,21 @@ class XorbAdvancedMLSecurityModels:
             'analysis_results': analysis_results,
             'average_processing_time': np.mean([r['processing_time'] for r in analysis_results])
         }
-        
+
         logger.info(f"✅ Analyzed {summary['total_events_analyzed']} events")
         logger.info(f"🚨 Detected {summary['threats_detected']} threats, {summary['anomalies_detected']} anomalies")
-        
+
         return summary
-    
-    def _generate_security_event(self) -> Dict:
+
+    def _generate_security_event(self) -> dict:
         """Generate a random security event for analysis."""
-        
+
         event_types = ['network_traffic', 'system_activity', 'file_operation', 'process_execution', 'registry_change']
-        
+
         event = {
             'event_id': f"EVENT-{int(time.time() * 1000):08X}",
             'event_type': random.choice(event_types),
-            'timestamp': datetime.now(timezone.utc),
+            'timestamp': datetime.now(UTC),
             'source_ip': f"{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}",
             'destination_ip': f"{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}.{random.randint(1,255)}",
             'user_agent': random.choice(['Windows', 'Linux', 'MacOS', 'Android', 'iOS']),
@@ -680,20 +679,20 @@ class XorbAdvancedMLSecurityModels:
             'port': random.randint(1, 65535),
             'features': [random.uniform(-1, 1) for _ in range(self.feature_dimensions)]
         }
-        
+
         return event
-    
-    async def _predict_threat(self, event: Dict) -> Optional[ThreatPrediction]:
+
+    async def _predict_threat(self, event: dict) -> ThreatPrediction | None:
         """Predict threat level for security event."""
-        
+
         # Simulate threat prediction
         threat_probability = np.mean([abs(f) for f in event['features']])
-        
+
         if threat_probability > self.threat_threshold:
-            
+
             threat_types = ['malware', 'intrusion', 'data_exfiltration', 'credential_theft', 'dos_attack']
             threat_levels = [ThreatLevel.LOW, ThreatLevel.MEDIUM, ThreatLevel.HIGH, ThreatLevel.CRITICAL]
-            
+
             # Higher probability means higher threat level
             if threat_probability > 0.9:
                 threat_level = ThreatLevel.CRITICAL
@@ -703,7 +702,7 @@ class XorbAdvancedMLSecurityModels:
                 threat_level = ThreatLevel.MEDIUM
             else:
                 threat_level = ThreatLevel.LOW
-            
+
             prediction = ThreatPrediction(
                 prediction_id=f"THREAT-{int(time.time() * 1000):08X}",
                 threat_type=random.choice(threat_types),
@@ -711,44 +710,44 @@ class XorbAdvancedMLSecurityModels:
                 probability=threat_probability,
                 confidence_score=random.uniform(0.7, 0.95),
                 features_analyzed=[f"feature_{i}" for i in range(10)],
-                prediction_time=datetime.now(timezone.utc),
+                prediction_time=datetime.now(UTC),
                 model_version="threat_prediction_v1.0"
             )
-            
+
             return prediction
-        
+
         return None
-    
-    async def _detect_anomaly(self, event: Dict) -> Optional[AnomalyDetection]:
+
+    async def _detect_anomaly(self, event: dict) -> AnomalyDetection | None:
         """Detect anomalies in security event."""
-        
+
         # Calculate anomaly score using statistical methods
         feature_vector = event['features']
         anomaly_score = np.std(feature_vector) + abs(np.mean(feature_vector))
-        
+
         if anomaly_score > self.anomaly_threshold:
-            
+
             # Calculate baseline deviation
             baseline_mean = 0.0
             baseline_std = 1.0
             baseline_deviation = abs(np.mean(feature_vector) - baseline_mean) / baseline_std
-            
+
             anomaly = AnomalyDetection(
                 anomaly_id=f"ANOMALY-{int(time.time() * 1000):08X}",
                 anomaly_score=anomaly_score,
                 feature_vector=feature_vector,
                 baseline_deviation=baseline_deviation,
-                detection_time=datetime.now(timezone.utc),
+                detection_time=datetime.now(UTC),
                 affected_systems=[event['source_ip'], event['destination_ip']]
             )
-            
+
             return anomaly
-        
+
         return None
-    
-    async def _analyze_behavior(self, event: Dict) -> Dict:
+
+    async def _analyze_behavior(self, event: dict) -> dict:
         """Analyze behavioral patterns in security event."""
-        
+
         # Simulate behavioral analysis
         behavior_metrics = {
             'communication_pattern': random.choice(['normal', 'suspicious', 'anomalous']),
@@ -759,7 +758,7 @@ class XorbAdvancedMLSecurityModels:
             'reputation_score': random.uniform(0, 1),
             'behavioral_score': random.uniform(0, 1)
         }
-        
+
         # Calculate overall behavior risk
         risk_factors = [
             behavior_metrics['protocol_deviation'],
@@ -767,31 +766,31 @@ class XorbAdvancedMLSecurityModels:
             1 - behavior_metrics['reputation_score'],
             behavior_metrics['behavioral_score']
         ]
-        
+
         behavior_metrics['overall_risk'] = np.mean(risk_factors)
         behavior_metrics['risk_level'] = 'high' if behavior_metrics['overall_risk'] > 0.7 else 'medium' if behavior_metrics['overall_risk'] > 0.4 else 'low'
-        
+
         return behavior_metrics
-    
-    async def generate_ml_security_results(self) -> Dict:
+
+    async def generate_ml_security_results(self) -> dict:
         """Generate comprehensive ML security analysis results."""
-        
-        end_time = datetime.now(timezone.utc)
+
+        end_time = datetime.now(UTC)
         duration = (end_time - self.start_time).total_seconds()
-        
+
         # Calculate overall performance metrics
         avg_accuracy = np.mean([perf.accuracy for perf in self.performance_metrics.values()])
         avg_precision = np.mean([perf.precision for perf in self.performance_metrics.values()])
         avg_recall = np.mean([perf.recall for perf in self.performance_metrics.values()])
         avg_f1 = np.mean([perf.f1_score for perf in self.performance_metrics.values()])
-        
+
         results = {
             'session_id': self.session_id,
             'analysis_type': 'advanced_ml_security_models',
             'timestamp': end_time.isoformat(),
             'duration_seconds': duration,
             'status': 'successful',
-            
+
             'model_summary': {
                 'total_models_trained': len(self.models),
                 'models_types': [model_type.value for model_type in ModelType],
@@ -799,7 +798,7 @@ class XorbAdvancedMLSecurityModels:
                 'ensemble_models': 3,
                 'optimization_techniques': 4
             },
-            
+
             'performance_metrics': {
                 'average_accuracy': avg_accuracy,
                 'average_precision': avg_precision,
@@ -807,14 +806,14 @@ class XorbAdvancedMLSecurityModels:
                 'average_f1_score': avg_f1,
                 'model_performances': {name: asdict(perf) for name, perf in self.performance_metrics.items()}
             },
-            
+
             'threat_intelligence': {
                 'threats_predicted': len(self.threat_predictions),
                 'anomalies_detected': len(self.anomaly_detections),
                 'critical_threats': len([t for t in self.threat_predictions if t.threat_level == ThreatLevel.CRITICAL]),
                 'high_confidence_predictions': len([t for t in self.threat_predictions if t.confidence_score > 0.9])
             },
-            
+
             'ml_capabilities': {
                 'real_time_analysis': True,
                 'anomaly_detection': True,
@@ -824,7 +823,7 @@ class XorbAdvancedMLSecurityModels:
                 'quantum_optimization': True,
                 'federated_learning': True
             },
-            
+
             'deployment_readiness': {
                 'models_trained': all(model['trained'] for model in self.models.values()),
                 'performance_validated': avg_accuracy > 0.85,
@@ -832,75 +831,75 @@ class XorbAdvancedMLSecurityModels:
                 'production_ready': True
             }
         }
-        
-        logger.info(f"🤖 ML Security Models Analysis Complete")
+
+        logger.info("🤖 ML Security Models Analysis Complete")
         logger.info(f"📊 Average Model Accuracy: {avg_accuracy:.3f}")
         logger.info(f"🚨 Threats Detected: {len(self.threat_predictions)}")
         logger.info(f"🔍 Anomalies Found: {len(self.anomaly_detections)}")
-        
+
         return results
 
 
 async def main():
     """Execute advanced ML security models training and analysis."""
-    
+
     print("🤖 XORB Advanced ML Security Models")
     print("=" * 60)
-    
+
     ml_system = XorbAdvancedMLSecurityModels()
-    
+
     try:
         # Phase 1: Train ML Models
         training_results = await ml_system.train_security_models()
-        
+
         # Phase 2: Real-time Analysis
         analysis_results = await ml_system.perform_real_time_analysis()
-        
+
         # Phase 3: Generate Results
         final_results = await ml_system.generate_ml_security_results()
-        
-        print(f"\n✅ ML SECURITY ANALYSIS COMPLETED")
+
+        print("\n✅ ML SECURITY ANALYSIS COMPLETED")
         print(f"Session ID: {final_results['session_id']}")
         print(f"Duration: {final_results['duration_seconds']:.1f} seconds")
         print(f"Status: {final_results['status'].upper()}")
-        
-        print(f"\n🤖 MODEL SUMMARY:")
+
+        print("\n🤖 MODEL SUMMARY:")
         summary = final_results['model_summary']
         print(f"• Models Trained: {summary['total_models_trained']}")
         print(f"• Feature Dimensions: {summary['feature_dimensions']}")
         print(f"• Ensemble Models: {summary['ensemble_models']}")
-        
-        print(f"\n📊 PERFORMANCE METRICS:")
+
+        print("\n📊 PERFORMANCE METRICS:")
         metrics = final_results['performance_metrics']
         print(f"• Average Accuracy: {metrics['average_accuracy']:.3f}")
         print(f"• Average Precision: {metrics['average_precision']:.3f}")
         print(f"• Average Recall: {metrics['average_recall']:.3f}")
         print(f"• Average F1-Score: {metrics['average_f1_score']:.3f}")
-        
-        print(f"\n🚨 THREAT INTELLIGENCE:")
+
+        print("\n🚨 THREAT INTELLIGENCE:")
         intel = final_results['threat_intelligence']
         print(f"• Threats Predicted: {intel['threats_predicted']}")
         print(f"• Anomalies Detected: {intel['anomalies_detected']}")
         print(f"• Critical Threats: {intel['critical_threats']}")
         print(f"• High Confidence: {intel['high_confidence_predictions']}")
-        
-        print(f"\n🚀 DEPLOYMENT STATUS:")
+
+        print("\n🚀 DEPLOYMENT STATUS:")
         deployment = final_results['deployment_readiness']
         print(f"• Models Trained: {'✅' if deployment['models_trained'] else '❌'}")
         print(f"• Performance Validated: {'✅' if deployment['performance_validated'] else '❌'}")
         print(f"• Production Ready: {'✅' if deployment['production_ready'] else '❌'}")
-        
+
         # Save results
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         results_file = f"xorb_ml_security_results_{timestamp}.json"
-        
+
         with open(results_file, 'w') as f:
             json.dump(final_results, f, indent=2, default=str)
-        
+
         print(f"\n💾 Results saved to: {results_file}")
-        
+
         return final_results
-        
+
     except Exception as e:
         print(f"\n❌ ML ANALYSIS FAILED: {e}")
         logger.error(f"ML security analysis failed: {e}")

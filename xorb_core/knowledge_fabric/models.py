@@ -1,16 +1,17 @@
 #!/usr/bin/env python3
 
-from sqlalchemy import Column, String, Text, Float, Integer, DateTime, ForeignKey, Index
+from datetime import datetime
+
+from sqlalchemy import Column, DateTime, Float, ForeignKey, Index, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
-from datetime import datetime
 
 Base = declarative_base()
 
 
 class AtomModel(Base):
     __tablename__ = "knowledge_atoms"
-    
+
     id = Column(String(36), primary_key=True)
     atom_type = Column(String(50), nullable=False)
     title = Column(String(255), nullable=False)
@@ -19,18 +20,18 @@ class AtomModel(Base):
     predictive_score = Column(Float, default=0.0, nullable=False)
     tags = Column(Text, default="[]")
     sources = Column(Text, default="[]")
-    
+
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
     expires_at = Column(DateTime, nullable=True)
-    
+
     usage_count = Column(Integer, default=0)
     success_rate = Column(Float, default=0.0)
-    
+
     # Relationships
     source_relationships = relationship("RelationshipModel", foreign_keys="RelationshipModel.source_atom_id", back_populates="source_atom")
     target_relationships = relationship("RelationshipModel", foreign_keys="RelationshipModel.target_atom_id", back_populates="target_atom")
-    
+
     # Indexes for performance
     __table_args__ = (
         Index('idx_atom_type', 'atom_type'),
@@ -45,7 +46,7 @@ class AtomModel(Base):
 
 class RelationshipModel(Base):
     __tablename__ = "atom_relationships"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_atom_id = Column(String(36), ForeignKey("knowledge_atoms.id"), nullable=False)
     target_atom_id = Column(String(36), ForeignKey("knowledge_atoms.id"), nullable=False)
@@ -53,11 +54,11 @@ class RelationshipModel(Base):
     strength = Column(Float, default=1.0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     atom_metadata = Column(Text, default="{}")
-    
+
     # Relationships
     source_atom = relationship("AtomModel", foreign_keys=[source_atom_id], back_populates="source_relationships")
     target_atom = relationship("AtomModel", foreign_keys=[target_atom_id], back_populates="target_relationships")
-    
+
     # Indexes for performance
     __table_args__ = (
         Index('idx_source_atom', 'source_atom_id'),
@@ -70,7 +71,7 @@ class RelationshipModel(Base):
 
 class ValidationModel(Base):
     __tablename__ = "atom_validations"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     atom_id = Column(String(36), ForeignKey("knowledge_atoms.id"), nullable=False)
     validation_method = Column(String(100), nullable=False)
@@ -80,10 +81,10 @@ class ValidationModel(Base):
     notes = Column(Text, default="")
     validator_id = Column(String(100), nullable=True)
     atom_metadata = Column(Text, default="{}")
-    
+
     # Relationship
     atom = relationship("AtomModel")
-    
+
     # Indexes
     __table_args__ = (
         Index('idx_atom_validation', 'atom_id'),
@@ -95,7 +96,7 @@ class ValidationModel(Base):
 
 class UsageStatsModel(Base):
     __tablename__ = "atom_usage_stats"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     atom_id = Column(String(36), ForeignKey("knowledge_atoms.id"), nullable=False)
     usage_timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
@@ -104,10 +105,10 @@ class UsageStatsModel(Base):
     execution_time = Column(Float, default=0.0)
     error_details = Column(Text, nullable=True)
     atom_metadata = Column(Text, default="{}")
-    
+
     # Relationship
     atom = relationship("AtomModel")
-    
+
     # Indexes
     __table_args__ = (
         Index('idx_atom_usage', 'atom_id'),
@@ -119,7 +120,7 @@ class UsageStatsModel(Base):
 
 class KnowledgeGraphModel(Base):
     __tablename__ = "knowledge_graph_stats"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     stat_date = Column(DateTime, default=datetime.utcnow, nullable=False)
     total_atoms = Column(Integer, default=0)
@@ -128,7 +129,7 @@ class KnowledgeGraphModel(Base):
     avg_predictive_score = Column(Float, default=0.0)
     atom_types_distribution = Column(Text, default="{}")
     confidence_distribution = Column(Text, default="{}")
-    
+
     # Indexes
     __table_args__ = (
         Index('idx_stat_date', 'stat_date'),

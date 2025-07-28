@@ -4,18 +4,17 @@ Enhanced Multi-Provider LLM Client for XORB Supreme
 Supports paid APIs with intelligent routing, cost controls, and fallback systems
 """
 
-import asyncio
-import logging
-import json
-import time
-import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Union
-from dataclasses import dataclass, field
-from enum import Enum
-import aiohttp
-from pydantic import BaseModel, Field, validator
 import hashlib
+import json
+import logging
+import time
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any
+
+import aiohttp
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ class ModelCapabilities:
     cost_per_1k_tokens: float
     max_tokens: int
     context_window: int
-    best_for_tasks: List[str]
+    best_for_tasks: list[str]
     supports_structured_output: bool = False
     supports_function_calling: bool = False
     creativity_score: float = 0.7  # 0-1, higher = more creative
@@ -49,7 +48,7 @@ class ModelCapabilities:
 class EnhancedLLMRequest(BaseModel):
     task_type: str
     prompt: str
-    target_info: Optional[Dict[str, Any]] = None
+    target_info: dict[str, Any] | None = None
     complexity: TaskComplexity = TaskComplexity.MODERATE
     max_tokens: int = 2000
     temperature: float = 0.7
@@ -58,7 +57,7 @@ class EnhancedLLMRequest(BaseModel):
     budget_limit_usd: float = 0.50  # Max spend per request
     priority: int = 1  # 1-5, higher = more important
     creativity_required: bool = False
-    chain_with_previous: Optional[str] = None  # Chain with previous request ID
+    chain_with_previous: str | None = None  # Chain with previous request ID
 
 class LLMResponse(BaseModel):
     content: str
@@ -69,15 +68,15 @@ class LLMResponse(BaseModel):
     confidence_score: float
     generated_at: datetime
     request_id: str
-    structured_data: Optional[Dict[str, Any]] = None
+    structured_data: dict[str, Any] | None = None
     execution_time_ms: int = 0
     was_fallback: bool = False
 
 class EnhancedMultiProviderClient:
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         self.config = config
-        self.session: Optional[aiohttp.ClientSession] = None
-        
+        self.session: aiohttp.ClientSession | None = None
+
         # Cost tracking
         self.daily_spend = 0.0
         self.monthly_spend = 0.0
@@ -86,19 +85,19 @@ class EnhancedMultiProviderClient:
             "monthly": config.get("monthly_budget_limit", 100.0),
             "per_request": config.get("per_request_limit", 2.0)
         }
-        
+
         # Rate limiting and caching
-        self.request_cache: Dict[str, LLMResponse] = {}
-        self.request_counts: Dict[str, List[datetime]] = {}
-        self.request_history: List[Dict[str, Any]] = []
-        
+        self.request_cache: dict[str, LLMResponse] = {}
+        self.request_counts: dict[str, list[datetime]] = {}
+        self.request_history: list[dict[str, Any]] = []
+
         # Model configurations
         self.models = self._initialize_enhanced_models()
-        
+
         # Prompt templates
         self.prompt_templates = self._load_prompt_templates()
-        
-    def _initialize_enhanced_models(self) -> Dict[str, ModelCapabilities]:
+
+    def _initialize_enhanced_models(self) -> dict[str, ModelCapabilities]:
         """Initialize enhanced model configurations with capabilities"""
         return {
             # Premium OpenAI Models
@@ -115,7 +114,7 @@ class EnhancedMultiProviderClient:
                 reliability_score=0.95,
                 rate_limit_rpm=500
             ),
-            
+
             "gpt-4-turbo": ModelCapabilities(
                 name="gpt-4-turbo",
                 provider=LLMProvider.OPENAI,
@@ -128,7 +127,7 @@ class EnhancedMultiProviderClient:
                 reliability_score=0.9,
                 rate_limit_rpm=300
             ),
-            
+
             # Claude Models via OpenRouter
             "claude-3-opus": ModelCapabilities(
                 name="anthropic/claude-3-opus",
@@ -142,7 +141,7 @@ class EnhancedMultiProviderClient:
                 reliability_score=0.95,
                 rate_limit_rpm=100
             ),
-            
+
             "claude-3-sonnet": ModelCapabilities(
                 name="anthropic/claude-3-sonnet",
                 provider=LLMProvider.OPENROUTER,
@@ -155,7 +154,7 @@ class EnhancedMultiProviderClient:
                 reliability_score=0.9,
                 rate_limit_rpm=200
             ),
-            
+
             # Gemini Models
             "gemini-1.5-pro": ModelCapabilities(
                 name="google/gemini-pro-1.5",
@@ -169,7 +168,7 @@ class EnhancedMultiProviderClient:
                 reliability_score=0.85,
                 rate_limit_rpm=100
             ),
-            
+
             # Free tier fallbacks (existing)
             "qwen-free": ModelCapabilities(
                 name="qwen/qwen3-235b-a22b-07-25:free",
@@ -183,8 +182,8 @@ class EnhancedMultiProviderClient:
                 rate_limit_rpm=20
             )
         }
-    
-    def _load_prompt_templates(self) -> Dict[str, str]:
+
+    def _load_prompt_templates(self) -> dict[str, str]:
         """Load optimized prompt templates for different tasks"""
         return {
             "creative_payload_generation": """
@@ -369,7 +368,7 @@ OUTPUT FORMAT (JSON):
 Focus on high-impact business logic vulnerabilities specific to the target industry.
 """
         }
-    
+
     async def start(self):
         """Initialize the enhanced client"""
         if not self.session:
@@ -378,62 +377,62 @@ Focus on high-impact business logic vulnerabilities specific to the target indus
                 headers={"User-Agent": "XORB-Supreme-Enhanced/3.0"}
             )
             logger.info("Enhanced multi-provider LLM client started")
-    
+
     async def close(self):
         """Close the client session"""
         if self.session:
             await self.session.close()
             self.session = None
-    
+
     def select_optimal_model(self, request: EnhancedLLMRequest) -> str:
         """Select the best model based on request requirements and budget"""
-        
+
         # Check budget constraints
         if not self._check_budget_limits(request.budget_limit_usd):
             logger.warning("Budget limits exceeded, falling back to free tier")
             request.use_paid_api = False
-        
+
         # Filter models based on requirements
         suitable_models = []
-        
+
         for name, model in self.models.items():
             # Skip paid models if not requested or budget exceeded
             if not request.use_paid_api and model.cost_per_1k_tokens > 0:
                 continue
-            
+
             # Check task compatibility
             if any(task in model.best_for_tasks for task in [request.task_type]):
                 suitable_models.append((name, model))
-        
+
         if not suitable_models:
             # Fallback to any available model
             suitable_models = [(name, model) for name, model in self.models.items()
                              if model.cost_per_1k_tokens == 0 or request.use_paid_api]
-        
+
         # Score and select best model
         best_model = None
         best_score = -1
-        
+
         for name, model in suitable_models:
             if not self._check_rate_limit(name):
                 continue
-            
+
             # Calculate model score
             score = 0
-            
+
             # Cost efficiency (lower cost = higher score)
             if model.cost_per_1k_tokens == 0:
                 score += 2  # Free models get bonus
             else:
                 score += (1.0 / model.cost_per_1k_tokens) * 0.1
-            
+
             # Creativity bonus if required
             if request.creativity_required:
                 score += model.creativity_score * 2
-            
+
             # Reliability bonus
             score += model.reliability_score
-            
+
             # Complexity matching
             complexity_bonus = {
                 TaskComplexity.SIMPLE: 0.5,
@@ -442,36 +441,36 @@ Focus on high-impact business logic vulnerabilities specific to the target indus
                 TaskComplexity.EXPERT: 2.0
             }
             score += complexity_bonus.get(request.complexity, 1.0)
-            
+
             # Structured output bonus
             if request.structured_output and model.supports_structured_output:
                 score += 1.0
-            
+
             if score > best_score:
                 best_score = score
                 best_model = name
-        
+
         return best_model or "qwen-free"  # Ultimate fallback
-    
+
     async def generate_enhanced_payload(self, request: EnhancedLLMRequest) -> LLMResponse:
         """Generate payloads using optimal model selection and enhanced prompts"""
-        
+
         start_time = time.time()
-        
+
         # Check cache first
         cache_key = self._generate_cache_key(request)
         if cache_key in self.request_cache:
             cached = self.request_cache[cache_key]
             logger.info(f"Returning cached response for {request.task_type}")
             return cached
-        
+
         # Select optimal model
         model_name = self.select_optimal_model(request)
         model_config = self.models[model_name]
-        
+
         # Build enhanced prompt
         enhanced_prompt = self._build_enhanced_prompt(request)
-        
+
         try:
             # Make API call
             if model_config.provider == LLMProvider.OPENAI:
@@ -485,37 +484,37 @@ Focus on high-impact business logic vulnerabilities specific to the target indus
             else:
                 # Free tier fallback
                 response = await self._call_free_tier(model_name, enhanced_prompt, request)
-            
+
             # Add execution time
             response.execution_time_ms = int((time.time() - start_time) * 1000)
-            
+
             # Track costs and usage
             self._track_enhanced_usage(model_name, response)
-            
+
             # Cache successful responses
             self.request_cache[cache_key] = response
-            
+
             return response
-            
+
         except Exception as e:
             logger.error(f"Enhanced payload generation failed: {e}")
-            
+
             # Try fallback to free tier
             if request.use_paid_api and model_config.cost_per_1k_tokens > 0:
                 logger.info("Attempting free tier fallback")
                 fallback_request = request.copy()
                 fallback_request.use_paid_api = False
                 return await self.generate_enhanced_payload(fallback_request)
-            
+
             raise
-    
+
     def _build_enhanced_prompt(self, request: EnhancedLLMRequest) -> str:
         """Build enhanced prompt using templates and context"""
-        
+
         # Get base template
         template_key = self._map_task_to_template(request.task_type)
         base_template = self.prompt_templates.get(template_key, request.prompt)
-        
+
         # Build context variables
         context_vars = {
             "target_context": json.dumps(request.target_info or {}, indent=2),
@@ -527,14 +526,14 @@ Focus on high-impact business logic vulnerabilities specific to the target indus
             "application_context": request.target_info or {},
             "business_model": request.target_info or {}
         }
-        
+
         # Format template with context
         try:
             formatted_prompt = base_template.format(**context_vars)
         except KeyError as e:
             logger.warning(f"Template formatting failed: {e}, using base prompt")
             formatted_prompt = request.prompt
-        
+
         # Add ethical constraints
         ethical_prefix = """
 IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
@@ -545,14 +544,14 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
 - Respect all legal and ethical boundaries
 
 """
-        
+
         return ethical_prefix + formatted_prompt
-    
+
     def _map_task_to_template(self, task_type: str) -> str:
         """Map task types to prompt templates"""
         mapping = {
             "payload_generation": "creative_payload_generation",
-            "creative_payloads": "creative_payload_generation", 
+            "creative_payloads": "creative_payload_generation",
             "exploitation_chains": "exploitation_chain_analysis",
             "chain_analysis": "exploitation_chain_analysis",
             "professional_report": "professional_report_generation",
@@ -561,34 +560,34 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
             "logic_flaws": "business_logic_analysis"
         }
         return mapping.get(task_type, "creative_payload_generation")
-    
+
     def _check_budget_limits(self, request_limit: float) -> bool:
         """Check if request is within budget limits"""
         if self.daily_spend + request_limit > self.budget_limits["daily"]:
             return False
         if self.monthly_spend + request_limit > self.budget_limits["monthly"]:
-            return False  
+            return False
         if request_limit > self.budget_limits["per_request"]:
             return False
         return True
-    
+
     def _check_rate_limit(self, model_name: str) -> bool:
         """Enhanced rate limit checking"""
         now = datetime.utcnow()
         model_config = self.models[model_name]
-        
+
         if model_name not in self.request_counts:
             self.request_counts[model_name] = []
-        
+
         # Remove old requests outside the window
         cutoff = now - timedelta(minutes=1)
         self.request_counts[model_name] = [
             req_time for req_time in self.request_counts[model_name]
             if req_time > cutoff
         ]
-        
+
         return len(self.request_counts[model_name]) < model_config.rate_limit_rpm
-    
+
     def _generate_cache_key(self, request: EnhancedLLMRequest) -> str:
         """Generate cache key for request deduplication"""
         cache_data = {
@@ -599,20 +598,20 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
             "creativity_required": request.creativity_required
         }
         return hashlib.sha256(json.dumps(cache_data, sort_keys=True).encode()).hexdigest()
-    
+
     def _track_enhanced_usage(self, model_name: str, response: LLMResponse):
         """Enhanced usage tracking with budget monitoring"""
         now = datetime.utcnow()
-        
+
         # Update counters
         if model_name not in self.request_counts:
             self.request_counts[model_name] = []
         self.request_counts[model_name].append(now)
-        
+
         # Update spend tracking
         self.daily_spend += response.cost_usd
         self.monthly_spend += response.cost_usd
-        
+
         # Add to detailed history
         self.request_history.append({
             "timestamp": now.isoformat(),
@@ -624,18 +623,18 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
             "execution_time_ms": response.execution_time_ms,
             "was_fallback": response.was_fallback
         })
-        
+
         # Cleanup old history
         if len(self.request_history) > 10000:
             self.request_history = self.request_history[-5000:]
-    
+
     async def _call_openai(self, model: str, prompt: str, request: EnhancedLLMRequest) -> LLMResponse:
         """Call OpenAI API with enhanced features"""
         headers = {
             "Authorization": f"Bearer {self.config.get('openai_api_key')}",
             "Content-Type": "application/json"
         }
-        
+
         payload = {
             "model": model,
             "messages": [
@@ -645,10 +644,10 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
             "max_tokens": request.max_tokens,
             "temperature": request.temperature
         }
-        
+
         if request.structured_output:
             payload["response_format"] = {"type": "json_object"}
-        
+
         async with self.session.post(
             "https://api.openai.com/v1/chat/completions",
             headers=headers,
@@ -657,11 +656,11 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
             if resp.status != 200:
                 error_text = await resp.text()
                 raise Exception(f"OpenAI API error {resp.status}: {error_text}")
-            
+
             data = await resp.json()
             content = data["choices"][0]["message"]["content"]
             tokens_used = data.get("usage", {}).get("total_tokens", 0)
-            
+
             return LLMResponse(
                 content=content,
                 model_used=model,
@@ -672,7 +671,7 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
                 generated_at=datetime.utcnow(),
                 request_id=f"openai_{int(time.time())}"
             )
-    
+
     async def _call_openrouter(self, model: str, prompt: str, request: EnhancedLLMRequest) -> LLMResponse:
         """Enhanced OpenRouter API call"""
         headers = {
@@ -681,7 +680,7 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
             "HTTP-Referer": "https://xorb-supreme.ai",
             "X-Title": "XORB Supreme Security Platform"
         }
-        
+
         payload = {
             "model": model,
             "messages": [
@@ -691,10 +690,10 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
             "max_tokens": request.max_tokens,
             "temperature": request.temperature
         }
-        
+
         if request.structured_output and self.models[model].supports_structured_output:
             payload["response_format"] = {"type": "json_object"}
-        
+
         async with self.session.post(
             "https://openrouter.ai/api/v1/chat/completions",
             headers=headers,
@@ -703,11 +702,11 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
             if resp.status != 200:
                 error_text = await resp.text()
                 raise Exception(f"OpenRouter API error {resp.status}: {error_text}")
-            
+
             data = await resp.json()
             content = data["choices"][0]["message"]["content"]
             tokens_used = data.get("usage", {}).get("total_tokens", 0)
-            
+
             return LLMResponse(
                 content=content,
                 model_used=model,
@@ -718,28 +717,28 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
                 generated_at=datetime.utcnow(),
                 request_id=f"openrouter_{int(time.time())}"
             )
-    
+
     async def _call_claude_direct(self, model: str, prompt: str, request: EnhancedLLMRequest) -> LLMResponse:
         """Direct Claude API call (placeholder - implement based on Anthropic SDK)"""
         # This would use the official Anthropic SDK
         raise NotImplementedError("Direct Claude API integration pending")
-    
+
     async def _call_gemini_direct(self, model: str, prompt: str, request: EnhancedLLMRequest) -> LLMResponse:
         """Direct Gemini API call (placeholder - implement based on Google AI SDK)"""
         # This would use the official Google AI SDK
         raise NotImplementedError("Direct Gemini API integration pending")
-    
+
     async def _call_free_tier(self, model: str, prompt: str, request: EnhancedLLMRequest) -> LLMResponse:
         """Fallback to free tier models"""
         # Use existing free tier implementation
         return await self._call_openrouter(model, prompt, request)
-    
+
     def _calculate_cost(self, model_name: str, tokens_used: int) -> float:
         """Calculate API cost"""
         model_config = self.models[model_name]
         return (tokens_used / 1000) * model_config.cost_per_1k_tokens
-    
-    def get_enhanced_usage_stats(self) -> Dict[str, Any]:
+
+    def get_enhanced_usage_stats(self) -> dict[str, Any]:
         """Get comprehensive usage statistics"""
         return {
             "total_requests": len(self.request_history),
@@ -752,8 +751,8 @@ IMPORTANT: This analysis is for AUTHORIZED SECURITY TESTING ONLY.
             "fallback_rate": sum(1 for h in self.request_history if h.get("was_fallback", False)) / max(len(self.request_history), 1),
             "cost_by_provider": self._calculate_cost_by_provider()
         }
-    
-    def _calculate_cost_by_provider(self) -> Dict[str, float]:
+
+    def _calculate_cost_by_provider(self) -> dict[str, float]:
         """Calculate costs by provider"""
         costs = {}
         for history in self.request_history:

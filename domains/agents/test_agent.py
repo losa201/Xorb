@@ -10,12 +10,13 @@ Version: 2.0.0
 """
 
 import asyncio
-import aiohttp
 import json
 import logging
-from datetime import datetime
-from typing import Dict, Any, List
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any
+
+import aiohttp
 
 logger = logging.getLogger(__name__)
 
@@ -24,21 +25,21 @@ logger = logging.getLogger(__name__)
 class AgentCapability:
     name: str
     description: str
-    parameters: Dict[str, Any]
+    parameters: dict[str, Any]
 
 
 class TestAgent:
     """
     Simple test agent for autonomous operations verification.
     """
-    
+
     def __init__(self):
         self.agent_id = "test-agent-001"
         self.agent_type = "http_scanner"
         self.status = "available"
         self.capabilities = [
             AgentCapability(
-                name="http_get", 
+                name="http_get",
                 description="Perform HTTP GET requests",
                 parameters={"url": "string", "headers": "dict"}
             ),
@@ -53,14 +54,14 @@ class TestAgent:
                 parameters={"target": "string"}
             )
         ]
-        
-    async def execute_mission(self, mission: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def execute_mission(self, mission: dict[str, Any]) -> dict[str, Any]:
         """Execute a mission and return results"""
         mission_type = mission.get('mission_type', 'unknown')
         target_url = mission.get('target_url', 'http://httpbin.org')
-        
+
         logger.info(f"🎯 Executing mission: {mission_type} on {target_url}")
-        
+
         try:
             if mission_type == "http_scan":
                 return await self._http_scan(target_url)
@@ -68,7 +69,7 @@ class TestAgent:
                 return await self._vulnerability_scan(target_url)
             else:
                 return await self._basic_scan(target_url)
-                
+
         except Exception as e:
             logger.error(f"Mission failed: {e}")
             return {
@@ -76,8 +77,8 @@ class TestAgent:
                 "error": str(e),
                 "timestamp": datetime.now().isoformat()
             }
-    
-    async def _http_scan(self, target_url: str) -> Dict[str, Any]:
+
+    async def _http_scan(self, target_url: str) -> dict[str, Any]:
         """Perform basic HTTP scanning"""
         results = {
             "mission_type": "http_scan",
@@ -85,7 +86,7 @@ class TestAgent:
             "timestamp": datetime.now().isoformat(),
             "findings": []
         }
-        
+
         async with aiohttp.ClientSession() as session:
             try:
                 # Basic GET request
@@ -96,7 +97,7 @@ class TestAgent:
                         "headers": dict(response.headers),
                         "content_length": len(await response.text())
                     })
-                
+
                 # Check common endpoints
                 endpoints = ["/robots.txt", "/sitemap.xml", "/.well-known/security.txt"]
                 for endpoint in endpoints:
@@ -111,39 +112,39 @@ class TestAgent:
                                 })
                     except:
                         pass
-                        
+
             except Exception as e:
                 results["findings"].append({
                     "type": "error",
                     "message": str(e)
                 })
-        
+
         results["status"] = "completed"
         return results
-    
-    async def _vulnerability_scan(self, target_url: str) -> Dict[str, Any]:
+
+    async def _vulnerability_scan(self, target_url: str) -> dict[str, Any]:
         """Perform basic vulnerability scanning"""
         results = {
-            "mission_type": "vulnerability_scan", 
+            "mission_type": "vulnerability_scan",
             "target": target_url,
             "timestamp": datetime.now().isoformat(),
             "vulnerabilities": []
         }
-        
+
         async with aiohttp.ClientSession() as session:
             try:
                 # Check for common security headers
                 async with session.get(target_url, timeout=10) as response:
                     headers = dict(response.headers)
-                    
+
                     security_headers = [
                         "X-Frame-Options",
-                        "X-Content-Type-Options", 
+                        "X-Content-Type-Options",
                         "X-XSS-Protection",
                         "Strict-Transport-Security",
                         "Content-Security-Policy"
                     ]
-                    
+
                     for header in security_headers:
                         if header not in headers:
                             results["vulnerabilities"].append({
@@ -152,7 +153,7 @@ class TestAgent:
                                 "severity": "medium",
                                 "description": f"Missing {header} security header"
                             })
-                    
+
                     # Check for server information disclosure
                     if "Server" in headers:
                         results["vulnerabilities"].append({
@@ -162,39 +163,39 @@ class TestAgent:
                             "severity": "low",
                             "description": "Server header reveals software information"
                         })
-                        
+
             except Exception as e:
                 results["vulnerabilities"].append({
                     "type": "scan_error",
                     "message": str(e)
                 })
-        
+
         results["status"] = "completed"
         return results
-    
-    async def _basic_scan(self, target_url: str) -> Dict[str, Any]:
+
+    async def _basic_scan(self, target_url: str) -> dict[str, Any]:
         """Perform basic connectivity scan"""
         results = {
             "mission_type": "basic_scan",
-            "target": target_url, 
+            "target": target_url,
             "timestamp": datetime.now().isoformat(),
             "status": "completed"
         }
-        
+
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(target_url, timeout=10) as response:
                     results["response_code"] = response.status
                     results["response_time"] = "< 10s"
                     results["accessible"] = True
-                    
+
         except Exception as e:
             results["accessible"] = False
             results["error"] = str(e)
-        
+
         return results
-    
-    def get_agent_info(self) -> Dict[str, Any]:
+
+    def get_agent_info(self) -> dict[str, Any]:
         """Return agent information for registration"""
         return {
             "id": self.agent_id,
@@ -219,17 +220,17 @@ class TestAgent:
 async def main():
     """Test agent functionality"""
     agent = TestAgent()
-    
+
     # Test mission
     test_mission = {
         "mission_type": "http_scan",
         "target_url": "http://httpbin.org",
         "parameters": {}
     }
-    
+
     print("🧪 Testing XORB Agent...")
     print(f"Agent Info: {json.dumps(agent.get_agent_info(), indent=2)}")
-    
+
     print("\n🎯 Executing test mission...")
     result = await agent.execute_mission(test_mission)
     print(f"Mission Result: {json.dumps(result, indent=2)}")

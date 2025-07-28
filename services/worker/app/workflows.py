@@ -1,14 +1,16 @@
 from datetime import timedelta
+
 from temporalio import workflow
-from typing import List
 
 from xorb_core.models.agents import Finding
+
 from .activities import enumerate_subdomains_activity, resolve_dns_activity
+
 
 @workflow.defn
 class DiscoveryWorkflow:
     @workflow.run
-    async def run(self, domain: str) -> List[Finding]:
+    async def run(self, domain: str) -> list[Finding]:
         subdomain_findings = await workflow.execute_activity(
             enumerate_subdomains_activity, domain, start_to_close_timeout=timedelta(minutes=5)
         )

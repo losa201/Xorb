@@ -10,25 +10,23 @@ This module provides comprehensive audit trails and fallback override capabiliti
 """
 
 import asyncio
-import json
-import logging
-import uuid
-import hashlib
-import hmac
-import time
-import secrets
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple, Set, Callable
-from dataclasses import dataclass, asdict
-from enum import Enum
-from collections import defaultdict, deque
 import base64
+import hashlib
+import json
+import uuid
+from collections import defaultdict
+from collections.abc import Callable
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any
 
 import structlog
+
 try:
     import cryptography
     from cryptography.hazmat.primitives import hashes, serialization
-    from cryptography.hazmat.primitives.asymmetric import rsa, padding
+    from cryptography.hazmat.primitives.asymmetric import padding, rsa
     from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 except ImportError:
     cryptography = None
@@ -39,11 +37,15 @@ except ImportError:
     Cipher = None
     algorithms = None
     modes = None
-from prometheus_client import Counter, Histogram, Gauge
+from prometheus_client import Counter, Gauge, Histogram
+
+from ..autonomous.episodic_memory_system import (
+    EpisodeType,
+    MemoryImportance,
+)
 
 # Internal XORB imports
 from ..autonomous.intelligent_orchestrator import IntelligentOrchestrator
-from ..autonomous.episodic_memory_system import EpisodicMemorySystem, EpisodeType, MemoryImportance
 
 
 class AuditEventType(Enum):
@@ -103,36 +105,36 @@ class AuditEvent:
     event_id: str
     event_type: AuditEventType
     severity: AuditSeverity
-    
+
     # Event details
     timestamp: datetime
     source_component: str
-    source_agent: Optional[str]
-    
+    source_agent: str | None
+
     # Event content
     summary: str
     description: str
-    context: Dict[str, Any]
-    
+    context: dict[str, Any]
+
     # Impact and classification
-    affected_systems: List[str]
+    affected_systems: list[str]
     data_classification: str
     business_impact: str
-    
+
     # Cryptographic integrity
     event_hash: str
     previous_hash: str
-    signature: Optional[str] = None
-    
+    signature: str | None = None
+
     # Compliance and governance
-    compliance_tags: List[str] = None
+    compliance_tags: list[str] = None
     retention_period: timedelta = timedelta(days=2555)  # 7 years default
-    
+
     # Correlation and causality
-    correlation_id: Optional[str] = None
-    parent_event_id: Optional[str] = None
-    triggered_by: Optional[str] = None
-    
+    correlation_id: str | None = None
+    parent_event_id: str | None = None
+    triggered_by: str | None = None
+
     def __post_init__(self):
         if self.compliance_tags is None:
             self.compliance_tags = []
@@ -143,32 +145,32 @@ class OverrideRequest:
     """System override request"""
     override_id: str
     override_type: OverrideType
-    
+
     # Request details
     requested_by: str
     requested_at: datetime
     justification: str
     emergency_level: int  # 1-5 scale
-    
+
     # Target and scope
     target_component: str
-    affected_systems: List[str]
-    expected_impact: Dict[str, Any]
-    
+    affected_systems: list[str]
+    expected_impact: dict[str, Any]
+
     # Authorization
-    required_approvals: List[str]
-    received_approvals: List[Dict[str, Any]]
-    
+    required_approvals: list[str]
+    received_approvals: list[dict[str, Any]]
+
     # Execution
     status: str = "pending"  # pending, approved, denied, executed, cancelled
-    executed_at: Optional[datetime] = None
-    executed_by: Optional[str] = None
-    
+    executed_at: datetime | None = None
+    executed_by: str | None = None
+
     # Outcome tracking
-    actual_impact: Optional[Dict[str, Any]] = None
-    resolution_actions: List[str] = None
-    lessons_learned: Optional[str] = None
-    
+    actual_impact: dict[str, Any] | None = None
+    resolution_actions: list[str] = None
+    lessons_learned: str | None = None
+
     def __post_init__(self):
         if self.resolution_actions is None:
             self.resolution_actions = []
@@ -180,29 +182,29 @@ class GovernancePolicy:
     policy_id: str
     name: str
     description: str
-    
+
     # Policy scope
-    applies_to: List[str]  # components, agents, operations
+    applies_to: list[str]  # components, agents, operations
     enforcement_level: str  # advisory, warning, blocking
-    
+
     # Policy rules
-    conditions: List[Dict[str, Any]]
-    actions: List[Dict[str, Any]]
-    exceptions: List[Dict[str, Any]]
-    
+    conditions: list[dict[str, Any]]
+    actions: list[dict[str, Any]]
+    exceptions: list[dict[str, Any]]
+
     # Policy metadata
     created_by: str
     created_at: datetime
     version: str
-    
+
     # Compliance mapping
-    compliance_frameworks: List[str] = None
-    regulatory_requirements: List[str] = None
-    
+    compliance_frameworks: list[str] = None
+    regulatory_requirements: list[str] = None
+
     # Effectiveness tracking
     violations_count: int = 0
-    last_violation: Optional[datetime] = None
-    
+    last_violation: datetime | None = None
+
     def __post_init__(self):
         if self.compliance_frameworks is None:
             self.compliance_frameworks = []
@@ -217,27 +219,27 @@ class ComplianceReport:
     framework: str
     period_start: datetime
     period_end: datetime
-    
+
     # Report content
     events_analyzed: int
     compliance_score: float
-    violations_found: List[Dict[str, Any]]
-    recommendations: List[str]
-    
+    violations_found: list[dict[str, Any]]
+    recommendations: list[str]
+
     # Audit trail coverage
     coverage_percentage: float
-    missing_events: List[str]
+    missing_events: list[str]
     data_integrity_score: float
-    
+
     # Risk assessment
     risk_level: str
-    critical_findings: List[str]
-    improvement_areas: List[str]
-    
+    critical_findings: list[str]
+    improvement_areas: list[str]
+
     # Report metadata
     generated_at: datetime
     generated_by: str
-    reviewed_by: Optional[str] = None
+    reviewed_by: str | None = None
 
 
 class AuditTrailSystem:
@@ -250,44 +252,44 @@ class AuditTrailSystem:
     - Emergency override system with multi-factor authentication
     - Automated compliance reporting and risk assessment
     """
-    
+
     def __init__(self, orchestrator: IntelligentOrchestrator):
         self.orchestrator = orchestrator
         self.logger = structlog.get_logger("xorb.audit_trail")
-        
+
         # Audit trail storage
-        self.audit_events: List[AuditEvent] = []
-        self.event_index: Dict[str, AuditEvent] = {}
-        self.event_chains: Dict[str, List[str]] = defaultdict(list)
-        
+        self.audit_events: list[AuditEvent] = []
+        self.event_index: dict[str, AuditEvent] = {}
+        self.event_chains: dict[str, list[str]] = defaultdict(list)
+
         # Override management
-        self.active_overrides: Dict[str, OverrideRequest] = {}
-        self.override_history: List[OverrideRequest] = []
-        self.authorized_administrators: Dict[str, Dict[str, Any]] = {}
-        
+        self.active_overrides: dict[str, OverrideRequest] = {}
+        self.override_history: list[OverrideRequest] = []
+        self.authorized_administrators: dict[str, dict[str, Any]] = {}
+
         # Governance and policies
-        self.governance_policies: Dict[str, GovernancePolicy] = {}
-        self.compliance_frameworks: Dict[str, Dict[str, Any]] = {}
-        self.policy_violations: List[Dict[str, Any]] = []
-        
+        self.governance_policies: dict[str, GovernancePolicy] = {}
+        self.compliance_frameworks: dict[str, dict[str, Any]] = {}
+        self.policy_violations: list[dict[str, Any]] = []
+
         # Cryptographic components
-        self.signing_key: Optional[rsa.RSAPrivateKey] = None
-        self.verification_key: Optional[rsa.RSAPublicKey] = None
+        self.signing_key: rsa.RSAPrivateKey | None = None
+        self.verification_key: rsa.RSAPublicKey | None = None
         self.chain_hash: str = ""
-        
+
         # System configuration
         self.audit_retention_period = timedelta(days=2555)  # 7 years
         self.emergency_override_timeout = timedelta(minutes=30)
         self.governance_check_frequency = 60  # seconds
-        
+
         # Performance monitoring
         self.audit_metrics = self._initialize_audit_metrics()
-        
+
         # Real-time monitoring
-        self.real_time_monitors: List[Callable] = []
-        self.alert_thresholds: Dict[str, Any] = {}
-    
-    def _initialize_audit_metrics(self) -> Dict[str, Any]:
+        self.real_time_monitors: list[Callable] = []
+        self.alert_thresholds: dict[str, Any] = {}
+
+    def _initialize_audit_metrics(self) -> dict[str, Any]:
         """Initialize audit trail metrics"""
         return {
             'audit_events_recorded': Counter('audit_events_recorded_total', 'Audit events recorded', ['event_type', 'severity']),
@@ -299,27 +301,27 @@ class AuditTrailSystem:
             'override_approval_time': Histogram('override_approval_time_seconds', 'Override approval time', ['override_type']),
             'audit_query_performance': Histogram('audit_query_duration_seconds', 'Audit query duration')
         }
-    
+
     async def start_audit_trail_system(self):
         """Start the audit trail and governance system"""
         self.logger.info("📋 Starting Audit Trail System")
-        
+
         # Initialize cryptographic components
         await self._initialize_cryptography()
-        
+
         # Load governance policies
         await self._load_governance_policies()
-        
+
         # Initialize administrator accounts
         await self._initialize_administrators()
-        
+
         # Start audit processes
         asyncio.create_task(self._real_time_audit_monitor())
         asyncio.create_task(self._governance_enforcement_loop())
         asyncio.create_task(self._compliance_monitoring_loop())
         asyncio.create_task(self._audit_chain_verification_loop())
         asyncio.create_task(self._override_management_loop())
-        
+
         # Record system start event
         await self.record_audit_event(
             event_type=AuditEventType.SYSTEM_START,
@@ -334,9 +336,9 @@ class AuditTrailSystem:
                 'administrators_configured': len(self.authorized_administrators)
             }
         )
-        
+
         self.logger.info("✅ Audit Trail System active")
-    
+
     async def _initialize_cryptography(self):
         """Initialize cryptographic components for audit integrity"""
         if not cryptography or not rsa:
@@ -350,22 +352,22 @@ class AuditTrailSystem:
                 key_size=2048
             )
             self.verification_key = self.signing_key.public_key()
-        
+
         # Initialize blockchain-like chain hash
         genesis_data = f"XORB_AUDIT_GENESIS_{datetime.now().isoformat()}"
         self.chain_hash = hashlib.sha256(genesis_data.encode()).hexdigest()
-        
+
         self.logger.info("🔐 Cryptographic components initialized")
-    
+
     async def record_audit_event(self, event_type: AuditEventType, severity: AuditSeverity,
                                 source_component: str, summary: str, description: str,
-                                context: Dict[str, Any], source_agent: str = None,
+                                context: dict[str, Any], source_agent: str = None,
                                 correlation_id: str = None, parent_event_id: str = None) -> str:
         """Record an immutable audit event"""
         try:
             event_id = str(uuid.uuid4())
             timestamp = datetime.now()
-            
+
             # Calculate event hash
             event_data = {
                 'event_id': event_id,
@@ -378,12 +380,12 @@ class AuditTrailSystem:
                 'description': description,
                 'context': context
             }
-            
+
             event_content = json.dumps(event_data, sort_keys=True)
             event_hash = hashlib.sha256(
                 (event_content + self.chain_hash).encode()
             ).hexdigest()
-            
+
             # Create signature
             signature = None
             if self.signing_key and padding and hashes:
@@ -400,7 +402,7 @@ class AuditTrailSystem:
                 except Exception as e:
                     self.logger.warning(f"Failed to sign event: {e}")
                     signature = None
-            
+
             # Create audit event
             audit_event = AuditEvent(
                 event_id=event_id,
@@ -422,20 +424,20 @@ class AuditTrailSystem:
                 parent_event_id=parent_event_id,
                 triggered_by=context.get('triggered_by')
             )
-            
+
             # Store event
             self.audit_events.append(audit_event)
             self.event_index[event_id] = audit_event
-            
+
             # Update chain hash
             self.chain_hash = event_hash
-            
+
             # Update event chains
             if correlation_id:
                 self.event_chains[correlation_id].append(event_id)
             if parent_event_id:
                 self.event_chains[parent_event_id].append(event_id)
-            
+
             # Store in episodic memory for intelligence
             if self.orchestrator.episodic_memory:
                 await self.orchestrator.episodic_memory.store_memory(
@@ -458,41 +460,41 @@ class AuditTrailSystem:
                     },
                     importance=MemoryImportance.HIGH if severity in [AuditSeverity.CRITICAL, AuditSeverity.HIGH] else MemoryImportance.MEDIUM
                 )
-            
+
             # Update metrics
             self.audit_metrics['audit_events_recorded'].labels(
                 event_type=event_type.value,
                 severity=severity.value
             ).inc()
-            
+
             # Check for policy violations
             await self._check_policy_violations(audit_event)
-            
+
             # Trigger real-time monitoring
             await self._trigger_real_time_monitors(audit_event)
-            
+
             self.logger.debug("📝 Audit event recorded",
                             event_id=event_id[:8],
                             event_type=event_type.value,
                             severity=severity.value,
                             source=source_component)
-            
+
             return event_id
-            
+
         except Exception as e:
             self.logger.error("Failed to record audit event", error=str(e))
             raise
-    
+
     async def request_system_override(self, override_type: OverrideType, requested_by: str,
                                     justification: str, target_component: str,
                                     emergency_level: int = 3) -> str:
         """Request a system override with proper authorization"""
         try:
             override_id = str(uuid.uuid4())
-            
+
             # Determine required approvals based on override type and emergency level
             required_approvals = await self._determine_required_approvals(override_type, emergency_level)
-            
+
             override_request = OverrideRequest(
                 override_id=override_id,
                 override_type=override_type,
@@ -506,9 +508,9 @@ class AuditTrailSystem:
                 required_approvals=required_approvals,
                 received_approvals=[]
             )
-            
+
             self.active_overrides[override_id] = override_request
-            
+
             # Record audit event
             await self.record_audit_event(
                 event_type=AuditEventType.OVERRIDE_TRIGGERED,
@@ -525,48 +527,48 @@ class AuditTrailSystem:
                     'required_approvals': required_approvals
                 }
             )
-            
+
             # Auto-approve for extreme emergencies by authorized administrators
             if emergency_level >= 5 and await self._is_authorized_admin(requested_by):
                 await self._auto_approve_emergency_override(override_request)
-            
+
             self.audit_metrics['override_requests'].labels(
                 override_type=override_type.value,
                 status='requested'
             ).inc()
-            
+
             self.logger.warning("🚨 Override request submitted",
                               override_id=override_id[:8],
                               override_type=override_type.value,
                               requested_by=requested_by,
                               emergency_level=emergency_level)
-            
+
             return override_id
-            
+
         except Exception as e:
             self.logger.error("Failed to request override", error=str(e))
             raise
-    
+
     async def execute_approved_override(self, override_id: str, executed_by: str) -> bool:
         """Execute an approved system override"""
         try:
             if override_id not in self.active_overrides:
                 raise ValueError(f"Override {override_id} not found")
-            
+
             override_request = self.active_overrides[override_id]
-            
+
             if override_request.status != "approved":
                 raise ValueError(f"Override {override_id} not approved for execution")
-            
+
             # Execute the override
             execution_result = await self._execute_override_action(override_request)
-            
+
             # Update override status
             override_request.status = "executed"
             override_request.executed_at = datetime.now()
             override_request.executed_by = executed_by
             override_request.actual_impact = execution_result
-            
+
             # Record execution event
             await self.record_audit_event(
                 event_type=AuditEventType.OVERRIDE_TRIGGERED,
@@ -582,52 +584,52 @@ class AuditTrailSystem:
                     'target_component': override_request.target_component
                 }
             )
-            
+
             # Move to history
             self.override_history.append(override_request)
             del self.active_overrides[override_id]
-            
+
             self.audit_metrics['override_requests'].labels(
                 override_type=override_request.override_type.value,
                 status='executed'
             ).inc()
-            
+
             self.logger.critical("⚠️ Override executed",
                                override_id=override_id[:8],
                                override_type=override_request.override_type.value,
                                executed_by=executed_by)
-            
+
             return execution_result.get('success', False)
-            
+
         except Exception as e:
             self.logger.error("Failed to execute override", override_id=override_id[:8], error=str(e))
             raise
-    
+
     async def generate_compliance_report(self, framework: str, period_days: int = 30) -> ComplianceReport:
         """Generate comprehensive compliance report"""
         try:
             report_id = str(uuid.uuid4())
             end_time = datetime.now()
             start_time = end_time - timedelta(days=period_days)
-            
+
             # Analyze events in period
             period_events = [
                 event for event in self.audit_events
                 if start_time <= event.timestamp <= end_time
             ]
-            
+
             # Calculate compliance score
             compliance_score = await self._calculate_compliance_score(framework, period_events)
-            
+
             # Identify violations
             violations = await self._identify_compliance_violations(framework, period_events)
-            
+
             # Generate recommendations
             recommendations = await self._generate_compliance_recommendations(framework, violations)
-            
+
             # Assess coverage
             coverage_analysis = await self._assess_audit_coverage(period_events)
-            
+
             report = ComplianceReport(
                 report_id=report_id,
                 framework=framework,
@@ -646,7 +648,7 @@ class AuditTrailSystem:
                 generated_at=datetime.now(),
                 generated_by="audit_system"
             )
-            
+
             # Record report generation
             await self.record_audit_event(
                 event_type=AuditEventType.COMPLIANCE_ASSESSMENT,
@@ -662,14 +664,14 @@ class AuditTrailSystem:
                     'violations_count': len(violations)
                 }
             )
-            
+
             return report
-            
+
         except Exception as e:
             self.logger.error("Failed to generate compliance report", framework=framework, error=str(e))
             raise
-    
-    async def get_audit_status(self) -> Dict[str, Any]:
+
+    async def get_audit_status(self) -> dict[str, Any]:
         """Get comprehensive audit trail system status"""
         return {
             'audit_trail_system': {
@@ -714,7 +716,7 @@ class AuditTrailSystem:
                 'last_integrity_check': datetime.now().isoformat()
             }
         }
-    
+
     # Placeholder implementations for complex methods
     async def _load_governance_policies(self): pass
     async def _initialize_administrators(self): pass
@@ -725,16 +727,16 @@ class AuditTrailSystem:
     async def _override_management_loop(self): pass
     async def _check_policy_violations(self, event: AuditEvent): pass
     async def _trigger_real_time_monitors(self, event: AuditEvent): pass
-    async def _determine_required_approvals(self, override_type: OverrideType, emergency_level: int) -> List[str]: return []
+    async def _determine_required_approvals(self, override_type: OverrideType, emergency_level: int) -> list[str]: return []
     async def _is_authorized_admin(self, user: str) -> bool: return True
     async def _auto_approve_emergency_override(self, override_request: OverrideRequest): pass
-    async def _execute_override_action(self, override_request: OverrideRequest) -> Dict[str, Any]: return {'success': True}
-    async def _calculate_compliance_score(self, framework: str, events: List[AuditEvent]) -> float: return 0.85
-    async def _identify_compliance_violations(self, framework: str, events: List[AuditEvent]) -> List[Dict[str, Any]]: return []
-    async def _generate_compliance_recommendations(self, framework: str, violations: List[Dict[str, Any]]) -> List[str]: return []
-    async def _assess_audit_coverage(self, events: List[AuditEvent]) -> Dict[str, Any]: 
+    async def _execute_override_action(self, override_request: OverrideRequest) -> dict[str, Any]: return {'success': True}
+    async def _calculate_compliance_score(self, framework: str, events: list[AuditEvent]) -> float: return 0.85
+    async def _identify_compliance_violations(self, framework: str, events: list[AuditEvent]) -> list[dict[str, Any]]: return []
+    async def _generate_compliance_recommendations(self, framework: str, violations: list[dict[str, Any]]) -> list[str]: return []
+    async def _assess_audit_coverage(self, events: list[AuditEvent]) -> dict[str, Any]:
         return {'coverage_percentage': 0.95, 'missing_events': [], 'integrity_score': 0.98}
-    def _assess_risk_level(self, compliance_score: float, violations: List[Dict[str, Any]]) -> str: return 'medium'
+    def _assess_risk_level(self, compliance_score: float, violations: list[dict[str, Any]]) -> str: return 'medium'
     async def _verify_chain_integrity(self) -> bool: return True
 
 

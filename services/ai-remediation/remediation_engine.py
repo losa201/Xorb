@@ -6,22 +6,18 @@ Phase 6.2 - AI-Powered Fix Generation and Validation
 
 import asyncio
 import json
-import logging
 import os
-import tempfile
 import subprocess
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Union
-from dataclasses import dataclass, asdict
+import tempfile
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
-from pathlib import Path
 
-import asyncpg
 import aioredis
-import aiofiles
-from openai import AsyncOpenAI
-from prometheus_client import Counter, Histogram, Gauge, start_http_server
+import asyncpg
 import structlog
+from openai import AsyncOpenAI
+from prometheus_client import Counter, Gauge, Histogram, start_http_server
 
 # Configure logging
 logger = structlog.get_logger("xorb.ai_remediation")
@@ -41,7 +37,7 @@ remediation_generation_duration = Histogram(
 
 remediation_validation_results = Counter(
     'remediation_validation_results_total',
-    'Remediation validation results', 
+    'Remediation validation results',
     ['validation_type', 'result', 'language']
 )
 
@@ -66,7 +62,7 @@ fix_confidence_score = Histogram(
 class RemediationType(Enum):
     CODE_PATCH = "code_patch"
     CONFIG_FIX = "config_fix"
-    INFRASTRUCTURE = "infrastructure_fix"  
+    INFRASTRUCTURE = "infrastructure_fix"
     DEPENDENCY_UPDATE = "dependency_update"
     SECURITY_CONTROL = "security_control"
     PROCESS_CHANGE = "process_change"
@@ -86,17 +82,17 @@ class ValidationStatus(Enum):
 @dataclass
 class CodeContext:
     """Context about the vulnerable code"""
-    repository_url: Optional[str]
+    repository_url: str | None
     file_path: str
     line_number: int
-    function_name: Optional[str]
-    class_name: Optional[str]
+    function_name: str | None
+    class_name: str | None
     language: str
-    framework: Optional[str]
+    framework: str | None
     vulnerable_code: str
     surrounding_context: str
-    dependencies: List[str]
-    imports: List[str]
+    dependencies: list[str]
+    imports: list[str]
 
 @dataclass
 class RemediationSuggestion:
@@ -106,39 +102,39 @@ class RemediationSuggestion:
     suggestion_type: RemediationType
     title: str
     description: str
-    
+
     # Fix details
-    fix_code: Optional[str]
-    fix_config: Optional[Dict]
-    fix_commands: Optional[List[str]]
-    affected_files: List[str]
-    
+    fix_code: str | None
+    fix_config: dict | None
+    fix_commands: list[str] | None
+    affected_files: list[str]
+
     # Validation
     complexity: FixComplexity
     confidence: float  # 0-1 scale
     risk_level: str    # "low", "medium", "high"
     testing_required: bool
     rollback_plan: str
-    
+
     # Implementation guidance
-    implementation_steps: List[str]
-    prerequisites: List[str]
+    implementation_steps: list[str]
+    prerequisites: list[str]
     estimated_effort_hours: float
-    
+
     # Validation results
     static_analysis_passed: bool
     security_scan_passed: bool
     test_coverage_impact: float
-    
+
     # AI insights
     ai_reasoning: str
-    alternative_approaches: List[str]
-    potential_side_effects: List[str]
-    
+    alternative_approaches: list[str]
+    potential_side_effects: list[str]
+
     # Metadata
     generated_by: str
     generated_at: datetime
-    validated_at: Optional[datetime]
+    validated_at: datetime | None
     model_version: str
 
 @dataclass
@@ -148,13 +144,13 @@ class ValidationResult:
     validation_type: str
     status: ValidationStatus
     score: float
-    issues: List[str]
-    recommendations: List[str]
-    details: Dict
+    issues: list[str]
+    recommendations: list[str]
+    details: dict
 
 class StaticCodeAnalyzer:
     """Performs static analysis on vulnerable code"""
-    
+
     def __init__(self):
         self.analyzers = {
             "python": ["bandit", "semgrep", "pylint"],
@@ -164,58 +160,58 @@ class StaticCodeAnalyzer:
             "go": ["gosec", "staticcheck"],
             "php": ["psalm", "phpstan", "semgrep"]
         }
-    
-    async def analyze_vulnerability(self, code_context: CodeContext) -> Dict:
+
+    async def analyze_vulnerability(self, code_context: CodeContext) -> dict:
         """Analyze vulnerable code to understand the issue"""
-        
+
         start_time = datetime.now()
-        
+
         try:
             with code_analysis_duration.labels(
                 analyzer_type="vulnerability_analysis",
                 language=code_context.language
             ).time():
-                
+
                 # Create temporary file with vulnerable code
                 analysis_results = {}
-                
+
                 with tempfile.NamedTemporaryFile(
-                    mode='w', 
+                    mode='w',
                     suffix=self._get_file_extension(code_context.language),
                     delete=False
                 ) as tmp_file:
-                    
+
                     tmp_file.write(code_context.vulnerable_code)
                     tmp_file.flush()
-                    
+
                     # Run static analysis tools
                     if code_context.language == "python":
                         analysis_results.update(await self._analyze_python(tmp_file.name))
                     elif code_context.language == "javascript":
                         analysis_results.update(await self._analyze_javascript(tmp_file.name))
                     # Add other languages as needed
-                    
+
                     # Clean up
                     os.unlink(tmp_file.name)
-                
+
                 analysis_results.update({
                     "analysis_duration": (datetime.now() - start_time).total_seconds(),
                     "vulnerability_patterns": await self._identify_vulnerability_patterns(code_context),
                     "security_hotspots": await self._find_security_hotspots(code_context),
                     "dependency_issues": await self._check_dependency_vulnerabilities(code_context)
                 })
-                
+
                 return analysis_results
-                
+
         except Exception as e:
             logger.error("Static analysis failed", error=str(e))
             return {"error": str(e), "analysis_failed": True}
-    
-    async def _analyze_python(self, file_path: str) -> Dict:
+
+    async def _analyze_python(self, file_path: str) -> dict:
         """Python-specific static analysis"""
-        
+
         results = {}
-        
+
         try:
             # Run bandit for security issues
             bandit_cmd = ["bandit", "-f", "json", file_path]
@@ -224,7 +220,7 @@ class StaticCodeAnalyzer:
                 results["bandit"] = json.loads(result.stdout.decode())
         except Exception as e:
             results["bandit_error"] = str(e)
-        
+
         try:
             # Run semgrep for additional patterns
             semgrep_cmd = ["semgrep", "--config=auto", "--json", file_path]
@@ -233,14 +229,14 @@ class StaticCodeAnalyzer:
                 results["semgrep"] = json.loads(result.stdout.decode())
         except Exception as e:
             results["semgrep_error"] = str(e)
-        
+
         return results
-    
-    async def _analyze_javascript(self, file_path: str) -> Dict:
+
+    async def _analyze_javascript(self, file_path: str) -> dict:
         """JavaScript-specific static analysis"""
-        
+
         results = {}
-        
+
         try:
             # Run ESLint with security rules
             eslint_cmd = ["eslint", "--format", "json", file_path]
@@ -249,27 +245,27 @@ class StaticCodeAnalyzer:
                 results["eslint"] = json.loads(result.stdout.decode())
         except Exception as e:
             results["eslint_error"] = str(e)
-        
+
         return results
-    
-    async def _run_analysis_tool(self, cmd: List[str]) -> subprocess.CompletedProcess:
+
+    async def _run_analysis_tool(self, cmd: list[str]) -> subprocess.CompletedProcess:
         """Run analysis tool command"""
-        
+
         process = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
         )
-        
+
         stdout, stderr = await process.communicate()
-        
+
         return subprocess.CompletedProcess(
             args=cmd,
             returncode=process.returncode,
             stdout=stdout,
             stderr=stderr
         )
-    
+
     def _get_file_extension(self, language: str) -> str:
         """Get file extension for language"""
         extensions = {
@@ -281,51 +277,51 @@ class StaticCodeAnalyzer:
             "php": ".php"
         }
         return extensions.get(language, ".txt")
-    
-    async def _identify_vulnerability_patterns(self, context: CodeContext) -> List[str]:
+
+    async def _identify_vulnerability_patterns(self, context: CodeContext) -> list[str]:
         """Identify common vulnerability patterns"""
-        
+
         patterns = []
         code = context.vulnerable_code.lower()
-        
+
         # SQL Injection patterns
         if any(keyword in code for keyword in ["select", "insert", "update", "delete"]):
             if "%" in code or ".format(" in code or "f\"" in code:
                 patterns.append("sql_injection_risk")
-        
+
         # XSS patterns
         if any(keyword in code for keyword in ["innerhtml", "document.write", "eval"]):
             patterns.append("xss_risk")
-        
+
         # Command injection patterns
         if any(keyword in code for keyword in ["os.system", "subprocess", "exec", "eval"]):
             patterns.append("command_injection_risk")
-        
+
         # Insecure randomness
         if any(keyword in code for keyword in ["math.random", "random.random"]):
             patterns.append("weak_randomness")
-        
+
         # Hardcoded secrets
         if any(keyword in code for keyword in ["password", "secret", "api_key", "token"]):
             patterns.append("hardcoded_secrets")
-        
+
         return patterns
-    
-    async def _find_security_hotspots(self, context: CodeContext) -> List[Dict]:
+
+    async def _find_security_hotspots(self, context: CodeContext) -> list[dict]:
         """Find security hotspots in code"""
-        
+
         hotspots = []
         lines = context.vulnerable_code.split('\n')
-        
+
         for i, line in enumerate(lines):
             line_lower = line.lower().strip()
-            
+
             # Check for dangerous functions
             dangerous_functions = [
                 "eval", "exec", "os.system", "subprocess.call",
                 "pickle.loads", "yaml.load", "input", "raw_input"
             ]
-            
+
             for func in dangerous_functions:
                 if func in line_lower:
                     hotspots.append({
@@ -335,14 +331,14 @@ class StaticCodeAnalyzer:
                         "code": line.strip(),
                         "severity": "high"
                     })
-        
+
         return hotspots
-    
-    async def _check_dependency_vulnerabilities(self, context: CodeContext) -> List[Dict]:
+
+    async def _check_dependency_vulnerabilities(self, context: CodeContext) -> list[dict]:
         """Check for known vulnerabilities in dependencies"""
-        
+
         vulnerabilities = []
-        
+
         # This would integrate with vulnerability databases
         # For now, simulate based on common vulnerable packages
         vulnerable_packages = {
@@ -351,7 +347,7 @@ class StaticCodeAnalyzer:
             "flask": ["1.0.0", "1.1.0"],
             "lodash": ["4.17.0", "4.17.10"]
         }
-        
+
         for dep in context.dependencies:
             for vuln_pkg, vuln_versions in vulnerable_packages.items():
                 if vuln_pkg in dep.lower():
@@ -362,12 +358,12 @@ class StaticCodeAnalyzer:
                         "severity": "medium",
                         "cve": f"CVE-2024-{hash(dep) % 10000:04d}"
                     })
-        
+
         return vulnerabilities
 
 class AIRemediationGenerator:
     """Generates remediation suggestions using AI"""
-    
+
     def __init__(self):
         self.openai_client = None
         self.openrouter_client = None
@@ -378,12 +374,12 @@ class AIRemediationGenerator:
                 "temperature": 0.1
             },
             "qwen/qwen-coder:free": {
-                "client": "openrouter", 
+                "client": "openrouter",
                 "max_tokens": 2000,
                 "temperature": 0.1
             }
         }
-    
+
     async def initialize(self, openai_key: str, openrouter_key: str):
         """Initialize AI clients"""
         self.openai_client = AsyncOpenAI(api_key=openai_key)
@@ -391,41 +387,41 @@ class AIRemediationGenerator:
             api_key=openrouter_key,
             base_url="https://openrouter.ai/api/v1"
         )
-    
+
     async def generate_remediation_suggestions(
         self,
         vulnerability_id: str,
         vulnerability_description: str,
         code_context: CodeContext,
-        analysis_results: Dict
-    ) -> List[RemediationSuggestion]:
+        analysis_results: dict
+    ) -> list[RemediationSuggestion]:
         """Generate comprehensive remediation suggestions"""
-        
+
         start_time = datetime.now()
         suggestions = []
-        
+
         try:
             with remediation_generation_duration.labels(
                 suggestion_type="comprehensive",
                 complexity="moderate"
             ).time():
-                
+
                 # Generate different types of suggestions
                 code_suggestions = await self._generate_code_fixes(
                     vulnerability_id, vulnerability_description, code_context, analysis_results
                 )
                 suggestions.extend(code_suggestions)
-                
+
                 config_suggestions = await self._generate_config_fixes(
                     vulnerability_id, vulnerability_description, code_context, analysis_results
                 )
                 suggestions.extend(config_suggestions)
-                
+
                 dependency_suggestions = await self._generate_dependency_updates(
                     vulnerability_id, vulnerability_description, code_context, analysis_results
                 )
                 suggestions.extend(dependency_suggestions)
-                
+
                 # Update metrics
                 for suggestion in suggestions:
                     remediation_suggestions_total.labels(
@@ -433,34 +429,34 @@ class AIRemediationGenerator:
                         language=code_context.language,
                         ai_model="gpt4_enhanced"
                     ).inc()
-                    
+
                     fix_confidence_score.observe(suggestion.confidence)
-                
+
                 logger.info("Generated remediation suggestions",
                            vulnerability_id=vulnerability_id,
                            suggestion_count=len(suggestions),
                            duration=(datetime.now() - start_time).total_seconds())
-                
+
                 return suggestions
-                
+
         except Exception as e:
             logger.error("Failed to generate remediation suggestions",
                         vulnerability_id=vulnerability_id,
                         error=str(e))
             return []
-    
+
     async def _generate_code_fixes(
         self,
         vulnerability_id: str,
         description: str,
         context: CodeContext,
-        analysis: Dict
-    ) -> List[RemediationSuggestion]:
+        analysis: dict
+    ) -> list[RemediationSuggestion]:
         """Generate code-level fixes"""
-        
+
         # Use GPT-4 for complex code analysis and fixing
         prompt = self._build_code_fix_prompt(description, context, analysis)
-        
+
         try:
             response = await self.openai_client.chat.completions.create(
                 model="gpt-4",
@@ -478,9 +474,9 @@ class AIRemediationGenerator:
                 max_tokens=4000,
                 response_format={"type": "json_object"}
             )
-            
+
             fix_data = json.loads(response.choices[0].message.content)
-            
+
             suggestion = RemediationSuggestion(
                 id=f"code_fix_{vulnerability_id}_{int(datetime.now().timestamp())}",
                 vulnerability_id=vulnerability_id,
@@ -510,25 +506,25 @@ class AIRemediationGenerator:
                 validated_at=None,
                 model_version="6.2.0"
             )
-            
+
             return [suggestion]
-            
+
         except Exception as e:
             logger.error("Failed to generate code fix", error=str(e))
             return []
-    
+
     async def _generate_config_fixes(
         self,
         vulnerability_id: str,
         description: str,
         context: CodeContext,
-        analysis: Dict
-    ) -> List[RemediationSuggestion]:
+        analysis: dict
+    ) -> list[RemediationSuggestion]:
         """Generate configuration-based fixes"""
-        
+
         # Use Qwen for configuration optimization
         prompt = self._build_config_fix_prompt(description, context, analysis)
-        
+
         try:
             response = await self.openrouter_client.chat.completions.create(
                 model="qwen/qwen-coder:free",
@@ -545,7 +541,7 @@ class AIRemediationGenerator:
                 temperature=0.1,
                 max_tokens=2000
             )
-            
+
             # Parse response (assuming JSON format)
             try:
                 config_data = json.loads(response.choices[0].message.content)
@@ -557,7 +553,7 @@ class AIRemediationGenerator:
                     "config_changes": {},
                     "confidence": 0.6
                 }
-            
+
             suggestion = RemediationSuggestion(
                 id=f"config_fix_{vulnerability_id}_{int(datetime.now().timestamp())}",
                 vulnerability_id=vulnerability_id,
@@ -587,25 +583,25 @@ class AIRemediationGenerator:
                 validated_at=None,
                 model_version="6.2.0"
             )
-            
+
             return [suggestion]
-            
+
         except Exception as e:
             logger.error("Failed to generate config fix", error=str(e))
             return []
-    
+
     async def _generate_dependency_updates(
         self,
         vulnerability_id: str,
         description: str,
         context: CodeContext,
-        analysis: Dict
-    ) -> List[RemediationSuggestion]:
+        analysis: dict
+    ) -> list[RemediationSuggestion]:
         """Generate dependency update suggestions"""
-        
+
         suggestions = []
         dependency_vulns = analysis.get("dependency_issues", [])
-        
+
         for vuln in dependency_vulns:
             suggestion = RemediationSuggestion(
                 id=f"dep_update_{vulnerability_id}_{vuln['package']}",
@@ -641,14 +637,14 @@ class AIRemediationGenerator:
                 validated_at=None,
                 model_version="6.2.0"
             )
-            
+
             suggestions.append(suggestion)
-        
+
         return suggestions
-    
-    def _build_code_fix_prompt(self, description: str, context: CodeContext, analysis: Dict) -> str:
+
+    def _build_code_fix_prompt(self, description: str, context: CodeContext, analysis: dict) -> str:
         """Build prompt for code fix generation"""
-        
+
         return f"""
 Fix this security vulnerability in {context.language} code:
 
@@ -694,10 +690,10 @@ Focus on:
 4. Performance considerations
 5. Maintainability
 """
-    
-    def _build_config_fix_prompt(self, description: str, context: CodeContext, analysis: Dict) -> str:
+
+    def _build_config_fix_prompt(self, description: str, context: CodeContext, analysis: dict) -> str:
         """Build prompt for configuration fix generation"""
-        
+
         return f"""
 Generate secure configuration fixes for this vulnerability:
 
@@ -723,39 +719,39 @@ Return as JSON with:
 
 class RemediationValidator:
     """Validates remediation suggestions before deployment"""
-    
+
     def __init__(self):
         self.static_analyzer = StaticCodeAnalyzer()
-    
+
     async def validate_suggestion(self, suggestion: RemediationSuggestion) -> ValidationResult:
         """Comprehensive validation of remediation suggestion"""
-        
+
         start_time = datetime.now()
         validation_issues = []
         validation_score = 0.0
-        
+
         try:
             # Static analysis validation
             if suggestion.fix_code:
                 static_result = await self._validate_static_analysis(suggestion)
                 validation_score += static_result["score"] * 0.4
                 validation_issues.extend(static_result["issues"])
-            
+
             # Security validation
             security_result = await self._validate_security(suggestion)
             validation_score += security_result["score"] * 0.3
             validation_issues.extend(security_result["issues"])
-            
+
             # Business logic validation
             logic_result = await self._validate_business_logic(suggestion)
             validation_score += logic_result["score"] * 0.2
             validation_issues.extend(logic_result["issues"])
-            
+
             # Performance impact validation
             perf_result = await self._validate_performance_impact(suggestion)
             validation_score += perf_result["score"] * 0.1
             validation_issues.extend(perf_result["issues"])
-            
+
             # Determine overall status
             if validation_score >= 0.8 and len(validation_issues) == 0:
                 status = ValidationStatus.PASSED
@@ -763,7 +759,7 @@ class RemediationValidator:
                 status = ValidationStatus.WARNING
             else:
                 status = ValidationStatus.FAILED
-            
+
             result = ValidationResult(
                 suggestion_id=suggestion.id,
                 validation_type="comprehensive",
@@ -779,19 +775,19 @@ class RemediationValidator:
                     "validation_duration": (datetime.now() - start_time).total_seconds()
                 }
             )
-            
+
             # Update metrics
             remediation_validation_results.labels(
                 validation_type="comprehensive",
                 result=status.value,
                 language=suggestion.affected_files[0].split('.')[-1] if suggestion.affected_files else "unknown"
             ).inc()
-            
+
             return result
-            
+
         except Exception as e:
             logger.error("Validation failed", suggestion_id=suggestion.id, error=str(e))
-            
+
             return ValidationResult(
                 suggestion_id=suggestion.id,
                 validation_type="comprehensive",
@@ -801,13 +797,13 @@ class RemediationValidator:
                 recommendations=["Manual review required due to validation failure"],
                 details={"error": str(e)}
             )
-    
-    async def _validate_static_analysis(self, suggestion: RemediationSuggestion) -> Dict:
+
+    async def _validate_static_analysis(self, suggestion: RemediationSuggestion) -> dict:
         """Validate using static analysis tools"""
-        
+
         if not suggestion.fix_code:
             return {"score": 0.5, "issues": []}
-        
+
         try:
             # Create temporary file with fixed code
             with tempfile.NamedTemporaryFile(
@@ -817,11 +813,11 @@ class RemediationValidator:
             ) as tmp_file:
                 tmp_file.write(suggestion.fix_code)
                 tmp_file.flush()
-                
+
                 # Run static analysis
                 issues = []
                 score = 1.0
-                
+
                 # Check for common issues
                 if "eval(" in suggestion.fix_code:
                     issues.append({
@@ -830,7 +826,7 @@ class RemediationValidator:
                         "severity": "high"
                     })
                     score -= 0.3
-                
+
                 if "# TODO" in suggestion.fix_code or "# FIXME" in suggestion.fix_code:
                     issues.append({
                         "type": "incomplete_fix",
@@ -838,27 +834,27 @@ class RemediationValidator:
                         "severity": "medium"
                     })
                     score -= 0.1
-                
+
                 # Clean up
                 os.unlink(tmp_file.name)
-                
+
                 return {"score": max(0.0, score), "issues": issues}
-                
+
         except Exception as e:
             return {
                 "score": 0.0,
                 "issues": [{"type": "analysis_error", "message": str(e), "severity": "high"}]
             }
-    
-    async def _validate_security(self, suggestion: RemediationSuggestion) -> Dict:
+
+    async def _validate_security(self, suggestion: RemediationSuggestion) -> dict:
         """Validate security aspects of the fix"""
-        
+
         issues = []
         score = 1.0
-        
+
         # Check for proper input validation
         if suggestion.fix_code and "input" in suggestion.fix_code.lower():
-            if not any(keyword in suggestion.fix_code.lower() 
+            if not any(keyword in suggestion.fix_code.lower()
                       for keyword in ["validate", "sanitize", "escape", "filter"]):
                 issues.append({
                     "type": "missing_input_validation",
@@ -866,9 +862,9 @@ class RemediationValidator:
                     "severity": "medium"
                 })
                 score -= 0.2
-        
+
         # Check for SQL injection prevention
-        if suggestion.fix_code and any(keyword in suggestion.fix_code.lower() 
+        if suggestion.fix_code and any(keyword in suggestion.fix_code.lower()
                                       for keyword in ["select", "insert", "update", "delete"]):
             if not any(keyword in suggestion.fix_code.lower()
                       for keyword in ["parameterized", "prepared", "bind", "?"]):
@@ -878,7 +874,7 @@ class RemediationValidator:
                     "severity": "high"
                 })
                 score -= 0.4
-        
+
         # Check for XSS prevention
         if suggestion.fix_code and "html" in suggestion.fix_code.lower():
             if not any(keyword in suggestion.fix_code.lower()
@@ -889,15 +885,15 @@ class RemediationValidator:
                     "severity": "high"
                 })
                 score -= 0.3
-        
+
         return {"score": max(0.0, score), "issues": issues}
-    
-    async def _validate_business_logic(self, suggestion: RemediationSuggestion) -> Dict:
+
+    async def _validate_business_logic(self, suggestion: RemediationSuggestion) -> dict:
         """Validate business logic correctness"""
-        
+
         issues = []
         score = 0.8  # Default decent score
-        
+
         # Check complexity vs confidence
         if suggestion.complexity == FixComplexity.COMPLEX and suggestion.confidence < 0.7:
             issues.append({
@@ -906,28 +902,28 @@ class RemediationValidator:
                 "severity": "medium"
             })
             score -= 0.2
-        
+
         # Check effort estimation reasonableness
         if suggestion.estimated_effort_hours > 8:
             issues.append({
                 "type": "high_effort_fix",
                 "message": "High effort fix may need architectural review",
-                "severity": "low"  
+                "severity": "low"
             })
             score -= 0.1
-        
+
         return {"score": max(0.0, score), "issues": issues}
-    
-    async def _validate_performance_impact(self, suggestion: RemediationSuggestion) -> Dict:
+
+    async def _validate_performance_impact(self, suggestion: RemediationSuggestion) -> dict:
         """Validate performance impact of the fix"""
-        
+
         issues = []
         score = 0.9  # Default good score
-        
+
         # Check for performance anti-patterns
         if suggestion.fix_code:
             code = suggestion.fix_code.lower()
-            
+
             # Check for potential performance issues
             if "while true:" in code or "while 1:" in code:
                 issues.append({
@@ -936,7 +932,7 @@ class RemediationValidator:
                     "severity": "high"
                 })
                 score -= 0.4
-            
+
             if code.count("for ") > 3:
                 issues.append({
                     "type": "nested_loops",
@@ -944,72 +940,72 @@ class RemediationValidator:
                     "severity": "low"
                 })
                 score -= 0.1
-        
+
         return {"score": max(0.0, score), "issues": issues}
-    
-    def _generate_validation_recommendations(self, issues: List[Dict]) -> List[str]:
+
+    def _generate_validation_recommendations(self, issues: list[dict]) -> list[str]:
         """Generate recommendations based on validation issues"""
-        
+
         recommendations = []
-        
+
         high_severity_count = len([i for i in issues if i.get("severity") == "high"])
         medium_severity_count = len([i for i in issues if i.get("severity") == "medium"])
-        
+
         if high_severity_count > 0:
             recommendations.append("Address high-severity issues before deployment")
             recommendations.append("Conduct security review with senior engineer")
-        
+
         if medium_severity_count > 2:
             recommendations.append("Consider alternative implementation approach")
-        
+
         if any("performance" in str(issue) for issue in issues):
             recommendations.append("Conduct performance testing before deployment")
-        
+
         if any("test" in str(issue) for issue in issues):
             recommendations.append("Ensure comprehensive test coverage")
-        
+
         if not recommendations:
             recommendations.append("Fix passed validation - ready for deployment")
-        
+
         return recommendations
 
 class AutonomousRemediationEngine:
     """Main remediation engine coordinating all components"""
-    
+
     def __init__(self):
         self.static_analyzer = StaticCodeAnalyzer()
         self.ai_generator = AIRemediationGenerator()
         self.validator = RemediationValidator()
         self.db_pool = None
         self.redis = None
-    
-    async def initialize(self, config: Dict):
+
+    async def initialize(self, config: dict):
         """Initialize the remediation engine"""
-        
+
         logger.info("Initializing Autonomous Remediation Engine...")
-        
+
         # Initialize database
         database_url = config.get("database_url")
         self.db_pool = await asyncpg.create_pool(database_url, min_size=3, max_size=8)
-        
+
         # Initialize Redis
         redis_url = config.get("redis_url")
         self.redis = await aioredis.from_url(redis_url)
-        
+
         # Initialize AI generator
         await self.ai_generator.initialize(
             config.get("openai_api_key"),
             config.get("openrouter_api_key")
         )
-        
+
         # Create database tables
         await self._create_remediation_tables()
-        
+
         logger.info("Autonomous Remediation Engine initialized successfully")
-    
+
     async def _create_remediation_tables(self):
         """Create database tables for remediation"""
-        
+
         async with self.db_pool.acquire() as conn:
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS remediation_suggestions (
@@ -1077,23 +1073,23 @@ class AutonomousRemediationEngine:
                     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
                 );
             """)
-    
-    async def generate_remediation_for_vulnerability(self, vulnerability_id: str) -> List[RemediationSuggestion]:
+
+    async def generate_remediation_for_vulnerability(self, vulnerability_id: str) -> list[RemediationSuggestion]:
         """Generate comprehensive remediation suggestions for a vulnerability"""
-        
+
         start_time = datetime.now()
-        
+
         try:
             # Get vulnerability details and code context
             vuln_data = await self._get_vulnerability_details(vulnerability_id)
             if not vuln_data:
                 raise ValueError(f"Vulnerability {vulnerability_id} not found")
-            
+
             code_context = await self._build_code_context(vuln_data)
-            
+
             # Perform static analysis
             analysis_results = await self.static_analyzer.analyze_vulnerability(code_context)
-            
+
             # Generate AI-powered suggestions
             suggestions = await self.ai_generator.generate_remediation_suggestions(
                 vulnerability_id,
@@ -1101,25 +1097,25 @@ class AutonomousRemediationEngine:
                 code_context,
                 analysis_results
             )
-            
+
             # Validate each suggestion
             validated_suggestions = []
             for suggestion in suggestions:
                 validation_result = await self.validator.validate_suggestion(suggestion)
-                
+
                 # Update suggestion with validation results
                 suggestion.static_analysis_passed = validation_result.status in [
                     ValidationStatus.PASSED, ValidationStatus.WARNING
                 ]
                 suggestion.security_scan_passed = validation_result.score >= 0.7
                 suggestion.validated_at = datetime.now()
-                
+
                 # Store suggestion and validation
                 await self._store_suggestion(suggestion)
                 await self._store_validation_result(validation_result)
-                
+
                 validated_suggestions.append(suggestion)
-            
+
             # Update success rate metric
             success_count = len([s for s in validated_suggestions if s.static_analysis_passed])
             if suggestions:
@@ -1127,25 +1123,25 @@ class AutonomousRemediationEngine:
                 remediation_success_rate.labels(
                     remediation_type="ai_generated"
                 ).set(success_rate)
-            
+
             duration = (datetime.now() - start_time).total_seconds()
             logger.info("Remediation generation completed",
                        vulnerability_id=vulnerability_id,
                        suggestion_count=len(validated_suggestions),
                        validation_passed=success_count,
                        duration=duration)
-            
+
             return validated_suggestions
-            
+
         except Exception as e:
             logger.error("Remediation generation failed",
                         vulnerability_id=vulnerability_id,
                         error=str(e))
             raise
-    
-    async def _get_vulnerability_details(self, vulnerability_id: str) -> Optional[Dict]:
+
+    async def _get_vulnerability_details(self, vulnerability_id: str) -> dict | None:
         """Get vulnerability details from database"""
-        
+
         async with self.db_pool.acquire() as conn:
             return await conn.fetchrow("""
                 SELECT v.*, a.name as asset_name, a.asset_type
@@ -1153,13 +1149,13 @@ class AutonomousRemediationEngine:
                 JOIN assets a ON v.asset_id = a.id
                 WHERE v.id = $1
             """, vulnerability_id)
-    
-    async def _build_code_context(self, vuln_data: Dict) -> CodeContext:
+
+    async def _build_code_context(self, vuln_data: dict) -> CodeContext:
         """Build code context from vulnerability data"""
-        
+
         # This would integrate with code repositories
         # For now, create a simplified context
-        
+
         return CodeContext(
             repository_url=vuln_data.get('repository_url'),
             file_path=vuln_data.get('file_path', 'app.py'),
@@ -1173,10 +1169,10 @@ class AutonomousRemediationEngine:
             dependencies=vuln_data.get('dependencies', []),
             imports=vuln_data.get('imports', [])
         )
-    
+
     async def _store_suggestion(self, suggestion: RemediationSuggestion):
         """Store remediation suggestion in database"""
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 await conn.execute("""
@@ -1204,13 +1200,13 @@ class AutonomousRemediationEngine:
                 json.dumps(suggestion.alternative_approaches),
                 json.dumps(suggestion.potential_side_effects), suggestion.generated_by,
                 suggestion.generated_at, suggestion.validated_at, suggestion.model_version)
-                
+
         except Exception as e:
             logger.error("Failed to store remediation suggestion", error=str(e))
-    
+
     async def _store_validation_result(self, result: ValidationResult):
         """Store validation result in database"""
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 await conn.execute("""
@@ -1221,13 +1217,13 @@ class AutonomousRemediationEngine:
                 result.suggestion_id, result.validation_type, result.status.value,
                 result.score, json.dumps(result.issues),
                 json.dumps(result.recommendations), json.dumps(result.details))
-                
+
         except Exception as e:
             logger.error("Failed to store validation result", error=str(e))
-    
-    async def get_remediation_statistics(self) -> Dict:
+
+    async def get_remediation_statistics(self) -> dict:
         """Get comprehensive remediation statistics"""
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 stats = await conn.fetchrow("""
@@ -1242,7 +1238,7 @@ class AutonomousRemediationEngine:
                     FROM remediation_suggestions
                     WHERE generated_at >= NOW() - INTERVAL '24 hours'
                 """)
-                
+
                 return {
                     "total_suggestions_generated": stats['total_suggestions'],
                     "average_confidence": float(stats['avg_confidence'] or 0),
@@ -1256,34 +1252,34 @@ class AutonomousRemediationEngine:
                     "ai_models_used": ["gpt-4", "qwen-coder"],
                     "generated_at": datetime.now().isoformat()
                 }
-                
+
         except Exception as e:
             logger.error("Failed to get remediation statistics", error=str(e))
             return {"error": str(e)}
 
 async def main():
     """Main remediation engine service"""
-    
+
     # Start Prometheus metrics server
     start_http_server(8011)
-    
+
     # Initialize engine
     config = {
-        "database_url": os.getenv("DATABASE_URL", 
+        "database_url": os.getenv("DATABASE_URL",
                                  "postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas"),
         "redis_url": os.getenv("REDIS_URL", "redis://redis:6379/0"),
         "openai_api_key": os.getenv("OPENAI_API_KEY"),
-        "openrouter_api_key": os.getenv("OPENROUTER_API_KEY", 
+        "openrouter_api_key": os.getenv("OPENROUTER_API_KEY",
                                        os.getenv("OPENROUTER_API_KEY", ""))
     }
-    
+
     engine = AutonomousRemediationEngine()
     await engine.initialize(config)
-    
+
     logger.info("🤖 Xorb Autonomous Remediation Engine started",
                service_version="6.2.0",
                features=["ai_code_generation", "static_analysis", "fix_validation", "multi_model_ai"])
-    
+
     try:
         # Keep service running
         while True:

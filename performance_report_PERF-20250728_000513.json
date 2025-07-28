@@ -1,0 +1,574 @@
+{
+  "analysis_complete": true,
+  "baseline_metrics": {
+    "cpu": {
+      "overall_usage": 6.9,
+      "per_core_usage": [
+        1.5,
+        0.5,
+        0.0,
+        2.9,
+        0.5,
+        100.0,
+        1.0,
+        0.5,
+        2.0,
+        0.5,
+        1.5,
+        0.0,
+        0.0,
+        1.0,
+        0.5,
+        1.0
+      ],
+      "core_count": 16,
+      "load_average": [
+        1.30517578125,
+        1.30712890625,
+        1.44580078125
+      ]
+    },
+    "memory": {
+      "total_gb": 30.602710723876953,
+      "available_gb": 24.528465270996094,
+      "usage_percent": 19.8,
+      "cached_gb": 17.718536376953125
+    },
+    "disk": {
+      "total_gb": 337.7291030883789,
+      "free_gb": 275.418270111084,
+      "usage_percent": 14.371155882884675,
+      "read_mb_per_sec": 52085.796875,
+      "write_mb_per_sec": 1007233.888671875
+    },
+    "network": {
+      "bytes_sent_mb": 49655.75676059723,
+      "bytes_recv_mb": 54807.83322715759,
+      "packets_sent": 32003024,
+      "packets_recv": 31737114
+    }
+  },
+  "agent_workload_results": {
+    "num_agents": 16,
+    "duration_seconds": 90.33428978919983,
+    "total_operations": 7701,
+    "completed_operations": 7318,
+    "failed_operations": 383,
+    "operations_per_second": 85.25001987584912,
+    "success_rate_percent": 95.02661991949097,
+    "avg_cpu_usage": 7.595555555555555,
+    "avg_memory_usage": 19.95777777777778,
+    "max_cpu_usage": 20.0,
+    "max_memory_usage": 20.3,
+    "execution_metrics": [
+      {
+        "timestamp": 0.0004818439483642578,
+        "cpu_usage": 20.0,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 1.0011274814605713,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 2.0017426013946533,
+        "cpu_usage": 7.6,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 3.00229549407959,
+        "cpu_usage": 7.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 4.0029456615448,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 5.003596305847168,
+        "cpu_usage": 6.8,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 6.004307508468628,
+        "cpu_usage": 6.4,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 7.004880666732788,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 8.005532026290894,
+        "cpu_usage": 7.9,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 9.006186723709106,
+        "cpu_usage": 6.8,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 10.006791353225708,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 11.007413864135742,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 12.008140563964844,
+        "cpu_usage": 7.1,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 13.008812427520752,
+        "cpu_usage": 6.9,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 14.009580135345459,
+        "cpu_usage": 6.9,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 15.010300397872925,
+        "cpu_usage": 6.8,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 16.01084804534912,
+        "cpu_usage": 6.9,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 17.011215686798096,
+        "cpu_usage": 7.9,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 18.011823892593384,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 19.012428522109985,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 20.01315665245056,
+        "cpu_usage": 7.1,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 21.01391291618347,
+        "cpu_usage": 6.6,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 22.014545440673828,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 23.015214681625366,
+        "cpu_usage": 6.7,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 24.015750646591187,
+        "cpu_usage": 6.6,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 25.016448497772217,
+        "cpu_usage": 6.4,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 26.017059326171875,
+        "cpu_usage": 7.0,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 27.017632961273193,
+        "cpu_usage": 6.6,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 28.018222332000732,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 29.018958568572998,
+        "cpu_usage": 7.2,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 30.019553661346436,
+        "cpu_usage": 6.4,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 31.020153760910034,
+        "cpu_usage": 6.7,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 32.020830392837524,
+        "cpu_usage": 7.4,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 33.02149415016174,
+        "cpu_usage": 6.9,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 34.02212429046631,
+        "cpu_usage": 6.9,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 35.022706508636475,
+        "cpu_usage": 6.6,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 36.02331471443176,
+        "cpu_usage": 6.4,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 37.02387261390686,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 38.02454209327698,
+        "cpu_usage": 6.9,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 39.02518105506897,
+        "cpu_usage": 6.9,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 40.026007890701294,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 41.02679395675659,
+        "cpu_usage": 6.6,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 42.02761936187744,
+        "cpu_usage": 6.6,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 43.02843451499939,
+        "cpu_usage": 6.4,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 44.029136419296265,
+        "cpu_usage": 8.0,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 45.029839277267456,
+        "cpu_usage": 8.7,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 46.031047105789185,
+        "cpu_usage": 16.1,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 47.03167986869812,
+        "cpu_usage": 8.0,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 48.03229379653931,
+        "cpu_usage": 7.0,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 49.032846450805664,
+        "cpu_usage": 9.3,
+        "memory_usage": 19.8
+      },
+      {
+        "timestamp": 50.033486127853394,
+        "cpu_usage": 12.5,
+        "memory_usage": 20.1
+      },
+      {
+        "timestamp": 51.03407430648804,
+        "cpu_usage": 9.9,
+        "memory_usage": 20.3
+      },
+      {
+        "timestamp": 52.03486680984497,
+        "cpu_usage": 6.5,
+        "memory_usage": 20.3
+      },
+      {
+        "timestamp": 53.035603046417236,
+        "cpu_usage": 6.6,
+        "memory_usage": 20.3
+      },
+      {
+        "timestamp": 54.03629994392395,
+        "cpu_usage": 6.7,
+        "memory_usage": 20.3
+      },
+      {
+        "timestamp": 55.036829471588135,
+        "cpu_usage": 6.5,
+        "memory_usage": 20.3
+      },
+      {
+        "timestamp": 56.037516355514526,
+        "cpu_usage": 7.0,
+        "memory_usage": 20.3
+      },
+      {
+        "timestamp": 57.03819990158081,
+        "cpu_usage": 6.7,
+        "memory_usage": 20.3
+      },
+      {
+        "timestamp": 58.03899645805359,
+        "cpu_usage": 6.6,
+        "memory_usage": 20.3
+      },
+      {
+        "timestamp": 59.03966569900513,
+        "cpu_usage": 10.4,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 60.04019212722778,
+        "cpu_usage": 7.1,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 61.04102802276611,
+        "cpu_usage": 7.7,
+        "memory_usage": 20.0
+      },
+      {
+        "timestamp": 62.04171705245972,
+        "cpu_usage": 7.0,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 63.04253530502319,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 64.04322099685669,
+        "cpu_usage": 7.6,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 65.0437228679657,
+        "cpu_usage": 6.8,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 66.04453682899475,
+        "cpu_usage": 6.5,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 67.04515266418457,
+        "cpu_usage": 6.6,
+        "memory_usage": 19.9
+      },
+      {
+        "timestamp": 68.04600763320923,
+        "cpu_usage": 15.4,
+        "memory_usage": 20.0
+      },
+      {
+        "timestamp": 69.04673409461975,
+        "cpu_usage": 17.2,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 70.0474259853363,
+        "cpu_usage": 12.7,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 71.04825639724731,
+        "cpu_usage": 6.6,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 72.04888486862183,
+        "cpu_usage": 6.5,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 73.04958009719849,
+        "cpu_usage": 6.7,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 74.05014109611511,
+        "cpu_usage": 9.7,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 75.05067920684814,
+        "cpu_usage": 7.8,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 76.05130243301392,
+        "cpu_usage": 7.3,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 77.0523452758789,
+        "cpu_usage": 7.8,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 78.053067445755,
+        "cpu_usage": 6.4,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 79.05381417274475,
+        "cpu_usage": 6.7,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 80.05444979667664,
+        "cpu_usage": 7.5,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 81.05506181716919,
+        "cpu_usage": 6.6,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 82.05569672584534,
+        "cpu_usage": 6.6,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 83.05625224113464,
+        "cpu_usage": 6.5,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 84.05686688423157,
+        "cpu_usage": 6.7,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 85.05742359161377,
+        "cpu_usage": 6.4,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 86.05808448791504,
+        "cpu_usage": 7.8,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 87.05882596969604,
+        "cpu_usage": 6.9,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 88.05956792831421,
+        "cpu_usage": 6.3,
+        "memory_usage": 20.2
+      },
+      {
+        "timestamp": 89.0602331161499,
+        "cpu_usage": 7.3,
+        "memory_usage": 20.2
+      }
+    ]
+  },
+  "api_load_test_results": {
+    "test_name": "API Load Test",
+    "duration_seconds": 59.71967148780823,
+    "total_requests": 3895,
+    "successful_requests": 3814,
+    "failed_requests": 81,
+    "avg_response_time": 284.9357915162165,
+    "min_response_time": 10.227203369140625,
+    "max_response_time": 799.6058464050293,
+    "requests_per_second": 65.2213902548872,
+    "cpu_usage_percent": 7.4,
+    "memory_usage_percent": 20.3
+  },
+  "optimization_report": {
+    "session_id": "PERF-20250728_000513",
+    "timestamp": "2025-07-28T00:07:45.897686",
+    "system_info": {
+      "cpu_cores": 16,
+      "memory_gb": 30.602710723876953,
+      "epyc_optimized": false
+    },
+    "performance_summary": {
+      "total_metrics_collected": 15,
+      "load_tests_completed": 1,
+      "recommendations_generated": 1,
+      "high_priority_items": 0,
+      "medium_priority_items": 1,
+      "low_priority_items": 0
+    },
+    "optimization_categories": {
+      "Throughput": 1
+    },
+    "recommendations": [
+      {
+        "category": "Throughput",
+        "priority": "medium",
+        "title": "API Throughput Optimization",
+        "description": "Current throughput: 65.2 req/sec. Target: 500+ req/sec.",
+        "estimated_improvement": "3-5x throughput increase",
+        "implementation_effort": "High - Implement connection pooling, load balancing, and horizontal scaling"
+      }
+    ],
+    "load_test_results": [
+      {
+        "test_name": "API Load Test",
+        "duration_seconds": 59.71967148780823,
+        "total_requests": 3895,
+        "successful_requests": 3814,
+        "failed_requests": 81,
+        "avg_response_time": 284.9357915162165,
+        "min_response_time": 10.227203369140625,
+        "max_response_time": 799.6058464050293,
+        "requests_per_second": 65.2213902548872,
+        "cpu_usage_percent": 7.4,
+        "memory_usage_percent": 20.3
+      }
+    ]
+  }
+}

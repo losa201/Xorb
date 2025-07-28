@@ -4,16 +4,20 @@ Creative Payload Engine for XORB Supreme
 Advanced LLM-powered payload generation with creative techniques and chaining
 """
 
-import asyncio
-import logging
 import json
-from datetime import datetime
-from typing import Dict, List, Any, Optional, Tuple
+import logging
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any
+
 from pydantic import BaseModel, Field
 
-from .enhanced_multi_provider_client import EnhancedMultiProviderClient, EnhancedLLMRequest, TaskComplexity
+from .enhanced_multi_provider_client import (
+    EnhancedLLMRequest,
+    EnhancedMultiProviderClient,
+    TaskComplexity,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -43,19 +47,19 @@ class VulnerabilityCategory(Enum):
 class TargetProfile:
     """Enhanced target profiling for context-aware payloads"""
     url: str
-    technology_stack: List[str]
+    technology_stack: list[str]
     web_server: str
-    database_type: Optional[str]
-    framework: Optional[str]
-    language: Optional[str]
+    database_type: str | None
+    framework: str | None
+    language: str | None
     operating_system: str
-    cloud_provider: Optional[str]
+    cloud_provider: str | None
     waf_detected: bool = False
-    input_fields: List[str] = None
-    api_endpoints: List[str] = None
-    authentication_type: Optional[str] = None
-    industry_sector: Optional[str] = None
-    
+    input_fields: list[str] = None
+    api_endpoints: list[str] = None
+    authentication_type: str | None = None
+    industry_sector: str | None = None
+
     def __post_init__(self):
         if self.input_fields is None:
             self.input_fields = []
@@ -68,12 +72,12 @@ class CreativePayload(BaseModel):
     category: VulnerabilityCategory
     technique: PayloadTechnique
     creativity_score: float = Field(ge=0.0, le=10.0)
-    bypass_mechanisms: List[str]
+    bypass_mechanisms: list[str]
     target_context: str
     explanation: str
     proof_of_concept: str
-    chaining_potential: List[str]
-    evasion_methods: List[str]
+    chaining_potential: list[str]
+    evasion_methods: list[str]
     detection_difficulty: float = Field(ge=0.0, le=10.0)
     business_impact: str
     remediation_advice: str
@@ -84,25 +88,25 @@ class ExploitationChain(BaseModel):
     """Complex multi-stage attack chain"""
     chain_name: str
     initial_vector: VulnerabilityCategory
-    steps: List[Dict[str, Any]]
+    steps: list[dict[str, Any]]
     final_objective: str
     stealth_rating: float = Field(ge=0.0, le=10.0)
     complexity_level: TaskComplexity
     estimated_success_rate: float = Field(ge=0.0, le=1.0)
     required_privileges: str
-    cleanup_steps: List[str]
-    detection_points: List[str]
-    mitigation_bypasses: List[str]
+    cleanup_steps: list[str]
+    detection_points: list[str]
+    mitigation_bypasses: list[str]
 
 class CreativePayloadEngine:
     """Advanced payload generation engine with creative AI enhancement"""
-    
+
     def __init__(self, llm_client: EnhancedMultiProviderClient):
         self.llm_client = llm_client
-        self.payload_cache: Dict[str, List[CreativePayload]] = {}
+        self.payload_cache: dict[str, list[CreativePayload]] = {}
         self.chain_templates = self._load_chain_templates()
-        
-    def _load_chain_templates(self) -> Dict[str, str]:
+
+    def _load_chain_templates(self) -> dict[str, str]:
         """Load exploitation chain templates"""
         return {
             "web_app_takeover": """
@@ -128,7 +132,7 @@ REQUIREMENTS:
 
 Focus on creative, advanced techniques that demonstrate deep expertise.
 """,
-            
+
             "api_exploitation_flow": """
 Create an advanced API exploitation chain for {target_profile}:
 
@@ -150,7 +154,7 @@ CREATIVE REQUIREMENTS:
 
 Design sophisticated API-specific attack scenarios.
 """,
-            
+
             "cloud_infrastructure_compromise": """
 Develop a cloud infrastructure compromise chain targeting {cloud_provider}:
 
@@ -172,7 +176,7 @@ CLOUD-SPECIFIC TECHNIQUES:
 Focus on advanced cloud-native attack techniques.
 """
         }
-    
+
     async def generate_creative_payloads(
         self,
         category: VulnerabilityCategory,
@@ -180,14 +184,14 @@ Focus on advanced cloud-native attack techniques.
         count: int = 5,
         creativity_level: float = 0.8,
         use_paid_api: bool = True
-    ) -> List[CreativePayload]:
+    ) -> list[CreativePayload]:
         """Generate highly creative payloads using advanced LLM techniques"""
-        
+
         logger.info(f"Generating {count} creative {category.value} payloads")
-        
+
         # Build enhanced context for LLM
         context = self._build_payload_context(target_profile, category)
-        
+
         # Create enhanced LLM request
         request = EnhancedLLMRequest(
             task_type="creative_payloads",
@@ -201,18 +205,18 @@ Focus on advanced cloud-native attack techniques.
             creativity_required=True,
             budget_limit_usd=1.0
         )
-        
+
         try:
             response = await self.llm_client.generate_enhanced_payload(request)
             payloads = self._parse_creative_payloads(response.content, category, target_profile)
-            
+
             logger.info(f"Generated {len(payloads)} creative payloads successfully")
             return payloads
-            
+
         except Exception as e:
             logger.error(f"Creative payload generation failed: {e}")
             return await self._generate_fallback_payloads(category, target_profile, count)
-    
+
     async def generate_exploitation_chain(
         self,
         initial_vulnerability: VulnerabilityCategory,
@@ -221,22 +225,22 @@ Focus on advanced cloud-native attack techniques.
         use_paid_api: bool = True
     ) -> ExploitationChain:
         """Generate sophisticated multi-stage exploitation chains"""
-        
+
         logger.info(f"Generating exploitation chain from {initial_vulnerability.value}")
-        
+
         # Select appropriate chain template
         template_key = self._select_chain_template(target_profile, initial_vulnerability)
         template = self.chain_templates.get(template_key, self.chain_templates["web_app_takeover"])
-        
+
         # Build context
         context = {
             "initial_vuln": initial_vulnerability.value,
             "target_profile": self._profile_to_dict(target_profile),
             "cloud_provider": target_profile.cloud_provider or "AWS"
         }
-        
+
         prompt = template.format(**context)
-        
+
         request = EnhancedLLMRequest(
             task_type="exploitation_chains",
             prompt=prompt,
@@ -249,28 +253,28 @@ Focus on advanced cloud-native attack techniques.
             creativity_required=True,
             budget_limit_usd=1.5
         )
-        
+
         try:
             response = await self.llm_client.generate_enhanced_payload(request)
             chain = self._parse_exploitation_chain(response.content, initial_vulnerability)
-            
+
             logger.info(f"Generated exploitation chain: {chain.chain_name}")
             return chain
-            
+
         except Exception as e:
             logger.error(f"Exploitation chain generation failed: {e}")
             return self._generate_fallback_chain(initial_vulnerability, target_profile)
-    
+
     async def generate_business_logic_payloads(
         self,
         target_profile: TargetProfile,
         business_model: str,
         use_paid_api: bool = True
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate business logic vulnerability payloads"""
-        
+
         logger.info(f"Generating business logic payloads for {business_model}")
-        
+
         request = EnhancedLLMRequest(
             task_type="business_logic",
             prompt=self._build_business_logic_prompt(target_profile, business_model),
@@ -285,25 +289,25 @@ Focus on advanced cloud-native attack techniques.
             use_paid_api=use_paid_api,
             budget_limit_usd=1.0
         )
-        
+
         try:
             response = await self.llm_client.generate_enhanced_payload(request)
             return self._parse_business_logic_flaws(response.content)
-            
+
         except Exception as e:
             logger.error(f"Business logic payload generation failed: {e}")
             return []
-    
+
     async def generate_polyglot_payloads(
         self,
-        categories: List[VulnerabilityCategory],
+        categories: list[VulnerabilityCategory],
         target_profile: TargetProfile,
         use_paid_api: bool = True
-    ) -> List[CreativePayload]:
+    ) -> list[CreativePayload]:
         """Generate polyglot payloads that work across multiple vulnerability types"""
-        
+
         logger.info(f"Generating polyglot payloads for {[c.value for c in categories]}")
-        
+
         prompt = f"""
 Generate advanced polyglot payloads that simultaneously exploit multiple vulnerability types:
 
@@ -343,7 +347,7 @@ OUTPUT FORMAT (JSON):
 
 Focus on innovative polyglot techniques that demonstrate advanced payload crafting skills.
 """
-        
+
         request = EnhancedLLMRequest(
             task_type="creative_payloads",
             prompt=prompt,
@@ -355,16 +359,16 @@ Focus on innovative polyglot techniques that demonstrate advanced payload crafti
             creativity_required=True,
             budget_limit_usd=1.0
         )
-        
+
         try:
             response = await self.llm_client.generate_enhanced_payload(request)
             return self._parse_polyglot_payloads(response.content, categories)
-            
+
         except Exception as e:
             logger.error(f"Polyglot payload generation failed: {e}")
             return []
-    
-    def _build_payload_context(self, target_profile: TargetProfile, category: VulnerabilityCategory) -> Dict[str, Any]:
+
+    def _build_payload_context(self, target_profile: TargetProfile, category: VulnerabilityCategory) -> dict[str, Any]:
         """Build comprehensive context for payload generation"""
         return {
             "target": {
@@ -386,10 +390,10 @@ Focus on innovative polyglot techniques that demonstrate advanced payload crafti
             },
             "vulnerability_focus": category.value
         }
-    
+
     def _build_creative_payload_prompt(self, category: VulnerabilityCategory, target_profile: TargetProfile, count: int) -> str:
         """Build enhanced prompt for creative payload generation"""
-        
+
         category_specific_guidance = {
             VulnerabilityCategory.XSS: {
                 "techniques": ["DOM clobbering", "Mutation XSS", "CSP bypass", "mXSS", "Universal XSS"],
@@ -407,13 +411,13 @@ Focus on innovative polyglot techniques that demonstrate advanced payload crafti
                 "evasion": ["IP encoding", "URL parsing bypass", "Protocol switching", "Redirect chains"]
             }
         }
-        
+
         guidance = category_specific_guidance.get(category, {
             "techniques": ["Standard techniques"],
             "contexts": ["Common contexts"],
             "evasion": ["Basic evasion"]
         })
-        
+
         return f"""
 Generate {count} highly creative and advanced {category.value.upper()} payloads for this target:
 
@@ -465,7 +469,7 @@ OUTPUT FORMAT (JSON):
 
 Focus on advanced, creative techniques that showcase expertise in modern offensive security.
 """
-    
+
     def _build_business_logic_prompt(self, target_profile: TargetProfile, business_model: str) -> str:
         """Build prompt for business logic vulnerability analysis"""
         return f"""
@@ -511,8 +515,8 @@ OUTPUT FORMAT (JSON):
 
 Focus on high-impact business logic vulnerabilities specific to the target's industry and model.
 """
-    
-    def _parse_creative_payloads(self, content: str, category: VulnerabilityCategory, target_profile: TargetProfile) -> List[CreativePayload]:
+
+    def _parse_creative_payloads(self, content: str, category: VulnerabilityCategory, target_profile: TargetProfile) -> list[CreativePayload]:
         """Parse LLM response into CreativePayload objects"""
         try:
             # Extract JSON from response
@@ -521,13 +525,13 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
                 json_end = content.find("```", json_start)
                 if json_end != -1:
                     content = content[json_start:json_end].strip()
-            
+
             data = json.loads(content)
             payloads = []
-            
+
             # Handle different response formats
             payload_list = data.get("creative_payloads", data.get("payloads", []))
-            
+
             for payload_data in payload_list:
                 try:
                     payload = CreativePayload(
@@ -550,13 +554,13 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
                 except Exception as e:
                     logger.warning(f"Failed to parse individual payload: {e}")
                     continue
-            
+
             return payloads
-            
+
         except Exception as e:
             logger.error(f"Failed to parse creative payloads: {e}")
             return []
-    
+
     def _parse_exploitation_chain(self, content: str, initial_vuln: VulnerabilityCategory) -> ExploitationChain:
         """Parse exploitation chain from LLM response"""
         try:
@@ -565,10 +569,10 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
                 json_end = content.find("```", json_start)
                 if json_end != -1:
                     content = content[json_start:json_end].strip()
-            
+
             data = json.loads(content)
             chains = data.get("exploitation_chains", [data])  # Handle single or multiple chains
-            
+
             if chains:
                 chain_data = chains[0]  # Take first chain
                 return ExploitationChain(
@@ -584,13 +588,13 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
                     detection_points=chain_data.get("detection_points", []),
                     mitigation_bypasses=chain_data.get("mitigation_bypasses", [])
                 )
-            
+
         except Exception as e:
             logger.error(f"Failed to parse exploitation chain: {e}")
-        
+
         return self._generate_fallback_chain(initial_vuln, None)
-    
-    def _parse_business_logic_flaws(self, content: str) -> List[Dict[str, Any]]:
+
+    def _parse_business_logic_flaws(self, content: str) -> list[dict[str, Any]]:
         """Parse business logic vulnerabilities from LLM response"""
         try:
             if "```json" in content:
@@ -598,15 +602,15 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
                 json_end = content.find("```", json_start)
                 if json_end != -1:
                     content = content[json_start:json_end].strip()
-            
+
             data = json.loads(content)
             return data.get("business_logic_flaws", [])
-            
+
         except Exception as e:
             logger.error(f"Failed to parse business logic flaws: {e}")
             return []
-    
-    def _parse_polyglot_payloads(self, content: str, categories: List[VulnerabilityCategory]) -> List[CreativePayload]:
+
+    def _parse_polyglot_payloads(self, content: str, categories: list[VulnerabilityCategory]) -> list[CreativePayload]:
         """Parse polyglot payloads from LLM response"""
         try:
             if "```json" in content:
@@ -614,14 +618,14 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
                 json_end = content.find("```", json_start)
                 if json_end != -1:
                     content = content[json_start:json_end].strip()
-            
+
             data = json.loads(content)
             payloads = []
-            
+
             for payload_data in data.get("polyglot_payloads", []):
                 # Create payload for first category (polyglots span multiple)
                 primary_category = categories[0] if categories else VulnerabilityCategory.XSS
-                
+
                 payload = CreativePayload(
                     payload_content=payload_data.get("payload", ""),
                     category=primary_category,
@@ -639,14 +643,14 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
                     confidence_score=0.85
                 )
                 payloads.append(payload)
-            
+
             return payloads
-            
+
         except Exception as e:
             logger.error(f"Failed to parse polyglot payloads: {e}")
             return []
-    
-    def _profile_to_dict(self, profile: TargetProfile) -> Dict[str, Any]:
+
+    def _profile_to_dict(self, profile: TargetProfile) -> dict[str, Any]:
         """Convert target profile to dictionary"""
         return {
             "url": profile.url,
@@ -663,7 +667,7 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
             "authentication_type": profile.authentication_type,
             "industry_sector": profile.industry_sector
         }
-    
+
     def _select_chain_template(self, target_profile: TargetProfile, initial_vuln: VulnerabilityCategory) -> str:
         """Select appropriate exploitation chain template"""
         if target_profile.cloud_provider:
@@ -672,11 +676,11 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
             return "api_exploitation_flow"
         else:
             return "web_app_takeover"
-    
-    async def _generate_fallback_payloads(self, category: VulnerabilityCategory, target_profile: TargetProfile, count: int) -> List[CreativePayload]:
+
+    async def _generate_fallback_payloads(self, category: VulnerabilityCategory, target_profile: TargetProfile, count: int) -> list[CreativePayload]:
         """Generate fallback payloads when LLM fails"""
         logger.warning("Using fallback payload generation")
-        
+
         # Basic fallback payloads
         fallback_payloads = {
             VulnerabilityCategory.XSS: [
@@ -701,10 +705,10 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
                 "http://169.254.169.254/"
             ]
         }
-        
+
         basic_payloads = fallback_payloads.get(category, ["basic payload"])
         creative_payloads = []
-        
+
         for i, payload in enumerate(basic_payloads[:count]):
             creative_payload = CreativePayload(
                 payload_content=payload,
@@ -723,10 +727,10 @@ Focus on high-impact business logic vulnerabilities specific to the target's ind
                 confidence_score=0.5
             )
             creative_payloads.append(creative_payload)
-        
+
         return creative_payloads
-    
-    def _generate_fallback_chain(self, initial_vuln: VulnerabilityCategory, target_profile: Optional[TargetProfile]) -> ExploitationChain:
+
+    def _generate_fallback_chain(self, initial_vuln: VulnerabilityCategory, target_profile: TargetProfile | None) -> ExploitationChain:
         """Generate fallback exploitation chain"""
         return ExploitationChain(
             chain_name=f"Fallback_{initial_vuln.value}_chain",

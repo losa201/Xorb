@@ -1,5 +1,7 @@
 from fastapi import Depends, HTTPException
-from .security import get_current_user, TokenData
+
+from .security import TokenData, get_current_user
+
 
 def has_role(role: str):
     def _dep(current_user: TokenData = Depends(get_current_user)):

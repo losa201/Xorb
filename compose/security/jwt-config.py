@@ -3,31 +3,31 @@ JWT Security Configuration for Xorb PTaaS
 Enhanced JWT handling with service-to-service authentication
 """
 
-import os
 import secrets
 from datetime import datetime, timedelta
-from typing import Dict, Optional, Any
+from typing import Any
+
 import jwt
-from cryptography.hazmat.primitives import hashes
-from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import rsa
+
 
 class JWTSecurityConfig:
     """Enhanced JWT security configuration for service-to-service auth"""
-    
+
     def __init__(self):
         self.algorithm = "RS256"
         self.access_token_expire_minutes = 15
         self.refresh_token_expire_days = 7
         self.service_token_expire_hours = 24
-        
+
         # Generate RSA key pair for JWT signing
         self.private_key = rsa.generate_private_key(
             public_exponent=65537,
             key_size=2048,
         )
         self.public_key = self.private_key.public_key()
-        
+
         # Service-specific configurations
         self.service_configs = {
             "api": {
@@ -36,7 +36,7 @@ class JWTSecurityConfig:
                 "scopes": ["read", "write", "admin"]
             },
             "worker": {
-                "issuer": "xorb-worker", 
+                "issuer": "xorb-worker",
                 "audience": ["xorb-api", "xorb-scanner", "xorb-triage"],
                 "scopes": ["execute", "report"]
             },
@@ -61,7 +61,7 @@ class JWTSecurityConfig:
                 "scopes": ["pay", "verify"]
             }
         }
-    
+
     def get_private_key_pem(self) -> str:
         """Get private key in PEM format"""
         return self.private_key.private_bytes(
@@ -69,22 +69,22 @@ class JWTSecurityConfig:
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption()
         ).decode('utf-8')
-    
+
     def get_public_key_pem(self) -> str:
         """Get public key in PEM format"""
         return self.public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo
         ).decode('utf-8')
-    
+
     def create_service_token(self, service: str, target_service: str = None) -> str:
         """Create JWT token for service-to-service communication"""
         if service not in self.service_configs:
             raise ValueError(f"Unknown service: {service}")
-        
+
         config = self.service_configs[service]
         now = datetime.utcnow()
-        
+
         payload = {
             "iss": config["issuer"],
             "aud": config["audience"] if not target_service else [f"xorb-{target_service}"],
@@ -96,14 +96,14 @@ class JWTSecurityConfig:
             "service": service,
             "type": "service"
         }
-        
+
         return jwt.encode(payload, self.get_private_key_pem(), algorithm=self.algorithm)
-    
-    def create_user_token(self, user_id: str, email: str, roles: list = None) -> Dict[str, str]:
+
+    def create_user_token(self, user_id: str, email: str, roles: list = None) -> dict[str, str]:
         """Create access and refresh tokens for user authentication"""
         now = datetime.utcnow()
         roles = roles or ["researcher"]
-        
+
         # Access token
         access_payload = {
             "iss": "xorb-api",
@@ -116,7 +116,7 @@ class JWTSecurityConfig:
             "jti": secrets.token_urlsafe(32),
             "type": "access"
         }
-        
+
         # Refresh token
         refresh_payload = {
             "iss": "xorb-api",
@@ -127,15 +127,15 @@ class JWTSecurityConfig:
             "jti": secrets.token_urlsafe(32),
             "type": "refresh"
         }
-        
+
         return {
             "access_token": jwt.encode(access_payload, self.get_private_key_pem(), algorithm=self.algorithm),
             "refresh_token": jwt.encode(refresh_payload, self.get_private_key_pem(), algorithm=self.algorithm),
             "token_type": "Bearer",
             "expires_in": self.access_token_expire_minutes * 60
         }
-    
-    def verify_token(self, token: str, expected_audience: str = None) -> Optional[Dict[str, Any]]:
+
+    def verify_token(self, token: str, expected_audience: str = None) -> dict[str, Any] | None:
         """Verify and decode JWT token"""
         try:
             payload = jwt.decode(
@@ -148,7 +148,7 @@ class JWTSecurityConfig:
             return payload
         except jwt.InvalidTokenError:
             return None
-    
+
     def generate_secret_key(self) -> str:
         """Generate a secure secret key for fallback scenarios"""
         return secrets.token_urlsafe(64)
@@ -166,26 +166,26 @@ def generate_env_vars():
         "JWT_ACCESS_TOKEN_EXPIRE_MINUTES": str(jwt_config.access_token_expire_minutes),
         "JWT_SECRET_KEY": jwt_config.generate_secret_key()
     }
-    
+
     # Generate service tokens
     for service in jwt_config.service_configs.keys():
         token = jwt_config.create_service_token(service)
         env_vars[f"JWT_SERVICE_TOKEN_{service.upper()}"] = token
-    
+
     return env_vars
 
 if __name__ == "__main__":
     # Generate and print environment variables
     env_vars = generate_env_vars()
-    
+
     print("# JWT Configuration Environment Variables")
     print("# Add these to your .env file")
     print()
-    
+
     for key, value in env_vars.items():
         if key.startswith("JWT_"):
             print(f"{key}={value}")
-    
+
     print()
     print("# Service tokens generated for inter-service communication")
     print("# These tokens are valid for 24 hours")

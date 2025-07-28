@@ -11,40 +11,53 @@ Comprehensive test suite for Phase 9 mission execution modules:
 - Audit trail system
 """
 
-import asyncio
-import pytest
 import uuid
-import json
 from datetime import datetime, timedelta
-from unittest.mock import Mock, AsyncMock, patch, MagicMock
-from typing import Dict, List, Any
+from unittest.mock import AsyncMock, Mock
+
+import pytest
+
+from xorb_core.agents.base_agent import AgentTask
+from xorb_core.mission.adaptive_mission_engine import (
+    AdaptationAction,
+    AdaptiveMissionEngine,
+    MissionPlan,
+    MissionType,
+)
+from xorb_core.mission.audit_trail_system import (
+    AuditEvent,
+    AuditEventType,
+    AuditTrailSystem,
+)
 
 # Internal XORB imports
 from xorb_core.mission.autonomous_bounty_engagement import (
-    AutonomousBountyEngagement, BountyPlatform, BountyProgram, BountyMission, VulnerabilitySubmission
-)
-from xorb_core.mission.compliance_platform_integration import (
-    CompliancePlatformIntegration, ComplianceFramework, ComplianceAssessment, ComplianceEvidence
-)
-from xorb_core.mission.adaptive_mission_engine import (
-    AdaptiveMissionEngine, MissionType, MissionPlan, MissionObjective, AdaptationAction
-)
-from xorb_core.mission.external_intelligence_api import (
-    ExternalIntelligenceAPI, APICredentials, APIEndpoint, IntelligenceProduct
+    AutonomousBountyEngagement,
+    BountyMission,
+    BountyPlatform,
+    BountyProgram,
 )
 from xorb_core.mission.autonomous_remediation_agents import (
-    AutonomousRemediationAgent, AutonomousRemediationSystem, RemediationType, RemediationPlan
+    AutonomousRemediationAgent,
+    AutonomousRemediationSystem,
+    RemediationType,
 )
-from xorb_core.mission.audit_trail_system import (
-    AuditTrailSystem, AuditEvent, AuditEventType, OverrideRequest
+from xorb_core.mission.compliance_platform_integration import (
+    ComplianceAssessment,
+    ComplianceEvidence,
+    ComplianceFramework,
+    CompliancePlatformIntegration,
 )
-from xorb_core.autonomous.intelligent_orchestrator import IntelligentOrchestrator
-from xorb_core.agents.base_agent import AgentTask, AgentResult
+from xorb_core.mission.external_intelligence_api import (
+    APICredentials,
+    ExternalIntelligenceAPI,
+    IntelligenceProduct,
+)
 
 
 class MockIntelligentOrchestrator:
     """Mock orchestrator for testing"""
-    
+
     def __init__(self):
         self.episodic_memory = AsyncMock()
         self.autonomous_workers = {}
@@ -102,7 +115,7 @@ async def audit_system(mock_orchestrator):
 
 class TestBountyEngagement:
     """Test autonomous bounty platform engagement"""
-    
+
     @pytest.mark.asyncio
     async def test_bounty_program_discovery(self, bounty_engagement):
         """Test bounty program discovery functionality"""
@@ -125,7 +138,7 @@ class TestBountyEngagement:
                 last_updated=datetime.now()
             )
         ]
-        
+
         # Mock the discovery method
         bounty_engagement._discover_platform_programs = AsyncMock(return_value=mock_programs)
         bounty_engagement._analyze_program_attractiveness = AsyncMock(return_value={
@@ -133,15 +146,15 @@ class TestBountyEngagement:
             'resource_requirements': {'hours': 24},
             'estimated_timeline': {'discovery': 2, 'execution': 48}
         })
-        
+
         # Test program discovery
         programs = await bounty_engagement._discover_platform_programs(BountyPlatform.HACKERONE)
-        
+
         assert len(programs) == 1
         assert programs[0].platform == BountyPlatform.HACKERONE
         assert programs[0].name == "Test Security Program"
         assert programs[0].status == "active"
-    
+
     @pytest.mark.asyncio
     async def test_vulnerability_submission(self, bounty_engagement):
         """Test vulnerability submission process"""
@@ -156,22 +169,22 @@ class TestBountyEngagement:
             'proof_of_concept': {'steps': ['1. Navigate to login', '2. Enter payload']},
             'remediation_steps': ['Use parameterized queries', 'Input validation']
         }
-        
+
         # Mock platform submission
         bounty_engagement._submit_to_platform = AsyncMock(return_value={
             'submission_id': 'sub_123',
             'status': 'submitted',
             'triage_status': 'pending'
         })
-        
+
         # Test submission
         submission = await bounty_engagement.submit_vulnerability(vulnerability_data)
-        
+
         assert submission.title == 'SQL Injection in Login Form'
         assert submission.severity.value == 'high'
         assert submission.platform.value == 'hackerone'
         assert submission.status == 'submitted'
-    
+
     @pytest.mark.asyncio
     async def test_mission_launch(self, bounty_engagement):
         """Test bounty mission launch"""
@@ -192,7 +205,7 @@ class TestBountyEngagement:
             discovered_at=datetime.now(),
             last_updated=datetime.now()
         )
-        
+
         mission = BountyMission(
             mission_id=str(uuid.uuid4()),
             program=test_program,
@@ -203,22 +216,22 @@ class TestBountyEngagement:
             started_at=datetime.now(),
             estimated_completion=datetime.now() + timedelta(hours=24)
         )
-        
+
         # Mock dependencies
         bounty_engagement._select_mission_agents = AsyncMock(return_value=[])
         bounty_engagement._create_mission_tasks = AsyncMock(return_value=[])
         bounty_engagement.orchestrator.submit_task = AsyncMock()
-        
+
         # Test mission launch
         await bounty_engagement._launch_mission(mission)
-        
+
         assert mission.mission_id in bounty_engagement.active_missions
         assert mission.started_at is not None
 
 
 class TestComplianceIntegration:
     """Test compliance platform integration"""
-    
+
     @pytest.mark.asyncio
     async def test_compliance_assessment_initiation(self, compliance_integration):
         """Test compliance assessment initiation"""
@@ -227,21 +240,21 @@ class TestComplianceIntegration:
             'systems': ['web_app', 'database'],
             'period': '2024-Q1'
         }
-        
+
         # Mock framework controls loading
         compliance_integration._load_framework_controls = AsyncMock(return_value=[
             Mock(control_id='CC1.1'),
             Mock(control_id='CC1.2')
         ])
-        
+
         # Test assessment initiation
         assessment = await compliance_integration.initiate_compliance_assessment(framework, scope)
-        
+
         assert assessment.framework == framework
         assert assessment.scope == scope
         assert len(assessment.controls_assessed) == 2
         assert assessment.status == assessment.overall_status
-    
+
     @pytest.mark.asyncio
     async def test_evidence_collection(self, compliance_integration):
         """Test automated evidence collection"""
@@ -251,7 +264,7 @@ class TestComplianceIntegration:
             'evidence_type': 'configuration',
             'collection_method': 'automated'
         }
-        
+
         test_evidence = ComplianceEvidence(
             evidence_id=str(uuid.uuid4()),
             control_id='CC1.1',
@@ -264,19 +277,19 @@ class TestComplianceIntegration:
             collected_at=datetime.now(),
             collection_method='automated'
         )
-        
+
         # Mock evidence collection
         compliance_integration._collect_evidence = AsyncMock(return_value=test_evidence)
         compliance_integration._validate_evidence = AsyncMock(return_value={'valid': True})
-        
+
         # Test evidence collection
         evidence = await compliance_integration._collect_evidence(collection_task)
         validation = await compliance_integration._validate_evidence(evidence)
-        
+
         assert evidence.control_id == 'CC1.1'
         assert evidence.collection_method == 'automated'
         assert validation['valid'] == True
-    
+
     @pytest.mark.asyncio
     async def test_remediation_generation(self, compliance_integration):
         """Test automated remediation generation"""
@@ -290,7 +303,7 @@ class TestComplianceIntegration:
             assessment_methodology='automated',
             assessor_info={'system': 'xorb'}
         )
-        
+
         # Add some findings
         assessment.findings = [
             {
@@ -300,20 +313,20 @@ class TestComplianceIntegration:
                 'recommendation': 'Implement strong password policy'
             }
         ]
-        
+
         # Mock remediation generation
         compliance_integration._generate_remediation_actions = AsyncMock()
-        
+
         # Test remediation generation
         await compliance_integration._generate_remediation_actions(assessment)
-        
+
         # Verify method was called
         compliance_integration._generate_remediation_actions.assert_called_once_with(assessment)
 
 
 class TestAdaptiveMissionEngine:
     """Test adaptive mission engine"""
-    
+
     @pytest.mark.asyncio
     async def test_mission_planning(self, mission_engine):
         """Test mission planning functionality"""
@@ -331,13 +344,13 @@ class TestAdaptiveMissionEngine:
                 'success_criteria': ['vulnerabilities_found']
             }
         ]
-        
+
         constraints = {
             'time_limit': 24,  # hours
             'stealth_required': True,
             'target_environment': 'production'
         }
-        
+
         # Mock plan generation
         mission_engine._generate_execution_plan = AsyncMock(return_value={
             'phases': {MissionPlan.MissionPhase.PREPARATION: {}, MissionPlan.MissionPhase.EXECUTION: {}},
@@ -351,19 +364,19 @@ class TestAdaptiveMissionEngine:
         })
         mission_engine._optimize_mission_plan = AsyncMock(side_effect=lambda x: x)
         mission_engine._create_mission_context = AsyncMock(return_value=Mock())
-        
+
         # Test mission planning
         mission_plan = await mission_engine.plan_mission(
             MissionType.VULNERABILITY_ASSESSMENT,
             objectives,
             constraints
         )
-        
+
         assert mission_plan.mission_type == MissionType.VULNERABILITY_ASSESSMENT
         assert len(mission_plan.objectives) == 2
         assert mission_plan.objectives[0].title == 'Reconnaissance'
         assert mission_plan.objectives[1].priority == 0.9
-    
+
     @pytest.mark.asyncio
     async def test_mission_adaptation(self, mission_engine):
         """Test real-time mission adaptation"""
@@ -384,11 +397,11 @@ class TestAdaptiveMissionEngine:
             created_at=datetime.now(),
             last_updated=datetime.now()
         )
-        
+
         # Mock adaptation triggers
         adaptation_triggers = [AdaptationAction.AdaptationTrigger.PERFORMANCE_DEGRADATION]
         mission_engine._check_adaptation_triggers = AsyncMock(return_value=adaptation_triggers)
-        
+
         adaptation_action = AdaptationAction(
             action_id=str(uuid.uuid4()),
             mission_id=mission_plan.mission_id,
@@ -400,13 +413,13 @@ class TestAdaptiveMissionEngine:
             changes={'agent_count': 5},
             expected_impact={'performance_improvement': 0.3}
         )
-        
+
         mission_engine._plan_adaptation = AsyncMock(return_value=adaptation_action)
-        
+
         # Test adaptation trigger detection
         triggers = await mission_engine._check_adaptation_triggers(mission_plan)
         assert AdaptationAction.AdaptationTrigger.PERFORMANCE_DEGRADATION in triggers
-        
+
         # Test adaptation planning
         adaptation = await mission_engine._plan_adaptation(mission_plan, triggers[0])
         assert adaptation.trigger == AdaptationAction.AdaptationTrigger.PERFORMANCE_DEGRADATION
@@ -415,24 +428,24 @@ class TestAdaptiveMissionEngine:
 
 class TestExternalIntelligenceAPI:
     """Test external intelligence API"""
-    
+
     @pytest.mark.asyncio
     async def test_api_endpoint_registration(self, external_api):
         """Test API endpoint registration"""
         # Test endpoint registration
         await external_api._register_api_endpoints()
-        
+
         # Verify endpoints are registered
         assert len(external_api.api_endpoints) > 0
-        
+
         # Check for specific endpoints
         threat_endpoint = 'GET:/api/v1/intelligence/threats'
         assert threat_endpoint in external_api.api_endpoints
-        
+
         endpoint = external_api.api_endpoints[threat_endpoint]
         assert endpoint.method == 'GET'
         assert endpoint.path == '/api/v1/intelligence/threats'
-    
+
     @pytest.mark.asyncio
     async def test_intelligence_product_generation(self, external_api):
         """Test intelligence product generation"""
@@ -458,16 +471,16 @@ class TestExternalIntelligenceAPI:
             accuracy_estimate=0.9,
             generated_at=datetime.now()
         )
-        
+
         external_api._generate_threat_intelligence = AsyncMock(return_value=test_product)
-        
+
         # Test product generation
         product = await external_api._generate_threat_intelligence()
-        
+
         assert product.name == 'Threat Intelligence Feed'
         assert product.data_type == 'threat_intelligence'
         assert product.confidence_score == 0.8
-    
+
     @pytest.mark.asyncio
     async def test_api_authentication(self, external_api):
         """Test API authentication mechanisms"""
@@ -484,9 +497,9 @@ class TestExternalIntelligenceAPI:
             permitted_endpoints=['/api/v1/intelligence/threats'],
             rate_limits={'requests_per_minute': 100}
         )
-        
+
         external_api.client_credentials['test_client'] = test_credentials
-        
+
         # Test credential validation
         assert 'test_client' in external_api.client_credentials
         credentials = external_api.client_credentials['test_client']
@@ -496,7 +509,7 @@ class TestExternalIntelligenceAPI:
 
 class TestRemediationAgents:
     """Test autonomous remediation agents"""
-    
+
     @pytest.mark.asyncio
     async def test_remediation_agent_task_execution(self, remediation_agent):
         """Test remediation agent task execution"""
@@ -514,7 +527,7 @@ class TestRemediationAgents:
                 }
             }
         )
-        
+
         # Mock remediation plan creation and execution
         remediation_agent._create_remediation_plan = AsyncMock(return_value=Mock(
             plan_id=str(uuid.uuid4()),
@@ -526,20 +539,24 @@ class TestRemediationAgents:
             'issues_resolved': ['CVE-2024-1234'],
             'confidence': 0.9
         })
-        
+
         # Test task execution
         result = await remediation_agent._execute_task(task)
-        
+
         assert result.success == True
         assert 'remediation_plan_id' in result.data
         assert result.data['actions_completed'] == 3
         assert 'CVE-2024-1234' in result.data['issues_resolved']
-    
+
     @pytest.mark.asyncio
     async def test_remediation_action_execution(self, remediation_agent):
         """Test individual remediation action execution"""
-        from xorb_core.mission.autonomous_remediation_agents import RemediationAction, RemediationTarget, RemediationMethod
-        
+        from xorb_core.mission.autonomous_remediation_agents import (
+            RemediationAction,
+            RemediationMethod,
+            RemediationTarget,
+        )
+
         # Create test remediation action
         target = RemediationTarget(
             target_id='server_01',
@@ -551,7 +568,7 @@ class TestRemediationAgents:
             access_method='ssh',
             credentials={}
         )
-        
+
         action = RemediationAction(
             action_id=str(uuid.uuid4()),
             remediation_id=str(uuid.uuid4()),
@@ -567,7 +584,7 @@ class TestRemediationAgents:
             impact_scope='service',
             reversible=True
         )
-        
+
         # Mock script execution
         remediation_agent._execute_shell_script = AsyncMock(return_value={
             'success': True,
@@ -575,10 +592,10 @@ class TestRemediationAgents:
             'error': '',
             'return_code': 0
         })
-        
+
         # Test action execution
         result = await remediation_agent._execute_remediation_action(action)
-        
+
         assert result['success'] == True
         assert 'Packages updated successfully' in result['output']
         assert result['return_code'] == 0
@@ -586,7 +603,7 @@ class TestRemediationAgents:
 
 class TestAuditTrailSystem:
     """Test audit trail and governance system"""
-    
+
     @pytest.mark.asyncio
     async def test_audit_event_recording(self, audit_system):
         """Test audit event recording with cryptographic integrity"""
@@ -594,7 +611,7 @@ class TestAuditTrailSystem:
         audit_system._initialize_cryptography = AsyncMock()
         audit_system.chain_hash = "genesis_hash"
         audit_system.signing_key = None  # Disable signing for test
-        
+
         # Record test event
         event_id = await audit_system.record_audit_event(
             event_type=AuditEventType.SYSTEM_START,
@@ -604,23 +621,23 @@ class TestAuditTrailSystem:
             description='This is a test audit event',
             context={'test_key': 'test_value'}
         )
-        
+
         # Verify event was recorded
         assert event_id in audit_system.event_index
         event = audit_system.event_index[event_id]
         assert event.event_type == AuditEventType.SYSTEM_START
         assert event.summary == 'Test Event'
         assert event.context['test_key'] == 'test_value'
-    
+
     @pytest.mark.asyncio
     async def test_override_request_system(self, audit_system):
         """Test system override request and approval"""
         from xorb_core.mission.audit_trail_system import OverrideType
-        
+
         # Mock authorization check
         audit_system._is_authorized_admin = AsyncMock(return_value=True)
         audit_system._determine_required_approvals = AsyncMock(return_value=['admin1', 'admin2'])
-        
+
         # Request override
         override_id = await audit_system.request_system_override(
             override_type=OverrideType.EMERGENCY_STOP,
@@ -629,14 +646,14 @@ class TestAuditTrailSystem:
             target_component='mission_engine',
             emergency_level=4
         )
-        
+
         # Verify override request
         assert override_id in audit_system.active_overrides
         override_request = audit_system.active_overrides[override_id]
         assert override_request.override_type == OverrideType.EMERGENCY_STOP
         assert override_request.emergency_level == 4
         assert override_request.requested_by == 'admin_user'
-    
+
     @pytest.mark.asyncio
     async def test_compliance_report_generation(self, audit_system):
         """Test automated compliance report generation"""
@@ -660,9 +677,9 @@ class TestAuditTrailSystem:
                 previous_hash=f'prev_hash_{i}'
             )
             test_events.append(event)
-        
+
         audit_system.audit_events = test_events
-        
+
         # Mock compliance analysis methods
         audit_system._calculate_compliance_score = AsyncMock(return_value=0.85)
         audit_system._identify_compliance_violations = AsyncMock(return_value=[])
@@ -672,10 +689,10 @@ class TestAuditTrailSystem:
             'missing_events': [],
             'integrity_score': 0.98
         })
-        
+
         # Generate compliance report
         report = await audit_system.generate_compliance_report('SOC2', period_days=30)
-        
+
         assert report.framework == 'SOC2'
         assert report.compliance_score == 0.85
         assert report.coverage_percentage == 0.95
@@ -684,7 +701,7 @@ class TestAuditTrailSystem:
 
 class TestIntegratedMissionExecution:
     """Test integrated mission execution scenarios"""
-    
+
     @pytest.mark.asyncio
     async def test_end_to_end_bounty_mission(self, mock_orchestrator):
         """Test complete bounty hunting mission flow"""
@@ -692,7 +709,7 @@ class TestIntegratedMissionExecution:
         bounty_engagement = AutonomousBountyEngagement(mock_orchestrator)
         mission_engine = AdaptiveMissionEngine(mock_orchestrator)
         audit_system = AuditTrailSystem(mock_orchestrator)
-        
+
         # Mock all required methods
         bounty_engagement._discover_platform_programs = AsyncMock(return_value=[])
         bounty_engagement._analyze_program_attractiveness = AsyncMock(return_value={
@@ -708,14 +725,14 @@ class TestIntegratedMissionExecution:
         audit_system._initialize_cryptography = AsyncMock()
         audit_system.chain_hash = "test_hash"
         audit_system.signing_key = None
-        
+
         # Test integrated workflow
         # 1. Plan mission
         objectives = [{'title': 'Bug Hunting', 'description': 'Find vulnerabilities', 'priority': 0.8}]
         mission_plan = await mission_engine.plan_mission(
             MissionType.VULNERABILITY_ASSESSMENT, objectives
         )
-        
+
         # 2. Record audit event
         event_id = await audit_system.record_audit_event(
             event_type=AuditEventType.MISSION_PLANNED,
@@ -725,13 +742,13 @@ class TestIntegratedMissionExecution:
             description='Bug hunting mission planned for external bounty program',
             context={'mission_id': mission_plan.mission_id}
         )
-        
+
         # Verify integration
         assert mission_plan.mission_type == MissionType.VULNERABILITY_ASSESSMENT
         assert event_id in audit_system.event_index
         audit_event = audit_system.event_index[event_id]
         assert mission_plan.mission_id in audit_event.context['mission_id']
-    
+
     @pytest.mark.asyncio
     async def test_compliance_remediation_workflow(self, mock_orchestrator):
         """Test compliance assessment and remediation workflow"""
@@ -739,7 +756,7 @@ class TestIntegratedMissionExecution:
         compliance_integration = CompliancePlatformIntegration(mock_orchestrator)
         remediation_system = AutonomousRemediationSystem(mock_orchestrator)
         audit_system = AuditTrailSystem(mock_orchestrator)
-        
+
         # Mock methods
         compliance_integration._load_framework_controls = AsyncMock(return_value=[
             Mock(control_id='CC1.1')
@@ -748,14 +765,14 @@ class TestIntegratedMissionExecution:
         audit_system._initialize_cryptography = AsyncMock()
         audit_system.chain_hash = "test_hash"
         audit_system.signing_key = None
-        
+
         # Test workflow
         # 1. Initiate compliance assessment
         assessment = await compliance_integration.initiate_compliance_assessment(
             ComplianceFramework.SOC2_TYPE2,
             {'systems': ['web_app']}
         )
-        
+
         # 2. Record compliance event
         compliance_event_id = await audit_system.record_audit_event(
             event_type=AuditEventType.COMPLIANCE_ASSESSMENT,
@@ -765,7 +782,7 @@ class TestIntegratedMissionExecution:
             description='SOC2 Type 2 compliance assessment started',
             context={'assessment_id': assessment.assessment_id}
         )
-        
+
         # Verify integration
         assert assessment.framework == ComplianceFramework.SOC2_TYPE2
         assert compliance_event_id in audit_system.event_index

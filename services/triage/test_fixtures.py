@@ -8,7 +8,6 @@ import asyncio
 import json
 import logging
 from datetime import datetime
-from typing import Dict, List
 
 from vector_store_service import VectorStoreService
 
@@ -26,7 +25,7 @@ TEST_VULNERABILITIES = [
         "metadata": {"cvss_score": 8.1, "cwe_id": "CWE-89"}
     },
     {
-        "id": "test_vuln_002", 
+        "id": "test_vuln_002",
         "title": "SQL Injection in Authentication System",
         "description": "SQL injection vulnerability in authentication mechanism enabling bypass through malicious input in username field",
         "severity": "high",
@@ -35,7 +34,7 @@ TEST_VULNERABILITIES = [
     },
     {
         "id": "test_vuln_003",
-        "title": "Cross-Site Scripting in Search Function", 
+        "title": "Cross-Site Scripting in Search Function",
         "description": "Reflected XSS vulnerability in search functionality allowing execution of malicious JavaScript code",
         "severity": "medium",
         "target": "https://example.com/search",
@@ -45,7 +44,7 @@ TEST_VULNERABILITIES = [
         "id": "test_vuln_004",
         "title": "Cross-Site Scripting in Search Results",
         "description": "XSS vulnerability in search results page enabling injection of arbitrary JavaScript through search parameters",
-        "severity": "medium", 
+        "severity": "medium",
         "target": "https://example.com/search/results",
         "metadata": {"cvss_score": 6.3, "cwe_id": "CWE-79"}
     },
@@ -111,58 +110,58 @@ EXPECTED_SIMILARITIES = {
 
 class SimilarityTestSuite:
     """Test suite for vulnerability similarity detection"""
-    
+
     def __init__(self):
         self.vector_store = VectorStoreService()
         self.test_results = {}
-        
+
     async def initialize(self):
         """Initialize test suite"""
         logger.info("Initializing similarity test suite...")
         await self.vector_store.initialize()
-        
-    async def run_all_tests(self) -> Dict:
+
+    async def run_all_tests(self) -> dict:
         """Run complete test suite"""
         logger.info("Running similarity test suite...")
-        
+
         test_results = {
             "timestamp": datetime.utcnow().isoformat(),
             "tests": {},
             "summary": {}
         }
-        
+
         # Test 1: Basic similarity detection
         test_results["tests"]["basic_similarity"] = await self.test_basic_similarity()
-        
+
         # Test 2: Duplicate detection accuracy
         test_results["tests"]["duplicate_detection"] = await self.test_duplicate_detection()
-        
+
         # Test 3: False positive rates
         test_results["tests"]["false_positive_rates"] = await self.test_false_positive_rates()
-        
+
         # Test 4: Performance benchmarks
         test_results["tests"]["performance"] = await self.test_performance()
-        
+
         # Test 5: GPT reranking effectiveness
         test_results["tests"]["gpt_reranking"] = await self.test_gpt_reranking()
-        
+
         # Generate summary
         test_results["summary"] = self._generate_test_summary(test_results["tests"])
-        
+
         logger.info("Test suite completed", summary=test_results["summary"])
         return test_results
-    
-    async def test_basic_similarity(self) -> Dict:
+
+    async def test_basic_similarity(self) -> dict:
         """Test basic similarity detection functionality"""
         logger.info("Testing basic similarity detection...")
-        
+
         results = {
             "name": "Basic Similarity Detection",
             "passed": 0,
             "failed": 0,
             "details": []
         }
-        
+
         # Add all test vulnerabilities to vector store
         for vuln in TEST_VULNERABILITIES:
             await self.vector_store.add_vulnerability_vector(
@@ -173,7 +172,7 @@ class SimilarityTestSuite:
                 target=vuln["target"],
                 metadata=vuln["metadata"]
             )
-        
+
         # Test similarity detection for each vulnerability
         for vuln in TEST_VULNERABILITIES:
             similar_findings = await self.vector_store.find_similar_vulnerabilities(
@@ -184,14 +183,14 @@ class SimilarityTestSuite:
                 target=vuln["target"],
                 k=5
             )
-            
+
             expected_similar = EXPECTED_SIMILARITIES.get(vuln["id"], [])
             found_similar = [sf.vulnerability_id for sf in similar_findings]
-            
+
             # Check if expected similarities were found
             matches = len(set(expected_similar) & set(found_similar))
             expected_count = len(expected_similar)
-            
+
             test_detail = {
                 "vulnerability_id": vuln["id"],
                 "expected_similar": expected_similar,
@@ -200,30 +199,30 @@ class SimilarityTestSuite:
                 "expected_count": expected_count,
                 "accuracy": matches / expected_count if expected_count > 0 else 1.0
             }
-            
+
             if matches >= expected_count * 0.5:  # At least 50% accuracy
                 results["passed"] += 1
                 test_detail["status"] = "PASS"
             else:
                 results["failed"] += 1
                 test_detail["status"] = "FAIL"
-            
+
             results["details"].append(test_detail)
-        
+
         results["overall_accuracy"] = results["passed"] / (results["passed"] + results["failed"])
         return results
-    
-    async def test_duplicate_detection(self) -> Dict:
+
+    async def test_duplicate_detection(self) -> dict:
         """Test duplicate detection accuracy"""
         logger.info("Testing duplicate detection...")
-        
+
         results = {
             "name": "Duplicate Detection Accuracy",
             "passed": 0,
             "failed": 0,
             "details": []
         }
-        
+
         # Test with near-duplicate vulnerabilities
         near_duplicates = [
             {
@@ -236,7 +235,7 @@ class SimilarityTestSuite:
                 "duplicate_of": "test_vuln_001"
             },
             {
-                "id": "duplicate_test_002", 
+                "id": "duplicate_test_002",
                 "title": "SQL Injection in Login Endpoint",  # Very similar
                 "description": "SQL injection vulnerability in login form allowing authentication bypass via username field manipulation",
                 "severity": "high",
@@ -254,7 +253,7 @@ class SimilarityTestSuite:
                 "duplicate_of": None
             }
         ]
-        
+
         for test_vuln in near_duplicates:
             dedupe_result = await self.vector_store.detect_duplicate(
                 vulnerability_id=test_vuln["id"],
@@ -264,10 +263,10 @@ class SimilarityTestSuite:
                 target=test_vuln["target"],
                 use_gpt_fallback=True  # Enable GPT for better accuracy
             )
-            
+
             expected_duplicate = test_vuln["should_be_duplicate"]
             detected_duplicate = dedupe_result.is_duplicate
-            
+
             test_detail = {
                 "vulnerability_id": test_vuln["id"],
                 "expected_duplicate": expected_duplicate,
@@ -277,40 +276,40 @@ class SimilarityTestSuite:
                 "expected_duplicate_of": test_vuln["duplicate_of"],
                 "reasoning": dedupe_result.reasoning
             }
-            
+
             if expected_duplicate == detected_duplicate:
                 results["passed"] += 1
                 test_detail["status"] = "PASS"
             else:
                 results["failed"] += 1
                 test_detail["status"] = "FAIL"
-            
+
             results["details"].append(test_detail)
-        
+
         results["accuracy"] = results["passed"] / (results["passed"] + results["failed"])
         return results
-    
-    async def test_false_positive_rates(self) -> Dict:
+
+    async def test_false_positive_rates(self) -> dict:
         """Test false positive detection rates"""
         logger.info("Testing false positive rates...")
-        
+
         results = {
             "name": "False Positive Rate Analysis",
             "total_tests": 0,
             "false_positives": 0,
             "details": []
         }
-        
+
         # Test with dissimilar vulnerabilities that should NOT be duplicates
         dissimilar_tests = [
             ("test_vuln_005", "test_vuln_006"),  # IDOR vs Command Injection
             ("test_vuln_007", "test_vuln_010"),  # Path Traversal vs Auth Bypass
             ("test_vuln_006", "test_vuln_003"),  # Command Injection vs XSS
         ]
-        
+
         for vuln1_id, vuln2_id in dissimilar_tests:
             vuln1 = next(v for v in TEST_VULNERABILITIES if v["id"] == vuln1_id)
-            
+
             # Test if vuln1 is incorrectly detected as duplicate of vuln2
             dedupe_result = await self.vector_store.detect_duplicate(
                 vulnerability_id=f"fp_test_{vuln1_id}",
@@ -319,9 +318,9 @@ class SimilarityTestSuite:
                 severity=vuln1["severity"],
                 target=vuln1["target"]
             )
-            
+
             results["total_tests"] += 1
-            
+
             test_detail = {
                 "test_vuln": vuln1_id,
                 "compared_to": vuln2_id,
@@ -329,29 +328,29 @@ class SimilarityTestSuite:
                 "confidence": dedupe_result.confidence,
                 "similarity_scores": [sf.similarity_score for sf in dedupe_result.similar_findings[:3]]
             }
-            
+
             if dedupe_result.is_duplicate:
                 results["false_positives"] += 1
                 test_detail["status"] = "FALSE_POSITIVE"
             else:
                 test_detail["status"] = "CORRECT"
-            
+
             results["details"].append(test_detail)
-        
+
         results["false_positive_rate"] = results["false_positives"] / results["total_tests"] if results["total_tests"] > 0 else 0
         return results
-    
-    async def test_performance(self) -> Dict:
+
+    async def test_performance(self) -> dict:
         """Test performance benchmarks"""
         logger.info("Testing performance...")
-        
+
         import time
-        
+
         results = {
             "name": "Performance Benchmarks",
             "metrics": {}
         }
-        
+
         # Test embedding generation speed
         start_time = time.time()
         test_text = "SQL injection vulnerability in authentication system"
@@ -359,7 +358,7 @@ class SimilarityTestSuite:
             await self.vector_store.generate_embedding(test_text)
         embedding_time = (time.time() - start_time) / 10
         results["metrics"]["avg_embedding_time"] = embedding_time
-        
+
         # Test similarity search speed
         start_time = time.time()
         for _ in range(10):
@@ -372,7 +371,7 @@ class SimilarityTestSuite:
             )
         search_time = (time.time() - start_time) / 10
         results["metrics"]["avg_search_time"] = search_time
-        
+
         # Test full deduplication pipeline speed
         start_time = time.time()
         for i in range(5):
@@ -386,20 +385,20 @@ class SimilarityTestSuite:
             )
         dedupe_time = (time.time() - start_time) / 5
         results["metrics"]["avg_deduplication_time"] = dedupe_time
-        
+
         # Performance thresholds
         results["performance_analysis"] = {
             "embedding_performance": "GOOD" if embedding_time < 0.1 else "NEEDS_IMPROVEMENT",
-            "search_performance": "GOOD" if search_time < 0.05 else "NEEDS_IMPROVEMENT", 
+            "search_performance": "GOOD" if search_time < 0.05 else "NEEDS_IMPROVEMENT",
             "deduplication_performance": "GOOD" if dedupe_time < 0.5 else "NEEDS_IMPROVEMENT"
         }
-        
+
         return results
-    
-    async def test_gpt_reranking(self) -> Dict:
+
+    async def test_gpt_reranking(self) -> dict:
         """Test GPT reranking effectiveness"""
         logger.info("Testing GPT reranking...")
-        
+
         results = {
             "name": "GPT Reranking Effectiveness",
             "with_gpt": 0,
@@ -407,7 +406,7 @@ class SimilarityTestSuite:
             "improvements": 0,
             "details": []
         }
-        
+
         # Test borderline cases where GPT should help
         borderline_cases = [
             {
@@ -418,7 +417,7 @@ class SimilarityTestSuite:
                 "target": "https://example.com/auth"
             }
         ]
-        
+
         for test_case in borderline_cases:
             # Test without GPT
             result_without_gpt = await self.vector_store.detect_duplicate(
@@ -429,7 +428,7 @@ class SimilarityTestSuite:
                 target=test_case["target"],
                 use_gpt_fallback=False
             )
-            
+
             # Test with GPT
             result_with_gpt = await self.vector_store.detect_duplicate(
                 vulnerability_id=f"{test_case['id']}_with_gpt",
@@ -439,7 +438,7 @@ class SimilarityTestSuite:
                 target=test_case["target"],
                 use_gpt_fallback=True
             )
-            
+
             test_detail = {
                 "test_case": test_case["id"],
                 "without_gpt": {
@@ -453,19 +452,19 @@ class SimilarityTestSuite:
                 },
                 "improvement": abs(result_with_gpt.confidence - result_without_gpt.confidence)
             }
-            
+
             if result_with_gpt.gpt_analysis:
                 results["with_gpt"] += 1
                 if test_detail["improvement"] > 0.1:  # Significant improvement
                     results["improvements"] += 1
             else:
                 results["without_gpt"] += 1
-            
+
             results["details"].append(test_detail)
-        
+
         return results
-    
-    def _generate_test_summary(self, test_results: Dict) -> Dict:
+
+    def _generate_test_summary(self, test_results: dict) -> dict:
         """Generate overall test summary"""
         summary = {
             "total_tests": len(test_results),
@@ -474,9 +473,9 @@ class SimilarityTestSuite:
             "overall_score": 0.0,
             "recommendations": []
         }
-        
+
         scores = []
-        
+
         for test_name, test_result in test_results.items():
             if "accuracy" in test_result:
                 scores.append(test_result["accuracy"])
@@ -490,34 +489,34 @@ class SimilarityTestSuite:
                     summary["passed_tests"] += 1
                 else:
                     summary["failed_tests"] += 1
-        
+
         if scores:
             summary["overall_score"] = sum(scores) / len(scores)
-        
+
         # Generate recommendations
         if summary["overall_score"] < 0.8:
             summary["recommendations"].append("Consider tuning similarity thresholds")
-        
+
         if test_results.get("false_positive_rates", {}).get("false_positive_rate", 0) > 0.1:
             summary["recommendations"].append("Review false positive detection logic")
-        
+
         if not summary["recommendations"]:
             summary["recommendations"].append("System performing within acceptable parameters")
-        
+
         return summary
 
 async def run_similarity_tests():
     """Run the complete similarity test suite"""
     test_suite = SimilarityTestSuite()
-    
+
     try:
         await test_suite.initialize()
         results = await test_suite.run_all_tests()
-        
+
         # Save results
         with open("/tmp/similarity_test_results.json", "w") as f:
             json.dump(results, f, indent=2)
-        
+
         print("\n" + "="*60)
         print("SIMILARITY TEST SUITE RESULTS")
         print("="*60)
@@ -528,9 +527,9 @@ async def run_similarity_tests():
         for rec in results['summary']['recommendations']:
             print(f"  - {rec}")
         print("="*60)
-        
+
         return results
-        
+
     except Exception as e:
         logger.error(f"Test suite failed: {e}")
         return {"error": str(e)}

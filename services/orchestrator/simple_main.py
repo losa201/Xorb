@@ -5,11 +5,11 @@ Minimal orchestrator without conflicting imports
 """
 
 import os
-import sys
 from datetime import datetime
+
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 
 # Simple app without complex logging
 app = FastAPI(
@@ -79,9 +79,9 @@ async def orchestrator_status():
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8080"))
-    
+
     print(f"🚀 Starting Xorb PTaaS Orchestrator on {host}:{port}")
-    
+
     uvicorn.run(
         "simple_main:app",
         host=host,

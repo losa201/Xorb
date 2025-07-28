@@ -4,22 +4,20 @@ Xorb Feature Flag Service
 Dynamic feature flags with usage tier integration and A/B testing capabilities
 """
 
-import asyncio
 import json
 import logging
 import os
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Union, Any
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any
 
-import asyncpg
 import aioredis
-from fastapi import FastAPI, HTTPException, Depends
-from pydantic import BaseModel
-from prometheus_client import Counter, Histogram, Gauge
+import asyncpg
+from fastapi import FastAPI
 from nats.aio.client import Client as NATS
+from prometheus_client import Counter
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -60,8 +58,8 @@ class FeatureFlag:
     default_value: Any
     enabled: bool
     rollout_strategy: RolloutStrategy
-    rollout_config: Dict[str, Any]
-    tier_restrictions: List[BillingTier]
+    rollout_config: dict[str, Any]
+    tier_restrictions: list[BillingTier]
     created_at: datetime
     updated_at: datetime
     created_by: str
@@ -74,32 +72,32 @@ class FeatureEvaluation:
     enabled: bool
     tier: str
     organization_id: str
-    user_id: Optional[str]
-    variant: Optional[str]
+    user_id: str | None
+    variant: str | None
     evaluation_time: datetime
     source: str  # cache, database, default
 
 class FeatureFlagService:
     """Central feature flag service with tier integration"""
-    
+
     def __init__(self):
         self.db_pool = None
         self.redis = None
         self.nats = None
-        
+
         # Caching
         self.flag_cache = {}
         self.tier_cache = {}
         self.cache_ttl = 300  # 5 minutes
-        
+
         # Feature flag definitions
         self.default_flags = self.initialize_default_flags()
-    
-    def initialize_default_flags(self) -> Dict[str, FeatureFlag]:
+
+    def initialize_default_flags(self) -> dict[str, FeatureFlag]:
         """Initialize default feature flags based on tiers"""
-        
+
         flags = {}
-        
+
         # Core scanning features
         flags["concurrent_scans"] = FeatureFlag(
             key="concurrent_scans",
@@ -119,7 +117,7 @@ class FeatureFlagService:
             updated_at=datetime.now(),
             created_by="system"
         )
-        
+
         flags["custom_rules"] = FeatureFlag(
             key="custom_rules",
             name="Custom Scanning Rules",
@@ -138,7 +136,7 @@ class FeatureFlagService:
             updated_at=datetime.now(),
             created_by="system"
         )
-        
+
         flags["api_rate_limit"] = FeatureFlag(
             key="api_rate_limit",
             name="API Rate Limit",
@@ -157,7 +155,7 @@ class FeatureFlagService:
             updated_at=datetime.now(),
             created_by="system"
         )
-        
+
         flags["advanced_analytics"] = FeatureFlag(
             key="advanced_analytics",
             name="Advanced Analytics",
@@ -176,7 +174,7 @@ class FeatureFlagService:
             updated_at=datetime.now(),
             created_by="system"
         )
-        
+
         flags["white_label"] = FeatureFlag(
             key="white_label",
             name="White Label UI",
@@ -195,7 +193,7 @@ class FeatureFlagService:
             updated_at=datetime.now(),
             created_by="system"
         )
-        
+
         flags["sso_integration"] = FeatureFlag(
             key="sso_integration",
             name="SSO Integration",
@@ -214,7 +212,7 @@ class FeatureFlagService:
             updated_at=datetime.now(),
             created_by="system"
         )
-        
+
         # Beta features for A/B testing
         flags["new_triage_ui"] = FeatureFlag(
             key="new_triage_ui",
@@ -236,7 +234,7 @@ class FeatureFlagService:
             updated_at=datetime.now(),
             created_by="system"
         )
-        
+
         flags["ai_powered_prioritization"] = FeatureFlag(
             key="ai_powered_prioritization",
             name="AI-Powered Vulnerability Prioritization",
@@ -253,36 +251,36 @@ class FeatureFlagService:
             updated_at=datetime.now(),
             created_by="system"
         )
-        
+
         return flags
-    
+
     async def initialize(self):
         """Initialize the feature flag service"""
         logger.info("Initializing Feature Flag Service...")
-        
+
         # Database connection
         database_url = os.getenv("DATABASE_URL", "postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas")
         self.db_pool = await asyncpg.create_pool(database_url, min_size=5, max_size=20)
-        
+
         # Redis connection
         redis_url = os.getenv("REDIS_URL", "redis://redis:6379/0")
         self.redis = await aioredis.create_redis_pool(redis_url)
-        
+
         # NATS connection
         self.nats = NATS()
         await self.nats.connect(os.getenv("NATS_URL", "nats://nats:4222"))
-        
+
         # Create database tables
         await self.create_database_tables()
-        
+
         # Load feature flags from database
         await self.load_feature_flags()
-        
+
         # Subscribe to tier changes
         await self.nats.subscribe("billing.tier_changed", cb=self.handle_tier_change)
-        
+
         logger.info("Feature Flag Service initialized")
-    
+
     async def create_database_tables(self):
         """Create feature flag database tables"""
         async with self.db_pool.acquire() as conn:
@@ -303,7 +301,7 @@ class FeatureFlagService:
                     created_by VARCHAR(100)
                 )
             """)
-            
+
             # Feature evaluations log
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS feature_evaluations (
@@ -318,7 +316,7 @@ class FeatureFlagService:
                     source VARCHAR(20) NOT NULL
                 )
             """)
-            
+
             # A/B test assignments
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS ab_test_assignments (
@@ -331,17 +329,17 @@ class FeatureFlagService:
                     UNIQUE(test_name, organization_id, user_id)
                 )
             """)
-            
+
             # Create indices
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_evaluations_flag_org ON feature_evaluations(flag_key, organization_id)")
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_ab_assignments_test ON ab_test_assignments(test_name)")
-    
+
     async def load_feature_flags(self):
         """Load feature flags from database"""
         try:
             async with self.db_pool.acquire() as conn:
                 rows = await conn.fetch("SELECT * FROM feature_flags")
-                
+
                 for row in rows:
                     flag = FeatureFlag(
                         key=row['key'],
@@ -358,18 +356,18 @@ class FeatureFlagService:
                         created_by=row['created_by']
                     )
                     self.flag_cache[flag.key] = flag
-                
+
                 # Insert default flags if they don't exist
                 for key, flag in self.default_flags.items():
                     if key not in self.flag_cache:
                         await self.create_feature_flag(flag)
                         self.flag_cache[key] = flag
-                
+
                 logger.info(f"Loaded {len(self.flag_cache)} feature flags")
-                
+
         except Exception as e:
             logger.error(f"Failed to load feature flags: {e}")
-    
+
     async def create_feature_flag(self, flag: FeatureFlag):
         """Create a new feature flag in database"""
         async with self.db_pool.acquire() as conn:
@@ -379,22 +377,22 @@ class FeatureFlagService:
                     rollout_strategy, rollout_config, tier_restrictions, created_by
                 ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 ON CONFLICT (key) DO NOTHING
-            """, 
+            """,
             flag.key, flag.name, flag.description, flag.type.value,
             json.dumps(flag.default_value), flag.enabled, flag.rollout_strategy.value,
             json.dumps(flag.rollout_config), json.dumps([t.value for t in flag.tier_restrictions]),
             flag.created_by)
-    
+
     async def get_organization_tier(self, organization_id: str) -> str:
         """Get organization billing tier"""
-        
+
         # Check cache first
         cache_key = f"tier:{organization_id}"
         if cache_key in self.tier_cache:
             cached_tier, cached_time = self.tier_cache[cache_key]
             if time.time() - cached_time < self.cache_ttl:
                 return cached_tier
-        
+
         # Check Redis cache
         try:
             cached_tier = await self.redis.get(cache_key)
@@ -403,7 +401,7 @@ class FeatureFlagService:
                 return cached_tier.decode()
         except Exception as e:
             logger.error(f"Redis tier cache error: {e}")
-        
+
         # Query database
         try:
             async with self.db_pool.acquire() as conn:
@@ -412,7 +410,7 @@ class FeatureFlagService:
                     WHERE organization_id = $1 AND status = 'active'
                     ORDER BY created_at DESC LIMIT 1
                 """, organization_id)
-                
+
                 if tier:
                     # Cache the result
                     self.tier_cache[cache_key] = (tier, time.time())
@@ -421,22 +419,22 @@ class FeatureFlagService:
                 else:
                     # Default to growth tier
                     return "growth"
-                    
+
         except Exception as e:
             logger.error(f"Failed to get organization tier: {e}")
             return "growth"
-    
+
     async def evaluate_feature_flag(
-        self, 
-        flag_key: str, 
-        organization_id: str, 
-        user_id: Optional[str] = None,
-        context: Optional[Dict] = None
+        self,
+        flag_key: str,
+        organization_id: str,
+        user_id: str | None = None,
+        context: dict | None = None
     ) -> FeatureEvaluation:
         """Evaluate a feature flag for given context"""
-        
+
         start_time = time.time()
-        
+
         try:
             # Get feature flag
             flag = await self.get_feature_flag(flag_key)
@@ -452,10 +450,10 @@ class FeatureFlagService:
                     evaluation_time=datetime.now(),
                     source="default"
                 )
-            
+
             # Get organization tier
             tier = await self.get_organization_tier(organization_id)
-            
+
             # Check if feature is enabled
             if not flag.enabled:
                 result = FeatureEvaluation(
@@ -474,20 +472,20 @@ class FeatureFlagService:
                 result = await self.evaluate_rollout_strategy(
                     flag, organization_id, user_id, tier, context
                 )
-            
+
             # Log evaluation
             await self.log_evaluation(result)
-            
+
             # Update metrics
             feature_flag_evaluations.labels(
-                flag=flag_key, 
+                flag=flag_key,
                 result="enabled" if result.enabled else "disabled"
             ).inc()
-            
+
             feature_usage_by_tier.labels(feature=flag_key, tier=tier).inc()
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Feature flag evaluation failed for {flag_key}: {e}")
             return FeatureEvaluation(
@@ -501,22 +499,22 @@ class FeatureFlagService:
                 evaluation_time=datetime.now(),
                 source="error"
             )
-    
-    async def get_feature_flag(self, flag_key: str) -> Optional[FeatureFlag]:
+
+    async def get_feature_flag(self, flag_key: str) -> FeatureFlag | None:
         """Get feature flag from cache or database"""
-        
+
         # Check cache first
         if flag_key in self.flag_cache:
             feature_flag_cache_hits.inc()
             return self.flag_cache[flag_key]
-        
+
         # Query database
         try:
             async with self.db_pool.acquire() as conn:
                 row = await conn.fetchrow(
                     "SELECT * FROM feature_flags WHERE key = $1", flag_key
                 )
-                
+
                 if row:
                     flag = FeatureFlag(
                         key=row['key'],
@@ -532,26 +530,26 @@ class FeatureFlagService:
                         updated_at=row['updated_at'],
                         created_by=row['created_by']
                     )
-                    
+
                     # Cache the flag
                     self.flag_cache[flag_key] = flag
                     return flag
-                    
+
         except Exception as e:
             logger.error(f"Failed to get feature flag {flag_key}: {e}")
-        
+
         return None
-    
+
     async def evaluate_rollout_strategy(
-        self, 
-        flag: FeatureFlag, 
-        organization_id: str, 
-        user_id: Optional[str], 
+        self,
+        flag: FeatureFlag,
+        organization_id: str,
+        user_id: str | None,
         tier: str,
-        context: Optional[Dict]
+        context: dict | None
     ) -> FeatureEvaluation:
         """Evaluate feature flag based on rollout strategy"""
-        
+
         base_result = FeatureEvaluation(
             key=flag.key,
             value=flag.default_value,
@@ -563,7 +561,7 @@ class FeatureFlagService:
             evaluation_time=datetime.now(),
             source="strategy"
         )
-        
+
         # Check tier restrictions first
         if flag.tier_restrictions:
             try:
@@ -574,32 +572,32 @@ class FeatureFlagService:
             except ValueError:
                 base_result.source = "invalid_tier"
                 return base_result
-        
+
         # Evaluate based on strategy
         if flag.rollout_strategy == RolloutStrategy.ALL_USERS:
             base_result.enabled = True
             base_result.value = flag.default_value
-            
+
         elif flag.rollout_strategy == RolloutStrategy.TIER_BASED:
             tier_value = flag.rollout_config.get(tier, flag.default_value)
             base_result.enabled = True
             base_result.value = tier_value
-            
+
         elif flag.rollout_strategy == RolloutStrategy.PERCENTAGE:
             percentage = flag.rollout_config.get("percentage", 0)
             hash_input = f"{flag.key}:{organization_id}"
             hash_value = hash(hash_input) % 100
-            
+
             if hash_value < percentage:
                 base_result.enabled = True
                 base_result.value = flag.rollout_config.get("value", flag.default_value)
-                
+
         elif flag.rollout_strategy == RolloutStrategy.USER_LIST:
             user_list = flag.rollout_config.get("users", [])
             if user_id and user_id in user_list:
                 base_result.enabled = True
                 base_result.value = flag.rollout_config.get("value", flag.default_value)
-                
+
         elif flag.rollout_strategy == RolloutStrategy.AB_TEST:
             variant = await self.get_ab_test_variant(
                 flag.rollout_config.get("test_name", flag.key),
@@ -607,24 +605,24 @@ class FeatureFlagService:
                 user_id,
                 flag.rollout_config.get("variants", {})
             )
-            
+
             if variant:
                 variant_config = flag.rollout_config["variants"][variant]
                 base_result.enabled = variant_config.get("enabled", False)
                 base_result.value = variant_config.get("value", flag.default_value)
                 base_result.variant = variant
-        
+
         return base_result
-    
+
     async def get_ab_test_variant(
-        self, 
-        test_name: str, 
-        organization_id: str, 
-        user_id: Optional[str],
-        variants: Dict[str, Any]
-    ) -> Optional[str]:
+        self,
+        test_name: str,
+        organization_id: str,
+        user_id: str | None,
+        variants: dict[str, Any]
+    ) -> str | None:
         """Get A/B test variant assignment"""
-        
+
         try:
             # Check existing assignment
             async with self.db_pool.acquire() as conn:
@@ -632,28 +630,28 @@ class FeatureFlagService:
                     SELECT variant FROM ab_test_assignments
                     WHERE test_name = $1 AND organization_id = $2 AND user_id = $3
                 """, test_name, organization_id, user_id)
-                
+
                 if existing:
                     return existing
-                
+
                 # Assign new variant based on weights
                 total_weight = sum(v.get("weight", 0) for v in variants.values())
                 if total_weight == 0:
                     return None
-                
+
                 # Use hash for consistent assignment
                 hash_input = f"{test_name}:{organization_id}:{user_id or 'anonymous'}"
                 hash_value = hash(hash_input) % total_weight
-                
+
                 current_weight = 0
                 selected_variant = None
-                
+
                 for variant_name, variant_config in variants.items():
                     current_weight += variant_config.get("weight", 0)
                     if hash_value < current_weight:
                         selected_variant = variant_name
                         break
-                
+
                 if selected_variant:
                     # Store assignment
                     await conn.execute("""
@@ -661,16 +659,16 @@ class FeatureFlagService:
                         VALUES ($1, $2, $3, $4)
                         ON CONFLICT (test_name, organization_id, user_id) DO NOTHING
                     """, test_name, organization_id, user_id, selected_variant)
-                    
+
                     # Update metrics
                     ab_test_assignments.labels(test=test_name, variant=selected_variant).inc()
-                
+
                 return selected_variant
-                
+
         except Exception as e:
             logger.error(f"A/B test variant assignment failed: {e}")
             return None
-    
+
     async def log_evaluation(self, evaluation: FeatureEvaluation):
         """Log feature flag evaluation"""
         try:
@@ -679,38 +677,38 @@ class FeatureFlagService:
                     INSERT INTO feature_evaluations (
                         flag_key, organization_id, user_id, tier, value, variant, source
                     ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-                """, 
+                """,
                 evaluation.key, evaluation.organization_id, evaluation.user_id,
                 evaluation.tier, json.dumps(evaluation.value), evaluation.variant, evaluation.source)
         except Exception as e:
             logger.error(f"Failed to log evaluation: {e}")
-    
+
     async def handle_tier_change(self, msg):
         """Handle billing tier changes"""
         try:
             data = json.loads(msg.data.decode())
             organization_id = data.get('organization_id')
             new_tier = data.get('new_tier')
-            
+
             if organization_id and new_tier:
                 # Invalidate tier cache
                 cache_key = f"tier:{organization_id}"
                 if cache_key in self.tier_cache:
                     del self.tier_cache[cache_key]
-                
+
                 await self.redis.delete(cache_key)
-                
+
                 logger.info(f"Invalidated tier cache for org {organization_id}, new tier: {new_tier}")
-                
+
         except Exception as e:
             logger.error(f"Failed to handle tier change: {e}")
-    
-    async def get_feature_flags_for_organization(self, organization_id: str) -> Dict[str, Any]:
+
+    async def get_feature_flags_for_organization(self, organization_id: str) -> dict[str, Any]:
         """Get all applicable feature flags for an organization"""
-        
+
         tier = await self.get_organization_tier(organization_id)
         result = {}
-        
+
         for flag_key in self.flag_cache.keys():
             evaluation = await self.evaluate_feature_flag(flag_key, organization_id)
             result[flag_key] = {
@@ -718,7 +716,7 @@ class FeatureFlagService:
                 "value": evaluation.value,
                 "variant": evaluation.variant
             }
-        
+
         return {
             "organization_id": organization_id,
             "tier": tier,
@@ -739,7 +737,7 @@ async def get_organization_features(organization_id: str):
     return await feature_service.get_feature_flags_for_organization(organization_id)
 
 @app.get("/api/v1/features/{organization_id}/{flag_key}")
-async def evaluate_feature(organization_id: str, flag_key: str, user_id: Optional[str] = None):
+async def evaluate_feature(organization_id: str, flag_key: str, user_id: str | None = None):
     """Evaluate a specific feature flag"""
     evaluation = await feature_service.evaluate_feature_flag(flag_key, organization_id, user_id)
     return {

@@ -10,15 +10,15 @@ intelligence, strategic insights, and executive-level reporting.
 import asyncio
 import json
 import logging
+import random
+import statistics
 import time
 import uuid
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from enum import Enum
-import statistics
-import random
+from pathlib import Path
+from typing import Any
 
 # Configure enhanced logging
 logging.basicConfig(
@@ -82,7 +82,7 @@ class ThreatIntelligenceInsight:
     attack_frequency: int
     success_rate: float
     business_impact: str
-    recommended_actions: List[str]
+    recommended_actions: list[str]
     confidence_level: float
     timestamp: float
 
@@ -97,7 +97,7 @@ class AgentPerformanceAnalytics:
     learning_velocity: float
     specialization_effectiveness: float
     cost_effectiveness: float
-    recommended_optimizations: List[str]
+    recommended_optimizations: list[str]
 
 @dataclass
 class CampaignROIAnalysis:
@@ -109,8 +109,8 @@ class CampaignROIAnalysis:
     roi_percentage: float
     time_to_value: float
     risk_reduction: float
-    business_outcomes: List[str]
-    success_factors: List[str]
+    business_outcomes: list[str]
+    success_factors: list[str]
 
 class XorbBusinessIntelligenceSystem:
     """
@@ -119,44 +119,44 @@ class XorbBusinessIntelligenceSystem:
     Provides advanced analytics, reporting, and business intelligence
     across all XORB operations and campaigns.
     """
-    
+
     def __init__(self):
         self.bi_system_id = f"BI-{uuid.uuid4().hex[:8].upper()}"
         self.session_id = f"INTEL-{uuid.uuid4().hex[:8].upper()}"
         self.start_time = time.time()
-        
+
         # Data sources
         self.data_sources = {}
         self.historical_data = {}
         self.real_time_metrics = {}
-        
+
         # Business intelligence components
-        self.business_metrics: List[BusinessMetric] = []
-        self.threat_insights: List[ThreatIntelligenceInsight] = []
-        self.agent_analytics: List[AgentPerformanceAnalytics] = []
-        self.campaign_roi: List[CampaignROIAnalysis] = []
-        
+        self.business_metrics: list[BusinessMetric] = []
+        self.threat_insights: list[ThreatIntelligenceInsight] = []
+        self.agent_analytics: list[AgentPerformanceAnalytics] = []
+        self.campaign_roi: list[CampaignROIAnalysis] = []
+
         # Alert system
-        self.active_alerts: List[Dict[str, Any]] = []
+        self.active_alerts: list[dict[str, Any]] = []
         self.alert_thresholds = {}
-        
+
         # Performance tracking
         self.reports_generated = 0
         self.dashboards_created = 0
         self.insights_discovered = 0
         self.recommendations_made = 0
-        
+
         logger.info(f"📊 XORB Business Intelligence System initialized: {self.bi_system_id}")
-        logger.info(f"📊 XORB COMPREHENSIVE BUSINESS INTELLIGENCE LAUNCHED")
+        logger.info("📊 XORB COMPREHENSIVE BUSINESS INTELLIGENCE LAUNCHED")
         logger.info(f"🆔 Session ID: {self.session_id}")
         logger.info("")
         logger.info("🚀 INITIATING BUSINESS INTELLIGENCE ANALYSIS...")
         logger.info("")
-    
+
     def load_xorb_data_sources(self) -> None:
         """Load data from all XORB phases and systems"""
         base_path = Path("/root/Xorb")
-        
+
         # Load Phase V intelligence memory data
         try:
             memory_path = base_path / "data"
@@ -167,33 +167,33 @@ class XorbBusinessIntelligenceSystem:
                     agent_files = list(agent_memory_path.glob("*_memory.json"))
                     self.data_sources["agent_memory"] = len(agent_files)
                     logger.info(f"📂 Loaded {len(agent_files)} agent memory files")
-                
+
                 # Threat intelligence data
                 threat_file = memory_path / "threat_encounters" / "threat_metadata.json"
                 if threat_file.exists():
-                    with open(threat_file, 'r') as f:
+                    with open(threat_file) as f:
                         threat_data = json.load(f)
                         self.data_sources["threat_intelligence"] = len(threat_data)
                         logger.info(f"🦠 Loaded {len(threat_data)} threat intelligence entries")
-                
+
                 # Vector embeddings
                 vector_file = memory_path / "vector_embeddings" / "memory_entries.json"
                 if vector_file.exists():
-                    with open(vector_file, 'r') as f:
+                    with open(vector_file) as f:
                         vector_data = json.load(f)
                         self.data_sources["vector_memories"] = len(vector_data)
                         logger.info(f"🧠 Loaded {len(vector_data)} vector memory entries")
-        
+
         except Exception as e:
             logger.warning(f"⚠️ Could not load some data sources: {e}")
-        
+
         # Load log files for operational data
         log_path = Path("/var/log/xorb")
         if log_path.exists():
             log_files = list(log_path.glob("*.log"))
             self.data_sources["operational_logs"] = len(log_files)
             logger.info(f"📜 Found {len(log_files)} operational log files")
-        
+
         # Simulate additional data sources
         self.data_sources.update({
             "campaign_executions": 15,
@@ -203,13 +203,13 @@ class XorbBusinessIntelligenceSystem:
             "vulnerability_assessments": 23,
             "penetration_tests": 12
         })
-        
+
         logger.info(f"📊 Total data sources loaded: {len(self.data_sources)}")
-    
-    def generate_business_metrics(self) -> List[BusinessMetric]:
+
+    def generate_business_metrics(self) -> list[BusinessMetric]:
         """Generate comprehensive business metrics"""
         metrics = []
-        
+
         # Security effectiveness metrics
         metrics.extend([
             BusinessMetric(
@@ -225,7 +225,7 @@ class XorbBusinessIntelligenceSystem:
                 timestamp=time.time()
             ),
             BusinessMetric(
-                metric_id="SEC-002", 
+                metric_id="SEC-002",
                 metric_name="Mean Time to Detection (MTTD)",
                 metric_type="security",
                 current_value=4.2,
@@ -243,13 +243,13 @@ class XorbBusinessIntelligenceSystem:
                 current_value=2.1,
                 previous_value=3.7,
                 target_value=2.0,
-                unit="percentage", 
+                unit="percentage",
                 trend="decreasing",
                 status="at_risk",
                 timestamp=time.time()
             )
         ])
-        
+
         # Operational efficiency metrics
         metrics.extend([
             BusinessMetric(
@@ -272,7 +272,7 @@ class XorbBusinessIntelligenceSystem:
                 previous_value=94.1,
                 target_value=95.0,
                 unit="percentage",
-                trend="increasing", 
+                trend="increasing",
                 status="on_track",
                 timestamp=time.time()
             ),
@@ -289,7 +289,7 @@ class XorbBusinessIntelligenceSystem:
                 timestamp=time.time()
             )
         ])
-        
+
         # Business impact metrics
         metrics.extend([
             BusinessMetric(
@@ -329,15 +329,15 @@ class XorbBusinessIntelligenceSystem:
                 timestamp=time.time()
             )
         ])
-        
+
         self.business_metrics = metrics
         logger.info(f"📈 Generated {len(metrics)} business metrics")
         return metrics
-    
-    def analyze_threat_intelligence(self) -> List[ThreatIntelligenceInsight]:
+
+    def analyze_threat_intelligence(self) -> list[ThreatIntelligenceInsight]:
         """Analyze threat intelligence for business insights"""
         insights = []
-        
+
         # APT activity analysis
         insights.append(ThreatIntelligenceInsight(
             insight_id="TI-001",
@@ -354,10 +354,10 @@ class XorbBusinessIntelligenceSystem:
             confidence_level=0.89,
             timestamp=time.time()
         ))
-        
+
         # Zero-day exploitation trends
         insights.append(ThreatIntelligenceInsight(
-            insight_id="TI-002", 
+            insight_id="TI-002",
             threat_category="Zero-Day Exploits",
             sophistication_trend="stable",
             attack_frequency=8,
@@ -371,7 +371,7 @@ class XorbBusinessIntelligenceSystem:
             confidence_level=0.94,
             timestamp=time.time()
         ))
-        
+
         # Supply chain attacks
         insights.append(ThreatIntelligenceInsight(
             insight_id="TI-003",
@@ -381,14 +381,14 @@ class XorbBusinessIntelligenceSystem:
             success_rate=28.6,
             business_impact="high",
             recommended_actions=[
-                "Implement software composition analysis", 
+                "Implement software composition analysis",
                 "Enhance vendor security assessments",
                 "Deploy supply chain monitoring"
             ],
             confidence_level=0.87,
             timestamp=time.time()
         ))
-        
+
         # Social engineering evolution
         insights.append(ThreatIntelligenceInsight(
             insight_id="TI-004",
@@ -405,15 +405,15 @@ class XorbBusinessIntelligenceSystem:
             confidence_level=0.91,
             timestamp=time.time()
         ))
-        
+
         self.threat_insights = insights
         logger.info(f"🔍 Generated {len(insights)} threat intelligence insights")
         return insights
-    
-    def analyze_agent_performance(self) -> List[AgentPerformanceAnalytics]:
+
+    def analyze_agent_performance(self) -> list[AgentPerformanceAnalytics]:
         """Analyze agent performance for business optimization"""
         analytics = []
-        
+
         # Simulate agent performance data based on memory system
         agent_types = [
             "stealth_reconnaissance", "vulnerability_scanner", "exploit_framework",
@@ -421,7 +421,7 @@ class XorbBusinessIntelligenceSystem:
             "incident_responder", "forensics_expert", "intelligence_collector",
             "penetration_tester", "security_analyst", "defense_optimizer"
         ]
-        
+
         for i, agent_type in enumerate(agent_types):
             analytics.append(AgentPerformanceAnalytics(
                 agent_id=f"AGENT-{agent_type.upper()}-{i:03d}",
@@ -434,19 +434,19 @@ class XorbBusinessIntelligenceSystem:
                 cost_effectiveness=random.uniform(0.68, 0.91),
                 recommended_optimizations=[
                     "Enhance memory kernel optimization",
-                    "Implement cross-training protocols", 
+                    "Implement cross-training protocols",
                     "Deploy advanced automation"
                 ][:random.randint(1, 3)]
             ))
-        
+
         self.agent_analytics = analytics
         logger.info(f"🤖 Generated analytics for {len(analytics)} agents")
         return analytics
-    
-    def calculate_campaign_roi(self) -> List[CampaignROIAnalysis]:
+
+    def calculate_campaign_roi(self) -> list[CampaignROIAnalysis]:
         """Calculate ROI for security campaigns"""
         roi_analyses = []
-        
+
         # Threat hunting campaign ROI
         roi_analyses.append(CampaignROIAnalysis(
             campaign_id="CAMP-THREAT-HUNT-001",
@@ -467,7 +467,7 @@ class XorbBusinessIntelligenceSystem:
                 "Real-time intelligence integration"
             ]
         ))
-        
+
         # Vulnerability assessment ROI
         roi_analyses.append(CampaignROIAnalysis(
             campaign_id="CAMP-VULN-ASSESS-001",
@@ -488,7 +488,7 @@ class XorbBusinessIntelligenceSystem:
                 "Prioritized remediation planning"
             ]
         ))
-        
+
         # Incident response ROI
         roi_analyses.append(CampaignROIAnalysis(
             campaign_id="CAMP-INCIDENT-RESP-001",
@@ -509,30 +509,30 @@ class XorbBusinessIntelligenceSystem:
                 "Effective containment procedures"
             ]
         ))
-        
+
         self.campaign_roi = roi_analyses
         logger.info(f"💰 Calculated ROI for {len(roi_analyses)} campaigns")
         return roi_analyses
-    
-    def generate_executive_summary(self) -> Dict[str, Any]:
+
+    def generate_executive_summary(self) -> dict[str, Any]:
         """Generate executive summary report"""
         # Calculate summary statistics
         avg_roi = statistics.mean([roi.roi_percentage for roi in self.campaign_roi])
         total_value = sum([roi.value_generated for roi in self.campaign_roi])
         total_cost = sum([roi.total_cost for roi in self.campaign_roi])
-        
+
         # Security metrics summary
         detection_rate = next((m.current_value for m in self.business_metrics if m.metric_id == "SEC-001"), 0)
         mttd = next((m.current_value for m in self.business_metrics if m.metric_id == "SEC-002"), 0)
-        
+
         # Operational metrics summary
         success_rate = next((m.current_value for m in self.business_metrics if m.metric_id == "OPS-002"), 0)
         availability = next((m.current_value for m in self.business_metrics if m.metric_id == "OPS-003"), 0)
-        
+
         # Risk assessment
         high_impact_threats = len([t for t in self.threat_insights if t.business_impact == "high"])
         critical_impact_threats = len([t for t in self.threat_insights if t.business_impact == "critical"])
-        
+
         summary = {
             "report_id": f"EXEC-{uuid.uuid4().hex[:8].upper()}",
             "report_type": "executive_summary",
@@ -586,12 +586,12 @@ class XorbBusinessIntelligenceSystem:
                 "efficiency_gains": total_value * 0.3
             }
         }
-        
+
         self.reports_generated += 1
-        logger.info(f"📋 Generated executive summary report")
+        logger.info("📋 Generated executive summary report")
         return summary
-    
-    def create_threat_landscape_dashboard(self) -> Dict[str, Any]:
+
+    def create_threat_landscape_dashboard(self) -> dict[str, Any]:
         """Create threat landscape dashboard"""
         dashboard = {
             "dashboard_id": f"DASH-THREAT-{uuid.uuid4().hex[:6].upper()}",
@@ -648,18 +648,18 @@ class XorbBusinessIntelligenceSystem:
             "refresh_interval": 300,  # 5 minutes
             "data_sources": ["threat_intelligence", "vector_memories", "operational_logs"]
         }
-        
+
         self.dashboards_created += 1
-        logger.info(f"📊 Created threat landscape dashboard")
+        logger.info("📊 Created threat landscape dashboard")
         return dashboard
-    
-    def create_agent_performance_dashboard(self) -> Dict[str, Any]:
+
+    def create_agent_performance_dashboard(self) -> dict[str, Any]:
         """Create agent performance monitoring dashboard"""
         # Calculate agent performance statistics
         avg_efficiency = statistics.mean([a.efficiency_score for a in self.agent_analytics])
         avg_completion_rate = statistics.mean([a.task_completion_rate for a in self.agent_analytics])
         avg_error_rate = statistics.mean([a.error_rate for a in self.agent_analytics])
-        
+
         dashboard = {
             "dashboard_id": f"DASH-AGENT-{uuid.uuid4().hex[:6].upper()}",
             "dashboard_type": "agent_monitoring",
@@ -705,7 +705,7 @@ class XorbBusinessIntelligenceSystem:
                     "data": {
                         "headers": ["Agent ID", "Type", "Efficiency", "Completion Rate", "Cost Effectiveness"],
                         "rows": [
-                            [a.agent_id, a.agent_type, f"{a.efficiency_score*100:.1f}%", 
+                            [a.agent_id, a.agent_type, f"{a.efficiency_score*100:.1f}%",
                              f"{a.task_completion_rate*100:.1f}%", f"{a.cost_effectiveness*100:.1f}%"]
                             for a in sorted(self.agent_analytics, key=lambda x: x.efficiency_score, reverse=True)[:5]
                         ]
@@ -716,12 +716,12 @@ class XorbBusinessIntelligenceSystem:
             "refresh_interval": 120,  # 2 minutes
             "data_sources": ["agent_memory", "operational_logs", "campaign_executions"]
         }
-        
+
         self.dashboards_created += 1
-        logger.info(f"🤖 Created agent performance dashboard")
+        logger.info("🤖 Created agent performance dashboard")
         return dashboard
-    
-    def create_operations_center_dashboard(self) -> Dict[str, Any]:
+
+    def create_operations_center_dashboard(self) -> dict[str, Any]:
         """Create real-time operations center dashboard"""
         dashboard = {
             "dashboard_id": f"DASH-OPS-{uuid.uuid4().hex[:6].upper()}",
@@ -790,15 +790,15 @@ class XorbBusinessIntelligenceSystem:
             "refresh_interval": 30,  # 30 seconds
             "data_sources": ["all_systems"]
         }
-        
+
         self.dashboards_created += 1
-        logger.info(f"⚡ Created operations center dashboard")
+        logger.info("⚡ Created operations center dashboard")
         return dashboard
-    
-    def generate_alerts_and_recommendations(self) -> List[Dict[str, Any]]:
+
+    def generate_alerts_and_recommendations(self) -> list[dict[str, Any]]:
         """Generate intelligent alerts and recommendations"""
         alerts = []
-        
+
         # Performance-based alerts
         for metric in self.business_metrics:
             if metric.status == "at_risk":
@@ -833,7 +833,7 @@ class XorbBusinessIntelligenceSystem:
                     ],
                     "timestamp": time.time()
                 })
-        
+
         # Threat intelligence alerts
         for insight in self.threat_insights:
             if insight.business_impact == "critical":
@@ -848,7 +848,7 @@ class XorbBusinessIntelligenceSystem:
                     "recommended_actions": insight.recommended_actions,
                     "timestamp": time.time()
                 })
-        
+
         # Agent performance alerts
         low_performers = [a for a in self.agent_analytics if a.efficiency_score < 0.7]
         if low_performers:
@@ -856,7 +856,7 @@ class XorbBusinessIntelligenceSystem:
                 "alert_id": f"ALERT-{uuid.uuid4().hex[:6].upper()}",
                 "level": AlertLevel.MEDIUM.value,
                 "category": "agent_performance",
-                "title": f"Low-Performing Agents Detected",
+                "title": "Low-Performing Agents Detected",
                 "description": f"{len(low_performers)} agents performing below threshold",
                 "affected_agents": [a.agent_id for a in low_performers],
                 "recommended_actions": [
@@ -866,102 +866,102 @@ class XorbBusinessIntelligenceSystem:
                 ],
                 "timestamp": time.time()
             })
-        
+
         self.active_alerts = alerts
         logger.info(f"🚨 Generated {len(alerts)} intelligent alerts")
         return alerts
-    
+
     def save_business_intelligence_reports(self) -> None:
         """Save all business intelligence data"""
         base_path = Path("/root/Xorb/reports")
         base_path.mkdir(exist_ok=True)
-        
+
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
+
         # Save executive summary
         exec_summary = self.generate_executive_summary()
         with open(base_path / f"executive_summary_{timestamp}.json", 'w') as f:
             json.dump(exec_summary, f, indent=2)
-        
+
         # Save dashboards
         dashboards = {
             "threat_landscape": self.create_threat_landscape_dashboard(),
             "agent_performance": self.create_agent_performance_dashboard(),
             "operations_center": self.create_operations_center_dashboard()
         }
-        
+
         with open(base_path / f"dashboards_{timestamp}.json", 'w') as f:
             json.dump(dashboards, f, indent=2)
-        
+
         # Save business metrics
         metrics_data = [asdict(metric) for metric in self.business_metrics]
         with open(base_path / f"business_metrics_{timestamp}.json", 'w') as f:
             json.dump(metrics_data, f, indent=2)
-        
+
         # Save threat insights
         insights_data = [asdict(insight) for insight in self.threat_insights]
         with open(base_path / f"threat_insights_{timestamp}.json", 'w') as f:
             json.dump(insights_data, f, indent=2)
-        
+
         # Save agent analytics
         analytics_data = [asdict(analytics) for analytics in self.agent_analytics]
         with open(base_path / f"agent_analytics_{timestamp}.json", 'w') as f:
             json.dump(analytics_data, f, indent=2)
-        
+
         # Save ROI analysis
         roi_data = [asdict(roi) for roi in self.campaign_roi]
         with open(base_path / f"campaign_roi_{timestamp}.json", 'w') as f:
             json.dump(roi_data, f, indent=2)
-        
+
         # Save alerts
         with open(base_path / f"alerts_{timestamp}.json", 'w') as f:
             json.dump(self.active_alerts, f, indent=2)
-        
+
         logger.info(f"💾 Saved business intelligence reports to {base_path}")
 
 async def main():
     """Main demonstration function"""
     bi_system = XorbBusinessIntelligenceSystem()
-    
+
     # Load all XORB data sources
     logger.info("📂 Loading XORB data sources...")
     bi_system.load_xorb_data_sources()
-    
+
     # Generate business intelligence
     logger.info("📈 Generating business metrics...")
     bi_system.generate_business_metrics()
-    
+
     logger.info("🔍 Analyzing threat intelligence...")
     bi_system.analyze_threat_intelligence()
-    
+
     logger.info("🤖 Analyzing agent performance...")
     bi_system.analyze_agent_performance()
-    
+
     logger.info("💰 Calculating campaign ROI...")
     bi_system.calculate_campaign_roi()
-    
+
     # Create dashboards
     logger.info("📊 Creating business intelligence dashboards...")
     threat_dashboard = bi_system.create_threat_landscape_dashboard()
     agent_dashboard = bi_system.create_agent_performance_dashboard()
     ops_dashboard = bi_system.create_operations_center_dashboard()
-    
+
     # Generate executive summary
     logger.info("📋 Generating executive summary...")
     exec_summary = bi_system.generate_executive_summary()
-    
+
     # Generate alerts and recommendations
     logger.info("🚨 Generating alerts and recommendations...")
     alerts = bi_system.generate_alerts_and_recommendations()
-    
+
     # Save all reports
     logger.info("💾 Saving business intelligence reports...")
     bi_system.save_business_intelligence_reports()
-    
+
     # Display summary
     logger.info("")
     logger.info("🏆 COMPREHENSIVE BUSINESS INTELLIGENCE ANALYSIS COMPLETE")
-    logger.info(f"📊 Business Intelligence Statistics:")
+    logger.info("📊 Business Intelligence Statistics:")
     logger.info(f"   Data Sources Integrated: {len(bi_system.data_sources)}")
     logger.info(f"   Business Metrics: {len(bi_system.business_metrics)}")
     logger.info(f"   Threat Insights: {len(bi_system.threat_insights)}")
@@ -970,18 +970,18 @@ async def main():
     logger.info(f"   Dashboards Created: {bi_system.dashboards_created}")
     logger.info(f"   Reports Generated: {bi_system.reports_generated + 1}")
     logger.info(f"   Active Alerts: {len(bi_system.active_alerts)}")
-    
+
     # Key insights summary
     total_value = sum([roi.value_generated for roi in bi_system.campaign_roi])
     avg_roi = statistics.mean([roi.roi_percentage for roi in bi_system.campaign_roi])
-    
+
     logger.info("")
     logger.info("💡 Executive Summary Highlights:")
     logger.info(f"   Total Value Delivered: ${total_value:,.0f}")
     logger.info(f"   Average Campaign ROI: {avg_roi:.0f}%")
-    logger.info(f"   Threat Detection Rate: 94.7%")
-    logger.info(f"   Agent Fleet Efficiency: 87.3%")
-    logger.info(f"   System Availability: 99.7%")
+    logger.info("   Threat Detection Rate: 94.7%")
+    logger.info("   Agent Fleet Efficiency: 87.3%")
+    logger.info("   System Availability: 99.7%")
 
 if __name__ == "__main__":
     asyncio.run(main())

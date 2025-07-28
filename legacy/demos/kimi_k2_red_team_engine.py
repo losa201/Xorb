@@ -8,16 +8,15 @@ import asyncio
 import json
 import logging
 import random
+import sys
 import time
 import uuid
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
-import sys
-import os
+from typing import Any
+
 import requests
-import psutil
 
 # Add project root to path
 sys.path.insert(0, '/root/Xorb/packages/xorb_core')
@@ -72,10 +71,10 @@ class AttackVector:
     sophistication: int = 1  # 1-10 scale
     stealth_level: int = 1   # 1-10 scale
     impact_level: int = 1    # 1-10 scale
-    prerequisites: List[str] = field(default_factory=list)
-    indicators: List[str] = field(default_factory=list)
-    countermeasures: List[str] = field(default_factory=list)
-    payload: Dict[str, Any] = field(default_factory=dict)
+    prerequisites: list[str] = field(default_factory=list)
+    indicators: list[str] = field(default_factory=list)
+    countermeasures: list[str] = field(default_factory=list)
+    payload: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class AttackChain:
@@ -83,14 +82,14 @@ class AttackChain:
     chain_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     threat_actor: ThreatActorProfile = ThreatActorProfile.APT_GROUP
     objective: str = ""
-    target_profile: Dict[str, Any] = field(default_factory=dict)
-    attack_vectors: List[AttackVector] = field(default_factory=list)
-    timeline: Dict[str, float] = field(default_factory=dict)
+    target_profile: dict[str, Any] = field(default_factory=dict)
+    attack_vectors: list[AttackVector] = field(default_factory=list)
+    timeline: dict[str, float] = field(default_factory=dict)
     success_probability: float = 0.0
     detection_probability: float = 0.0
-    lateral_paths: List[Dict[str, Any]] = field(default_factory=list)
-    exfil_methods: List[str] = field(default_factory=list)
-    persistence_mechanisms: List[str] = field(default_factory=list)
+    lateral_paths: list[dict[str, Any]] = field(default_factory=list)
+    exfil_methods: list[str] = field(default_factory=list)
+    persistence_mechanisms: list[str] = field(default_factory=list)
     created_at: datetime = field(default_factory=datetime.now)
 
 @dataclass
@@ -98,28 +97,28 @@ class RedTeamSimulation:
     """Complete red team simulation scenario"""
     simulation_id: str = field(default_factory=lambda: str(uuid.uuid4())[:8])
     scenario_name: str = ""
-    attack_chains: List[AttackChain] = field(default_factory=list)
-    environment_context: Dict[str, Any] = field(default_factory=dict)
-    defensive_posture: Dict[str, Any] = field(default_factory=dict)
+    attack_chains: list[AttackChain] = field(default_factory=list)
+    environment_context: dict[str, Any] = field(default_factory=dict)
+    defensive_posture: dict[str, Any] = field(default_factory=dict)
     simulation_duration: float = 0.0
-    success_metrics: Dict[str, float] = field(default_factory=dict)
-    detection_events: List[Dict[str, Any]] = field(default_factory=list)
-    lessons_learned: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
+    success_metrics: dict[str, float] = field(default_factory=dict)
+    detection_events: list[dict[str, Any]] = field(default_factory=list)
+    lessons_learned: list[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
 
 class KimiK2RedTeamEngine:
     """Kimi-K2 powered red team simulation engine"""
-    
+
     def __init__(self):
         self.engine_id = f"KIMI-K2-{str(uuid.uuid4())[:8].upper()}"
         self.openrouter_api_key = "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"
         self.kimi_model = "moonshotai/kimi-k2:free"
-        
+
         # Simulation tracking
-        self.active_simulations: Dict[str, RedTeamSimulation] = {}
-        self.completed_simulations: List[RedTeamSimulation] = []
-        self.attack_intelligence: Dict[str, Any] = {}
-        
+        self.active_simulations: dict[str, RedTeamSimulation] = {}
+        self.completed_simulations: list[RedTeamSimulation] = []
+        self.attack_intelligence: dict[str, Any] = {}
+
         # Performance metrics
         self.simulation_metrics = {
             'simulations_executed': 0,
@@ -129,7 +128,7 @@ class KimiK2RedTeamEngine:
             'zero_day_discoveries': 0,
             'lateral_movement_paths': 0
         }
-        
+
         # MITRE ATT&CK framework mappings
         self.mitre_tactics = {
             AttackPhase.RECONNAISSANCE: "TA0043",
@@ -146,20 +145,20 @@ class KimiK2RedTeamEngine:
             AttackPhase.EXFILTRATION: "TA0010",
             AttackPhase.IMPACT: "TA0040"
         }
-        
+
         logger.info(f"🔴 KIMI-K2 RED TEAM ENGINE INITIALIZED: {self.engine_id}")
-        
-    async def initialize_red_team_system(self) -> Dict[str, Any]:
+
+    async def initialize_red_team_system(self) -> dict[str, Any]:
         """Initialize the complete Kimi-K2 red team system"""
         logger.info("🚀 INITIALIZING KIMI-K2 RED TEAM SYSTEM...")
-        
+
         initialization_report = {
             "engine_id": self.engine_id,
             "timestamp": datetime.now().isoformat(),
             "initialization_status": "in_progress",
             "components": {}
         }
-        
+
         # Initialize attack intelligence database
         logger.info("   🧠 Initializing attack intelligence database...")
         await self._init_attack_intelligence()
@@ -169,7 +168,7 @@ class KimiK2RedTeamEngine:
             "attack_phases": len(AttackPhase),
             "mitre_techniques": len(self.mitre_tactics)
         }
-        
+
         # Initialize Kimi-K2 interface
         logger.info("   🤖 Initializing Kimi-K2 interface...")
         await self._init_kimi_interface()
@@ -178,7 +177,7 @@ class KimiK2RedTeamEngine:
             "model": self.kimi_model,
             "capabilities": ["attack_generation", "lateral_movement", "stealth_analysis"]
         }
-        
+
         # Initialize simulation engine
         logger.info("   🎮 Initializing simulation engine...")
         await self._init_simulation_engine()
@@ -187,7 +186,7 @@ class KimiK2RedTeamEngine:
             "concurrent_simulations": 8,
             "scenario_types": ["apt", "ransomware", "insider", "nation_state"]
         }
-        
+
         # Initialize adversarial analytics
         logger.info("   📊 Initializing adversarial analytics...")
         await self._init_adversarial_analytics()
@@ -197,12 +196,12 @@ class KimiK2RedTeamEngine:
             "success_prediction": "enabled",
             "behavioral_analysis": "enabled"
         }
-        
+
         initialization_report["initialization_status"] = "completed"
         logger.info("✅ KIMI-K2 RED TEAM SYSTEM INITIALIZED")
-        
+
         return initialization_report
-    
+
     async def _init_attack_intelligence(self):
         """Initialize attack intelligence database"""
         # Load common attack patterns and techniques
@@ -229,7 +228,7 @@ class KimiK2RedTeamEngine:
             ]
         }
         logger.info("   📚 Attack intelligence database loaded")
-    
+
     async def _init_kimi_interface(self):
         """Initialize Kimi-K2 model interface"""
         # Test Kimi-K2 connectivity
@@ -238,53 +237,53 @@ class KimiK2RedTeamEngine:
             logger.info("   🔗 Kimi-K2 connection established")
         else:
             logger.warning("   ⚠️ Kimi-K2 connection failed, using fallback mode")
-    
+
     async def _init_simulation_engine(self):
         """Initialize simulation execution engine"""
         logger.info("   ⚙️ Simulation orchestrator: READY")
         logger.info("   🎭 Threat actor modeling: ENABLED")
         logger.info("   🎯 Target environment profiling: ACTIVE")
-    
+
     async def _init_adversarial_analytics(self):
         """Initialize adversarial analytics and metrics"""
         logger.info("   📈 Success probability modeling: ACTIVE")
         logger.info("   🕵️ Detection probability analysis: ENABLED")
         logger.info("   🔄 Feedback loop integration: CONFIGURED")
-    
-    async def generate_attack_chain_with_kimi(self, threat_actor: ThreatActorProfile, 
-                                            target_context: Dict[str, Any]) -> AttackChain:
+
+    async def generate_attack_chain_with_kimi(self, threat_actor: ThreatActorProfile,
+                                            target_context: dict[str, Any]) -> AttackChain:
         """Generate sophisticated attack chain using Kimi-K2"""
         logger.info(f"🔴 Generating attack chain: {threat_actor.value}")
-        
+
         # Create Kimi-K2 prompt for attack chain generation
         prompt = await self._create_attack_chain_prompt(threat_actor, target_context)
-        
+
         # Query Kimi-K2 for attack strategy
         kimi_response = await self._query_kimi_k2(prompt)
-        
+
         # Parse and structure attack chain
         attack_chain = await self._parse_kimi_attack_response(kimi_response, threat_actor, target_context)
-        
+
         # Enhance with MITRE ATT&CK mapping
         await self._enhance_with_mitre_mapping(attack_chain)
-        
+
         # Calculate probabilities and metrics
         await self._calculate_attack_probabilities(attack_chain)
-        
+
         logger.info(f"✅ Attack chain generated: {attack_chain.chain_id}")
         self.simulation_metrics['attack_chains_generated'] += 1
-        
+
         return attack_chain
-    
-    async def _create_attack_chain_prompt(self, threat_actor: ThreatActorProfile, 
-                                        target_context: Dict[str, Any]) -> str:
+
+    async def _create_attack_chain_prompt(self, threat_actor: ThreatActorProfile,
+                                        target_context: dict[str, Any]) -> str:
         """Create sophisticated prompt for Kimi-K2 attack generation"""
-        
+
         target_type = target_context.get('type', 'enterprise')
         security_maturity = target_context.get('security_maturity', 'medium')
         industry = target_context.get('industry', 'technology')
         size = target_context.get('organization_size', 'medium')
-        
+
         prompt = f"""
 You are Kimi-K2, an advanced AI red team specialist. Generate a sophisticated, multi-stage cyber attack chain.
 
@@ -332,15 +331,15 @@ Generate a detailed attack narrative with:
 Be creative, realistic, and technically detailed in your attack scenarios.
 """
         return prompt
-    
-    async def _query_kimi_k2(self, prompt: str) -> Optional[str]:
+
+    async def _query_kimi_k2(self, prompt: str) -> str | None:
         """Query Kimi-K2 API for red team intelligence"""
         try:
             headers = {
                 "Authorization": f"Bearer {self.openrouter_api_key}",
                 "Content-Type": "application/json"
             }
-            
+
             payload = {
                 "model": self.kimi_model,
                 "messages": [
@@ -351,14 +350,14 @@ Be creative, realistic, and technically detailed in your attack scenarios.
                 "temperature": 0.8,
                 "top_p": 0.9
             }
-            
+
             response = requests.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 headers=headers,
                 json=payload,
                 timeout=45
             )
-            
+
             if response.status_code == 200:
                 result = response.json()
                 if 'choices' in result and result['choices']:
@@ -367,13 +366,13 @@ Be creative, realistic, and technically detailed in your attack scenarios.
                     return kimi_response
             else:
                 logger.error(f"❌ Kimi-K2 API error: {response.status_code}")
-                
+
         except Exception as e:
             logger.error(f"❌ Kimi-K2 query failed: {e}")
-            
+
         # Fallback to synthetic attack generation
         return await self._generate_synthetic_attack_chain()
-    
+
     async def _generate_synthetic_attack_chain(self) -> str:
         """Generate synthetic attack chain for fallback"""
         scenarios = [
@@ -399,11 +398,11 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             """
         ]
         return random.choice(scenarios)
-    
+
     async def _parse_kimi_attack_response(self, response: str, threat_actor: ThreatActorProfile,
-                                        target_context: Dict[str, Any]) -> AttackChain:
+                                        target_context: dict[str, Any]) -> AttackChain:
         """Parse Kimi-K2 response into structured attack chain"""
-        
+
         # Create base attack chain
         attack_chain = AttackChain(
             threat_actor=threat_actor,
@@ -411,7 +410,7 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             objective=self._extract_objective(response),
             timeline=self._extract_timeline(response)
         )
-        
+
         # Generate attack vectors for each phase
         phases = [
             AttackPhase.RECONNAISSANCE,
@@ -420,22 +419,22 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             AttackPhase.PERSISTENCE,
             AttackPhase.EXFILTRATION
         ]
-        
+
         for phase in phases:
             vector = self._create_attack_vector_for_phase(phase, response, threat_actor)
             attack_chain.attack_vectors.append(vector)
-        
+
         # Extract lateral movement paths
         attack_chain.lateral_paths = self._extract_lateral_paths(response)
-        
+
         # Extract persistence mechanisms
         attack_chain.persistence_mechanisms = self._extract_persistence_methods(response)
-        
+
         # Extract exfiltration methods
         attack_chain.exfil_methods = self._extract_exfiltration_methods(response)
-        
+
         return attack_chain
-    
+
     def _extract_objective(self, response: str) -> str:
         """Extract attack objective from response"""
         objectives = [
@@ -447,8 +446,8 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             "Competitive intelligence collection"
         ]
         return random.choice(objectives)
-    
-    def _extract_timeline(self, response: str) -> Dict[str, float]:
+
+    def _extract_timeline(self, response: str) -> dict[str, float]:
         """Extract attack timeline from response"""
         return {
             "reconnaissance": random.uniform(4, 24),  # hours
@@ -458,11 +457,11 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             "exfiltration": random.uniform(1, 72),
             "total_duration": random.uniform(24, 168)  # 1-7 days
         }
-    
-    def _create_attack_vector_for_phase(self, phase: AttackPhase, response: str, 
+
+    def _create_attack_vector_for_phase(self, phase: AttackPhase, response: str,
                                       threat_actor: ThreatActorProfile) -> AttackVector:
         """Create attack vector for specific phase"""
-        
+
         # Phase-specific techniques
         techniques_by_phase = {
             AttackPhase.RECONNAISSANCE: [
@@ -486,9 +485,9 @@ Be creative, realistic, and technically detailed in your attack scenarios.
                 "Email exfiltration", "FTP transfer", "Steganography"
             ]
         }
-        
+
         technique = random.choice(techniques_by_phase.get(phase, ["Unknown technique"]))
-        
+
         vector = AttackVector(
             name=f"{phase.value}_{technique.lower().replace(' ', '_')}",
             phase=phase,
@@ -502,9 +501,9 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             indicators=self._generate_indicators(phase, technique),
             countermeasures=self._generate_countermeasures(phase, technique)
         )
-        
+
         return vector
-    
+
     def _calculate_sophistication(self, threat_actor: ThreatActorProfile) -> int:
         """Calculate attack sophistication based on threat actor"""
         sophistication_map = {
@@ -517,8 +516,8 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             ThreatActorProfile.SCRIPT_KIDDIE: random.randint(1, 3)
         }
         return sophistication_map.get(threat_actor, 5)
-    
-    def _generate_prerequisites(self, phase: AttackPhase) -> List[str]:
+
+    def _generate_prerequisites(self, phase: AttackPhase) -> list[str]:
         """Generate prerequisites for attack phase"""
         prerequisites_map = {
             AttackPhase.RECONNAISSANCE: ["Internet access", "Target identification"],
@@ -528,18 +527,18 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             AttackPhase.EXFILTRATION: ["Data location", "Exfiltration channel"]
         }
         return prerequisites_map.get(phase, ["System access"])
-    
-    def _generate_indicators(self, phase: AttackPhase, technique: str) -> List[str]:
+
+    def _generate_indicators(self, phase: AttackPhase, technique: str) -> list[str]:
         """Generate indicators of compromise"""
         return [
             f"Suspicious {phase.value} activity",
-            f"Anomalous network traffic patterns",
+            "Anomalous network traffic patterns",
             f"Unusual {technique.lower()} behavior",
-            f"File system modifications",
-            f"Registry changes"
+            "File system modifications",
+            "Registry changes"
         ]
-    
-    def _generate_countermeasures(self, phase: AttackPhase, technique: str) -> List[str]:
+
+    def _generate_countermeasures(self, phase: AttackPhase, technique: str) -> list[str]:
         """Generate countermeasures for attack phase"""
         countermeasures_map = {
             AttackPhase.RECONNAISSANCE: ["Network monitoring", "Threat intelligence"],
@@ -549,12 +548,12 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             AttackPhase.EXFILTRATION: ["Data loss prevention", "Network monitoring"]
         }
         return countermeasures_map.get(phase, ["Security monitoring"])
-    
-    def _extract_lateral_paths(self, response: str) -> List[Dict[str, Any]]:
+
+    def _extract_lateral_paths(self, response: str) -> list[dict[str, Any]]:
         """Extract lateral movement paths"""
         paths = []
         movement_types = ["admin_shares", "remote_desktop", "wmi_execution", "powershell_remoting"]
-        
+
         for i in range(random.randint(2, 5)):
             path = {
                 "source": f"host_{i}",
@@ -564,84 +563,84 @@ Be creative, realistic, and technically detailed in your attack scenarios.
                 "success_probability": random.uniform(0.6, 0.9)
             }
             paths.append(path)
-        
+
         return paths
-    
-    def _extract_persistence_methods(self, response: str) -> List[str]:
+
+    def _extract_persistence_methods(self, response: str) -> list[str]:
         """Extract persistence mechanisms"""
         methods = self.attack_intelligence["persistence_methods"]
         return random.sample(methods, random.randint(2, 4))
-    
-    def _extract_exfiltration_methods(self, response: str) -> List[str]:
+
+    def _extract_exfiltration_methods(self, response: str) -> list[str]:
         """Extract exfiltration methods"""
         methods = [
             "encrypted_tunneling", "cloud_storage_abuse", "dns_tunneling",
             "email_exfiltration", "ftp_transfer", "steganography"
         ]
         return random.sample(methods, random.randint(1, 3))
-    
+
     async def _enhance_with_mitre_mapping(self, attack_chain: AttackChain):
         """Enhance attack chain with MITRE ATT&CK mapping"""
         for vector in attack_chain.attack_vectors:
             if vector.mitre_tactic == "Unknown":
                 vector.mitre_tactic = self.mitre_tactics.get(vector.phase, "TA0000")
-    
+
     async def _calculate_attack_probabilities(self, attack_chain: AttackChain):
         """Calculate success and detection probabilities"""
         # Base probabilities
         base_success = 0.7
         base_detection = 0.3
-        
+
         # Adjust based on threat actor sophistication
         sophistication_avg = sum(v.sophistication for v in attack_chain.attack_vectors) / len(attack_chain.attack_vectors)
         stealth_avg = sum(v.stealth_level for v in attack_chain.attack_vectors) / len(attack_chain.attack_vectors)
-        
+
         # Calculate final probabilities
         attack_chain.success_probability = min(0.95, base_success + (sophistication_avg / 20))
         attack_chain.detection_probability = max(0.05, base_detection - (stealth_avg / 30))
-    
+
     async def execute_red_team_simulation(self, attack_chain: AttackChain) -> RedTeamSimulation:
         """Execute complete red team simulation"""
         logger.info(f"🎮 Executing red team simulation: {attack_chain.chain_id}")
-        
+
         simulation = RedTeamSimulation(
             scenario_name=f"Red Team Exercise - {attack_chain.threat_actor.value}",
             attack_chains=[attack_chain],
             environment_context=attack_chain.target_profile
         )
-        
+
         start_time = time.time()
-        
+
         # Simulate attack execution
         await self._simulate_attack_execution(simulation, attack_chain)
-        
+
         # Generate detection events
         await self._simulate_detection_events(simulation, attack_chain)
-        
+
         # Calculate success metrics
         await self._calculate_simulation_metrics(simulation)
-        
+
         # Generate lessons learned
         await self._generate_lessons_learned(simulation)
-        
+
         simulation.simulation_duration = time.time() - start_time
-        
+
         # Store simulation
         self.active_simulations[simulation.simulation_id] = simulation
         self.simulation_metrics['simulations_executed'] += 1
-        
+
         logger.info(f"✅ Red team simulation completed: {simulation.simulation_id}")
-        
+
         return simulation
-    
+
     async def _simulate_attack_execution(self, simulation: RedTeamSimulation, attack_chain: AttackChain):
         """Simulate attack chain execution"""
         success_events = []
-        
+
         for vector in attack_chain.attack_vectors:
             # Simulate vector execution
             execution_success = random.random() < (vector.sophistication / 10)
-            
+
             if execution_success:
                 success_events.append({
                     "phase": vector.phase.value,
@@ -650,22 +649,22 @@ Be creative, realistic, and technically detailed in your attack scenarios.
                     "timestamp": time.time()
                 })
                 self.simulation_metrics['successful_breaches'] += 1
-        
+
         simulation.success_metrics = {
             "successful_phases": len(success_events),
             "total_phases": len(attack_chain.attack_vectors),
             "success_rate": len(success_events) / len(attack_chain.attack_vectors),
             "overall_success": len(success_events) >= len(attack_chain.attack_vectors) * 0.6
         }
-    
+
     async def _simulate_detection_events(self, simulation: RedTeamSimulation, attack_chain: AttackChain):
         """Simulate security detection events"""
         detection_events = []
-        
+
         for vector in attack_chain.attack_vectors:
             # Simulate detection probability
             detected = random.random() < attack_chain.detection_probability
-            
+
             if detected:
                 detection_event = {
                     "event_id": str(uuid.uuid4())[:8],
@@ -678,13 +677,13 @@ Be creative, realistic, and technically detailed in your attack scenarios.
                 }
                 detection_events.append(detection_event)
                 self.simulation_metrics['detection_events'] += 1
-        
+
         simulation.detection_events = detection_events
-    
+
     async def _calculate_simulation_metrics(self, simulation: RedTeamSimulation):
         """Calculate comprehensive simulation metrics"""
         attack_chain = simulation.attack_chains[0]
-        
+
         # Update success metrics
         simulation.success_metrics.update({
             "lateral_movement_success": len(attack_chain.lateral_paths) > 0,
@@ -692,7 +691,7 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             "data_exfiltration_methods": len(attack_chain.exfil_methods),
             "detection_evasion_rate": 1 - (len(simulation.detection_events) / len(attack_chain.attack_vectors))
         })
-        
+
         # Defensive posture assessment
         simulation.defensive_posture = {
             "detection_capability": random.uniform(0.3, 0.8),
@@ -700,7 +699,7 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             "containment_effectiveness": random.uniform(0.4, 0.9),
             "forensic_capability": random.uniform(0.2, 0.7)
         }
-    
+
     async def _generate_lessons_learned(self, simulation: RedTeamSimulation):
         """Generate lessons learned from simulation"""
         lessons = [
@@ -711,7 +710,7 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             "Incident response procedures require updating",
             "User security awareness training recommended"
         ]
-        
+
         recommendations = [
             "Implement advanced email threat protection",
             "Deploy network access control solutions",
@@ -720,17 +719,17 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             "Conduct regular red team exercises",
             "Improve security monitoring coverage"
         ]
-        
+
         simulation.lessons_learned = random.sample(lessons, random.randint(3, 5))
         simulation.recommendations = random.sample(recommendations, random.randint(3, 5))
-    
-    async def run_continuous_red_team_campaign(self, duration_minutes: int = 10) -> Dict[str, Any]:
+
+    async def run_continuous_red_team_campaign(self, duration_minutes: int = 10) -> dict[str, Any]:
         """Run continuous red team simulation campaign"""
         logger.info("🔴 STARTING CONTINUOUS RED TEAM CAMPAIGN")
-        
+
         start_time = time.time()
         end_time = start_time + (duration_minutes * 60)
-        
+
         campaign_results = {
             "campaign_id": f"RED-TEAM-{str(uuid.uuid4())[:8].upper()}",
             "start_time": start_time,
@@ -742,38 +741,38 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             "threat_actors_simulated": [],
             "campaign_statistics": {}
         }
-        
+
         cycle_count = 0
-        
+
         while time.time() < end_time:
             cycle_count += 1
             logger.info(f"🔴 Red Team Cycle {cycle_count}")
-            
+
             # Select random threat actor and target
             threat_actor = random.choice(list(ThreatActorProfile))
             target_context = self._generate_target_context()
-            
+
             # Generate attack chain
             attack_chain = await self.generate_attack_chain_with_kimi(threat_actor, target_context)
             campaign_results["attack_chains_generated"] += 1
-            
+
             # Execute simulation
             simulation = await self.execute_red_team_simulation(attack_chain)
             campaign_results["simulations_executed"] += 1
-            
+
             # Track threat actors
             if threat_actor.value not in campaign_results["threat_actors_simulated"]:
                 campaign_results["threat_actors_simulated"].append(threat_actor.value)
-            
+
             # Update metrics
             if simulation.success_metrics.get("overall_success", False):
                 campaign_results["successful_breaches"] += 1
-            
+
             campaign_results["detection_events"] += len(simulation.detection_events)
-            
+
             # Brief pause between cycles
             await asyncio.sleep(3.0)
-        
+
         # Calculate final statistics
         total_runtime = time.time() - start_time
         campaign_results.update({
@@ -788,16 +787,16 @@ Be creative, realistic, and technically detailed in your attack scenarios.
             },
             "simulation_metrics": self.simulation_metrics.copy()
         })
-        
+
         logger.info("✅ CONTINUOUS RED TEAM CAMPAIGN COMPLETE")
         logger.info(f"🎮 Simulations executed: {campaign_results['simulations_executed']}")
         logger.info(f"🧬 Attack chains generated: {campaign_results['attack_chains_generated']}")
         logger.info(f"💥 Successful breaches: {campaign_results['successful_breaches']}")
         logger.info(f"🚨 Detection events: {campaign_results['detection_events']}")
-        
+
         return campaign_results
-    
-    def _generate_target_context(self) -> Dict[str, Any]:
+
+    def _generate_target_context(self) -> dict[str, Any]:
         """Generate random target context for simulation"""
         return {
             "type": random.choice(["enterprise", "government", "healthcare", "financial"]),
@@ -811,14 +810,14 @@ Be creative, realistic, and technically detailed in your attack scenarios.
 async def main():
     """Main execution function for Kimi-K2 red team demonstration"""
     red_team_engine = KimiK2RedTeamEngine()
-    
+
     try:
         # Initialize red team system
         init_results = await red_team_engine.initialize_red_team_system()
-        
+
         # Run continuous red team campaign
         campaign_results = await red_team_engine.run_continuous_red_team_campaign(duration_minutes=8)
-        
+
         # Combine results
         final_results = {
             "demonstration_id": f"KIMI-K2-DEMO-{str(uuid.uuid4())[:8].upper()}",
@@ -832,16 +831,16 @@ async def main():
                 "deployment_readiness": "production_ready"
             }
         }
-        
+
         # Save results
         with open('/root/Xorb/kimi_k2_red_team_results.json', 'w') as f:
             json.dump(final_results, f, indent=2, default=str)
-        
+
         logger.info("🎖️ KIMI-K2 RED TEAM DEMONSTRATION COMPLETE")
-        logger.info(f"📋 Results saved to: kimi_k2_red_team_results.json")
-        
+        logger.info("📋 Results saved to: kimi_k2_red_team_results.json")
+
         # Print summary
-        print(f"\n🔴 KIMI-K2 RED TEAM ENGINE SUMMARY")
+        print("\n🔴 KIMI-K2 RED TEAM ENGINE SUMMARY")
         print(f"⏱️  Runtime: {campaign_results['actual_runtime']:.1f} seconds")
         print(f"🎮 Simulations executed: {campaign_results['simulations_executed']}")
         print(f"🧬 Attack chains generated: {campaign_results['attack_chains_generated']}")
@@ -849,7 +848,7 @@ async def main():
         print(f"🚨 Detection events: {campaign_results['detection_events']}")
         print(f"🎭 Threat actors simulated: {len(campaign_results['threat_actors_simulated'])}")
         print(f"🏆 Breach success rate: {campaign_results['campaign_statistics']['breach_success_rate']:.1%}")
-        
+
     except KeyboardInterrupt:
         logger.info("🛑 Kimi-K2 red team demonstration interrupted")
     except Exception as e:

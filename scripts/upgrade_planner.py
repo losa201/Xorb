@@ -7,11 +7,10 @@ Analyzes system metrics and provides upgrade recommendations
 import asyncio
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from datetime import datetime
 
 import aiohttp
-from dataclasses import dataclass
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -24,8 +23,8 @@ class UpgradeRecommendation:
     threshold: float
     severity: str
     recommended_action: str
-    cost_estimate: Optional[float] = None
-    timeline: Optional[str] = None
+    cost_estimate: float | None = None
+    timeline: str | None = None
 
 @dataclass
 class SystemSpecs:
@@ -37,7 +36,7 @@ class SystemSpecs:
 
 class UpgradePlanner:
     """Analyzes metrics and provides upgrade recommendations"""
-    
+
     def __init__(self, prometheus_url: str = "http://localhost:9090"):
         self.prometheus_url = prometheus_url
         self.current_specs = SystemSpecs()
@@ -58,8 +57,8 @@ class UpgradePlanner:
                 4000: 200  # $200/month for 4TB
             }
         }
-    
-    async def query_prometheus(self, query: str, time_range: str = "1h") -> Optional[float]:
+
+    async def query_prometheus(self, query: str, time_range: str = "1h") -> float | None:
         """Query Prometheus for metric value"""
         try:
             async with aiohttp.ClientSession() as session:
@@ -70,8 +69,8 @@ class UpgradePlanner:
                 else:
                     params = {"query": query}
                     endpoint = "query"
-                
-                async with session.get(f"{self.prometheus_url}/api/v1/{endpoint}", 
+
+                async with session.get(f"{self.prometheus_url}/api/v1/{endpoint}",
                                      params=params, timeout=aiohttp.ClientTimeout(total=10)) as response:
                     if response.status == 200:
                         data = await response.json()
@@ -86,97 +85,97 @@ class UpgradePlanner:
         except Exception as e:
             logger.error(f"Error querying Prometheus: {e}")
             return None
-    
-    async def get_cpu_metrics(self) -> Dict[str, float]:
+
+    async def get_cpu_metrics(self) -> dict[str, float]:
         """Get CPU-related metrics"""
         metrics = {}
-        
+
         # Current CPU utilization
         cpu_current = await self.query_prometheus("xorb:cpu_utilization_5m", "")
         metrics["cpu_current"] = cpu_current or 0
-        
+
         # 1-hour average
         cpu_1h = await self.query_prometheus("xorb:cpu_utilization_1h", "")
         metrics["cpu_1h_avg"] = cpu_1h or 0
-        
+
         # 6-hour trend prediction
         cpu_trend = await self.query_prometheus("xorb:cpu_utilization_trend_6h", "")
         metrics["cpu_6h_trend"] = cpu_trend or 0
-        
+
         # Peak usage in last 24h
         cpu_peak = await self.query_prometheus("max_over_time(xorb:cpu_utilization_5m[24h])", "")
         metrics["cpu_24h_peak"] = cpu_peak or 0
-        
+
         return metrics
-    
-    async def get_memory_metrics(self) -> Dict[str, float]:
+
+    async def get_memory_metrics(self) -> dict[str, float]:
         """Get memory-related metrics"""
         metrics = {}
-        
+
         # Current memory utilization
         mem_current = await self.query_prometheus("xorb:memory_utilization_5m", "")
         metrics["memory_current"] = mem_current or 0
-        
+
         # 1-hour average
         mem_1h = await self.query_prometheus("xorb:memory_utilization_1h", "")
         metrics["memory_1h_avg"] = mem_1h or 0
-        
+
         # 6-hour trend prediction
         mem_trend = await self.query_prometheus("xorb:memory_utilization_trend_6h", "")
         metrics["memory_6h_trend"] = mem_trend or 0
-        
+
         # Peak usage in last 24h
         mem_peak = await self.query_prometheus("max_over_time(xorb:memory_utilization_5m[24h])", "")
         metrics["memory_24h_peak"] = mem_peak or 0
-        
+
         return metrics
-    
-    async def get_storage_metrics(self) -> Dict[str, float]:
+
+    async def get_storage_metrics(self) -> dict[str, float]:
         """Get storage-related metrics"""
         metrics = {}
-        
+
         # Current storage utilization
         storage_current = await self.query_prometheus("max(xorb:storage_utilization_5m)", "")
         metrics["storage_current"] = storage_current or 0
-        
+
         # Storage growth rate (MB/day)
         storage_growth = await self.query_prometheus(
             "predict_linear(node_filesystem_size_bytes{fstype!=\"tmpfs\"}[7d], 86400)"
         )
         metrics["storage_growth_daily"] = (storage_growth or 0) / (1024 * 1024 * 1024)  # Convert to GB
-        
+
         return metrics
-    
-    async def get_performance_metrics(self) -> Dict[str, float]:
+
+    async def get_performance_metrics(self) -> dict[str, float]:
         """Get performance-related metrics"""
         metrics = {}
-        
+
         # API response time
         api_latency = await self.query_prometheus("xorb:api_response_time_p95_1h", "")
         metrics["api_p95_latency"] = api_latency or 0
-        
+
         # Worker queue backlog
         worker_queue = await self.query_prometheus("xorb:worker_queue_avg_1h", "")
         metrics["worker_queue_avg"] = worker_queue or 0
-        
+
         # Database connection utilization
         db_connections = await self.query_prometheus("xorb:db_connections_utilization", "")
         metrics["db_connections_pct"] = db_connections or 0
-        
+
         # API request growth
         api_growth = await self.query_prometheus("xorb:api_requests_growth_24h", "")
         metrics["api_growth_24h"] = api_growth or 1.0
-        
+
         return metrics
-    
-    def analyze_cpu_upgrade(self, cpu_metrics: Dict[str, float]) -> List[UpgradeRecommendation]:
+
+    def analyze_cpu_upgrade(self, cpu_metrics: dict[str, float]) -> list[UpgradeRecommendation]:
         """Analyze CPU upgrade needs"""
         recommendations = []
-        
+
         current_avg = cpu_metrics["cpu_1h_avg"]
         peak_24h = cpu_metrics["cpu_24h_peak"]
         trend_6h = cpu_metrics["cpu_6h_trend"]
-        
+
         # Immediate upgrade needed
         if current_avg > 85:
             recommendations.append(UpgradeRecommendation(
@@ -210,17 +209,17 @@ class UpgradePlanner:
                 cost_estimate=self.upgrade_costs["cpu"][24],
                 timeline="Within 2 weeks"
             ))
-        
+
         return recommendations
-    
-    def analyze_memory_upgrade(self, memory_metrics: Dict[str, float]) -> List[UpgradeRecommendation]:
+
+    def analyze_memory_upgrade(self, memory_metrics: dict[str, float]) -> list[UpgradeRecommendation]:
         """Analyze memory upgrade needs"""
         recommendations = []
-        
+
         current_avg = memory_metrics["memory_1h_avg"]
         peak_24h = memory_metrics["memory_24h_peak"]
         trend_6h = memory_metrics["memory_6h_trend"]
-        
+
         # Immediate upgrade needed
         if current_avg > 85:
             recommendations.append(UpgradeRecommendation(
@@ -254,23 +253,23 @@ class UpgradePlanner:
                 cost_estimate=self.upgrade_costs["memory"][64],
                 timeline="Within 2 weeks"
             ))
-        
+
         return recommendations
-    
-    def analyze_storage_upgrade(self, storage_metrics: Dict[str, float]) -> List[UpgradeRecommendation]:
+
+    def analyze_storage_upgrade(self, storage_metrics: dict[str, float]) -> list[UpgradeRecommendation]:
         """Analyze storage upgrade needs"""
         recommendations = []
-        
+
         current_usage = storage_metrics["storage_current"]
         daily_growth = storage_metrics["storage_growth_daily"]
-        
+
         # Calculate days until full at current growth rate
         remaining_space = self.current_specs.storage_gb * (100 - current_usage) / 100
         if daily_growth > 0:
             days_until_full = remaining_space / daily_growth
         else:
             days_until_full = float('inf')
-        
+
         # Immediate upgrade needed
         if current_usage > 85:
             recommendations.append(UpgradeRecommendation(
@@ -304,18 +303,18 @@ class UpgradePlanner:
                 cost_estimate=self.upgrade_costs["storage"][1000],
                 timeline="Within 2 weeks"
             ))
-        
+
         return recommendations
-    
-    def analyze_performance_upgrade(self, perf_metrics: Dict[str, float]) -> List[UpgradeRecommendation]:
+
+    def analyze_performance_upgrade(self, perf_metrics: dict[str, float]) -> list[UpgradeRecommendation]:
         """Analyze performance-based upgrade needs"""
         recommendations = []
-        
+
         api_latency = perf_metrics["api_p95_latency"]
         worker_queue = perf_metrics["worker_queue_avg"]
         db_connections = perf_metrics["db_connections_pct"]
         api_growth = perf_metrics["api_growth_24h"]
-        
+
         # API latency degradation
         if api_latency > 0.5:
             recommendations.append(UpgradeRecommendation(
@@ -326,7 +325,7 @@ class UpgradePlanner:
                 recommended_action="API performance degradation detected. Consider CPU/memory upgrade or horizontal scaling.",
                 timeline="Within 1 week"
             ))
-        
+
         # Worker queue backlog
         if worker_queue > 50:
             recommendations.append(UpgradeRecommendation(
@@ -337,7 +336,7 @@ class UpgradePlanner:
                 recommended_action="High worker queue backlog. Scale worker instances or increase CPU allocation.",
                 timeline="Within 3 days"
             ))
-        
+
         # Database connection pressure
         if db_connections > 70:
             recommendations.append(UpgradeRecommendation(
@@ -348,7 +347,7 @@ class UpgradePlanner:
                 recommended_action="High database connection utilization. Consider database scaling or connection pooling optimization.",
                 timeline="Within 1 week"
             ))
-        
+
         # Growth-based scaling
         if api_growth > 1.5:
             recommendations.append(UpgradeRecommendation(
@@ -359,26 +358,26 @@ class UpgradePlanner:
                 recommended_action=f"API requests grew {api_growth:.1f}x in 24h. Plan capacity expansion.",
                 timeline="Within 2 weeks"
             ))
-        
+
         return recommendations
-    
-    def calculate_upgrade_priority(self, recommendations: List[UpgradeRecommendation]) -> List[UpgradeRecommendation]:
+
+    def calculate_upgrade_priority(self, recommendations: list[UpgradeRecommendation]) -> list[UpgradeRecommendation]:
         """Sort recommendations by priority"""
         severity_order = {"critical": 0, "warning": 1, "info": 2}
-        
+
         return sorted(recommendations, key=lambda x: (
             severity_order.get(x.severity, 3),
             -x.current_value if x.current_value else 0
         ))
-    
-    def generate_upgrade_plan(self, recommendations: List[UpgradeRecommendation]) -> Dict:
+
+    def generate_upgrade_plan(self, recommendations: list[UpgradeRecommendation]) -> dict:
         """Generate comprehensive upgrade plan"""
         critical_recs = [r for r in recommendations if r.severity == "critical"]
         warning_recs = [r for r in recommendations if r.severity == "warning"]
         info_recs = [r for r in recommendations if r.severity == "info"]
-        
+
         total_cost = sum(r.cost_estimate for r in recommendations if r.cost_estimate)
-        
+
         # Determine optimal upgrade path
         upgrade_plan = {
             "immediate_actions": critical_recs,
@@ -391,49 +390,49 @@ class UpgradePlanner:
                 "storage_gb": self.current_specs.storage_gb
             }
         }
-        
+
         # Suggest optimal new specs
         if critical_recs or warning_recs:
             cpu_upgrade = 32 if any("cpu" in r.resource for r in critical_recs + warning_recs) else self.current_specs.cpu_cores
             memory_upgrade = 64 if any("memory" in r.resource for r in critical_recs + warning_recs) else self.current_specs.memory_gb
             storage_upgrade = 1000 if any("storage" in r.resource for r in critical_recs + warning_recs) else self.current_specs.storage_gb
-            
+
             upgrade_plan["recommended_specs"] = {
                 "cpu_cores": cpu_upgrade,
                 "memory_gb": memory_upgrade,
                 "storage_gb": storage_upgrade
             }
-        
+
         return upgrade_plan
-    
-    async def analyze_system(self) -> Dict:
+
+    async def analyze_system(self) -> dict:
         """Perform comprehensive system analysis"""
         logger.info("Starting system upgrade analysis...")
-        
+
         # Gather all metrics
         cpu_metrics = await self.get_cpu_metrics()
         memory_metrics = await self.get_memory_metrics()
         storage_metrics = await self.get_storage_metrics()
         performance_metrics = await self.get_performance_metrics()
-        
+
         logger.info(f"CPU metrics: {cpu_metrics}")
         logger.info(f"Memory metrics: {memory_metrics}")
         logger.info(f"Storage metrics: {storage_metrics}")
         logger.info(f"Performance metrics: {performance_metrics}")
-        
+
         # Generate recommendations
         all_recommendations = []
         all_recommendations.extend(self.analyze_cpu_upgrade(cpu_metrics))
         all_recommendations.extend(self.analyze_memory_upgrade(memory_metrics))
         all_recommendations.extend(self.analyze_storage_upgrade(storage_metrics))
         all_recommendations.extend(self.analyze_performance_upgrade(performance_metrics))
-        
+
         # Sort by priority
         prioritized_recommendations = self.calculate_upgrade_priority(all_recommendations)
-        
+
         # Generate upgrade plan
         upgrade_plan = self.generate_upgrade_plan(prioritized_recommendations)
-        
+
         # Create comprehensive report
         report = {
             "analysis_timestamp": datetime.now().isoformat(),
@@ -464,64 +463,64 @@ class UpgradePlanner:
                 "estimated_monthly_cost": upgrade_plan["total_estimated_cost"]
             }
         }
-        
+
         return report
 
 async def main():
     """Main function for upgrade planning"""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Xorb Upgrade Planner")
     parser.add_argument("--prometheus-url", default="http://localhost:9090",
                        help="Prometheus server URL")
     parser.add_argument("--output", choices=["json", "human"], default="human",
                        help="Output format")
     parser.add_argument("--save-report", help="Save report to file")
-    
+
     args = parser.parse_args()
-    
+
     planner = UpgradePlanner(prometheus_url=args.prometheus_url)
-    
+
     try:
         report = await planner.analyze_system()
-        
+
         if args.save_report:
             with open(args.save_report, 'w') as f:
                 json.dump(report, f, indent=2)
             logger.info(f"Report saved to {args.save_report}")
-        
+
         if args.output == "json":
             print(json.dumps(report, indent=2))
         else:
             # Human-readable output
-            print(f"\n🔍 Xorb System Upgrade Analysis")
+            print("\n🔍 Xorb System Upgrade Analysis")
             print(f"📅 Generated: {report['analysis_timestamp']}")
             print(f"💰 Estimated monthly cost: ${report['summary']['estimated_monthly_cost']}")
-            
+
             summary = report['summary']
-            print(f"\n📊 Summary:")
+            print("\n📊 Summary:")
             print(f"  • Total recommendations: {summary['total_recommendations']}")
             print(f"  • Critical actions: {summary['critical_actions']}")
             print(f"  • Warnings: {summary['warnings']}")
             print(f"  • Info: {summary['info']}")
-            
+
             if report['recommendations']:
-                print(f"\n⚠️  Recommendations (by priority):")
+                print("\n⚠️  Recommendations (by priority):")
                 for i, rec in enumerate(report['recommendations'][:5], 1):  # Show top 5
                     severity_emoji = {"critical": "🚨", "warning": "⚠️", "info": "💡"}.get(rec['severity'], "")
                     cost_text = f" (${rec['cost_estimate']}/mo)" if rec['cost_estimate'] else ""
                     timeline_text = f" - {rec['timeline']}" if rec['timeline'] else ""
                     print(f"  {i}. {severity_emoji} {rec['action']}{cost_text}{timeline_text}")
-            
+
             upgrade_plan = report['upgrade_plan']
             if upgrade_plan.get('recommended_specs'):
                 current = upgrade_plan['current_specs']
                 recommended = upgrade_plan['recommended_specs']
-                print(f"\n🚀 Recommended Upgrade:")
+                print("\n🚀 Recommended Upgrade:")
                 print(f"  • CPU: {current['cpu_cores']} → {recommended['cpu_cores']} vCPU")
                 print(f"  • Memory: {current['memory_gb']} → {recommended['memory_gb']} GB")
                 print(f"  • Storage: {current['storage_gb']} → {recommended['storage_gb']} GB")
-        
+
         # Exit with appropriate code
         if report['summary']['critical_actions'] > 0:
             exit(2)
@@ -529,7 +528,7 @@ async def main():
             exit(1)
         else:
             exit(0)
-            
+
     except Exception as e:
         logger.error(f"Upgrade analysis failed: {e}")
         exit(1)

@@ -6,18 +6,15 @@ Enterprise-grade analytics, dashboards, and strategic intelligence
 
 import asyncio
 import json
+import logging
+import sqlite3
 import time
 import uuid
-import logging
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-import sqlite3
-import threading
-from pathlib import Path
+from typing import Any
+
+import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('XORB-BI')
@@ -50,9 +47,9 @@ class BusinessMetric:
     unit: str
     timestamp: float
     category: str
-    tags: Dict[str, str] = field(default_factory=dict)
+    tags: dict[str, str] = field(default_factory=dict)
     confidence: float = 1.0
-    trend: Optional[str] = None  # increasing, decreasing, stable
+    trend: str | None = None  # increasing, decreasing, stable
 
 @dataclass
 class ReportConfiguration:
@@ -60,10 +57,10 @@ class ReportConfiguration:
     report_id: str
     report_type: ReportType
     frequency: str  # hourly, daily, weekly, monthly
-    recipients: List[str]
+    recipients: list[str]
     format: str  # pdf, html, json, csv
-    filters: Dict[str, Any] = field(default_factory=dict)
-    custom_queries: List[str] = field(default_factory=list)
+    filters: dict[str, Any] = field(default_factory=dict)
+    custom_queries: list[str] = field(default_factory=list)
     enabled: bool = True
 
 @dataclass
@@ -81,17 +78,17 @@ class AlertRule:
 
 class DataWarehouse:
     """High-performance data warehouse for XORB analytics."""
-    
+
     def __init__(self, db_path: str = "/tmp/xorb_warehouse.db"):
         self.db_path = db_path
         self.connection_pool = {}
         self._initialize_warehouse()
-    
+
     def _initialize_warehouse(self):
         """Initialize data warehouse schema."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Business metrics table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS business_metrics (
@@ -109,7 +106,7 @@ class DataWarehouse:
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        
+
         # Campaign performance table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS campaign_performance (
@@ -128,7 +125,7 @@ class DataWarehouse:
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        
+
         # Threat intelligence table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS threat_intelligence (
@@ -145,7 +142,7 @@ class DataWarehouse:
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        
+
         # Compliance events table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS compliance_events (
@@ -161,15 +158,15 @@ class DataWarehouse:
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         ''')
-        
+
         conn.commit()
         conn.close()
-    
+
     def store_metric(self, metric: BusinessMetric):
         """Store business metric in warehouse."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         cursor.execute('''
             INSERT INTO business_metrics 
             (metric_id, metric_name, metric_type, value, unit, timestamp, 
@@ -180,46 +177,46 @@ class DataWarehouse:
             metric.value, metric.unit, metric.timestamp, metric.category,
             json.dumps(metric.tags), metric.confidence, metric.trend
         ))
-        
+
         conn.commit()
         conn.close()
-    
-    def query_metrics(self, filters: Dict[str, Any], limit: int = 1000) -> List[Dict[str, Any]]:
+
+    def query_metrics(self, filters: dict[str, Any], limit: int = 1000) -> list[dict[str, Any]]:
         """Query business metrics with filters."""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         query = "SELECT * FROM business_metrics WHERE 1=1"
         params = []
-        
+
         if filters.get('category'):
             query += " AND category = ?"
             params.append(filters['category'])
-        
+
         if filters.get('metric_type'):
             query += " AND metric_type = ?"
             params.append(filters['metric_type'])
-        
+
         if filters.get('start_time'):
             query += " AND timestamp >= ?"
             params.append(filters['start_time'])
-        
+
         if filters.get('end_time'):
             query += " AND timestamp <= ?"
             params.append(filters['end_time'])
-        
+
         query += f" ORDER BY timestamp DESC LIMIT {limit}"
-        
+
         cursor.execute(query, params)
         columns = [desc[0] for desc in cursor.description]
-        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
-        
+        results = [dict(zip(columns, row, strict=False)) for row in cursor.fetchall()]
+
         conn.close()
         return results
 
 class BusinessIntelligenceEngine:
     """Core business intelligence processing engine."""
-    
+
     def __init__(self):
         self.engine_id = f"BI-{str(uuid.uuid4())[:8].upper()}"
         self.warehouse = DataWarehouse()
@@ -227,27 +224,27 @@ class BusinessIntelligenceEngine:
         self.alert_rules = {}
         self.active_alerts = {}
         self.is_running = False
-        
+
         logger.info(f"🧠 Business Intelligence Engine initialized: {self.engine_id}")
-    
+
     def register_report_config(self, config: ReportConfiguration):
         """Register report configuration."""
         self.report_configs[config.report_id] = config
         logger.info(f"📊 Report config registered: {config.report_type.value}")
-    
+
     def register_alert_rule(self, rule: AlertRule):
         """Register alert rule."""
         self.alert_rules[rule.rule_id] = rule
         logger.info(f"🚨 Alert rule registered: {rule.rule_name}")
-    
-    def calculate_kpis(self, time_range_hours: int = 24) -> Dict[str, Any]:
+
+    def calculate_kpis(self, time_range_hours: int = 24) -> dict[str, Any]:
         """Calculate key performance indicators."""
         end_time = time.time()
         start_time = end_time - (time_range_hours * 3600)
-        
+
         filters = {'start_time': start_time, 'end_time': end_time}
         metrics = self.warehouse.query_metrics(filters)
-        
+
         if not metrics:
             return {
                 "total_operations": 0,
@@ -257,21 +254,21 @@ class BusinessIntelligenceEngine:
                 "cost_per_operation": 0.0,
                 "roi_percentage": 0.0
             }
-        
+
         # Calculate KPIs
         operation_metrics = [m for m in metrics if m['category'] == 'operations']
         performance_metrics = [m for m in metrics if m['category'] == 'performance']
         threat_metrics = [m for m in metrics if m['category'] == 'threats']
-        
+
         total_operations = len(operation_metrics)
         avg_performance = np.mean([m['value'] for m in performance_metrics]) if performance_metrics else 0.0
         threat_detection_rate = np.mean([m['value'] for m in threat_metrics]) if threat_metrics else 0.0
-        
+
         # Simulate additional KPIs
         system_uptime = 99.7 + np.random.uniform(-0.5, 0.3)
         cost_per_op = 0.12 + np.random.uniform(-0.05, 0.03)
         roi_percentage = 285.5 + np.random.uniform(-25, 50)
-        
+
         return {
             "total_operations": total_operations,
             "avg_performance": avg_performance,
@@ -282,36 +279,36 @@ class BusinessIntelligenceEngine:
             "time_range_hours": time_range_hours,
             "calculation_timestamp": time.time()
         }
-    
-    def generate_executive_summary(self) -> Dict[str, Any]:
+
+    def generate_executive_summary(self) -> dict[str, Any]:
         """Generate executive summary report."""
         kpis = self.calculate_kpis(24)  # Last 24 hours
         weekly_kpis = self.calculate_kpis(168)  # Last 7 days
-        
+
         # Executive insights
         insights = []
-        
+
         if kpis["threat_detection_rate"] > 0.90:
             insights.append("🎯 Exceptional threat detection performance (>90%)")
         elif kpis["threat_detection_rate"] > 0.75:
             insights.append("✅ Good threat detection performance (>75%)")
         else:
             insights.append("⚠️ Threat detection needs improvement (<75%)")
-        
+
         if kpis["system_uptime_percentage"] > 99.5:
             insights.append("🏆 Outstanding system reliability (>99.5% uptime)")
         elif kpis["system_uptime_percentage"] > 99.0:
             insights.append("✅ Good system reliability (>99% uptime)")
         else:
             insights.append("⚠️ System reliability concerns (<99% uptime)")
-        
+
         if kpis["roi_percentage"] > 250:
             insights.append("💰 Excellent ROI performance (>250%)")
         elif kpis["roi_percentage"] > 150:
             insights.append("📈 Good ROI performance (>150%)")
         else:
             insights.append("📉 ROI improvement opportunities (<150%)")
-        
+
         # Strategic recommendations
         recommendations = [
             "Continue autonomous operation optimization",
@@ -319,10 +316,10 @@ class BusinessIntelligenceEngine:
             "Enhance agent learning capabilities",
             "Optimize resource utilization patterns"
         ]
-        
+
         if kpis["cost_per_operation"] > 0.15:
             recommendations.append("Review cost optimization opportunities")
-        
+
         return {
             "report_id": f"EXEC-{str(uuid.uuid4())[:8].upper()}",
             "report_type": "executive_summary",
@@ -343,11 +340,11 @@ class BusinessIntelligenceEngine:
                 "compliance_risk": "minimal"
             }
         }
-    
-    def generate_operational_metrics_report(self) -> Dict[str, Any]:
+
+    def generate_operational_metrics_report(self) -> dict[str, Any]:
         """Generate detailed operational metrics report."""
         kpis = self.calculate_kpis(24)
-        
+
         # Agent performance metrics
         agent_metrics = {
             "total_agents": 68,
@@ -357,7 +354,7 @@ class BusinessIntelligenceEngine:
             "learning_cycles_completed": np.random.randint(150, 300),
             "evolution_events": np.random.randint(25, 45)
         }
-        
+
         # System resource metrics
         resource_metrics = {
             "cpu_utilization_avg": 75.3 + np.random.uniform(-5, 5),
@@ -366,7 +363,7 @@ class BusinessIntelligenceEngine:
             "disk_io_ops_per_sec": 1847 + np.random.randint(-200, 200),
             "database_query_performance": 98.2 + np.random.uniform(-2, 1)
         }
-        
+
         # Security operations metrics
         security_metrics = {
             "vulnerabilities_detected": np.random.randint(15, 35),
@@ -375,7 +372,7 @@ class BusinessIntelligenceEngine:
             "mean_time_to_detection": 2.4 + np.random.uniform(-0.5, 0.5),
             "mean_time_to_response": 8.7 + np.random.uniform(-2, 2)
         }
-        
+
         return {
             "report_id": f"OPS-{str(uuid.uuid4())[:8].upper()}",
             "report_type": "operational_metrics",
@@ -390,13 +387,13 @@ class BusinessIntelligenceEngine:
                 "security_effectiveness": "increasing"
             }
         }
-    
-    def generate_threat_intelligence_report(self) -> Dict[str, Any]:
+
+    def generate_threat_intelligence_report(self) -> dict[str, Any]:
         """Generate threat intelligence analysis report."""
         # Simulate threat intelligence data
         threat_categories = ["APT", "Malware", "Phishing", "Ransomware", "Zero-day"]
         threat_sources = ["Internal Detection", "External Feeds", "Partner Intelligence", "OSINT"]
-        
+
         threat_summary = {}
         for category in threat_categories:
             count = np.random.randint(2, 12)
@@ -406,7 +403,7 @@ class BusinessIntelligenceEngine:
                 "mitigated": np.random.randint(count//2, count),
                 "active_investigations": np.random.randint(0, max(1, count//4))
             }
-        
+
         # Top threats
         top_threats = [
             {
@@ -434,7 +431,7 @@ class BusinessIntelligenceEngine:
                 "mitigation_status": "monitoring"
             }
         ]
-        
+
         return {
             "report_id": f"THREAT-{str(uuid.uuid4())[:8].upper()}",
             "report_type": "threat_intelligence",
@@ -456,40 +453,36 @@ class BusinessIntelligenceEngine:
                 }
             }
         }
-    
-    def check_alert_rules(self, metrics: List[BusinessMetric]):
+
+    def check_alert_rules(self, metrics: list[BusinessMetric]):
         """Check metrics against alert rules."""
         current_time = time.time()
-        
+
         for rule in self.alert_rules.values():
             if not rule.enabled:
                 continue
-            
+
             # Check cooldown
             last_alert = self.active_alerts.get(rule.rule_id)
             if last_alert and (current_time - last_alert) < (rule.cooldown_minutes * 60):
                 continue
-            
+
             # Find matching metrics
             matching_metrics = [
-                m for m in metrics 
+                m for m in metrics
                 if rule.metric_pattern in m.metric_name.lower()
             ]
-            
+
             for metric in matching_metrics:
                 alert_triggered = False
-                
-                if rule.condition == "greater_than" and metric.value > rule.threshold:
+
+                if rule.condition == "greater_than" and metric.value > rule.threshold or rule.condition == "less_than" and metric.value < rule.threshold or rule.condition == "equals" and metric.value == rule.threshold:
                     alert_triggered = True
-                elif rule.condition == "less_than" and metric.value < rule.threshold:
-                    alert_triggered = True
-                elif rule.condition == "equals" and metric.value == rule.threshold:
-                    alert_triggered = True
-                
+
                 if alert_triggered:
                     self._trigger_alert(rule, metric)
                     self.active_alerts[rule.rule_id] = current_time
-    
+
     def _trigger_alert(self, rule: AlertRule, metric: BusinessMetric):
         """Trigger business intelligence alert."""
         alert_data = {
@@ -504,9 +497,9 @@ class BusinessIntelligenceEngine:
             "timestamp": time.time(),
             "action": rule.action
         }
-        
+
         logger.warning(f"🚨 ALERT: {rule.rule_name} - {metric.metric_name}: {metric.value} {rule.condition} {rule.threshold}")
-        
+
         # Execute alert action
         if rule.action == "email":
             self._send_email_alert(alert_data)
@@ -514,33 +507,33 @@ class BusinessIntelligenceEngine:
             self._send_webhook_alert(alert_data)
         elif rule.action == "dashboard":
             self._update_dashboard_alert(alert_data)
-    
-    def _send_email_alert(self, alert_data: Dict[str, Any]):
+
+    def _send_email_alert(self, alert_data: dict[str, Any]):
         """Send email alert (simulated)."""
         logger.info(f"📧 Email alert sent: {alert_data['alert_id']}")
-    
-    def _send_webhook_alert(self, alert_data: Dict[str, Any]):
+
+    def _send_webhook_alert(self, alert_data: dict[str, Any]):
         """Send webhook alert (simulated)."""
         logger.info(f"🔗 Webhook alert sent: {alert_data['alert_id']}")
-    
-    def _update_dashboard_alert(self, alert_data: Dict[str, Any]):
+
+    def _update_dashboard_alert(self, alert_data: dict[str, Any]):
         """Update dashboard with alert (simulated)."""
         logger.info(f"📊 Dashboard alert updated: {alert_data['alert_id']}")
 
 class ComprehensiveReportingOrchestrator:
     """Orchestrates comprehensive business intelligence and reporting."""
-    
+
     def __init__(self):
         self.orchestrator_id = f"REPORT-{str(uuid.uuid4())[:8].upper()}"
         self.bi_engine = BusinessIntelligenceEngine()
         self.is_running = False
         self.report_schedule = {}
-        
+
         # Initialize default configurations
         self._initialize_default_configs()
-        
+
         logger.info(f"📊 Comprehensive Reporting Orchestrator initialized: {self.orchestrator_id}")
-    
+
     def _initialize_default_configs(self):
         """Initialize default report configurations and alert rules."""
         # Executive summary report (daily)
@@ -552,7 +545,7 @@ class ComprehensiveReportingOrchestrator:
             format="pdf"
         )
         self.bi_engine.register_report_config(exec_config)
-        
+
         # Operational metrics (hourly)
         ops_config = ReportConfiguration(
             report_id="ops-hourly",
@@ -562,7 +555,7 @@ class ComprehensiveReportingOrchestrator:
             format="json"
         )
         self.bi_engine.register_report_config(ops_config)
-        
+
         # Threat intelligence (every 4 hours)
         threat_config = ReportConfiguration(
             report_id="threat-4h",
@@ -572,7 +565,7 @@ class ComprehensiveReportingOrchestrator:
             format="html"
         )
         self.bi_engine.register_report_config(threat_config)
-        
+
         # Critical performance alert
         perf_alert = AlertRule(
             rule_id="critical-performance",
@@ -584,7 +577,7 @@ class ComprehensiveReportingOrchestrator:
             action="email"
         )
         self.bi_engine.register_alert_rule(perf_alert)
-        
+
         # High CPU utilization alert
         cpu_alert = AlertRule(
             rule_id="high-cpu",
@@ -596,12 +589,12 @@ class ComprehensiveReportingOrchestrator:
             action="dashboard"
         )
         self.bi_engine.register_alert_rule(cpu_alert)
-    
+
     async def generate_sample_metrics(self):
         """Generate sample business metrics for demonstration."""
         while self.is_running:
             current_time = time.time()
-            
+
             # Performance metrics
             perf_metric = BusinessMetric(
                 metric_id=f"perf-{str(uuid.uuid4())[:8]}",
@@ -614,7 +607,7 @@ class ComprehensiveReportingOrchestrator:
                 tags={"source": "agent_monitor"}
             )
             self.bi_engine.warehouse.store_metric(perf_metric)
-            
+
             # CPU utilization metrics
             cpu_metric = BusinessMetric(
                 metric_id=f"cpu-{str(uuid.uuid4())[:8]}",
@@ -627,7 +620,7 @@ class ComprehensiveReportingOrchestrator:
                 tags={"source": "system_monitor"}
             )
             self.bi_engine.warehouse.store_metric(cpu_metric)
-            
+
             # Threat detection metrics
             threat_metric = BusinessMetric(
                 metric_id=f"threat-{str(uuid.uuid4())[:8]}",
@@ -640,7 +633,7 @@ class ComprehensiveReportingOrchestrator:
                 tags={"source": "threat_hunter"}
             )
             self.bi_engine.warehouse.store_metric(threat_metric)
-            
+
             # Operations metrics
             ops_metric = BusinessMetric(
                 metric_id=f"ops-{str(uuid.uuid4())[:8]}",
@@ -653,47 +646,47 @@ class ComprehensiveReportingOrchestrator:
                 tags={"source": "orchestrator"}
             )
             self.bi_engine.warehouse.store_metric(ops_metric)
-            
+
             # Check alert rules
             metrics = [perf_metric, cpu_metric, threat_metric, ops_metric]
             self.bi_engine.check_alert_rules(metrics)
-            
+
             await asyncio.sleep(30)  # Generate metrics every 30 seconds
-    
+
     async def automated_report_generation(self):
         """Automated report generation based on schedules."""
         while self.is_running:
             current_time = time.time()
-            
+
             # Generate reports every 5 minutes for demo
             logger.info("📊 Generating scheduled business intelligence reports...")
-            
+
             # Executive summary
             exec_report = self.bi_engine.generate_executive_summary()
             logger.info(f"📋 Executive Summary: {exec_report['report_id']}")
             logger.info(f"   Total Operations: {exec_report['kpis']['total_operations']}")
             logger.info(f"   Avg Performance: {exec_report['kpis']['avg_performance']:.1%}")
             logger.info(f"   ROI: {exec_report['kpis']['roi_percentage']:.1f}%")
-            
+
             # Operational metrics
             ops_report = self.bi_engine.generate_operational_metrics_report()
             logger.info(f"🔧 Operational Metrics: {ops_report['report_id']}")
             logger.info(f"   Active Agents: {ops_report['agent_metrics']['active_agents']}")
             logger.info(f"   CPU Utilization: {ops_report['resource_metrics']['cpu_utilization_avg']:.1f}%")
-            
+
             # Threat intelligence
             threat_report = self.bi_engine.generate_threat_intelligence_report()
             logger.info(f"🛡️ Threat Intelligence: {threat_report['report_id']}")
             logger.info(f"   Top Threats: {len(threat_report['top_threats'])}")
-            
+
             await asyncio.sleep(300)  # Generate reports every 5 minutes
-    
+
     async def start_comprehensive_reporting(self):
         """Start comprehensive reporting and business intelligence."""
         logger.info("🚀 Starting Comprehensive Business Intelligence and Reporting")
-        
+
         self.is_running = True
-        
+
         try:
             await asyncio.gather(
                 self.generate_sample_metrics(),
@@ -708,14 +701,14 @@ class ComprehensiveReportingOrchestrator:
 async def main():
     """Main execution for comprehensive reporting."""
     reporting_orchestrator = ComprehensiveReportingOrchestrator()
-    
-    print(f"\n📊 XORB COMPREHENSIVE BUSINESS INTELLIGENCE ACTIVATED")
+
+    print("\n📊 XORB COMPREHENSIVE BUSINESS INTELLIGENCE ACTIVATED")
     print(f"🆔 Orchestrator ID: {reporting_orchestrator.orchestrator_id}")
-    print(f"📈 Features: Executive Reports, Operational Metrics, Threat Intelligence")
-    print(f"🚨 Alerts: Performance, Security, Resource Utilization")
-    print(f"📋 Automated Scheduling: Hourly, Daily, Weekly Reports")
-    print(f"\n🔥 COMPREHENSIVE REPORTING STARTING...\n")
-    
+    print("📈 Features: Executive Reports, Operational Metrics, Threat Intelligence")
+    print("🚨 Alerts: Performance, Security, Resource Utilization")
+    print("📋 Automated Scheduling: Hourly, Daily, Weekly Reports")
+    print("\n🔥 COMPREHENSIVE REPORTING STARTING...\n")
+
     try:
         await reporting_orchestrator.start_comprehensive_reporting()
     except KeyboardInterrupt:

@@ -11,22 +11,25 @@ This module provides comprehensive monitoring, metrics, and observability:
 """
 
 import asyncio
-import logging
-import json
 import time
-import psutil
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Set
-from dataclasses import dataclass, field
 from collections import defaultdict, deque
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any
 
-import structlog
-from prometheus_client import Counter, Histogram, Gauge, Info, CollectorRegistry, generate_latest
+import psutil
 import redis.asyncio as redis
+import structlog
+from prometheus_client import (
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+)
 
-from .autonomous_worker import AutonomousWorker, AutonomyLevel, WorkerIntelligence
 from .autonomous_orchestrator import AutonomousOrchestrator
+from .autonomous_worker import AutonomousWorker, AutonomyLevel
 
 
 class AlertSeverity(str, Enum):
@@ -54,10 +57,10 @@ class Alert:
     severity: AlertSeverity
     title: str
     description: str
-    context: Dict[str, Any]
+    context: dict[str, Any]
     timestamp: datetime = field(default_factory=datetime.utcnow)
     resolved: bool = False
-    resolution_timestamp: Optional[datetime] = None
+    resolution_timestamp: datetime | None = None
 
 
 @dataclass
@@ -77,7 +80,7 @@ class ResourceMetrics:
     cpu_usage: float
     memory_usage: float
     disk_usage: float
-    network_io: Dict[str, float]
+    network_io: dict[str, float]
     active_agents: int
     queue_depth: int
     thread_count: int
@@ -94,53 +97,53 @@ class AutonomousMonitor:
     - Predictive failure detection
     - Resource optimization insights
     """
-    
-    def __init__(self, 
+
+    def __init__(self,
                  orchestrator: AutonomousOrchestrator,
                  redis_url: str = "redis://localhost:6379",
-                 alert_threshold_config: Dict[str, Any] = None):
-        
+                 alert_threshold_config: dict[str, Any] = None):
+
         self.orchestrator = orchestrator
         self.redis_client = redis.from_url(redis_url)
         self.logger = structlog.get_logger("AutonomousMonitor")
-        
+
         # Monitoring configuration
         self.alert_thresholds = alert_threshold_config or self._default_alert_thresholds()
         self.monitoring_enabled = True
         self.monitoring_interval = 10  # seconds
-        
+
         # Alert management
-        self.active_alerts: Dict[str, Alert] = {}
+        self.active_alerts: dict[str, Alert] = {}
         self.alert_history: deque = deque(maxlen=1000)
-        self.alert_handlers: Dict[str, List[callable]] = defaultdict(list)
-        
+        self.alert_handlers: dict[str, list[callable]] = defaultdict(list)
+
         # Performance baselines
-        self.baselines: Dict[str, PerformanceBaseline] = {}
+        self.baselines: dict[str, PerformanceBaseline] = {}
         self.baseline_learning_period = timedelta(hours=24)
-        
+
         # Metrics collectors
         self.metrics_registry = CollectorRegistry()
         self.autonomous_metrics = self._initialize_autonomous_metrics()
-        
+
         # Resource monitoring
         self.resource_history: deque = deque(maxlen=1440)  # 24 hours at 1min intervals
         self.resource_predictor = ResourcePredictor()
-        
+
         # Security monitoring
         self.security_monitor = SecurityComplianceMonitor()
         self.decision_auditor = AutonomousDecisionAuditor()
-        
+
         # Failure prediction
         self.failure_predictor = FailurePredictor()
-        
+
         # Performance analyzer
         self.performance_analyzer = PerformanceAnalyzer()
-    
+
     async def start(self):
         """Start the autonomous monitoring system"""
-        
+
         self.logger.info("Starting Autonomous Monitoring System")
-        
+
         # Start monitoring tasks
         asyncio.create_task(self._resource_monitoring_loop())
         asyncio.create_task(self._performance_monitoring_loop())
@@ -148,22 +151,22 @@ class AutonomousMonitor:
         asyncio.create_task(self._failure_prediction_loop())
         asyncio.create_task(self._alert_processing_loop())
         asyncio.create_task(self._baseline_learning_loop())
-        
+
         # Initialize baselines
         await self._initialize_performance_baselines()
-        
+
         self.logger.info("Autonomous monitoring system started successfully")
-    
+
     async def stop(self):
         """Stop the monitoring system"""
-        
+
         self.monitoring_enabled = False
         await self.redis_client.close()
         self.logger.info("Autonomous monitoring system stopped")
-    
-    def _default_alert_thresholds(self) -> Dict[str, Any]:
+
+    def _default_alert_thresholds(self) -> dict[str, Any]:
         """Default alert thresholds configuration"""
-        
+
         return {
             'cpu_usage': {
                 'warning': 75.0,
@@ -201,12 +204,12 @@ class AutonomousMonitor:
                 'emergency': 10
             }
         }
-    
-    def _initialize_autonomous_metrics(self) -> Dict[str, Any]:
+
+    def _initialize_autonomous_metrics(self) -> dict[str, Any]:
         """Initialize Prometheus metrics for autonomous operations"""
-        
+
         metrics = {}
-        
+
         # Performance metrics
         metrics['task_execution_time'] = Histogram(
             'xorb_autonomous_task_execution_seconds',
@@ -214,14 +217,14 @@ class AutonomousMonitor:
             ['agent_type', 'task_type', 'autonomy_level'],
             registry=self.metrics_registry
         )
-        
+
         metrics['task_success_rate'] = Gauge(
             'xorb_autonomous_task_success_rate',
             'Task success rate by type',
             ['agent_type', 'task_type', 'autonomy_level'],
             registry=self.metrics_registry
         )
-        
+
         # Resource metrics
         metrics['cpu_usage'] = Gauge(
             'xorb_autonomous_cpu_usage_percent',
@@ -229,21 +232,21 @@ class AutonomousMonitor:
             ['instance'],
             registry=self.metrics_registry
         )
-        
+
         metrics['memory_usage'] = Gauge(
             'xorb_autonomous_memory_usage_percent',
             'Memory usage percentage',
             ['instance'],
             registry=self.metrics_registry
         )
-        
+
         metrics['active_agents'] = Gauge(
             'xorb_autonomous_active_agents',
             'Number of active autonomous agents',
             ['autonomy_level'],
             registry=self.metrics_registry
         )
-        
+
         # Autonomy metrics
         metrics['decisions_made'] = Counter(
             'xorb_autonomous_decisions_total',
@@ -251,14 +254,14 @@ class AutonomousMonitor:
             ['decision_type', 'confidence_level'],
             registry=self.metrics_registry
         )
-        
+
         metrics['adaptations_performed'] = Counter(
             'xorb_autonomous_adaptations_total',
             'Total autonomous adaptations performed',
             ['adaptation_type', 'success'],
             registry=self.metrics_registry
         )
-        
+
         # Security metrics
         metrics['security_validations'] = Counter(
             'xorb_security_validations_total',
@@ -266,14 +269,14 @@ class AutonomousMonitor:
             ['validation_type', 'result'],
             registry=self.metrics_registry
         )
-        
+
         metrics['roe_compliance_rate'] = Gauge(
             'xorb_roe_compliance_rate',
             'Rules of Engagement compliance rate',
             ['agent_type'],
             registry=self.metrics_registry
         )
-        
+
         # Alert metrics
         metrics['active_alerts'] = Gauge(
             'xorb_active_alerts',
@@ -281,20 +284,20 @@ class AutonomousMonitor:
             ['severity'],
             registry=self.metrics_registry
         )
-        
+
         return metrics
-    
+
     async def _resource_monitoring_loop(self):
         """Monitor system resources continuously"""
-        
+
         while self.monitoring_enabled:
             try:
                 # Collect resource metrics
                 resource_metrics = await self._collect_resource_metrics()
-                
+
                 # Store in history
                 self.resource_history.append(resource_metrics)
-                
+
                 # Update Prometheus metrics
                 self.autonomous_metrics['cpu_usage'].labels(instance='autonomous').set(
                     resource_metrics.cpu_usage
@@ -305,15 +308,15 @@ class AutonomousMonitor:
                 self.autonomous_metrics['active_agents'].labels(
                     autonomy_level=self.orchestrator.autonomy_level.value
                 ).set(resource_metrics.active_agents)
-                
+
                 # Check for resource-based alerts
                 await self._check_resource_alerts(resource_metrics)
-                
+
                 # Predict future resource needs
                 prediction = await self.resource_predictor.predict_resource_needs(
                     list(self.resource_history)
                 )
-                
+
                 if prediction.get('cpu_shortage_risk', 0) > 0.7:
                     await self._raise_alert(
                         'resource_prediction',
@@ -322,31 +325,31 @@ class AutonomousMonitor:
                         f"High risk of CPU shortage in next {prediction.get('time_horizon', 60)} minutes",
                         {'prediction': prediction}
                     )
-                
+
                 await asyncio.sleep(self.monitoring_interval)
-                
+
             except Exception as e:
                 self.logger.error("Resource monitoring error", error=str(e))
                 await asyncio.sleep(30)
-    
+
     async def _collect_resource_metrics(self) -> ResourceMetrics:
         """Collect current resource utilization metrics"""
-        
+
         # Get system metrics
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         network = psutil.net_io_counters()
-        
+
         # Get Xorb-specific metrics
         active_agents = len([
             w for w in self.orchestrator.autonomous_workers.values()
             if w.status.value in ['idle', 'running']
         ])
-        
+
         queue_depth = self.orchestrator.autonomous_task_queue.qsize()
         thread_count = len(psutil.Process().threads())
-        
+
         return ResourceMetrics(
             timestamp=datetime.utcnow(),
             cpu_usage=cpu_percent,
@@ -362,18 +365,18 @@ class AutonomousMonitor:
             queue_depth=queue_depth,
             thread_count=thread_count
         )
-    
+
     async def _performance_monitoring_loop(self):
         """Monitor performance metrics and trends"""
-        
+
         while self.monitoring_enabled:
             try:
                 # Collect performance data from all agents
                 performance_data = await self._collect_performance_data()
-                
+
                 # Analyze performance trends
                 analysis = await self.performance_analyzer.analyze_trends(performance_data)
-                
+
                 # Check for performance degradation
                 if analysis.get('degradation_detected', False):
                     await self._raise_alert(
@@ -383,26 +386,26 @@ class AutonomousMonitor:
                         f"Performance has degraded by {analysis.get('degradation_percent', 0):.1f}%",
                         {'analysis': analysis}
                     )
-                
+
                 # Update performance baselines
                 await self._update_performance_baselines(performance_data)
-                
+
                 await asyncio.sleep(60)  # Monitor every minute
-                
+
             except Exception as e:
                 self.logger.error("Performance monitoring error", error=str(e))
                 await asyncio.sleep(60)
-    
-    async def _collect_performance_data(self) -> Dict[str, Any]:
+
+    async def _collect_performance_data(self) -> dict[str, Any]:
         """Collect performance data from autonomous workers"""
-        
+
         performance_data = {
             'timestamp': datetime.utcnow().isoformat(),
             'agent_performance': {},
             'global_metrics': {},
             'orchestrator_metrics': {}
         }
-        
+
         # Collect from autonomous workers
         for worker_id, worker in self.orchestrator.autonomous_workers.items():
             try:
@@ -416,14 +419,14 @@ class AutonomousMonitor:
             except Exception as e:
                 self.logger.warning("Failed to collect performance data from worker",
                                   worker_id=worker_id[:8], error=str(e))
-        
+
         # Collect global intelligence metrics
         global_intel = self.orchestrator.global_intelligence
         performance_data['global_metrics'] = {
             'task_success_rates': dict(global_intel.task_success_rates),
             'performance_metrics': dict(global_intel.performance_metrics)
         }
-        
+
         # Collect orchestrator metrics
         orchestrator_status = await self.orchestrator.get_autonomous_status()
         performance_data['orchestrator_metrics'] = {
@@ -431,19 +434,19 @@ class AutonomousMonitor:
             'active_workers': orchestrator_status.get('autonomous_workers', {}).get('active_workers', 0),
             'total_active_tasks': orchestrator_status.get('workload_profile', {}).get('total_active_tasks', 0)
         }
-        
+
         return performance_data
-    
+
     async def _security_monitoring_loop(self):
         """Monitor security compliance and violations"""
-        
+
         while self.monitoring_enabled:
             try:
                 # Check security compliance
                 compliance_report = await self.security_monitor.check_compliance(
                     self.orchestrator
                 )
-                
+
                 # Update security metrics
                 for validation_type, results in compliance_report.get('validations', {}).items():
                     for result, count in results.items():
@@ -451,7 +454,7 @@ class AutonomousMonitor:
                             validation_type=validation_type,
                             result=result
                         ).inc(count)
-                
+
                 # Check for security violations
                 violations = compliance_report.get('violations', [])
                 if violations:
@@ -463,12 +466,12 @@ class AutonomousMonitor:
                             violation['description'],
                             {'violation': violation}
                         )
-                
+
                 # Audit autonomous decisions
                 decision_audit = await self.decision_auditor.audit_recent_decisions(
                     self.orchestrator.decision_history[-50:]  # Last 50 decisions
                 )
-                
+
                 if decision_audit.get('suspicious_patterns', []):
                     await self._raise_alert(
                         'suspicious_decision_pattern',
@@ -477,16 +480,16 @@ class AutonomousMonitor:
                         f"Detected {len(decision_audit['suspicious_patterns'])} suspicious patterns",
                         {'audit': decision_audit}
                     )
-                
+
                 await asyncio.sleep(120)  # Monitor every 2 minutes
-                
+
             except Exception as e:
                 self.logger.error("Security monitoring error", error=str(e))
                 await asyncio.sleep(120)
-    
+
     async def _failure_prediction_loop(self):
         """Predict potential failures before they occur"""
-        
+
         while self.monitoring_enabled:
             try:
                 # Analyze current state for failure indicators
@@ -495,7 +498,7 @@ class AutonomousMonitor:
                     self.orchestrator.autonomous_workers,
                     self.orchestrator.active_executions
                 )
-                
+
                 # Check for high failure risk
                 for risk_type, risk_level in failure_analysis.get('risk_levels', {}).items():
                     if risk_level > 0.7:  # High risk threshold
@@ -506,16 +509,16 @@ class AutonomousMonitor:
                             f'Risk level: {risk_level:.2f}',
                             {'analysis': failure_analysis}
                         )
-                
+
                 await asyncio.sleep(300)  # Predict every 5 minutes
-                
+
             except Exception as e:
                 self.logger.error("Failure prediction error", error=str(e))
                 await asyncio.sleep(300)
-    
+
     async def _alert_processing_loop(self):
         """Process and manage alerts"""
-        
+
         while self.monitoring_enabled:
             try:
                 # Check for alert resolution
@@ -525,51 +528,51 @@ class AutonomousMonitor:
                         alert.resolved = True
                         alert.resolution_timestamp = datetime.utcnow()
                         resolved_alerts.append(alert_id)
-                        
+
                         self.logger.info("Alert resolved",
                                       alert_id=alert_id,
                                       alert_type=alert.alert_type)
-                
+
                 # Move resolved alerts to history
                 for alert_id in resolved_alerts:
                     alert = self.active_alerts.pop(alert_id)
                     self.alert_history.append(alert)
-                
+
                 # Update alert metrics
                 severity_counts = defaultdict(int)
                 for alert in self.active_alerts.values():
                     severity_counts[alert.severity.value] += 1
-                
+
                 for severity in AlertSeverity:
                     self.autonomous_metrics['active_alerts'].labels(
                         severity=severity.value
                     ).set(severity_counts[severity.value])
-                
+
                 await asyncio.sleep(30)  # Process every 30 seconds
-                
+
             except Exception as e:
                 self.logger.error("Alert processing error", error=str(e))
                 await asyncio.sleep(30)
-    
-    async def _raise_alert(self, 
+
+    async def _raise_alert(self,
                           alert_type: str,
                           severity: AlertSeverity,
                           title: str,
                           description: str,
-                          context: Dict[str, Any]):
+                          context: dict[str, Any]):
         """Raise a new alert"""
-        
+
         alert_id = f"{alert_type}_{int(time.time())}"
-        
+
         # Check if similar alert already exists
         for existing_alert in self.active_alerts.values():
-            if (existing_alert.alert_type == alert_type and 
+            if (existing_alert.alert_type == alert_type and
                 existing_alert.severity == severity and
                 not existing_alert.resolved):
                 # Update existing alert context instead of creating new one
                 existing_alert.context.update(context)
                 return
-        
+
         alert = Alert(
             alert_id=alert_id,
             alert_type=alert_type,
@@ -578,63 +581,63 @@ class AutonomousMonitor:
             description=description,
             context=context
         )
-        
+
         self.active_alerts[alert_id] = alert
-        
+
         # Log alert
         self.logger.warning("Alert raised",
                           alert_id=alert_id,
                           alert_type=alert_type,
                           severity=severity.value,
                           title=title)
-        
+
         # Execute alert handlers
         handlers = self.alert_handlers.get(alert_type, [])
         for handler in handlers:
             try:
                 await handler(alert)
             except Exception as e:
-                self.logger.error("Alert handler error", 
+                self.logger.error("Alert handler error",
                                 handler=handler.__name__, error=str(e))
-        
+
         # Store alert in Redis for external consumption
         await self._store_alert_in_redis(alert)
-    
+
     async def _check_alert_resolution(self, alert: Alert) -> bool:
         """Check if an alert condition has been resolved"""
-        
+
         if alert.alert_type == 'resource_prediction':
             # Check if resource usage has decreased
             if self.resource_history:
                 recent_cpu = self.resource_history[-1].cpu_usage
                 return recent_cpu < self.alert_thresholds['cpu_usage']['warning']
-        
+
         elif alert.alert_type == 'performance_degradation':
             # Check if performance has improved
             recent_data = await self._collect_performance_data()
             # Simplified check - would need more sophisticated logic
             return True  # Assume resolved for demo
-        
+
         elif alert.alert_type == 'security_violation':
             # Security violations need manual resolution
             return False
-        
+
         return False
-    
-    async def get_monitoring_dashboard(self) -> Dict[str, Any]:
+
+    async def get_monitoring_dashboard(self) -> dict[str, Any]:
         """Get comprehensive monitoring dashboard data"""
-        
+
         # Current resource status
         current_resources = self.resource_history[-1] if self.resource_history else None
-        
+
         # Performance summary
         performance_data = await self._collect_performance_data()
-        
+
         # Alert summary
         alert_summary = {
             'active_alerts': len(self.active_alerts),
             'alerts_by_severity': {
-                severity.value: len([a for a in self.active_alerts.values() 
+                severity.value: len([a for a in self.active_alerts.values()
                                    if a.severity == severity])
                 for severity in AlertSeverity
             },
@@ -648,12 +651,12 @@ class AutonomousMonitor:
                 for alert in list(self.active_alerts.values())[-10:]
             ]
         }
-        
+
         # Security status
         security_status = await self.security_monitor.get_security_summary(
             self.orchestrator
         )
-        
+
         dashboard = {
             'timestamp': datetime.utcnow().isoformat(),
             'system_status': {
@@ -676,7 +679,7 @@ class AutonomousMonitor:
                 'avg_success_rate': self._calculate_avg_success_rate(performance_data),
                 'avg_execution_time': self._calculate_avg_execution_time(performance_data),
                 'total_adaptations': sum(
-                    agent.get('adaptations', 0) 
+                    agent.get('adaptations', 0)
                     for agent in performance_data.get('agent_performance', {}).values()
                 )
             },
@@ -691,54 +694,54 @@ class AutonomousMonitor:
                 for name, baseline in self.baselines.items()
             }
         }
-        
+
         return dashboard
-    
-    def _calculate_avg_success_rate(self, performance_data: Dict[str, Any]) -> float:
+
+    def _calculate_avg_success_rate(self, performance_data: dict[str, Any]) -> float:
         """Calculate average success rate across all agents"""
-        
+
         agent_performance = performance_data.get('agent_performance', {})
         if not agent_performance:
             return 0.0
-        
+
         rates = [agent.get('success_rate', 0.0) for agent in agent_performance.values()]
         return sum(rates) / len(rates) if rates else 0.0
-    
-    def _calculate_avg_execution_time(self, performance_data: Dict[str, Any]) -> float:
+
+    def _calculate_avg_execution_time(self, performance_data: dict[str, Any]) -> float:
         """Calculate average execution time across all agents"""
-        
+
         agent_performance = performance_data.get('agent_performance', {})
         if not agent_performance:
             return 0.0
-        
+
         times = [agent.get('avg_execution_time', 0.0) for agent in agent_performance.values()]
         return sum(times) / len(times) if times else 0.0
 
 
 class ResourcePredictor:
     """Predict future resource requirements"""
-    
+
     def __init__(self):
         self.logger = structlog.get_logger("ResourcePredictor")
-    
-    async def predict_resource_needs(self, 
-                                   resource_history: List[ResourceMetrics],
-                                   time_horizon: int = 60) -> Dict[str, Any]:
+
+    async def predict_resource_needs(self,
+                                   resource_history: list[ResourceMetrics],
+                                   time_horizon: int = 60) -> dict[str, Any]:
         """Predict resource needs for the next time_horizon minutes"""
-        
+
         if len(resource_history) < 10:
             return {'prediction_available': False}
-        
+
         # Simple trend-based prediction
         recent_cpu = [r.cpu_usage for r in resource_history[-10:]]
         recent_memory = [r.memory_usage for r in resource_history[-10:]]
-        
+
         cpu_trend = (recent_cpu[-1] - recent_cpu[0]) / len(recent_cpu)
         memory_trend = (recent_memory[-1] - recent_memory[0]) / len(recent_memory)
-        
+
         predicted_cpu = recent_cpu[-1] + (cpu_trend * time_horizon / 10)
         predicted_memory = recent_memory[-1] + (memory_trend * time_horizon / 10)
-        
+
         return {
             'prediction_available': True,
             'time_horizon': time_horizon,
@@ -752,42 +755,42 @@ class ResourcePredictor:
 
 class SecurityComplianceMonitor:
     """Monitor security compliance for autonomous operations"""
-    
+
     def __init__(self):
         self.logger = structlog.get_logger("SecurityComplianceMonitor")
-    
-    async def check_compliance(self, orchestrator: AutonomousOrchestrator) -> Dict[str, Any]:
+
+    async def check_compliance(self, orchestrator: AutonomousOrchestrator) -> dict[str, Any]:
         """Check security compliance across all autonomous operations"""
-        
+
         report = {
             'timestamp': datetime.utcnow().isoformat(),
             'validations': defaultdict(lambda: defaultdict(int)),
             'violations': [],
             'compliance_score': 1.0
         }
-        
+
         # Check worker compliance
         for worker in orchestrator.autonomous_workers.values():
             worker_violations = await self._check_worker_compliance(worker)
             report['violations'].extend(worker_violations)
-        
+
         # Check decision compliance
         decision_violations = await self._check_decision_compliance(
             orchestrator.decision_history[-50:]  # Recent decisions
         )
         report['violations'].extend(decision_violations)
-        
+
         # Calculate compliance score
         total_violations = len(report['violations'])
         report['compliance_score'] = max(0.0, 1.0 - (total_violations * 0.1))
-        
+
         return report
-    
-    async def _check_worker_compliance(self, worker: AutonomousWorker) -> List[Dict[str, Any]]:
+
+    async def _check_worker_compliance(self, worker: AutonomousWorker) -> list[dict[str, Any]]:
         """Check compliance for individual worker"""
-        
+
         violations = []
-        
+
         # Check if worker has excessive autonomy without proper validation
         if (worker.autonomous_config.autonomy_level == AutonomyLevel.MAXIMUM and
             not worker.autonomous_config.security_validation_required):
@@ -797,23 +800,23 @@ class SecurityComplianceMonitor:
                 'severity': 'high',
                 'worker_id': worker.agent_id
             })
-        
+
         # Check for security violations prevented
         if worker.security_violations_prevented > 0:
             # This is actually good - the system is working
             pass
-        
+
         return violations
-    
-    async def _check_decision_compliance(self, decisions: List) -> List[Dict[str, Any]]:
+
+    async def _check_decision_compliance(self, decisions: list) -> list[dict[str, Any]]:
         """Check compliance of autonomous decisions"""
-        
+
         violations = []
-        
+
         # Check for decisions with low confidence that had significant impact
         for decision in decisions:
-            if (hasattr(decision, 'confidence') and 
-                decision.confidence < 0.5 and 
+            if (hasattr(decision, 'confidence') and
+                decision.confidence < 0.5 and
                 decision.decision_type in ['scale_up', 'scale_down']):
                 violations.append({
                     'type': 'low_confidence_decision',
@@ -821,32 +824,32 @@ class SecurityComplianceMonitor:
                     'severity': 'medium',
                     'decision_id': decision.decision_id
                 })
-        
+
         return violations
 
 
 class AutonomousDecisionAuditor:
     """Audit autonomous decisions for compliance and effectiveness"""
-    
+
     def __init__(self):
         self.logger = structlog.get_logger("AutonomousDecisionAuditor")
-    
-    async def audit_recent_decisions(self, decisions: List) -> Dict[str, Any]:
+
+    async def audit_recent_decisions(self, decisions: list) -> dict[str, Any]:
         """Audit recent autonomous decisions"""
-        
+
         audit_report = {
             'total_decisions': len(decisions),
             'decision_types': defaultdict(int),
             'confidence_distribution': {'high': 0, 'medium': 0, 'low': 0},
             'suspicious_patterns': []
         }
-        
+
         for decision in decisions:
             if not hasattr(decision, 'decision_type'):
                 continue
-                
+
             audit_report['decision_types'][decision.decision_type] += 1
-            
+
             # Classify confidence
             if hasattr(decision, 'confidence'):
                 if decision.confidence >= 0.8:
@@ -855,10 +858,10 @@ class AutonomousDecisionAuditor:
                     audit_report['confidence_distribution']['medium'] += 1
                 else:
                     audit_report['confidence_distribution']['low'] += 1
-        
+
         # Check for suspicious patterns
         # Pattern 1: Too many low-confidence decisions
-        low_confidence_ratio = (audit_report['confidence_distribution']['low'] / 
+        low_confidence_ratio = (audit_report['confidence_distribution']['low'] /
                               max(1, audit_report['total_decisions']))
         if low_confidence_ratio > 0.3:
             audit_report['suspicious_patterns'].append({
@@ -866,58 +869,58 @@ class AutonomousDecisionAuditor:
                 'description': f'{low_confidence_ratio:.1%} of decisions have low confidence',
                 'severity': 'medium'
             })
-        
+
         return audit_report
 
 
 class FailurePredictor:
     """Predict potential system failures before they occur"""
-    
+
     def __init__(self):
         self.logger = structlog.get_logger("FailurePredictor")
-    
-    async def analyze_failure_risk(self, 
-                                 resource_history: List[ResourceMetrics],
-                                 workers: Dict[str, AutonomousWorker],
-                                 active_executions: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def analyze_failure_risk(self,
+                                 resource_history: list[ResourceMetrics],
+                                 workers: dict[str, AutonomousWorker],
+                                 active_executions: dict[str, Any]) -> dict[str, Any]:
         """Analyze current state for failure risk indicators"""
-        
+
         analysis = {
             'timestamp': datetime.utcnow().isoformat(),
             'risk_levels': {},
             'risk_factors': [],
             'recommendations': []
         }
-        
+
         # Resource exhaustion risk
         if resource_history:
             recent_cpu = [r.cpu_usage for r in resource_history[-10:]]
             recent_memory = [r.memory_usage for r in resource_history[-10:]]
-            
+
             cpu_trend = sum(recent_cpu[-5:]) / 5 - sum(recent_cpu[:5]) / 5
             memory_trend = sum(recent_memory[-5:]) / 5 - sum(recent_memory[:5]) / 5
-            
+
             # Risk increases with high usage and upward trend
             cpu_risk = min(1.0, (max(recent_cpu) / 100) + max(0, cpu_trend / 50))
             memory_risk = min(1.0, (max(recent_memory) / 100) + max(0, memory_trend / 50))
-            
+
             analysis['risk_levels']['resource_exhaustion'] = max(cpu_risk, memory_risk)
-        
+
         # Agent failure risk
         error_agents = len([w for w in workers.values() if w.status.value == 'error'])
         total_agents = len(workers)
-        
+
         if total_agents > 0:
             agent_failure_rate = error_agents / total_agents
             analysis['risk_levels']['agent_cascade_failure'] = min(1.0, agent_failure_rate * 2)
-        
+
         # Task queue buildup risk
         if resource_history:
             queue_depths = [r.queue_depth for r in resource_history[-5:]]
             avg_queue_depth = sum(queue_depths) / len(queue_depths)
             queue_risk = min(1.0, avg_queue_depth / 100)  # Risk increases with queue depth
             analysis['risk_levels']['task_queue_overflow'] = queue_risk
-        
+
         # Generate recommendations based on risks
         for risk_type, risk_level in analysis['risk_levels'].items():
             if risk_level > 0.7:
@@ -933,19 +936,19 @@ class FailurePredictor:
                     analysis['recommendations'].append(
                         'Increase agent capacity or implement task prioritization'
                     )
-        
+
         return analysis
 
 
 class PerformanceAnalyzer:
     """Analyze performance trends and detect anomalies"""
-    
+
     def __init__(self):
         self.logger = structlog.get_logger("PerformanceAnalyzer")
-    
-    async def analyze_trends(self, performance_data: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def analyze_trends(self, performance_data: dict[str, Any]) -> dict[str, Any]:
         """Analyze performance trends and detect degradation"""
-        
+
         analysis = {
             'timestamp': datetime.utcnow().isoformat(),
             'degradation_detected': False,
@@ -953,33 +956,33 @@ class PerformanceAnalyzer:
             'performance_trends': {},
             'anomalies': []
         }
-        
+
         # Analyze agent performance
         agent_performance = performance_data.get('agent_performance', {})
-        
+
         if agent_performance:
             success_rates = [agent.get('success_rate', 0.0) for agent in agent_performance.values()]
             execution_times = [agent.get('avg_execution_time', 0.0) for agent in agent_performance.values()]
-            
+
             avg_success_rate = sum(success_rates) / len(success_rates)
             avg_execution_time = sum(execution_times) / len(execution_times)
-            
+
             # Simple degradation detection (would need historical baselines in production)
             if avg_success_rate < 0.7:  # Below 70% success rate
                 analysis['degradation_detected'] = True
                 analysis['degradation_percent'] = (0.8 - avg_success_rate) * 100
-            
+
             if avg_execution_time > 60:  # Above 60 seconds average
                 analysis['degradation_detected'] = True
                 analysis['degradation_percent'] = max(
                     analysis['degradation_percent'],
                     ((avg_execution_time - 30) / 30) * 100
                 )
-            
+
             analysis['performance_trends'] = {
                 'avg_success_rate': avg_success_rate,
                 'avg_execution_time': avg_execution_time,
                 'total_agents_analyzed': len(agent_performance)
             }
-        
+
         return analysis

@@ -3,10 +3,10 @@
 import asyncio
 import heapq
 import logging
-from datetime import datetime, timedelta
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any
 
 
 class ScheduleType(str, Enum):
@@ -22,9 +22,9 @@ class ScheduledTask:
     schedule_time: datetime
     priority: int = 0
     task_type: ScheduleType = ScheduleType.IMMEDIATE
-    recurrence_interval: Optional[timedelta] = None
-    metadata: Dict[str, Any] = None
-    
+    recurrence_interval: timedelta | None = None
+    metadata: dict[str, Any] = None
+
     def __lt__(self, other):
         if self.priority != other.priority:
             return self.priority > other.priority
@@ -33,11 +33,11 @@ class ScheduledTask:
 
 class CampaignScheduler:
     def __init__(self):
-        self.task_queue: List[ScheduledTask] = []
+        self.task_queue: list[ScheduledTask] = []
         self.running = False
-        self._scheduler_task: Optional[asyncio.Task] = None
+        self._scheduler_task: asyncio.Task | None = None
         self.logger = logging.getLogger(__name__)
-        
+
         self.priority_weights = {
             "critical": 100,
             "high": 75,
@@ -62,19 +62,19 @@ class CampaignScheduler:
                     pass
             self.logger.info("Campaign scheduler stopped")
 
-    async def queue_campaign(self, campaign_id: str, priority: str = "medium", delay: Optional[timedelta] = None, recurrence: Optional[timedelta] = None) -> bool:
+    async def queue_campaign(self, campaign_id: str, priority: str = "medium", delay: timedelta | None = None, recurrence: timedelta | None = None) -> bool:
         schedule_time = datetime.utcnow()
         if delay:
             schedule_time += delay
-        
+
         task_type = ScheduleType.IMMEDIATE
         if delay:
             task_type = ScheduleType.DELAYED
         if recurrence:
             task_type = ScheduleType.RECURRING
-        
+
         priority_score = self.priority_weights.get(priority.lower(), 50)
-        
+
         scheduled_task = ScheduledTask(
             campaign_id=campaign_id,
             schedule_time=schedule_time,
@@ -83,9 +83,9 @@ class CampaignScheduler:
             recurrence_interval=recurrence,
             metadata={"priority_level": priority}
         )
-        
+
         heapq.heappush(self.task_queue, scheduled_task)
-        
+
         self.logger.info(f"Queued campaign {campaign_id} with priority {priority} for {schedule_time}")
         return True
 
@@ -102,14 +102,14 @@ class CampaignScheduler:
         original_length = len(self.task_queue)
         self.task_queue = [task for task in self.task_queue if task.campaign_id != campaign_id]
         heapq.heapify(self.task_queue)
-        
+
         removed_count = original_length - len(self.task_queue)
         if removed_count > 0:
             self.logger.info(f"Cancelled {removed_count} scheduled tasks for campaign {campaign_id}")
             return True
         return False
 
-    async def get_scheduled_campaigns(self) -> List[Dict[str, Any]]:
+    async def get_scheduled_campaigns(self) -> list[dict[str, Any]]:
         scheduled = []
         for task in sorted(self.task_queue):
             scheduled.append({
@@ -127,14 +127,14 @@ class CampaignScheduler:
         delay = new_schedule_time - datetime.utcnow()
         return await self.schedule_delayed(campaign_id, delay, priority)
 
-    async def get_next_scheduled_time(self) -> Optional[datetime]:
+    async def get_next_scheduled_time(self) -> datetime | None:
         if self.task_queue:
             return self.task_queue[0].schedule_time
         return None
 
     async def _scheduler_loop(self):
         self.logger.debug("Scheduler loop started")
-        
+
         while self.running:
             try:
                 await self._process_scheduled_tasks()
@@ -148,14 +148,14 @@ class CampaignScheduler:
     async def _process_scheduled_tasks(self):
         current_time = datetime.utcnow()
         processed_tasks = []
-        
+
         while self.task_queue and self.task_queue[0].schedule_time <= current_time:
             task = heapq.heappop(self.task_queue)
-            
+
             try:
                 await self._execute_scheduled_task(task)
                 processed_tasks.append(task)
-                
+
                 if task.task_type == ScheduleType.RECURRING and task.recurrence_interval:
                     next_run = current_time + task.recurrence_interval
                     recurring_task = ScheduledTask(
@@ -167,13 +167,13 @@ class CampaignScheduler:
                         metadata=task.metadata
                     )
                     heapq.heappush(self.task_queue, recurring_task)
-                    
+
             except Exception as e:
                 self.logger.error(f"Error executing scheduled task for campaign {task.campaign_id}: {e}")
 
     async def _execute_scheduled_task(self, task: ScheduledTask):
         self.logger.info(f"Executing scheduled task for campaign {task.campaign_id}")
-        
+
         from .orchestrator import Orchestrator
         try:
             orchestrator = Orchestrator()
@@ -184,10 +184,10 @@ class CampaignScheduler:
     async def optimize_schedule(self) -> int:
         if not self.task_queue:
             return 0
-        
+
         optimized_count = 0
         current_time = datetime.utcnow()
-        
+
         for task in self.task_queue:
             if task.task_type == ScheduleType.PRIORITY_BASED:
                 if task.priority > 75:
@@ -198,25 +198,25 @@ class CampaignScheduler:
                     if task.schedule_time < current_time + timedelta(hours=1):
                         task.schedule_time = current_time + timedelta(hours=2)
                         optimized_count += 1
-        
+
         if optimized_count > 0:
             heapq.heapify(self.task_queue)
             self.logger.info(f"Optimized {optimized_count} scheduled tasks")
-        
+
         return optimized_count
 
-    def get_queue_stats(self) -> Dict[str, Any]:
+    def get_queue_stats(self) -> dict[str, Any]:
         if not self.task_queue:
             return {"total": 0, "by_priority": {}, "by_type": {}, "next_execution": None}
-        
+
         by_priority = {}
         by_type = {}
-        
+
         for task in self.task_queue:
             priority_level = task.metadata.get("priority_level", "unknown") if task.metadata else "unknown"
             by_priority[priority_level] = by_priority.get(priority_level, 0) + 1
             by_type[task.task_type.value] = by_type.get(task.task_type.value, 0) + 1
-        
+
         return {
             "total": len(self.task_queue),
             "by_priority": by_priority,

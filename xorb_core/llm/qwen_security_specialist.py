@@ -4,34 +4,32 @@ Qwen 2.5 235B Security Specialist
 Optimized prompts and workflows for the Qwen model's capabilities
 """
 
-import asyncio
 import logging
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass
+from typing import Any
 
 from .intelligent_client import IntelligentLLMClient, LLMRequest, TaskType
-from .payload_generator import PayloadCategory, TargetContext, GeneratedPayload
+from .payload_generator import PayloadCategory, TargetContext
 
 logger = logging.getLogger(__name__)
 
 class QwenSecuritySpecialist:
     """Specialized security testing using Qwen 2.5 235B model"""
-    
+
     def __init__(self, llm_client: IntelligentLLMClient):
         self.llm_client = llm_client
         self.preferred_model = "qwen/qwen3-235b-a22b-07-25:free"
-    
+
     async def generate_advanced_payloads(
         self,
         category: PayloadCategory,
         target_context: TargetContext,
         count: int = 10
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Generate advanced payloads using Qwen's superior reasoning"""
-        
+
         # Craft specialized prompt for Qwen 2.5's capabilities
         prompt = self._build_qwen_security_prompt(category, target_context, count)
-        
+
         request = LLMRequest(
             task_type=TaskType.PAYLOAD_GENERATION,
             prompt=prompt,
@@ -44,14 +42,14 @@ class QwenSecuritySpecialist:
             temperature=0.7,
             structured_output=True
         )
-        
+
         try:
             response = await self.llm_client.generate_payload(request)
             return self._parse_qwen_response(response, category)
         except Exception as e:
             logger.error(f"Qwen payload generation failed: {e}")
             return []
-    
+
     def _build_qwen_security_prompt(
         self,
         category: PayloadCategory,
@@ -59,7 +57,7 @@ class QwenSecuritySpecialist:
         count: int
     ) -> str:
         """Build optimized prompt for Qwen 2.5 235B model"""
-        
+
         # Base context
         context_info = f"""
 TARGET ANALYSIS:
@@ -70,7 +68,7 @@ TARGET ANALYSIS:
 - Input Fields: {', '.join(target_context.input_fields or ['Unknown'])}
 - Parameters: {', '.join(target_context.parameters or ['Unknown'])}
 """
-        
+
         # Category-specific advanced prompts
         category_prompts = {
             PayloadCategory.XSS: f"""
@@ -105,7 +103,7 @@ OUTPUT FORMAT (JSON):
   ]
 }}
 """,
-            
+
             PayloadCategory.SQL_INJECTION: f"""
 TASK: Generate {count} advanced SQL Injection payloads for authorized penetration testing.
 
@@ -140,7 +138,7 @@ OUTPUT FORMAT (JSON):
   ]
 }}
 """,
-            
+
             PayloadCategory.SSRF: f"""
 TASK: Generate {count} advanced Server-Side Request Forgery (SSRF) payloads.
 
@@ -174,7 +172,7 @@ OUTPUT FORMAT (JSON):
   ]
 }}
 """,
-            
+
             PayloadCategory.RCE: f"""
 TASK: Generate {count} advanced Remote Code Execution (RCE) payloads.
 
@@ -210,7 +208,7 @@ OUTPUT FORMAT (JSON):
 }}
 """
         }
-        
+
         base_prompt = f"""
 You are an elite cybersecurity researcher specializing in authorized penetration testing and vulnerability research. Your expertise includes advanced exploitation techniques, evasion methods, and defensive countermeasures.
 
@@ -233,23 +231,23 @@ ADDITIONAL REQUIREMENTS:
 
 Generate payloads that demonstrate your advanced understanding of modern security testing while maintaining ethical standards and educational value.
 """
-        
+
         return base_prompt
-    
-    def _parse_qwen_response(self, response, category: PayloadCategory) -> List[Dict[str, Any]]:
+
+    def _parse_qwen_response(self, response, category: PayloadCategory) -> list[dict[str, Any]]:
         """Parse Qwen's structured response"""
         try:
             import json
-            
+
             content = response.content.strip()
-            
+
             # Try to extract JSON from the response
             if "```json" in content:
                 json_start = content.find("```json") + 7
                 json_end = content.find("```", json_start)
                 if json_end != -1:
                     content = content[json_start:json_end].strip()
-            
+
             # Parse JSON response
             if content.startswith('{'):
                 data = json.loads(content)
@@ -257,20 +255,20 @@ Generate payloads that demonstrate your advanced understanding of modern securit
                     return data["payloads"]
                 else:
                     return [data]  # Single payload object
-            
+
             # Fallback text parsing for non-JSON responses
             return self._extract_payloads_from_text(content, category)
-            
+
         except Exception as e:
             logger.error(f"Failed to parse Qwen response: {e}")
             return self._extract_payloads_from_text(response.content, category)
-    
-    def _extract_payloads_from_text(self, content: str, category: PayloadCategory) -> List[Dict[str, Any]]:
+
+    def _extract_payloads_from_text(self, content: str, category: PayloadCategory) -> list[dict[str, Any]]:
         """Extract payloads from text response"""
         import re
-        
+
         payloads = []
-        
+
         # Define patterns for different payload types
         patterns = {
             PayloadCategory.XSS: [
@@ -297,7 +295,7 @@ Generate payloads that demonstrate your advanced understanding of modern securit
                 r'system\([^)]*\)'
             ]
         }
-        
+
         if category in patterns:
             for pattern in patterns[category]:
                 matches = re.findall(pattern, content, re.IGNORECASE | re.MULTILINE)
@@ -308,12 +306,12 @@ Generate payloads that demonstrate your advanced understanding of modern securit
                         "explanation": f"Extracted {category.value} payload from text",
                         "confidence": 0.6
                     })
-        
+
         return payloads[:10]  # Limit to 10 payloads
-    
-    async def analyze_vulnerability_with_qwen(self, finding: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def analyze_vulnerability_with_qwen(self, finding: dict[str, Any]) -> dict[str, Any]:
         """Use Qwen 2.5 for advanced vulnerability analysis"""
-        
+
         analysis_prompt = f"""
 VULNERABILITY ANALYSIS TASK:
 
@@ -398,7 +396,7 @@ OUTPUT FORMAT (JSON):
 
 Provide thorough, actionable analysis that demonstrates deep security expertise and practical business understanding.
 """
-        
+
         request = LLMRequest(
             task_type=TaskType.VULNERABILITY_ANALYSIS,
             prompt=analysis_prompt,
@@ -406,20 +404,20 @@ Provide thorough, actionable analysis that demonstrates deep security expertise 
             temperature=0.3,  # Lower temperature for analysis
             structured_output=True
         )
-        
+
         try:
             response = await self.llm_client.generate_payload(request)
-            
+
             # Parse structured analysis
             import json
             content = response.content.strip()
-            
+
             if "```json" in content:
                 json_start = content.find("```json") + 7
                 json_end = content.find("```", json_start)
                 if json_end != -1:
                     content = content[json_start:json_end].strip()
-            
+
             if content.startswith('{'):
                 return json.loads(content)
             else:
@@ -428,14 +426,14 @@ Provide thorough, actionable analysis that demonstrates deep security expertise 
                     "model_used": response.model_used,
                     "confidence": response.confidence_score
                 }
-                
+
         except Exception as e:
             logger.error(f"Qwen vulnerability analysis failed: {e}")
             return {"error": str(e)}
-    
-    async def generate_campaign_strategy(self, targets: List[Dict[str, Any]]) -> Dict[str, Any]:
+
+    async def generate_campaign_strategy(self, targets: list[dict[str, Any]]) -> dict[str, Any]:
         """Generate comprehensive testing strategy using Qwen's planning capabilities"""
-        
+
         strategy_prompt = f"""
 CYBERSECURITY CAMPAIGN STRATEGY DEVELOPMENT:
 
@@ -529,7 +527,7 @@ OUTPUT FORMAT (JSON):
 
 Design a strategy that maximizes security findings while minimizing operational risk and maintaining ethical standards throughout the engagement.
 """
-        
+
         request = LLMRequest(
             task_type=TaskType.EXPLOITATION_STRATEGY,
             prompt=strategy_prompt,
@@ -537,19 +535,19 @@ Design a strategy that maximizes security findings while minimizing operational 
             temperature=0.5,
             structured_output=True
         )
-        
+
         try:
             response = await self.llm_client.generate_payload(request)
-            
+
             import json
             content = response.content.strip()
-            
+
             if "```json" in content:
                 json_start = content.find("```json") + 7
                 json_end = content.find("```", json_start)
                 if json_end != -1:
                     content = content[json_start:json_end].strip()
-            
+
             if content.startswith('{'):
                 strategy = json.loads(content)
                 strategy["generated_by"] = "qwen-235b"
@@ -561,12 +559,12 @@ Design a strategy that maximizes security findings while minimizing operational 
                     "model_used": response.model_used,
                     "confidence": response.confidence_score
                 }
-                
+
         except Exception as e:
             logger.error(f"Qwen strategy generation failed: {e}")
             return {"error": str(e)}
 
-    async def get_model_capabilities(self) -> Dict[str, Any]:
+    async def get_model_capabilities(self) -> dict[str, Any]:
         """Get information about Qwen 2.5 235B capabilities"""
         return {
             "model_name": "Qwen 2.5 235B",
@@ -581,7 +579,7 @@ Design a strategy that maximizes security findings while minimizing operational 
             ],
             "optimal_use_cases": [
                 "Complex payload generation",
-                "Multi-step exploitation strategies", 
+                "Multi-step exploitation strategies",
                 "Detailed vulnerability analysis",
                 "Campaign planning and orchestration",
                 "Technical report generation"

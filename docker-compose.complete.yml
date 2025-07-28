@@ -91,7 +91,7 @@ services:
   xorb-api:
     build:
       context: .
-      dockerfile: Dockerfile.api
+      dockerfile: compose/Dockerfile.api
     environment:
       - XORB_ENV=production
       - XORB_ADVANCED_FEATURES=true
@@ -116,7 +116,7 @@ services:
   xorb-orchestrator:
     build:
       context: .
-      dockerfile: Dockerfile.orchestrator
+      dockerfile: compose/Dockerfile.orchestrator
     environment:
       - XORB_ENV=production
       - XORB_ADVANCED_FEATURES=true
@@ -135,7 +135,7 @@ services:
   xorb-worker:
     build:
       context: .
-      dockerfile: Dockerfile.worker
+      dockerfile: compose/Dockerfile.worker
     environment:
       - XORB_ENV=production
       - XORB_ADVANCED_FEATURES=true
@@ -156,7 +156,7 @@ services:
   xorb-threat-intel:
     build:
       context: .
-      dockerfile: Dockerfile.agent
+      dockerfile: compose/Dockerfile.agent
       args:
         SERVICE_TYPE: threat_intel
     environment:
@@ -174,7 +174,7 @@ services:
   xorb-vulnerability-mgmt:
     build:
       context: .
-      dockerfile: Dockerfile.agent
+      dockerfile: compose/Dockerfile.agent
       args:
         SERVICE_TYPE: vulnerability_mgmt
     environment:
@@ -190,7 +190,7 @@ services:
   xorb-ai-hunter:
     build:
       context: .
-      dockerfile: Dockerfile.agent
+      dockerfile: compose/Dockerfile.agent
       args:
         SERVICE_TYPE: ai_hunter
     environment:

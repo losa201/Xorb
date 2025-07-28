@@ -7,23 +7,21 @@ Part of the XORB Ecosystem - Phase 12: Autonomous Defense & Planetary Scale Oper
 """
 
 import asyncio
-import logging
+import json
+import random
 import time
 import uuid
-import json
-import numpy as np
-import networkx as nx
-from typing import Dict, List, Any, Optional, Set, Tuple, Union
-from dataclasses import dataclass, asdict
-from datetime import datetime, timedelta
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from enum import Enum
-import random
-import math
-from concurrent.futures import ThreadPoolExecutor
+from typing import Any
+
 import aioredis
 import asyncpg
-from prometheus_client import Counter, Histogram, Gauge, Summary
+import networkx as nx
+import numpy as np
 import structlog
+from prometheus_client import Counter, Gauge, Histogram
 
 # Metrics
 propagation_models_created = Counter('xorb_propagation_models_created_total', 'Total propagation models created')
@@ -73,13 +71,13 @@ class NetworkNode:
     node_id: str
     node_type: str  # server, workstation, mobile, iot, etc.
     state: NodeState
-    infection_time: Optional[datetime]
-    recovery_time: Optional[datetime]
+    infection_time: datetime | None
+    recovery_time: datetime | None
     vulnerability_score: float
     connectivity: int
     criticality: float
-    security_controls: List[str]
-    geographic_location: Optional[Tuple[float, float]]
+    security_controls: list[str]
+    geographic_location: tuple[float, float] | None
     last_updated: datetime
 
 @dataclass
@@ -104,22 +102,22 @@ class ThreatVector:
     detection_difficulty: float
     payload_complexity: float
     lateral_movement_capability: float
-    propagation_methods: List[str]
-    target_preferences: Dict[str, float]
-    temporal_behavior: Dict[str, Any]
+    propagation_methods: list[str]
+    target_preferences: dict[str, float]
+    temporal_behavior: dict[str, Any]
     created_at: datetime
 
 @dataclass
 class PropagationScenario:
     """Represents a propagation simulation scenario"""
     scenario_id: str
-    network_topology: Dict[str, Any]
+    network_topology: dict[str, Any]
     threat_vector: ThreatVector
-    initial_infection_nodes: List[str]
-    simulation_parameters: Dict[str, Any]
+    initial_infection_nodes: list[str]
+    simulation_parameters: dict[str, Any]
     propagation_model: PropagationModel
     time_horizon: int  # simulation steps
-    containment_measures: List[Dict[str, Any]]
+    containment_measures: list[dict[str, Any]]
     created_at: datetime
 
 @dataclass
@@ -131,10 +129,10 @@ class SimulationResult:
     total_infected_nodes: int
     propagation_speed: float
     containment_effectiveness: float
-    critical_paths: List[List[str]]
-    bottleneck_nodes: List[str]
+    critical_paths: list[list[str]]
+    bottleneck_nodes: list[str]
     recovery_time: int
-    simulation_metadata: Dict[str, Any]
+    simulation_metadata: dict[str, Any]
     timestamp: datetime
 
 @dataclass
@@ -142,13 +140,13 @@ class ContainmentStrategy:
     """Strategy for containing threat propagation"""
     strategy_id: str
     strategy_type: str  # isolation, patching, monitoring, etc.
-    target_nodes: List[str]
-    target_edges: List[Tuple[str, str]]
+    target_nodes: list[str]
+    target_edges: list[tuple[str, str]]
     implementation_cost: float
     effectiveness_score: float
     implementation_time: int
-    side_effects: Dict[str, Any]
-    prerequisites: List[str]
+    side_effects: dict[str, Any]
+    prerequisites: list[str]
     created_at: datetime
 
 class ThreatPropagationModelingAgent:
@@ -161,41 +159,41 @@ class ThreatPropagationModelingAgent:
     - Network topology optimization
     - Containment strategy generation
     """
-    
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+
+    def __init__(self, config: dict[str, Any] | None = None):
         self.config = config or {}
         self.agent_id = f"threat-propagation-{uuid.uuid4().hex[:8]}"
         self.is_running = False
-        
+
         # Model parameters
         self.default_infection_rate = self.config.get('default_infection_rate', 0.3)
         self.default_recovery_rate = self.config.get('default_recovery_rate', 0.1)
         self.simulation_steps = self.config.get('simulation_steps', 1000)
         self.monte_carlo_runs = self.config.get('monte_carlo_runs', 100)
-        
+
         # Network analysis parameters
         self.max_network_size = self.config.get('max_network_size', 10000)
         self.topology_update_interval = self.config.get('topology_update_interval', 3600)
         self.simulation_batch_size = self.config.get('simulation_batch_size', 10)
-        
+
         # Storage and communication
         self.redis_pool = None
         self.db_pool = None
-        
+
         # Network state
         self.network_graph = nx.Graph()
-        self.node_registry: Dict[str, NetworkNode] = {}
-        self.edge_registry: Dict[Tuple[str, str], NetworkEdge] = {}
-        
+        self.node_registry: dict[str, NetworkNode] = {}
+        self.edge_registry: dict[tuple[str, str], NetworkEdge] = {}
+
         # Simulation state
-        self.active_scenarios: Dict[str, PropagationScenario] = {}
-        self.simulation_results: Dict[str, List[SimulationResult]] = {}
-        self.containment_strategies: Dict[str, List[ContainmentStrategy]] = {}
-        
+        self.active_scenarios: dict[str, PropagationScenario] = {}
+        self.simulation_results: dict[str, list[SimulationResult]] = {}
+        self.containment_strategies: dict[str, list[ContainmentStrategy]] = {}
+
         # Model cache
-        self.model_cache: Dict[str, Any] = {}
-        self.topology_cache: Dict[str, Any] = {}
-        
+        self.model_cache: dict[str, Any] = {}
+        self.topology_cache: dict[str, Any] = {}
+
         logger.info("ThreatPropagationModelingAgent initialized", agent_id=self.agent_id)
 
     async def initialize(self):
@@ -206,25 +204,25 @@ class ThreatPropagationModelingAgent:
                 self.config.get('redis_url', 'redis://localhost:6379'),
                 max_connections=20
             )
-            
+
             # Initialize PostgreSQL connection
             self.db_pool = await asyncpg.create_pool(
                 self.config.get('postgres_url', 'postgresql://localhost:5432/xorb'),
                 min_size=5,
                 max_size=20
             )
-            
+
             # Initialize database schema
             await self._initialize_database()
-            
+
             # Load network topology
             await self._load_network_topology()
-            
+
             # Initialize threat models
             await self._initialize_threat_models()
-            
+
             logger.info("ThreatPropagationModelingAgent initialized successfully")
-            
+
         except Exception as e:
             logger.error("Failed to initialize ThreatPropagationModelingAgent", error=str(e))
             raise
@@ -234,19 +232,19 @@ class ThreatPropagationModelingAgent:
         if self.is_running:
             logger.warning("Modeling already running")
             return
-            
+
         self.is_running = True
         logger.info("Starting threat propagation modeling process")
-        
+
         try:
             # Start modeling loops
             topology_task = asyncio.create_task(self._topology_monitoring_loop())
             simulation_task = asyncio.create_task(self._simulation_loop())
             containment_task = asyncio.create_task(self._containment_optimization_loop())
             analysis_task = asyncio.create_task(self._network_analysis_loop())
-            
+
             await asyncio.gather(topology_task, simulation_task, containment_task, analysis_task)
-            
+
         except Exception as e:
             logger.error("Modeling process failed", error=str(e))
             raise
@@ -265,7 +263,7 @@ class ThreatPropagationModelingAgent:
                 logger.debug("Updating network topology")
                 await self._update_network_topology()
                 await asyncio.sleep(self.topology_update_interval)
-                
+
             except Exception as e:
                 logger.error("Topology monitoring failed", error=str(e))
                 await asyncio.sleep(60)
@@ -277,7 +275,7 @@ class ThreatPropagationModelingAgent:
                 # Process pending scenarios
                 await self._process_simulation_queue()
                 await asyncio.sleep(30)
-                
+
             except Exception as e:
                 logger.error("Simulation loop failed", error=str(e))
                 await asyncio.sleep(60)
@@ -288,7 +286,7 @@ class ThreatPropagationModelingAgent:
             try:
                 await self._generate_containment_strategies()
                 await asyncio.sleep(600)  # Every 10 minutes
-                
+
             except Exception as e:
                 logger.error("Containment optimization failed", error=str(e))
                 await asyncio.sleep(60)
@@ -301,7 +299,7 @@ class ThreatPropagationModelingAgent:
                 await self._identify_critical_paths()
                 await self._calculate_network_metrics()
                 await asyncio.sleep(1800)  # Every 30 minutes
-                
+
             except Exception as e:
                 logger.error("Network analysis failed", error=str(e))
                 await asyncio.sleep(60)
@@ -328,7 +326,7 @@ class ThreatPropagationModelingAgent:
                     )
                     self.node_registry[node.node_id] = node
                     self.network_graph.add_node(node.node_id, **asdict(node))
-                
+
                 # Load edges
                 edge_rows = await conn.fetch("SELECT * FROM network_edges WHERE active = true")
                 for row in edge_rows:
@@ -345,14 +343,14 @@ class ThreatPropagationModelingAgent:
                     edge_key = (edge.source_id, edge.target_id)
                     self.edge_registry[edge_key] = edge
                     self.network_graph.add_edge(
-                        edge.source_id, edge.target_id, 
+                        edge.source_id, edge.target_id,
                         weight=edge.weight, **asdict(edge)
                     )
-                
-                logger.info("Network topology loaded", 
-                          nodes=len(self.node_registry), 
+
+                logger.info("Network topology loaded",
+                          nodes=len(self.node_registry),
                           edges=len(self.edge_registry))
-                
+
         except Exception as e:
             logger.error("Failed to load network topology", error=str(e))
             # Create minimal test topology
@@ -361,7 +359,7 @@ class ThreatPropagationModelingAgent:
     async def _create_test_topology(self):
         """Create a test network topology for simulation"""
         logger.info("Creating test network topology")
-        
+
         # Create test nodes
         node_types = ['server', 'workstation', 'mobile', 'iot']
         for i in range(100):
@@ -375,14 +373,14 @@ class ThreatPropagationModelingAgent:
                 vulnerability_score=random.uniform(0.1, 0.9),
                 connectivity=random.randint(1, 10),
                 criticality=random.uniform(0.1, 1.0),
-                security_controls=random.sample(['firewall', 'antivirus', 'ids', 'patch_mgmt'], 
+                security_controls=random.sample(['firewall', 'antivirus', 'ids', 'patch_mgmt'],
                                               random.randint(1, 3)),
                 geographic_location=(random.uniform(-90, 90), random.uniform(-180, 180)),
                 last_updated=datetime.utcnow()
             )
             self.node_registry[node_id] = node
             self.network_graph.add_node(node_id, **asdict(node))
-        
+
         # Create test edges with small-world properties
         for node_id in list(self.node_registry.keys()):
             # Connect to nearby nodes
@@ -402,9 +400,9 @@ class ThreatPropagationModelingAgent:
                     edge_key = (node_id, target_id)
                     self.edge_registry[edge_key] = edge
                     self.network_graph.add_edge(node_id, target_id, weight=edge.weight, **asdict(edge))
-        
-        logger.info("Test topology created", 
-                   nodes=len(self.node_registry), 
+
+        logger.info("Test topology created",
+                   nodes=len(self.node_registry),
                    edges=len(self.edge_registry))
 
     async def _update_network_topology(self):
@@ -412,7 +410,7 @@ class ThreatPropagationModelingAgent:
         try:
             # This would integrate with network monitoring systems
             # For now, simulate dynamic changes
-            
+
             # Randomly update node states
             for node_id, node in list(self.node_registry.items())[:10]:
                 if random.random() < 0.1:  # 10% chance of state change
@@ -424,17 +422,17 @@ class ThreatPropagationModelingAgent:
                     elif node.state == NodeState.INFECTED and random.random() < 0.2:
                         node.state = NodeState.RECOVERED
                         node.recovery_time = datetime.utcnow()
-                    
+
                     node.last_updated = datetime.utcnow()
-            
+
             # Update network metrics
-            infected_count = len([n for n in self.node_registry.values() 
+            infected_count = len([n for n in self.node_registry.values()
                                 if n.state == NodeState.INFECTED])
             infection_rate = infected_count / len(self.node_registry) if self.node_registry else 0
             network_infection_rate.set(infection_rate)
-            
+
             logger.debug("Network topology updated", infection_rate=infection_rate)
-            
+
         except Exception as e:
             logger.error("Failed to update network topology", error=str(e))
 
@@ -447,18 +445,18 @@ class ThreatPropagationModelingAgent:
             PropagationModel.NETWORK_DIFFUSION: self._network_diffusion_model,
             PropagationModel.CASCADE: self._cascade_model
         }
-        
+
         logger.info("Threat models initialized", models=list(self.threat_models.keys()))
 
-    async def create_propagation_scenario(self, 
+    async def create_propagation_scenario(self,
                                         threat_type: ThreatType,
-                                        initial_nodes: List[str],
+                                        initial_nodes: list[str],
                                         propagation_model: PropagationModel = PropagationModel.SEIR,
-                                        custom_parameters: Optional[Dict[str, Any]] = None) -> str:
+                                        custom_parameters: dict[str, Any] | None = None) -> str:
         """Create a new propagation scenario"""
-        
+
         scenario_id = str(uuid.uuid4())
-        
+
         # Create threat vector
         threat_vector = ThreatVector(
             threat_id=str(uuid.uuid4()),
@@ -473,7 +471,7 @@ class ThreatPropagationModelingAgent:
             temporal_behavior={'peak_hours': [9, 17], 'weekend_factor': 0.5},
             created_at=datetime.utcnow()
         )
-        
+
         # Create scenario
         scenario = PropagationScenario(
             scenario_id=scenario_id,
@@ -486,61 +484,61 @@ class ThreatPropagationModelingAgent:
             containment_measures=[],
             created_at=datetime.utcnow()
         )
-        
+
         self.active_scenarios[scenario_id] = scenario
-        
+
         # Persist scenario
         await self._persist_scenario(scenario)
-        
+
         propagation_models_created.inc()
-        logger.info("Propagation scenario created", 
-                   scenario_id=scenario_id, 
+        logger.info("Propagation scenario created",
+                   scenario_id=scenario_id,
                    threat_type=threat_type.value,
                    initial_nodes=len(initial_nodes))
-        
+
         return scenario_id
 
     async def run_propagation_simulation(self, scenario_id: str) -> SimulationResult:
         """Run a propagation simulation for a scenario"""
-        
+
         if scenario_id not in self.active_scenarios:
             raise ValueError(f"Scenario {scenario_id} not found")
-        
+
         scenario = self.active_scenarios[scenario_id]
-        
+
         logger.info("Running propagation simulation", scenario_id=scenario_id)
         start_time = time.time()
-        
+
         with simulation_duration_seconds.time():
             # Select appropriate model
             model_func = self.threat_models.get(scenario.propagation_model)
             if not model_func:
                 raise ValueError(f"Model {scenario.propagation_model} not implemented")
-            
+
             # Run simulation
             result = await model_func(scenario)
-            
+
             # Store result
             if scenario_id not in self.simulation_results:
                 self.simulation_results[scenario_id] = []
             self.simulation_results[scenario_id].append(result)
-            
+
             # Persist result
             await self._persist_simulation_result(result)
-        
+
         simulation_duration = time.time() - start_time
         propagation_simulations_run.inc()
-        
-        logger.info("Simulation completed", 
+
+        logger.info("Simulation completed",
                    scenario_id=scenario_id,
                    duration=simulation_duration,
                    final_infection_rate=result.final_infection_rate)
-        
+
         return result
 
     async def _sir_model(self, scenario: PropagationScenario) -> SimulationResult:
         """Susceptible-Infected-Recovered model"""
-        
+
         # Initialize node states
         node_states = {}
         for node_id in self.node_registry:
@@ -548,66 +546,66 @@ class ThreatPropagationModelingAgent:
                 node_states[node_id] = NodeState.INFECTED
             else:
                 node_states[node_id] = NodeState.SUSCEPTIBLE
-        
+
         # Simulation parameters
         beta = scenario.simulation_parameters.get('infection_rate', self.default_infection_rate)
         gamma = scenario.simulation_parameters.get('recovery_rate', self.default_recovery_rate)
-        
+
         # Track simulation state
         state_history = []
         critical_paths = []
         infection_times = {}
-        
+
         for step in range(scenario.time_horizon):
             step_infections = []
             step_recoveries = []
-            
+
             # Infection process
             infected_nodes = [n for n, s in node_states.items() if s == NodeState.INFECTED]
-            
+
             for infected_node in infected_nodes:
                 # Get neighbors
                 neighbors = list(self.network_graph.neighbors(infected_node))
-                
+
                 for neighbor in neighbors:
                     if node_states[neighbor] == NodeState.SUSCEPTIBLE:
                         # Calculate infection probability
                         edge_data = self.network_graph.get_edge_data(infected_node, neighbor)
                         transmission_prob = beta * edge_data.get('weight', 1.0)
-                        
+
                         # Apply node vulnerability
                         node_vuln = self.node_registry[neighbor].vulnerability_score
                         transmission_prob *= node_vuln
-                        
+
                         # Apply threat-specific factors
                         threat_effectiveness = self._calculate_threat_effectiveness(
-                            scenario.threat_vector, 
+                            scenario.threat_vector,
                             self.node_registry[neighbor]
                         )
                         transmission_prob *= threat_effectiveness
-                        
+
                         if random.random() < transmission_prob:
                             step_infections.append(neighbor)
                             infection_times[neighbor] = step
                             critical_paths.append([infected_node, neighbor])
-            
+
             # Recovery process
             for infected_node in infected_nodes:
                 if random.random() < gamma:
                     step_recoveries.append(infected_node)
-            
+
             # Update states
             for node in step_infections:
                 node_states[node] = NodeState.INFECTED
-            
+
             for node in step_recoveries:
                 node_states[node] = NodeState.RECOVERED
-            
+
             # Record state
             susceptible = len([n for n, s in node_states.items() if s == NodeState.SUSCEPTIBLE])
             infected = len([n for n, s in node_states.items() if s == NodeState.INFECTED])
             recovered = len([n for n, s in node_states.items() if s == NodeState.RECOVERED])
-            
+
             state_history.append({
                 'step': step,
                 'susceptible': susceptible,
@@ -615,19 +613,19 @@ class ThreatPropagationModelingAgent:
                 'recovered': recovered,
                 'infection_rate': infected / len(node_states)
             })
-            
+
             # Early termination if no infected nodes
             if infected == 0:
                 break
-        
+
         # Calculate results
         max_infected_step = max(state_history, key=lambda x: x['infected'])
         final_state = state_history[-1]
-        
+
         # Identify bottleneck nodes (high betweenness centrality)
         betweenness = nx.betweenness_centrality(self.network_graph)
         bottleneck_nodes = sorted(betweenness, key=betweenness.get, reverse=True)[:10]
-        
+
         result = SimulationResult(
             scenario_id=scenario.scenario_id,
             final_infection_rate=final_state['infection_rate'],
@@ -645,93 +643,93 @@ class ThreatPropagationModelingAgent:
             },
             timestamp=datetime.utcnow()
         )
-        
+
         return result
 
     async def _seir_model(self, scenario: PropagationScenario) -> SimulationResult:
         """Susceptible-Exposed-Infected-Recovered model"""
-        
+
         # Initialize node states
         node_states = {}
         exposure_times = {}
-        
+
         for node_id in self.node_registry:
             if node_id in scenario.initial_infection_nodes:
                 node_states[node_id] = NodeState.INFECTED
             else:
                 node_states[node_id] = NodeState.SUSCEPTIBLE
-        
+
         # Simulation parameters
         beta = scenario.simulation_parameters.get('infection_rate', self.default_infection_rate)
         sigma = scenario.simulation_parameters.get('incubation_rate', 0.2)  # Rate of becoming infectious
         gamma = scenario.simulation_parameters.get('recovery_rate', self.default_recovery_rate)
-        
+
         # Track simulation state
         state_history = []
         critical_paths = []
         infection_times = {}
-        
+
         for step in range(scenario.time_horizon):
             step_exposures = []
             step_infections = []
             step_recoveries = []
-            
+
             # Exposure process
             infected_nodes = [n for n, s in node_states.items() if s == NodeState.INFECTED]
-            
+
             for infected_node in infected_nodes:
                 neighbors = list(self.network_graph.neighbors(infected_node))
-                
+
                 for neighbor in neighbors:
                     if node_states[neighbor] == NodeState.SUSCEPTIBLE:
                         # Calculate exposure probability
                         edge_data = self.network_graph.get_edge_data(infected_node, neighbor)
                         transmission_prob = beta * edge_data.get('weight', 1.0)
-                        
+
                         # Apply node vulnerability and threat effectiveness
                         node_vuln = self.node_registry[neighbor].vulnerability_score
                         threat_effectiveness = self._calculate_threat_effectiveness(
-                            scenario.threat_vector, 
+                            scenario.threat_vector,
                             self.node_registry[neighbor]
                         )
                         transmission_prob *= node_vuln * threat_effectiveness
-                        
+
                         if random.random() < transmission_prob:
                             step_exposures.append(neighbor)
                             exposure_times[neighbor] = step
                             critical_paths.append([infected_node, neighbor])
-            
+
             # Infection process (exposed -> infected)
             exposed_nodes = [n for n, s in node_states.items() if s == NodeState.EXPOSED]
             for exposed_node in exposed_nodes:
                 if random.random() < sigma:
                     step_infections.append(exposed_node)
                     infection_times[exposed_node] = step
-            
+
             # Recovery process
             for infected_node in infected_nodes:
                 if random.random() < gamma:
                     step_recoveries.append(infected_node)
-            
+
             # Update states
             for node in step_exposures:
                 node_states[node] = NodeState.EXPOSED
-            
+
             for node in step_infections:
                 node_states[node] = NodeState.INFECTED
-            
+
             for node in step_recoveries:
                 node_states[node] = NodeState.RECOVERED
-            
+
             # Record state
             susceptible = len([n for n, s in node_states.items() if s == NodeState.SUSCEPTIBLE])
             exposed = len([n for n, s in node_states.items() if s == NodeState.EXPOSED])
             infected = len([n for n, s in node_states.items() if s == NodeState.INFECTED])
             recovered = len([n for n, s in node_states.items() if s == NodeState.RECOVERED])
-            
+
             total_affected = exposed + infected + recovered
             infection_rate = total_affected / len(node_states)
-            
+
             state_history.append({
                 'step': step,
                 'susceptible': susceptible,
@@ -740,19 +738,19 @@ class ThreatPropagationModelingAgent:
                 'recovered': recovered,
                 'infection_rate': infection_rate
             })
-            
+
             # Early termination
             if infected == 0 and exposed == 0:
                 break
-        
+
         # Calculate results
         max_affected_step = max(state_history, key=lambda x: x['exposed'] + x['infected'])
         final_state = state_history[-1]
-        
+
         # Identify bottleneck nodes
         betweenness = nx.betweenness_centrality(self.network_graph)
         bottleneck_nodes = sorted(betweenness, key=betweenness.get, reverse=True)[:10]
-        
+
         result = SimulationResult(
             scenario_id=scenario.scenario_id,
             final_infection_rate=final_state['infection_rate'],
@@ -770,80 +768,80 @@ class ThreatPropagationModelingAgent:
             },
             timestamp=datetime.utcnow()
         )
-        
+
         return result
 
     async def _network_diffusion_model(self, scenario: PropagationScenario) -> SimulationResult:
         """Network diffusion model based on graph properties"""
-        
+
         # Initialize
         infected_nodes = set(scenario.initial_infection_nodes)
         newly_infected = set(scenario.initial_infection_nodes)
         all_infected = set(scenario.initial_infection_nodes)
-        
+
         # Parameters
         threshold = scenario.simulation_parameters.get('infection_threshold', 0.3)
         decay = scenario.simulation_parameters.get('decay_rate', 0.05)
-        
+
         state_history = []
         critical_paths = []
         step = 0
-        
+
         while newly_infected and step < scenario.time_horizon:
             next_infected = set()
-            
+
             for infected_node in newly_infected:
                 neighbors = list(self.network_graph.neighbors(infected_node))
-                
+
                 for neighbor in neighbors:
                     if neighbor not in all_infected:
                         # Calculate influence
                         edge_data = self.network_graph.get_edge_data(infected_node, neighbor)
                         influence = edge_data.get('weight', 1.0)
-                        
+
                         # Factor in node properties
                         neighbor_node = self.node_registry[neighbor]
                         vulnerability = neighbor_node.vulnerability_score
-                        
+
                         # Calculate total influence from all infected neighbors
                         infected_neighbors = [n for n in neighbors if n in all_infected]
                         total_influence = sum(
                             self.network_graph.get_edge_data(neighbor, inf_n).get('weight', 1.0)
                             for inf_n in infected_neighbors
                         )
-                        
+
                         # Apply threshold model
                         if total_influence * vulnerability > threshold:
                             next_infected.add(neighbor)
                             critical_paths.append([infected_node, neighbor])
-            
+
             # Apply decay to infection probability
             if step > 0:
                 threshold *= (1 + decay)
-            
+
             # Update state
             newly_infected = next_infected
             all_infected.update(newly_infected)
-            
+
             infection_rate = len(all_infected) / len(self.node_registry)
-            
+
             state_history.append({
                 'step': step,
                 'newly_infected': len(newly_infected),
                 'total_infected': len(all_infected),
                 'infection_rate': infection_rate
             })
-            
+
             step += 1
-        
+
         # Calculate results
         max_step = max(state_history, key=lambda x: x['newly_infected']) if state_history else state_history[0]
         final_state = state_history[-1] if state_history else {'infection_rate': 0, 'total_infected': 0}
-        
+
         # Identify bottlenecks
         betweenness = nx.betweenness_centrality(self.network_graph)
         bottleneck_nodes = sorted(betweenness, key=betweenness.get, reverse=True)[:10]
-        
+
         result = SimulationResult(
             scenario_id=scenario.scenario_id,
             final_infection_rate=final_state['infection_rate'],
@@ -861,7 +859,7 @@ class ThreatPropagationModelingAgent:
             },
             timestamp=datetime.utcnow()
         )
-        
+
         return result
 
     async def _sis_model(self, scenario: PropagationScenario) -> SimulationResult:
@@ -877,12 +875,12 @@ class ThreatPropagationModelingAgent:
 
     def _calculate_threat_effectiveness(self, threat: ThreatVector, target_node: NetworkNode) -> float:
         """Calculate how effective a threat is against a specific node"""
-        
+
         base_effectiveness = threat.virulence
-        
+
         # Adjust for node type preferences
         node_type_factor = threat.target_preferences.get(target_node.node_type, 0.5)
-        
+
         # Adjust for security controls
         security_reduction = 0.0
         for control in target_node.security_controls:
@@ -894,18 +892,18 @@ class ThreatPropagationModelingAgent:
                 security_reduction += 0.1
             elif control == 'patch_mgmt':
                 security_reduction += 0.25
-        
+
         # Apply temporal factors
         current_hour = datetime.utcnow().hour
         if current_hour in threat.temporal_behavior.get('peak_hours', []):
             base_effectiveness *= 1.2
-        
+
         # Final calculation
         effectiveness = base_effectiveness * node_type_factor * (1.0 - min(0.8, security_reduction))
-        
+
         return max(0.0, min(1.0, effectiveness))
 
-    async def _get_default_simulation_parameters(self) -> Dict[str, Any]:
+    async def _get_default_simulation_parameters(self) -> dict[str, Any]:
         """Get default simulation parameters"""
         return {
             'infection_rate': self.default_infection_rate,
@@ -918,7 +916,7 @@ class ThreatPropagationModelingAgent:
             'containment_effectiveness': 0.8
         }
 
-    async def _export_network_topology(self) -> Dict[str, Any]:
+    async def _export_network_topology(self) -> dict[str, Any]:
         """Export current network topology for scenario storage"""
         return {
             'nodes': {node_id: asdict(node) for node_id, node in self.node_registry.items()},
@@ -927,17 +925,17 @@ class ThreatPropagationModelingAgent:
             'exported_at': datetime.utcnow().isoformat()
         }
 
-    async def _calculate_basic_graph_metrics(self) -> Dict[str, Any]:
+    async def _calculate_basic_graph_metrics(self) -> dict[str, Any]:
         """Calculate basic graph metrics"""
         if not self.network_graph.nodes():
             return {}
-        
+
         return {
             'node_count': self.network_graph.number_of_nodes(),
             'edge_count': self.network_graph.number_of_edges(),
             'density': nx.density(self.network_graph),
             'average_clustering': nx.average_clustering(self.network_graph),
-            'average_shortest_path': nx.average_shortest_path_length(self.network_graph) 
+            'average_shortest_path': nx.average_shortest_path_length(self.network_graph)
                                    if nx.is_connected(self.network_graph) else -1,
             'diameter': nx.diameter(self.network_graph) if nx.is_connected(self.network_graph) else -1
         }
@@ -947,25 +945,25 @@ class ThreatPropagationModelingAgent:
         try:
             # Get pending scenarios from Redis queue
             redis = aioredis.Redis(connection_pool=self.redis_pool)
-            
+
             pending_scenarios = await redis.lrange('simulation_queue', 0, self.simulation_batch_size - 1)
-            
+
             if pending_scenarios:
                 await redis.ltrim('simulation_queue', len(pending_scenarios), -1)
-                
+
                 tasks = []
                 for scenario_data in pending_scenarios:
                     scenario_info = json.loads(scenario_data)
                     scenario_id = scenario_info['scenario_id']
-                    
+
                     if scenario_id in self.active_scenarios:
                         task = asyncio.create_task(self.run_propagation_simulation(scenario_id))
                         tasks.append(task)
-                
+
                 if tasks:
                     await asyncio.gather(*tasks, return_exceptions=True)
                     logger.info("Processed simulation batch", count=len(tasks))
-        
+
         except Exception as e:
             logger.error("Failed to process simulation queue", error=str(e))
 
@@ -976,30 +974,30 @@ class ThreatPropagationModelingAgent:
             for scenario_id, results in self.simulation_results.items():
                 if not results:
                     continue
-                
+
                 latest_result = results[-1]
                 strategies = await self._optimize_containment_for_result(latest_result)
-                
+
                 if scenario_id not in self.containment_strategies:
                     self.containment_strategies[scenario_id] = []
-                
+
                 self.containment_strategies[scenario_id].extend(strategies)
-                
+
                 # Persist strategies
                 for strategy in strategies:
                     await self._persist_containment_strategy(strategy)
-                
+
                 containment_strategies_generated.inc(len(strategies))
-            
+
             logger.debug("Containment strategies generated")
-            
+
         except Exception as e:
             logger.error("Failed to generate containment strategies", error=str(e))
 
-    async def _optimize_containment_for_result(self, result: SimulationResult) -> List[ContainmentStrategy]:
+    async def _optimize_containment_for_result(self, result: SimulationResult) -> list[ContainmentStrategy]:
         """Generate optimal containment strategies for a simulation result"""
         strategies = []
-        
+
         # Strategy 1: Isolate bottleneck nodes
         if result.bottleneck_nodes:
             strategy = ContainmentStrategy(
@@ -1015,7 +1013,7 @@ class ThreatPropagationModelingAgent:
                 created_at=datetime.utcnow()
             )
             strategies.append(strategy)
-        
+
         # Strategy 2: Cut critical paths
         if result.critical_paths:
             critical_edges = [(path[0], path[1]) for path in result.critical_paths[:10]]
@@ -1032,15 +1030,15 @@ class ThreatPropagationModelingAgent:
                 created_at=datetime.utcnow()
             )
             strategies.append(strategy)
-        
+
         # Strategy 3: Targeted immunization
         # Find high-degree nodes that aren't in critical paths
         degrees = dict(self.network_graph.degree())
         high_degree_nodes = sorted(degrees, key=degrees.get, reverse=True)[:10]
-        
-        immunization_targets = [node for node in high_degree_nodes 
+
+        immunization_targets = [node for node in high_degree_nodes
                               if node not in result.bottleneck_nodes[:5]][:5]
-        
+
         if immunization_targets:
             strategy = ContainmentStrategy(
                 strategy_id=str(uuid.uuid4()),
@@ -1055,7 +1053,7 @@ class ThreatPropagationModelingAgent:
                 created_at=datetime.utcnow()
             )
             strategies.append(strategy)
-        
+
         return strategies
 
     async def _analyze_network_vulnerabilities(self):
@@ -1065,7 +1063,7 @@ class ThreatPropagationModelingAgent:
             betweenness = nx.betweenness_centrality(self.network_graph)
             closeness = nx.closeness_centrality(self.network_graph)
             degree = nx.degree_centrality(self.network_graph)
-            
+
             # Identify critical nodes
             critical_nodes = []
             for node_id in self.network_graph.nodes():
@@ -1074,17 +1072,17 @@ class ThreatPropagationModelingAgent:
                     closeness.get(node_id, 0) * 0.3 +
                     degree.get(node_id, 0) * 0.3
                 )
-                
+
                 if criticality_score > 0.7:
                     critical_nodes.append((node_id, criticality_score))
-            
+
             # Update node criticality scores
             for node_id, score in critical_nodes:
                 if node_id in self.node_registry:
                     self.node_registry[node_id].criticality = score
-            
+
             logger.debug("Network vulnerability analysis completed", critical_nodes=len(critical_nodes))
-            
+
         except Exception as e:
             logger.error("Network vulnerability analysis failed", error=str(e))
 
@@ -1096,7 +1094,7 @@ class ThreatPropagationModelingAgent:
                 node_id for node_id, node in self.node_registry.items()
                 if node.criticality > 0.8
             ]
-            
+
             critical_paths = []
             for source in high_value_nodes[:5]:  # Limit computation
                 for target in high_value_nodes[:5]:
@@ -1107,12 +1105,12 @@ class ThreatPropagationModelingAgent:
                                 critical_paths.append(path)
                         except nx.NetworkXNoPath:
                             continue
-            
+
             # Store critical paths for use in containment strategies
             self.topology_cache['critical_paths'] = critical_paths[:20]  # Store top 20
-            
+
             logger.debug("Critical paths identified", count=len(critical_paths))
-            
+
         except Exception as e:
             logger.error("Critical path identification failed", error=str(e))
 
@@ -1120,7 +1118,7 @@ class ThreatPropagationModelingAgent:
         """Calculate and update network metrics"""
         try:
             metrics = await self._calculate_basic_graph_metrics()
-            
+
             # Additional metrics
             if self.network_graph.nodes():
                 # Assortativity (tendency for similar nodes to connect)
@@ -1129,7 +1127,7 @@ class ThreatPropagationModelingAgent:
                     metrics['assortativity'] = assortativity
                 except:
                     metrics['assortativity'] = 0.0
-                
+
                 # Modularity (community structure)
                 try:
                     communities = nx.community.greedy_modularity_communities(self.network_graph)
@@ -1139,16 +1137,16 @@ class ThreatPropagationModelingAgent:
                 except:
                     metrics['modularity'] = 0.0
                     metrics['community_count'] = 0
-            
+
             # Store metrics
             self.topology_cache['network_metrics'] = metrics
-            
+
             # Update Prometheus metrics
             if 'density' in metrics:
                 containment_effectiveness.set(1.0 - metrics['density'])  # Lower density = easier containment
-            
+
             logger.debug("Network metrics calculated", metrics=metrics)
-            
+
         except Exception as e:
             logger.error("Network metrics calculation failed", error=str(e))
 
@@ -1161,9 +1159,9 @@ class ThreatPropagationModelingAgent:
                     INSERT INTO propagation_scenarios 
                     (scenario_id, threat_type, scenario_data, created_at)
                     VALUES ($1, $2, $3, $4)
-                """, scenario.scenario_id, scenario.threat_vector.threat_type.value, 
+                """, scenario.scenario_id, scenario.threat_vector.threat_type.value,
                     scenario_data, scenario.created_at)
-        
+
         except Exception as e:
             logger.error("Failed to persist scenario", scenario_id=scenario.scenario_id, error=str(e))
 
@@ -1177,12 +1175,12 @@ class ThreatPropagationModelingAgent:
                     (scenario_id, final_infection_rate, peak_infection_time, 
                      total_infected_nodes, result_data, timestamp)
                     VALUES ($1, $2, $3, $4, $5, $6)
-                """, result.scenario_id, result.final_infection_rate, 
+                """, result.scenario_id, result.final_infection_rate,
                     result.peak_infection_time, result.total_infected_nodes,
                     result_data, result.timestamp)
-        
+
         except Exception as e:
-            logger.error("Failed to persist simulation result", 
+            logger.error("Failed to persist simulation result",
                         scenario_id=result.scenario_id, error=str(e))
 
     async def _persist_containment_strategy(self, strategy: ContainmentStrategy):
@@ -1195,12 +1193,12 @@ class ThreatPropagationModelingAgent:
                     (strategy_id, strategy_type, effectiveness_score, 
                      implementation_cost, strategy_data, created_at)
                     VALUES ($1, $2, $3, $4, $5, $6)
-                """, strategy.strategy_id, strategy.strategy_type, 
+                """, strategy.strategy_id, strategy.strategy_type,
                     strategy.effectiveness_score, strategy.implementation_cost,
                     strategy_data, strategy.created_at)
-        
+
         except Exception as e:
-            logger.error("Failed to persist containment strategy", 
+            logger.error("Failed to persist containment strategy",
                         strategy_id=strategy.strategy_id, error=str(e))
 
     async def _initialize_database(self):
@@ -1224,7 +1222,7 @@ class ThreatPropagationModelingAgent:
                     last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS network_edges (
                     id SERIAL PRIMARY KEY,
@@ -1240,7 +1238,7 @@ class ThreatPropagationModelingAgent:
                     UNIQUE(source_id, target_id)
                 )
             """)
-            
+
             # Simulation tables
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS propagation_scenarios (
@@ -1250,7 +1248,7 @@ class ThreatPropagationModelingAgent:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS simulation_results (
                     id SERIAL PRIMARY KEY,
@@ -1262,7 +1260,7 @@ class ThreatPropagationModelingAgent:
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS containment_strategies (
                     strategy_id VARCHAR PRIMARY KEY,
@@ -1273,7 +1271,7 @@ class ThreatPropagationModelingAgent:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
-            
+
             # Create indexes
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_nodes_type ON network_nodes(node_type)")
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_nodes_state ON network_nodes(state)")
@@ -1282,10 +1280,10 @@ class ThreatPropagationModelingAgent:
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_scenarios_threat ON propagation_scenarios(threat_type)")
             await conn.execute("CREATE INDEX IF NOT EXISTS idx_results_scenario ON simulation_results(scenario_id)")
 
-    async def get_modeling_status(self) -> Dict[str, Any]:
+    async def get_modeling_status(self) -> dict[str, Any]:
         """Get current modeling status"""
         network_metrics = self.topology_cache.get('network_metrics', {})
-        
+
         return {
             "status": "running" if self.is_running else "stopped",
             "network_size": {
@@ -1298,18 +1296,18 @@ class ThreatPropagationModelingAgent:
             "containment_strategies": sum(len(strategies) for strategies in self.containment_strategies.values()),
             "critical_paths": len(self.topology_cache.get('critical_paths', [])),
             "current_infection_rate": network_infection_rate._value.get(),
-            "last_topology_update": max((node.last_updated for node in self.node_registry.values()), 
+            "last_topology_update": max((node.last_updated for node in self.node_registry.values()),
                                       default=datetime.utcnow()).isoformat()
         }
 
-    async def get_scenario_results(self, scenario_id: str) -> Optional[Dict[str, Any]]:
+    async def get_scenario_results(self, scenario_id: str) -> dict[str, Any] | None:
         """Get results for a specific scenario"""
         if scenario_id not in self.simulation_results:
             return None
-        
+
         results = self.simulation_results[scenario_id]
         strategies = self.containment_strategies.get(scenario_id, [])
-        
+
         return {
             "scenario_id": scenario_id,
             "simulation_count": len(results),
@@ -1322,51 +1320,51 @@ class ThreatPropagationModelingAgent:
     async def shutdown(self):
         """Shutdown the threat propagation modeling agent"""
         logger.info("Shutting down ThreatPropagationModelingAgent")
-        
+
         self.is_running = False
-        
+
         # Close connections
         if self.redis_pool:
             await self.redis_pool.disconnect()
-        
+
         if self.db_pool:
             await self.db_pool.close()
-        
+
         logger.info("ThreatPropagationModelingAgent shutdown complete")
 
 if __name__ == "__main__":
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="XORB Threat Propagation Modeling Agent")
     parser.add_argument("--config", help="Configuration file path")
     parser.add_argument("--simulation-steps", type=int, default=1000, help="Simulation steps")
     parser.add_argument("--network-size", type=int, default=100, help="Test network size")
-    
+
     args = parser.parse_args()
-    
+
     config = {
         'simulation_steps': args.simulation_steps,
         'max_network_size': args.network_size,
         'redis_url': 'redis://localhost:6379',
         'postgres_url': 'postgresql://localhost:5432/xorb'
     }
-    
+
     async def main():
         agent = ThreatPropagationModelingAgent(config)
         await agent.initialize()
-        
+
         # Create test scenario
         scenario_id = await agent.create_propagation_scenario(
             threat_type=ThreatType.MALWARE,
             initial_nodes=['node_000', 'node_001'],
             propagation_model=PropagationModel.SEIR
         )
-        
+
         # Run simulation
         result = await agent.run_propagation_simulation(scenario_id)
         print(f"Simulation completed: {result.final_infection_rate:.2%} infection rate")
-        
+
         # Start continuous modeling
         await agent.start_modeling()
-    
+
     asyncio.run(main())

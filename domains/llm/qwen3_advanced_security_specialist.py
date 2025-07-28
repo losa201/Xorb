@@ -5,16 +5,16 @@ Next-generation AI security capabilities with enhanced reasoning and advanced te
 """
 
 import asyncio
-import logging
 import json
+import logging
 import time
 import uuid
-from typing import Dict, List, Any, Optional, Union
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any
+
 import numpy as np
-import threading
-from concurrent.futures import ThreadPoolExecutor
+
 
 class PayloadCategory(Enum):
     """Payload categories for security testing."""
@@ -29,28 +29,28 @@ class PayloadCategory(Enum):
 
 try:
     from .intelligent_client import IntelligentLLMClient, LLMRequest, TaskType
-    from .payload_generator import TargetContext, GeneratedPayload
+    from .payload_generator import GeneratedPayload, TargetContext
     from .qwen_security_specialist import QwenSecuritySpecialist
 except ImportError:
     print("⚠️ Base LLM modules available - continuing with advanced specialist...")
-    
+
     # Create fallback classes if imports fail
     class IntelligentLLMClient:
         def __init__(self, *args, **kwargs): pass
         async def query(self, *args, **kwargs): return {"response": "Simulated response"}
-    
+
     class LLMRequest:
         def __init__(self, *args, **kwargs): pass
-    
+
     class TaskType(Enum):
         SECURITY_ANALYSIS = "security_analysis"
-    
+
     class TargetContext:
         def __init__(self, *args, **kwargs): pass
-    
+
     class GeneratedPayload:
         def __init__(self, *args, **kwargs): pass
-    
+
     class QwenSecuritySpecialist:
         def __init__(self, *args, **kwargs): pass
 
@@ -59,7 +59,7 @@ logger = logging.getLogger(__name__)
 class AdvancedSecurityCapability(Enum):
     """Enhanced security testing capabilities."""
     ZERO_DAY_RESEARCH = "zero_day_research"
-    BEHAVIORAL_ANALYSIS = "behavioral_analysis" 
+    BEHAVIORAL_ANALYSIS = "behavioral_analysis"
     THREAT_MODELING = "threat_modeling"
     ATTACK_SIMULATION = "attack_simulation"
     DEFENSIVE_STRATEGY = "defensive_strategy"
@@ -73,47 +73,47 @@ class AdvancedSecurityCapability(Enum):
 class SecurityContext:
     """Enhanced security context for advanced analysis."""
     target_environment: str
-    threat_actors: List[str] = field(default_factory=list)
-    attack_surface: Dict[str, Any] = field(default_factory=dict)
-    security_controls: List[str] = field(default_factory=list)
-    compliance_requirements: List[str] = field(default_factory=list)
-    business_context: Dict[str, Any] = field(default_factory=dict)
+    threat_actors: list[str] = field(default_factory=list)
+    attack_surface: dict[str, Any] = field(default_factory=dict)
+    security_controls: list[str] = field(default_factory=list)
+    compliance_requirements: list[str] = field(default_factory=list)
+    business_context: dict[str, Any] = field(default_factory=dict)
     risk_tolerance: str = "medium"
-    
+
 @dataclass
 class AdvancedPayload:
     """Enhanced payload with advanced metadata."""
     payload: str
     category: PayloadCategory
     sophistication_level: int  # 1-10
-    evasion_techniques: List[str]
-    persistence_methods: List[str]
+    evasion_techniques: list[str]
+    persistence_methods: list[str]
     lateral_movement_potential: bool
     data_exfiltration_capability: bool
     stealth_rating: int  # 1-10
-    detection_signatures: List[str]
-    mitigation_strategies: List[str]
-    attribution_indicators: List[str]
+    detection_signatures: list[str]
+    mitigation_strategies: list[str]
+    attribution_indicators: list[str]
     success_probability: float  # 0.0-1.0
 
 class Qwen3AdvancedSecuritySpecialist:
     """Next-generation security specialist powered by Qwen3-Coder."""
-    
-    def __init__(self, llm_client: Optional[Any] = None):
+
+    def __init__(self, llm_client: Any | None = None):
         self.specialist_id = f"QWEN3-ADV-{str(uuid.uuid4())[:8].upper()}"
         self.llm_client = llm_client
         self.preferred_models = [
             "qwen/qwen3-coder-405b-a22b-07-25:free",
-            "qwen/qwen3-235b-a22b-07-25:free", 
+            "qwen/qwen3-235b-a22b-07-25:free",
             "qwen/qwen2.5-72b-instruct",
             "qwen/qwen-max"
         ]
-        
+
         # Advanced capabilities
         self.capabilities = {
             capability.value: True for capability in AdvancedSecurityCapability
         }
-        
+
         # Performance tracking
         self.performance_metrics = {
             "payloads_generated": 0,
@@ -123,48 +123,48 @@ class Qwen3AdvancedSecuritySpecialist:
             "success_rate": 0.0,
             "average_sophistication": 0.0
         }
-        
+
         # Knowledge base
         self.threat_intelligence_db = {}
         self.vulnerability_patterns = {}
         self.evasion_techniques = {}
-        
+
         logger.info(f"🧠 Qwen3 Advanced Security Specialist initialized: {self.specialist_id}")
-    
+
     async def generate_sophisticated_payloads(
         self,
         category: PayloadCategory,
         security_context: SecurityContext,
         sophistication_level: int = 8,
         count: int = 15
-    ) -> List[AdvancedPayload]:
+    ) -> list[AdvancedPayload]:
         """Generate highly sophisticated payloads with advanced evasion techniques."""
-        
+
         logger.info(f"🎯 Generating {count} sophisticated {category.value} payloads (level {sophistication_level})")
-        
+
         # Build advanced context-aware prompt
         prompt = self._build_sophisticated_prompt(category, security_context, sophistication_level, count)
-        
+
         try:
             # Generate with multiple models for consensus
             responses = await self._multi_model_generation(prompt, count)
-            
+
             # Analyze and enhance payloads
             advanced_payloads = await self._enhance_payloads(responses, category, sophistication_level)
-            
+
             # Update metrics
             self.performance_metrics["payloads_generated"] += len(advanced_payloads)
             self.performance_metrics["average_sophistication"] = np.mean([
                 p.sophistication_level for p in advanced_payloads
             ])
-            
+
             logger.info(f"✅ Generated {len(advanced_payloads)} sophisticated payloads")
             return advanced_payloads
-            
+
         except Exception as e:
             logger.error(f"❌ Sophisticated payload generation failed: {e}")
             return []
-    
+
     def _build_sophisticated_prompt(
         self,
         category: PayloadCategory,
@@ -173,10 +173,10 @@ class Qwen3AdvancedSecuritySpecialist:
         count: int
     ) -> str:
         """Build highly sophisticated prompt for advanced payload generation."""
-        
+
         sophistication_descriptors = {
             1: "Basic script kiddie level",
-            2: "Intermediate hobbyist techniques", 
+            2: "Intermediate hobbyist techniques",
             3: "Advanced enthusiast methods",
             4: "Professional penetration tester level",
             5: "Security researcher grade",
@@ -186,7 +186,7 @@ class Qwen3AdvancedSecuritySpecialist:
             9: "Advanced cyber warfare techniques",
             10: "Theoretical maximum sophistication"
         }
-        
+
         threat_actor_profiles = {
             "script_kiddie": "Simple, noisy attacks using public tools",
             "cybercriminal": "Profit-motivated, moderately sophisticated",
@@ -195,7 +195,7 @@ class Qwen3AdvancedSecuritySpecialist:
             "apt_group": "Highly sophisticated, persistent, stealthy",
             "nation_state": "Maximum resources, custom tools, zero-days"
         }
-        
+
         evasion_techniques = {
             PayloadCategory.XSS: [
                 "DOM clobbering", "Mutation XSS", "CSS-based exfiltration",
@@ -218,7 +218,7 @@ class Qwen3AdvancedSecuritySpecialist:
                 "Template injection", "Log4j-style lookups"
             ]
         }
-        
+
         context_info = f"""
 ADVANCED SECURITY CONTEXT:
 - Target Environment: {context.target_environment}
@@ -229,10 +229,10 @@ ADVANCED SECURITY CONTEXT:
 - Risk Tolerance: {context.risk_tolerance}
 - Business Context: {json.dumps(context.business_context, indent=2) if context.business_context else 'Not provided'}
 """
-        
+
         sophistication_desc = sophistication_descriptors.get(sophistication, "Advanced level")
         available_evasions = evasion_techniques.get(category, [])
-        
+
         return f"""
 You are an elite cybersecurity researcher and exploit developer with deep expertise in advanced persistent threats, zero-day research, and nation-state cyber operations. Your task is to generate {count} highly sophisticated {category.value} payloads at sophistication level {sophistication} ({sophistication_desc}).
 
@@ -319,16 +319,16 @@ OUTPUT FORMAT (JSON):
 
 Generate payloads that demonstrate the absolute cutting edge of offensive security capabilities while maintaining educational value and ethical responsibility. Focus on techniques that real advanced threat actors would employ in sophisticated campaigns.
 """
-    
-    async def _multi_model_generation(self, prompt: str, count: int) -> List[Any]:
+
+    async def _multi_model_generation(self, prompt: str, count: int) -> list[Any]:
         """Generate responses using multiple models for enhanced quality."""
-        
+
         if not self.llm_client:
             # Simulate advanced generation
             return [self._simulate_advanced_response(prompt, count)]
-        
+
         responses = []
-        
+
         for model in self.preferred_models[:2]:  # Use top 2 models
             try:
                 request = LLMRequest(
@@ -338,19 +338,19 @@ Generate payloads that demonstrate the absolute cutting edge of offensive securi
                     temperature=0.8,  # Higher creativity
                     structured_output=True
                 )
-                
+
                 response = await self.llm_client.generate_payload(request)
                 responses.append(response)
-                
+
             except Exception as e:
                 logger.warning(f"Model {model} failed: {e}")
                 continue
-        
+
         return responses if responses else [self._simulate_advanced_response(prompt, count)]
-    
+
     def _simulate_advanced_response(self, prompt: str, count: int) -> Any:
         """Simulate advanced response for demonstration."""
-        
+
         class MockResponse:
             def __init__(self):
                 self.content = json.dumps({
@@ -389,33 +389,33 @@ Generate payloads that demonstrate the absolute cutting edge of offensive securi
                 })
                 self.model_used = "qwen3-advanced-simulator"
                 self.confidence_score = 0.9
-        
+
         return MockResponse()
-    
+
     async def _enhance_payloads(
         self,
-        responses: List[Any],
+        responses: list[Any],
         category: PayloadCategory,
         sophistication: int
-    ) -> List[AdvancedPayload]:
+    ) -> list[AdvancedPayload]:
         """Enhance and analyze generated payloads."""
-        
+
         advanced_payloads = []
-        
+
         for response in responses:
             try:
                 content = response.content.strip()
-                
+
                 # Parse JSON response
                 if "```json" in content:
                     json_start = content.find("```json") + 7
                     json_end = content.find("```", json_start)
                     if json_end != -1:
                         content = content[json_start:json_end].strip()
-                
+
                 if content.startswith('{'):
                     data = json.loads(content)
-                    
+
                     if "advanced_payloads" in data:
                         for payload_data in data["advanced_payloads"]:
                             advanced_payload = AdvancedPayload(
@@ -433,18 +433,18 @@ Generate payloads that demonstrate the absolute cutting edge of offensive securi
                                 success_probability=payload_data.get("success_probability", 0.5)
                             )
                             advanced_payloads.append(advanced_payload)
-                
+
             except Exception as e:
                 logger.error(f"Failed to parse payload response: {e}")
                 continue
-        
+
         return advanced_payloads
-    
-    async def conduct_threat_modeling(self, system_architecture: Dict[str, Any]) -> Dict[str, Any]:
+
+    async def conduct_threat_modeling(self, system_architecture: dict[str, Any]) -> dict[str, Any]:
         """Conduct advanced threat modeling using STRIDE, PASTA, and custom methodologies."""
-        
+
         logger.info("🛡️ Conducting advanced threat modeling analysis...")
-        
+
         threat_model_prompt = f"""
 ADVANCED THREAT MODELING ANALYSIS:
 
@@ -550,7 +550,7 @@ OUTPUT FORMAT (JSON):
 
 Provide comprehensive, actionable threat modeling that reflects real-world attack scenarios and modern threat actor capabilities.
 """
-        
+
         try:
             if self.llm_client:
                 request = LLMRequest(
@@ -560,9 +560,9 @@ Provide comprehensive, actionable threat modeling that reflects real-world attac
                     temperature=0.4,
                     structured_output=True
                 )
-                
+
                 response = await self.llm_client.generate_payload(request)
-                
+
                 # Parse threat model
                 content = response.content.strip()
                 if "```json" in content:
@@ -570,27 +570,27 @@ Provide comprehensive, actionable threat modeling that reflects real-world attac
                     json_end = content.find("```", json_start)
                     if json_end != -1:
                         content = content[json_start:json_end].strip()
-                
+
                 if content.startswith('{'):
                     threat_model = json.loads(content)
                     threat_model["generated_by"] = "qwen3-advanced"
                     threat_model["timestamp"] = time.time()
-                    
+
                     # Update metrics
                     self.performance_metrics["threat_models_created"] += 1
-                    
+
                     return threat_model
-            
+
             # Fallback simulation
             return self._simulate_threat_model(system_architecture)
-            
+
         except Exception as e:
             logger.error(f"❌ Threat modeling failed: {e}")
             return {"error": str(e)}
-    
-    def _simulate_threat_model(self, architecture: Dict[str, Any]) -> Dict[str, Any]:
+
+    def _simulate_threat_model(self, architecture: dict[str, Any]) -> dict[str, Any]:
         """Simulate advanced threat model for demonstration."""
-        
+
         return {
             "threat_model_id": f"TM-{str(uuid.uuid4())[:8].upper()}",
             "system_overview": {
@@ -610,7 +610,7 @@ Provide comprehensive, actionable threat modeling that reflects real-world attac
                 "tampering": [
                     {
                         "threat": "API parameter manipulation",
-                        "impact": "medium", 
+                        "impact": "medium",
                         "mitigation": "Input validation and request signing"
                     }
                 ],
@@ -700,16 +700,16 @@ Provide comprehensive, actionable threat modeling that reflects real-world attac
             "generated_by": "qwen3-advanced-simulator",
             "timestamp": time.time()
         }
-    
+
     async def generate_purple_team_scenario(
         self,
-        red_team_objectives: List[str],
-        blue_team_capabilities: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        red_team_objectives: list[str],
+        blue_team_capabilities: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate comprehensive purple team exercise scenario."""
-        
+
         logger.info("🟣 Generating purple team exercise scenario...")
-        
+
         purple_team_prompt = f"""
 PURPLE TEAM EXERCISE SCENARIO DEVELOPMENT:
 
@@ -816,7 +816,7 @@ OUTPUT FORMAT (JSON):
 
 Design an exercise that maximizes learning while maintaining realism and operational security.
 """
-        
+
         try:
             if self.llm_client:
                 request = LLMRequest(
@@ -826,32 +826,32 @@ Design an exercise that maximizes learning while maintaining realism and operati
                     temperature=0.6,
                     structured_output=True
                 )
-                
+
                 response = await self.llm_client.generate_payload(request)
-                
+
                 content = response.content.strip()
                 if "```json" in content:
                     json_start = content.find("```json") + 7
                     json_end = content.find("```", json_start)
                     if json_end != -1:
                         content = content[json_start:json_end].strip()
-                
+
                 if content.startswith('{'):
                     scenario = json.loads(content)
                     scenario["generated_by"] = "qwen3-advanced"
                     scenario["creation_timestamp"] = time.time()
                     return scenario
-            
+
             # Fallback simulation
             return self._simulate_purple_team_scenario()
-            
+
         except Exception as e:
             logger.error(f"❌ Purple team scenario generation failed: {e}")
             return {"error": str(e)}
-    
-    def _simulate_purple_team_scenario(self) -> Dict[str, Any]:
+
+    def _simulate_purple_team_scenario(self) -> dict[str, Any]:
         """Simulate purple team scenario for demonstration."""
-        
+
         return {
             "exercise_overview": {
                 "scenario_name": "Advanced Persistent Threat Simulation",
@@ -938,10 +938,10 @@ Design an exercise that maximizes learning while maintaining realism and operati
             "generated_by": "qwen3-advanced-simulator",
             "creation_timestamp": time.time()
         }
-    
-    def get_specialist_capabilities(self) -> Dict[str, Any]:
+
+    def get_specialist_capabilities(self) -> dict[str, Any]:
         """Get comprehensive information about specialist capabilities."""
-        
+
         return {
             "specialist_id": self.specialist_id,
             "version": "3.0.0",
@@ -983,13 +983,13 @@ Design an exercise that maximizes learning while maintaining realism and operati
 
 async def main():
     """Main function for testing and demonstration."""
-    
+
     specialist = Qwen3AdvancedSecuritySpecialist()
-    
-    print(f"\n🧠 Qwen3 Advanced Security Specialist")
+
+    print("\n🧠 Qwen3 Advanced Security Specialist")
     print(f"🆔 Specialist ID: {specialist.specialist_id}")
     print(f"🎯 Capabilities: {len(specialist.capabilities)} advanced security functions")
-    
+
     # Test sophisticated payload generation
     security_context = SecurityContext(
         target_environment="Modern web application",
@@ -1003,14 +1003,14 @@ async def main():
         compliance_requirements=["SOC2", "GDPR"],
         risk_tolerance="low"
     )
-    
+
     payloads = await specialist.generate_sophisticated_payloads(
         category=PayloadCategory.XSS,
         security_context=security_context,
         sophistication_level=8,
         count=3
     )
-    
+
     print(f"\n✅ Generated {len(payloads)} sophisticated payloads")
     for i, payload in enumerate(payloads[:2], 1):
         print(f"\n🎯 Payload #{i}:")
@@ -1018,24 +1018,24 @@ async def main():
         print(f"   Stealth Rating: {payload.stealth_rating}/10")
         print(f"   Success Probability: {payload.success_probability:.1%}")
         print(f"   Evasion Techniques: {', '.join(payload.evasion_techniques[:3])}")
-    
+
     # Test threat modeling
     system_arch = {
         "components": ["Web frontend", "API gateway", "Microservices", "Database"],
         "technologies": ["React", "Node.js", "Docker", "PostgreSQL"],
         "deployment": "AWS EKS cluster"
     }
-    
+
     threat_model = await specialist.conduct_threat_modeling(system_arch)
-    
-    print(f"\n🛡️ Threat Model Generated:")
+
+    print("\n🛡️ Threat Model Generated:")
     print(f"   Model ID: {threat_model.get('threat_model_id', 'N/A')}")
     print(f"   Advanced Threats: {len(threat_model.get('advanced_threats', []))}")
     print(f"   Risk Matrix Entries: {len(threat_model.get('risk_matrix', []))}")
-    
+
     # Display capabilities
     capabilities = specialist.get_specialist_capabilities()
-    print(f"\n📊 Specialist Performance:")
+    print("\n📊 Specialist Performance:")
     print(f"   Payloads Generated: {capabilities['performance_metrics']['payloads_generated']}")
     print(f"   Threat Models Created: {capabilities['performance_metrics']['threat_models_created']}")
     print(f"   Average Sophistication: {capabilities['performance_metrics']['average_sophistication']:.1f}")

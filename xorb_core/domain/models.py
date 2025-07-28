@@ -8,20 +8,20 @@ of the Xorb security intelligence platform.
 from __future__ import annotations
 
 import uuid
-from abc import ABC, abstractmethod
+from abc import ABC
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import Enum
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 from uuid import UUID
 
 __all__ = [
     "Entity",
-    "ValueObject", 
+    "ValueObject",
     "TargetId",
     "AgentId",
-    "CampaignId", 
+    "CampaignId",
     "FindingId",
     "AtomId",
     "Target",
@@ -41,19 +41,19 @@ __all__ = [
 # Base Types
 class Entity(ABC):
     """Base class for domain entities with identity"""
-    
+
     def __init__(self, id_: Any) -> None:
         self._id = id_
-    
+
     @property
     def id(self) -> Any:
         return self._id
-    
+
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, Entity):
             return False
         return self._id == other._id
-    
+
     def __hash__(self) -> int:
         return hash(self._id)
 
@@ -61,22 +61,21 @@ class Entity(ABC):
 @dataclass(frozen=True)
 class ValueObject:
     """Base class for immutable value objects"""
-    pass
 
 
 # Value Object IDs
 @dataclass(frozen=True)
 class TargetId(ValueObject):
     value: UUID
-    
+
     @classmethod
     def generate(cls) -> TargetId:
         return cls(value=uuid.uuid4())
-    
+
     @classmethod
     def from_string(cls, id_str: str) -> TargetId:
         return cls(value=UUID(id_str))
-    
+
     def __str__(self) -> str:
         return str(self.value)
 
@@ -84,15 +83,15 @@ class TargetId(ValueObject):
 @dataclass(frozen=True)
 class AgentId(ValueObject):
     value: UUID
-    
+
     @classmethod
     def generate(cls) -> AgentId:
         return cls(value=uuid.uuid4())
-    
+
     @classmethod
     def from_string(cls, id_str: str) -> AgentId:
         return cls(value=UUID(id_str))
-    
+
     def __str__(self) -> str:
         return str(self.value)
 
@@ -100,15 +99,15 @@ class AgentId(ValueObject):
 @dataclass(frozen=True)
 class CampaignId(ValueObject):
     value: UUID
-    
+
     @classmethod
     def generate(cls) -> CampaignId:
         return cls(value=uuid.uuid4())
-    
+
     @classmethod
     def from_string(cls, id_str: str) -> CampaignId:
         return cls(value=UUID(id_str))
-    
+
     def __str__(self) -> str:
         return str(self.value)
 
@@ -116,15 +115,15 @@ class CampaignId(ValueObject):
 @dataclass(frozen=True)
 class FindingId(ValueObject):
     value: UUID
-    
+
     @classmethod
     def generate(cls) -> FindingId:
         return cls(value=uuid.uuid4())
-    
+
     @classmethod
     def from_string(cls, id_str: str) -> FindingId:
         return cls(value=UUID(id_str))
-    
+
     def __str__(self) -> str:
         return str(self.value)
 
@@ -132,15 +131,15 @@ class FindingId(ValueObject):
 @dataclass(frozen=True)
 class AtomId(ValueObject):
     value: UUID
-    
+
     @classmethod
     def generate(cls) -> AtomId:
         return cls(value=uuid.uuid4())
-    
+
     @classmethod
     def from_string(cls, id_str: str) -> AtomId:
         return cls(value=UUID(id_str))
-    
+
     def __str__(self) -> str:
         return str(self.value)
 
@@ -153,7 +152,7 @@ class Severity(Enum):
     MEDIUM = "medium"
     LOW = "low"
     INFO = "info"
-    
+
     def __lt__(self, other: Severity) -> bool:
         order = {
             Severity.INFO: 0,
@@ -218,46 +217,46 @@ class Embedding(ValueObject):
     vector: tuple[float, ...]
     model: str
     dimension: int
-    
+
     def __post_init__(self) -> None:
         if len(self.vector) != self.dimension:
             raise ValueError(f"Vector length {len(self.vector)} != dimension {self.dimension}")
-    
+
     @classmethod
-    def from_list(cls, vector: List[float], model: str) -> Embedding:
+    def from_list(cls, vector: list[float], model: str) -> Embedding:
         return cls(
             vector=tuple(vector),
             model=model,
             dimension=len(vector)
         )
-    
+
     def similarity_cosine(self, other: Embedding) -> float:
         """Compute cosine similarity with another embedding"""
         if self.dimension != other.dimension:
             raise ValueError("Cannot compare embeddings of different dimensions")
-        
+
         # Simple dot product for cosine similarity (assumes normalized vectors)
-        return sum(a * b for a, b in zip(self.vector, other.vector))
+        return sum(a * b for a, b in zip(self.vector, other.vector, strict=False))
 
 
-@dataclass(frozen=True) 
+@dataclass(frozen=True)
 class TargetScope(ValueObject):
     """Defines what is in-scope for testing"""
-    domains: Set[str]
-    ip_ranges: Set[str]
-    excluded_domains: Set[str] = field(default_factory=set)
-    excluded_ips: Set[str] = field(default_factory=set)
-    
+    domains: set[str]
+    ip_ranges: set[str]
+    excluded_domains: set[str] = field(default_factory=set)
+    excluded_ips: set[str] = field(default_factory=set)
+
     def is_domain_in_scope(self, domain: str) -> bool:
         """Check if a domain is within scope"""
         if domain in self.excluded_domains:
             return False
-        
+
         # Check if domain matches any allowed domains (including subdomains)
         for allowed_domain in self.domains:
             if domain == allowed_domain or domain.endswith(f".{allowed_domain}"):
                 return True
-        
+
         return False
 
 
@@ -267,10 +266,10 @@ class BudgetLimit(ValueObject):
     max_cost_usd: Decimal
     max_duration_hours: int
     max_api_calls: int
-    
+
     def is_within_budget(
-        self, 
-        current_cost: Decimal, 
+        self,
+        current_cost: Decimal,
         duration_hours: int,
         api_calls: int
     ) -> bool:
@@ -285,15 +284,15 @@ class BudgetLimit(ValueObject):
 # Entities
 class Target(Entity):
     """A target for security testing"""
-    
+
     def __init__(
         self,
         id_: TargetId,
         name: str,
         scope: TargetScope,
         created_at: datetime,
-        updated_at: Optional[datetime] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        updated_at: datetime | None = None,
+        metadata: dict[str, Any] | None = None
     ) -> None:
         super().__init__(id_)
         self.name = name
@@ -301,31 +300,31 @@ class Target(Entity):
         self.created_at = created_at
         self.updated_at = updated_at or created_at
         self.metadata = metadata or {}
-    
+
     def update_scope(self, new_scope: TargetScope) -> None:
         """Update target scope"""
         self.scope = new_scope
-        self.updated_at = datetime.now(timezone.utc)
-    
+        self.updated_at = datetime.now(UTC)
+
     def add_metadata(self, key: str, value: Any) -> None:
         """Add metadata to target"""
         self.metadata[key] = value
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
 
 class Agent(Entity):
     """An agent capable of performing security testing"""
-    
+
     def __init__(
         self,
         id_: AgentId,
         name: str,
-        capabilities: Set[AgentCapability],
+        capabilities: set[AgentCapability],
         cost_per_execution: Decimal,
         average_duration_minutes: int,
         created_at: datetime,
         is_active: bool = True,
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: dict[str, Any] | None = None
     ) -> None:
         super().__init__(id_)
         self.name = name
@@ -335,15 +334,15 @@ class Agent(Entity):
         self.created_at = created_at
         self.is_active = is_active
         self.metadata = metadata or {}
-    
+
     def can_handle_capability(self, capability: AgentCapability) -> bool:
         """Check if agent has required capability"""
         return capability in self.capabilities
-    
+
     def deactivate(self) -> None:
         """Deactivate agent"""
         self.is_active = False
-    
+
     def activate(self) -> None:
         """Activate agent"""
         self.is_active = True
@@ -351,7 +350,7 @@ class Agent(Entity):
 
 class Campaign(Entity):
     """A campaign represents a coordinated security testing effort"""
-    
+
     def __init__(
         self,
         id_: CampaignId,
@@ -360,8 +359,8 @@ class Campaign(Entity):
         budget: BudgetLimit,
         created_at: datetime,
         status: CampaignStatus = CampaignStatus.DRAFT,
-        scheduled_agents: Optional[List[AgentId]] = None,
-        findings: Optional[List[FindingId]] = None
+        scheduled_agents: list[AgentId] | None = None,
+        findings: list[FindingId] | None = None
     ) -> None:
         super().__init__(id_)
         self.name = name
@@ -371,30 +370,30 @@ class Campaign(Entity):
         self.status = status
         self.scheduled_agents = scheduled_agents or []
         self.findings = findings or []
-        self.started_at: Optional[datetime] = None
-        self.completed_at: Optional[datetime] = None
-    
+        self.started_at: datetime | None = None
+        self.completed_at: datetime | None = None
+
     def start_campaign(self) -> None:
         """Start the campaign"""
         if self.status != CampaignStatus.QUEUED:
             raise ValueError(f"Cannot start campaign in status {self.status}")
-        
+
         self.status = CampaignStatus.RUNNING
-        self.started_at = datetime.now(timezone.utc)
-    
+        self.started_at = datetime.now(UTC)
+
     def complete_campaign(self) -> None:
         """Mark campaign as completed"""
         if self.status != CampaignStatus.RUNNING:
             raise ValueError(f"Cannot complete campaign in status {self.status}")
-        
+
         self.status = CampaignStatus.COMPLETED
-        self.completed_at = datetime.now(timezone.utc)
-    
+        self.completed_at = datetime.now(UTC)
+
     def add_finding(self, finding_id: FindingId) -> None:
         """Add a finding to the campaign"""
         if finding_id not in self.findings:
             self.findings.append(finding_id)
-    
+
     def schedule_agent(self, agent_id: AgentId) -> None:
         """Schedule an agent for execution"""
         if agent_id not in self.scheduled_agents:
@@ -403,7 +402,7 @@ class Campaign(Entity):
 
 class Finding(Entity):
     """A security finding discovered during testing"""
-    
+
     def __init__(
         self,
         id_: FindingId,
@@ -414,8 +413,8 @@ class Finding(Entity):
         severity: Severity,
         created_at: datetime,
         status: FindingStatus = FindingStatus.NEW,
-        evidence: Optional[Dict[str, Any]] = None,
-        embedding: Optional[Embedding] = None
+        evidence: dict[str, Any] | None = None,
+        embedding: Embedding | None = None
     ) -> None:
         super().__init__(id_)
         self.campaign_id = campaign_id
@@ -428,37 +427,37 @@ class Finding(Entity):
         self.evidence = evidence or {}
         self.embedding = embedding
         self.updated_at = created_at
-    
+
     def update_status(self, new_status: FindingStatus) -> None:
         """Update finding status"""
         self.status = new_status
-        self.updated_at = datetime.now(timezone.utc)
-    
+        self.updated_at = datetime.now(UTC)
+
     def add_evidence(self, key: str, value: Any) -> None:
         """Add evidence to finding"""
         self.evidence[key] = value
-        self.updated_at = datetime.now(timezone.utc)
-    
+        self.updated_at = datetime.now(UTC)
+
     def set_embedding(self, embedding: Embedding) -> None:
         """Set vector embedding for similarity search"""
         self.embedding = embedding
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)
 
 
 class KnowledgeAtom(Entity):
     """A unit of knowledge in the security intelligence system"""
-    
+
     def __init__(
         self,
-        id_: AtomId, 
+        id_: AtomId,
         content: str,
         atom_type: AtomType,
         confidence: float,
         created_at: datetime,
-        embedding: Optional[Embedding] = None,
-        tags: Optional[Set[str]] = None,
-        source: Optional[str] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        embedding: Embedding | None = None,
+        tags: set[str] | None = None,
+        source: str | None = None,
+        metadata: dict[str, Any] | None = None
     ) -> None:
         super().__init__(id_)
         self.content = content
@@ -470,30 +469,30 @@ class KnowledgeAtom(Entity):
         self.source = source
         self.metadata = metadata or {}
         self.updated_at = created_at
-    
+
     @staticmethod
     def _validate_confidence(confidence: float) -> float:
         """Validate confidence score is between 0 and 1"""
         if not 0.0 <= confidence <= 1.0:
             raise ValueError(f"Confidence must be between 0.0 and 1.0, got {confidence}")
         return confidence
-    
+
     def update_confidence(self, new_confidence: float) -> None:
         """Update confidence score"""
         self.confidence = self._validate_confidence(new_confidence)
-        self.updated_at = datetime.now(timezone.utc)
-    
+        self.updated_at = datetime.now(UTC)
+
     def add_tag(self, tag: str) -> None:
         """Add a tag to the atom"""
         self.tags.add(tag)
-        self.updated_at = datetime.now(timezone.utc)
-    
+        self.updated_at = datetime.now(UTC)
+
     def remove_tag(self, tag: str) -> None:
         """Remove a tag from the atom"""
         self.tags.discard(tag)
-        self.updated_at = datetime.now(timezone.utc)
-    
+        self.updated_at = datetime.now(UTC)
+
     def set_embedding(self, embedding: Embedding) -> None:
         """Set vector embedding for similarity search"""
         self.embedding = embedding
-        self.updated_at = datetime.now(timezone.utc)
+        self.updated_at = datetime.now(UTC)

@@ -1,5 +1,5 @@
 # XORB Swarm Enhancement Summary
-Generated: 2025-07-27T23:19:36.724803
+Generated: 2025-07-27T23:30:14.643398
 
 ## Enhancement Overview
 - **Total Agents**: 22
@@ -28,8 +28,8 @@ Generated: 2025-07-27T23:19:36.724803
 1. **__init__** (analyst) - Δ0.656 in 0.00s
 2. **agent** (hunter) - Δ0.094 in 1.72s
 3. **discovery** (hunter) - Δ0.075 in 8.13s
-4. **test_agent** (hunter) - Δ0.056 in 8.39s
-5. **registry** (hunter) - Δ0.056 in 10.00s
+4. **playwright_agent** (hunter) - Δ0.056 in 10.00s
+5. **demo_agent_orchestration** (hunter) - Δ0.056 in 10.00s
 
 ## Enhancement Details
 ### __init__\n- Mode: aggressive\n- Enhancements: 5\n- Success Delta: 0.656

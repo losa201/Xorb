@@ -5,10 +5,10 @@ Centralized configuration for all XORB components with environment variable supp
 """
 
 import os
-from pathlib import Path
-from typing import Any, Dict, Optional
 from dataclasses import dataclass, field
-from urllib.parse import urlparse
+from pathlib import Path
+from typing import Any
+
 
 @dataclass
 class DatabaseConfig:
@@ -18,15 +18,15 @@ class DatabaseConfig:
     postgres_db: str = field(default_factory=lambda: os.getenv("POSTGRES_DB", "xorb"))
     postgres_user: str = field(default_factory=lambda: os.getenv("POSTGRES_USER", "xorb"))
     postgres_password: str = field(default_factory=lambda: os.getenv("POSTGRES_PASSWORD", ""))
-    
+
     redis_host: str = field(default_factory=lambda: os.getenv("REDIS_HOST", "localhost"))
     redis_port: int = field(default_factory=lambda: int(os.getenv("REDIS_PORT", "6379")))
     redis_password: str = field(default_factory=lambda: os.getenv("REDIS_PASSWORD", ""))
-    
+
     neo4j_uri: str = field(default_factory=lambda: os.getenv("NEO4J_URI", "bolt://localhost:7687"))
     neo4j_user: str = field(default_factory=lambda: os.getenv("NEO4J_USER", "neo4j"))
     neo4j_password: str = field(default_factory=lambda: os.getenv("NEO4J_PASSWORD", ""))
-    
+
     qdrant_host: str = field(default_factory=lambda: os.getenv("QDRANT_HOST", "localhost"))
     qdrant_port: int = field(default_factory=lambda: int(os.getenv("QDRANT_PORT", "6333")))
 
@@ -49,7 +49,7 @@ class AIConfig:
     nvidia_api_key: str = field(default_factory=lambda: os.getenv("NVIDIA_API_KEY", ""))
     openai_api_key: str = field(default_factory=lambda: os.getenv("OPENAI_API_KEY", ""))
     anthropic_api_key: str = field(default_factory=lambda: os.getenv("ANTHROPIC_API_KEY", ""))
-    
+
     default_model: str = field(default_factory=lambda: os.getenv("DEFAULT_LLM_MODEL", "qwen/qwen-2.5-72b-instruct"))
     max_tokens: int = field(default_factory=lambda: int(os.getenv("MAX_TOKENS", "4096")))
     temperature: float = field(default_factory=lambda: float(os.getenv("TEMPERATURE", "0.7")))
@@ -60,7 +60,7 @@ class SecurityConfig:
     jwt_secret_key: str = field(default_factory=lambda: os.getenv("JWT_SECRET_KEY", ""))
     encryption_key: str = field(default_factory=lambda: os.getenv("ENCRYPTION_KEY", ""))
     api_rate_limit: int = field(default_factory=lambda: int(os.getenv("API_RATE_LIMIT", "100")))
-    
+
     # TLS Configuration
     tls_cert_path: str = field(default_factory=lambda: os.getenv("TLS_CERT_PATH", ""))
     tls_key_path: str = field(default_factory=lambda: os.getenv("TLS_KEY_PATH", ""))
@@ -71,7 +71,7 @@ class OrchestrationConfig:
     max_concurrent_agents: int = field(default_factory=lambda: int(os.getenv("MAX_CONCURRENT_AGENTS", "32")))
     agent_timeout: int = field(default_factory=lambda: int(os.getenv("AGENT_TIMEOUT", "300")))
     campaign_timeout: int = field(default_factory=lambda: int(os.getenv("CAMPAIGN_TIMEOUT", "3600")))
-    
+
     # EPYC Optimization
     epyc_numa_nodes: int = field(default_factory=lambda: int(os.getenv("EPYC_NUMA_NODES", "2")))
     epyc_cores_per_node: int = field(default_factory=lambda: int(os.getenv("EPYC_CORES_PER_NODE", "32")))
@@ -81,10 +81,10 @@ class MonitoringConfig:
     """Monitoring and observability configuration."""
     prometheus_host: str = field(default_factory=lambda: os.getenv("PROMETHEUS_HOST", "localhost"))
     prometheus_port: int = field(default_factory=lambda: int(os.getenv("PROMETHEUS_PORT", "9090")))
-    
+
     grafana_host: str = field(default_factory=lambda: os.getenv("GRAFANA_HOST", "localhost"))
     grafana_port: int = field(default_factory=lambda: int(os.getenv("GRAFANA_PORT", "3000")))
-    
+
     log_level: str = field(default_factory=lambda: os.getenv("LOG_LEVEL", "INFO"))
     log_format: str = field(default_factory=lambda: os.getenv("LOG_FORMAT", "json"))
 
@@ -93,14 +93,14 @@ class XORBConfig:
     """Main XORB configuration."""
     environment: str = field(default_factory=lambda: os.getenv("ENVIRONMENT", "development"))
     debug: bool = field(default_factory=lambda: os.getenv("DEBUG", "false").lower() == "true")
-    
+
     # Sub-configurations
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     ai: AIConfig = field(default_factory=AIConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
     orchestration: OrchestrationConfig = field(default_factory=OrchestrationConfig)
     monitoring: MonitoringConfig = field(default_factory=MonitoringConfig)
-    
+
     # Paths
     base_path: Path = field(default_factory=lambda: Path(os.getenv("XORB_BASE_PATH", "/root/Xorb")))
     data_path: Path = field(default_factory=lambda: Path(os.getenv("XORB_DATA_PATH", "/root/Xorb/data")))
@@ -124,7 +124,7 @@ class XORBConfig:
         for path in [self.data_path, self.logs_path]:
             path.mkdir(parents=True, exist_ok=True)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert configuration to dictionary."""
         return {
             "environment": self.environment,

@@ -4,7 +4,7 @@ XORB Core Enumerations
 Shared enums across XORB platform.
 """
 
-from enum import Enum, auto
+from enum import Enum
 
 
 class AgentType(Enum):

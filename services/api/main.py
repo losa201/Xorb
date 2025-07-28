@@ -4,15 +4,15 @@ Xorb PTaaS API Service
 Basic FastAPI application for development deployment
 """
 
-import os
-import sys
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
-import uvicorn
-
 # Setup logging without conflicts
 import logging as std_logging
+import os
+from contextlib import asynccontextmanager
+
+import uvicorn
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
 std_logging.basicConfig(level=std_logging.INFO)
 logger = std_logging.getLogger(__name__)
 
@@ -67,7 +67,7 @@ async def api_status():
         "api_status": "operational",
         "services": {
             "database": "connected",
-            "redis": "connected", 
+            "redis": "connected",
             "nats": "connected"
         },
         "version": "2.0.0"
@@ -134,9 +134,9 @@ if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
     debug = os.getenv("DEBUG", "false").lower() == "true"
-    
+
     logger.info(f"Starting Xorb PTaaS API on {host}:{port}")
-    
+
     uvicorn.run(
         "main:app",
         host=host,

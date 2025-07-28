@@ -5,11 +5,11 @@ Minimal FastAPI application without conflicting imports
 """
 
 import os
-import sys
 from datetime import datetime
+
+import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
 
 # Simple app without complex logging
 app = FastAPI(
@@ -54,7 +54,7 @@ async def api_status():
         "api_status": "operational",
         "services": {
             "database": "ready",
-            "redis": "ready", 
+            "redis": "ready",
             "nats": "ready"
         },
         "version": "2.0.0",
@@ -108,9 +108,9 @@ async def get_compliance_status():
 if __name__ == "__main__":
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", "8000"))
-    
+
     print(f"🚀 Starting Xorb PTaaS API on {host}:{port}")
-    
+
     uvicorn.run(
         "simple_main:app",
         host=host,

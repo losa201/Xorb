@@ -13,26 +13,18 @@ WARNING: This demonstration is for defensive security testing only.
 
 import asyncio
 import json
+import random
 import sys
 import time
+from datetime import UTC, datetime
 from pathlib import Path
-from datetime import datetime, timezone
-import tempfile
-import random
 
 # Add the xorb_core package to Python path
 sys.path.insert(0, str(Path(__file__).parent.parent / "xorb_core"))
 
-from agents.stealth.advanced_evasion_agent import (
-    AdvancedEvasionAgent,
-    EvasionTechnique,
-    StealthLevel,
-    EvasionConfig,
-    StealthProfile,
-    get_advanced_evasion_agent
-)
-
 import structlog
+
+from agents.stealth.advanced_evasion_agent import AdvancedEvasionAgent, EvasionTechnique
 
 # Configure structured logging
 structlog.configure(
@@ -59,12 +51,12 @@ logger = structlog.get_logger(__name__)
 @dataclass
 class AdvancedEvasionDemo:
     """Comprehensive demonstration of advanced evasion capabilities."""
-    
+
     def __init__(self):
         self.agent = AdvancedEvasionAgent()
         self.demo_results = {}
         self.test_scenarios = []
-        
+
     def setup_demonstration_scenarios(self):
         """Set up comprehensive demonstration scenarios."""
         self.test_scenarios = [
@@ -152,9 +144,9 @@ class AdvancedEvasionDemo:
                 "expected_detection_level": "minimal"
             }
         ]
-        
+
         logger.info("Demonstration scenarios configured", total_scenarios=len(self.test_scenarios))
-    
+
     def _generate_realistic_payload(self, payload_type: str, size: int = 512) -> str:
         """Generate realistic payload data for different attack types."""
         payloads = {
@@ -205,32 +197,32 @@ class AdvancedEvasionDemo:
                 "timeline": {"start": "2024-01-20T09:00:00Z", "duration": "72_hours"}
             }
         }
-        
+
         base_payload = payloads.get(payload_type, {"type": "generic", "data": "test_payload"})
-        
+
         # Convert to JSON and pad to requested size
         json_payload = json.dumps(base_payload, separators=(',', ':'))
-        
+
         # Pad with realistic data if needed
         if len(json_payload) < size:
             padding_needed = size - len(json_payload)
             padding_data = {
                 "padding": "x" * padding_needed,
                 "metadata": {
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "session_id": f"sess_{random.randint(100000, 999999)}",
                     "checksum": hash(json_payload) & 0xffffffff
                 }
             }
             base_payload["_padding"] = padding_data
             json_payload = json.dumps(base_payload, separators=(',', ':'))
-        
+
         return json_payload[:size]  # Truncate if too long
-    
+
     async def demonstrate_individual_techniques(self):
         """Demonstrate each evasion technique individually."""
         logger.info("Starting individual technique demonstrations")
-        
+
         technique_demos = {
             "timing_evasion": {
                 "description": "Advanced timing-based evasion patterns",
@@ -253,23 +245,23 @@ class AdvancedEvasionDemo:
                 "config": {"techniques": ["anti_forensics"], "stealth_profile": "government"}
             }
         }
-        
+
         technique_results = {}
-        
+
         for technique_name, demo_config in technique_demos.items():
             logger.info("Demonstrating technique", technique=technique_name)
-            
+
             task_config = {
                 "target": f"{technique_name}.demo.target",
                 "payload": demo_config["payload"],
                 "environment": "corporate",
                 **demo_config["config"]
             }
-            
+
             start_time = time.time()
             result = await self.agent.execute(task_config)
             execution_time = time.time() - start_time
-            
+
             technique_results[technique_name] = {
                 "success": result.success,
                 "execution_time": execution_time,
@@ -277,38 +269,38 @@ class AdvancedEvasionDemo:
                 "success_score": result.metadata.get("success_score", 0.0),
                 "description": demo_config["description"]
             }
-            
+
             logger.info("Technique demonstration completed",
                        technique=technique_name,
                        success=result.success,
                        execution_time=execution_time,
                        detection_probability=result.metadata.get("detection_probability", 0.0))
-        
+
         self.demo_results["individual_techniques"] = technique_results
-    
+
     async def demonstrate_stealth_profiles(self):
         """Demonstrate different stealth profiles."""
         logger.info("Starting stealth profile demonstrations")
-        
+
         profiles = self.agent.get_stealth_profiles()
         profile_results = {}
-        
+
         test_payload = self._generate_realistic_payload("profile_test", 1024)
-        
+
         for profile_name, profile_info in profiles.items():
             logger.info("Demonstrating stealth profile", profile=profile_name)
-            
+
             task_config = {
                 "target": f"{profile_name}.profile.target",
                 "payload": test_payload,
                 "stealth_profile": profile_name,
                 "environment": profile_info["target_environment"]
             }
-            
+
             start_time = time.time()
             result = await self.agent.execute(task_config)
             execution_time = time.time() - start_time
-            
+
             profile_results[profile_name] = {
                 "success": result.success,
                 "execution_time": execution_time,
@@ -318,31 +310,31 @@ class AdvancedEvasionDemo:
                 "stealth_level": profile_info["stealth_level"],
                 "target_environment": profile_info["target_environment"]
             }
-            
+
             logger.info("Stealth profile demonstration completed",
                        profile=profile_name,
                        success=result.success,
                        techniques_count=len(result.metadata.get("techniques_used", [])))
-        
+
         self.demo_results["stealth_profiles"] = profile_results
-    
+
     async def demonstrate_realistic_scenarios(self):
         """Demonstrate realistic attack scenarios."""
         logger.info("Starting realistic scenario demonstrations")
-        
+
         scenario_results = {}
-        
+
         for scenario in self.test_scenarios:
             logger.info("Executing scenario", scenario=scenario["name"])
-            
+
             start_time = time.time()
             result = await self.agent.execute(scenario["config"])
             execution_time = time.time() - start_time
-            
+
             # Analyze results
             detection_probability = result.metadata.get("detection_probability", 0.0)
             success_score = result.metadata.get("success_score", 0.0)
-            
+
             # Determine if detection level matches expectation
             expected_levels = {
                 "minimal": 0.05,
@@ -351,10 +343,10 @@ class AdvancedEvasionDemo:
                 "medium": 0.50,
                 "high": 0.70
             }
-            
+
             expected_threshold = expected_levels.get(scenario["expected_detection_level"], 0.50)
             detection_match = detection_probability <= expected_threshold
-            
+
             scenario_results[scenario["name"]] = {
                 "success": result.success,
                 "execution_time": execution_time,
@@ -367,41 +359,41 @@ class AdvancedEvasionDemo:
                 "description": scenario["description"],
                 "target": scenario["config"]["target"]
             }
-            
+
             logger.info("Scenario completed",
                        scenario=scenario["name"],
                        success=result.success,
                        detection_probability=detection_probability,
                        detection_match=detection_match)
-        
+
         self.demo_results["realistic_scenarios"] = scenario_results
-    
+
     async def demonstrate_detection_evasion_effectiveness(self):
         """Demonstrate detection evasion effectiveness analysis."""
         logger.info("Analyzing detection evasion effectiveness")
-        
+
         # Test against different detection environments
         environments = ["basic", "corporate", "enterprise", "government"]
         techniques = list(EvasionTechnique)
-        
+
         effectiveness_matrix = {}
-        
+
         for env in environments:
             env_results = {}
-            
+
             for technique in techniques:
                 if technique in self.agent.techniques:
                     technique_impl = self.agent.techniques[technique]
                     detection_prob = technique_impl.estimate_detection_probability(env)
-                    
+
                     env_results[technique.value] = {
                         "detection_probability": detection_prob,
                         "effectiveness_score": 1.0 - detection_prob,
                         "signature": technique_impl.get_detection_signature()
                     }
-            
+
             effectiveness_matrix[env] = env_results
-        
+
         # Calculate overall effectiveness
         overall_effectiveness = {}
         for technique in techniques:
@@ -411,26 +403,26 @@ class AdvancedEvasionDemo:
                     env_results.get(technique_name, {}).get("detection_probability", 1.0)
                     for env_results in effectiveness_matrix.values()
                 ) / len(environments)
-                
+
                 overall_effectiveness[technique_name] = {
                     "average_detection_probability": avg_detection,
                     "overall_effectiveness": 1.0 - avg_detection,
-                    "best_environment": min(environments, key=lambda env: 
+                    "best_environment": min(environments, key=lambda env:
                         effectiveness_matrix[env].get(technique_name, {}).get("detection_probability", 1.0)),
-                    "worst_environment": max(environments, key=lambda env: 
+                    "worst_environment": max(environments, key=lambda env:
                         effectiveness_matrix[env].get(technique_name, {}).get("detection_probability", 0.0))
                 }
-        
+
         self.demo_results["detection_evasion_effectiveness"] = {
             "environment_matrix": effectiveness_matrix,
             "overall_effectiveness": overall_effectiveness,
-            "analysis_timestamp": datetime.now(timezone.utc).isoformat()
+            "analysis_timestamp": datetime.now(UTC).isoformat()
         }
-    
+
     async def demonstrate_performance_benchmarks(self):
         """Demonstrate performance benchmarks under different conditions."""
         logger.info("Running performance benchmarks")
-        
+
         benchmark_configs = [
             {
                 "name": "lightweight_operation",
@@ -447,7 +439,7 @@ class AdvancedEvasionDemo:
                 "name": "comprehensive_stealth",
                 "description": "Full stealth operation with all techniques",
                 "config": {
-                    "target": "comprehensive.test.target", 
+                    "target": "comprehensive.test.target",
                     "payload": self._generate_realistic_payload("comprehensive_test", 2048),
                     "techniques": ["timing_evasion", "protocol_obfuscation", "dns_tunneling", "anti_forensics"],
                     "stealth_profile": "government"
@@ -467,27 +459,27 @@ class AdvancedEvasionDemo:
                 "concurrent": 5
             }
         ]
-        
+
         benchmark_results = {}
-        
+
         for benchmark in benchmark_configs:
             logger.info("Running benchmark", benchmark=benchmark["name"])
-            
+
             if benchmark.get("concurrent", 1) > 1:
                 # Concurrent benchmark
                 concurrent_count = benchmark["concurrent"]
                 tasks = []
-                
+
                 for _ in range(concurrent_count):
                     task = self.agent.execute(benchmark["config"])
                     tasks.append(task)
-                
+
                 start_time = time.time()
                 results = await asyncio.gather(*tasks, return_exceptions=True)
                 total_time = time.time() - start_time
-                
+
                 successful_operations = sum(1 for r in results if not isinstance(r, Exception) and r.success)
-                
+
                 benchmark_results[benchmark["name"]] = {
                     "concurrent_operations": concurrent_count,
                     "successful_operations": successful_operations,
@@ -496,21 +488,21 @@ class AdvancedEvasionDemo:
                     "success_rate": successful_operations / concurrent_count,
                     "description": benchmark["description"]
                 }
-                
+
             else:
                 # Sequential benchmark
                 execution_times = []
                 success_count = 0
-                
+
                 for i in range(benchmark["iterations"]):
                     start_time = time.time()
                     result = await self.agent.execute(benchmark["config"])
                     execution_time = time.time() - start_time
-                    
+
                     execution_times.append(execution_time)
                     if result.success:
                         success_count += 1
-                
+
                 benchmark_results[benchmark["name"]] = {
                     "iterations": benchmark["iterations"],
                     "successful_operations": success_count,
@@ -521,34 +513,34 @@ class AdvancedEvasionDemo:
                     "success_rate": success_count / benchmark["iterations"],
                     "description": benchmark["description"]
                 }
-            
+
             logger.info("Benchmark completed", benchmark=benchmark["name"])
-        
+
         self.demo_results["performance_benchmarks"] = benchmark_results
-    
+
     async def demonstrate_detection_signatures(self):
         """Demonstrate detection signature analysis."""
         logger.info("Analyzing detection signatures")
-        
+
         signatures = self.agent.get_detection_signatures()
-        
+
         # Categorize signatures by detection difficulty
         signature_analysis = {}
-        
+
         for technique_name, signature in signatures.items():
             indicators = signature.get("indicators", [])
             detection_methods = signature.get("detection_methods", [])
-            
+
             # Estimate detection difficulty based on number of indicators and methods
             detection_complexity = len(indicators) + len(detection_methods)
-            
+
             if detection_complexity <= 4:
                 difficulty = "easy"
             elif detection_complexity <= 7:
                 difficulty = "medium"
             else:
                 difficulty = "hard"
-            
+
             signature_analysis[technique_name] = {
                 "indicators": indicators,
                 "detection_methods": detection_methods,
@@ -556,15 +548,15 @@ class AdvancedEvasionDemo:
                 "estimated_difficulty": difficulty,
                 "countermeasures": self._generate_countermeasures(signature)
             }
-        
+
         self.demo_results["detection_signatures"] = signature_analysis
-    
+
     def _generate_countermeasures(self, signature: dict) -> list:
         """Generate countermeasures for detection methods."""
         countermeasures = []
-        
+
         detection_methods = signature.get("detection_methods", [])
-        
+
         countermeasure_mapping = {
             "statistical_timing_analysis": ["random_jitter", "variable_intervals", "burst_patterns"],
             "deep_packet_inspection": ["encryption", "protocol_tunneling", "fragmentation"],
@@ -574,43 +566,43 @@ class AdvancedEvasionDemo:
             "log_integrity_monitoring": ["selective_deletion", "timestamp_modification", "log_rotation"],
             "behavioral_analysis": ["legitimate_patterns", "user_simulation", "timing_variation"]
         }
-        
+
         for method in detection_methods:
             if method in countermeasure_mapping:
                 countermeasures.extend(countermeasure_mapping[method])
-        
+
         return list(set(countermeasures))  # Remove duplicates
-    
+
     async def generate_comprehensive_report(self):
         """Generate comprehensive demonstration report."""
         logger.info("Generating comprehensive demonstration report")
-        
+
         # Calculate overall statistics
         agent_stats = self.agent.get_operation_statistics()
-        
+
         # Analyze results
         total_scenarios = len(self.test_scenarios)
         successful_scenarios = sum(
             1 for result in self.demo_results.get("realistic_scenarios", {}).values()
             if result.get("success", False)
         )
-        
+
         average_detection_probability = sum(
             result.get("detection_probability", 0.0)
             for result in self.demo_results.get("realistic_scenarios", {}).values()
         ) / max(total_scenarios, 1)
-        
+
         average_success_score = sum(
             result.get("success_score", 0.0)
             for result in self.demo_results.get("realistic_scenarios", {}).values()
         ) / max(total_scenarios, 1)
-        
+
         # Generate recommendations
         recommendations = self._generate_recommendations()
-        
+
         comprehensive_report = {
             "demonstration_overview": {
-                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "agent_version": "1.0.0",
                 "total_scenarios_executed": total_scenarios,
                 "successful_scenarios": successful_scenarios,
@@ -629,7 +621,7 @@ class AdvancedEvasionDemo:
             },
             "detection_resistance": {
                 "basic_environments": "Excellent",
-                "corporate_environments": "Very Good", 
+                "corporate_environments": "Very Good",
                 "enterprise_environments": "Good",
                 "government_environments": "Moderate"
             },
@@ -640,64 +632,64 @@ class AdvancedEvasionDemo:
                 "performance_benchmarks.json"
             ]
         }
-        
+
         # Save detailed report
         report_path = Path(__file__).parent.parent / "advanced_evasion_demo_report.json"
         async with aiofiles.open(report_path, 'w') as f:
             json.dump(comprehensive_report, f, indent=2, default=str)
-        
+
         # Save detection signatures analysis
         signatures_path = Path(__file__).parent.parent / "detection_signatures_analysis.json"
         async with aiofiles.open(signatures_path, 'w') as f:
             json.dump(self.demo_results.get("detection_signatures", {}), f, indent=2)
-        
+
         # Save performance benchmarks
         benchmarks_path = Path(__file__).parent.parent / "performance_benchmarks.json"
         async with aiofiles.open(benchmarks_path, 'w') as f:
             json.dump(self.demo_results.get("performance_benchmarks", {}), f, indent=2)
-        
+
         logger.info("Comprehensive report generated",
                    report_path=str(report_path),
                    total_scenarios=total_scenarios,
                    success_rate=f"{successful_scenarios/max(total_scenarios,1)*100:.1f}%")
-        
+
         return comprehensive_report
-    
+
     def _generate_recommendations(self) -> list:
         """Generate recommendations based on demonstration results."""
         recommendations = []
-        
+
         # Analyze detection probabilities
         detection_probs = [
             result.get("detection_probability", 0.0)
             for result in self.demo_results.get("realistic_scenarios", {}).values()
         ]
-        
+
         if detection_probs:
             avg_detection = sum(detection_probs) / len(detection_probs)
-            
+
             if avg_detection > 0.5:
                 recommendations.append("Consider implementing additional evasion layers for high-security environments")
-            
+
             if avg_detection < 0.2:
                 recommendations.append("Current evasion techniques demonstrate excellent stealth capabilities")
-        
+
         # Analyze technique effectiveness
         technique_results = self.demo_results.get("individual_techniques", {})
-        
-        best_technique = max(technique_results.items(), 
+
+        best_technique = max(technique_results.items(),
                            key=lambda x: x[1].get("success_score", 0.0),
                            default=(None, {}))
-        
+
         if best_technique[0]:
             recommendations.append(f"Most effective technique: {best_technique[0]} - consider prioritizing in operations")
-        
+
         # Performance recommendations
         benchmarks = self.demo_results.get("performance_benchmarks", {})
-        
+
         if any(b.get("success_rate", 0) < 0.8 for b in benchmarks.values()):
             recommendations.append("Some performance scenarios show room for improvement - consider optimization")
-        
+
         # General recommendations
         recommendations.extend([
             "Regularly update evasion techniques to counter evolving detection methods",
@@ -705,7 +697,7 @@ class AdvancedEvasionDemo:
             "Maintain operational security during actual engagements",
             "Document lessons learned for continuous improvement"
         ])
-        
+
         return recommendations
 
 
@@ -715,64 +707,64 @@ async def main():
     print("=" * 65)
     print("⚠️  WARNING: For defensive security testing only")
     print()
-    
+
     demo = AdvancedEvasionDemo()
-    
+
     try:
         # Setup demonstration scenarios
         print("🔧 Setting up demonstration scenarios...")
         demo.setup_demonstration_scenarios()
-        
+
         # Demonstrate individual techniques
         print("\n🎯 Demonstrating individual evasion techniques...")
         await demo.demonstrate_individual_techniques()
-        
+
         # Demonstrate stealth profiles
         print("\n👤 Demonstrating stealth profiles...")
         await demo.demonstrate_stealth_profiles()
-        
+
         # Demonstrate realistic scenarios
         print("\n🎭 Executing realistic attack scenarios...")
         await demo.demonstrate_realistic_scenarios()
-        
+
         # Analyze detection evasion effectiveness
         print("\n🔍 Analyzing detection evasion effectiveness...")
         await demo.demonstrate_detection_evasion_effectiveness()
-        
+
         # Run performance benchmarks
         print("\n⚡ Running performance benchmarks...")
         await demo.demonstrate_performance_benchmarks()
-        
+
         # Analyze detection signatures
         print("\n🔬 Analyzing detection signatures...")
         await demo.demonstrate_detection_signatures()
-        
+
         # Generate comprehensive report
         print("\n📊 Generating comprehensive report...")
         report = await demo.generate_comprehensive_report()
-        
+
         print("\n✅ Advanced Evasion Demonstration Complete!")
         print(f"📊 Scenarios executed: {report['demonstration_overview']['total_scenarios_executed']}")
         print(f"✅ Success rate: {report['demonstration_overview']['success_rate']*100:.1f}%")
         print(f"🔒 Average detection probability: {report['demonstration_overview']['average_detection_probability']:.3f}")
         print(f"🎯 Average success score: {report['demonstration_overview']['average_success_score']:.3f}")
-        
+
         print("\n📋 Demonstration Results Summary:")
-        
+
         # Individual techniques
         if "individual_techniques" in demo.demo_results:
             print("\n  🎯 Individual Techniques:")
             for technique, result in demo.demo_results["individual_techniques"].items():
                 status = "✅" if result["success"] else "❌"
                 print(f"    {status} {technique}: {result['success_score']:.3f} score, {result['detection_probability']:.3f} detection prob")
-        
+
         # Stealth profiles
         if "stealth_profiles" in demo.demo_results:
             print("\n  👤 Stealth Profiles:")
             for profile, result in demo.demo_results["stealth_profiles"].items():
                 status = "✅" if result["success"] else "❌"
                 print(f"    {status} {profile}: {len(result['techniques_used'])} techniques, {result['success_score']:.3f} score")
-        
+
         # Realistic scenarios
         if "realistic_scenarios" in demo.demo_results:
             print("\n  🎭 Realistic Scenarios:")
@@ -781,7 +773,7 @@ async def main():
                 detection_status = "🟢" if result["detection_level_achieved"] else "🟡"
                 print(f"    {status} {detection_status} {scenario}")
                 print(f"        Detection: {result['detection_probability']:.3f} (expected: {result['expected_detection_level']})")
-        
+
         # Performance benchmarks
         if "performance_benchmarks" in demo.demo_results:
             print("\n  ⚡ Performance Benchmarks:")
@@ -789,14 +781,14 @@ async def main():
                 print(f"    📈 {benchmark}: {result['success_rate']*100:.1f}% success rate")
                 if "average_execution_time" in result:
                     print(f"        Average time: {result['average_execution_time']:.2f}s")
-        
+
         print("\n📄 Generated Reports:")
         for artifact in report["generated_artifacts"]:
             print(f"  📄 {artifact}")
-        
-        print(f"\n🔗 Main report: advanced_evasion_demo_report.json")
+
+        print("\n🔗 Main report: advanced_evasion_demo_report.json")
         print(f"🛡️  Capability level: {report['capability_assessment']['overall_rating']}")
-        
+
     except Exception as e:
         logger.error("Advanced evasion demonstration failed", error=str(e), exc_info=True)
         print(f"\n❌ Demonstration failed: {e}")

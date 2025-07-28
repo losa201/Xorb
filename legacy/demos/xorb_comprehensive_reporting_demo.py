@@ -6,9 +6,8 @@ Demonstrates advanced reporting, dashboards, and analytics capabilities
 
 import asyncio
 import json
-import time
 import sys
-import os
+import time
 from pathlib import Path
 
 # Add XORB core to path
@@ -16,18 +15,18 @@ sys.path.insert(0, str(Path(__file__).parent / "xorb_core"))
 
 try:
     from reporting.comprehensive_business_intelligence import (
-        ComprehensiveReportingOrchestrator,
-        BusinessIntelligenceEngine,
-        ReportConfiguration,
         AlertRule,
+        AlertSeverity,
+        BusinessIntelligenceEngine,
+        ComprehensiveReportingOrchestrator,
+        ReportConfiguration,
         ReportType,
-        AlertSeverity
     )
     from reporting.dashboard_generator import (
         ComprehensiveDashboardOrchestrator,
         ExecutiveDashboardGenerator,
         OperationalDashboardGenerator,
-        SecurityDashboardGenerator
+        SecurityDashboardGenerator,
     )
 except ImportError as e:
     print(f"⚠️ Import note: {e}")
@@ -35,27 +34,25 @@ except ImportError as e:
 
 import logging
 import uuid
-import numpy as np
-from datetime import datetime
-from typing import Dict, List, Any
+from typing import Any
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('XORB-REPORTING-DEMO')
 
 class XORBReportingDemonstrator:
     """Demonstrates comprehensive XORB reporting and business intelligence."""
-    
+
     def __init__(self):
         self.demo_id = f"REPORT-DEMO-{str(uuid.uuid4())[:8].upper()}"
         self.start_time = time.time()
         self.demo_results = {}
-        
+
         logger.info(f"📊 XORB Comprehensive Reporting Demo initialized: {self.demo_id}")
-    
-    async def demonstrate_business_intelligence(self) -> Dict[str, Any]:
+
+    async def demonstrate_business_intelligence(self) -> dict[str, Any]:
         """Demonstrate business intelligence capabilities."""
         logger.info("🧠 DEMONSTRATING BUSINESS INTELLIGENCE ENGINE")
-        
+
         # Simulate BI engine operations
         bi_metrics = {
             "executive_reports_generated": 24,
@@ -69,7 +66,7 @@ class XORBReportingDemonstrator:
             "dashboard_refresh_cycles": 720,  # Every 2 minutes for 24 hours
             "automated_insights_generated": 48
         }
-        
+
         # Executive summary simulation
         executive_summary = {
             "report_id": f"EXEC-{str(uuid.uuid4())[:8].upper()}",
@@ -93,7 +90,7 @@ class XORBReportingDemonstrator:
                 "Consider additional agent deployment"
             ]
         }
-        
+
         # Operational metrics simulation
         operational_metrics = {
             "report_id": f"OPS-{str(uuid.uuid4())[:8].upper()}",
@@ -118,7 +115,7 @@ class XORBReportingDemonstrator:
                 "mean_time_to_response": 7.8
             }
         }
-        
+
         # Threat intelligence simulation
         threat_intelligence = {
             "report_id": f"THREAT-{str(uuid.uuid4())[:8].upper()}",
@@ -139,7 +136,7 @@ class XORBReportingDemonstrator:
                 },
                 {
                     "name": "Novel Ransomware Variant",
-                    "severity": "critical", 
+                    "severity": "critical",
                     "confidence": 0.96,
                     "affected_systems": 2,
                     "status": "mitigated"
@@ -152,7 +149,7 @@ class XORBReportingDemonstrator:
                 "OSINT": 19
             }
         }
-        
+
         # Compliance reporting simulation
         compliance_metrics = {
             "framework_coverage": {
@@ -173,12 +170,12 @@ class XORBReportingDemonstrator:
                 "planned": 1
             }
         }
-        
+
         logger.info(f"📊 Executive Summary: {executive_summary['success_rate']:.1f}% success rate")
         logger.info(f"🔧 Operational: {operational_metrics['agent_performance']['active_agents']} active agents")
         logger.info(f"🛡️ Security: {sum(cat['total'] for cat in threat_intelligence['threat_categories'].values())} threats analyzed")
         logger.info(f"📋 Compliance: {len(compliance_metrics['framework_coverage'])} frameworks monitored")
-        
+
         return {
             "bi_metrics": bi_metrics,
             "executive_summary": executive_summary,
@@ -187,11 +184,11 @@ class XORBReportingDemonstrator:
             "compliance_metrics": compliance_metrics,
             "generation_time": time.time()
         }
-    
-    async def demonstrate_dashboard_generation(self) -> Dict[str, Any]:
+
+    async def demonstrate_dashboard_generation(self) -> dict[str, Any]:
         """Demonstrate dynamic dashboard generation capabilities."""
         logger.info("📱 DEMONSTRATING DYNAMIC DASHBOARD GENERATION")
-        
+
         # Executive dashboard simulation
         executive_dashboard = {
             "dashboard_id": "executive-command-center",
@@ -231,7 +228,7 @@ class XORBReportingDemonstrator:
             "refresh_interval": 30,
             "last_updated": time.time()
         }
-        
+
         # Operational dashboard simulation
         operational_dashboard = {
             "dashboard_id": "soc-operations-center",
@@ -272,7 +269,7 @@ class XORBReportingDemonstrator:
             "refresh_interval": 15,
             "last_updated": time.time()
         }
-        
+
         # Security dashboard simulation
         security_dashboard = {
             "dashboard_id": "threat-monitoring-center",
@@ -313,7 +310,7 @@ class XORBReportingDemonstrator:
             "refresh_interval": 60,
             "last_updated": time.time()
         }
-        
+
         # Dashboard analytics
         dashboard_analytics = {
             "total_dashboards": 3,
@@ -325,12 +322,12 @@ class XORBReportingDemonstrator:
             "mobile_views": 34,
             "desktop_views": 78
         }
-        
+
         logger.info(f"📊 Executive Dashboard: {len(executive_dashboard['widgets'])} widgets")
         logger.info(f"🔧 Operational Dashboard: {len(operational_dashboard['widgets'])} widgets")
         logger.info(f"🛡️ Security Dashboard: {len(security_dashboard['widgets'])} widgets")
         logger.info(f"📱 Dashboard Analytics: {dashboard_analytics['user_interactions']} interactions")
-        
+
         return {
             "executive_dashboard": executive_dashboard,
             "operational_dashboard": operational_dashboard,
@@ -338,11 +335,11 @@ class XORBReportingDemonstrator:
             "dashboard_analytics": dashboard_analytics,
             "generation_time": time.time()
         }
-    
-    async def demonstrate_automated_alerting(self) -> Dict[str, Any]:
+
+    async def demonstrate_automated_alerting(self) -> dict[str, Any]:
         """Demonstrate automated alerting and notification systems."""
         logger.info("🚨 DEMONSTRATING AUTOMATED ALERTING SYSTEM")
-        
+
         # Alert rule configurations
         alert_rules = [
             {
@@ -378,7 +375,7 @@ class XORBReportingDemonstrator:
                 "triggered": True
             }
         ]
-        
+
         # Active alerts
         active_alerts = [
             {
@@ -402,7 +399,7 @@ class XORBReportingDemonstrator:
                 "escalation_level": 0
             }
         ]
-        
+
         # Notification channels
         notification_channels = {
             "email": {
@@ -430,7 +427,7 @@ class XORBReportingDemonstrator:
                 "avg_delivery_time": 5.2
             }
         }
-        
+
         # Alert analytics
         alert_analytics = {
             "total_rules": len(alert_rules),
@@ -442,12 +439,12 @@ class XORBReportingDemonstrator:
             "false_positive_rate": 3.4,
             "notification_success_rate": 97.8
         }
-        
+
         logger.info(f"🚨 Alert Rules: {len(alert_rules)} configured, {alert_analytics['active_rules']} triggered")
         logger.info(f"📱 Notifications: {len(notification_channels)} channels active")
         logger.info(f"⏱️ Response Time: {alert_analytics['avg_response_time']} minutes average")
         logger.info(f"✅ Success Rate: {alert_analytics['notification_success_rate']:.1f}%")
-        
+
         return {
             "alert_rules": alert_rules,
             "active_alerts": active_alerts,
@@ -455,11 +452,11 @@ class XORBReportingDemonstrator:
             "alert_analytics": alert_analytics,
             "generation_time": time.time()
         }
-    
-    async def demonstrate_performance_analytics(self) -> Dict[str, Any]:
+
+    async def demonstrate_performance_analytics(self) -> dict[str, Any]:
         """Demonstrate advanced performance analytics and optimization insights."""
         logger.info("📈 DEMONSTRATING PERFORMANCE ANALYTICS")
-        
+
         # System performance metrics
         system_performance = {
             "cpu_utilization": {
@@ -484,7 +481,7 @@ class XORBReportingDemonstrator:
                 "efficiency_score": 0.791
             }
         }
-        
+
         # Agent performance analytics
         agent_performance = {
             "individual_agents": [
@@ -502,7 +499,7 @@ class XORBReportingDemonstrator:
                 "learning_acceleration": 0.156
             }
         }
-        
+
         # Optimization recommendations
         optimization_recommendations = [
             {
@@ -534,7 +531,7 @@ class XORBReportingDemonstrator:
                 "implementation_effort": "medium"
             }
         ]
-        
+
         # Performance trends
         performance_trends = {
             "7_day_trend": {
@@ -549,12 +546,12 @@ class XORBReportingDemonstrator:
                 "next_month": 0.28  # 28% improvement
             }
         }
-        
+
         logger.info(f"📊 System Performance: CPU {system_performance['cpu_utilization']['current']:.1f}%, Memory {system_performance['memory_utilization']['current']:.1f}%")
         logger.info(f"🤖 Agent Performance: {agent_performance['aggregate_metrics']['avg_performance']:.1%} average")
         logger.info(f"🎯 Optimization: {len(optimization_recommendations)} recommendations identified")
         logger.info(f"📈 Trends: Performance {performance_trends['7_day_trend']['overall_performance']}")
-        
+
         return {
             "system_performance": system_performance,
             "agent_performance": agent_performance,
@@ -562,26 +559,26 @@ class XORBReportingDemonstrator:
             "performance_trends": performance_trends,
             "generation_time": time.time()
         }
-    
-    async def run_comprehensive_demonstration(self) -> Dict[str, Any]:
+
+    async def run_comprehensive_demonstration(self) -> dict[str, Any]:
         """Run complete comprehensive reporting demonstration."""
         logger.info("🚀 STARTING COMPREHENSIVE REPORTING DEMONSTRATION")
-        
+
         demo_results = {}
-        
+
         try:
             # Demonstrate each major capability
             demo_results["business_intelligence"] = await self.demonstrate_business_intelligence()
             await asyncio.sleep(1)
-            
+
             demo_results["dashboard_generation"] = await self.demonstrate_dashboard_generation()
             await asyncio.sleep(1)
-            
+
             demo_results["automated_alerting"] = await self.demonstrate_automated_alerting()
             await asyncio.sleep(1)
-            
+
             demo_results["performance_analytics"] = await self.demonstrate_performance_analytics()
-            
+
             # Calculate demonstration metrics
             total_time = time.time() - self.start_time
             demo_results["demonstration_metrics"] = {
@@ -594,45 +591,45 @@ class XORBReportingDemonstrator:
                 "data_points_processed": 1247,
                 "success_rate": 100.0
             }
-            
+
             logger.info("✅ COMPREHENSIVE REPORTING DEMONSTRATION COMPLETED")
             logger.info(f"⏱️ Duration: {total_time:.1f} seconds")
             logger.info(f"📊 Capabilities: {demo_results['demonstration_metrics']['capabilities_demonstrated']}")
             logger.info(f"📈 Reports: {demo_results['demonstration_metrics']['reports_generated']}")
-            
+
         except Exception as e:
             logger.error(f"❌ Demonstration error: {e}")
             demo_results["error"] = str(e)
-        
+
         return demo_results
 
 async def main():
     """Main execution for comprehensive reporting demonstration."""
-    
-    print(f"\n📊 XORB COMPREHENSIVE REPORTING & BUSINESS INTELLIGENCE DEMO")
-    print(f"🧠 Capabilities: Executive Reports, Dashboards, Alerts, Analytics")
-    print(f"📈 Features: Real-time KPIs, Threat Intelligence, Performance Optimization")
-    print(f"📱 Dashboards: Executive, Operational, Security Centers")
-    print(f"🚨 Alerting: Automated Rules, Multi-channel Notifications")
-    print(f"\n🔥 COMPREHENSIVE REPORTING DEMONSTRATION STARTING...\n")
-    
+
+    print("\n📊 XORB COMPREHENSIVE REPORTING & BUSINESS INTELLIGENCE DEMO")
+    print("🧠 Capabilities: Executive Reports, Dashboards, Alerts, Analytics")
+    print("📈 Features: Real-time KPIs, Threat Intelligence, Performance Optimization")
+    print("📱 Dashboards: Executive, Operational, Security Centers")
+    print("🚨 Alerting: Automated Rules, Multi-channel Notifications")
+    print("\n🔥 COMPREHENSIVE REPORTING DEMONSTRATION STARTING...\n")
+
     demonstrator = XORBReportingDemonstrator()
-    
+
     try:
         # Run comprehensive demonstration
         results = await demonstrator.run_comprehensive_demonstration()
-        
+
         # Save demonstration results
-        results_file = f"xorb_comprehensive_reporting_demo_results.json"
+        results_file = "xorb_comprehensive_reporting_demo_results.json"
         with open(results_file, 'w') as f:
             json.dump(results, f, indent=2, default=str)
-        
-        print(f"\n✅ COMPREHENSIVE REPORTING DEMONSTRATION COMPLETED!")
+
+        print("\n✅ COMPREHENSIVE REPORTING DEMONSTRATION COMPLETED!")
         print(f"📋 Results saved to: {results_file}")
-        
+
         if "demonstration_metrics" in results:
             metrics = results["demonstration_metrics"]
-            print(f"\n📊 DEMONSTRATION SUMMARY:")
+            print("\n📊 DEMONSTRATION SUMMARY:")
             print(f"   Duration: {metrics['total_duration']:.1f} seconds")
             print(f"   Capabilities: {metrics['capabilities_demonstrated']}")
             print(f"   Reports Generated: {metrics['reports_generated']}")
@@ -640,9 +637,9 @@ async def main():
             print(f"   Alerts Simulated: {metrics['alerts_simulated']}")
             print(f"   Data Points: {metrics['data_points_processed']}")
             print(f"   Success Rate: {metrics['success_rate']:.1f}%")
-        
-        print(f"\n🎯 XORB COMPREHENSIVE REPORTING FULLY OPERATIONAL!")
-        
+
+        print("\n🎯 XORB COMPREHENSIVE REPORTING FULLY OPERATIONAL!")
+
     except KeyboardInterrupt:
         logger.info("🛑 Demonstration interrupted by user")
     except Exception as e:

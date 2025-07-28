@@ -6,25 +6,18 @@ Phase 6.5 - Autonomous Testing Strategy Evolution & Resource Optimization
 
 import asyncio
 import json
-import logging
 import os
 import random
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple, Union, Any
-from dataclasses import dataclass, asdict
 from enum import Enum
-import numpy as np
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import train_test_split
-from sklearn.cluster import KMeans
+from typing import Any
 
 import asyncpg
-import aioredis
-from openai import AsyncOpenAI
-from prometheus_client import Counter, Histogram, Gauge, start_http_server
+import numpy as np
 import structlog
+from openai import AsyncOpenAI
+from prometheus_client import Counter, Gauge, Histogram, start_http_server
 
 # Configure logging
 logger = structlog.get_logger("xorb.ai_campaign")
@@ -93,7 +86,7 @@ class AssetProfile:
     """Asset profiling for targeted testing"""
     asset_id: str
     asset_type: str
-    technology_stack: List[str]
+    technology_stack: list[str]
     complexity_score: float
     attack_surface_size: int
     historical_vulnerability_density: float
@@ -107,47 +100,47 @@ class ScannerProfile:
     """Scanner performance characteristics"""
     scanner_name: str
     scanner_type: str
-    strengths: List[str]
-    weaknesses: List[str]
-    optimal_target_types: List[str]
-    
+    strengths: list[str]
+    weaknesses: list[str]
+    optimal_target_types: list[str]
+
     # Performance metrics
     avg_scan_duration: float
     vulnerability_discovery_rate: float
     false_positive_rate: float
-    resource_consumption: Dict[str, float]
+    resource_consumption: dict[str, float]
     cost_per_scan: float
-    
+
     # Effectiveness by target type
-    effectiveness_scores: Dict[str, float]
+    effectiveness_scores: dict[str, float]
 
 @dataclass
 class CampaignConfiguration:
     """Optimized campaign configuration"""
     campaign_id: str
     strategy: CampaignStrategy
-    
+
     # Target selection
-    selected_assets: List[str]
-    asset_priorities: Dict[str, float]
-    
+    selected_assets: list[str]
+    asset_priorities: dict[str, float]
+
     # Scanner configuration
-    scanner_assignments: Dict[str, str]  # asset_id -> scanner_name
-    scanner_parameters: Dict[str, Dict]  # scanner_name -> parameters
-    
+    scanner_assignments: dict[str, str]  # asset_id -> scanner_name
+    scanner_parameters: dict[str, dict]  # scanner_name -> parameters
+
     # Resource allocation
-    resource_allocation: Dict[ResourceType, float]
-    execution_schedule: List[Dict]
-    
+    resource_allocation: dict[ResourceType, float]
+    execution_schedule: list[dict]
+
     # Performance predictions
     predicted_vulnerabilities: int
     predicted_duration_hours: float
     predicted_cost: float
     confidence_score: float
-    
+
     # Optimization metadata
     optimization_reasoning: str
-    alternative_strategies: List[Dict]
+    alternative_strategies: list[dict]
     generated_at: datetime
 
 @dataclass
@@ -156,44 +149,44 @@ class OptimizationResult:
     optimization_id: str
     campaign_id: str
     optimization_type: OptimizationType
-    
+
     # Performance improvements
-    before_metrics: Dict[str, float]
-    after_metrics: Dict[str, float]
-    improvement_percentage: Dict[str, float]
-    
+    before_metrics: dict[str, float]
+    after_metrics: dict[str, float]
+    improvement_percentage: dict[str, float]
+
     # Strategy changes
-    strategy_changes: List[Dict]
-    parameter_adjustments: Dict[str, Any]
-    resource_reallocation: Dict[str, float]
-    
+    strategy_changes: list[dict]
+    parameter_adjustments: dict[str, Any]
+    resource_reallocation: dict[str, float]
+
     # AI insights
     ai_reasoning: str
     confidence_level: str
     success_probability: float
-    
+
     # Validation
-    a_b_test_results: Optional[Dict]
-    performance_validation: Dict[str, bool]
-    
+    a_b_test_results: dict | None
+    performance_validation: dict[str, bool]
+
     # Metadata
     optimized_at: datetime
     model_version: str
 
 class AssetProfilingEngine:
     """Profiles assets for intelligent targeting"""
-    
+
     def __init__(self):
         self.db_pool = None
         self.profiling_models = {}
-        
+
     async def initialize(self, database_url: str):
         """Initialize asset profiling engine"""
         self.db_pool = await asyncpg.create_pool(database_url, min_size=2, max_size=5)
-        
+
     async def profile_asset(self, asset_id: str) -> AssetProfile:
         """Create comprehensive asset profile"""
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 # Get asset data
@@ -208,38 +201,38 @@ class AssetProfilingEngine:
                     WHERE a.id = $1
                     GROUP BY a.id
                 """, asset_id)
-                
+
                 if not asset_data:
                     raise ValueError(f"Asset {asset_id} not found")
-                
+
                 # Analyze technology stack
                 tech_stack = await self._analyze_technology_stack(asset_id)
-                
+
                 # Calculate complexity score
                 complexity_score = await self._calculate_complexity_score(asset_data, tech_stack)
-                
+
                 # Estimate attack surface
                 attack_surface_size = await self._estimate_attack_surface(asset_id, tech_stack)
-                
+
                 # Calculate historical vulnerability density
                 vuln_density = (asset_data['vuln_count'] or 0) / max(1, asset_data['scan_count'] or 1)
-                
+
                 # Get business criticality
                 business_criticality = float(asset_data.get('criticality_score', 5)) / 10.0
-                
+
                 # Assess security maturity
                 security_maturity = await self._assess_security_maturity(asset_id)
-                
+
                 # Predict discovery probability
                 discovery_probability = await self._predict_discovery_probability(
                     complexity_score, vuln_density, security_maturity
                 )
-                
+
                 # Estimate testing cost
                 testing_cost = await self._estimate_testing_cost(
                     attack_surface_size, complexity_score, tech_stack
                 )
-                
+
                 profile = AssetProfile(
                     asset_id=asset_id,
                     asset_type=asset_data.get('asset_type', 'unknown'),
@@ -252,43 +245,43 @@ class AssetProfilingEngine:
                     discovery_probability=discovery_probability,
                     testing_cost_estimate=testing_cost
                 )
-                
+
                 logger.info("Asset profile created",
                            asset_id=asset_id,
                            complexity_score=complexity_score,
                            discovery_probability=discovery_probability)
-                
+
                 return profile
-                
+
         except Exception as e:
             logger.error("Asset profiling failed", asset_id=asset_id, error=str(e))
             raise
-    
-    async def _analyze_technology_stack(self, asset_id: str) -> List[str]:
+
+    async def _analyze_technology_stack(self, asset_id: str) -> list[str]:
         """Analyze technology stack for asset"""
-        
+
         # This would integrate with asset discovery tools
         # For now, simulate based on asset type and known patterns
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 asset_info = await conn.fetchrow("""
                     SELECT asset_type, metadata FROM assets WHERE id = $1
                 """, asset_id)
-                
+
                 if not asset_info:
                     return ["unknown"]
-                
+
                 asset_type = asset_info['asset_type']
                 metadata = asset_info.get('metadata', {})
-                
+
                 # Technology stack inference
                 tech_stack = []
-                
+
                 if asset_type == 'web_application':
                     # Common web technologies
                     web_techs = ["html", "css", "javascript"]
-                    
+
                     # Backend inference based on patterns
                     if 'framework' in metadata:
                         framework = metadata['framework'].lower()
@@ -298,25 +291,25 @@ class AssetProfilingEngine:
                             tech_stack.extend(["nodejs", "javascript"])
                         elif 'spring' in framework:
                             tech_stack.extend(["java", "spring"])
-                    
+
                     # Database inference
                     if 'database' in metadata:
                         tech_stack.append(metadata['database'])
                     else:
                         tech_stack.append("database")  # Generic
-                    
+
                     tech_stack.extend(web_techs)
-                
+
                 elif asset_type == 'api_endpoint':
                     tech_stack.extend(["rest_api", "json"])
-                    
+
                     # API technology inference
                     if 'api_type' in metadata:
                         tech_stack.append(metadata['api_type'])
-                
+
                 elif asset_type == 'mobile_application':
                     tech_stack.extend(["mobile", "https"])
-                    
+
                     # Platform inference
                     if 'platform' in metadata:
                         platform = metadata['platform'].lower()
@@ -324,25 +317,25 @@ class AssetProfilingEngine:
                             tech_stack.extend(["android", "java", "kotlin"])
                         elif 'ios' in platform:
                             tech_stack.extend(["ios", "swift", "objective-c"])
-                
+
                 elif asset_type == 'infrastructure':
                     tech_stack.extend(["infrastructure", "network"])
-                    
+
                     # Infrastructure components
                     if 'services' in metadata:
                         tech_stack.extend(metadata['services'])
-                
+
                 return list(set(tech_stack))  # Remove duplicates
-                
+
         except Exception as e:
             logger.warning("Technology stack analysis failed", error=str(e))
             return ["unknown"]
-    
-    async def _calculate_complexity_score(self, asset_data: Dict, tech_stack: List[str]) -> float:
+
+    async def _calculate_complexity_score(self, asset_data: dict, tech_stack: list[str]) -> float:
         """Calculate asset complexity score"""
-        
+
         base_complexity = 0.3
-        
+
         # Technology stack complexity
         tech_complexity = {
             "javascript": 0.1, "python": 0.1, "java": 0.15, "csharp": 0.15,
@@ -352,10 +345,10 @@ class AssetProfilingEngine:
             "database": 0.1, "redis": 0.05, "elasticsearch": 0.1,
             "microservices": 0.2, "kubernetes": 0.15, "docker": 0.1
         }
-        
+
         for tech in tech_stack:
             base_complexity += tech_complexity.get(tech.lower(), 0.05)
-        
+
         # Asset type complexity
         asset_type_complexity = {
             "web_application": 0.3,
@@ -365,24 +358,24 @@ class AssetProfilingEngine:
             "database": 0.35,
             "cloud_service": 0.3
         }
-        
+
         asset_type = asset_data.get('asset_type', 'unknown')
         base_complexity += asset_type_complexity.get(asset_type, 0.2)
-        
+
         # Historical vulnerability count influence
         vuln_count = asset_data.get('vuln_count', 0) or 0
         if vuln_count > 10:
             base_complexity += 0.2
         elif vuln_count > 5:
             base_complexity += 0.1
-        
+
         return min(1.0, base_complexity)
-    
-    async def _estimate_attack_surface(self, asset_id: str, tech_stack: List[str]) -> int:
+
+    async def _estimate_attack_surface(self, asset_id: str, tech_stack: list[str]) -> int:
         """Estimate attack surface size"""
-        
+
         base_surface = 10  # Minimum attack surface
-        
+
         # Technology-based surface expansion
         surface_multipliers = {
             "web_application": 5,
@@ -396,19 +389,19 @@ class AssetProfilingEngine:
             "graphql": 4,
             "websockets": 2
         }
-        
+
         for tech in tech_stack:
             base_surface += surface_multipliers.get(tech.lower(), 1)
-        
+
         # Add randomness for realism
         variation = int(base_surface * 0.3)
         surface_size = base_surface + random.randint(-variation, variation)
-        
+
         return max(5, surface_size)
-    
+
     async def _assess_security_maturity(self, asset_id: str) -> float:
         """Assess security maturity of asset"""
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 # Look at security measures and vulnerability history
@@ -423,31 +416,31 @@ class AssetProfilingEngine:
                     LEFT JOIN scans s ON a.id = s.asset_id
                     WHERE a.id = $1
                 """, asset_id)
-                
+
                 if not security_data:
                     return 0.5  # Default medium maturity
-                
+
                 # Start with medium maturity
                 maturity = 0.6
-                
+
                 # Penalize for critical/high vulnerabilities
                 critical_vulns = security_data['critical_vulns'] or 0
                 high_vulns = security_data['high_vulns'] or 0
-                
+
                 if critical_vulns > 0:
                     maturity -= 0.3
                 elif high_vulns > 3:
                     maturity -= 0.2
                 elif high_vulns > 0:
                     maturity -= 0.1
-                
+
                 # Penalize for recent vulnerabilities (indicates poor maintenance)
                 recent_vulns = security_data['recent_vulns'] or 0
                 if recent_vulns > 5:
                     maturity -= 0.2
                 elif recent_vulns > 2:
                     maturity -= 0.1
-                
+
                 # Bonus for regular scanning (indicates good security practices)
                 last_scan = security_data['last_scan']
                 if last_scan:
@@ -456,53 +449,53 @@ class AssetProfilingEngine:
                         maturity += 0.1
                     elif days_since_scan <= 30:
                         maturity += 0.05
-                
+
                 return max(0.1, min(1.0, maturity))
-                
+
         except Exception as e:
             logger.warning("Security maturity assessment failed", error=str(e))
             return 0.5
-    
+
     async def _predict_discovery_probability(
-        self, 
-        complexity: float, 
-        vuln_density: float, 
+        self,
+        complexity: float,
+        vuln_density: float,
         maturity: float
     ) -> float:
         """Predict probability of discovering vulnerabilities"""
-        
+
         # Higher complexity and lower maturity = higher discovery probability
         # Higher historical vulnerability density = higher probability
-        
+
         base_probability = 0.3
-        
+
         # Complexity factor (more complex = more likely to have issues)
         complexity_factor = complexity * 0.4
-        
+
         # Vulnerability density factor (history predicts future)
         density_factor = min(vuln_density / 5.0, 0.3)  # Cap at 0.3
-        
+
         # Maturity factor (lower maturity = higher probability)
         maturity_factor = (1.0 - maturity) * 0.3
-        
+
         probability = base_probability + complexity_factor + density_factor + maturity_factor
-        
+
         return min(1.0, probability)
-    
+
     async def _estimate_testing_cost(
-        self, 
-        attack_surface: int, 
-        complexity: float, 
-        tech_stack: List[str]
+        self,
+        attack_surface: int,
+        complexity: float,
+        tech_stack: list[str]
     ) -> float:
         """Estimate cost of testing asset"""
-        
+
         # Base cost per attack surface point
         base_cost_per_point = 5.0  # dollars
-        
+
         # Complexity multiplier
         complexity_multiplier = 1.0 + complexity
-        
+
         # Technology-specific cost adjustments
         tech_cost_factors = {
             "java": 1.2,
@@ -515,28 +508,28 @@ class AssetProfilingEngine:
             "database": 1.4,  # Requires specialized testing
             "mobile": 1.3
         }
-        
+
         tech_multiplier = 1.0
         for tech in tech_stack:
             tech_multiplier *= tech_cost_factors.get(tech.lower(), 1.0)
-        
+
         # Cap multiplier to prevent extreme costs
         tech_multiplier = min(tech_multiplier, 2.0)
-        
+
         total_cost = attack_surface * base_cost_per_point * complexity_multiplier * tech_multiplier
-        
+
         return round(total_cost, 2)
 
 class ScannerOptimizationEngine:
     """Optimizes scanner selection and configuration"""
-    
+
     def __init__(self):
         self.scanner_profiles = {}
         self.optimization_models = {}
-        
+
     async def initialize(self):
         """Initialize scanner optimization engine"""
-        
+
         # Initialize scanner profiles
         self.scanner_profiles = {
             "nuclei": ScannerProfile(
@@ -612,70 +605,70 @@ class ScannerOptimizationEngine:
                 }
             )
         }
-        
+
         logger.info("Scanner optimization engine initialized",
                    scanners_loaded=len(self.scanner_profiles))
-    
+
     async def optimize_scanner_selection(
-        self, 
-        asset_profiles: List[AssetProfile],
-        resource_constraints: Dict[ResourceType, float],
-        objectives: Dict[str, float]
-    ) -> Dict[str, str]:
+        self,
+        asset_profiles: list[AssetProfile],
+        resource_constraints: dict[ResourceType, float],
+        objectives: dict[str, float]
+    ) -> dict[str, str]:
         """Optimize scanner selection for assets"""
-        
+
         scanner_assignments = {}
-        
+
         # Sort assets by priority (discovery probability * business criticality)
         prioritized_assets = sorted(
             asset_profiles,
             key=lambda a: a.discovery_probability * a.business_criticality,
             reverse=True
         )
-        
+
         # Track resource usage
-        resource_usage = {rt: 0.0 for rt in ResourceType}
+        resource_usage = dict.fromkeys(ResourceType, 0.0)
         total_cost = 0.0
-        
+
         for asset in prioritized_assets:
             best_scanner = self._select_best_scanner(
                 asset, resource_constraints, resource_usage, objectives
             )
-            
+
             if best_scanner:
                 scanner_assignments[asset.asset_id] = best_scanner.scanner_name
-                
+
                 # Update resource usage
                 for resource_type, usage in best_scanner.resource_consumption.items():
                     if ResourceType(resource_type) in resource_usage:
                         resource_usage[ResourceType(resource_type)] += usage
-                
+
                 total_cost += best_scanner.cost_per_scan
-                
+
                 logger.debug("Scanner assigned",
                            asset_id=asset.asset_id,
                            scanner=best_scanner.scanner_name,
                            effectiveness=best_scanner.effectiveness_scores.get(asset.asset_type, 0.5))
-        
+
         logger.info("Scanner selection optimized",
                    assignments=len(scanner_assignments),
                    total_estimated_cost=total_cost,
                    resource_utilization={rt.value: usage for rt, usage in resource_usage.items()})
-        
+
         return scanner_assignments
-    
+
     def _select_best_scanner(
         self,
         asset: AssetProfile,
-        resource_constraints: Dict[ResourceType, float],
-        current_usage: Dict[ResourceType, float],
-        objectives: Dict[str, float]
-    ) -> Optional[ScannerProfile]:
+        resource_constraints: dict[ResourceType, float],
+        current_usage: dict[ResourceType, float],
+        objectives: dict[str, float]
+    ) -> ScannerProfile | None:
         """Select best scanner for specific asset"""
-        
+
         best_scanner = None
         best_score = 0.0
-        
+
         for scanner in self.scanner_profiles.values():
             # Check resource constraints
             can_run = True
@@ -686,19 +679,19 @@ class ScannerOptimizationEngine:
                     if total_usage > resource_constraints[resource_type]:
                         can_run = False
                         break
-            
+
             if not can_run:
                 continue
-            
+
             # Calculate effectiveness score
             effectiveness = scanner.effectiveness_scores.get(asset.asset_type, 0.1)
-            
+
             # Multi-objective scoring
             discovery_score = effectiveness * asset.discovery_probability
             efficiency_score = effectiveness / max(scanner.avg_scan_duration / 600.0, 0.1)  # Normalize to 10 min
             cost_score = 1.0 / max(scanner.cost_per_scan / 5.0, 0.1)  # Normalize to $5
             accuracy_score = 1.0 - scanner.false_positive_rate
-            
+
             # Weighted combination based on objectives
             total_score = (
                 discovery_score * objectives.get("discovery", 0.4) +
@@ -706,59 +699,59 @@ class ScannerOptimizationEngine:
                 cost_score * objectives.get("cost", 0.2) +
                 accuracy_score * objectives.get("accuracy", 0.2)
             )
-            
+
             if total_score > best_score:
                 best_score = total_score
                 best_scanner = scanner
-        
+
         return best_scanner
-    
+
     async def optimize_scanner_parameters(
         self,
         scanner_name: str,
         asset_profile: AssetProfile,
-        historical_performance: Dict
-    ) -> Dict[str, Any]:
+        historical_performance: dict
+    ) -> dict[str, Any]:
         """Optimize scanner parameters for specific asset"""
-        
+
         scanner = self.scanner_profiles.get(scanner_name)
         if not scanner:
             return {}
-        
+
         optimized_params = {}
-        
+
         if scanner_name == "nuclei":
             # Nuclei-specific optimizations
             optimized_params.update(await self._optimize_nuclei_parameters(asset_profile, historical_performance))
-        
+
         elif scanner_name == "zap":
             # ZAP-specific optimizations
             optimized_params.update(await self._optimize_zap_parameters(asset_profile, historical_performance))
-        
+
         elif scanner_name == "nmap":
             # Nmap-specific optimizations
             optimized_params.update(await self._optimize_nmap_parameters(asset_profile, historical_performance))
-        
+
         elif scanner_name == "custom_mobile":
             # Mobile scanner optimizations
             optimized_params.update(await self._optimize_mobile_parameters(asset_profile, historical_performance))
-        
+
         return optimized_params
-    
+
     async def _optimize_nuclei_parameters(
-        self, 
-        asset: AssetProfile, 
-        performance: Dict
-    ) -> Dict[str, Any]:
+        self,
+        asset: AssetProfile,
+        performance: dict
+    ) -> dict[str, Any]:
         """Optimize Nuclei scanner parameters"""
-        
+
         params = {
             "rate_limit": 150,  # Default requests per second
             "timeout": 10,      # Default timeout in seconds
             "retries": 1,       # Default retry count
             "concurrency": 25   # Default concurrent templates
         }
-        
+
         # Adjust based on asset complexity
         if asset.complexity_score > 0.7:
             params["timeout"] = 15
@@ -767,122 +760,122 @@ class ScannerOptimizationEngine:
         elif asset.complexity_score < 0.3:
             params["rate_limit"] = 300  # Increase for simple targets
             params["concurrency"] = 50
-        
+
         # Adjust based on historical performance
         if performance.get("avg_response_time", 1000) > 2000:  # Slow target
             params["rate_limit"] = 50
             params["timeout"] = 20
-        
+
         # Technology-specific adjustments
         if "php" in asset.technology_stack:
             params["rate_limit"] = 100  # PHP apps often slower
-        
+
         if "microservices" in asset.technology_stack:
             params["concurrency"] = 10  # Be gentler with distributed systems
-        
+
         return params
-    
+
     async def _optimize_zap_parameters(
-        self, 
-        asset: AssetProfile, 
-        performance: Dict
-    ) -> Dict[str, Any]:
+        self,
+        asset: AssetProfile,
+        performance: dict
+    ) -> dict[str, Any]:
         """Optimize ZAP scanner parameters"""
-        
+
         params = {
             "attack_strength": "medium",
             "alert_threshold": "medium",
             "max_scan_duration": 1800,  # 30 minutes
             "threads_per_host": 2
         }
-        
+
         # Adjust based on asset characteristics
         if asset.business_criticality > 0.8:
             params["attack_strength"] = "high"
             params["max_scan_duration"] = 3600  # 1 hour for critical assets
-        
+
         if asset.security_maturity < 0.3:
             params["alert_threshold"] = "low"  # Catch more issues
             params["attack_strength"] = "high"
-        
+
         # Performance-based adjustments
         if performance.get("error_rate", 0) > 0.1:
             params["threads_per_host"] = 1  # Reduce load
             params["attack_strength"] = "low"
-        
+
         return params
-    
+
     async def _optimize_nmap_parameters(
-        self, 
-        asset: AssetProfile, 
-        performance: Dict
-    ) -> Dict[str, Any]:
+        self,
+        asset: AssetProfile,
+        performance: dict
+    ) -> dict[str, Any]:
         """Optimize Nmap scanner parameters"""
-        
+
         params = {
             "timing_template": "T3",  # Normal timing
             "host_timeout": "30m",
             "scan_delay": "0",
             "max_retries": 1
         }
-        
+
         # Infrastructure-specific optimizations
         if asset.asset_type == "infrastructure":
             params["timing_template"] = "T2"  # Slower for infrastructure
             params["host_timeout"] = "60m"
-        
+
         # Stealth requirements
         if asset.security_maturity > 0.7:  # Well-monitored targets
             params["timing_template"] = "T1"  # Stealthier
             params["scan_delay"] = "1s"
-        
+
         return params
-    
+
     async def _optimize_mobile_parameters(
-        self, 
-        asset: AssetProfile, 
-        performance: Dict
-    ) -> Dict[str, Any]:
+        self,
+        asset: AssetProfile,
+        performance: dict
+    ) -> dict[str, Any]:
         """Optimize mobile scanner parameters"""
-        
+
         params = {
             "analysis_depth": "medium",
             "dynamic_analysis": True,
             "static_analysis": True,
             "network_analysis": True
         }
-        
+
         # Complexity-based adjustments
         if asset.complexity_score > 0.8:
             params["analysis_depth"] = "deep"
         elif asset.complexity_score < 0.3:
             params["analysis_depth"] = "fast"
-        
+
         # Platform-specific optimizations
         if "android" in asset.technology_stack:
             params["android_specific"] = True
             params["apk_analysis"] = True
-        
+
         if "ios" in asset.technology_stack:
             params["ios_specific"] = True
             params["ipa_analysis"] = True
-        
+
         return params
 
 class ResourceOptimizationEngine:
     """Optimizes resource allocation and scheduling"""
-    
+
     def __init__(self):
         self.allocation_models = {}
-        
+
     async def optimize_resource_allocation(
         self,
-        campaign_requirements: Dict,
-        available_resources: Dict[ResourceType, float],
-        performance_targets: Dict[str, float]
-    ) -> Dict[ResourceType, float]:
+        campaign_requirements: dict,
+        available_resources: dict[ResourceType, float],
+        performance_targets: dict[str, float]
+    ) -> dict[ResourceType, float]:
         """Optimize resource allocation for campaign"""
-        
+
         # Start with baseline allocation
         allocation = {
             ResourceType.CPU: available_resources.get(ResourceType.CPU, 8.0) * 0.7,
@@ -891,61 +884,61 @@ class ResourceOptimizationEngine:
             ResourceType.STORAGE: available_resources.get(ResourceType.STORAGE, 100.0) * 0.5,
             ResourceType.SCANNER_LICENSES: available_resources.get(ResourceType.SCANNER_LICENSES, 10.0)
         }
-        
+
         # Adjust based on campaign characteristics
         asset_count = campaign_requirements.get("asset_count", 10)
         complexity_avg = campaign_requirements.get("avg_complexity", 0.5)
-        
+
         # Scale CPU and memory with asset count and complexity
         cpu_scale = min(2.0, 1.0 + (asset_count / 20.0) + complexity_avg)
         memory_scale = min(2.0, 1.0 + (asset_count / 15.0) + (complexity_avg * 0.5))
-        
+
         allocation[ResourceType.CPU] = min(
             allocation[ResourceType.CPU] * cpu_scale,
             available_resources.get(ResourceType.CPU, 8.0) * 0.9
         )
-        
+
         allocation[ResourceType.MEMORY] = min(
             allocation[ResourceType.MEMORY] * memory_scale,
             available_resources.get(ResourceType.MEMORY, 16384.0) * 0.9
         )
-        
+
         # Adjust for performance targets
         if performance_targets.get("speed", 0.5) > 0.8:
             # High speed requirement - allocate more resources
             allocation[ResourceType.CPU] *= 1.3
             allocation[ResourceType.MEMORY] *= 1.2
             allocation[ResourceType.NETWORK] *= 1.4
-        
+
         # Constraint enforcement
         for resource_type in allocation:
             max_available = available_resources.get(resource_type, 0)
             allocation[resource_type] = min(allocation[resource_type], max_available * 0.95)
-        
+
         return allocation
-    
+
     async def optimize_execution_schedule(
         self,
-        scanner_assignments: Dict[str, str],
-        asset_profiles: List[AssetProfile],
-        resource_allocation: Dict[ResourceType, float]
-    ) -> List[Dict]:
+        scanner_assignments: dict[str, str],
+        asset_profiles: list[AssetProfile],
+        resource_allocation: dict[ResourceType, float]
+    ) -> list[dict]:
         """Optimize execution schedule for maximum efficiency"""
-        
+
         schedule = []
-        
+
         # Group assets by scanner type
         scanner_groups = {}
         asset_map = {a.asset_id: a for a in asset_profiles}
-        
+
         for asset_id, scanner_name in scanner_assignments.items():
             if scanner_name not in scanner_groups:
                 scanner_groups[scanner_name] = []
             scanner_groups[scanner_name].append(asset_id)
-        
+
         # Schedule each scanner group
         current_time = datetime.now()
-        
+
         for scanner_name, asset_ids in scanner_groups.items():
             # Sort assets within group by priority
             sorted_assets = sorted(
@@ -953,17 +946,17 @@ class ResourceOptimizationEngine:
                 key=lambda aid: asset_map[aid].discovery_probability * asset_map[aid].business_criticality,
                 reverse=True
             )
-            
+
             # Determine parallelism based on resource allocation
             max_parallel = self._calculate_max_parallel_scans(scanner_name, resource_allocation)
-            
+
             # Create batches for parallel execution
             for i in range(0, len(sorted_assets), max_parallel):
                 batch = sorted_assets[i:i + max_parallel]
-                
+
                 # Estimate batch duration
                 batch_duration = self._estimate_batch_duration(scanner_name, batch, asset_map)
-                
+
                 schedule.append({
                     "start_time": current_time,
                     "end_time": current_time + timedelta(seconds=batch_duration),
@@ -972,21 +965,21 @@ class ResourceOptimizationEngine:
                     "parallel_count": len(batch),
                     "estimated_duration": batch_duration
                 })
-                
+
                 current_time += timedelta(seconds=batch_duration + 60)  # 1 minute buffer
-        
+
         # Optimize schedule order for resource efficiency
         optimized_schedule = self._optimize_schedule_order(schedule)
-        
+
         return optimized_schedule
-    
+
     def _calculate_max_parallel_scans(
-        self, 
-        scanner_name: str, 
-        resource_allocation: Dict[ResourceType, float]
+        self,
+        scanner_name: str,
+        resource_allocation: dict[ResourceType, float]
     ) -> int:
         """Calculate maximum parallel scans for scanner"""
-        
+
         # Get scanner resource requirements (mock data)
         scanner_requirements = {
             "nuclei": {"cpu": 0.5, "memory": 128.0, "network": 10.0},
@@ -994,25 +987,25 @@ class ResourceOptimizationEngine:
             "nmap": {"cpu": 0.3, "memory": 64.0, "network": 50.0},
             "custom_mobile": {"cpu": 1.5, "memory": 512.0, "network": 5.0}
         }
-        
+
         requirements = scanner_requirements.get(scanner_name, {"cpu": 1.0, "memory": 256.0, "network": 10.0})
-        
+
         # Calculate maximum based on each resource constraint
         max_by_cpu = int(resource_allocation.get(ResourceType.CPU, 4.0) / requirements["cpu"])
         max_by_memory = int(resource_allocation.get(ResourceType.MEMORY, 8192.0) / requirements["memory"])
         max_by_network = int(resource_allocation.get(ResourceType.NETWORK, 1000.0) / requirements["network"])
-        
+
         # Return the most constraining factor
         return max(1, min(max_by_cpu, max_by_memory, max_by_network, 10))  # Cap at 10
-    
+
     def _estimate_batch_duration(
         self,
         scanner_name: str,
-        asset_batch: List[str],
-        asset_map: Dict[str, AssetProfile]
+        asset_batch: list[str],
+        asset_map: dict[str, AssetProfile]
     ) -> float:
         """Estimate duration for batch of assets"""
-        
+
         # Base durations by scanner (seconds)
         base_durations = {
             "nuclei": 300,
@@ -1020,86 +1013,86 @@ class ResourceOptimizationEngine:
             "nmap": 600,
             "custom_mobile": 2400
         }
-        
+
         base_duration = base_durations.get(scanner_name, 600)
-        
+
         if not asset_batch:
             return base_duration
-        
+
         # Calculate average complexity for batch
         avg_complexity = np.mean([
-            asset_map[asset_id].complexity_score 
-            for asset_id in asset_batch 
+            asset_map[asset_id].complexity_score
+            for asset_id in asset_batch
             if asset_id in asset_map
         ])
-        
+
         # Duration scales with complexity
         complexity_multiplier = 0.5 + (avg_complexity * 1.5)
-        
+
         # For parallel execution, duration is dominated by the slowest asset
         return base_duration * complexity_multiplier
-    
-    def _optimize_schedule_order(self, initial_schedule: List[Dict]) -> List[Dict]:
+
+    def _optimize_schedule_order(self, initial_schedule: list[dict]) -> list[dict]:
         """Optimize schedule order for resource efficiency"""
-        
+
         # Simple optimization: sort by resource utilization efficiency
         def efficiency_score(schedule_item):
             # Favor shorter, more parallel tasks first
             duration = schedule_item["estimated_duration"]
             parallel_count = schedule_item["parallel_count"]
             return parallel_count / max(duration / 600.0, 0.1)  # Normalize to 10 minutes
-        
+
         optimized = sorted(initial_schedule, key=efficiency_score, reverse=True)
-        
+
         # Recalculate start/end times
         current_time = datetime.now()
         for item in optimized:
             item["start_time"] = current_time
             item["end_time"] = current_time + timedelta(seconds=item["estimated_duration"])
             current_time = item["end_time"] + timedelta(minutes=1)  # Buffer
-        
+
         return optimized
 
 class AIStrategyEvolutionEngine:
     """Evolves testing strategies using ML and AI"""
-    
+
     def __init__(self):
         self.ai_client = None
         self.evolution_models = {}
         self.strategy_performance = {}
-        
+
     async def initialize(self, openai_key: str):
         """Initialize strategy evolution engine"""
         self.ai_client = AsyncOpenAI(api_key=openai_key)
-        
+
     async def evolve_campaign_strategy(
         self,
-        historical_campaigns: List[Dict],
-        current_context: Dict,
-        performance_targets: Dict[str, float]
+        historical_campaigns: list[dict],
+        current_context: dict,
+        performance_targets: dict[str, float]
     ) -> CampaignStrategy:
         """Evolve campaign strategy based on historical performance"""
-        
+
         # Analyze historical performance by strategy
         strategy_analysis = await self._analyze_strategy_performance(historical_campaigns)
-        
+
         # Generate AI recommendations
         ai_recommendation = await self._generate_ai_strategy_recommendation(
             strategy_analysis, current_context, performance_targets
         )
-        
+
         # Apply genetic algorithm for strategy evolution
         evolved_strategy = await self._apply_genetic_optimization(
             strategy_analysis, ai_recommendation, performance_targets
         )
-        
+
         return evolved_strategy
-    
-    async def _analyze_strategy_performance(self, campaigns: List[Dict]) -> Dict:
+
+    async def _analyze_strategy_performance(self, campaigns: list[dict]) -> dict:
         """Analyze performance of different strategies"""
-        
+
         analysis = {}
-        
+
         # Group campaigns by strategy
         strategy_groups = {}
         for campaign in campaigns:
@@ -1107,20 +1100,20 @@ class AIStrategyEvolutionEngine:
             if strategy not in strategy_groups:
                 strategy_groups[strategy] = []
             strategy_groups[strategy].append(campaign)
-        
+
         # Calculate performance metrics for each strategy
         for strategy, strategy_campaigns in strategy_groups.items():
             if not strategy_campaigns:
                 continue
-            
+
             # Calculate key metrics
-            vuln_discovery_rates = [c.get("vulnerabilities_found", 0) / max(c.get("duration_hours", 1), 1) 
+            vuln_discovery_rates = [c.get("vulnerabilities_found", 0) / max(c.get("duration_hours", 1), 1)
                                    for c in strategy_campaigns]
-            cost_efficiency = [c.get("vulnerabilities_found", 0) / max(c.get("total_cost", 1), 1) 
+            cost_efficiency = [c.get("vulnerabilities_found", 0) / max(c.get("total_cost", 1), 1)
                               for c in strategy_campaigns]
-            success_rates = [1.0 if c.get("vulnerabilities_found", 0) > 0 else 0.0 
+            success_rates = [1.0 if c.get("vulnerabilities_found", 0) > 0 else 0.0
                             for c in strategy_campaigns]
-            
+
             analysis[strategy] = {
                 "campaign_count": len(strategy_campaigns),
                 "avg_discovery_rate": np.mean(vuln_discovery_rates),
@@ -1130,19 +1123,19 @@ class AIStrategyEvolutionEngine:
                 "avg_duration": np.mean([c.get("duration_hours", 0) for c in strategy_campaigns]),
                 "avg_cost": np.mean([c.get("total_cost", 0) for c in strategy_campaigns])
             }
-        
+
         return analysis
-    
+
     async def _generate_ai_strategy_recommendation(
         self,
-        strategy_analysis: Dict,
-        context: Dict,
-        targets: Dict[str, float]
-    ) -> Dict:
+        strategy_analysis: dict,
+        context: dict,
+        targets: dict[str, float]
+    ) -> dict:
         """Generate AI-powered strategy recommendation"""
-        
+
         prompt = self._build_strategy_recommendation_prompt(strategy_analysis, context, targets)
-        
+
         try:
             response = await self.ai_client.chat.completions.create(
                 model="gpt-4",
@@ -1160,20 +1153,20 @@ class AIStrategyEvolutionEngine:
                 max_tokens=1500,
                 response_format={"type": "json_object"}
             )
-            
+
             recommendation = json.loads(response.choices[0].message.content)
-            
+
             # Update metrics
             ai_strategy_recommendations.labels(
                 strategy_category=recommendation.get("recommended_strategy", "unknown"),
                 confidence_level=recommendation.get("confidence", "medium")
             ).inc()
-            
+
             return recommendation
-            
+
         except Exception as e:
             logger.error("AI strategy recommendation failed", error=str(e))
-            
+
             # Return default recommendation
             return {
                 "recommended_strategy": "comprehensive",
@@ -1181,15 +1174,15 @@ class AIStrategyEvolutionEngine:
                 "reasoning": "AI analysis failed, using default strategy",
                 "adjustments": []
             }
-    
+
     def _build_strategy_recommendation_prompt(
-        self, 
-        analysis: Dict, 
-        context: Dict, 
-        targets: Dict
+        self,
+        analysis: dict,
+        context: dict,
+        targets: dict
     ) -> str:
         """Build prompt for AI strategy recommendation"""
-        
+
         return f"""
 Analyze the following campaign performance data and recommend the optimal testing strategy:
 
@@ -1230,18 +1223,18 @@ Please provide recommendation in this JSON format:
 
 Focus on data-driven recommendations based on historical performance and current context.
 """
-    
+
     async def _apply_genetic_optimization(
         self,
-        strategy_analysis: Dict,
-        ai_recommendation: Dict,
-        targets: Dict[str, float]
+        strategy_analysis: dict,
+        ai_recommendation: dict,
+        targets: dict[str, float]
     ) -> CampaignStrategy:
         """Apply genetic algorithm for strategy optimization"""
-        
+
         # Simple genetic algorithm simulation
         # In production, would implement full GA with crossover and mutation
-        
+
         # Define strategy "genes" and their performance
         strategies = [
             CampaignStrategy.COMPREHENSIVE,
@@ -1251,13 +1244,13 @@ Focus on data-driven recommendations based on historical performance and current
             CampaignStrategy.STEALTH,
             CampaignStrategy.BASELINE
         ]
-        
+
         # Score strategies based on historical performance and AI recommendation
         strategy_scores = {}
-        
+
         for strategy in strategies:
             strategy_name = strategy.value
-            
+
             # Historical performance score
             historical_score = 0.0
             if strategy_name in strategy_analysis:
@@ -1267,57 +1260,57 @@ Focus on data-driven recommendations based on historical performance and current
                     perf_data.get("avg_cost_efficiency", 0) * targets.get("cost_efficiency", 1.0) +
                     perf_data.get("success_rate", 0) * targets.get("success_rate", 1.0)
                 ) / 3.0
-            
+
             # AI recommendation bonus
             ai_bonus = 0.0
             if ai_recommendation.get("recommended_strategy") == strategy_name:
                 confidence = ai_recommendation.get("confidence", "medium")
                 ai_bonus = {"high": 0.3, "medium": 0.2, "low": 0.1}.get(confidence, 0.1)
-            
+
             strategy_scores[strategy] = historical_score + ai_bonus
-        
+
         # Select best strategy
         best_strategy = max(strategy_scores.keys(), key=lambda s: strategy_scores[s])
-        
+
         logger.info("Strategy evolution completed",
                    selected_strategy=best_strategy.value,
                    score=strategy_scores[best_strategy],
                    ai_recommendation=ai_recommendation.get("recommended_strategy"))
-        
+
         return best_strategy
 
 class CampaignOptimizationEngine:
     """Main campaign optimization orchestrator"""
-    
+
     def __init__(self):
         self.asset_profiler = AssetProfilingEngine()
         self.scanner_optimizer = ScannerOptimizationEngine()
         self.resource_optimizer = ResourceOptimizationEngine()
         self.strategy_evolver = AIStrategyEvolutionEngine()
         self.db_pool = None
-        
-    async def initialize(self, config: Dict):
+
+    async def initialize(self, config: dict):
         """Initialize campaign optimization engine"""
-        
+
         logger.info("Initializing Campaign Optimization Engine...")
-        
+
         # Initialize database
         database_url = config.get("database_url")
         self.db_pool = await asyncpg.create_pool(database_url, min_size=2, max_size=5)
-        
+
         # Initialize components
         await self.asset_profiler.initialize(database_url)
         await self.scanner_optimizer.initialize()
         await self.strategy_evolver.initialize(config.get("openai_api_key"))
-        
+
         # Create optimization tables
         await self._create_optimization_tables()
-        
+
         logger.info("Campaign Optimization Engine initialized successfully")
-    
+
     async def _create_optimization_tables(self):
         """Create database tables for optimization"""
-        
+
         async with self.db_pool.acquire() as conn:
             await conn.execute("""
                 CREATE TABLE IF NOT EXISTS campaign_configurations (
@@ -1367,18 +1360,18 @@ class CampaignOptimizationEngine:
                 CREATE INDEX IF NOT EXISTS idx_optimization_results_campaign 
                 ON optimization_results(campaign_id);
             """)
-    
+
     async def optimize_campaign(
         self,
         campaign_id: str,
-        asset_ids: List[str],
-        objectives: Dict[str, float],
-        constraints: Dict[str, Any]
+        asset_ids: list[str],
+        objectives: dict[str, float],
+        constraints: dict[str, Any]
     ) -> CampaignConfiguration:
         """Perform comprehensive campaign optimization"""
-        
+
         start_time = datetime.now()
-        
+
         try:
             # Step 1: Profile all assets
             logger.info("Profiling assets for optimization", campaign_id=campaign_id, asset_count=len(asset_ids))
@@ -1389,35 +1382,35 @@ class CampaignOptimizationEngine:
                     asset_profiles.append(profile)
                 except Exception as e:
                     logger.warning("Asset profiling failed", asset_id=asset_id, error=str(e))
-            
+
             # Step 2: Evolve strategy based on historical data
             logger.info("Evolving campaign strategy", campaign_id=campaign_id)
             historical_campaigns = await self._get_historical_campaigns()
             context = self._build_campaign_context(asset_profiles, constraints)
-            
+
             optimal_strategy = await self.strategy_evolver.evolve_campaign_strategy(
                 historical_campaigns, context, objectives
             )
-            
+
             # Step 3: Optimize scanner selection
             logger.info("Optimizing scanner selection", campaign_id=campaign_id)
             resource_constraints = constraints.get("resources", {})
             scanner_assignments = await self.scanner_optimizer.optimize_scanner_selection(
                 asset_profiles, resource_constraints, objectives
             )
-            
+
             # Step 4: Optimize scanner parameters
             logger.info("Optimizing scanner parameters", campaign_id=campaign_id)
             scanner_parameters = {}
             for asset_id, scanner_name in scanner_assignments.items():
                 asset_profile = next(a for a in asset_profiles if a.asset_id == asset_id)
                 historical_perf = await self._get_scanner_performance(scanner_name, asset_profile)
-                
+
                 params = await self.scanner_optimizer.optimize_scanner_parameters(
                     scanner_name, asset_profile, historical_perf
                 )
                 scanner_parameters[scanner_name] = params
-            
+
             # Step 5: Optimize resource allocation
             logger.info("Optimizing resource allocation", campaign_id=campaign_id)
             campaign_requirements = {
@@ -1425,7 +1418,7 @@ class CampaignOptimizationEngine:
                 "avg_complexity": np.mean([a.complexity_score for a in asset_profiles]),
                 "total_attack_surface": sum(a.attack_surface_size for a in asset_profiles)
             }
-            
+
             available_resources = constraints.get("available_resources", {
                 ResourceType.CPU: 16.0,
                 ResourceType.MEMORY: 32768.0,
@@ -1433,28 +1426,28 @@ class CampaignOptimizationEngine:
                 ResourceType.STORAGE: 500.0,
                 ResourceType.SCANNER_LICENSES: 20.0
             })
-            
+
             resource_allocation = await self.resource_optimizer.optimize_resource_allocation(
                 campaign_requirements, available_resources, objectives
             )
-            
+
             # Step 6: Optimize execution schedule
             logger.info("Optimizing execution schedule", campaign_id=campaign_id)
             execution_schedule = await self.resource_optimizer.optimize_execution_schedule(
                 scanner_assignments, asset_profiles, resource_allocation
             )
-            
+
             # Step 7: Generate predictions
             predictions = self._generate_performance_predictions(
                 asset_profiles, scanner_assignments, optimal_strategy
             )
-            
+
             # Step 8: Calculate asset priorities
             asset_priorities = {
-                a.asset_id: a.discovery_probability * a.business_criticality 
+                a.asset_id: a.discovery_probability * a.business_criticality
                 for a in asset_profiles
             }
-            
+
             # Step 9: Build configuration
             configuration = CampaignConfiguration(
                 campaign_id=campaign_id,
@@ -1473,22 +1466,22 @@ class CampaignOptimizationEngine:
                 alternative_strategies=predictions["alternatives"],
                 generated_at=start_time
             )
-            
+
             # Store configuration
             await self._store_campaign_configuration(configuration)
-            
+
             # Update metrics
             campaign_optimizations_total.labels(
                 optimization_type="comprehensive",
                 strategy_type=optimal_strategy.value
             ).inc()
-            
+
             for resource_type, allocation in resource_allocation.items():
                 resource_efficiency_score.labels(
                     resource_type=resource_type.value,
                     campaign_type=optimal_strategy.value
                 ).set(allocation / available_resources.get(resource_type, 1.0))
-            
+
             duration = (datetime.now() - start_time).total_seconds()
             logger.info("Campaign optimization completed",
                        campaign_id=campaign_id,
@@ -1496,16 +1489,16 @@ class CampaignOptimizationEngine:
                        assets_optimized=len(asset_profiles),
                        predicted_vulnerabilities=predictions["vulnerabilities"],
                        duration=duration)
-            
+
             return configuration
-            
+
         except Exception as e:
             logger.error("Campaign optimization failed", campaign_id=campaign_id, error=str(e))
             raise
-    
-    async def _get_historical_campaigns(self) -> List[Dict]:
+
+    async def _get_historical_campaigns(self) -> list[dict]:
         """Get historical campaign data for learning"""
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 campaigns = await conn.fetch("""
@@ -1528,18 +1521,18 @@ class CampaignOptimizationEngine:
                     ORDER BY c.created_at DESC
                     LIMIT 50
                 """)
-                
+
                 return [dict(campaign) for campaign in campaigns]
-                
+
         except Exception as e:
             logger.warning("Failed to get historical campaigns", error=str(e))
             return []
-    
-    def _build_campaign_context(self, asset_profiles: List[AssetProfile], constraints: Dict) -> Dict:
+
+    def _build_campaign_context(self, asset_profiles: list[AssetProfile], constraints: dict) -> dict:
         """Build campaign context for strategy evolution"""
-        
+
         asset_types = list(set(a.asset_type for a in asset_profiles))
-        
+
         return {
             "asset_count": len(asset_profiles),
             "asset_types": asset_types,
@@ -1550,10 +1543,10 @@ class CampaignOptimizationEngine:
             "time_limit": constraints.get("time_limit_hours", 24),
             "stealth_required": constraints.get("stealth_mode", False)
         }
-    
-    async def _get_scanner_performance(self, scanner_name: str, asset_profile: AssetProfile) -> Dict:
+
+    async def _get_scanner_performance(self, scanner_name: str, asset_profile: AssetProfile) -> dict:
         """Get historical performance data for scanner on similar assets"""
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 perf_data = await conn.fetchrow("""
@@ -1569,7 +1562,7 @@ class CampaignOptimizationEngine:
                     AND a.asset_type = $2
                     AND s.completed_at >= NOW() - INTERVAL '60 days'
                 """, scanner_name, asset_profile.asset_type)
-                
+
                 if perf_data:
                     return {
                         "avg_duration": float(perf_data['avg_duration'] or 600),
@@ -1577,10 +1570,10 @@ class CampaignOptimizationEngine:
                         "avg_vulns_per_scan": float(perf_data['avg_vulns_per_scan'] or 0.5),
                         "false_positive_rate": float(perf_data['fp_rate'] or 0.1)
                     }
-                    
+
         except Exception as e:
             logger.warning("Failed to get scanner performance", error=str(e))
-        
+
         # Return defaults
         return {
             "avg_duration": 600,
@@ -1588,26 +1581,26 @@ class CampaignOptimizationEngine:
             "avg_vulns_per_scan": 0.5,
             "false_positive_rate": 0.1
         }
-    
+
     def _generate_performance_predictions(
         self,
-        asset_profiles: List[AssetProfile],
-        scanner_assignments: Dict[str, str],
+        asset_profiles: list[AssetProfile],
+        scanner_assignments: dict[str, str],
         strategy: CampaignStrategy
-    ) -> Dict:
+    ) -> dict:
         """Generate performance predictions for campaign"""
-        
+
         # Calculate predictions based on asset profiles and scanner effectiveness
         total_vulnerabilities = 0
         total_duration = 0.0
         total_cost = 0.0
-        
+
         for asset in asset_profiles:
             scanner_name = scanner_assignments.get(asset.asset_id, "nuclei")
-            
+
             # Predict vulnerabilities for this asset
             base_discovery_rate = asset.discovery_probability
-            
+
             # Strategy adjustments
             strategy_multipliers = {
                 CampaignStrategy.COMPREHENSIVE: 1.2,
@@ -1617,38 +1610,38 @@ class CampaignOptimizationEngine:
                 CampaignStrategy.STEALTH: 0.8,
                 CampaignStrategy.BASELINE: 1.0
             }
-            
+
             adjusted_rate = base_discovery_rate * strategy_multipliers.get(strategy, 1.0)
             predicted_vulns = int(adjusted_rate * asset.attack_surface_size / 10.0)
             total_vulnerabilities += predicted_vulns
-            
+
             # Predict duration
             base_duration = 600  # 10 minutes base
             complexity_factor = 1.0 + asset.complexity_score
             duration = base_duration * complexity_factor
             total_duration += duration
-            
+
             # Predict cost
             total_cost += asset.testing_cost_estimate
-        
+
         # Convert duration to hours
         total_duration_hours = total_duration / 3600.0
-        
+
         # Calculate confidence based on data quality
         confidence = min(1.0, len(asset_profiles) / 20.0 + 0.5)  # More assets = higher confidence
-        
+
         # Generate reasoning
         reasoning = f"Predictions based on {len(asset_profiles)} asset profiles using {strategy.value} strategy. " \
                    f"Average asset complexity: {np.mean([a.complexity_score for a in asset_profiles]):.2f}. " \
                    f"Average discovery probability: {np.mean([a.discovery_probability for a in asset_profiles]):.2f}."
-        
+
         # Alternative strategies
         alternatives = [
             {"strategy": "rapid", "tradeoff": "Faster execution, 30% fewer vulnerabilities"},
             {"strategy": "deep_dive", "tradeoff": "50% more vulnerabilities, 2x longer duration"},
             {"strategy": "stealth", "tradeoff": "Lower detection risk, 20% fewer vulnerabilities"}
         ]
-        
+
         return {
             "vulnerabilities": max(1, total_vulnerabilities),
             "duration_hours": max(0.5, total_duration_hours),
@@ -1657,10 +1650,10 @@ class CampaignOptimizationEngine:
             "reasoning": reasoning,
             "alternatives": alternatives
         }
-    
+
     async def _store_campaign_configuration(self, config: CampaignConfiguration):
         """Store campaign configuration in database"""
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 await conn.execute("""
@@ -1680,13 +1673,13 @@ class CampaignOptimizationEngine:
                 config.predicted_cost, config.confidence_score,
                 config.optimization_reasoning, json.dumps(config.alternative_strategies),
                 config.generated_at)
-                
+
         except Exception as e:
             logger.error("Failed to store campaign configuration", error=str(e))
-    
-    async def get_optimization_statistics(self) -> Dict:
+
+    async def get_optimization_statistics(self) -> dict:
         """Get comprehensive optimization statistics"""
-        
+
         try:
             async with self.db_pool.acquire() as conn:
                 # Campaign configuration statistics
@@ -1703,7 +1696,7 @@ class CampaignOptimizationEngine:
                     FROM campaign_configurations
                     WHERE generated_at >= NOW() - INTERVAL '30 days'
                 """)
-                
+
                 # Optimization results statistics
                 opt_stats = await conn.fetchrow("""
                     SELECT 
@@ -1713,7 +1706,7 @@ class CampaignOptimizationEngine:
                     FROM optimization_results
                     WHERE optimized_at >= NOW() - INTERVAL '30 days'
                 """)
-                
+
                 return {
                     "campaign_optimization": {
                         "total_campaigns_optimized": config_stats['total_campaigns_optimized'] if config_stats else 0,
@@ -1741,32 +1734,32 @@ class CampaignOptimizationEngine:
                     ],
                     "generated_at": datetime.now().isoformat()
                 }
-                
+
         except Exception as e:
             logger.error("Failed to get optimization statistics", error=str(e))
             return {"error": str(e)}
 
 async def main():
     """Main campaign optimization service"""
-    
+
     # Start Prometheus metrics server
     start_http_server(8014)
-    
+
     # Initialize optimization engine
     config = {
-        "database_url": os.getenv("DATABASE_URL", 
+        "database_url": os.getenv("DATABASE_URL",
                                  "postgresql://xorb:xorb_secure_2024@postgres:5432/xorb_ptaas"),
         "openai_api_key": os.getenv("OPENAI_API_KEY")
     }
-    
+
     engine = CampaignOptimizationEngine()
     await engine.initialize(config)
-    
+
     logger.info("🚀 Xorb AI Campaign Optimization Engine started",
                service_version="6.5.0",
-               features=["asset_profiling", "scanner_optimization", "resource_allocation", 
+               features=["asset_profiling", "scanner_optimization", "resource_allocation",
                         "strategy_evolution", "ai_predictions"])
-    
+
     try:
         # Keep service running
         while True:

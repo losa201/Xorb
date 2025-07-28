@@ -4,11 +4,11 @@ Common utilities for resilience, token management, and system operations
 """
 
 from .circuit_breaker import CircuitBreaker, CircuitBreakerOpenError
-from .token_manager import TokenManager, TokenBudget
+from .token_manager import TokenBudget, TokenManager
 
 __all__ = [
     'CircuitBreaker',
-    'CircuitBreakerOpenError', 
+    'CircuitBreakerOpenError',
     'TokenManager',
     'TokenBudget'
 ]

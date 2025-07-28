@@ -1,7 +1,7 @@
 
 
+
 import httpx
-from typing import List, Set
 
 # Try multiple import paths for compatibility
 try:
@@ -12,16 +12,15 @@ except ImportError:
     except ImportError:
         # Fallback definitions
         from dataclasses import dataclass
-        from typing import Optional, Dict, Any
-        from datetime import datetime
-        
+        from typing import Any
+
         @dataclass
         class DiscoveryTarget:
             target_type: str
             value: str
-            scope: Optional[str] = None
-            metadata: Optional[Dict[str, Any]] = None
-        
+            scope: str | None = None
+            metadata: dict[str, Any] | None = None
+
         @dataclass
         class Finding:
             title: str
@@ -43,10 +42,10 @@ class SubdomainEnumerationAgent:
         return "Discovers subdomains by querying the crt.sh certificate transparency log."
 
     @property
-    def accepted_target_types(self) -> Set[str]:
+    def accepted_target_types(self) -> set[str]:
         return {"domain"}
 
-    async def run(self, target: DiscoveryTarget) -> List[Finding]:
+    async def run(self, target: DiscoveryTarget) -> list[Finding]:
         if target.target_type not in self.accepted_target_types:
             return []
 
@@ -68,7 +67,7 @@ class SubdomainEnumerationAgent:
                             clean_subdomain = subdomain.strip().lower()
                             if clean_subdomain and '*' not in clean_subdomain:
                                 unique_subdomains.add(clean_subdomain)
-                
+
                 for subdomain in unique_subdomains:
                     findings.append(
                         Finding(
@@ -84,12 +83,12 @@ class SubdomainEnumerationAgent:
                 print(f"HTTP error occurred while scanning {target.value}: {e}")
             except Exception as e:
                 print(f"An error occurred while scanning {target.value}: {e}")
-        
+
         return findings
 
 
 # Additional discovery functions for compatibility with existing imports
-async def enumerate_subdomains(domain: str) -> List[str]:
+async def enumerate_subdomains(domain: str) -> list[str]:
     """
     Enumerate subdomains for the given domain.
     
@@ -102,13 +101,13 @@ async def enumerate_subdomains(domain: str) -> List[str]:
     agent = SubdomainEnumerationAgent()
     target = DiscoveryTarget(target_type="domain", value=domain)
     findings = await agent.run(target)
-    
+
     # Extract subdomain names from findings
     subdomains = []
     for finding in findings:
         if finding.finding_type == "subdomain":
             subdomains.append(finding.target)
-    
+
     return subdomains
 
 
@@ -122,14 +121,14 @@ async def resolve_dns(hostname: str) -> dict:
     Returns:
         Dictionary containing DNS resolution results
     """
-    import socket
     import asyncio
-    
+    import socket
+
     try:
         # Perform DNS resolution
         loop = asyncio.get_event_loop()
         result = await loop.run_in_executor(None, socket.gethostbyname, hostname)
-        
+
         return {
             "hostname": hostname,
             "ip_address": result,

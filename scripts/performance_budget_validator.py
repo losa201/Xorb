@@ -10,10 +10,8 @@ import logging
 import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
 
 import aiohttp
-import prometheus_client.parser
 from prometheus_client import CollectorRegistry, Gauge, Histogram
 
 logging.basicConfig(level=logging.INFO)
@@ -42,12 +40,12 @@ class BudgetViolation:
 
 class PerformanceBudgetValidator:
     """Validates performance budgets against Prometheus metrics"""
-    
+
     def __init__(self, prometheus_url: str = "http://localhost:9090"):
         self.prometheus_url = prometheus_url
         self.budgets = self._define_budgets()
-        self.violations: List[BudgetViolation] = []
-        
+        self.violations: list[BudgetViolation] = []
+
         # Prometheus client for custom metrics
         self.registry = CollectorRegistry()
         self.budget_violation_gauge = Gauge(
@@ -62,8 +60,8 @@ class PerformanceBudgetValidator:
             ['budget_name'],
             registry=self.registry
         )
-    
-    def _define_budgets(self) -> List[PerformanceBudget]:
+
+    def _define_budgets(self) -> list[PerformanceBudget]:
         """Define all performance budgets"""
         return [
             # API Latency Budgets
@@ -84,7 +82,7 @@ class PerformanceBudgetValidator:
                 severity="critical",
                 description="API P99 latency hard limit"
             ),
-            
+
             # Scan Performance Budgets
             PerformanceBudget(
                 name="scan_queue_lag",
@@ -110,7 +108,7 @@ class PerformanceBudgetValidator:
                 severity="critical",
                 description="Scan error rate budget"
             ),
-            
+
             # Payout Budgets
             PerformanceBudget(
                 name="payout_processing_time",
@@ -137,7 +135,7 @@ class PerformanceBudgetValidator:
                 description="Payout success rate budget",
                 error_budget_monthly=0.02  # 2% monthly budget
             ),
-            
+
             # Resource Budgets
             PerformanceBudget(
                 name="cpu_utilization",
@@ -155,7 +153,7 @@ class PerformanceBudgetValidator:
                 severity="critical",
                 description="Memory utilization budget"
             ),
-            
+
             # Availability Budget
             PerformanceBudget(
                 name="service_availability",
@@ -167,8 +165,8 @@ class PerformanceBudgetValidator:
                 error_budget_monthly=0.001  # 0.1% monthly budget
             )
         ]
-    
-    async def query_prometheus(self, query: str) -> Optional[float]:
+
+    async def query_prometheus(self, query: str) -> float | None:
         """Query Prometheus for metric value"""
         try:
             async with aiohttp.ClientSession() as session:
@@ -183,15 +181,15 @@ class PerformanceBudgetValidator:
         except Exception as e:
             logger.error(f"Error querying Prometheus: {e}")
             return None
-    
-    async def validate_budget(self, budget: PerformanceBudget) -> Optional[BudgetViolation]:
+
+    async def validate_budget(self, budget: PerformanceBudget) -> BudgetViolation | None:
         """Validate a single performance budget"""
         current_value = await self.query_prometheus(budget.metric_query)
-        
+
         if current_value is None:
             logger.warning(f"Could not retrieve metric for budget: {budget.name}")
             return None
-        
+
         # Check if budget is violated
         is_violated = False
         if budget.name == "payout_success_rate" or budget.name == "service_availability":
@@ -200,22 +198,22 @@ class PerformanceBudgetValidator:
         else:
             # For other metrics, violation is above threshold
             is_violated = current_value > budget.threshold
-        
+
         # Update Prometheus metrics
         violation_value = 1.0 if is_violated else 0.0
         self.budget_violation_gauge.labels(
             budget_name=budget.name,
             severity=budget.severity
         ).set(violation_value)
-        
+
         # Calculate compliance ratio
         if budget.name in ["payout_success_rate", "service_availability"]:
             compliance_ratio = min(current_value / budget.threshold, 1.0)
         else:
             compliance_ratio = min(budget.threshold / max(current_value, 0.001), 1.0)
-        
+
         self.budget_compliance_histogram.labels(budget_name=budget.name).observe(compliance_ratio)
-        
+
         if is_violated:
             violation = BudgetViolation(
                 budget_name=budget.name,
@@ -228,35 +226,35 @@ class PerformanceBudgetValidator:
             logger.warning(f"Budget violation: {budget.name} = {current_value} {budget.unit} "
                          f"(threshold: {budget.threshold} {budget.unit})")
             return violation
-        
+
         logger.info(f"Budget OK: {budget.name} = {current_value} {budget.unit} "
                    f"(threshold: {budget.threshold} {budget.unit})")
         return None
-    
-    async def validate_all_budgets(self) -> List[BudgetViolation]:
+
+    async def validate_all_budgets(self) -> list[BudgetViolation]:
         """Validate all performance budgets"""
         logger.info("Starting performance budget validation...")
         violations = []
-        
+
         for budget in self.budgets:
             violation = await self.validate_budget(budget)
             if violation:
                 violations.append(violation)
-        
+
         self.violations.extend(violations)
         return violations
-    
-    def calculate_error_budget_burn_rate(self) -> Dict[str, float]:
+
+    def calculate_error_budget_burn_rate(self) -> dict[str, float]:
         """Calculate error budget burn rate for critical budgets"""
         burn_rates = {}
-        
+
         # Group violations by budget name
         violation_counts = {}
         for violation in self.violations:
             if violation.budget_name not in violation_counts:
                 violation_counts[violation.budget_name] = 0
             violation_counts[violation.budget_name] += violation.duration_minutes
-        
+
         # Calculate burn rate as percentage of monthly budget used per hour
         for budget in self.budgets:
             if budget.name in violation_counts:
@@ -267,23 +265,23 @@ class PerformanceBudgetValidator:
                 burn_rates[budget.name] = burn_rate
             else:
                 burn_rates[budget.name] = 0.0
-        
+
         return burn_rates
-    
-    def generate_budget_report(self) -> Dict:
+
+    def generate_budget_report(self) -> dict:
         """Generate comprehensive budget report"""
         burn_rates = self.calculate_error_budget_burn_rate()
-        
+
         report = {
             "timestamp": datetime.now().isoformat(),
             "total_budgets": len(self.budgets),
-            "active_violations": len([v for v in self.violations if 
+            "active_violations": len([v for v in self.violations if
                                     datetime.now() - v.timestamp < timedelta(minutes=10)]),
             "budgets": [],
             "error_budget_burn_rates": burn_rates,
             "overall_health": "healthy"
         }
-        
+
         # Determine overall health
         critical_violations = [v for v in self.violations if v.severity == "critical" and
                              datetime.now() - v.timestamp < timedelta(minutes=10)]
@@ -291,7 +289,7 @@ class PerformanceBudgetValidator:
             report["overall_health"] = "critical"
         elif len(report["active_violations"]) > 0:
             report["overall_health"] = "warning"
-        
+
         # Add budget details
         for budget in self.budgets:
             budget_info = {
@@ -304,9 +302,9 @@ class PerformanceBudgetValidator:
                 "burn_rate_percentage": burn_rates.get(budget.name, 0.0),
                 "status": "ok"
             }
-            
+
             # Check for recent violations
-            recent_violations = [v for v in self.violations if 
+            recent_violations = [v for v in self.violations if
                                v.budget_name == budget.name and
                                datetime.now() - v.timestamp < timedelta(minutes=10)]
             if recent_violations:
@@ -316,25 +314,25 @@ class PerformanceBudgetValidator:
                     "threshold": recent_violations[-1].threshold,
                     "severity": recent_violations[-1].severity
                 }
-            
+
             report["budgets"].append(budget_info)
-        
+
         return report
-    
+
     async def continuous_monitoring(self, interval_seconds: int = 60):
         """Run continuous budget monitoring"""
         logger.info(f"Starting continuous monitoring (interval: {interval_seconds}s)")
-        
+
         while True:
             try:
                 violations = await self.validate_all_budgets()
-                
+
                 if violations:
                     logger.warning(f"Found {len(violations)} active budget violations")
                     for violation in violations:
                         logger.warning(f"  - {violation.budget_name}: {violation.current_value} "
                                      f"vs threshold {violation.threshold}")
-                
+
                 # Generate and save report every 5 minutes
                 if int(time.time()) % 300 == 0:
                     report = self.generate_budget_report()
@@ -342,9 +340,9 @@ class PerformanceBudgetValidator:
                     with open(report_file, 'w') as f:
                         json.dump(report, f, indent=2)
                     logger.info(f"Performance budget report saved to {report_file}")
-                
+
                 await asyncio.sleep(interval_seconds)
-                
+
             except KeyboardInterrupt:
                 logger.info("Monitoring stopped by user")
                 break
@@ -355,7 +353,7 @@ class PerformanceBudgetValidator:
 async def main():
     """Main function for script execution"""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="Xorb Performance Budget Validator")
     parser.add_argument("--prometheus-url", default="http://localhost:9090",
                        help="Prometheus server URL")
@@ -365,19 +363,19 @@ async def main():
                        help="Monitoring interval in seconds")
     parser.add_argument("--report-only", action="store_true",
                        help="Generate report only, don't validate")
-    
+
     args = parser.parse_args()
-    
+
     validator = PerformanceBudgetValidator(prometheus_url=args.prometheus_url)
-    
+
     if args.continuous:
         await validator.continuous_monitoring(interval_seconds=args.interval)
     else:
         violations = await validator.validate_all_budgets()
         report = validator.generate_budget_report()
-        
+
         print(json.dumps(report, indent=2))
-        
+
         if violations:
             print(f"\n⚠️  Found {len(violations)} budget violations!")
             exit(1)

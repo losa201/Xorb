@@ -1,38 +1,42 @@
 #!/usr/bin/env python3
 
 import asyncio
-import logging
-import json
 import re
 from datetime import datetime
-from typing import Dict, List, Any, Optional
-from urllib.parse import urljoin, urlparse
+from typing import Any
+from urllib.parse import urlparse
 
-from playwright.async_api import async_playwright, Browser, BrowserContext, Page, TimeoutError as PlaywrightTimeoutError
+from playwright.async_api import Browser, BrowserContext, Page, async_playwright
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
-from agents.base_agent import BaseAgent, AgentType, AgentCapability, AgentTask, AgentResult
-from knowledge_fabric.atom import KnowledgeAtom, AtomType, Source
+from agents.base_agent import (
+    AgentCapability,
+    AgentResult,
+    AgentTask,
+    AgentType,
+    BaseAgent,
+)
 
 
 class PlaywrightAgent(BaseAgent):
-    def __init__(self, agent_id: Optional[str] = None, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, agent_id: str | None = None, config: dict[str, Any] | None = None):
         super().__init__(agent_id, config)
-        
-        self.browser: Optional[Browser] = None
-        self.context: Optional[BrowserContext] = None
-        self.page: Optional[Page] = None
+
+        self.browser: Browser | None = None
+        self.context: BrowserContext | None = None
+        self.page: Page | None = None
         self.playwright = None
-        
-        self.user_agent = self.config.get('user_agent', 
+
+        self.user_agent = self.config.get('user_agent',
             'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
-        
+
         self.viewport = self.config.get('viewport', {'width': 1920, 'height': 1080})
         self.timeout = self.config.get('timeout', 30000)
         self.headless = self.config.get('headless', True)
-        
+
         self.visited_urls: set = set()
-        self.discovered_endpoints: List[Dict[str, Any]] = []
-        self.form_data: List[Dict[str, Any]] = []
+        self.discovered_endpoints: list[dict[str, Any]] = []
+        self.form_data: list[dict[str, Any]] = []
 
     @property
     def agent_type(self) -> AgentType:
@@ -80,7 +84,7 @@ class PlaywrightAgent(BaseAgent):
     async def _on_start(self):
         try:
             self.playwright = await async_playwright().start()
-            
+
             self.browser = await self.playwright.chromium.launch(
                 headless=self.headless,
                 args=[
@@ -91,7 +95,7 @@ class PlaywrightAgent(BaseAgent):
                     '--disable-features=VizDisplayCompositor'
                 ]
             )
-            
+
             self.context = await self.browser.new_context(
                 user_agent=self.user_agent,
                 viewport=self.viewport,
@@ -105,15 +109,15 @@ class PlaywrightAgent(BaseAgent):
                     'Upgrade-Insecure-Requests': '1',
                 }
             )
-            
+
             self.page = await self.context.new_page()
             await self.page.set_default_timeout(self.timeout)
-            
+
             # Setup request/response interceptors
             await self._setup_interceptors()
-            
+
             self.logger.info("Playwright browser initialized successfully")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to initialize browser: {e}")
             raise
@@ -128,9 +132,9 @@ class PlaywrightAgent(BaseAgent):
                 await self.browser.close()
             if self.playwright:
                 await self.playwright.stop()
-            
+
             self.logger.info("Playwright browser closed")
-            
+
         except Exception as e:
             self.logger.error(f"Error closing browser: {e}")
 
@@ -141,7 +145,7 @@ class PlaywrightAgent(BaseAgent):
                 success=False,
                 errors=["Task validation failed"]
             )
-        
+
         try:
             if task.task_type == "web_crawl":
                 return await self._crawl_website(task)
@@ -161,7 +165,7 @@ class PlaywrightAgent(BaseAgent):
                     success=False,
                     errors=[f"Unknown task type: {task.task_type}"]
                 )
-                
+
         except Exception as e:
             self.logger.error(f"Task execution failed: {e}")
             return AgentResult(
@@ -174,7 +178,7 @@ class PlaywrightAgent(BaseAgent):
         target_url = task.target
         max_depth = task.parameters.get('max_depth', 3)
         max_pages = task.parameters.get('max_pages', 50)
-        
+
         crawl_results = {
             "visited_urls": [],
             "discovered_urls": [],
@@ -184,12 +188,12 @@ class PlaywrightAgent(BaseAgent):
             "cookies": [],
             "errors": []
         }
-        
+
         findings = []
-        
+
         try:
             await self._crawl_recursive(target_url, 0, max_depth, max_pages, crawl_results)
-            
+
             # Generate findings based on crawl results
             if crawl_results["forms"]:
                 findings.append({
@@ -198,15 +202,15 @@ class PlaywrightAgent(BaseAgent):
                     "count": len(crawl_results["forms"]),
                     "description": f"Discovered {len(crawl_results['forms'])} forms"
                 })
-            
+
             if crawl_results["endpoints"]:
                 findings.append({
-                    "type": "endpoints_discovered", 
+                    "type": "endpoints_discovered",
                     "severity": "info",
                     "count": len(crawl_results["endpoints"]),
                     "description": f"Discovered {len(crawl_results['endpoints'])} API endpoints"
                 })
-            
+
             return AgentResult(
                 task_id=task.task_id,
                 success=True,
@@ -214,7 +218,7 @@ class PlaywrightAgent(BaseAgent):
                 findings=findings,
                 confidence=0.8
             )
-            
+
         except Exception as e:
             crawl_results["errors"].append(str(e))
             return AgentResult(
@@ -224,21 +228,21 @@ class PlaywrightAgent(BaseAgent):
                 errors=[str(e)]
             )
 
-    async def _crawl_recursive(self, url: str, depth: int, max_depth: int, max_pages: int, results: Dict[str, Any]):
+    async def _crawl_recursive(self, url: str, depth: int, max_depth: int, max_pages: int, results: dict[str, Any]):
         if depth > max_depth or len(results["visited_urls"]) >= max_pages:
             return
-        
+
         if url in self.visited_urls:
             return
-        
+
         try:
             self.logger.debug(f"Crawling {url} at depth {depth}")
-            
+
             response = await self.page.goto(url, wait_until='domcontentloaded')
             if not response or response.status >= 400:
                 results["errors"].append(f"Failed to load {url}: {response.status if response else 'No response'}")
                 return
-            
+
             self.visited_urls.add(url)
             results["visited_urls"].append({
                 "url": url,
@@ -246,10 +250,10 @@ class PlaywrightAgent(BaseAgent):
                 "title": await self.page.title(),
                 "depth": depth
             })
-            
+
             # Analyze current page
             await self._analyze_current_page(url, results)
-            
+
             # Find links for next level crawling
             if depth < max_depth:
                 links = await self._extract_links()
@@ -257,9 +261,9 @@ class PlaywrightAgent(BaseAgent):
                     if self._should_crawl_url(link, url):
                         results["discovered_urls"].append(link)
                         await self._crawl_recursive(link, depth + 1, max_depth, max_pages, results)
-            
+
             await asyncio.sleep(1)  # Rate limiting
-            
+
         except PlaywrightTimeoutError:
             results["errors"].append(f"Timeout loading {url}")
         except Exception as e:
@@ -267,10 +271,10 @@ class PlaywrightAgent(BaseAgent):
 
     async def _analyze_forms(self, task: AgentTask) -> AgentResult:
         target_url = task.target
-        
+
         try:
             await self.page.goto(target_url, wait_until='domcontentloaded')
-            
+
             forms_data = await self.page.evaluate("""
                 () => {
                     const forms = Array.from(document.forms);
@@ -296,7 +300,7 @@ class PlaywrightAgent(BaseAgent):
                     });
                 }
             """)
-            
+
             findings = []
             for i, form in enumerate(forms_data):
                 if form["method"].lower() == "get" and any(inp["type"] == "password" for inp in form["inputs"]):
@@ -306,15 +310,15 @@ class PlaywrightAgent(BaseAgent):
                         "description": "Password field in GET form",
                         "form_index": i
                     })
-                
+
                 if not form["action"].startswith("https://") and any(inp["type"] == "password" for inp in form["inputs"]):
                     findings.append({
                         "type": "insecure_form_submission",
-                        "severity": "high", 
+                        "severity": "high",
                         "description": "Password form not submitted over HTTPS",
                         "form_index": i
                     })
-            
+
             return AgentResult(
                 task_id=task.task_id,
                 success=True,
@@ -322,7 +326,7 @@ class PlaywrightAgent(BaseAgent):
                 findings=findings,
                 confidence=0.9
             )
-            
+
         except Exception as e:
             return AgentResult(
                 task_id=task.task_id,
@@ -333,12 +337,12 @@ class PlaywrightAgent(BaseAgent):
     async def _discover_endpoints(self, task: AgentTask) -> AgentResult:
         target_url = task.target
         discovered_endpoints = []
-        
+
         try:
             await self.page.goto(target_url, wait_until='domcontentloaded')
-            
+
             # Extract API endpoints from JavaScript
-            js_endpoints = await self.page.evaluate("""
+            js_endpoints = await self.page.evaluate(r"""
                 () => {
                     const endpoints = [];
                     const scripts = Array.from(document.scripts);
@@ -361,21 +365,21 @@ class PlaywrightAgent(BaseAgent):
                     return endpoints;
                 }
             """)
-            
+
             discovered_endpoints.extend(js_endpoints)
-            
+
             # Extract from network requests (from interceptor)
             discovered_endpoints.extend(self.discovered_endpoints)
-            
+
             # Remove duplicates
             unique_endpoints = []
             seen_urls = set()
-            
+
             for endpoint in discovered_endpoints:
                 if endpoint["url"] not in seen_urls:
                     unique_endpoints.append(endpoint)
                     seen_urls.add(endpoint["url"])
-            
+
             findings = []
             for endpoint in unique_endpoints:
                 if "/api/" in endpoint["url"] or endpoint["type"] == "api":
@@ -385,7 +389,7 @@ class PlaywrightAgent(BaseAgent):
                         "url": endpoint["url"],
                         "description": "Discovered API endpoint"
                     })
-            
+
             return AgentResult(
                 task_id=task.task_id,
                 success=True,
@@ -393,7 +397,7 @@ class PlaywrightAgent(BaseAgent):
                 findings=findings,
                 confidence=0.7
             )
-            
+
         except Exception as e:
             return AgentResult(
                 task_id=task.task_id,
@@ -403,10 +407,10 @@ class PlaywrightAgent(BaseAgent):
 
     async def _analyze_dom(self, task: AgentTask) -> AgentResult:
         target_url = task.target
-        
+
         try:
             await self.page.goto(target_url, wait_until='domcontentloaded')
-            
+
             dom_analysis = await self.page.evaluate("""
                 () => {
                     const analysis = {
@@ -464,9 +468,9 @@ class PlaywrightAgent(BaseAgent):
                     return analysis;
                 }
             """)
-            
+
             findings = []
-            
+
             # Check for sensitive information in comments
             for comment in dom_analysis.get("comments", []):
                 if re.search(r'(password|key|secret|token|api)', comment, re.IGNORECASE):
@@ -476,7 +480,7 @@ class PlaywrightAgent(BaseAgent):
                         "comment": comment,
                         "description": "Potentially sensitive information in HTML comment"
                     })
-            
+
             # Check for external resources
             external_count = len(dom_analysis.get("external_resources", []))
             if external_count > 10:
@@ -486,7 +490,7 @@ class PlaywrightAgent(BaseAgent):
                     "count": external_count,
                     "description": f"Large number of external resources ({external_count})"
                 })
-            
+
             return AgentResult(
                 task_id=task.task_id,
                 success=True,
@@ -494,7 +498,7 @@ class PlaywrightAgent(BaseAgent):
                 findings=findings,
                 confidence=0.8
             )
-            
+
         except Exception as e:
             return AgentResult(
                 task_id=task.task_id,
@@ -505,13 +509,13 @@ class PlaywrightAgent(BaseAgent):
     async def _capture_screenshot(self, task: AgentTask) -> AgentResult:
         target_url = task.target
         filename = task.parameters.get('filename', f'screenshot_{datetime.utcnow().strftime("%Y%m%d_%H%M%S")}.png')
-        
+
         try:
             await self.page.goto(target_url, wait_until='domcontentloaded')
-            
+
             screenshot_path = f"./screenshots/{filename}"
             await self.page.screenshot(path=screenshot_path, full_page=True)
-            
+
             return AgentResult(
                 task_id=task.task_id,
                 success=True,
@@ -522,7 +526,7 @@ class PlaywrightAgent(BaseAgent):
                 },
                 confidence=1.0
             )
-            
+
         except Exception as e:
             return AgentResult(
                 task_id=task.task_id,
@@ -533,19 +537,19 @@ class PlaywrightAgent(BaseAgent):
     async def _execute_javascript(self, task: AgentTask) -> AgentResult:
         target_url = task.target
         javascript_code = task.parameters.get('code', '')
-        
+
         if not javascript_code:
             return AgentResult(
                 task_id=task.task_id,
                 success=False,
                 errors=["No JavaScript code provided"]
             )
-        
+
         try:
             await self.page.goto(target_url, wait_until='domcontentloaded')
-            
+
             result = await self.page.evaluate(javascript_code)
-            
+
             return AgentResult(
                 task_id=task.task_id,
                 success=True,
@@ -556,7 +560,7 @@ class PlaywrightAgent(BaseAgent):
                 },
                 confidence=0.9
             )
-            
+
         except Exception as e:
             return AgentResult(
                 task_id=task.task_id,
@@ -584,7 +588,7 @@ class PlaywrightAgent(BaseAgent):
         self.page.on("request", handle_request)
         self.page.on("response", handle_response)
 
-    async def _analyze_current_page(self, url: str, results: Dict[str, Any]):
+    async def _analyze_current_page(self, url: str, results: dict[str, Any]):
         # Analyze forms
         forms = await self.page.query_selector_all("form")
         for form in forms:
@@ -599,11 +603,11 @@ class PlaywrightAgent(BaseAgent):
                 })
             """)
             results["forms"].append(form_data)
-        
+
         # Get cookies
         cookies = await self.context.cookies()
         results["cookies"].extend(cookies)
-        
+
         # Technology detection
         technologies = await self.page.evaluate("""
             () => {
@@ -617,7 +621,7 @@ class PlaywrightAgent(BaseAgent):
         """)
         results["technologies"].extend(technologies)
 
-    async def _extract_links(self) -> List[str]:
+    async def _extract_links(self) -> list[str]:
         links = await self.page.evaluate("""
             () => {
                 const links = Array.from(document.links);
@@ -630,21 +634,21 @@ class PlaywrightAgent(BaseAgent):
         try:
             parsed_url = urlparse(url)
             parsed_base = urlparse(base_url)
-            
+
             # Only crawl same domain
             if parsed_url.netloc != parsed_base.netloc:
                 return False
-            
+
             # Skip common file extensions
             skip_extensions = ['.pdf', '.jpg', '.png', '.gif', '.css', '.js', '.ico', '.xml', '.txt']
             if any(url.lower().endswith(ext) for ext in skip_extensions):
                 return False
-            
+
             # Skip already visited
             if url in self.visited_urls:
                 return False
-            
+
             return True
-            
+
         except Exception:
             return False

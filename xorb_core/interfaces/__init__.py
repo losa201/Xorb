@@ -16,23 +16,23 @@ from __future__ import annotations
 __all__ = [
     # REST DTOs
     "CreateCampaignRequest",
-    "StartCampaignRequest", 
+    "StartCampaignRequest",
     "CampaignResponse",
     "FindingResponse",
     "TriageFindingRequest",
     "EmbeddingRequest",
     "KnowledgeAtomResponse",
-    
+
     # REST Controllers
     "CampaignController",
     "FindingController",
     "KnowledgeController",
     "HealthController",
-    
+
     # gRPC Services
     "EmbeddingGrpcService",
     "CampaignGrpcService",
-    
+
     # Dependency Injection
     "Dependencies",
     "get_campaign_service",
@@ -41,34 +41,30 @@ __all__ = [
 ]
 
 # Import REST DTOs
-from .rest.schemas import (
-    CreateCampaignRequest,
-    StartCampaignRequest,
-    CampaignResponse,
-    FindingResponse,
-    TriageFindingRequest,
-    EmbeddingRequest,
-    KnowledgeAtomResponse
-)
-
-# Import REST Controllers
-from .rest.controllers import (
-    CampaignController,
-    FindingController,
-    KnowledgeController,
-    HealthController
-)
-
-# Import gRPC Services
-from .grpc.services import (
-    EmbeddingGrpcService,
-    CampaignGrpcService
-)
-
 # Import Dependency Injection
 from .dependencies import (
     Dependencies,
     get_campaign_service,
     get_finding_service,
-    get_knowledge_service
+    get_knowledge_service,
+)
+
+# Import gRPC Services
+from .grpc.services import CampaignGrpcService, EmbeddingGrpcService
+
+# Import REST Controllers
+from .rest.controllers import (
+    CampaignController,
+    FindingController,
+    HealthController,
+    KnowledgeController,
+)
+from .rest.schemas import (
+    CampaignResponse,
+    CreateCampaignRequest,
+    EmbeddingRequest,
+    FindingResponse,
+    KnowledgeAtomResponse,
+    StartCampaignRequest,
+    TriageFindingRequest,
 )

@@ -1,5 +1,6 @@
 import importlib.metadata
 
+
 def load_plugins(group_name: str):
     """Load plugins for a given group."""
     plugins = []

@@ -1,5 +1,5 @@
 
-from typing import Protocol, List, runtime_checkable, Set
+from typing import Protocol, runtime_checkable
 
 from ..models.agents import DiscoveryTarget, Finding
 
@@ -25,11 +25,11 @@ class BaseAgent(Protocol):
         ...
 
     @property
-    def accepted_target_types(self) -> Set[str]:
+    def accepted_target_types(self) -> set[str]:
         """The set of `target_type` values this agent can process."""
         ...
 
-    async def run(self, target: DiscoveryTarget) -> List[Finding]:
+    async def run(self, target: DiscoveryTarget) -> list[Finding]:
         """
         Executes the agent's primary task on a given target.
 
