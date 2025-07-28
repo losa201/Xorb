@@ -17,6 +17,8 @@ import aiohttp
 import asyncio
 from typing import Optional
 
+from .gateway import HardenedAPIGateway
+
 std_logging.basicConfig(level=std_logging.INFO)
 logger = std_logging.getLogger(__name__)
 
@@ -65,6 +67,31 @@ app = FastAPI(
     description="Penetration Testing as a Service API",
     version="2.0.0",
     lifespan=lifespan
+)
+
+# Initialize hardened API gateway
+redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
+gateway = HardenedAPIGateway(app, redis_url)
+
+# Configure gateway settings
+gateway.configure_rate_limiting(
+    requests_per_second=50,
+    requests_per_minute=1000,
+    requests_per_hour=10000,
+    requests_per_day=100000
+)
+
+gateway.configure_circuit_breaker(
+    failure_threshold=3,
+    success_threshold=2,
+    timeout_seconds=30
+)
+
+gateway.configure_security(
+    enable_jwt_auth=True,
+    enable_api_keys=True,
+    enable_ddos_protection=True,
+    max_request_size=5 * 1024 * 1024  # 5MB
 )
 
 # Add performance optimization middleware
@@ -166,6 +193,32 @@ async def get_compliance_status():
         "soc2_readiness": "green",
         "message": "Compliance automation system ready"
     }
+
+# Gateway management endpoints
+@app.get("/api/v1/gateway/stats")
+async def gateway_stats():
+    """Get gateway statistics"""
+    return await gateway.get_gateway_stats()
+
+@app.get("/api/v1/gateway/health")
+async def gateway_health():
+    """Gateway health check"""
+    return await gateway.health_check()
+
+@app.post("/api/v1/gateway/security/block-ip")
+async def block_ip_address(ip: str):
+    """Block an IP address"""
+    try:
+        await gateway.block_ip(ip)
+        return {"status": "success", "message": f"IP {ip} blocked"}
+    except ValueError as e:
+        return {"status": "error", "message": str(e)}
+
+@app.post("/api/v1/gateway/security/unblock-ip") 
+async def unblock_ip_address(ip: str):
+    """Unblock an IP address"""
+    await gateway.unblock_ip(ip)
+    return {"status": "success", "message": f"IP {ip} unblocked"}
 
 if __name__ == "__main__":
     # Get configuration from environment

@@ -1,0 +1,369 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xorb-rbac-config
+  namespace: xorb-system
+data:
+  rbac-policy.yaml: |
+    # XORB RBAC Policy Configuration
+    
+    roles:
+      xorb-admin:
+        permissions:
+          - xorb:*:*
+          - system:admin:*
+        description: "Full administrative access to XORB platform"
+        
+      xorb-operator:
+        permissions:
+          - xorb:campaigns:*
+          - xorb:agents:read,execute
+          - xorb:monitoring:read
+        description: "Campaign operations and agent execution"
+        
+      xorb-analyst:
+        permissions:
+          - xorb:data:read
+          - xorb:reports:read,create
+          - xorb:analytics:read
+        description: "Read-only access for security analysts"
+        
+      xorb-agent:
+        permissions:
+          - xorb:agents:execute
+          - xorb:telemetry:write
+          - xorb:data:read
+        description: "Agent execution and telemetry reporting"
+        
+    service_accounts:
+      xorb-api-service:
+        role: xorb-operator
+        namespace: xorb-system
+        
+      xorb-orchestrator-service:
+        role: xorb-admin
+        namespace: xorb-system
+        
+      xorb-worker-service:
+        role: xorb-agent
+        namespace: xorb-system
+        
+      xorb-monitoring-service:
+        role: xorb-analyst
+        namespace: xorb-system
+        
+    audit_config:
+      enabled: true
+      log_level: metadata
+      retention_days: 90
+      sensitive_resources:
+        - secrets
+        - configmaps
+        - serviceaccounts
+      audit_events:
+        - authentication
+        - authorization
+        - resource_access
+        - privilege_escalation
+
+---
+apiVersion: audit.k8s.io/v1
+kind: Policy
+metadata:
+  name: xorb-audit-policy
+rules:
+# Log all XORB namespace activities at metadata level
+- level: Metadata
+  namespaces: ["xorb-system", "xorb-staging", "xorb-production"]
+  resources:
+  - group: ""
+    resources: ["*"]
+  - group: "apps"
+    resources: ["*"]
+  - group: "extensions"
+    resources: ["*"]
+
+# Log sensitive resource access at request level
+- level: Request
+  resources:
+  - group: ""
+    resources: ["secrets", "configmaps", "serviceaccounts"]
+  - group: "rbac.authorization.k8s.io"
+    resources: ["*"]
+
+# Log authentication events
+- level: Metadata
+  users: ["system:anonymous"]
+  verbs: ["*"]
+
+# Log privilege escalation attempts
+- level: Request
+  verbs: ["escalate", "impersonate"]
+
+# Log exec and port-forward for security
+- level: Request
+  resources:
+  - group: ""
+    resources: ["pods/exec", "pods/portforward"]
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: xorb-rbac-tracer
+  namespace: xorb-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: xorb-rbac-tracer
+rules:
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["get", "list", "watch", "create"]
+- apiGroups: ["audit.k8s.io"]
+  resources: ["events"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: [""]
+  resources: ["serviceaccounts", "users", "groups"]
+  verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: xorb-rbac-tracer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: xorb-rbac-tracer
+subjects:
+- kind: ServiceAccount
+  name: xorb-rbac-tracer
+  namespace: xorb-system
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xorb-rbac-tracer
+  namespace: xorb-system
+  labels:
+    app: xorb-rbac-tracer
+    component: security
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xorb-rbac-tracer
+  template:
+    metadata:
+      labels:
+        app: xorb-rbac-tracer
+    spec:
+      serviceAccount: xorb-rbac-tracer
+      containers:
+      - name: rbac-tracer
+        image: xorb/rbac-tracer:latest
+        env:
+        - name: KUBERNETES_NAMESPACE
+          value: "xorb-system"
+        - name: AUDIT_LOG_PATH
+          value: "/var/log/audit/audit.log"
+        - name: PROMETHEUS_URL
+          value: "http://prometheus:9090"
+        - name: ALERT_WEBHOOK_URL
+          valueFrom:
+            secretKeyRef:
+              name: xorb-security-secrets
+              key: alert-webhook-url
+        ports:
+        - containerPort: 8080
+          name: metrics
+        volumeMounts:
+        - name: audit-logs
+          mountPath: /var/log/audit
+          readOnly: true
+        - name: config
+          mountPath: /etc/rbac-tracer
+        resources:
+          requests:
+            memory: 256Mi
+            cpu: 200m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: audit-logs
+        hostPath:
+          path: /var/log/audit
+      - name: config
+        configMap:
+          name: xorb-rbac-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: xorb-rbac-tracer
+  namespace: xorb-system
+  labels:
+    app: xorb-rbac-tracer
+spec:
+  selector:
+    app: xorb-rbac-tracer
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: metrics
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: xorb-rbac-tracer
+  namespace: xorb-system
+  labels:
+    app: xorb-rbac-tracer
+spec:
+  selector:
+    matchLabels:
+      app: xorb-rbac-tracer
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: xorb-security-alerts
+  namespace: xorb-system
+  labels:
+    app: xorb
+    component: security
+spec:
+  groups:
+  - name: xorb.security.rules
+    rules:
+    - alert: XorbUnauthorizedAccess
+      expr: |
+        sum(rate(xorb_rbac_access_denied_total[5m])) > 0
+      for: 1m
+      labels:
+        severity: warning
+        component: security
+      annotations:
+        summary: "Unauthorized access attempt detected"
+        description: "{{ $value }} unauthorized access attempts in the last 5 minutes"
+        
+    - alert: XorbPrivilegeEscalation
+      expr: |
+        sum(rate(xorb_rbac_privilege_escalation_total[5m])) > 0
+      for: 0m
+      labels:
+        severity: critical
+        component: security
+      annotations:
+        summary: "Privilege escalation attempt detected"
+        description: "Privilege escalation attempt detected in XORB system"
+        
+    - alert: XorbAnomalousRBACActivity
+      expr: |
+        sum(rate(xorb_rbac_events_total[1h])) > 
+        sum(rate(xorb_rbac_events_total[1h] offset 24h)) * 1.5
+      for: 5m
+      labels:
+        severity: warning
+        component: security
+      annotations:
+        summary: "Anomalous RBAC activity detected"
+        description: "RBAC activity is {{ $value }}x higher than usual"
+        
+    - alert: XorbFailedAuthentication
+      expr: |
+        sum(rate(xorb_auth_failures_total[5m])) > 10
+      for: 2m
+      labels:
+        severity: warning
+        component: security
+      annotations:
+        summary: "High authentication failure rate"
+        description: "{{ $value }} authentication failures per second"
+        
+    - alert: XorbSuspiciousServiceAccount
+      expr: |
+        sum(rate(xorb_rbac_service_account_anomaly_total[5m])) > 0
+      for: 1m
+      labels:
+        severity: critical
+        component: security
+      annotations:
+        summary: "Suspicious service account activity"
+        description: "Anomalous service account behavior detected"
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: xorb-rbac-tracer-network-policy
+  namespace: xorb-system
+spec:
+  podSelector:
+    matchLabels:
+      app: xorb-rbac-tracer
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 8080
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: prometheus
+    ports:
+    - protocol: TCP
+      port: 9090
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 6443  # Kubernetes API server
+    - protocol: TCP
+      port: 443   # HTTPS
+    - protocol: UDP
+      port: 53    # DNS
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: xorb-security-secrets
+  namespace: xorb-system
+type: Opaque
+data:
+  alert-webhook-url: aHR0cHM6Ly9ob29rcy5zbGFjay5jb20vc2VydmljZXMveG9yYi1zZWN1cml0eQ== # base64 encoded webhook URL
+  encryption-key: eG9yYi1zZWN1cml0eS1lbmNyeXB0aW9uLWtleS0yMDI1 # base64 encoded encryption key

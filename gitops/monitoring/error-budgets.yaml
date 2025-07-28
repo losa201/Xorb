@@ -1,0 +1,361 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xorb-error-budgets
+  namespace: xorb-system
+data:
+  error-budget-config.yaml: |
+    # XORB Error Budget Configuration
+    # Service Level Objectives (SLOs) and Error Budget tracking
+    
+    services:
+      xorb-api:
+        slo:
+          availability: 99.9%    # 99.9% uptime SLO
+          latency_p95: 500ms     # 95th percentile response time
+          latency_p99: 1000ms    # 99th percentile response time
+          error_rate: 0.1%       # Maximum error rate
+        error_budget:
+          window: 30d            # 30-day rolling window
+          burn_rate_alert: 14.4  # Alert if consuming budget 14.4x faster than sustainable
+        alerts:
+          - name: API-HighErrorRate
+            condition: error_rate > 0.5%
+            severity: warning
+          - name: API-HighLatency
+            condition: latency_p95 > 750ms
+            severity: warning
+          - name: API-ErrorBudgetExhausted
+            condition: error_budget_remaining < 10%
+            severity: critical
+            
+      xorb-orchestrator:
+        slo:
+          availability: 99.95%   # Higher availability for orchestrator
+          latency_p95: 200ms
+          latency_p99: 500ms
+          error_rate: 0.05%
+        error_budget:
+          window: 30d
+          burn_rate_alert: 20
+        alerts:
+          - name: Orchestrator-HighErrorRate
+            condition: error_rate > 0.2%
+            severity: warning
+          - name: Orchestrator-HighLatency
+            condition: latency_p95 > 300ms
+            severity: warning
+            
+      xorb-worker:
+        slo:
+          availability: 99.5%    # Slightly lower for workers (can scale)
+          latency_p95: 1000ms
+          throughput: 100rps     # Minimum throughput requirement
+          error_rate: 0.2%
+        error_budget:
+          window: 30d
+          burn_rate_alert: 10
+        alerts:
+          - name: Worker-LowThroughput
+            condition: throughput < 50rps
+            severity: warning
+          - name: Worker-HighErrorRate
+            condition: error_rate > 1%
+            severity: warning
+            
+    global_error_budget:
+      composite_slo: 99.9%      # Overall system availability
+      critical_user_journeys:
+        - name: "Agent Execution Pipeline"
+          steps:
+            - service: xorb-api
+              weight: 0.2
+            - service: xorb-orchestrator
+              weight: 0.6
+            - service: xorb-worker
+              weight: 0.2
+          target_success_rate: 99.5%
+          
+        - name: "Real-time Monitoring"
+          steps:
+            - service: xorb-api
+              weight: 0.5
+            - service: monitoring-stack
+              weight: 0.5
+          target_success_rate: 99.8%
+          
+    cost_optimization:
+      error_budget_cost_factor: 0.8  # Reduce costs when error budget is healthy
+      scale_down_threshold: 90%      # Scale down when error budget > 90%
+      scale_up_threshold: 30%        # Scale up when error budget < 30%
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: xorb-error-budget-rules
+  namespace: xorb-system
+  labels:
+    app: xorb
+    component: monitoring
+spec:
+  groups:
+  - name: xorb.error-budget.rules
+    interval: 30s
+    rules:
+    # API Service Error Budget
+    - alert: XorbAPIErrorBudgetExhausted
+      expr: |
+        (
+          1 - (
+            sum(rate(xorb_api_requests_total{status!~"5.."}[30d])) /
+            sum(rate(xorb_api_requests_total[30d]))
+          )
+        ) * 100 > 90
+      for: 5m
+      labels:
+        severity: critical
+        service: xorb-api
+      annotations:
+        summary: "XORB API error budget 90% exhausted"
+        description: "API error budget is 90% consumed with {{ $value }}% of monthly budget used"
+        
+    - alert: XorbAPIHighErrorRate
+      expr: |
+        sum(rate(xorb_api_requests_total{status=~"5.."}[5m])) /
+        sum(rate(xorb_api_requests_total[5m])) * 100 > 0.5
+      for: 2m
+      labels:
+        severity: warning
+        service: xorb-api
+      annotations:
+        summary: "XORB API high error rate"
+        description: "API error rate is {{ $value }}% over the last 5 minutes"
+        
+    - alert: XorbAPIHighLatency
+      expr: |
+        histogram_quantile(0.95, sum(rate(xorb_api_duration_seconds_bucket[5m])) by (le)) > 0.5
+      for: 5m
+      labels:
+        severity: warning
+        service: xorb-api
+      annotations:
+        summary: "XORB API high latency"
+        description: "API 95th percentile latency is {{ $value }}s"
+        
+    # Orchestrator Service Error Budget
+    - alert: XorbOrchestratorErrorBudget
+      expr: |
+        (
+          1 - (
+            sum(rate(xorb_orchestrator_operations_total{status="success"}[30d])) /
+            sum(rate(xorb_orchestrator_operations_total[30d]))
+          )
+        ) * 100 > 85
+      for: 5m
+      labels:
+        severity: critical
+        service: xorb-orchestrator
+      annotations:
+        summary: "XORB Orchestrator error budget 85% exhausted"
+        description: "Orchestrator error budget is {{ $value }}% consumed"
+        
+    # Worker Service Error Budget
+    - alert: XorbWorkerThroughputLow
+      expr: |
+        sum(rate(xorb_worker_tasks_completed_total[5m])) < 50
+      for: 10m
+      labels:
+        severity: warning
+        service: xorb-worker
+      annotations:
+        summary: "XORB Worker throughput below SLO"
+        description: "Worker throughput is {{ $value }} tasks/sec, below 50 tasks/sec SLO"
+        
+    # Cost Optimization Rules
+    - record: xorb:error_budget_health
+      expr: |
+        100 - (
+          (
+            sum(rate(xorb_api_requests_total{status=~"5.."}[30d])) +
+            sum(rate(xorb_orchestrator_operations_total{status!="success"}[30d])) +
+            sum(rate(xorb_worker_tasks_failed_total[30d]))
+          ) /
+          (
+            sum(rate(xorb_api_requests_total[30d])) +
+            sum(rate(xorb_orchestrator_operations_total[30d])) +
+            sum(rate(xorb_worker_tasks_total[30d]))
+          ) * 100
+        )
+        
+    - alert: XorbScaleDownOpportunity
+      expr: xorb:error_budget_health > 90
+      for: 1h
+      labels:
+        severity: info
+        action: scale-down
+      annotations:
+        summary: "XORB can scale down resources"
+        description: "Error budget health is {{ $value }}%, consider scaling down to reduce costs"
+        
+    - alert: XorbScaleUpRequired
+      expr: xorb:error_budget_health < 30
+      for: 15m
+      labels:
+        severity: warning
+        action: scale-up
+      annotations:
+        summary: "XORB should scale up resources"
+        description: "Error budget health is {{ $value }}%, scale up to improve reliability"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xorb-cost-optimizer-config
+  namespace: xorb-system
+data:
+  optimizer.yaml: |
+    cost_optimization:
+      enabled: true
+      optimization_interval: 300s  # 5 minutes
+      
+      scaling_policies:
+        api:
+          min_replicas: 2
+          max_replicas: 10
+          target_cpu_utilization: 70%
+          scale_down_threshold: 50%
+          scale_up_threshold: 80%
+          
+        orchestrator:
+          min_replicas: 1
+          max_replicas: 3
+          target_cpu_utilization: 60%
+          
+        worker:
+          min_replicas: 2
+          max_replicas: 20
+          target_cpu_utilization: 75%
+          queue_length_threshold: 100
+          
+      resource_optimization:
+        cpu_request_utilization_threshold: 80%
+        memory_request_utilization_threshold: 85%
+        
+      cost_metrics:
+        cpu_cost_per_core_hour: 0.05  # USD
+        memory_cost_per_gb_hour: 0.01  # USD
+        storage_cost_per_gb_month: 0.10  # USD
+        
+      recommendations:
+        enable_rightsizing: true
+        enable_spot_instances: true
+        enable_reserved_instances: false
+        
+      alerts:
+        monthly_budget: 1000  # USD
+        budget_alert_threshold: 80%  # Alert at 80% of budget
+        cost_spike_threshold: 150%  # Alert on 50% cost increase
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: xorb-cost-optimizer
+  namespace: xorb-system
+  labels:
+    app: xorb-cost-optimizer
+spec:
+  selector:
+    app: xorb-cost-optimizer
+  ports:
+  - port: 8080
+    targetPort: 8080
+    name: http
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xorb-cost-optimizer
+  namespace: xorb-system
+  labels:
+    app: xorb-cost-optimizer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xorb-cost-optimizer
+  template:
+    metadata:
+      labels:
+        app: xorb-cost-optimizer
+    spec:
+      serviceAccount: xorb-cost-optimizer
+      containers:
+      - name: cost-optimizer
+        image: xorb/cost-optimizer:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: PROMETHEUS_URL
+          value: "http://prometheus:9090"
+        - name: KUBERNETES_NAMESPACE
+          value: "xorb-system"
+        - name: OPTIMIZATION_INTERVAL
+          value: "300"
+        resources:
+          requests:
+            memory: 128Mi
+            cpu: 100m
+          limits:
+            memory: 512Mi
+            cpu: 500m
+        volumeMounts:
+        - name: config
+          mountPath: /etc/optimizer
+      volumes:
+      - name: config
+        configMap:
+          name: xorb-cost-optimizer-config
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: xorb-cost-optimizer
+  namespace: xorb-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: xorb-cost-optimizer
+rules:
+- apiGroups: [""]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch", "patch", "update"]
+- apiGroups: ["autoscaling"]
+  resources: ["horizontalpodautoscalers"]
+  verbs: ["get", "list", "watch", "create", "patch", "update"]
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["pods", "nodes"]
+  verbs: ["get", "list"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: xorb-cost-optimizer
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: xorb-cost-optimizer
+subjects:
+- kind: ServiceAccount
+  name: xorb-cost-optimizer
+  namespace: xorb-system

@@ -47,6 +47,7 @@ from tenacity import (
 )
 
 from ..agents.base_agent import AgentCapability, BaseAgent
+from ..agents.swarm_intelligence import SwarmIntelligence, SwarmAgent, AgentRole, SwarmDecisionType
 from .audit_logger import AuditLogger
 from .event_system import EventBus
 from .roe_compliance import RoEValidator
@@ -366,6 +367,19 @@ class EnhancedOrchestrator:
         self.roe_validator = RoEValidator()
         self.event_system = EventBus()
         self.metrics = MetricsCollector()
+        
+        # Enhanced swarm intelligence
+        self.swarm_intelligence = SwarmIntelligence(
+            max_agents=max_concurrent_agents,
+            convergence_threshold=0.8
+        )
+        
+        # Advanced load balancer
+        from .load_balancer import EPYCOptimizedLoadBalancer
+        self.load_balancer = EPYCOptimizedLoadBalancer(
+            max_agents=max_concurrent_agents,
+            epyc_cores=64  # EPYC 7702 configuration
+        )
         
         # Performance optimization settings
         self.performance_config = {
