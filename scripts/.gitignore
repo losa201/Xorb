@@ -1,0 +1,80 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Data directories
+data/
+prometheus_data/
+grafana_data/
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# Test coverage
+htmlcov/
+.coverage
+.pytest_cache/
+
+# Results and reports
+campaign_results_*.json
+deployment_verification_*.json
+*.report
+
+# Temporary files
+*.tmp
+*.temp
+
+# Docker
+.docker/
+
+# Secrets
+secrets/
+certs/
+*.pem
+*.key
+*.crt
+
+# Backups
+backups/

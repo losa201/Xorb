@@ -1,0 +1,7 @@
+aiofiles
+aioredis
+aiohttp
+playwright
+requests
+lxml
+beautifulsoup4

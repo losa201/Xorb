@@ -1,0 +1,35 @@
+FROM php:8.0-apache
+
+# Install vulnerable web application
+RUN apt-get update && apt-get install -y \
+    mysql-client \
+    sqlite3 \
+    curl \
+    wget \
+    vim \
+    && rm -rf /var/lib/apt/lists/*
+
+# Enable Apache modules
+RUN a2enmod rewrite
+
+# Create vulnerable web application
+WORKDIR /var/www/html
+
+# Remove default index
+RUN rm index.html
+
+# Create vulnerable PHP application
+COPY vulnerable_app/ ./
+
+# Set permissions
+RUN chown -R www-data:www-data /var/www/html
+RUN chmod -R 755 /var/www/html
+
+# Configure PHP for vulnerabilities
+RUN echo "display_errors = On" >> /usr/local/etc/php/php.ini
+RUN echo "allow_url_include = On" >> /usr/local/etc/php/php.ini
+RUN echo "allow_url_fopen = On" >> /usr/local/etc/php/php.ini
+
+EXPOSE 80
+
+CMD ["apache2-foreground"]

@@ -1,0 +1,222 @@
+version: '3.8'
+
+# XORB Consolidated Docker Compose - AMD EPYC Optimized
+# Single streamlined file eliminating duplications
+
+networks:
+  xorb-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  xorb_models:
+  xorb_logs:
+
+services:
+  # ==========================================
+  # CORE INFRASTRUCTURE
+  # ==========================================
+  
+  postgres:
+    image: postgres:16-alpine
+    container_name: xorb-postgres
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-xorb}
+      POSTGRES_USER: ${POSTGRES_USER:-xorb}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./legacy/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-xorb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: xorb-redis
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # XORB CORE SERVICES
+  # ==========================================
+
+  xorb-api-gateway:
+    build:
+      context: ./legacy
+      dockerfile: ./compose/Dockerfile.api
+    container_name: xorb-api-gateway
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "8080:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-your-secret-key}
+      - CORS_ORIGINS=${CORS_ORIGINS:-*}
+    volumes:
+      - xorb_logs:/app/logs
+      - ./legacy/config:/app/config:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+    
+  xorb-orchestrator:
+    build:
+      context: ./legacy
+      dockerfile: ./compose/Dockerfile.orchestrator
+    container_name: xorb-orchestrator
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}
+      - REDIS_URL=redis://redis:6379
+      - ORCHESTRATION_MODE=enhanced
+    volumes:
+      - xorb_logs:/app/logs
+      - ./legacy/config:/app/config:ro
+    depends_on:
+      - xorb-api-gateway
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+
+  # ==========================================
+  # MONITORING STACK (Consolidated)
+  # ==========================================
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: xorb-prometheus
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./legacy/config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./legacy/config/prometheus/rules:/etc/prometheus/rules:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--query.max-concurrency=20'
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: xorb-grafana
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./legacy/config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./legacy/config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN__PASSWORD=${GRAFANA_PASSWORD:-xorb-admin-2024}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # ==========================================
+  # REVERSE PROXY (Simplified)
+  # ==========================================
+
+  nginx:
+    image: nginx:alpine
+    container_name: xorb-nginx
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./legacy/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./legacy/config/nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - xorb-api-gateway
+      - grafana
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'

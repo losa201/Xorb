@@ -1,0 +1,113 @@
+
+
+
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_DSN=postgresql://temporal:temporal@postgres:5432/temporal
+      - REDIS_URL=redis://redis:6379/0
+      - TEMPORAL_HOST=temporal:7233
+      - ENABLE_METRICS=true
+      # Strategic LLM Integration (Paid-First with Free Fallback)
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - LLM_PREFER_PAID=${LLM_PREFER_PAID:-true}
+      - LLM_ENABLE_FALLBACK=${LLM_ENABLE_FALLBACK:-true}
+      - LLM_DAILY_BUDGET=${LLM_DAILY_BUDGET:-25.0}
+      - LLM_MONTHLY_BUDGET=${LLM_MONTHLY_BUDGET:-500.0}
+      - LLM_REQUEST_LIMIT=${LLM_REQUEST_LIMIT:-5.0}
+      - LLM_DAILY_REQUEST_LIMIT=${LLM_DAILY_REQUEST_LIMIT:-100}
+      - LLM_MONTHLY_REQUEST_LIMIT=${LLM_MONTHLY_REQUEST_LIMIT:-2000}
+      - LLM_HOURLY_REQUEST_LIMIT=${LLM_HOURLY_REQUEST_LIMIT:-20}
+      - EPYC_OPTIMIZATION=true
+      - AI_ENHANCED=true
+    depends_on:
+      - temporal
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.worker
+    ports:
+      - "9001:9000"  # Metrics port
+    environment:
+      - TEMPORAL_HOST=temporal:7233
+      - TASK_QUEUE=xorb-task-queue
+      - METRICS_PORT=9000
+      - ENABLE_METRICS=true
+      # Strategic LLM Integration (Paid-First with Free Fallback)
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - LLM_PREFER_PAID=${LLM_PREFER_PAID:-true}
+      - LLM_ENABLE_FALLBACK=${LLM_ENABLE_FALLBACK:-true}
+      - LLM_DAILY_BUDGET=${LLM_DAILY_BUDGET:-25.0}
+      - LLM_MONTHLY_BUDGET=${LLM_MONTHLY_BUDGET:-500.0}
+      - LLM_DAILY_REQUEST_LIMIT=${LLM_DAILY_REQUEST_LIMIT:-100}
+      - LLM_MONTHLY_REQUEST_LIMIT=${LLM_MONTHLY_REQUEST_LIMIT:-2000}
+      - EPYC_OPTIMIZATION=true
+      - AI_ENHANCED=true
+    depends_on:
+      - temporal
+      - postgres
+      - redis
+    restart: unless-stopped
+
+  orchestrator:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.orchestrator
+    depends_on:
+      - temporal
+
+  llm-cortex:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.llm-cortex
+    ports:
+      - "8009:8009"
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - NVIDIA_API_KEY=${NVIDIA_API_KEY}
+      - XORB_AUDIT_KEY=${XORB_AUDIT_KEY:-xorb-default-key-2025}
+      - PYTHONPATH=/app:/app/xorb_core
+    volumes:
+      - ../logs:/app/logs
+    restart: unless-stopped
+
+  temporal:
+    image: temporalio/auto-setup:1.10.0
+    ports:
+      - "7233:7233"
+      - "8233:8233"
+    environment:
+      - DB=postgresql
+      - DB_PORT=5432
+      - POSTGRES_USER=temporal
+      - POSTGRES_PWD=temporal
+      - POSTGRES_DB=temporal
+      - POSTGRES_SEEDS=postgres
+
+  postgres:
+    image: ankane/pgvector
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=temporal
+      - POSTGRES_PASSWORD=temporal
+      - POSTGRES_DB=temporal
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+
+  # Additional services will be added when service directories exist

@@ -1,0 +1,185 @@
+# XORB Blue Team - Suricata Configuration
+# Optimized for containerized red vs blue team combat
+
+# Global settings
+default-log-dir: /blueteam/logs/
+stats:
+  enabled: yes
+  interval: 30
+
+# Interface configuration
+af-packet:
+  - interface: eth0
+    cluster-id: 99
+    cluster-type: cluster_flow
+    defrag: yes
+
+# Detection engine
+detect-engine:
+  - profile: high
+  - custom-values:
+      toclient-groups: 3
+      toserver-groups: 25
+
+# Logging configuration
+outputs:
+  - fast:
+      enabled: yes
+      filename: fast.log
+      append: yes
+  
+  - eve-log:
+      enabled: yes
+      filetype: regular
+      filename: eve.json
+      types:
+        - alert:
+            payload: yes
+            payload-buffer-size: 4kb
+            payload-printable: yes
+            packet: yes
+            metadata: yes
+            http-body: yes
+            http-body-printable: yes
+        - http:
+            extended: yes
+        - dns:
+            query: yes
+            answer: yes
+        - tls:
+            extended: yes
+        - files:
+            force-magic: no
+        - smtp:
+        - ssh
+        - flow
+        - netflow
+
+# Rule configuration
+default-rule-path: /var/lib/suricata/rules
+rule-files:
+  - suricata.rules
+  - /blueteam/rules/custom.rules
+  - /blueteam/rules/red-team-detection.rules
+
+# Classification and reference config
+classification-file: /etc/suricata/classification.config
+reference-config-file: /etc/suricata/reference.config
+
+# Variables
+vars:
+  address-groups:
+    HOME_NET: "[172.20.0.0/24]"
+    EXTERNAL_NET: "!$HOME_NET"
+    HTTP_SERVERS: "$HOME_NET"
+    SMTP_SERVERS: "$HOME_NET" 
+    SQL_SERVERS: "$HOME_NET"
+    DNS_SERVERS: "$HOME_NET"
+    TELNET_SERVERS: "$HOME_NET"
+    AIM_SERVERS: "$EXTERNAL_NET"
+    DNP3_SERVER: "$HOME_NET"
+    DNP3_CLIENT: "$HOME_NET"
+    MODBUS_CLIENT: "$HOME_NET"
+    MODBUS_SERVER: "$HOME_NET"
+    ENIP_CLIENT: "$HOME_NET"
+    ENIP_SERVER: "$HOME_NET"
+
+  port-groups:
+    HTTP_PORTS: "80"
+    SHELLCODE_PORTS: "!80"
+    ORACLE_PORTS: 1521
+    SSH_PORTS: 22
+    DNP3_PORTS: 20000
+    MODBUS_PORTS: 502
+    FILE_DATA_PORTS: "[$HTTP_PORTS,110,143]"
+    FTP_PORTS: 21
+    GENEVE_PORTS: 6081
+    VXLAN_PORTS: 4789
+    TEREDO_PORTS: 3544
+
+# Host OS policy
+host-os-policy:
+  linux: [172.20.0.0/24]
+  windows: []
+
+# Stream configuration
+stream:
+  memcap: 64mb
+  checksum-validation: yes
+  inline: auto
+  reassembly:
+    memcap: 256mb
+    depth: 1mb
+    toserver-chunk-size: 2560
+    toclient-chunk-size: 2560
+
+# Application layer protocols
+app-layer:
+  protocols:
+    http:
+      enabled: yes
+      memcap: 64mb
+      request-body-limit: 100kb
+      response-body-limit: 100kb
+      request-body-minimal-inspect-size: 32kb
+      request-body-inspect-window: 4kb
+      response-body-minimal-inspect-size: 40kb
+      response-body-inspect-width: 16kb
+      double-decode-path: no
+      double-decode-query: no
+    
+    tls:
+      enabled: yes
+      detection-ports:
+        dp: 443
+    
+    ssh:
+      enabled: yes
+    
+    smtp:
+      enabled: yes
+      mime:
+        decode-mime: yes
+        decode-base64: yes
+        decode-quoted-printable: yes
+        header-value-depth: 2000
+        extract-urls: yes
+        body-md5: yes
+    
+    dns:
+      tcp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+      udp:
+        enabled: yes
+        detection-ports:
+          dp: 53
+
+# Threading
+threading:
+  set-cpu-affinity: no
+  cpu-affinity:
+    - management-cpu-set:
+        cpu: [ 0 ]
+    - receive-cpu-set:
+        cpu: [ 0 ]
+    - worker-cpu-set:
+        cpu: [ 1, 2 ]
+  detect-thread-ratio: 1.0
+
+# Profiling
+profiling:
+  rules:
+    enabled: yes
+    filename: rule_perf.log
+    append: yes
+  keywords:
+    enabled: yes
+    filename: keyword_perf.log
+    append: yes
+
+# Performance tuning for combat environment
+engine-analysis:
+  rules-fast-pattern: yes
+  rules: yes

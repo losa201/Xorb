@@ -1,0 +1,179 @@
+{
+  "llm_integration": {
+    "name": "XORB Strategic LLM Integration",
+    "version": "2.0.0",
+    "description": "Supreme cognitive AI integration with OpenRouter and NVIDIA APIs",
+    "epyc_optimized": true,
+    "deployment_type": "strategic_enhanced"
+  },
+  "providers": {
+    "nvidia": {
+      "enabled": true,
+      "api_base_url": "https://integrate.api.nvidia.com/v1",
+      "models": [
+        {
+          "name": "nvidia/llama-3.1-nemotron-70b-instruct",
+          "capabilities": ["payload_generation", "vulnerability_analysis"],
+          "cost_per_1k_tokens": 0.004,
+          "max_tokens": 32768,
+          "context_window": 131072,
+          "nvidia_optimized": true,
+          "security_score": 0.98
+        },
+        {
+          "name": "nvidia/llama-3.1-405b-instruct",
+          "capabilities": ["threat_assessment", "intelligence_fusion"],
+          "cost_per_1k_tokens": 0.008,
+          "max_tokens": 32768,
+          "context_window": 131072,
+          "nvidia_optimized": true,
+          "security_score": 0.99
+        }
+      ]
+    },
+    "openrouter": {
+      "enabled": true,
+      "api_base_url": "https://openrouter.ai/api/v1",
+      "models": [
+        {
+          "name": "anthropic/claude-3.5-sonnet",
+          "capabilities": ["report_generation", "risk_scoring"],
+          "cost_per_1k_tokens": 0.003,
+          "max_tokens": 8192,
+          "context_window": 200000,
+          "security_score": 0.95
+        },
+        {
+          "name": "openai/gpt-4o",
+          "capabilities": ["anomaly_detection", "attack_simulation"],
+          "cost_per_1k_tokens": 0.005,
+          "max_tokens": 4096,
+          "context_window": 128000,
+          "security_score": 0.92
+        },
+        {
+          "name": "google/gemini-pro-1.5",
+          "capabilities": ["vulnerability_analysis", "threat_assessment"],
+          "cost_per_1k_tokens": 0.002,
+          "max_tokens": 8192,
+          "context_window": 1000000,
+          "security_score": 0.9
+        }
+      ]
+    }
+  },
+  "budget_controls": {
+    "daily_budget_limit": 25.0,
+    "monthly_budget_limit": 500.0,
+    "per_request_limit": 5.0,
+    "emergency_budget": 50.0,
+    "cost_alerts": {
+      "warning_threshold": 0.8,
+      "critical_threshold": 0.95
+    }
+  },
+  "fallback_controls": {
+    "prefer_paid": true,
+    "enable_fallback": true,
+    "daily_request_limit": 100,
+    "monthly_request_limit": 2000,
+    "hourly_request_limit": 20,
+    "emergency_request_limit": 150,
+    "rate_limit_alerts": {
+      "warning_threshold": 0.8,
+      "critical_threshold": 0.95
+    }
+  },
+  "security_tasks": {
+    "payload_generation": {
+      "complexity_levels": ["basic", "enhanced", "advanced", "cognitive"],
+      "preferred_providers": ["nvidia"],
+      "default_complexity": "enhanced",
+      "safety_checks": true,
+      "authorized_testing_only": true
+    },
+    "vulnerability_analysis": {
+      "complexity_levels": ["enhanced", "advanced", "cognitive"],
+      "preferred_providers": ["nvidia", "openrouter"],
+      "default_complexity": "advanced",
+      "cvss_scoring": true,
+      "risk_quantification": true
+    },
+    "threat_assessment": {
+      "complexity_levels": ["advanced", "cognitive"],
+      "preferred_providers": ["nvidia"],
+      "default_complexity": "cognitive",
+      "strategic_analysis": true,
+      "executive_reporting": true
+    },
+    "intelligence_fusion": {
+      "complexity_levels": ["cognitive"],
+      "preferred_providers": ["nvidia"],
+      "default_complexity": "cognitive",
+      "cross_source_correlation": true,
+      "predictive_indicators": true
+    },
+    "report_generation": {
+      "complexity_levels": ["enhanced", "advanced"],
+      "preferred_providers": ["openrouter"],
+      "default_complexity": "advanced",
+      "structured_output": true,
+      "executive_summaries": true
+    }
+  },
+  "optimization": {
+    "epyc_cpu_optimization": true,
+    "request_caching": true,
+    "cache_ttl_seconds": 3600,
+    "batch_processing": true,
+    "request_deduplication": true,
+    "async_processing": true,
+    "connection_pooling": true
+  },
+  "monitoring": {
+    "cost_tracking": true,
+    "performance_metrics": true,
+    "error_reporting": true,
+    "request_logging": true,
+    "model_performance_tracking": true,
+    "security_audit_logging": true
+  },
+  "prompt_templates": {
+    "security_context": "You are an elite cybersecurity specialist conducting authorized penetration testing.",
+    "authorized_testing_disclaimer": "This analysis is for authorized security testing purposes only.",
+    "epyc_optimization_note": "Optimized for AMD EPYC architecture deployment.",
+    "confidence_requirement": "Provide confidence scores and validation requirements for all analyses."
+  },
+  "integration_endpoints": {
+    "intelligence_engine": {
+      "ai_analysis": "/campaigns/{campaign_id}/ai-analysis",
+      "intelligence_fusion": "/intelligence/fusion",
+      "payload_generation": "/payloads/generate",
+      "statistics": "/intelligence/statistics"
+    },
+    "execution_engine": {
+      "scan_analysis": "/scans/{scan_id}/ai-analysis",
+      "evidence_analysis": "/evidence/{evidence_id}/ai-analysis"
+    }
+  },
+  "deployment": {
+    "service_name": "xorb-intelligence-engine",
+    "port": 8001,
+    "environment_variables": {
+      "NVIDIA_API_KEY": "${NVIDIA_API_KEY}",
+      "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
+      "LLM_DAILY_BUDGET": "${LLM_DAILY_BUDGET:-25.0}",
+      "LLM_MONTHLY_BUDGET": "${LLM_MONTHLY_BUDGET:-500.0}",
+      "LLM_REQUEST_LIMIT": "${LLM_REQUEST_LIMIT:-5.0}",
+      "LLM_EMERGENCY_BUDGET": "${LLM_EMERGENCY_BUDGET:-50.0}",
+      "EPYC_OPTIMIZATION": "true",
+      "AI_ENHANCED": "true"
+    },
+    "health_checks": {
+      "endpoint": "/health",
+      "interval": "30s",
+      "timeout": "10s",
+      "retries": 3
+    }
+  }
+}

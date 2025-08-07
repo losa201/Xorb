@@ -1,0 +1,158 @@
+# XORB Blue Team - Fail2Ban Configuration
+# Aggressive protection against red team attacks
+
+[DEFAULT]
+# Ban settings
+bantime = 3600
+findtime = 600
+maxretry = 3
+backend = auto
+usedns = warn
+logencoding = auto
+enabled = true
+
+# Email notifications
+destemail = admin@xorb.local
+sendername = XORB-BlueTeam
+mta = sendmail
+protocol = tcp
+chain = INPUT
+port = 0:65535
+fail2ban_agent = Fail2Ban/%(fail2ban_version)s
+
+# Action shortcuts
+action_mw = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
+            %(mta)s-whois[name=%(__name__)s, dest="%(destemail)s", protocol="%(protocol)s", chain="%(chain)s"]
+
+action_mwl = %(banaction)s[name=%(__name__)s, port="%(port)s", protocol="%(protocol)s", chain="%(chain)s"]
+             %(mta)s-whois-lines[name=%(__name__)s, dest="%(destemail)s", logpath=%(logpath)s, chain="%(chain)s"]
+
+action = %(action_mw)s
+
+# SSH Protection
+[sshd]
+enabled = true
+port = ssh
+logpath = /var/log/auth.log
+backend = %(backend)s
+maxretry = 3
+bantime = 3600
+
+[sshd-ddos]
+enabled = true
+port = ssh
+logpath = /var/log/auth.log
+backend = %(backend)s
+maxretry = 2
+bantime = 7200
+
+# Web Application Protection
+[apache-auth]
+enabled = true
+port = http,https
+logpath = /var/log/apache*/*error.log
+maxretry = 6
+
+[apache-badbots]
+enabled = true
+port = http,https
+logpath = /var/log/apache*/*access.log
+bantime = 48*3600
+maxretry = 1
+
+[apache-noscript]
+enabled = true
+port = http,https
+logpath = /var/log/apache*/*access.log
+maxretry = 6
+
+[apache-overflows]
+enabled = true
+port = http,https
+logpath = /var/log/apache*/*error.log
+maxretry = 2
+
+[apache-nohome]
+enabled = true
+port = http,https
+logpath = /var/log/apache*/*access.log
+maxretry = 2
+
+[apache-botsearch]
+enabled = true
+port = http,https
+logpath = /var/log/apache*/*access.log
+maxretry = 2
+
+# Database Protection
+[mysqld-auth]
+enabled = true
+port = 3306
+logpath = /var/log/mysql/error.log
+maxretry = 3
+bantime = 3600
+
+# Custom Red Team Detection
+[red-team-nmap]
+enabled = true
+port = 0:65535
+logpath = /blueteam/logs/nmap_detection.log
+maxretry = 1
+bantime = 7200
+filter = red-team-nmap
+
+[red-team-burp]
+enabled = true
+port = http,https
+logpath = /blueteam/logs/burp_detection.log
+maxretry = 1
+bantime = 7200
+
+[red-team-sqlmap]
+enabled = true
+port = http,https
+logpath = /var/log/apache*/*access.log
+maxretry = 1
+bantime = 7200
+filter = red-team-sqlmap
+
+[red-team-metasploit]
+enabled = true
+port = 0:65535
+logpath = /blueteam/logs/metasploit_detection.log
+maxretry = 1
+bantime = 14400
+
+# SMB/NetBIOS Protection
+[smb-brute]
+enabled = true
+port = 139,445
+logpath = /var/log/samba/log.*
+maxretry = 3
+bantime = 3600
+
+# General Brute Force Protection
+[recidive]
+enabled = true
+logpath = /var/log/fail2ban.log
+banaction = %(banaction_allports)s
+bantime = 86400
+findtime = 86400
+maxretry = 5
+
+# Port Scan Detection
+[port-scan]
+enabled = true
+port = 0:65535
+logpath = /blueteam/logs/port_scan.log
+maxretry = 1
+bantime = 3600
+
+# Aggressive Monitoring for Combat Environment
+[combat-monitor]
+enabled = true
+port = 0:65535
+logpath = /blueteam/logs/suspicious_activity.log
+maxretry = 1
+bantime = 1800
+findtime = 300

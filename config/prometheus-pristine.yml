@@ -1,0 +1,403 @@
+# XORB Pristine Architecture - Prometheus Configuration
+# Advanced monitoring for microservices with EPYC optimization
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'xorb-pristine'
+    environment: 'production'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ==============================
+  # CORE TIER SERVICES
+  # ==============================
+  
+  - job_name: 'campaign-orchestrator'
+    static_configs:
+      - targets: ['campaign-orchestrator:9001']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: campaign-orchestrator:9001
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'core'
+      - source_labels: [__name__]
+        regex: 'epyc_.*'
+        target_label: epyc_optimized
+        replacement: 'true'
+
+  - job_name: 'target-registry'
+    static_configs:
+      - targets: ['target-registry:9002']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'core'
+
+  - job_name: 'agent-lifecycle'
+    static_configs:
+      - targets: ['agent-lifecycle:9003']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'core'
+
+  - job_name: 'evidence-collector'
+    static_configs:
+      - targets: ['evidence-collector:9004']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'core'
+
+  # ==============================
+  # DOMAIN TIER SERVICES
+  # ==============================
+
+  - job_name: 'vulnerability-scanner'
+    static_configs:
+      - targets: ['vulnerability-scanner:9005']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'domain'
+
+  - job_name: 'exploitation-engine'
+    static_configs:
+      - targets: ['exploitation-engine:9006']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'domain'
+
+  - job_name: 'stealth-manager'
+    static_configs:
+      - targets: ['stealth-manager:9013']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'domain'
+
+  - job_name: 'ai-gateway'
+    static_configs:
+      - targets: ['ai-gateway:9010']
+    metrics_path: '/metrics'
+    scrape_interval: 10s  # More frequent for AI metrics
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_ai_.*'
+        target_label: service_tier
+        replacement: 'domain'
+      - source_labels: [__name__]
+        regex: 'xorb_ai_.*'
+        target_label: service_type
+        replacement: 'ai'
+
+  - job_name: 'threat-intelligence'
+    static_configs:
+      - targets: ['threat-intelligence:9011']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'domain'
+
+  # ==============================
+  # PLATFORM TIER SERVICES
+  # ==============================
+
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:9000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'platform'
+
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:9020']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'platform'
+
+  - job_name: 'metrics-collector'
+    static_configs:
+      - targets: ['metrics-collector:9022']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'platform'
+
+  # ==============================
+  # EDGE TIER SERVICES
+  # ==============================
+
+  - job_name: 'external-integrations'
+    static_configs:
+      - targets: ['external-integrations:9030']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'xorb_.*'
+        target_label: service_tier
+        replacement: 'edge'
+
+  # ==============================
+  # INFRASTRUCTURE SERVICES
+  # ==============================
+
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'pg_.*'
+        target_label: service_type
+        replacement: 'database'
+
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'redis_.*'
+        target_label: service_type
+        replacement: 'cache'
+
+  - job_name: 'timescaledb'
+    static_configs:
+      - targets: ['timescaledb:5432']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'pg_.*'
+        target_label: service_type
+        replacement: 'timeseries'
+
+  # ==============================
+  # FAULT TOLERANCE SERVICES
+  # ==============================
+
+  - job_name: 'circuit-breaker-manager'
+    static_configs:
+      - targets: ['circuit-breaker-manager:8100']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'circuit_breaker_.*'
+        target_label: fault_tolerance_pattern
+        replacement: 'circuit_breaker'
+
+  - job_name: 'bulkhead-manager'
+    static_configs:
+      - targets: ['bulkhead-manager:8101']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'bulkhead_.*'
+        target_label: fault_tolerance_pattern
+        replacement: 'bulkhead'
+
+  # ==============================
+  # EPYC OPTIMIZATION METRICS
+  # ==============================
+
+  - job_name: 'epyc-metrics'
+    static_configs:
+      - targets: ['campaign-orchestrator:9001', 'target-registry:9002', 'agent-lifecycle:9003']
+    metrics_path: '/metrics'
+    scrape_interval: 5s  # High frequency for EPYC metrics
+    params:
+      collect[]: ['epyc']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'epyc_.*'
+        target_label: optimization_type
+        replacement: 'epyc'
+      - source_labels: [__name__]
+        regex: 'xorb_numa_.*'
+        target_label: numa_aware
+        replacement: 'true'
+      - source_labels: [__name__]
+        regex: 'xorb_ccx_.*'
+        target_label: ccx_optimized
+        replacement: 'true'
+
+  # ==============================
+  # SERVICE MESH METRICS
+  # ==============================
+
+  - job_name: 'istio-proxy'
+    static_configs:
+      - targets: ['istio-proxy:15000']
+    metrics_path: '/stats/prometheus'
+    scrape_interval: 15s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'istio_.*'
+        target_label: service_mesh
+        replacement: 'istio'
+
+  # ==============================
+  # OBSERVABILITY STACK
+  # ==============================
+
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'jaeger_.*'
+        target_label: observability_component
+        replacement: 'tracing'
+
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'alertmanager_.*'
+        target_label: observability_component
+        replacement: 'alerting'
+
+# Recording rules for performance optimization
+recording_rules:
+  - name: xorb_business_metrics
+    interval: 30s
+    rules:
+      - record: xorb:campaign_success_rate
+        expr: |
+          rate(xorb_campaigns_total{status="success"}[5m]) / 
+          rate(xorb_campaigns_total[5m])
+      
+      - record: xorb:vulnerability_discovery_rate  
+        expr: rate(xorb_vulnerabilities_discovered_total[5m])
+      
+      - record: xorb:exploit_success_rate
+        expr: |
+          rate(xorb_exploits_successful_total[5m]) / 
+          rate(xorb_exploits_attempted_total[5m])
+
+  - name: xorb_performance_metrics
+    interval: 15s
+    rules:
+      - record: xorb:service_availability
+        expr: |
+          (up == 1) * 100
+      
+      - record: xorb:request_latency_p95
+        expr: |
+          histogram_quantile(0.95, 
+            rate(xorb_request_duration_seconds_bucket[5m]))
+      
+      - record: xorb:error_rate
+        expr: |
+          rate(xorb_request_duration_seconds_count{status=~"4..|5.."}[5m]) /
+          rate(xorb_request_duration_seconds_count[5m])
+
+  - name: xorb_epyc_metrics
+    interval: 10s
+    rules:
+      - record: xorb:epyc_numa_efficiency
+        expr: |
+          avg_over_time(xorb_numa_utilization_percent[5m])
+      
+      - record: xorb:epyc_thermal_health
+        expr: |
+          (xorb_ccx_temperature_celsius < 75) * 100
+      
+      - record: xorb:epyc_cache_effectiveness
+        expr: |
+          avg_over_time(xorb_cache_hit_rate_percent[5m])
+
+  - name: xorb_ai_metrics
+    interval: 30s
+    rules:
+      - record: xorb:ai_cost_efficiency
+        expr: |
+          rate(xorb_ai_inference_duration_seconds_count[5m]) /
+          rate(xorb_ai_cost_usd_total[5m])
+      
+      - record: xorb:ai_model_performance
+        expr: |
+          avg_over_time(xorb_ai_model_accuracy_percent[10m])
+
+# Federation configuration for multi-cluster setups
+federation:
+  - name: 'xorb-federation'
+    targets:
+      - 'prometheus-region-1:9090'
+      - 'prometheus-region-2:9090'
+    metrics:
+      - '{__name__=~"xorb:.*"}'
+      - '{__name__=~"epyc:.*"}'

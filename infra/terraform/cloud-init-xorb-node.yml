@@ -1,0 +1,420 @@
+#cloud-config
+# XORB Federated Node - Hardened Cloud-Init Configuration
+# Zero-trust, compliance-ready node bootstrap
+
+users:
+  - name: xorb
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: [adm, docker, systemd-journal]
+    shell: /bin/bash
+    ssh_authorized_keys:
+      - ${ssh_public_key}
+  - name: xorb-service
+    system: true
+    shell: /usr/sbin/nologin
+    home: /opt/xorb
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - docker.io
+  - docker-compose
+  - ufw
+  - fail2ban
+  - unattended-upgrades
+  - apparmor
+  - apparmor-utils
+  - auditd
+  - htop
+  - curl
+  - wget
+  - git
+  - jq
+  - python3
+  - python3-pip
+  - certbot
+  - nginx
+  - postgresql-client
+  - redis-tools
+
+# Hardening configurations
+bootcmd:
+  - echo 'XORB Node Bootstrap Starting' | systemd-cat -t xorb-bootstrap
+
+runcmd:
+  # System hardening
+  - echo 'net.ipv4.ip_forward=0' >> /etc/sysctl.conf
+  - echo 'net.ipv4.conf.all.send_redirects=0' >> /etc/sysctl.conf
+  - echo 'net.ipv4.conf.default.send_redirects=0' >> /etc/sysctl.conf
+  - echo 'net.ipv4.conf.all.accept_redirects=0' >> /etc/sysctl.conf
+  - echo 'net.ipv4.conf.default.accept_redirects=0' >> /etc/sysctl.conf
+  - echo 'net.ipv4.conf.all.secure_redirects=0' >> /etc/sysctl.conf
+  - echo 'net.ipv4.conf.default.secure_redirects=0' >> /etc/sysctl.conf
+  - echo 'net.ipv4.icmp_ignore_bogus_error_responses=1' >> /etc/sysctl.conf
+  - echo 'net.ipv4.icmp_echo_ignore_broadcasts=1' >> /etc/sysctl.conf
+  - echo 'net.ipv4.conf.all.log_martians=1' >> /etc/sysctl.conf
+  - sysctl -p
+
+  # Configure AppArmor
+  - systemctl enable apparmor
+  - systemctl start apparmor
+  - aa-enforce /etc/apparmor.d/*
+
+  # Configure audit daemon
+  - systemctl enable auditd
+  - systemctl start auditd
+  
+  # Firewall configuration (UFW)
+  - ufw --force reset
+  - ufw default deny incoming
+  - ufw default allow outgoing
+  - ufw allow from 10.0.0.0/16 to any port 22
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw allow from 10.0.0.0/16 to any port 8080
+  - ufw allow from 10.0.0.0/16 to any port 9000:9010
+  - ufw --force enable
+
+  # Configure fail2ban
+  - systemctl enable fail2ban
+  - systemctl start fail2ban
+
+  # Docker hardening
+  - usermod -aG docker xorb
+  - systemctl enable docker
+  - systemctl start docker
+  
+  # Docker daemon security configuration
+  - mkdir -p /etc/docker
+  - |
+    cat > /etc/docker/daemon.json << 'EOF'
+    {
+      "log-driver": "json-file",
+      "log-opts": {
+        "max-size": "10m",
+        "max-file": "3"
+      },
+      "live-restore": true,
+      "userland-proxy": false,
+      "no-new-privileges": true,
+      "seccomp-profile": "/etc/docker/seccomp.json",
+      "default-ulimits": {
+        "nofile": {
+          "Name": "nofile",
+          "Hard": 64000,
+          "Soft": 64000
+        }
+      }
+    }
+    EOF
+  - systemctl restart docker
+
+  # Create XORB directory structure
+  - mkdir -p /opt/xorb/{config,data,logs,certs,backups}
+  - chown -R xorb-service:xorb-service /opt/xorb
+  - chmod 750 /opt/xorb
+
+  # Mount and encrypt additional storage
+  - |
+    if [ -b /dev/sdb ]; then
+      echo "Setting up encrypted storage volume..."
+      # Create encrypted volume (LUKS)
+      echo -n "${node_id}" | cryptsetup luksFormat /dev/sdb -
+      echo -n "${node_id}" | cryptsetup luksOpen /dev/sdb xorb-data -
+      
+      # Create filesystem
+      mkfs.ext4 /dev/mapper/xorb-data
+      
+      # Mount encrypted volume
+      mkdir -p /opt/xorb/encrypted-data
+      mount /dev/mapper/xorb-data /opt/xorb/encrypted-data
+      chown xorb-service:xorb-service /opt/xorb/encrypted-data
+      chmod 750 /opt/xorb/encrypted-data
+      
+      # Add to fstab for persistence
+      echo "/dev/mapper/xorb-data /opt/xorb/encrypted-data ext4 defaults 0 0" >> /etc/fstab
+    fi
+
+  # Configure automatic security updates
+  - |
+    cat > /etc/apt/apt.conf.d/50unattended-upgrades << 'EOF'
+    Unattended-Upgrade::Allowed-Origins {
+        "${distro_id}:${distro_codename}";
+        "${distro_id}:${distro_codename}-security";
+        "${distro_id}ESMApps:${distro_codename}-apps-security";
+        "${distro_id}ESM:${distro_codename}-infra-security";
+    };
+    Unattended-Upgrade::Package-Blacklist {
+        "docker.io";
+        "docker-compose";
+    };
+    Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+    Unattended-Upgrade::MinimalSteps "true";
+    Unattended-Upgrade::Remove-Unused-Dependencies "true";
+    Unattended-Upgrade::Automatic-Reboot "false";
+    EOF
+
+  # Download XORB node bootstrap script
+  - |
+    curl -fsSL https://raw.githubusercontent.com/xorb-platform/bootstrap/main/bootstrap_xorb_node.sh -o /opt/xorb/bootstrap_xorb_node.sh
+    chmod +x /opt/xorb/bootstrap_xorb_node.sh
+    chown xorb:xorb /opt/xorb/bootstrap_xorb_node.sh
+
+  # Create XORB node configuration
+  - |
+    cat > /opt/xorb/config/node.json << EOF
+    {
+      "node_id": "${node_id}",
+      "node_region": "${node_region}",
+      "node_tier": "${node_tier}",
+      "compliance_frameworks": ${compliance_frameworks},
+      "federation_enabled": ${federation_enabled},
+      "quantum_crypto_enabled": ${quantum_crypto_enabled},
+      "deployment_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+      "hardening_level": "enterprise",
+      "zero_trust_enabled": true
+    }
+    EOF
+    chown xorb-service:xorb-service /opt/xorb/config/node.json
+    chmod 640 /opt/xorb/config/node.json
+
+  # Configure nginx for initial health checks
+  - |
+    cat > /etc/nginx/sites-available/xorb-health << 'EOF'
+    server {
+        listen 8080;
+        listen [::]:8080;
+        
+        location /health {
+            access_log off;
+            return 200 "healthy\n";
+            add_header Content-Type text/plain;
+        }
+        
+        location /ready {
+            access_log off;
+            return 200 "ready\n";
+            add_header Content-Type text/plain;
+        }
+        
+        location / {
+            return 503 "XORB Node Initializing";
+        }
+    }
+    EOF
+  - ln -s /etc/nginx/sites-available/xorb-health /etc/nginx/sites-enabled/
+  - rm -f /etc/nginx/sites-enabled/default
+  - systemctl restart nginx
+  - systemctl enable nginx
+
+  # Create systemd service for XORB node
+  - |
+    cat > /etc/systemd/system/xorb-node.service << 'EOF'
+    [Unit]
+    Description=XORB Federated Node
+    After=docker.service
+    Requires=docker.service
+    
+    [Service]
+    Type=notify
+    User=xorb-service
+    Group=xorb-service
+    WorkingDirectory=/opt/xorb
+    ExecStart=/opt/xorb/bootstrap_xorb_node.sh start
+    ExecStop=/opt/xorb/bootstrap_xorb_node.sh stop
+    ExecReload=/opt/xorb/bootstrap_xorb_node.sh reload
+    Restart=always
+    RestartSec=10
+    KillMode=mixed
+    TimeoutStartSec=300
+    TimeoutStopSec=120
+    
+    # Security settings
+    NoNewPrivileges=true
+    PrivateTmp=true
+    ProtectHome=true
+    ProtectSystem=strict
+    ReadWritePaths=/opt/xorb
+    
+    # Resource limits
+    LimitNOFILE=65536
+    LimitNPROC=4096
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+
+  # Enable but don't start XORB service yet (will be started by bootstrap script)
+  - systemctl daemon-reload
+  - systemctl enable xorb-node
+
+  # Configure log rotation
+  - |
+    cat > /etc/logrotate.d/xorb << 'EOF'
+    /opt/xorb/logs/*.log {
+        daily
+        missingok
+        rotate 30
+        compress
+        delaycompress
+        notifempty
+        create 644 xorb-service xorb-service
+        postrotate
+            /bin/kill -HUP $(cat /opt/xorb/xorb.pid 2>/dev/null) 2>/dev/null || true
+        endrotate
+    }
+    EOF
+
+  # Setup monitoring agent placeholder
+  - |
+    cat > /opt/xorb/install-monitoring.sh << 'EOF'
+    #!/bin/bash
+    # Monitoring agent installation will be handled by bootstrap script
+    echo "Monitoring agent installation placeholder"
+    EOF
+    chmod +x /opt/xorb/install-monitoring.sh
+
+  # Final hardening steps
+  - chmod 700 /home/xorb/.ssh
+  - chmod 600 /home/xorb/.ssh/authorized_keys
+  - chown -R xorb:xorb /home/xorb/.ssh
+
+  # Set timezone to UTC
+  - timedatectl set-timezone UTC
+
+  # Start essential services
+  - systemctl restart systemd-timesyncd
+  - systemctl enable systemd-timesyncd
+
+write_files:
+  # AppArmor profile for XORB containers
+  - path: /etc/apparmor.d/xorb-container
+    permissions: '0644'
+    content: |
+      #include <tunables/global>
+      
+      profile xorb-container flags=(attach_disconnected,mediate_deleted) {
+        #include <abstractions/base>
+        
+        capability setuid,
+        capability setgid,
+        capability kill,
+        capability net_bind_service,
+        
+        deny @{PROC}/* w,
+        deny /sys/[^f]** wklx,
+        deny /sys/f[^s]** wklx,
+        deny /sys/fs/[^c]** wklx,
+        deny /sys/fs/c[^g]** wklx,
+        deny /sys/fs/cg[^r]** wklx,
+        deny /sys/firmware/** rwklx,
+        deny /sys/kernel/security/** rwklx,
+        
+        /opt/xorb/** rw,
+        /tmp/** rw,
+        /var/log/** w,
+      }
+
+  # Audit rules for XORB
+  - path: /etc/audit/rules.d/xorb.rules
+    permissions: '0600'
+    content: |
+      # XORB security audit rules
+      -w /opt/xorb -p wa -k xorb-files
+      -w /etc/docker -p wa -k docker-config
+      -w /usr/bin/docker -p x -k docker-execution
+      -w /var/lib/docker -p wa -k docker-data
+      -a always,exit -F arch=b64 -S execve -F path=/usr/bin/docker -k docker-exec
+      -a always,exit -F arch=b32 -S execve -F path=/usr/bin/docker -k docker-exec
+
+  # Fail2ban jail for XORB
+  - path: /etc/fail2ban/jail.d/xorb.conf
+    permissions: '0644'
+    content: |
+      [xorb-auth]
+      enabled = true
+      port = ssh,8080,9000:9010
+      filter = xorb-auth
+      logpath = /opt/xorb/logs/auth.log
+      maxretry = 3
+      bantime = 3600
+      findtime = 600
+
+  # Docker seccomp profile
+  - path: /etc/docker/seccomp.json
+    permissions: '0644'
+    content: |
+      {
+        "defaultAction": "SCMP_ACT_ERRNO",
+        "architectures": ["SCMP_ARCH_X86_64"],
+        "syscalls": [
+          {
+            "names": [
+              "accept", "accept4", "access", "adjtimex", "alarm", "bind", "brk", "capget", "capset",
+              "chdir", "chmod", "chown", "chroot", "clock_getres", "clock_gettime", "clock_nanosleep",
+              "close", "connect", "copy_file_range", "creat", "dup", "dup2", "dup3", "epoll_create",
+              "epoll_create1", "epoll_ctl", "epoll_pwait", "epoll_wait", "eventfd", "eventfd2",
+              "execve", "execveat", "exit", "exit_group", "faccessat", "fadvise64", "fallocate",
+              "fanotify_mark", "fcntl", "fdatasync", "fgetxattr", "flistxattr", "flock", "fork",
+              "fremovexattr", "fsetxattr", "fstat", "fstatfs", "fsync", "ftruncate", "futex",
+              "getcwd", "getdents", "getdents64", "getegid", "geteuid", "getgid", "getgroups",
+              "getpeername", "getpgrp", "getpid", "getppid", "getpriority", "getrandom", "getresgid",
+              "getresuid", "getrlimit", "get_robust_list", "getrusage", "getsid", "getsockname",
+              "getsockopt", "get_thread_area", "gettid", "gettimeofday", "getuid", "getxattr",
+              "inotify_add_watch", "inotify_init", "inotify_init1", "inotify_rm_watch", "io_cancel",
+              "ioctl", "io_destroy", "io_getevents", "ioprio_get", "ioprio_set", "io_setup",
+              "io_submit", "ipc", "kill", "lchown", "lgetxattr", "link", "linkat", "listen",
+              "listxattr", "llistxattr", "lremovexattr", "lseek", "lsetxattr", "lstat", "madvise",
+              "memfd_create", "mincore", "mkdir", "mkdirat", "mknod", "mknodat", "mlock", "mlock2",
+              "mlockall", "mmap", "mount", "mprotect", "mq_getsetattr", "mq_notify", "mq_open",
+              "mq_timedreceive", "mq_timedsend", "mq_unlink", "mremap", "msgctl", "msgget", "msgrcv",
+              "msgsnd", "msync", "munlock", "munlockall", "munmap", "nanosleep", "newfstatat",
+              "open", "openat", "pause", "pipe", "pipe2", "poll", "ppoll", "prctl", "pread64",
+              "preadv", "prlimit64", "pselect6", "ptrace", "pwrite64", "pwritev", "read", "readahead",
+              "readlink", "readlinkat", "readv", "recv", "recvfrom", "recvmmsg", "recvmsg",
+              "remap_file_pages", "removexattr", "rename", "renameat", "renameat2", "restart_syscall",
+              "rmdir", "rt_sigaction", "rt_sigpending", "rt_sigprocmask", "rt_sigqueueinfo",
+              "rt_sigreturn", "rt_sigsuspend", "rt_sigtimedwait", "rt_tgsigqueueinfo", "sched_getaffinity",
+              "sched_getattr", "sched_getparam", "sched_get_priority_max", "sched_get_priority_min",
+              "sched_getscheduler", "sched_rr_get_interval", "sched_setaffinity", "sched_setattr",
+              "sched_setparam", "sched_setscheduler", "sched_yield", "seccomp", "select", "semctl",
+              "semget", "semop", "semtimedop", "send", "sendfile", "sendmmsg", "sendmsg", "sendto",
+              "setfsgid", "setfsuid", "setgid", "setgroups", "setitimer", "setpriority", "setregid",
+              "setresgid", "setresuid", "setreuid", "setrlimit", "setsid", "setsockopt", "set_thread_area",
+              "set_tid_address", "setuid", "setxattr", "shmat", "shmctl", "shmdt", "shmget", "shutdown",
+              "sigaltstack", "signalfd", "signalfd4", "sigreturn", "socket", "socketcall", "socketpair",
+              "splice", "stat", "statfs", "symlink", "symlinkat", "sync", "sync_file_range", "syncfs",
+              "sysinfo", "tee", "tgkill", "time", "timer_create", "timer_delete", "timerfd_create",
+              "timerfd_gettime", "timerfd_settime", "timer_getoverrun", "timer_gettime", "timer_settime",
+              "times", "tkill", "truncate", "umask", "uname", "unlink", "unlinkat", "utime", "utimensat",
+              "utimes", "vfork", "vmsplice", "wait4", "waitid", "waitpid", "write", "writev"
+            ],
+            "action": "SCMP_ACT_ALLOW"
+          }
+        ]
+      }
+
+final_message: |
+  XORB Federated Node Bootstrap Complete
+  =====================================
+  Node ID: ${node_id}
+  Region: ${node_region}
+  Tier: ${node_tier}
+  
+  Next Steps:
+  1. Run bootstrap script: sudo -u xorb /opt/xorb/bootstrap_xorb_node.sh
+  2. Verify services: systemctl status xorb-node
+  3. Check health: curl http://localhost:8080/health
+  
+  Security Features Enabled:
+  - AppArmor profiles active
+  - UFW firewall configured
+  - Fail2ban protection enabled
+  - Audit logging configured
+  - Encrypted storage mounted
+  - Docker daemon hardened
+  
+  Compliance: ${compliance_frameworks}
+  Federation: ${federation_enabled}
+  Quantum Crypto: ${quantum_crypto_enabled}

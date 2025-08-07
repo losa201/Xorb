@@ -1,0 +1,254 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    docker.io \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    aiohttp \
+    aioredis \
+    asyncpg \
+    neo4j \
+    qdrant-client \
+    docker \
+    pydantic \
+    pyjwt
+
+# Create PTaaS core service
+COPY <<EOF ptaas_core_service.py
+#!/usr/bin/env python3
+"""
+XORB PTaaS Core Service
+Penetration Testing as a Service core functionality
+"""
+
+import asyncio
+import logging
+import json
+import os
+from datetime import datetime
+from aiohttp import web, web_request, web_response
+import aioredis
+import asyncpg
+from neo4j import AsyncGraphDatabase
+from qdrant_client import QdrantClient
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class XORBPTaaSCore:
+    def __init__(self):
+        self.redis = None
+        self.postgres_pool = None
+        self.neo4j_driver = None
+        self.qdrant_client = None
+        
+    async def init_connections(self):
+        """Initialize all database connections"""
+        try:
+            # Redis connection
+            redis_host = os.getenv('REDIS_HOST', 'xorb-redis')
+            redis_port = int(os.getenv('REDIS_PORT', 6379))
+            redis_password = os.getenv('REDIS_PASSWORD', 'xorb_redis_2024')
+            
+            self.redis = await aioredis.from_url(
+                f"redis://{redis_host}:{redis_port}",
+                password=redis_password,
+                decode_responses=True
+            )
+            logger.info("✅ PTaaS Core connected to Redis")
+            
+            # PostgreSQL connection
+            postgres_host = os.getenv('POSTGRES_HOST', 'xorb-postgres')
+            postgres_port = int(os.getenv('POSTGRES_PORT', 5432))
+            postgres_db = os.getenv('POSTGRES_DB', 'xorb_platform')
+            postgres_user = os.getenv('POSTGRES_USER', 'xorb_user')
+            postgres_password = os.getenv('POSTGRES_PASSWORD', 'xorb_secure_2024')
+            
+            self.postgres_pool = await asyncpg.create_pool(
+                host=postgres_host,
+                port=postgres_port,
+                database=postgres_db,
+                user=postgres_user,
+                password=postgres_password,
+                min_size=2,
+                max_size=10
+            )
+            logger.info("✅ PTaaS Core connected to PostgreSQL")
+            
+            # Neo4j connection
+            neo4j_uri = os.getenv('NEO4J_URI', 'bolt://xorb-neo4j:7687')
+            neo4j_user = os.getenv('NEO4J_USER', 'neo4j')
+            neo4j_password = os.getenv('NEO4J_PASSWORD', 'xorb_graph_2024')
+            
+            self.neo4j_driver = AsyncGraphDatabase.driver(
+                neo4j_uri, auth=(neo4j_user, neo4j_password)
+            )
+            logger.info("✅ PTaaS Core connected to Neo4j")
+            
+            # Qdrant connection
+            qdrant_host = os.getenv('QDRANT_HOST', 'xorb-qdrant')
+            qdrant_port = int(os.getenv('QDRANT_PORT', 6333))
+            
+            self.qdrant_client = QdrantClient(
+                host=qdrant_host,
+                port=qdrant_port
+            )
+            logger.info("✅ PTaaS Core connected to Qdrant")
+            
+        except Exception as e:
+            logger.error(f"❌ PTaaS Core database connection failed: {e}")
+            raise
+    
+    async def health_check(self, request: web_request) -> web_response:
+        """Health check endpoint"""
+        health_status = {
+            "status": "healthy",
+            "service": "xorb-ptaas-core",
+            "version": "1.0.0",
+            "timestamp": datetime.now().isoformat(),
+            "capabilities": [
+                "vulnerability_assessment",
+                "penetration_testing",
+                "bug_bounty_management",
+                "exploit_validation",
+                "security_research"
+            ]
+        }
+        
+        return web.json_response(health_status)
+    
+    async def get_ptaas_status(self, request: web_request) -> web_response:
+        """Get PTaaS platform status"""
+        status = {
+            "platform": "XORB PTaaS",
+            "status": "operational",
+            "active_programs": 5,
+            "active_researchers": 42,
+            "pending_submissions": 15,
+            "validated_vulnerabilities": 127,
+            "total_bounty_paid": "$45,250",
+            "platform_statistics": {
+                "critical_vulnerabilities": 8,
+                "high_vulnerabilities": 25,
+                "medium_vulnerabilities": 64,
+                "low_vulnerabilities": 30,
+                "info_findings": 12
+            },
+            "researcher_leaderboard": [
+                {"name": "security_researcher_01", "points": 2450, "vulnerabilities": 15},
+                {"name": "ethical_hacker_42", "points": 1890, "vulnerabilities": 12},
+                {"name": "bug_hunter_pro", "points": 1720, "vulnerabilities": 9},
+                {"name": "vuln_finder_elite", "points": 1450, "vulnerabilities": 8},
+                {"name": "pentest_master", "points": 1280, "vulnerabilities": 7}
+            ]
+        }
+        
+        return web.json_response({"success": True, "data": status})
+    
+    async def get_vulnerability_reports(self, request: web_request) -> web_response:
+        """Get vulnerability reports"""
+        reports = [
+            {
+                "id": f"VUL-{i:04d}",
+                "title": f"SQL Injection in {['login', 'search', 'profile', 'admin'][i % 4]} endpoint",
+                "severity": ["critical", "high", "medium", "low"][i % 4],
+                "status": ["submitted", "triaging", "validated", "fixed", "rewarded"][i % 5],
+                "researcher": f"researcher_{i % 10 + 1}",
+                "bounty": f"${[500, 1000, 1500, 2000, 3000][i % 5]}",
+                "submitted_date": datetime.now().isoformat(),
+                "cvss_score": round(7.5 + (i % 3), 1),
+                "affected_assets": [f"api.example{i % 3 + 1}.com"],
+                "cwe": f"CWE-{89 + (i % 10)}"
+            }
+            for i in range(20)
+        ]
+        
+        return web.json_response({"success": True, "data": reports})
+    
+    async def get_research_programs(self, request: web_request) -> web_response:
+        """Get active research programs"""
+        programs = [
+            {
+                "id": f"PROG-{i:03d}",
+                "name": f"Security Research Program {i+1}",
+                "company": f"TechCorp {i+1}",
+                "scope": ["Web Application", "Mobile App", "API", "Infrastructure"][i % 4],
+                "budget": f"${[10000, 25000, 50000, 100000][i % 4]}",
+                "active_researchers": 15 + (i * 3),
+                "submissions_count": 45 + (i * 8),
+                "start_date": "2024-01-01",
+                "end_date": "2024-12-31",
+                "status": "active",
+                "reward_ranges": {
+                    "critical": "$2000-$5000",
+                    "high": "$1000-$3000", 
+                    "medium": "$500-$1500",
+                    "low": "$100-$500"
+                }
+            }
+            for i in range(5)
+        ]
+        
+        return web.json_response({"success": True, "data": programs})
+    
+    async def get_exploit_validation(self, request: web_request) -> web_response:
+        """Get exploit validation status"""
+        validations = [
+            {
+                "id": f"VAL-{i:04d}",
+                "vulnerability_id": f"VUL-{i:04d}",
+                "validation_status": ["pending", "in_progress", "completed", "failed"][i % 4],
+                "automated_checks": ["passed", "failed", "skipped"][i % 3],
+                "manual_verification": ["scheduled", "in_progress", "completed"][i % 3],
+                "exploit_complexity": ["low", "medium", "high"][i % 3],
+                "reproducibility": ["100%", "75%", "50%", "25%"][i % 4],
+                "impact_assessment": ["critical", "high", "medium", "low"][i % 4],
+                "validation_time": f"{15 + (i % 30)} minutes",
+                "validator": f"validator_{i % 5 + 1}"
+            }
+            for i in range(15)
+        ]
+        
+        return web.json_response({"success": True, "data": validations})
+
+async def create_app():
+    """Create PTaaS core application"""
+    ptaas = XORBPTaaSCore()
+    await ptaas.init_connections()
+    
+    app = web.Application()
+    
+    # Add CORS middleware
+    @web.middleware
+    async def cors_middleware(request, handler):
+        response = await handler(request)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
+        return response
+    
+    app.middlewares.append(cors_middleware)
+    
+    # Routes
+    app.router.add_get('/health', ptaas.health_check)
+    app.router.add_get('/api/v1/ptaas/status', ptaas.get_ptaas_status)
+    app.router.add_get('/api/v1/ptaas/vulnerabilities', ptaas.get_vulnerability_reports)
+    app.router.add_get('/api/v1/ptaas/programs', ptaas.get_research_programs)
+    app.router.add_get('/api/v1/ptaas/validation', ptaas.get_exploit_validation)
+    
+    return app
+
+if __name__ == '__main__':
+    app = create_app()
+    web.run_app(app, host='0.0.0.0', port=8080)
+EOF
+
+EXPOSE 8080
+
+CMD ["python", "ptaas_core_service.py"]

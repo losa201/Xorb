@@ -1,0 +1,529 @@
+{
+  "swarm_size": 32,
+  "consensus_data": {
+    "timestamp": "2025-07-28T06:32:50.975494",
+    "consensus_method": "vector_similarity_voting",
+    "high_performers": [],
+    "consensus_weights": {
+      "agent_000": 0.3825735242190825,
+      "agent_001": 0.7607621059600471,
+      "agent_002": 0.7609210855444726,
+      "agent_003": 0.861610401966366,
+      "agent_004": 0.7695131995125166,
+      "agent_005": 0.3731692272629886,
+      "agent_006": 0.7996610823444932,
+      "agent_007": 0.7856620384251385,
+      "agent_008": 0.7979909876401079,
+      "agent_009": 0.7581156934384728,
+      "agent_010": 0.37648558686614747,
+      "agent_011": 0.37721582380798746,
+      "agent_012": 0.35504140635607384,
+      "agent_013": 0.8466779103251789,
+      "agent_014": 0.7271463482605335,
+      "agent_015": 0.34381496295845104,
+      "agent_016": 0.7914905331352257,
+      "agent_017": 0.3814430868157913,
+      "agent_018": 0.797862531921676,
+      "agent_019": 0.7886247654559324,
+      "agent_020": 0.8193612633952048,
+      "agent_021": 0.7834835192684075,
+      "agent_022": 0.7477056808943089,
+      "agent_023": 0.7695703417987213,
+      "agent_024": 0.39855986969295776,
+      "agent_025": 0.40048115549115904,
+      "agent_026": 0.7464468084547498,
+      "agent_027": 0.811952260108247,
+      "agent_028": 0.6847769983289596,
+      "agent_029": 0.36343653808882115,
+      "agent_030": 0.32095452217129666,
+      "agent_031": 0.7638394314254838
+    },
+    "decision_accuracy": 0.95,
+    "agreement_rate": 0.97625
+  },
+  "agent_assignments": {
+    "agent_000": {
+      "name": "XORB_DEFENDER_000",
+      "role": "defender",
+      "specialization": "Real-time threat blocking and mitigation",
+      "consensus_weight": 0.01871109079534736,
+      "mission_success_rate": 0.6925433113220755,
+      "fitness_score": 0.765147048438165,
+      "evolution_strategy": "incremental",
+      "capabilities": [
+        "threat_blocking",
+        "real_time_monitoring",
+        "access_control"
+      ]
+    },
+    "agent_001": {
+      "name": "XORB_EXPLORER_001",
+      "role": "explorer",
+      "specialization": "Network discovery and reconnaissance",
+      "consensus_weight": 0.037207720705018134,
+      "mission_success_rate": 0.715566555157023,
+      "fitness_score": 0.7607621059600471,
+      "evolution_strategy": "incremental",
+      "capabilities": [
+        "network_scanning",
+        "service_discovery",
+        "port_enumeration"
+      ]
+    },
+    "agent_002": {
+      "name": "XORB_OPTIMIZER_002",
+      "role": "optimizer",
+      "specialization": "Performance tuning and resource allocation",
+      "consensus_weight": 0.037215496155357686,
+      "mission_success_rate": 0.8162894865850022,
+      "fitness_score": 0.7609210855444726,
+      "evolution_strategy": "adaptive",
+      "capabilities": [
+        "performance_tuning",
+        "resource_allocation",
+        "load_balancing"
+      ]
+    },
+    "agent_003": {
+      "name": "XORB_FORENSIC_003",
+      "role": "forensic",
+      "specialization": "Digital forensics and evidence collection",
+      "consensus_weight": 0.042140057899501336,
+      "mission_success_rate": 0.8959740987911211,
+      "fitness_score": 0.861610401966366,
+      "evolution_strategy": "incremental",
+      "capabilities": [
+        "evidence_collection",
+        "digital_forensics",
+        "timeline_analysis"
+      ]
+    },
+    "agent_004": {
+      "name": "XORB_REMEDIATOR_004",
+      "role": "remediator",
+      "specialization": "Automated incident response and remediation",
+      "consensus_weight": 0.037635723417315255,
+      "mission_success_rate": 0.7560099300144085,
+      "fitness_score": 0.7695131995125166,
+      "evolution_strategy": "adaptive",
+      "capabilities": [
+        "incident_response",
+        "automated_remediation",
+        "system_recovery"
+      ]
+    },
+    "agent_005": {
+      "name": "XORB_RECON_005",
+      "role": "recon",
+      "specialization": "Advanced reconnaissance and intelligence gathering",
+      "consensus_weight": 0.018251140895335166,
+      "mission_success_rate": 0.6233211437792149,
+      "fitness_score": 0.7463384545259772,
+      "evolution_strategy": "adaptive",
+      "capabilities": [
+        "reconnaissance",
+        "intelligence_gathering",
+        "target_profiling"
+      ]
+    },
+    "agent_006": {
+      "name": "XORB_VALIDATOR_006",
+      "role": "validator",
+      "specialization": "Security validation and compliance checking",
+      "consensus_weight": 0.0391102106393677,
+      "mission_success_rate": 0.8732023181315134,
+      "fitness_score": 0.7996610823444932,
+      "evolution_strategy": "targeted",
+      "capabilities": [
+        "compliance_checking",
+        "security_validation",
+        "policy_enforcement"
+      ]
+    },
+    "agent_007": {
+      "name": "XORB_SCANNER_007",
+      "role": "scanner",
+      "specialization": "Vulnerability scanning and assessment",
+      "consensus_weight": 0.03842553863453471,
+      "mission_success_rate": 0.7301653418167274,
+      "fitness_score": 0.7856620384251385,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "vulnerability_scanning",
+        "security_assessment",
+        "penetration_testing"
+      ]
+    },
+    "agent_008": {
+      "name": "XORB_ANALYZER_008",
+      "role": "analyzer",
+      "specialization": "Threat analysis and pattern recognition",
+      "consensus_weight": 0.039028528840517746,
+      "mission_success_rate": 0.7249577334661749,
+      "fitness_score": 0.7979909876401079,
+      "evolution_strategy": "experimental",
+      "capabilities": [
+        "threat_analysis",
+        "pattern_recognition",
+        "anomaly_detection"
+      ]
+    },
+    "agent_009": {
+      "name": "XORB_COORDINATOR_009",
+      "role": "coordinator",
+      "specialization": "Multi-agent coordination and orchestration",
+      "consensus_weight": 0.03707828868257436,
+      "mission_success_rate": 0.7340942612024524,
+      "fitness_score": 0.7581156934384728,
+      "evolution_strategy": "incremental",
+      "capabilities": [
+        "multi_agent_coordination",
+        "task_orchestration",
+        "resource_management"
+      ]
+    },
+    "agent_010": {
+      "name": "XORB_STEALTH_010",
+      "role": "stealth",
+      "specialization": "Covert operations and evasion techniques",
+      "consensus_weight": 0.018413339013386827,
+      "mission_success_rate": 0.6447417467861762,
+      "fitness_score": 0.7529711737322949,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "evasion_techniques",
+        "covert_operations",
+        "anti_detection"
+      ]
+    },
+    "agent_011": {
+      "name": "XORB_HUNTER_011",
+      "role": "hunter",
+      "specialization": "Threat hunting and active defense",
+      "consensus_weight": 0.01844905379461424,
+      "mission_success_rate": 0.6872808786870791,
+      "fitness_score": 0.7544316476159749,
+      "evolution_strategy": "adaptive",
+      "capabilities": [
+        "threat_hunting",
+        "active_defense",
+        "pursuit_tactics"
+      ]
+    },
+    "agent_012": {
+      "name": "XORB_GUARDIAN_012",
+      "role": "guardian",
+      "specialization": "Asset protection and access control",
+      "consensus_weight": 0.017364536670425867,
+      "mission_success_rate": 0.6355928034985523,
+      "fitness_score": 0.7100828127121477,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "asset_protection",
+        "perimeter_defense",
+        "access_monitoring"
+      ]
+    },
+    "agent_013": {
+      "name": "XORB_INVESTIGATOR_013",
+      "role": "investigator",
+      "specialization": "Deep security investigation and analysis",
+      "consensus_weight": 0.04140973238241454,
+      "mission_success_rate": 0.8253203398594838,
+      "fitness_score": 0.8466779103251789,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "deep_investigation",
+        "root_cause_analysis",
+        "correlation"
+      ]
+    },
+    "agent_014": {
+      "name": "XORB_AUDITOR_014",
+      "role": "auditor",
+      "specialization": "Security audit and compliance monitoring",
+      "consensus_weight": 0.03556362498314637,
+      "mission_success_rate": 0.8736751726422434,
+      "fitness_score": 0.7271463482605335,
+      "evolution_strategy": "incremental",
+      "capabilities": [
+        "security_auditing",
+        "compliance_monitoring",
+        "risk_assessment"
+      ]
+    },
+    "agent_015": {
+      "name": "XORB_MONITOR_015",
+      "role": "monitor",
+      "specialization": "Continuous monitoring and alerting",
+      "consensus_weight": 0.0168154683517268,
+      "mission_success_rate": 0.6226215667234283,
+      "fitness_score": 0.6876299259169021,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "continuous_monitoring",
+        "alerting",
+        "surveillance"
+      ]
+    },
+    "agent_016": {
+      "name": "XORB_TRACKER_016",
+      "role": "tracker",
+      "specialization": "Attack tracking and attribution",
+      "consensus_weight": 0.03871060147034713,
+      "mission_success_rate": 0.7320611370281126,
+      "fitness_score": 0.7914905331352257,
+      "evolution_strategy": "adaptive",
+      "capabilities": [
+        "attack_tracking",
+        "attribution_analysis",
+        "campaign_tracking"
+      ]
+    },
+    "agent_017": {
+      "name": "XORB_INTERCEPTOR_017",
+      "role": "interceptor",
+      "specialization": "Traffic interception and analysis",
+      "consensus_weight": 0.018655802816560506,
+      "mission_success_rate": 0.6931931698441881,
+      "fitness_score": 0.7628861736315826,
+      "evolution_strategy": "experimental",
+      "capabilities": [
+        "traffic_interception",
+        "communication_analysis",
+        "protocol_inspection"
+      ]
+    },
+    "agent_018": {
+      "name": "XORB_CLASSIFIER_018",
+      "role": "classifier",
+      "specialization": "Threat classification and categorization",
+      "consensus_weight": 0.039022246266166405,
+      "mission_success_rate": 0.8649691256386105,
+      "fitness_score": 0.797862531921676,
+      "evolution_strategy": "incremental",
+      "capabilities": [
+        "threat_classification",
+        "malware_categorization",
+        "risk_scoring"
+      ]
+    },
+    "agent_019": {
+      "name": "XORB_PREDICTOR_019",
+      "role": "predictor",
+      "specialization": "Predictive threat modeling",
+      "consensus_weight": 0.038570441119849586,
+      "mission_success_rate": 0.8618359988096762,
+      "fitness_score": 0.7886247654559324,
+      "evolution_strategy": "targeted",
+      "capabilities": [
+        "predictive_modeling",
+        "threat_forecasting",
+        "trend_analysis"
+      ]
+    },
+    "agent_020": {
+      "name": "XORB_RESPONDER_020",
+      "role": "responder",
+      "specialization": "Incident response and containment",
+      "consensus_weight": 0.04007371661400895,
+      "mission_success_rate": 0.8241603598399125,
+      "fitness_score": 0.8193612633952048,
+      "evolution_strategy": "experimental",
+      "capabilities": [
+        "incident_response",
+        "emergency_procedures",
+        "crisis_management"
+      ]
+    },
+    "agent_021": {
+      "name": "XORB_MITIGATOR_021",
+      "role": "mitigator",
+      "specialization": "Risk mitigation and control implementation",
+      "consensus_weight": 0.038318990566881046,
+      "mission_success_rate": 0.8139937005114952,
+      "fitness_score": 0.7834835192684075,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "risk_mitigation",
+        "control_implementation",
+        "damage_limitation"
+      ]
+    },
+    "agent_022": {
+      "name": "XORB_RESEARCHER_022",
+      "role": "researcher",
+      "specialization": "Security research and threat intelligence",
+      "consensus_weight": 0.03656915075858406,
+      "mission_success_rate": 0.7075373987940319,
+      "fitness_score": 0.7477056808943089,
+      "evolution_strategy": "experimental",
+      "capabilities": [
+        "security_research",
+        "threat_intelligence",
+        "vulnerability_research"
+      ]
+    },
+    "agent_023": {
+      "name": "XORB_INTELLIGENCE_023",
+      "role": "intelligence",
+      "specialization": "Threat intelligence collection and analysis",
+      "consensus_weight": 0.0376385181598621,
+      "mission_success_rate": 0.7669823579523036,
+      "fitness_score": 0.7695703417987213,
+      "evolution_strategy": "targeted",
+      "capabilities": [
+        "intelligence_collection",
+        "analysis",
+        "reporting"
+      ]
+    },
+    "agent_024": {
+      "name": "XORB_TACTICAL_024",
+      "role": "tactical",
+      "specialization": "Tactical response and operations",
+      "consensus_weight": 0.019492958704942113,
+      "mission_success_rate": 0.6525588632429961,
+      "fitness_score": 0.7971197393859155,
+      "evolution_strategy": "experimental",
+      "capabilities": [
+        "tactical_operations",
+        "rapid_response",
+        "field_operations"
+      ]
+    },
+    "agent_025": {
+      "name": "XORB_STRATEGIC_025",
+      "role": "strategic",
+      "specialization": "Strategic planning and threat assessment",
+      "consensus_weight": 0.0195869258791927,
+      "mission_success_rate": 0.6105732926502155,
+      "fitness_score": 0.8009623109823181,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "strategic_planning",
+        "long_term_assessment",
+        "policy_development"
+      ]
+    },
+    "agent_026": {
+      "name": "XORB_OPERATIONAL_026",
+      "role": "operational",
+      "specialization": "Operational security and procedures",
+      "consensus_weight": 0.036507581216979126,
+      "mission_success_rate": 0.7505471741915098,
+      "fitness_score": 0.7464468084547498,
+      "evolution_strategy": "incremental",
+      "capabilities": [
+        "operational_security",
+        "procedure_implementation",
+        "process_optimization"
+      ]
+    },
+    "agent_027": {
+      "name": "XORB_TECHNICAL_027",
+      "role": "technical",
+      "specialization": "Technical analysis and exploitation",
+      "consensus_weight": 0.0397113535009622,
+      "mission_success_rate": 0.8050408078095745,
+      "fitness_score": 0.811952260108247,
+      "evolution_strategy": "incremental",
+      "capabilities": [
+        "technical_analysis",
+        "reverse_engineering",
+        "exploitation"
+      ]
+    },
+    "agent_028": {
+      "name": "XORB_BEHAVIORAL_028",
+      "role": "behavioral",
+      "specialization": "Behavioral analysis and profiling",
+      "consensus_weight": 0.03349140434234861,
+      "mission_success_rate": 0.7600520881937963,
+      "fitness_score": 0.6847769983289596,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "behavioral_analysis",
+        "user_profiling",
+        "anomaly_detection"
+      ]
+    },
+    "agent_029": {
+      "name": "XORB_ADAPTIVE_029",
+      "role": "adaptive",
+      "specialization": "Adaptive response and learning",
+      "consensus_weight": 0.017775129830030875,
+      "mission_success_rate": 0.64402342056959,
+      "fitness_score": 0.7268730761776423,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "adaptive_learning",
+        "dynamic_response",
+        "self_modification"
+      ]
+    },
+    "agent_030": {
+      "name": "XORB_EVOLUTIONARY_030",
+      "role": "evolutionary",
+      "specialization": "Evolutionary optimization and enhancement",
+      "consensus_weight": 0.01569739886674812,
+      "mission_success_rate": 0.6052065041658677,
+      "fitness_score": 0.6419090443425933,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "evolutionary_optimization",
+        "genetic_algorithms",
+        "swarm_intelligence"
+      ]
+    },
+    "agent_031": {
+      "name": "XORB_AUTONOMOUS_031",
+      "role": "autonomous",
+      "specialization": "Autonomous decision making and execution",
+      "consensus_weight": 0.03735822802595247,
+      "mission_success_rate": 0.7194690450225137,
+      "fitness_score": 0.7638394314254838,
+      "evolution_strategy": "aggressive",
+      "capabilities": [
+        "autonomous_decision_making",
+        "self_governance",
+        "independent_operation"
+      ]
+    }
+  },
+  "role_distribution": {
+    "defender": 1,
+    "explorer": 1,
+    "optimizer": 1,
+    "forensic": 1,
+    "remediator": 1,
+    "recon": 1,
+    "validator": 1,
+    "scanner": 1,
+    "analyzer": 1,
+    "coordinator": 1,
+    "stealth": 1,
+    "hunter": 1,
+    "guardian": 1,
+    "investigator": 1,
+    "auditor": 1,
+    "monitor": 1,
+    "tracker": 1,
+    "interceptor": 1,
+    "classifier": 1,
+    "predictor": 1,
+    "responder": 1,
+    "mitigator": 1,
+    "researcher": 1,
+    "intelligence": 1,
+    "tactical": 1,
+    "strategic": 1,
+    "operational": 1,
+    "technical": 1,
+    "behavioral": 1,
+    "adaptive": 1,
+    "evolutionary": 1,
+    "autonomous": 1
+  },
+  "last_updated": "2025-07-28T06:32:51.019383"
+}

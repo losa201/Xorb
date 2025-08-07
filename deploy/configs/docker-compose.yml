@@ -1,0 +1,489 @@
+# XORB Consolidated Docker Compose - AMD EPYC Optimized
+# Single streamlined file eliminating duplications
+
+networks:
+  xorb-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+  xorb_models:
+  xorb_logs:
+
+services:
+  # ==========================================
+  # CORE INFRASTRUCTURE
+  # ==========================================
+  
+  postgres:
+    image: postgres:16-alpine
+    container_name: xorb-postgres
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-xorb}
+      POSTGRES_USER: ${POSTGRES_USER:-xorb}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secure_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./legacy/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+          pids: 1000
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+        swap: -1
+        memory_swappiness: 0
+        memory_reservation: 1G
+        devices:
+          - driver: nvidia
+            count: 0
+            capabilities: ["compute"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-xorb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    placement:
+      constraints:
+        - node.role == manager
+      preferences:
+        - spread: node.labels.zone
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  redis:
+    image: redis:7-alpine
+    container_name: xorb-redis
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  # ==========================================
+  # XORB CORE SERVICES
+  # ==========================================
+
+  xorb-api-gateway:
+    build:
+      context: ./legacy
+      dockerfile: ./compose/Dockerfile.api
+    container_name: xorb-api-gateway
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-xorb-secure-2025}@postgres:5432/${POSTGRES_DB:-xorb}
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-xorb-jwt-secret-2025}
+      - CORS_ORIGINS=${CORS_ORIGINS:-https://ptaas.verteidiq.com}
+      - SECURE_COOKIES=true
+      - CSRF_PROTECTION=true
+      - REQUEST_RATE_LIMIT="100/minute;200/5-minute"
+      - REQUEST_SIZE_LIMIT=10485760  # 10MB
+    volumes:
+      - xorb_logs:/app/logs
+      - ./legacy/config:/app/config:ro
+      - ./secrets:/run/secrets:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    secrets:
+      - db_password
+      - jwt_secret
+      - tls_cert
+      - tls_key
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  xorb-orchestrator:
+    build:
+      context: ./legacy
+      dockerfile: ./compose/Dockerfile.orchestrator
+    container_name: xorb-orchestrator
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "8001:8001"
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}
+      - REDIS_URL=redis://redis:6379
+      - ORCHESTRATION_MODE=enhanced
+      - OMP_NUM_THREADS=8
+      - MKL_NUM_THREADS=8
+      - OPENBLAS_NUM_THREADS=8
+    volumes:
+      - xorb_logs:/app/logs
+      - ./legacy/config:/app/config:ro
+    depends_on:
+      - xorb-api-gateway
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  xorb-adversarial-engine:
+    build:
+      context: ./legacy
+      dockerfile: ./compose/Dockerfile.adversarial
+    container_name: xorb-adversarial-engine
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}
+      - REDIS_URL=redis://redis:6379
+      - ADVERSARIAL_MODE=enhanced
+      - ML_DEFENSE_ENABLED=true
+      - OMP_NUM_THREADS=8
+      - MKL_NUM_THREADS=8
+      - OPENBLAS_NUM_THREADS=8
+      - NUMEXPR_NUM_THREADS=8
+      - TF_NUM_INTEROP_THREADS=2
+      - TF_NUM_INTRAOP_THREADS=8
+    volumes:
+      - xorb_models:/app/models
+      - xorb_logs:/app/logs
+      - ./legacy/config:/app/config:ro
+    depends_on:
+      - xorb-orchestrator
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  xorb-ml-defense:
+    build:
+      context: ./legacy
+      dockerfile: ./compose/Dockerfile.ml-defense
+    container_name: xorb-ml-defense
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}
+      - REDIS_URL=redis://redis:6379
+      - ML_TRAINING_ENABLED=true
+      - ADVERSARIAL_TRAINING=true
+      - USE_GPU=false
+      - OMP_NUM_THREADS=16
+      - MKL_NUM_THREADS=16
+      - OPENBLAS_NUM_THREADS=16
+      - TORCH_NUM_THREADS=16
+      - NUMEXPR_NUM_THREADS=16
+      - TF_NUM_INTEROP_THREADS=4
+      - TF_NUM_INTRAOP_THREADS=16
+    volumes:
+      - xorb_models:/app/models
+      - xorb_logs:/app/logs
+      - ./legacy/config:/app/config:ro
+    depends_on:
+      - xorb-orchestrator
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+          cpus: '8.0'
+        reservations:
+          memory: 8G
+          cpus: '4.0'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  # ==========================================
+  # MONITORING STACK (Consolidated)
+  # ==========================================
+
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:v1.6.1
+    container_name: xorb-node-exporter
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "9100:9100"
+    command:
+      - '--path.rootfs=/host'
+    volumes:
+      - '/:/host:ro,rslave'
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: xorb-prometheus
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "9090:9090"
+    volumes:
+      - prometheus_data:/prometheus
+      - ./legacy/config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./legacy/config/prometheus/rules:/etc/prometheus/rules:ro
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=30d'
+      - '--storage.tsdb.retention.size=20GB'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+      - '--query.max-concurrency=20'
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  alertmanager:
+    image: prom/alertmanager:v0.25.0
+    container_name: xorb-alertmanager
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./legacy/config/alertmanager:/etc/alertmanager:ro
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: xorb-grafana
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./legacy/config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./legacy/config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-xorb-admin-2024}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+    depends_on:
+      - prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  # ==========================================
+  # REVERSE PROXY (Simplified)
+  # ==========================================
+
+  # ==========================================
+  # PTAAS FRONTEND
+  # ==========================================
+
+  ptaas-frontend:
+    build:
+      context: ./ptaas-frontend
+      dockerfile: Dockerfile
+    container_name: xorb-ptaas-frontend
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=https://ptaas.verteidiq.com/api
+      - NODE_ENV=production
+    volumes:
+      - ./ptaas-frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true
+
+  nginx:
+    image: nginx:alpine
+    container_name: xorb-nginx
+    restart: unless-stopped
+    networks:
+      - xorb-net
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./legacy/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - ./secrets/kyber-certs:/etc/nginx/kyber:ro
+    depends_on:
+      - xorb-api-gateway
+      - grafana
+      - ptaas-frontend
+    environment:
+      - NGINX_TLS13_CIPHERS=TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256
+      - OQS_PROVIDER_PATH=/usr/local/lib/oqs-provider.so
+    deploy:
+      resources:
+        limits:
+          memory: 768M
+          cpus: '0.75'
+        reservations:
+          memory: 256M
+          cpus: '0.25'
+        devices:
+          - driver: nvidia
+            count: 0
+            capabilities: ["compute"]
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+      - apparmor=xorb-nginx-profile
+    read_only: true
+    tmpfs:
+      - /tmp:exec=true,size=64M
+      - /run/nginx:exec=true,size=32M
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+      - SETGID
+      - SETUID
+
+secrets:
+  db_password:
+    file: ./secrets/db_password.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  tls_cert:
+    file: ./ssl/cert.pem
+  tls_key:
+    file: ./ssl/privkey.pem

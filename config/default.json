@@ -1,0 +1,13 @@
+{
+  "security": {
+    "encryption": "AES-128-GCM",
+    "key_rotation": "180d"
+  },
+  "compliance": {
+    "data_localization": false
+  },
+  "observability": {
+    "metrics": true,
+    "tracing": false
+  }
+}

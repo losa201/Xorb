@@ -1,0 +1,35 @@
+[Unit]
+Description=Xorb Game Day Scheduler
+Documentation=https://docs.xorb.ai/gameday
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=xorb
+Group=xorb
+WorkingDirectory=/opt/xorb
+Environment=PYTHONPATH=/opt/xorb
+ExecStart=/usr/bin/python3 /opt/xorb/scripts/schedule_gameday.py
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=xorb-gameday
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/xorb/data /tmp
+CapabilityBoundingSet=
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

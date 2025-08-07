@@ -1,0 +1,422 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir \
+    aiohttp \
+    aioredis \
+    asyncpg \
+    neo4j \
+    qdrant-client \
+    pydantic \
+    pyjwt \
+    bcrypt
+
+# Create PTaaS researcher API service
+COPY <<EOF researcher_api_service.py
+#!/usr/bin/env python3
+"""
+XORB PTaaS Researcher API Service
+Bug bounty researcher interface
+"""
+
+import asyncio
+import logging
+import json
+import os
+import hashlib
+from datetime import datetime, timedelta
+from aiohttp import web, web_request, web_response
+import aioredis
+import asyncpg
+from neo4j import AsyncGraphDatabase
+from qdrant_client import QdrantClient
+import bcrypt
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+class XORBPTaaSResearcherAPI:
+    def __init__(self):
+        self.redis = None
+        self.postgres_pool = None
+        self.neo4j_driver = None
+        self.qdrant_client = None
+        
+    async def init_connections(self):
+        """Initialize all database connections"""
+        try:
+            # Redis connection
+            redis_host = os.getenv('REDIS_HOST', 'xorb-redis')
+            redis_port = int(os.getenv('REDIS_PORT', 6379))
+            redis_password = os.getenv('REDIS_PASSWORD', 'xorb_redis_2024')
+            
+            self.redis = await aioredis.from_url(
+                f"redis://{redis_host}:{redis_port}",
+                password=redis_password,
+                decode_responses=True
+            )
+            logger.info("✅ Researcher API connected to Redis")
+            
+            # PostgreSQL connection
+            postgres_host = os.getenv('POSTGRES_HOST', 'xorb-postgres')
+            postgres_port = int(os.getenv('POSTGRES_PORT', 5432))
+            postgres_db = os.getenv('POSTGRES_DB', 'xorb_platform')
+            postgres_user = os.getenv('POSTGRES_USER', 'xorb_user')
+            postgres_password = os.getenv('POSTGRES_PASSWORD', 'xorb_secure_2024')
+            
+            self.postgres_pool = await asyncpg.create_pool(
+                host=postgres_host,
+                port=postgres_port,
+                database=postgres_db,
+                user=postgres_user,
+                password=postgres_password,
+                min_size=2,
+                max_size=10
+            )
+            logger.info("✅ Researcher API connected to PostgreSQL")
+            
+            # Neo4j connection
+            neo4j_uri = os.getenv('NEO4J_URI', 'bolt://xorb-neo4j:7687')
+            neo4j_user = os.getenv('NEO4J_USER', 'neo4j')
+            neo4j_password = os.getenv('NEO4J_PASSWORD', 'xorb_graph_2024')
+            
+            self.neo4j_driver = AsyncGraphDatabase.driver(
+                neo4j_uri, auth=(neo4j_user, neo4j_password)
+            )
+            logger.info("✅ Researcher API connected to Neo4j")
+            
+            # Qdrant connection
+            qdrant_host = os.getenv('QDRANT_HOST', 'xorb-qdrant')
+            qdrant_port = int(os.getenv('QDRANT_PORT', 6333))
+            
+            self.qdrant_client = QdrantClient(
+                host=qdrant_host,
+                port=qdrant_port
+            )
+            logger.info("✅ Researcher API connected to Qdrant")
+            
+        except Exception as e:
+            logger.error(f"❌ Researcher API database connection failed: {e}")
+            raise
+    
+    async def health_check(self, request: web_request) -> web_response:
+        """Health check endpoint"""
+        health_status = {
+            "status": "healthy",
+            "service": "xorb-ptaas-researcher-api",
+            "version": "1.0.0",
+            "timestamp": datetime.now().isoformat(),
+            "features": [
+                "vulnerability_submission",
+                "bounty_tracking",
+                "program_discovery",
+                "researcher_dashboard",
+                "collaboration_tools"
+            ]
+        }
+        
+        return web.json_response(health_status)
+    
+    async def register_researcher(self, request: web_request) -> web_response:
+        """Register new security researcher"""
+        try:
+            data = await request.json()
+            
+            # Validate required fields
+            required_fields = ['username', 'email', 'password', 'full_name']
+            for field in required_fields:
+                if field not in data:
+                    return web.json_response(
+                        {"success": False, "error": f"Missing required field: {field}"},
+                        status=400
+                    )
+            
+            # Hash password
+            password_hash = bcrypt.hashpw(
+                data['password'].encode('utf-8'), 
+                bcrypt.gensalt()
+            ).decode('utf-8')
+            
+            # Generate researcher ID
+            researcher_id = f"RES-{hashlib.md5(data['email'].encode()).hexdigest()[:8].upper()}"
+            
+            researcher = {
+                "id": researcher_id,
+                "username": data['username'],
+                "email": data['email'],
+                "full_name": data['full_name'],
+                "password_hash": password_hash,
+                "reputation_score": 0,
+                "total_bounties": 0,
+                "verified": False,
+                "specializations": data.get('specializations', []),
+                "bio": data.get('bio', ''),
+                "registration_date": datetime.now().isoformat(),
+                "last_activity": datetime.now().isoformat(),
+                "status": "active"
+            }
+            
+            return web.json_response({
+                "success": True, 
+                "data": {
+                    "researcher_id": researcher_id,
+                    "message": "Registration successful",
+                    "next_steps": [
+                        "Complete email verification",
+                        "Upload security certifications",
+                        "Browse available programs",
+                        "Submit first vulnerability report"
+                    ]
+                }
+            })
+            
+        except Exception as e:
+            logger.error(f"Registration error: {e}")
+            return web.json_response(
+                {"success": False, "error": "Registration failed"},
+                status=500
+            )
+    
+    async def get_researcher_dashboard(self, request: web_request) -> web_response:
+        """Get researcher dashboard data"""
+        researcher_data = {
+            "researcher_info": {
+                "id": "RES-A1B2C3D4",
+                "username": "security_expert_2024",
+                "reputation_score": 2850,
+                "rank": "Elite Researcher",
+                "total_submissions": 47,
+                "accepted_vulnerabilities": 38,
+                "total_bounties_earned": "$12,450",
+                "average_severity": "High",
+                "response_time": "2.3 hours",
+                "collaboration_score": 94
+            },
+            "recent_submissions": [
+                {
+                    "id": "SUB-001",
+                    "title": "SQL Injection in Login Form",
+                    "program": "TechCorp Bug Bounty",
+                    "severity": "critical",
+                    "status": "triaging",
+                    "submitted_date": "2024-01-15T10:30:00Z",
+                    "potential_bounty": "$2000-$5000"
+                },
+                {
+                    "id": "SUB-002", 
+                    "title": "XSS in Comment Section",
+                    "program": "StartupXYZ Security Research",
+                    "severity": "medium",
+                    "status": "validated",
+                    "submitted_date": "2024-01-12T14:15:00Z",
+                    "bounty_awarded": "$750"
+                }
+            ],
+            "available_programs": [
+                {
+                    "id": "PROG-001",
+                    "name": "Enterprise Security Challenge",
+                    "company": "MegaCorp Inc.",
+                    "scope": "Web Application + API",
+                    "max_bounty": "$10,000",
+                    "difficulty": "Advanced",
+                    "researchers_active": 23,
+                    "expires": "2024-06-30"
+                },
+                {
+                    "id": "PROG-002",
+                    "name": "Mobile App Security Audit",
+                    "company": "TechStart Ltd.",
+                    "scope": "iOS + Android Applications",
+                    "max_bounty": "$5,000",
+                    "difficulty": "Intermediate",
+                    "researchers_active": 15,
+                    "expires": "2024-04-15"
+                }
+            ],
+            "achievements": [
+                {"title": "First Blood", "description": "First to find critical vulnerability", "earned": "2023-12-01"},
+                {"title": "Collaboration Master", "description": "Helped 10+ researchers", "earned": "2024-01-01"},
+                {"title": "Quality Hunter", "description": "90%+ acceptance rate", "earned": "2024-01-10"}
+            ],
+            "statistics": {
+                "monthly_submissions": 8,
+                "success_rate": 0.89,
+                "average_response_time": "2.3 hours",
+                "preferred_categories": ["Web Security", "API Testing", "Mobile Security"],
+                "collaboration_requests": 3,
+                "mentorship_sessions": 2
+            }
+        }
+        
+        return web.json_response({"success": True, "data": researcher_data})
+    
+    async def submit_vulnerability(self, request: web_request) -> web_response:
+        """Submit vulnerability report"""
+        try:
+            data = await request.json()
+            
+            # Generate submission ID
+            submission_id = f"VUL-{datetime.now().strftime('%Y%m%d')}-{hashlib.md5(str(datetime.now()).encode()).hexdigest()[:6].upper()}"
+            
+            vulnerability = {
+                "id": submission_id,
+                "title": data.get('title'),
+                "description": data.get('description'),
+                "severity": data.get('severity', 'medium'),
+                "category": data.get('category', 'other'),
+                "affected_url": data.get('affected_url'),
+                "steps_to_reproduce": data.get('steps_to_reproduce', []),
+                "proof_of_concept": data.get('proof_of_concept'),
+                "impact_assessment": data.get('impact_assessment'),
+                "suggested_fix": data.get('suggested_fix'),
+                "researcher_id": data.get('researcher_id'),
+                "program_id": data.get('program_id'),
+                "submission_date": datetime.now().isoformat(),
+                "status": "submitted",
+                "cvss_score": data.get('cvss_score', 0.0),
+                "attachments": data.get('attachments', []),
+                "collaboration_allowed": data.get('collaboration_allowed', True)
+            }
+            
+            return web.json_response({
+                "success": True,
+                "data": {
+                    "submission_id": submission_id,
+                    "status": "submitted",
+                    "estimated_review_time": "24-48 hours",
+                    "tracking_url": f"/api/v1/submissions/{submission_id}",
+                    "next_steps": [
+                        "Automated security checks will run",
+                        "Security team will review submission",
+                        "You'll receive updates via email",
+                        "Collaborate with other researchers if needed"
+                    ]
+                }
+            })
+            
+        except Exception as e:
+            logger.error(f"Vulnerability submission error: {e}")
+            return web.json_response(
+                {"success": False, "error": "Submission failed"},
+                status=500
+            )
+    
+    async def get_bounty_programs(self, request: web_request) -> web_response:
+        """Get available bounty programs"""
+        programs = [
+            {
+                "id": f"PROG-{i:03d}",
+                "name": f"Security Research Program {i+1}",
+                "company": f"TechCorp {i+1}",
+                "description": f"Comprehensive security testing for enterprise platform",
+                "scope": ["Web Application", "Mobile App", "API", "Infrastructure"][i % 4],
+                "target_assets": [f"https://app{i+1}.example.com", f"https://api{i+1}.example.com"],
+                "budget": f"${[25000, 50000, 100000, 200000][i % 4]}",
+                "max_bounty": f"${[5000, 10000, 20000, 50000][i % 4]}",
+                "active_researchers": 15 + (i * 3),
+                "total_submissions": 45 + (i * 8),
+                "start_date": "2024-01-01",
+                "end_date": "2024-12-31",
+                "status": "active",
+                "difficulty_level": ["Beginner", "Intermediate", "Advanced", "Expert"][i % 4],
+                "reward_ranges": {
+                    "critical": f"${[2000, 5000, 10000, 25000][i % 4]}-${[5000, 10000, 20000, 50000][i % 4]}",
+                    "high": f"${[1000, 2500, 5000, 12500][i % 4]}-${[2500, 5000, 10000, 25000][i % 4]}",
+                    "medium": f"${[500, 1000, 2000, 5000][i % 4]}-${[1000, 2500, 5000, 12500][i % 4]}",
+                    "low": f"${[100, 250, 500, 1000][i % 4]}-${[500, 1000, 2000, 5000][i % 4]}"
+                },
+                "requirements": [
+                    "Valid security researcher account",
+                    "Signed NDA and program agreement",
+                    "Previous successful submissions (for advanced programs)",
+                    "Collaboration and knowledge sharing"
+                ],
+                "prohibited": [
+                    "Social engineering attacks",
+                    "Physical attacks",
+                    "Denial of service attacks",
+                    "Data destruction or modification"
+                ]
+            }
+            for i in range(12)
+        ]
+        
+        return web.json_response({"success": True, "data": programs})
+    
+    async def get_submission_status(self, request: web_request) -> web_response:
+        """Get vulnerability submission status"""
+        submission_id = request.match_info.get('submission_id')
+        
+        status_data = {
+            "submission_id": submission_id,
+            "current_status": "under_review",
+            "submitted_date": "2024-01-15T10:30:00Z",
+            "last_updated": datetime.now().isoformat(),
+            "timeline": [
+                {"stage": "submitted", "timestamp": "2024-01-15T10:30:00Z", "status": "completed"},
+                {"stage": "automated_checks", "timestamp": "2024-01-15T10:35:00Z", "status": "completed"},
+                {"stage": "security_review", "timestamp": "2024-01-15T11:00:00Z", "status": "in_progress"},
+                {"stage": "validation", "timestamp": None, "status": "pending"},
+                {"stage": "bounty_award", "timestamp": None, "status": "pending"}
+            ],
+            "reviewer_notes": [
+                {"timestamp": "2024-01-15T11:15:00Z", "note": "Initial review started - vulnerability appears valid"},
+                {"timestamp": "2024-01-15T12:30:00Z", "note": "Reproduction successful - escalating to security team"}
+            ],
+            "estimated_completion": "2024-01-17T10:30:00Z",
+            "collaboration_requests": [
+                {
+                    "from_researcher": "RES-B2C3D4E5",
+                    "username": "mobile_security_pro",
+                    "message": "I found similar issue in mobile app - want to collaborate?",
+                    "timestamp": "2024-01-15T14:20:00Z"
+                }
+            ]
+        }
+        
+        return web.json_response({"success": True, "data": status_data})
+
+async def create_app():
+    """Create researcher API application"""
+    researcher_api = XORBPTaaSResearcherAPI()
+    await researcher_api.init_connections()
+    
+    app = web.Application()
+    
+    # Add CORS middleware
+    @web.middleware
+    async def cors_middleware(request, handler):
+        response = await handler(request)
+        response.headers['Access-Control-Allow-Origin'] = '*'
+        response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+        response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
+    
+    app.middlewares.append(cors_middleware)
+    
+    # Routes
+    app.router.add_get('/health', researcher_api.health_check)
+    app.router.add_post('/api/v1/researchers/register', researcher_api.register_researcher)
+    app.router.add_get('/api/v1/researchers/dashboard', researcher_api.get_researcher_dashboard)
+    app.router.add_post('/api/v1/vulnerabilities/submit', researcher_api.submit_vulnerability)
+    app.router.add_get('/api/v1/programs', researcher_api.get_bounty_programs)
+    app.router.add_get('/api/v1/submissions/{submission_id}', researcher_api.get_submission_status)
+    
+    return app
+
+if __name__ == '__main__':
+    app = create_app()
+    web.run_app(app, host='0.0.0.0', port=8081)
+EOF
+
+EXPOSE 8081
+
+CMD ["python", "researcher_api_service.py"]

@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 15s
+scrape_configs:
+- job_name: xorb-autonomous-orchestration
+  static_configs:
+  - targets:
+    - xorb-neural-orchestrator:8003
+    - xorb-learning-service:8004

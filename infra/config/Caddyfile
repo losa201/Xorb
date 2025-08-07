@@ -1,0 +1,236 @@
+# XORB Secure Telemetry Exposure Configuration
+# Caddy reverse proxy with TLS and authentication
+
+# AI Intelligence Dashboard (Grafana)
+dashboard.xorb.local:443 {
+    # TLS configuration
+    tls internal {
+        on_demand
+    }
+    
+    # Basic authentication
+    basicauth {
+        admin $2a$14$hgUf4/LJfP6fI.XmnLfNX.H6zTxr5o8Zd5Kz8Xr4oLp7pNm5fM.Q6
+        xorb_user $2a$14$mE6yN4v5aP2bCdRfHg7uI.J3lKm8vRxQ9zN5hO2aF6sT1kY4wE8pL
+    }
+    
+    # Reverse proxy to Grafana
+    reverse_proxy localhost:3002 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # Security headers
+    header {
+        X-Frame-Options DENY
+        X-Content-Type-Options nosniff
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Content-Security-Policy "default-src 'self'"
+    }
+    
+    # Rate limiting
+    rate_limit {
+        zone static_ip {
+            key {remote_host}
+            events 100
+            window 1m
+        }
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/dashboard.log
+        format json
+    }
+}
+
+# Prometheus AI Metrics
+metrics.xorb.local:443 {
+    # TLS configuration
+    tls internal {
+        on_demand
+    }
+    
+    # Basic authentication
+    basicauth {
+        admin $2a$14$hgUf4/LJfP6fI.XmnLfNX.H6zTxr5o8Zd5Kz8Xr4oLp7pNm5fM.Q6
+        metrics_user $2a$14$sL9bN2h4fK7yM1xCzQ5rP.W8mR3oT6vN9jH5gK2eS4aD7fL1yB8pQ
+    }
+    
+    # Reverse proxy to Prometheus
+    reverse_proxy localhost:9092 {
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+    }
+    
+    # Security headers
+    header {
+        X-Frame-Options DENY
+        X-Content-Type-Options nosniff
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+    
+    # Rate limiting for metrics scraping
+    rate_limit {
+        zone metrics_ip {
+            key {remote_host}
+            events 1000
+            window 1m
+        }
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/metrics.log
+        format json
+    }
+}
+
+# Neural Orchestration API
+orchestrator.xorb.local:443 {
+    # TLS configuration
+    tls internal {
+        on_demand
+    }
+    
+    # API key authentication middleware
+    @api_auth {
+        header Authorization "Bearer xorb_neural_api_key_2024"
+    }
+    
+    handle @api_auth {
+        # Reverse proxy to Neural Orchestrator
+        reverse_proxy localhost:8003 {
+            header_up Host {upstream_hostport}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle {
+        respond "Unauthorized: Valid API key required" 401
+    }
+    
+    # Security headers
+    header {
+        X-Frame-Options DENY
+        X-Content-Type-Options nosniff
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+    
+    # Rate limiting for API calls
+    rate_limit {
+        zone orchestrator_ip {
+            key {remote_host}
+            events 500
+            window 1m
+        }
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/orchestrator.log
+        format json
+    }
+}
+
+# Autonomous Learning API
+learning.xorb.local:443 {
+    # TLS configuration
+    tls internal {
+        on_demand
+    }
+    
+    # API key authentication middleware
+    @api_auth {
+        header Authorization "Bearer xorb_learning_api_key_2024"
+    }
+    
+    handle @api_auth {
+        # Reverse proxy to Learning Service
+        reverse_proxy localhost:8004 {
+            header_up Host {upstream_hostport}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-For {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+        }
+    }
+    
+    handle {
+        respond "Unauthorized: Valid API key required" 401
+    }
+    
+    # Security headers
+    header {
+        X-Frame-Options DENY
+        X-Content-Type-Options nosniff
+        X-XSS-Protection "1; mode=block"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+    }
+    
+    # Rate limiting for API calls
+    rate_limit {
+        zone learning_ip {
+            key {remote_host}
+            events 300
+            window 1m
+        }
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/learning.log
+        format json
+    }
+}
+
+# Health check endpoint (no auth required)
+health.xorb.local:443 {
+    tls internal {
+        on_demand
+    }
+    
+    respond /health `{
+        "status": "healthy",
+        "services": {
+            "dashboard": "https://dashboard.xorb.local",
+            "metrics": "https://metrics.xorb.local", 
+            "orchestrator": "https://orchestrator.xorb.local",
+            "learning": "https://learning.xorb.local"
+        },
+        "timestamp": "{{.now.Format \"2006-01-02T15:04:05Z\"}}"
+    }`
+    
+    log {
+        output file /var/log/caddy/health.log
+        format json
+    }
+}
+
+# Global configuration
+{
+    # Security settings
+    auto_https disable_redirects
+    
+    # Admin endpoint (local only)
+    admin localhost:2019
+    
+    # Global logging
+    log {
+        level INFO
+        output file /var/log/caddy/access.log {
+            roll_size 100mb
+            roll_keep 5
+            roll_keep_for 720h
+        }
+        format json
+    }
+}

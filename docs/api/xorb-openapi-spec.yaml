@@ -1,0 +1,988 @@
+openapi: 3.1.0
+info:
+  title: XORB Cybersecurity Platform API
+  description: |
+    XORB API for autonomous cybersecurity operations, orchestration, and multi-agent coordination.
+    
+    ## Security
+    - All endpoints require mTLS authentication
+    - JWT bearer tokens for authorization
+    - Role-based access control (RBAC)
+    - Request signing for response integrity
+    
+    ## Rate Limiting
+    - Admin: 10,000 req/min
+    - Orchestrator: 5,000 req/min  
+    - Agent: 2,000 req/min
+    - Analyst: 1,000 req/min
+    - Readonly: 500 req/min
+    
+  version: 1.0.0
+  contact:
+    name: XORB Platform Team
+    email: platform@xorb.security
+  license:
+    name: Proprietary
+    
+servers:
+  - url: https://api.xorb.security/v1
+    description: Production API
+  - url: https://staging-api.xorb.security/v1
+    description: Staging API
+  - url: http://localhost:8000/v1
+    description: Development API
+
+security:
+  - BearerAuth: []
+  - mTLS: []
+
+paths:
+  # Authentication Endpoints
+  /auth/token:
+    post:
+      summary: Obtain JWT token
+      description: Exchange client credentials for JWT token
+      tags: [Authentication]
+      security: 
+        - mTLS: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRequest'
+      responses:
+        '200':
+          description: Token issued successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /auth/refresh:
+    post:
+      summary: Refresh JWT token
+      description: Refresh an expiring JWT token
+      tags: [Authentication]
+      responses:
+        '200':
+          description: Token refreshed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Agent Management Endpoints
+  /agents:
+    get:
+      summary: List all agents
+      description: Retrieve list of all registered agents
+      tags: [Agent Management]
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          description: Filter by agent status
+          schema:
+            $ref: '#/components/schemas/AgentStatus'
+        - name: type
+          in: query
+          description: Filter by agent type
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: Limit number of results
+          schema:
+            type: integer
+            default: 100
+        - name: offset
+          in: query
+          description: Offset for pagination
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: Agents retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentsListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create new agent
+      description: Deploy a new autonomous agent
+      tags: [Agent Management]
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAgentRequest'
+      responses:
+        '201':
+          description: Agent created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /agents/{agent_id}:
+    get:
+      summary: Get agent details
+      description: Retrieve detailed information about a specific agent
+      tags: [Agent Management]
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Agent details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      summary: Update agent
+      description: Update agent configuration or capabilities
+      tags: [Agent Management]
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAgentRequest'
+      responses:
+        '200':
+          description: Agent updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Agent'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    delete:
+      summary: Terminate agent
+      description: Safely terminate and cleanup agent
+      tags: [Agent Management]
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Agent terminated successfully
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /agents/{agent_id}/status:
+    get:
+      summary: Get agent status
+      description: Get real-time status of agent
+      tags: [Agent Management]
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Agent status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentStatusResponse'
+
+  # Task Orchestration Endpoints
+  /tasks:
+    get:
+      summary: List tasks
+      description: Retrieve list of orchestrated tasks
+      tags: [Task Orchestration]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/TaskStatus'
+        - name: priority
+          in: query
+          schema:
+            $ref: '#/components/schemas/TaskPriority'
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Tasks retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TasksListResponse'
+
+    post:
+      summary: Submit task
+      description: Submit a new task for orchestration
+      tags: [Task Orchestration]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task submitted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+
+  /tasks/{task_id}:
+    get:
+      summary: Get task details
+      description: Retrieve detailed task information
+      tags: [Task Orchestration]
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task details retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+
+    delete:
+      summary: Cancel task
+      description: Cancel a pending or running task
+      tags: [Task Orchestration]
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Task cancelled successfully
+        '409':
+          description: Task cannot be cancelled
+
+  # Security Operations Endpoints
+  /security/threats:
+    get:
+      summary: List threats
+      description: Retrieve detected threats and security events
+      tags: [Security Operations]
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            $ref: '#/components/schemas/ThreatSeverity'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, investigating, resolved]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: Threats retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreatsListResponse'
+
+  /security/threats/{threat_id}/respond:
+    post:
+      summary: Respond to threat
+      description: Initiate automated threat response
+      tags: [Security Operations]
+      parameters:
+        - name: threat_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreatResponseRequest'
+      responses:
+        '202':
+          description: Response initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ThreatResponseResult'
+
+  # Telemetry & Observability Endpoints
+  /telemetry/metrics:
+    get:
+      summary: Get system metrics
+      description: Retrieve performance and operational metrics
+      tags: [Telemetry]
+      parameters:
+        - name: metric_name
+          in: query
+          schema:
+            type: string
+        - name: time_range
+          in: query
+          description: Time range in hours
+          schema:
+            type: integer
+            default: 1
+      responses:
+        '200':
+          description: Metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+  /telemetry/health:
+    get:
+      summary: System health check
+      description: Get overall system health status
+      tags: [Telemetry]
+      responses:
+        '200':
+          description: System healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  # Configuration Endpoints
+  /config/system:
+    get:
+      summary: Get system configuration
+      description: Retrieve current system configuration
+      tags: [Configuration]
+      responses:
+        '200':
+          description: Configuration retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfig'
+
+    put:
+      summary: Update system configuration
+      description: Update system configuration settings
+      tags: [Configuration]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SystemConfig'
+      responses:
+        '200':
+          description: Configuration updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemConfig'
+
+  # Intelligence Integration Endpoints  
+  /intelligence/decisions:
+    post:
+      summary: Request AI decision
+      description: Request intelligent decision from AI orchestration brain
+      tags: [Intelligence]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionRequest'
+      responses:
+        '200':
+          description: Decision provided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+
+  /intelligence/feedback:
+    post:
+      summary: Provide feedback
+      description: Provide feedback to improve AI decision making
+      tags: [Intelligence]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackRequest'
+      responses:
+        '202':
+          description: Feedback accepted
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    mTLS:
+      type: mutualTLS
+      description: Client certificate authentication
+
+  schemas:
+    # Authentication Schemas
+    TokenRequest:
+      type: object
+      required: [client_id, client_secret]
+      properties:
+        client_id:
+          type: string
+          description: Client identifier
+        client_secret:
+          type: string
+          description: Client secret
+        scope:
+          type: string
+          description: Requested permissions scope
+
+    TokenResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+        token_type:
+          type: string
+          enum: [Bearer]
+        expires_in:
+          type: integer
+          description: Token expiry in seconds
+        scope:
+          type: string
+          description: Granted permissions
+
+    # Agent Management Schemas
+    Agent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        type:
+          type: string
+          enum: [security_analyst, red_team, blue_team, threat_hunter, compliance_monitor]
+        status:
+          $ref: '#/components/schemas/AgentStatus'
+        capabilities:
+          type: array
+          items:
+            type: string
+        configuration:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        last_active:
+          type: string
+          format: date-time
+        metrics:
+          $ref: '#/components/schemas/AgentMetrics'
+
+    AgentStatus:
+      type: string
+      enum: [active, idle, busy, error, terminated]
+
+    AgentMetrics:
+      type: object
+      properties:
+        tasks_completed:
+          type: integer
+        success_rate:
+          type: number
+          format: float
+        avg_response_time:
+          type: number
+          format: float
+        cpu_usage:
+          type: number
+          format: float
+        memory_usage:
+          type: number
+          format: float
+
+    CreateAgentRequest:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        type:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        configuration:
+          type: object
+
+    UpdateAgentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        capabilities:
+          type: array
+          items:
+            type: string
+        configuration:
+          type: object
+
+    AgentsListResponse:
+      type: object
+      properties:
+        agents:
+          type: array
+          items:
+            $ref: '#/components/schemas/Agent'
+        total:
+          type: integer
+        page:
+          type: integer
+        per_page:
+          type: integer
+
+    AgentStatusResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        status:
+          $ref: '#/components/schemas/AgentStatus'
+        current_task:
+          type: string
+          format: uuid
+          nullable: true
+        metrics:
+          $ref: '#/components/schemas/AgentMetrics'
+        last_heartbeat:
+          type: string
+          format: date-time
+
+    # Task Orchestration Schemas
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        status:
+          $ref: '#/components/schemas/TaskStatus'
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        assigned_agent:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        parameters:
+          type: object
+        results:
+          type: object
+          nullable: true
+
+    TaskStatus:
+      type: string
+      enum: [pending, running, completed, failed, cancelled]
+
+    TaskPriority:
+      type: string
+      enum: [low, medium, high, critical]
+
+    CreateTaskRequest:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        type:
+          type: string
+        priority:
+          $ref: '#/components/schemas/TaskPriority'
+        parameters:
+          type: object
+        preferred_agent:
+          type: string
+          format: uuid
+          nullable: true
+
+    TasksListResponse:
+      type: object
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        total:
+          type: integer
+
+    # Security Operations Schemas
+    Threat:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+        severity:
+          $ref: '#/components/schemas/ThreatSeverity'
+        category:
+          type: string
+        source:
+          type: string
+        target:
+          type: string
+        status:
+          type: string
+          enum: [new, investigating, contained, resolved]
+        detected_at:
+          type: string
+          format: date-time
+        indicators:
+          type: array
+          items:
+            type: object
+        metadata:
+          type: object
+
+    ThreatSeverity:
+      type: string
+      enum: [low, medium, high, critical]
+
+    ThreatResponseRequest:
+      type: object
+      required: [action]
+      properties:
+        action:
+          type: string
+          enum: [contain, investigate, block, quarantine]
+        parameters:
+          type: object
+
+    ThreatResponseResult:
+      type: object
+      properties:
+        response_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        initiated_at:
+          type: string
+          format: date-time
+
+    ThreatsListResponse:
+      type: object
+      properties:
+        threats:
+          type: array
+          items:
+            $ref: '#/components/schemas/Threat'
+        total:
+          type: integer
+
+    # Telemetry Schemas
+    MetricsResponse:
+      type: object
+      properties:
+        metrics:
+          type: array
+          items:
+            $ref: '#/components/schemas/Metric'
+        timestamp:
+          type: string
+          format: date-time
+
+    Metric:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: number
+        unit:
+          type: string
+        tags:
+          type: object
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        components:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ComponentHealth'
+        timestamp:
+          type: string
+          format: date-time
+
+    ComponentHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        details:
+          type: string
+        last_check:
+          type: string
+          format: date-time
+
+    # Configuration Schemas
+    SystemConfig:
+      type: object
+      properties:
+        security:
+          $ref: '#/components/schemas/SecurityConfig'
+        orchestration:
+          $ref: '#/components/schemas/OrchestrationConfig'
+        compliance:
+          $ref: '#/components/schemas/ComplianceConfig'
+
+    SecurityConfig:
+      type: object
+      properties:
+        mtls_required:
+          type: boolean
+        token_expiry_hours:
+          type: integer
+        rate_limits:
+          type: object
+
+    OrchestrationConfig:
+      type: object
+      properties:
+        max_concurrent_tasks:
+          type: integer
+        task_timeout_minutes:
+          type: integer
+        auto_scaling_enabled:
+          type: boolean
+
+    ComplianceConfig:
+      type: object
+      properties:
+        gdpr_enabled:
+          type: boolean
+        data_retention_days:
+          type: integer
+        audit_level:
+          type: string
+          enum: [minimal, standard, comprehensive]
+
+    # Intelligence Schemas
+    DecisionRequest:
+      type: object
+      required: [context, decision_type]
+      properties:
+        context:
+          type: object
+          description: Decision context data
+        decision_type:
+          type: string
+          enum: [task_priority, threat_response, resource_allocation]
+        parameters:
+          type: object
+
+    DecisionResponse:
+      type: object
+      properties:
+        decision:
+          type: string
+        confidence:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        reasoning:
+          type: array
+          items:
+            type: string
+        alternatives:
+          type: array
+          items:
+            type: object
+
+    FeedbackRequest:
+      type: object
+      required: [decision_id, outcome]
+      properties:
+        decision_id:
+          type: string
+          format: uuid
+        outcome:
+          type: string
+          enum: [success, failure, partial_success]
+        details:
+          type: string
+        metrics:
+          type: object
+
+    # Common Schemas
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        request_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    SignedResponse:
+      type: object
+      properties:
+        data:
+          type: object
+        signature:
+          type: string
+          description: Cryptographic signature of response data
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Bad request - Invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Unauthorized:
+      description: Unauthorized - Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        Retry-After:
+          description: Seconds to wait before retrying
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+    ServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'

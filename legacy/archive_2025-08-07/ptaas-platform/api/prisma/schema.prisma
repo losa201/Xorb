@@ -1,0 +1,88 @@
+// This is your Prisma schema file,
+// learn more about its format at https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale your application?
+// Try Prisma Accelerate: https://pris.ly/d/accelerate
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  email         String   @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          Role     @default(USER)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  scans         Scan[]
+  findings      Finding[]
+}
+
+model Scan {
+  id            Int      @id @default(autoincrement())
+  target        String
+  status        ScanStatus @default(PENDING)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  findings      Finding[]
+  scanType      ScanType
+  options       Json
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Finding {
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String
+  severity      Severity
+  confidence    Float
+  cvssScore     Float
+  cve           String?
+  epssScore     Float?
+  riskScore     Float
+  exploitAvailable Boolean
+  scanId        Int
+  scan          Scan     @relation(fields: [scanId], references: [id])
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ScanStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum ScanType {
+  NETWORK
+  WEB
+  API
+  MOBILE
+}
+
+enum Severity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}

@@ -1,0 +1,26 @@
+[Unit]
+Description=PTaaS Frontend - Next.js Application
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/Xorb/ptaas-frontend
+Environment=NODE_ENV=production
+Environment=PORT=3005
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=ptaas-frontend
+
+# Security settings
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/root/Xorb/ptaas-frontend
+
+[Install]
+WantedBy=multi-user.target

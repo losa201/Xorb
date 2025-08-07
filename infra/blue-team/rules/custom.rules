@@ -1,0 +1,94 @@
+# XORB Blue Team Custom Detection Rules
+# Specialized rules for detecting red team activities
+
+# Red Team Tool Detection
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Nmap TCP Connect Scan"; flags:S,12; threshold: type both, track by_src, count 10, seconds 30; sid:10000001; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Nmap SYN Scan"; flags:S,!A; threshold: type both, track by_src, count 15, seconds 30; sid:10000002; rev:1;)
+alert udp any any -> $HOME_NET any (msg:"Red Team: Nmap UDP Scan"; threshold: type both, track by_src, count 10, seconds 30; sid:10000003; rev:1;)
+
+# Metasploit Detection
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Metasploit User-Agent"; content:"Metasploit"; http_user_agent; sid:10000004; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Meterpreter Shell"; content:"meterpreter"; sid:10000005; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Metasploit Payload"; content:"windows/meterpreter"; sid:10000006; rev:1;)
+
+# Burp Suite Detection
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Burp Suite User-Agent"; content:"Burp"; http_user_agent; sid:10000007; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Burp Intruder"; content:"Burp-Intruder"; http_header; sid:10000008; rev:1;)
+
+# SQLMap Detection
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: SQLMap User-Agent"; content:"sqlmap"; http_user_agent; nocase; sid:10000009; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: SQL Injection UNION"; content:"UNION"; http_uri; nocase; sid:10000010; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: SQL Injection OR 1=1"; content:"OR 1=1"; http_uri; nocase; sid:10000011; rev:1;)
+
+# Command Injection Detection
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Command Injection - ls"; content:"ls -"; http_uri; sid:10000012; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Command Injection - cat"; content:"cat /etc/passwd"; http_uri; sid:10000013; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Command Injection - whoami"; content:"whoami"; http_uri; sid:10000014; rev:1;)
+
+# Directory Traversal Detection
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Directory Traversal"; content:"../"; http_uri; sid:10000015; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Windows Directory Traversal"; content:"..\\"; http_uri; sid:10000016; rev:1;)
+
+# Reverse Shell Detection
+alert tcp any any -> any any (msg:"Red Team: Bash Reverse Shell"; content:"/bin/bash"; sid:10000017; rev:1;)
+alert tcp any any -> any any (msg:"Red Team: Netcat Reverse Shell"; content:"nc -e"; sid:10000018; rev:1;)
+alert tcp any any -> any any (msg:"Red Team: Python Reverse Shell"; content:"python -c"; sid:10000019; rev:1;)
+
+# Credential Attacks
+alert tcp any any -> $HOME_NET $SSH_PORTS (msg:"Red Team: SSH Brute Force"; threshold: type both, track by_src, count 5, seconds 60; sid:10000020; rev:1;)
+alert tcp any any -> $HOME_NET 3306 (msg:"Red Team: MySQL Brute Force"; threshold: type both, track by_src, count 5, seconds 60; sid:10000021; rev:1;)
+
+# Web Shell Detection
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: PHP Web Shell"; content:"<?php"; http_client_body; sid:10000022; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: ASPX Web Shell"; content:"<%@"; http_client_body; sid:10000023; rev:1;)
+
+# Exploitation Frameworks
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Cobalt Strike"; content:"Cobalt Strike"; sid:10000024; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Empire Framework"; content:"Empire"; sid:10000025; rev:1;)
+
+# Privilege Escalation
+alert tcp any any -> $HOME_NET $SSH_PORTS (msg:"Red Team: Sudo Attempts"; content:"sudo"; sid:10000026; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: SUID Binary Search"; content:"find / -perm -4000"; sid:10000027; rev:1;)
+
+# Data Exfiltration
+alert tcp $HOME_NET any -> any any (msg:"Red Team: Large Data Transfer"; dsize:>100000; threshold: type both, track by_src, count 3, seconds 60; sid:10000028; rev:1;)
+alert tcp $HOME_NET any -> any any (msg:"Red Team: Base64 Encoded Data"; content:"base64"; sid:10000029; rev:1;)
+
+# Lateral Movement
+alert tcp any any -> $HOME_NET 139 (msg:"Red Team: SMB Enumeration"; content:"IPC$"; sid:10000030; rev:1;)
+alert tcp any any -> $HOME_NET 445 (msg:"Red Team: SMB Share Access"; content:"\\\\"; sid:10000031; rev:1;)
+
+# Vulnerability Scanners
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Nessus Scanner"; content:"Nessus"; http_user_agent; sid:10000032; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: OpenVAS Scanner"; content:"OpenVAS"; http_user_agent; sid:10000033; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Nikto Scanner"; content:"Nikto"; http_user_agent; sid:10000034; rev:1;)
+
+# Payload Delivery
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Malicious File Upload"; content:"Content-Type: application/x-msdownload"; http_header; sid:10000035; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Executable Upload"; content:".exe"; http_client_body; sid:10000036; rev:1;)
+
+# C2 Communication
+alert tcp $HOME_NET any -> any any (msg:"Red Team: C2 Beacon"; content:"HTTP/1.1"; pcre:"/Host: [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}/"; sid:10000037; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: C2 Callback"; content:"POST"; http_method; content:"sessionid"; http_client_body; sid:10000038; rev:1;)
+
+# Information Gathering
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Admin Panel Search"; content:"/admin"; http_uri; sid:10000039; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Config File Access"; content:"config.php"; http_uri; sid:10000040; rev:1;)
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: Backup File Access"; content:".bak"; http_uri; sid:10000041; rev:1;)
+
+# Password Attacks
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Hydra Brute Force"; content:"hydra"; sid:10000042; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: John the Ripper"; content:"john"; sid:10000043; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Hashcat"; content:"hashcat"; sid:10000044; rev:1;)
+
+# Anti-Analysis Evasion
+alert tcp any any -> $HOME_NET $HTTP_PORTS (msg:"Red Team: User-Agent Randomization"; pcre:"/User-Agent: [A-Za-z0-9]{20,}/"; sid:10000045; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Traffic Obfuscation"; content:"X-Forwarded-For"; http_header; sid:10000046; rev:1;)
+
+# Post-Exploitation
+alert tcp any any -> $HOME_NET any (msg:"Red Team: System Information Gathering"; content:"uname -a"; sid:10000047; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Network Configuration"; content:"ifconfig"; sid:10000048; rev:1;)
+alert tcp any any -> $HOME_NET any (msg:"Red Team: Process Enumeration"; content:"ps aux"; sid:10000049; rev:1;)
+
+# High-Priority Alerts (Immediate Response Required)
+alert tcp any any -> $HOME_NET any (msg:"RED TEAM COMPROMISE DETECTED - IMMEDIATE RESPONSE"; content:"COMPROMISED"; priority:1; sid:10000050; rev:1;)
