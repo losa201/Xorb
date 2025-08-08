@@ -169,11 +169,60 @@ class SimulationEngine:
         self._update_comms()
 
     def _update_threat_zones(self) -> None:
-        """Update threat zones based on agent activities"""
+        """Update threat zones based on agent activities and adversarial encounters"""
         # Clear old threat zones
         self.world_state.threat_zones = []
         
-        # Create new threat zones based on agent actions
+        # First detect adversarial encounters
+        red_agents = {aid: state for aid, state in self.world_state.agent_states.items() 
+                     if state["type"] == "red"}
+        blue_agents = {aid: state for aid, state in self.world_state.agent_states.items() 
+                      if state["type"] == "blue"}
+        
+        # Track adversarial encounters for telemetry
+        encounters = []
+        
+        # Check for red-blue agent interactions
+        for red_id, red_state in red_agents.items():
+            for blue_id, blue_state in blue_agents.items():
+                # Calculate distance between agents
+                distance = np.linalg.norm(
+                    np.array(red_state["position"]) - np.array(blue_state["position"])
+                )
+                
+                # Get agent capabilities
+                red_stealth = red_state.get("stealth_budget", 0.5)
+                blue_detection = blue_state.get("detection_radius", 15.0)
+                
+                # Adjust detection radius based on stealth
+                effective_radius = blue_detection * (1.0 - red_stealth * 0.7)
+                
+                # Check if within detection range
+                if distance <= effective_radius:
+                    # Calculate threat level based on distance and capabilities
+                    normalized_distance = distance / effective_radius
+                    threat_level = 1.0 - (normalized_distance * 0.5)  # Closer = higher threat
+                    
+                    # Record encounter
+                    encounters.append({
+                        "red_agent": red_id,
+                        "blue_agent": blue_id,
+                        "distance": distance,
+                        "threat_level": threat_level,
+                        "timestamp": self.world_state.timestamp
+                    })
+                    
+                    # Create threat zone at red agent's position
+                    self.world_state.threat_zones.append({
+                        "center": red_state["position"],
+                        "radius": effective_radius,
+                        "intensity": threat_level,
+                        "duration": 3,  # Shorter duration for adversarial threat zones
+                        "red_agent": red_id,
+                        "blue_agent": blue_id
+                    })
+        
+        # Add individual agent threat zones for non-encounter activities
         for agent_id, state in self.world_state.agent_states.items():
             if state["status"] == "active" and state.get("last_action"):
                 # Higher stealth level means less threat generation
@@ -182,10 +231,14 @@ class SimulationEngine:
                 # Create a threat zone around the agent's position
                 self.world_state.threat_zones.append({
                     "center": state["position"],
-                    "radius": threat_level * 2,  # Higher threat = larger radius
-                    "intensity": threat_level,
-                    "duration": 5  # Lasts for 5 simulation steps
+                    "radius": threat_level * 2,
+                    "intensity": threat_level * 0.5,  # Lower intensity for non-encounter activities
+                    "duration": 5
                 })
+        
+        # Update telemetry with encounters
+        if encounters:
+            self.world_state.telemetry.data["adversarial_encounters"].extend(encounters)
 
     def _update_resources(self) -> None:
         """Update resource availability across the network"""

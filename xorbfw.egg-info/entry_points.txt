@@ -1,0 +1,3 @@
+[console_scripts]
+xorbfw-demo = xorbfw.demonstration:main
+xorbfw-validate = xorbfw.validation:main
