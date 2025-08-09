@@ -5,7 +5,7 @@ services:
   api:
     build:
       context: ..
-      dockerfile: compose/Dockerfile.api
+      dockerfile: src/api/Dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -36,7 +36,7 @@ services:
   worker:
     build:
       context: ..
-      dockerfile: compose/Dockerfile.worker
+      dockerfile: src/services/worker/Dockerfile
     ports:
       - "9001:9000"  # Metrics port
     environment:
@@ -64,14 +64,14 @@ services:
   orchestrator:
     build:
       context: ..
-      dockerfile: compose/Dockerfile.orchestrator
+      dockerfile: src/orchestrator/Dockerfile
     depends_on:
       - temporal
 
   llm-cortex:
     build:
       context: ..
-      dockerfile: compose/Dockerfile.llm-cortex
+      dockerfile: src/xorb_services/core_platform/Dockerfile
     ports:
       - "8009:8009"
     environment:

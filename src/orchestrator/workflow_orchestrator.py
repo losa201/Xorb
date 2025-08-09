@@ -12,7 +12,7 @@ from dataclasses import dataclass, asdict
 from enum import Enum
 import uuid
 from abc import ABC, abstractmethod
-import aioredis
+from redis import asyncio as aioredis
 import aiohttp
 from temporalio import activity, workflow
 from temporalio.client import Client

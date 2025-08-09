@@ -419,10 +419,11 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         
         # Endpoint-specific rate limiting rules
         self.endpoint_rules = {
+            "/auth/token": "auth",
             "/auth/login": "auth",
             "/auth/register": "auth",
             "/admin": "admin",
-            "/api/v1/embeddings": "api_key",
+            "/v1/embeddings": "api_key",
             "/upload": "upload"
         }
     

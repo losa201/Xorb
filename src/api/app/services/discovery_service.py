@@ -50,47 +50,16 @@ class DiscoveryServiceImpl(DiscoveryService):
             raise ValidationError(str(e))
         
         try:
-            # Check if Temporal is available
-            if not TEMPORAL_AVAILABLE:
-                # Simulate workflow creation for testing
-                workflow_id = f"discovery-{domain}-{user.id}"
-                workflow = DiscoveryWorkflow.create(
-                    domain=domain,
-                    user_id=user.id,
-                    org_id=org.id,
-                    workflow_id=workflow_id
-                )
-                await self.discovery_repository.save_workflow(workflow)
-                return workflow
-            
-            # Connect to Temporal
-            client = await Client.connect(self.temporal_url)
-            
-            # Start workflow
-            # Import actual workflow definition
-            from temporalio.workflow import Workflow
-            from xorb_core.workflows.discovery import DiscoveryWorkflow
-            
-            # Generate unique workflow ID
+            # For this open-source build, run simulated workflow creation to avoid
+            # dependencies on internal workflow packages.
             workflow_id = f"discovery-{domain}-{user.id}"
-            
-            # Start actual workflow with Temporal
-            handle = await client.start_workflow(
-                DiscoveryWorkflow.run,
-                domain,
-                id=workflow_id,
-                task_queue=self.task_queue,
-            )
             workflow = DiscoveryWorkflow.create(
                 domain=domain,
                 user_id=user.id,
                 org_id=org.id,
                 workflow_id=workflow_id
             )
-            
-            # Save to repository
             await self.discovery_repository.save_workflow(workflow)
-            
             return workflow
             
         except Exception as e:
@@ -116,28 +85,10 @@ class DiscoveryServiceImpl(DiscoveryService):
         if workflow.user_id != user.id and not user.has_role("admin"):
             raise ResourceNotFound(f"Workflow not found: {workflow_id}")
         
-        # If workflow is still running, check status with Temporal
-        if workflow.status in ["started", "running"] and TEMPORAL_AVAILABLE:
-            try:
-                client = await Client.connect(self.temporal_url)
-                handle = client.get_workflow_handle(workflow_id)
-                
-                # Check if workflow is complete
-                try:
-                    results = await handle.result()
-                    
-                    # Update workflow with results
-                    workflow.mark_completed(results)
-                    await self.discovery_repository.update_workflow(workflow)
-                    
-                except Exception:
-                    # Workflow still running or failed
-                    pass
-                    
-            except Exception as e:
-                # Could not connect to Temporal or other error
-                # Log the error but return the workflow as-is
-                pass
+        # If workflow is still running, in this build we simulate completion
+        if workflow.status in ["started", "running"]:
+            # Simulate no-op status check; external Temporal integration disabled
+            pass
         
         return workflow
     

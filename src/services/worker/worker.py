@@ -19,7 +19,7 @@ logging.basicConfig(
 logger = logging.getLogger("XORBWorker")
 
 # Configuration from environment
-REDIS_HOST = os.getenv("REDIS_HOST", "localhost")
+REDIS_HOST = os.getenv("REDIS_HOST", os.getenv("REDIS_URL", "redis://redis:6379/0").replace("redis://", "").split(":")[0])
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 REDIS_DB = int(os.getenv("REDIS_DB", "0"))
 WORKER_ID = os.getenv("WORKER_ID", "worker-001")
@@ -194,11 +194,7 @@ TaskHandler.register_handler("compliance")(TaskHandler.handle_compliance)
 
 class WorkerService:
     def __init__(self):
-        self.redis_client = redis.Redis(
-            host=REDIS_HOST,
-            port=REDIS_PORT,
-            db=REDIS_DB
-        )
+        self.redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
         self.running = True
         self.setup_signal_handlers()
         

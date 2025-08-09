@@ -47,9 +47,9 @@ Built using FastAPI with clean architecture principles:
 
 | Variable | Description | Default |
 |---------|-------------|---------|
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://postgres:postgres@localhost:5434/xorb` |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6381` |
-| `TEMPORAL_HOST` | Temporal server address | `localhost:7233` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://temporal:temporal@postgres:5432/temporal` |
+| `REDIS_URL` | Redis connection string | `redis://redis:6379/0` |
+| `TEMPORAL_HOST` | Temporal server address | `temporal:7233` |
 | `LOG_LEVEL` | Logging level | `INFO` |
 | `JWT_SECRET` | Secret for JWT signing | `xorb-secret-key` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiration time | `30` |

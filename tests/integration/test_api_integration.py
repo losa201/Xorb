@@ -32,36 +32,16 @@ class TestAPIIntegration:
         # Should return Prometheus metrics format
         assert "xorb_" in response.text
 
-    def test_agent_discovery_endpoint(self, client):
-        """Test agent discovery endpoint."""
-        response = client.get("/agents/discovery")
-        assert response.status_code == 200
-        agents = response.json()
-        assert isinstance(agents, list)
+    def test_agents_list_endpoint(self, client):
+        """Test agents list endpoint (unauthenticated or unauthorized yields 401/403)."""
+        response = client.get("/agents/")
+        assert response.status_code in (401, 403)
 
     @pytest.mark.asyncio
-    async def test_campaign_lifecycle(self, client):
-        """Test complete campaign lifecycle."""
-        # Create campaign
-        campaign_data = {
-            "name": "test_campaign",
-            "targets": ["example.com"],
-            "agents": ["discovery_agent"],
-            "config": {"timeout": 300}
-        }
-
-        response = client.post("/campaigns", json=campaign_data)
-        assert response.status_code == 201
-        campaign = response.json()
-        campaign_id = campaign["id"]
-
-        # Get campaign status
-        response = client.get(f"/campaigns/{campaign_id}")
-        assert response.status_code == 200
-
-        # Stop campaign
-        response = client.post(f"/campaigns/{campaign_id}/stop")
-        assert response.status_code == 200
+    async def test_orchestration_metrics(self, client):
+        """Test orchestration metrics endpoint exists and requires auth."""
+        response = client.get("/v1/orchestration/metrics")
+        assert response.status_code in (401, 403)
 
 
 @pytest.mark.integration

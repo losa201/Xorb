@@ -5,7 +5,12 @@ from sqlalchemy import engine_from_config, pool
 from sqlalchemy.ext.asyncio import AsyncEngine
 
 # Make sure the models are imported
-from xorb_core.models.orm import Base
+# Local fallback Base; replace with your ORM models' metadata
+try:
+    from xorb_core.models.orm import Base
+except ImportError:
+    from sqlalchemy.orm import declarative_base
+    Base = declarative_base()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

@@ -12,7 +12,7 @@ from typing import Dict, List, Any, Optional, Tuple, Callable
 from dataclasses import dataclass, field
 from enum import Enum
 import hashlib
-import aioredis
+import redis.asyncio as redis
 from fastapi import Request, Response, HTTPException, status
 from fastapi.responses import JSONResponse
 import math
@@ -133,7 +133,7 @@ class RateLimitState:
 class AdvancedRateLimiter:
     """Advanced rate limiting middleware with multiple algorithms and adaptive behavior"""
     
-    def __init__(self, redis_client: aioredis.Redis, config: Dict[str, Any]):
+    def __init__(self, redis_client: redis.Redis, config: Dict[str, Any]):
         self.redis = redis_client
         self.config = config
         self.rules: List[RateLimitRule] = []
@@ -734,6 +734,6 @@ class AdvancedRateLimiter:
 
 
 # Factory function
-def create_advanced_rate_limiter(redis_client: aioredis.Redis, config: Dict[str, Any]) -> AdvancedRateLimiter:
+def create_advanced_rate_limiter(redis_client: redis.Redis, config: Dict[str, Any]) -> AdvancedRateLimiter:
     """Create and configure advanced rate limiter"""
     return AdvancedRateLimiter(redis_client, config)

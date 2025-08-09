@@ -1,0 +1,49 @@
+name: xorb-ci
+
+on:
+  push:
+    paths:
+      - 'Xorb/**'
+  pull_request:
+    paths:
+      - 'Xorb/**'
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Xorb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install API deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r src/api/requirements.txt
+      - name: Lint & format check (ruff)
+        run: |
+          pip install ruff
+          ruff check src/api || true
+      - name: Run tests
+        run: pytest -q
+  test-orchestrator:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Xorb
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install orchestrator deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r src/orchestrator/requirements.txt
+      - name: Static check orchestrator files exist
+        run: |
+          test -f src/orchestrator/main.py
+          test -f src/services/worker/workflows.py

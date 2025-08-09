@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+import os
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
 from ..container import get_container
 from ..services.interfaces import AuthenticationService
 from ..domain.exceptions import DomainException
+from ..security.auth import authenticator, Role
 
 router = APIRouter()
 
@@ -76,3 +78,27 @@ async def logout(token: str = Depends(get_current_token)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Logout failed"
         )
+
+
+@router.post("/auth/dev-token", response_model=Token)
+async def create_dev_token(username: str = "dev", role: str = "admin"):
+    """Create a development JWT for local testing (enabled only when DEV_MODE=true).
+
+    Parameters:
+    - username: identifier for the token subject
+    - role: one of ['admin','orchestrator','analyst','agent','readonly']
+    """
+    if os.getenv("DEV_MODE", "false").lower() != "true":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
+
+    try:
+        # map role string to Role enum (default to READONLY on invalid)
+        try:
+            selected_role = Role(role)
+        except Exception:
+            selected_role = Role.READONLY
+
+        token_str = authenticator.generate_jwt(user_id=username, client_id=f"dev-{username}", roles=[selected_role])
+        return Token(access_token=token_str, token_type="bearer")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create dev token: {str(e)}")

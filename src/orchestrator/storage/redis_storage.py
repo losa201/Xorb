@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timedelta
-import aioredis
+import redis.asyncio as redis
 import json
 from dataclasses import asdict
 from src.orchestrator.core.workflow_engine import WorkflowDefinition, WorkflowExecution, WorkflowStatus
@@ -17,7 +17,7 @@ class RedisStorage:
 
     async def initialize(self):
         """Initialize the Redis connection"""
-        self.redis = await aioredis.from_url(self.redis_url)
+        self.redis = redis.from_url(self.redis_url)
 
     async def store_workflow(self, workflow: WorkflowDefinition) -> bool:
         """Store a workflow definition"""

@@ -44,7 +44,7 @@ class Container:
             'access_token_expire_minutes': int(os.getenv('ACCESS_TOKEN_EXPIRE_MINUTES', '30')),
             'nvidia_api_key': os.getenv('NVIDIA_API_KEY', 'your_nvidia_api_key_here'),
             'nvidia_base_url': os.getenv('NVIDIA_BASE_URL', 'https://integrate.api.nvidia.com/v1'),
-            'temporal_url': os.getenv('TEMPORAL_URL', 'temporal:7233'),
+            'temporal_url': os.getenv('TEMPORAL_HOST', 'temporal:7233'),
             'redis_url': os.getenv('REDIS_URL', 'redis://redis:6379/0'),
             'task_queue': os.getenv('TASK_QUEUE', 'xorb-task-queue')
         }

@@ -56,3 +56,59 @@ secrets/
 
 # Build directories
 build/
+dist/
+*.egg-info/
+
+# Docker volumes and data
+temporal-data/
+prometheus-data/
+grafana-data/
+redis-data/
+postgres-data/
+
+# Development artifacts
+backup-*/
+*-backup.*
+deployment-manifest.json
+verteidiq-deploy-*.tar.gz
+
+# Coverage reports
+htmlcov/
+.coverage
+coverage.xml
+
+# Database files
+*.sqlite
+*.sqlite3
+*.db
+
+# IDE files
+*.sublime-*
+*.swp
+*.swo
+*~
+
+# OS files
+Thumbs.db
+ehthumbs.db
+.Trashes
+._*
+
+# Large model/binary files
+*.model
+*.pkl
+*.bin
+*.safetensors
+*.iso
+*.dmg
+
+# Test artifacts
+.pytest_cache/
+.tox/
+.nox/
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json

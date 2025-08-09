@@ -7,6 +7,7 @@ Advanced threat intelligence aggregation and analysis system
 import asyncio
 import json
 import logging
+import os
 import time
 from datetime import datetime, timedelta
 from dataclasses import dataclass, asdict
@@ -435,9 +436,9 @@ app = FastAPI(title="XORB Threat Intelligence Fusion Engine", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(","),
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 

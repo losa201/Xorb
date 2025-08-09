@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Development stage
 FROM base as development
 COPY . .
+ENV TEMPORAL_HOST=temporal:7233
 CMD ["python", "-u", "main.py"]
 
 # Production stage

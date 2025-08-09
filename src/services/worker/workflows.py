@@ -1,5 +1,14 @@
 from temporalio import workflow
-from xorb_core.models.agents import DiscoveryTarget
+from dataclasses import dataclass
+from typing import Optional, Dict, Any
+
+
+@dataclass
+class DiscoveryTarget:
+    target_type: str
+    value: str
+    scope: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
 
 @workflow.defn(name="DynamicScanWorkflow")
 class DynamicScanWorkflow:
