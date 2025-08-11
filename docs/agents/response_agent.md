@@ -1,4 +1,4 @@
-#  Response Agent
+# Response Agent
 
 ##  Overview
 The Response Agent handles incident response coordination and automated remediation workflows within the swarm. It works closely with Security Analyst Agents to execute response playbooks.

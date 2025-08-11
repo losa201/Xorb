@@ -1,4 +1,4 @@
-#  XORB Monitoring Module Documentation
+# XORB Monitoring Module Documentation
 
 ##  Overview
 The XORB monitoring module provides comprehensive telemetry and health monitoring capabilities for the service fusion architecture. It implements a multi-layered monitoring approach that includes agent health checks, fusion process tracking, and system-wide performance metrics.
@@ -23,7 +23,7 @@ The XORB monitoring module provides comprehensive telemetry and health monitorin
 ##  Architecture
 The monitoring system follows a distributed observer pattern, with multiple monitoring agents collecting data from different parts of the system:
 
-```
+```text
 +-------------------+     +---------------------+
 | Prometheus Server |<--->| Exporter Components |
 +-------------------+     +---------------------+
@@ -50,14 +50,14 @@ monitoring:
       - "agent_states"
       - "anomaly_clusters"
       - "decision_heatmaps"
-```
+```text
 
 ##  Usage
 To start the monitoring system:
 
 ```bash
 python3 run_monitoring.py
-```
+```text
 
 This will initialize all monitoring components and start collecting metrics from the running agents and services.
 

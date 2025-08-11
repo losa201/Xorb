@@ -1,4 +1,4 @@
-#  🏗️ XORB Platform Best Practices Restructuring Plan
+# 🏗️ XORB Platform Best Practices Restructuring Plan
 
 ##  📋 **Overview**
 
@@ -10,12 +10,12 @@ This document outlines the comprehensive restructuring of the XORB platform acco
 - DevOps and deployment best practices
 - Documentation standards
 
----
+- --
 
 ##  🎯 **Target Architecture**
 
 ###  **Clean Architecture Structure**
-```
+```text
 xorb-platform/
 ├── 📁 domain/                    # Domain Layer (Business Logic)
 │   ├── entities/                 # Core business entities
@@ -49,10 +49,10 @@ xorb-platform/
     ├── environments/            # Environment-specific configs
     ├── policies/                # Security and business policies
     └── schemas/                 # Configuration schemas
-```
+```text
 
 ###  **Microservices Organization**
-```
+```text
 services/
 ├── 📁 identity-service/         # Authentication & Authorization
 ├── 📁 threat-intelligence/      # Threat analysis and correlation
@@ -63,9 +63,9 @@ services/
 ├── 📁 reporting-service/        # Analytics and reporting
 ├── 📁 orchestration-service/    # Workflow orchestration
 └── 📁 gateway-service/          # API Gateway
-```
+```text
 
----
+- --
 
 ##  🔄 **Implementation Plan**
 
@@ -90,7 +90,7 @@ services/
 4. Monitoring and Alerting
 5. Documentation Standards
 
----
+- --
 
 ##  📐 **Design Principles**
 
@@ -115,7 +115,7 @@ services/
 - Framework Independence
 - Testability
 
----
+- --
 
 ##  🛡️ **Security Best Practices**
 
@@ -133,7 +133,7 @@ services/
 - Input validation and sanitization
 - Comprehensive audit logging
 
----
+- --
 
 ##  📊 **Quality Assurance**
 
@@ -152,7 +152,7 @@ services/
 - Performance Profiling
 - Code Review Standards
 
----
+- --
 
 ##  🚀 **DevOps Excellence**
 
@@ -170,7 +170,7 @@ services/
 - Monitoring (Prometheus/Grafana)
 - Logging (ELK Stack)
 
----
+- --
 
 ##  📚 **Documentation Standards**
 

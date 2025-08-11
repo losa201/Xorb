@@ -1,4 +1,4 @@
-#  XORB Cybersecurity Platform - System Overview
+# XORB Cybersecurity Platform - System Overview
 
 ##  Architecture Summary
 

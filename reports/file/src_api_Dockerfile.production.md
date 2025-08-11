@@ -1,4 +1,4 @@
-#  File Audit Report: src/api/Dockerfile.production
+# File Audit Report: src/api/Dockerfile.production
 
 ##  File Information
 - **Path**: `src/api/Dockerfile.production`
@@ -17,9 +17,9 @@ This Dockerfile implements security hardening for the production API service con
 ####  1. **Multi-stage Build Pattern** - GOOD
 ```dockerfile
 FROM python:3.12-slim@sha256:a3e58f9399353be051735f09be0316bfdeab571a5c6b89e5d6dda2e99c33768c as builder
-#  ...
+# ...
 FROM python:3.12-slim@sha256:a3e58f9399353be051735f09be0316bfdeab571a5c6b89e5d6dda2e99c33768c as production
-```
+```text
 - **Strength**: Separates build and runtime environments
 - **Benefit**: Reduces attack surface by excluding build tools from production
 
@@ -28,7 +28,7 @@ FROM python:3.12-slim@sha256:a3e58f9399353be051735f09be0316bfdeab571a5c6b89e5d6d
 build-essential=12.9
 curl=7.88.1-10+deb12u6
 git=1:2.39.2-1.1
-```
+```text
 - **Strength**: Specific package versions prevent supply chain attacks
 - **Benefit**: Reproducible builds and known vulnerability management
 
@@ -38,7 +38,7 @@ RUN groupadd -r -g 1000 xorb && \
     useradd -r -g xorb -u 1000 -m -s /bin/bash xorb && \
     usermod -L xorb  # Lock the account
 USER xorb:xorb
-```
+```text
 - **Strength**: Runs as non-privileged user with locked account
 - **Benefit**: Limits container escape impact
 
@@ -49,7 +49,7 @@ USER xorb:xorb
 RUN apt-get remove -y --purge \
     && apt-get autoremove -y \
     && rm -rf /tmp/* /var/tmp/* /root/.cache
-```
+```text
 - **Risk**: Incomplete package removal command
 - **Impact**: Build tools may remain in container
 - **CVSS**: 4.5 (Medium)
@@ -61,7 +61,7 @@ RUN mkdir -p /app/logs /app/data /app/tmp /app/secrets && \
     chown -R xorb:xorb /app && \
     chmod 750 /app && \
     chmod 700 /app/secrets
-```
+```text
 - **Risk**: Logs directory (755) may be too permissive
 - **Impact**: Log tampering or information disclosure
 - **CVSS**: 4.0 (Medium)
@@ -73,7 +73,7 @@ RUN mkdir -p /app/logs /app/data /app/tmp /app/secrets && \
 ```dockerfile
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD /usr/local/bin/healthcheck.sh
-```
+```text
 - **Risk**: External script dependency for health checks
 - **Impact**: Potential script injection if healthcheck.sh compromised
 - **CVSS**: 3.0 (Low)
@@ -82,7 +82,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 ####  7. **Exposed Ports** - LOW
 ```dockerfile
 EXPOSE 8000 9090
-```
+```text
 - **Risk**: Additional metrics port (9090) exposure
 - **Impact**: Potential information disclosure through metrics
 - **CVSS**: 2.5 (Low)

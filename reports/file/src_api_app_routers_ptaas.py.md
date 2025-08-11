@@ -1,9 +1,9 @@
-#  Security Audit Report: src/api/app/routers/ptaas.py
+# Security Audit Report: src/api/app/routers/ptaas.py
 
-**File Path**: `/root/Xorb/src/api/app/routers/ptaas.py`
-**File Type**: PTaaS API Router
-**Lines of Code**: 350+
-**Security Risk Level**: CRITICAL 🚨
+- **File Path**: `/root/Xorb/src/api/app/routers/ptaas.py`
+- **File Type**: PTaaS API Router
+- **Lines of Code**: 350+
+- **Security Risk Level**: CRITICAL 🚨
 
 ##  Summary
 
@@ -14,89 +14,89 @@ Core PTaaS API router providing penetration testing orchestration endpoints. Con
 ###  CRITICAL Issues
 
 ####  1. Insufficient Authorization for Network Scanning (Lines 72-140)
-**Severity**: CRITICAL
-**CWE**: CWE-285 (Improper Authorization)
+- **Severity**: CRITICAL
+- **CWE**: CWE-285 (Improper Authorization)
 ```python
 @router.post("/sessions", response_model=ScanSessionResponse)
 async def create_scan_session(
     request: ScanSessionRequest,
     # Missing authorization check for scanning external targets
     tenant_id: UUID = Depends(get_current_tenant_id),
-```
-**Risk**: Tenants can potentially scan unauthorized external networks, leading to:
+```text
+- **Risk**: Tenants can potentially scan unauthorized external networks, leading to:
 - Legal liability for unauthorized scanning
 - Compliance violations
 - Abuse of platform for malicious purposes
 
 ####  2. Inadequate Target Validation (Lines 283-339)
-**Severity**: CRITICAL
-**CWE**: CWE-20 (Improper Input Validation)
+- **Severity**: CRITICAL
+- **CWE**: CWE-20 (Improper Input Validation)
 ```python
-#  Basic validation but no comprehensive security checks
+# Basic validation but no comprehensive security checks
 validation_results = {
     "reachable": True,  # Would perform actual reachability test - STUB
 }
 
-#  Insufficient restricted port checking
+# Insufficient restricted port checking
 restricted_ports = [22, 23, 3389]  # Limited list
 dangerous_ports = [1433, 3306, 5432]  # Incomplete
-```
-**Risk**:
+```text
+- **Risk**:
 - Scanning of critical infrastructure
 - Targeting internal network resources
 - Bypassing network security controls
 
 ####  3. Information Disclosure in Session Status (Lines 141-168)
-**Severity**: HIGH
-**CWE**: CWE-200 (Information Exposure)
+- **Severity**: HIGH
+- **CWE**: CWE-200 (Information Exposure)
 ```python
-#  Returns all session data without filtering sensitive information
+# Returns all session data without filtering sensitive information
 return ScanSessionResponse(**session_status)
-```
-**Risk**: Exposure of scan results, network topology, and vulnerability data to unauthorized users.
+```text
+- **Risk**: Exposure of scan results, network topology, and vulnerability data to unauthorized users.
 
 ####  4. Missing CSRF Protection on State-Changing Operations
-**Severity**: HIGH
-**CWE**: CWE-352 (Cross-Site Request Forgery)
-**Risk**: POST endpoints for session creation/cancellation lack CSRF protection.
+- **Severity**: HIGH
+- **CWE**: CWE-352 (Cross-Site Request Forgery)
+- **Risk**: POST endpoints for session creation/cancellation lack CSRF protection.
 
 ###  HIGH Issues
 
 ####  5. Verbose Error Messages (Lines 134-139, 166-168)
-**Severity**: MEDIUM-HIGH
-**CWE**: CWE-209 (Information Exposure Through Error Messages)
+- **Severity**: MEDIUM-HIGH
+- **CWE**: CWE-209 (Information Exposure Through Error Messages)
 ```python
 except Exception as e:
     logger.error(f"Failed to create PTaaS session: {e}")
     raise HTTPException(status_code=500, detail="Internal server error")
-```
-**Risk**: While generic error messages are returned to users, detailed errors are logged and may leak sensitive information.
+```text
+- **Risk**: While generic error messages are returned to users, detailed errors are logged and may leak sensitive information.
 
 ####  6. Unimplemented Session Listing (Lines 220-245)
-**Severity**: MEDIUM
-**CWE**: CWE-749 (Exposed Dangerous Method or Function)
+- **Severity**: MEDIUM
+- **CWE**: CWE-749 (Exposed Dangerous Method or Function)
 ```python
-#  This would typically query a database for tenant sessions
-#  For now, return a basic response structure
+# This would typically query a database for tenant sessions
+# For now, return a basic response structure
 sessions = []
-```
-**Risk**: Endpoint exists but returns empty data, indicating incomplete implementation.
+```text
+- **Risk**: Endpoint exists but returns empty data, indicating incomplete implementation.
 
 ###  MEDIUM Issues
 
 ####  7. Hardcoded Configuration in Target Validation (Lines 316-324)
-**Severity**: MEDIUM
-**CWE**: CWE-547 (Use of Hard-coded, Security-relevant Constants)
+- **Severity**: MEDIUM
+- **CWE**: CWE-547 (Use of Hard-coded, Security-relevant Constants)
 ```python
 restricted_ports = [22, 23, 3389]  # SSH, Telnet, RDP
 dangerous_ports = [1433, 3306, 5432]  # Database ports
-```
-**Risk**: Limited port restrictions may not cover all sensitive services.
+```text
+- **Risk**: Limited port restrictions may not cover all sensitive services.
 
 ####  8. Missing Input Sanitization for Host Parameters
-**Severity**: MEDIUM
-**CWE**: CWE-79 (Cross-site Scripting)
-**Risk**: Host parameters are not sanitized and could contain malicious input.
+- **Severity**: MEDIUM
+- **CWE**: CWE-79 (Cross-site Scripting)
+- **Risk**: Host parameters are not sanitized and could contain malicious input.
 
 ##  Architecture Assessment
 
@@ -195,7 +195,7 @@ async def create_scan_session(
                 status_code=403,
                 detail=f"Not authorized to scan target: {target.host}"
             )
-```
+```text
 
 ####  Fix 2: Enhanced Target Validation
 ```python
@@ -229,7 +229,7 @@ async def validate_scan_target(target: ScanTargetRequest) -> Dict[str, Any]:
     for port in target.ports:
         if port in CRITICAL_PORTS and not target.authorized:
             return {"valid": False, "error": f"Port {port} requires explicit authorization"}
-```
+```text
 
 ##  Testing Requirements
 1. **Authorization Tests**: Verify tenant isolation and scan permissions

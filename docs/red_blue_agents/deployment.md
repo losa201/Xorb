@@ -1,4 +1,4 @@
-#  Deployment Guide
+# Deployment Guide
 
 This guide provides comprehensive instructions for deploying the XORB Red/Blue Agent Framework in different environments, from development to production.
 
@@ -19,20 +19,20 @@ The XORB Red/Blue Agent Framework supports multiple deployment scenarios:
 Before deploying, ensure your system meets the requirements:
 
 ```bash
-#  Check Docker version (20.10+ required)
+# Check Docker version (20.10+ required)
 docker --version
 
-#  Check Docker Compose version (2.0+ required)
+# Check Docker Compose version (2.0+ required)
 docker-compose --version
 
-#  Check available resources
+# Check available resources
 docker system df
 free -h
 df -h
 
-#  Validate network connectivity
+# Validate network connectivity
 ping -c 3 google.com
-```
+```text
 
 ###  Environment Setup
 
@@ -73,34 +73,34 @@ ping -c 3 google.com
 For development and testing:
 
 ```bash
-#  Start all services with development profile
+# Start all services with development profile
 docker-compose -f docker-compose.red-blue-agents.yml --profile development up -d
 
-#  Verify deployment
+# Verify deployment
 curl http://localhost:8000/red-blue-agents/health
 
-#  View logs
+# View logs
 docker-compose -f docker-compose.red-blue-agents.yml logs -f agent-scheduler
-```
+```text
 
 ####  Production Deployment
 
 For production environments:
 
 ```bash
-#  Set production environment
+# Set production environment
 export XORB_ENV=production
 export DEBUG=false
 
-#  Start core services with production profile
+# Start core services with production profile
 docker-compose -f docker-compose.red-blue-agents.yml --profile production up -d
 
-#  Enable monitoring
+# Enable monitoring
 docker-compose -f docker-compose.red-blue-agents.yml --profile monitoring up -d
 
-#  Verify deployment
+# Verify deployment
 scripts/health-check.sh
-```
+```text
 
 ##  🏗️ Architecture Deployment
 
@@ -154,12 +154,12 @@ graph TB
     SO --> PR
     TC --> PR
     PR --> GR
-```
+```text
 
 ###  Service Dependencies
 
 ```yaml
-#  Service startup order
+# Service startup order
 1. Infrastructure Layer:
    - PostgreSQL (database)
    - Redis (caching)
@@ -178,7 +178,7 @@ graph TB
    - Prometheus
    - Grafana
    - Jaeger (optional)
-```
+```text
 
 ##  🔧 Configuration Management
 
@@ -187,109 +187,109 @@ graph TB
 ####  Development Environment
 
 ```yaml
-#  .env.development
+# .env.development
 XORB_ENV=development
 DEBUG=true
 LOG_LEVEL=DEBUG
 
-#  Relaxed security for development
+# Relaxed security for development
 JWT_SECRET=dev_jwt_secret_key
 ENCRYPTION_KEY=dev_encryption_key_32_chars_long
 
-#  Local services
+# Local services
 DATABASE_URL=postgresql://xorb:dev_password@localhost:5432/xorb_agents_dev
 REDIS_URL=redis://localhost:6379/0
 
-#  Resource limits
+# Resource limits
 MAX_SANDBOXES_GLOBAL=20
 DEFAULT_SANDBOX_TTL=7200
 
-#  Learning settings
+# Learning settings
 ML_ENABLED=true
 ANALYTICS_ENABLED=true
-```
+```text
 
 ####  Staging Environment
 
 ```yaml
-#  .env.staging
+# .env.staging
 XORB_ENV=staging
 DEBUG=false
 LOG_LEVEL=INFO
 
-#  Secure secrets (use secret management)
+# Secure secrets (use secret management)
 JWT_SECRET=${VAULT_JWT_SECRET}
 ENCRYPTION_KEY=${VAULT_ENCRYPTION_KEY}
 
-#  Staging infrastructure
+# Staging infrastructure
 DATABASE_URL=postgresql://xorb:${DB_PASSWORD}@postgres-staging:5432/xorb_agents_staging
 REDIS_URL=redis://:${REDIS_PASSWORD}@redis-staging:6379/0
 
-#  Moderate resource limits
+# Moderate resource limits
 MAX_SANDBOXES_GLOBAL=50
 DEFAULT_SANDBOX_TTL=3600
 
-#  Full feature set
+# Full feature set
 ML_ENABLED=true
 ANALYTICS_ENABLED=true
 PROMETHEUS_ENABLED=true
-```
+```text
 
 ####  Production Environment
 
 ```yaml
-#  .env.production
+# .env.production
 XORB_ENV=production
 DEBUG=false
 LOG_LEVEL=WARNING
 
-#  Production secrets (from HashiCorp Vault)
+# Production secrets (from HashiCorp Vault)
 JWT_SECRET=${VAULT_JWT_SECRET}
 ENCRYPTION_KEY=${VAULT_ENCRYPTION_KEY}
 
-#  Production infrastructure (HA setup)
+# Production infrastructure (HA setup)
 DATABASE_URL=postgresql://xorb:${DB_PASSWORD}@postgres-cluster:5432/xorb_agents
 REDIS_URL=redis://:${REDIS_PASSWORD}@redis-cluster:6379/0
 
-#  Production resource limits
+# Production resource limits
 MAX_SANDBOXES_GLOBAL=200
 DEFAULT_SANDBOX_TTL=1800
 
-#  Production features
+# Production features
 ML_ENABLED=true
 ANALYTICS_ENABLED=true
 PROMETHEUS_ENABLED=true
 AUDIT_LOG_ENABLED=true
-```
+```text
 
 ###  Secret Management
 
 ####  HashiCorp Vault Integration
 
 ```bash
-#  Initialize Vault for production
+# Initialize Vault for production
 vault auth -method=userpass username=xorb-admin
 
-#  Store database credentials
+# Store database credentials
 vault kv put secret/xorb-agents/db \
   username=xorb \
   password="$(openssl rand -base64 32)"
 
-#  Store application secrets
+# Store application secrets
 vault kv put secret/xorb-agents/app \
   jwt_secret="$(openssl rand -base64 64)" \
   encryption_key="$(openssl rand -base64 32)"
 
-#  Store external API keys
+# Store external API keys
 vault kv put secret/xorb-agents/external \
   virustotal_api_key="${VIRUSTOTAL_API_KEY}" \
   shodan_api_key="${SHODAN_API_KEY}"
-```
+```text
 
 ####  Kubernetes Secrets
 
 ```yaml
-#  k8s-secrets.yaml
+# k8s-secrets.yaml
 apiVersion: v1
 kind: Secret
 metadata:
@@ -301,45 +301,45 @@ data:
   encryption-key: <base64-encoded-key>
   database-password: <base64-encoded-password>
   redis-password: <base64-encoded-password>
-```
+```text
 
 ##  ☸️ Kubernetes Deployment
 
 ###  Namespace Setup
 
 ```bash
-#  Create namespace
+# Create namespace
 kubectl create namespace xorb-agents
 
-#  Apply RBAC
+# Apply RBAC
 kubectl apply -f k8s/rbac.yaml
 
-#  Apply network policies
+# Apply network policies
 kubectl apply -f k8s/network-policies.yaml
-```
+```text
 
 ###  Helm Chart Deployment
 
 ```bash
-#  Add XORB Helm repository
+# Add XORB Helm repository
 helm repo add xorb https://charts.xorb-security.com
 helm repo update
 
-#  Deploy with custom values
+# Deploy with custom values
 helm install xorb-agents xorb/red-blue-agents \
   --namespace xorb-agents \
   --values values.production.yaml \
   --wait --timeout=600s
 
-#  Verify deployment
+# Verify deployment
 kubectl get pods -n xorb-agents
 kubectl get services -n xorb-agents
-```
+```text
 
 ###  Custom Kubernetes Manifests
 
 ```yaml
-#  k8s/agent-scheduler-deployment.yaml
+# k8s/agent-scheduler-deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -438,12 +438,12 @@ spec:
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-```
+```text
 
 ###  Service Mesh Integration (Istio)
 
 ```yaml
-#  istio/virtual-service.yaml
+# istio/virtual-service.yaml
 apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
@@ -471,7 +471,7 @@ spec:
     retries:
       attempts: 3
       perTryTimeout: 30s
-```
+```text
 
 ##  🌐 Cloud Platform Deployment
 
@@ -480,7 +480,7 @@ spec:
 ####  EKS Cluster Setup
 
 ```bash
-#  Create EKS cluster
+# Create EKS cluster
 eksctl create cluster \
   --name xorb-agents-cluster \
   --region us-west-2 \
@@ -491,23 +491,23 @@ eksctl create cluster \
   --nodes-max 10 \
   --managed
 
-#  Install AWS Load Balancer Controller
+# Install AWS Load Balancer Controller
 helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
   --set clusterName=xorb-agents-cluster \
   --set serviceAccount.create=false \
   --set serviceAccount.name=aws-load-balancer-controller \
   -n kube-system
 
-#  Deploy XORB Agents
+# Deploy XORB Agents
 helm install xorb-agents xorb/red-blue-agents \
   --namespace xorb-agents \
   --values values.aws.yaml
-```
+```text
 
 ####  RDS Database Setup
 
 ```bash
-#  Create RDS PostgreSQL instance
+# Create RDS PostgreSQL instance
 aws rds create-db-instance \
   --db-instance-identifier xorb-agents-db \
   --db-instance-class db.r5.large \
@@ -523,12 +523,12 @@ aws rds create-db-instance \
   --backup-retention-period 7 \
   --multi-az \
   --deletion-protection
-```
+```text
 
 ####  ElastiCache Redis Setup
 
 ```bash
-#  Create ElastiCache Redis cluster
+# Create ElastiCache Redis cluster
 aws elasticache create-replication-group \
   --replication-group-id xorb-agents-redis \
   --description "XORB Agents Redis Cluster" \
@@ -541,19 +541,19 @@ aws elasticache create-replication-group \
   --security-group-ids sg-yyyyyyyy \
   --at-rest-encryption-enabled \
   --transit-encryption-enabled
-```
+```text
 
 ###  Azure Deployment
 
 ####  AKS Cluster Setup
 
 ```bash
-#  Create resource group
+# Create resource group
 az group create \
   --name xorb-agents-rg \
   --location westus2
 
-#  Create AKS cluster
+# Create AKS cluster
 az aks create \
   --resource-group xorb-agents-rg \
   --name xorb-agents-cluster \
@@ -563,16 +563,16 @@ az aks create \
   --enable-managed-identity \
   --generate-ssh-keys
 
-#  Get credentials
+# Get credentials
 az aks get-credentials \
   --resource-group xorb-agents-rg \
   --name xorb-agents-cluster
-```
+```text
 
 ####  Azure Database for PostgreSQL
 
 ```bash
-#  Create PostgreSQL server
+# Create PostgreSQL server
 az postgres flexible-server create \
   --resource-group xorb-agents-rg \
   --name xorb-agents-db \
@@ -583,14 +583,14 @@ az postgres flexible-server create \
   --tier GeneralPurpose \
   --storage-size 128 \
   --version 14
-```
+```text
 
 ###  Google Cloud Platform Deployment
 
 ####  GKE Cluster Setup
 
 ```bash
-#  Create GKE cluster
+# Create GKE cluster
 gcloud container clusters create xorb-agents-cluster \
   --zone us-central1-a \
   --machine-type e2-standard-4 \
@@ -601,15 +601,15 @@ gcloud container clusters create xorb-agents-cluster \
   --min-nodes 1 \
   --max-nodes 10
 
-#  Get credentials
+# Get credentials
 gcloud container clusters get-credentials xorb-agents-cluster \
   --zone us-central1-a
-```
+```text
 
 ####  Cloud SQL PostgreSQL
 
 ```bash
-#  Create Cloud SQL instance
+# Create Cloud SQL instance
 gcloud sql instances create xorb-agents-db \
   --database-version POSTGRES_14 \
   --tier db-standard-4 \
@@ -620,7 +620,7 @@ gcloud sql instances create xorb-agents-db \
   --backup-start-time 02:00 \
   --maintenance-window-day SAT \
   --maintenance-window-hour 06
-```
+```text
 
 ##  🔍 Health Checks and Monitoring
 
@@ -628,12 +628,12 @@ gcloud sql instances create xorb-agents-db \
 
 ```bash
 # !/bin/bash
-#  scripts/health-check.sh
+# scripts/health-check.sh
 
 echo "🏥 XORB Red/Blue Agent Framework Health Check"
 echo "============================================="
 
-#  Check core services
+# Check core services
 services=(
   "agent-scheduler:8000"
   "sandbox-orchestrator:8001"
@@ -654,7 +654,7 @@ for service in "${services[@]}"; do
   fi
 done
 
-#  Check infrastructure
+# Check infrastructure
 echo -n "Checking PostgreSQL... "
 if docker-compose exec -T postgres pg_isready -U xorb -d xorb_agents > /dev/null; then
   echo "✅ Healthy"
@@ -681,12 +681,12 @@ fi
 
 echo ""
 echo "🎉 All services are healthy!"
-```
+```text
 
 ###  Prometheus Monitoring
 
 ```yaml
-#  configs/prometheus/prometheus-agents.yml
+# configs/prometheus/prometheus-agents.yml
 global:
   scrape_interval: 15s
   evaluation_interval: 15s
@@ -721,12 +721,12 @@ alerting:
     - static_configs:
         - targets:
           - alertmanager:9093
-```
+```text
 
 ###  Alert Rules
 
 ```yaml
-#  configs/prometheus/rules-agents.yml
+# configs/prometheus/rules-agents.yml
 groups:
   - name: xorb-agents
     rules:
@@ -765,41 +765,41 @@ groups:
         annotations:
           summary: "Sandbox resources exhausted"
           description: "Sandbox resource utilization is above 90%"
-```
+```text
 
 ##  🔒 Security Hardening
 
 ###  Container Security
 
 ```dockerfile
-#  Security-hardened Dockerfile example
+# Security-hardened Dockerfile example
 FROM python:3.11-slim
 
-#  Create non-root user
+# Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-#  Install security updates only
+# Install security updates only
 RUN apt-get update && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
-#  Copy application with minimal permissions
+# Copy application with minimal permissions
 COPY --chown=appuser:appuser . /app
 WORKDIR /app
 
-#  Switch to non-root user
+# Switch to non-root user
 USER appuser
 
-#  Run with minimal capabilities
+# Run with minimal capabilities
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```
+```text
 
 ###  Network Security
 
 ```yaml
-#  Network policies for Kubernetes
+# Network policies for Kubernetes
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -830,48 +830,48 @@ spec:
       port: 5432  # PostgreSQL
     - protocol: TCP
       port: 6379  # Redis
-```
+```text
 
 ###  Secret Rotation
 
 ```bash
 # !/bin/bash
-#  scripts/rotate-secrets.sh
+# scripts/rotate-secrets.sh
 
 echo "🔄 Rotating XORB Agent secrets..."
 
-#  Generate new secrets
+# Generate new secrets
 NEW_JWT_SECRET=$(openssl rand -base64 64)
 NEW_ENCRYPTION_KEY=$(openssl rand -base64 32)
 
-#  Update Vault
+# Update Vault
 vault kv put secret/xorb-agents/app \
   jwt_secret="$NEW_JWT_SECRET" \
   encryption_key="$NEW_ENCRYPTION_KEY"
 
-#  Update Kubernetes secrets
+# Update Kubernetes secrets
 kubectl create secret generic xorb-agents-secrets-new \
   --from-literal=jwt-secret="$NEW_JWT_SECRET" \
   --from-literal=encryption-key="$NEW_ENCRYPTION_KEY" \
   --namespace=xorb-agents
 
-#  Rolling update deployments
+# Rolling update deployments
 kubectl patch deployment agent-scheduler \
   --namespace=xorb-agents \
   --patch='{"spec":{"template":{"spec":{"volumes":[{"name":"secrets","secret":{"secretName":"xorb-agents-secrets-new"}}]}}}}'
 
-#  Wait for rollout
+# Wait for rollout
 kubectl rollout status deployment/agent-scheduler --namespace=xorb-agents
 
 echo "✅ Secret rotation complete"
-```
+```text
 
 ##  📈 Scaling and Performance
 
 ###  Horizontal Pod Autoscaling
 
 ```yaml
-#  k8s/hpa.yaml
+# k8s/hpa.yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -910,31 +910,31 @@ spec:
       - type: Percent
         value: 10
         periodSeconds: 60
-```
+```text
 
 ###  Database Performance Tuning
 
 ```sql
--- PostgreSQL performance optimization
--- /configs/postgres/postgresql.conf
+- - PostgreSQL performance optimization
+- - /configs/postgres/postgresql.conf
 
-#  Memory settings
+# Memory settings
 shared_buffers = 256MB
 effective_cache_size = 1GB
 maintenance_work_mem = 64MB
 work_mem = 4MB
 
-#  Checkpoint settings
+# Checkpoint settings
 checkpoint_completion_target = 0.9
 wal_buffers = 16MB
 checkpoint_timeout = 10min
 
-#  Query planner
+# Query planner
 default_statistics_target = 100
 random_page_cost = 1.1
 effective_io_concurrency = 200
 
-#  Logging
+# Logging
 log_line_prefix = '%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
 log_checkpoints = on
 log_connections = on
@@ -942,40 +942,40 @@ log_disconnections = on
 log_lock_waits = on
 log_temp_files = 0
 
-#  Autovacuum
+# Autovacuum
 autovacuum = on
 autovacuum_max_workers = 3
 autovacuum_naptime = 1min
-```
+```text
 
 ###  Redis Performance Tuning
 
 ```bash
-#  Redis configuration optimizations
-#  /configs/redis/redis.conf
+# Redis configuration optimizations
+# /configs/redis/redis.conf
 
-#  Memory management
+# Memory management
 maxmemory 2gb
 maxmemory-policy allkeys-lru
 maxmemory-samples 5
 
-#  Persistence
+# Persistence
 save 900 1
 save 300 10
 save 60 10000
 appendonly yes
 appendfsync everysec
 
-#  Network
+# Network
 tcp-keepalive 300
 timeout 0
 
-#  Performance
+# Performance
 lazyfree-lazy-eviction yes
 lazyfree-lazy-expire yes
 lazyfree-lazy-server-del yes
 replica-lazy-flush yes
-```
+```text
 
 ##  🔄 Backup and Recovery
 
@@ -983,81 +983,81 @@ replica-lazy-flush yes
 
 ```bash
 # !/bin/bash
-#  scripts/backup.sh
+# scripts/backup.sh
 
 BACKUP_DIR="/backups/$(date +%Y%m%d)"
 mkdir -p "$BACKUP_DIR"
 
 echo "📦 Starting XORB Agents backup..."
 
-#  Database backup
+# Database backup
 echo "Backing up PostgreSQL..."
 docker-compose exec -T postgres pg_dump -U xorb xorb_agents | gzip > "$BACKUP_DIR/postgres.sql.gz"
 
-#  Redis backup
+# Redis backup
 echo "Backing up Redis..."
 docker-compose exec redis redis-cli BGSAVE
 docker cp "$(docker-compose ps -q redis)":/data/dump.rdb "$BACKUP_DIR/redis.rdb"
 
-#  Configuration backup
+# Configuration backup
 echo "Backing up configurations..."
 tar -czf "$BACKUP_DIR/configs.tar.gz" configs/
 
-#  Models backup
+# Models backup
 echo "Backing up ML models..."
 tar -czf "$BACKUP_DIR/models.tar.gz" models/
 
-#  Upload to cloud storage
+# Upload to cloud storage
 echo "Uploading to S3..."
 aws s3 sync "$BACKUP_DIR" "s3://xorb-agents-backups/$(date +%Y%m%d)/" --storage-class STANDARD_IA
 
 echo "✅ Backup complete"
 
-#  Cleanup old backups (keep 30 days)
+# Cleanup old backups (keep 30 days)
 find /backups -type d -mtime +30 -exec rm -rf {} \;
-```
+```text
 
 ###  Disaster Recovery
 
 ```bash
 # !/bin/bash
-#  scripts/restore.sh
+# scripts/restore.sh
 
 BACKUP_DATE="${1:-$(date +%Y%m%d)}"
 BACKUP_DIR="/backups/$BACKUP_DATE"
 
 echo "🔄 Starting XORB Agents restore from $BACKUP_DATE..."
 
-#  Download from cloud storage
+# Download from cloud storage
 aws s3 sync "s3://xorb-agents-backups/$BACKUP_DATE/" "$BACKUP_DIR/"
 
-#  Stop services
+# Stop services
 docker-compose down
 
-#  Restore database
+# Restore database
 echo "Restoring PostgreSQL..."
 docker-compose up -d postgres
 sleep 30
 gunzip -c "$BACKUP_DIR/postgres.sql.gz" | docker-compose exec -T postgres psql -U xorb xorb_agents
 
-#  Restore Redis
+# Restore Redis
 echo "Restoring Redis..."
 docker cp "$BACKUP_DIR/redis.rdb" "$(docker-compose ps -q redis)":/data/dump.rdb
 docker-compose restart redis
 
-#  Restore configurations
+# Restore configurations
 echo "Restoring configurations..."
 tar -xzf "$BACKUP_DIR/configs.tar.gz"
 
-#  Restore models
+# Restore models
 echo "Restoring ML models..."
 tar -xzf "$BACKUP_DIR/models.tar.gz"
 
-#  Start services
+# Start services
 docker-compose up -d
 
 echo "✅ Restore complete"
-```
+```text
 
 ##  🧪 Testing Deployment
 
@@ -1065,15 +1065,15 @@ echo "✅ Restore complete"
 
 ```bash
 # !/bin/bash
-#  scripts/smoke-test.sh
+# scripts/smoke-test.sh
 
 echo "🧪 Running smoke tests..."
 
-#  Test API endpoints
+# Test API endpoints
 curl -f http://localhost:8000/red-blue-agents/health || exit 1
 curl -f http://localhost:8000/red-blue-agents/capabilities/agents || exit 1
 
-#  Test mission creation
+# Test mission creation
 MISSION_ID=$(curl -s -X POST http://localhost:8000/red-blue-agents/missions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TEST_TOKEN" \
@@ -1087,41 +1087,41 @@ MISSION_ID=$(curl -s -X POST http://localhost:8000/red-blue-agents/missions \
 
 echo "Created test mission: $MISSION_ID"
 
-#  Wait for mission to start
+# Wait for mission to start
 sleep 10
 
-#  Check mission status
+# Check mission status
 STATUS=$(curl -s http://localhost:8000/red-blue-agents/missions/$MISSION_ID \
   -H "Authorization: Bearer $TEST_TOKEN" | jq -r '.status')
 
 echo "Mission status: $STATUS"
 
-#  Cleanup
+# Cleanup
 curl -s -X POST http://localhost:8000/red-blue-agents/missions/$MISSION_ID/stop \
   -H "Authorization: Bearer $TEST_TOKEN"
 
 echo "✅ Smoke tests passed"
-```
+```text
 
 ###  Load Testing
 
 ```bash
 # !/bin/bash
-#  scripts/load-test.sh
+# scripts/load-test.sh
 
 echo "🚀 Running load tests..."
 
-#  Install k6 if not available
+# Install k6 if not available
 if ! command -v k6 &> /dev/null; then
   echo "Installing k6..."
   sudo apt-get install k6
 fi
 
-#  Run load test
+# Run load test
 k6 run --vus 50 --duration 5m scripts/load-test.js
 
 echo "✅ Load tests complete"
-```
+```text
 
 ```javascript
 // scripts/load-test.js
@@ -1147,7 +1147,7 @@ export default function() {
 
   sleep(1);
 }
-```
+```text
 
 ##  📚 Deployment Troubleshooting
 
@@ -1156,16 +1156,16 @@ export default function() {
 ####  Service Startup Failures
 
 ```bash
-#  Check service logs
+# Check service logs
 docker-compose logs agent-scheduler
 
-#  Check resource usage
+# Check resource usage
 docker stats
 
-#  Verify environment variables
+# Verify environment variables
 docker-compose exec agent-scheduler env | grep XORB
 
-#  Test database connectivity
+# Test database connectivity
 docker-compose exec agent-scheduler python -c "
 import asyncpg
 import asyncio
@@ -1175,57 +1175,57 @@ async def test():
     await conn.close()
 asyncio.run(test())
 "
-```
+```text
 
 ####  Network Connectivity Issues
 
 ```bash
-#  Test internal networking
+# Test internal networking
 docker-compose exec agent-scheduler ping postgres
 docker-compose exec agent-scheduler ping redis
 
-#  Check port availability
+# Check port availability
 netstat -tulpn | grep :8000
 netstat -tulpn | grep :5432
 netstat -tulpn | grep :6379
 
-#  Test external connectivity
+# Test external connectivity
 docker-compose exec agent-scheduler curl -I https://google.com
-```
+```text
 
 ####  Performance Issues
 
 ```bash
-#  Monitor resource usage
+# Monitor resource usage
 docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.NetIO}}\t{{.BlockIO}}"
 
-#  Check database performance
+# Check database performance
 docker-compose exec postgres psql -U xorb -d xorb_agents -c "
 SELECT query, calls, total_time, mean_time
 FROM pg_stat_statements
 ORDER BY total_time DESC
 LIMIT 10;"
 
-#  Monitor Redis performance
+# Monitor Redis performance
 docker-compose exec redis redis-cli info stats
-```
+```text
 
 ###  Debug Mode Deployment
 
 ```bash
-#  Enable debug mode
+# Enable debug mode
 export DEBUG=true
 export LOG_LEVEL=DEBUG
 
-#  Start with verbose logging
+# Start with verbose logging
 docker-compose -f docker-compose.red-blue-agents.yml up --build
 
-#  Attach to running container for debugging
+# Attach to running container for debugging
 docker-compose exec agent-scheduler bash
 
-#  Check application logs in detail
+# Check application logs in detail
 tail -f logs/agent-scheduler.log
-```
+```text
 
 ##  🎯 Production Checklist
 
@@ -1263,7 +1263,7 @@ Before deploying to production, ensure:
 - [ ] Security policies enforced
 - [ ] Documentation updated
 
----
+- --
 
 For environment-specific deployment guides, see:
 - [AWS Deployment Guide](./deployment/aws.md)

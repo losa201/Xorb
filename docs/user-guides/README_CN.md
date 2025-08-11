@@ -5,7 +5,6 @@
 
 <h4 align="center">基于YAML语法模板的定制化快速漏洞扫描器</h4>
 
-
 <p align="center">
 <img src="https://img.shields.io/github/go-mod/go-version/projectdiscovery/nuclei">
 <a href="https://github.com/projectdiscovery/nuclei/releases"><img src="https://img.shields.io/github/downloads/projectdiscovery/nuclei/total">
@@ -37,17 +36,13 @@
   <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_PT-BR.md">Portuguese</a>
 </p>
 
----
+- --
 
 Nuclei使用零误报的定制模板向目标发送请求，同时可以对主机进行批量快速扫描。Nuclei提供TCP、DNS、HTTP、FILE等各类协议的扫描，通过强大且灵活的模板，可以使用Nuclei模拟各种安全检查。
 
 我们的[模板仓库](https://github.com/projectdiscovery/nuclei-templates)包含**超过300名**安全研究员和工程师提供的模板。
 
-
-
 ##  工作流程
-
-
 <h3 align="center">
   <img src="static/nuclei-flow.jpg" alt="nuclei-flow" width="700px"></a>
 </h3>
@@ -57,13 +52,13 @@ Nuclei使用零误报的定制模板向目标发送请求，同时可以对主�
 | **这个项目正在积极开发中**。预计发布会带来突破性的更改。更新前请查看版本更改日志。 |
 | 这个项目主要是为了作为一个独立的命令行工具而构建的。 **将Nuclei作为服务运行可能存在安全风险。** 强烈建议谨慎使用，并采取额外的安全措施。 |
 
-#  安装Nuclei
+# 安装Nuclei
 
 Nuclei需要 **go1.22** 才能安装成功。执行下列命令安装最新版本的Nuclei
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```
+```text
 
 <details>
   <summary>Brew</summary>
@@ -82,7 +77,7 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 </details>
 
-**更多的安装方式 [请点击此处](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
+- *更多的安装方式 [请点击此处](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
 
 <table>
 <tr>
@@ -104,11 +99,9 @@ YAML的语法规范在[这里](SYNTAX-REFERENCE.md)。
 
 ```sh
 nuclei -h
-```
+```text
 
 这将显示Nuclei的帮助，以下是所有支持的命令。
-
-
 ```console
 Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板的快速漏洞扫描器。
 
@@ -153,8 +146,6 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -pt, -type value[]                    根据类型运行模板，可选值有：dns, file, http, headless, network, workflow, ssl, websocket, whois
    -ept, -exclude-type value[]           根据类型排除模板，可选值有：dns, file, http, headless, network, workflow, ssl, websocket, whois
    -tc, -template-condition string[]     根据表达式运行模板
-
-
 输出：
    -o, -output string                    输出发现的问题到文件
    -sresp, -store-resp                   将nuclei的所有请求和响应输出到目录
@@ -173,8 +164,6 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -se, -sarif-export string             以SARIF格式导出结果
    -je, -json-export string              以JSON格式导出结果
    -jle, -jsonl-export string            以JSONL(ine)格式导出结果
-
-
 配置：
    -config string                        指定nuclei的配置文件
    -fr, -follow-redirects                为HTTP模板启用重定向
@@ -205,8 +194,6 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -rss, -response-size-save int         最大储存响应大小（默认：1048576字节）
    -reset                                删除所有nuclei配置和数据文件（包括nuclei-templates）
    -tlsi, -tls-impersonate               启用实验性的Client Hello（ja3）TLS 随机化功能
-
-
 交互：
    -inserver, -ineractsh-server string   使用interactsh反连检测平台（默认为oast.pro,oast.live,oast.site,oast.online,oast.fun,oast.me）
    -itoken, -interactsh-token string     指定反连检测平台的身份凭证
@@ -215,13 +202,9 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -interactions-poll-duration int       每个轮询前等待时间（默认为5秒）
    -interactions-cooldown-period int     退出轮询前的等待时间（默认为5秒）
    -ni, -no-interactsh                   禁用反连检测平台，同时排除基于反连检测的模板
-
-
 模糊测试:
    -ft, -fuzzing-type string             覆盖模板中设置的模糊测试类型（replace、prefix、postfix、infix）
    -fm, -fuzzing-mode string             覆盖模板中设置的模糊测试模式（multiple、single）
-
-
 UNCOVER引擎:
    -uc, -uncover                         启动uncover引擎
    -uq, -uncover-query string[]          uncover查询语句
@@ -229,8 +212,6 @@ UNCOVER引擎:
    -uf, -uncover-field string            查询字段 （ip,port,host） （默认 "ip:port"）
    -ul, -uncover-limit int               查询结果数 （默认 100）
    -ur, -uncover-ratelimit int           查询速率，默认每分钟60个请求（默认 60）
-
-
 限速：
    -rl, -rate-limit int                  每秒最大请求量（默认：150）
    -rlm, -rate-limit-minute int          每分钟最大请求量
@@ -238,8 +219,6 @@ UNCOVER引擎:
    -c, -concurrency int                  并行执行的最大模板数量（默认：25）
    -hbs, -headless-bulk-size int         每个模板并行运行的无头主机最大数量（默认：10）
    -headc, -headless-concurrency int     并行指定无头主机最大数量（默认：10）
-
-
 优化：
    -timeout int                          超时时间（默认为10秒）
    -retries int                          重试次数（默认：1）
@@ -316,24 +295,22 @@ UNCOVER引擎:
 使用已排序的Markdown输出（使用环境变量）运行nuclei:
 	$ MARKDOWN_EXPORT_SORT_MODE=template nuclei -target example.com -markdown-export nuclei_report/
 
-```
+```text
 
 更多信息请参考文档: https://docs.nuclei.sh/getting-started/running
-
-
 ###  运行Nuclei
 
 使用[社区提供的模板](https://github.com/projectdiscovery/nuclei-templates)扫描单个目标
 
 ```sh
 nuclei -u https://example.com
-```
+```text
 
 使用[社区提供的模板](https://github.com/projectdiscovery/nuclei-templates)扫描多个目标
 
 ```sh
 nuclei -list urls.txt
-```
+```text
 
 Example of `urls.txt`:
 
@@ -342,11 +319,11 @@ http://example.com
 http://app.example.com
 http://test.example.com
 http://uat.example.com
-```
+```text
 
-**更多关于Nuclei的详细实例可以在[这里](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)找到**
+- *更多关于Nuclei的详细实例可以在[这里](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)找到**
 
-#  对于安全工程师
+# 对于安全工程师
 
 Nuclei提供了大量有助于安全工程师在工作流定制相关的功能。通过各种扫描功能（如DNS、HTTP、TCP），安全工程师可以更轻松的使用Nuclei创建一套自定义的检查方式。
 
@@ -362,7 +339,7 @@ Nuclei提供了大量有助于安全工程师在工作流定制相关的功能�
 <tr>
 <td>
 
-**对于赏金猎人：**
+- *对于赏金猎人：**
 
 Nuclei允许您定制自己的测试方法，可以轻松的运行您的程序。此外Nuclei可以更容易的集成到您的漏洞扫描工作流中。
 
@@ -380,7 +357,7 @@ Nuclei允许您定制自己的测试方法，可以轻松的运行您的程序�
 <tr>
 <td>
 
-**对于渗透测试：**
+- *对于渗透测试：**
 
 Nuclei通过增加手动、自动的过程，极大地改变了安全评估的方式。一些公司已经在用Nuclei升级他们的手动测试步骤，可以使用Nulcei对数千台主机使用同样的流程自动化测试。
 
@@ -394,7 +371,7 @@ Nuclei通过增加手动、自动的过程，极大地改变了安全评估的�
 </tr>
 </table>
 
-#  对于开发和组织
+# 对于开发和组织
 
 Nuclei构建很简单，通过数百名安全研究员的社区模板，Nuclei可以随时扫描来了解安全威胁。Nuclei通常用来用于复测，以确定漏洞是否被修复。
 

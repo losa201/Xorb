@@ -1,4 +1,4 @@
-#  XORB Configuration Packages
+# XORB Configuration Packages
 
 Centralized configuration templates and settings for the XORB platform.
 

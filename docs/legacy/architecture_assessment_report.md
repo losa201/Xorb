@@ -1,4 +1,4 @@
-#  XORB Architecture & Security Assessment Report
+# XORB Architecture & Security Assessment Report
 
 ##  1. Executive Summary
 
@@ -32,7 +32,7 @@
 | 9 | **Performance SLO guarantees** | Medium | Medium | $100K+ ARR |
 | 10 | **Compliance automation** | Medium | Medium | $200K+ ARR |
 
----
+- --
 
 ##  2. Repository Inventory (Auto-Generated)
 
@@ -81,7 +81,7 @@ graph TB
     ORCH --> REDIS
     API --> PG
     API --> REDIS
-```
+```text
 
 ###  Service Responsibilities
 
@@ -129,7 +129,7 @@ graph TB
 - **Missing**: Container scanning, SBOM generation, security checks
 - **Basic**: Lint and test execution only
 
----
+- --
 
 ##  3. Full Audits
 
@@ -150,7 +150,7 @@ graph TB
 | **Audit Logging** | ✅ | Comprehensive middleware | Production deployment needed |
 | **Data Retention** | ⚠️ | Policies defined, not enforced | Implement automated retention |
 
-**Critical Security Fixes:**
+- *Critical Security Fixes:**
 1. Remove hardcoded secrets, implement HashiCorp Vault
 2. Add multi-tenant data isolation at DB level
 3. Implement comprehensive input validation
@@ -169,7 +169,7 @@ graph TB
 | **Timeouts/Retries** | ❌ | No client timeout guidance | Add timeout specifications |
 | **Backpressure** | ❌ | No backpressure handling | Implement circuit breakers |
 
-**API Improvements:**
+- *API Improvements:**
 1. Standardize error response format with error codes
 2. Implement idempotency keys for mutations
 3. Add comprehensive timeout and retry policies
@@ -184,7 +184,7 @@ graph TB
 | **Indexing** | ❌ | No explicit index strategy | Analyze and optimize queries |
 | **Multi-tenant Strategy** | ❌ | No tenant isolation | Implement row-level security |
 
-**Multi-tenant Recommendations:**
+- *Multi-tenant Recommendations:**
 - **Strategy**: Row-level security with tenant_id columns
 - **Benefits**: Simpler operations, better performance
 - **Implementation**: Add tenant_id to all tables, RLS policies
@@ -209,7 +209,7 @@ graph TB
 | **Cache Strategy** | ✅ | Redis caching implemented | Add cache warming |
 | **Connection Pooling** | ⚠️ | Basic pooling | Tune pool sizes |
 
-**Performance Targets:**
+- *Performance Targets:**
 - API p50 < 50ms: ❌ Not measured
 - API p95 < 300ms: ❌ Not measured
 - Concurrent requests: ❌ Not tested
@@ -261,12 +261,12 @@ graph TB
 | **HIPAA** | 30% | No healthcare focus | Specialized controls needed |
 | **PCI-DSS** | 25% | No payment processing | N/A unless processing cards |
 
-**Compliance Priorities:**
+- *Compliance Priorities:**
 1. SOC2 Type II (highest ROI for enterprise sales)
 2. ISO 27001 (international markets)
 3. GDPR (EU compliance)
 
----
+- --
 
 ##  4. Target Architecture Blueprint
 
@@ -317,59 +317,59 @@ graph TB
     SCAN --> REDIS
     INTEL --> PG
     REPORT --> PG
-```
+```text
 
 ###  4.2 Authentication & Authorization
 
-**OIDC Integration:**
+- *OIDC Integration:**
 - **Primary**: Okta/Auth0 for enterprise SSO
 - **Secondary**: GitHub/Google for development
 - **Token Format**: JWT with RS256 signing
 - **Service-to-Service**: mTLS with certificate rotation
 
-**Authorization Model:**
+- *Authorization Model:**
 - **RBAC**: Role-based access control for users
 - **ABAC**: Attribute-based for fine-grained permissions
 - **Tenant Isolation**: Enforced at application and database level
 
 ###  4.3 Multi-Tenancy Strategy
 
-**Recommended**: Row-Level Security (RLS) with shared database
+- **Recommended**: Row-Level Security (RLS) with shared database
 
-**Benefits:**
+- *Benefits:**
 - Cost-effective for startup phase
 - Easier operations and maintenance
 - Better resource utilization
 - Simpler backup/recovery
 
-**Implementation:**
+- *Implementation:**
 ```sql
--- Add tenant_id to all tables
+- - Add tenant_id to all tables
 ALTER TABLE users ADD COLUMN tenant_id UUID;
 
--- Enable RLS
+- - Enable RLS
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 
--- Create policy
+- - Create policy
 CREATE POLICY tenant_isolation ON users
     USING (tenant_id = current_setting('app.current_tenant')::UUID);
-```
+```text
 
 ###  4.4 Data Architecture
 
-**PostgreSQL Schema Design:**
+- *PostgreSQL Schema Design:**
 - **Tenancy**: tenant_id column + RLS policies
 - **Audit**: Temporal tables for change tracking
 - **Encryption**: Application-level for PII
 - **Indexes**: Composite indexes including tenant_id
 
-**S3 Evidence Storage:**
+- *S3 Evidence Storage:**
 - **Structure**: `/tenant-id/scan-id/evidence/`
 - **Access**: Signed URLs with time-based expiration
 - **Retention**: Automated lifecycle policies
 - **Encryption**: Server-side encryption with customer keys
 
-**TTL Policies:**
+- *TTL Policies:**
 - **Scan Results**: 2 years (compliance requirement)
 - **Audit Logs**: 7 years (SOC2 requirement)
 - **Session Data**: 24 hours
@@ -377,33 +377,33 @@ CREATE POLICY tenant_isolation ON users
 
 ###  4.5 Message Queues & Jobs
 
-**Technology Choice**: **NATS JetStream**
+- **Technology Choice**: **NATS JetStream**
 - **Benefits**: Cloud-native, high performance, k8s native
 - **Alternative**: Kafka (if high throughput needed)
 
-**Job Architecture:**
+- *Job Architecture:**
 ```yaml
-#  Scan Job Flow
+# Scan Job Flow
 scan_requests → validation → scheduling → execution → reporting
 
-#  Retry Policy
+# Retry Policy
 max_retries: 3
 backoff: exponential
 dead_letter: enabled
 
-#  Deduplication
+# Deduplication
 key: sha256(tenant_id + target + scan_type)
 window: 5 minutes
-```
+```text
 
 ###  4.6 Observability Stack
 
-**OpenTelemetry Integration:**
+- *OpenTelemetry Integration:**
 - **Traces**: Jaeger backend
 - **Metrics**: Prometheus + Grafana
 - **Logs**: Loki + Grafana
 
-**SLO Definitions:**
+- *SLO Definitions:**
 ```yaml
 api_availability:
   target: 99.9%
@@ -416,33 +416,33 @@ api_latency_p95:
 scan_success_rate:
   target: 95%
   window: 1h
-```
+```text
 
-**Burn Rate Alerts:**
+- *Burn Rate Alerts:**
 - Fast burn: 2% budget in 1 hour
 - Slow burn: 10% budget in 6 hours
 
 ###  4.7 Security Implementation
 
-**Upload Validation:**
+- *Upload Validation:**
 ```python
-#  Multi-layer validation
+# Multi-layer validation
 1. File type whitelist
 2. Content type verification
 3. Antivirus scanning (ClamAV)
 4. Sandbox execution
 5. Size limits per tenant plan
-```
+```text
 
-**WAF Configuration:**
+- *WAF Configuration:**
 - **OWASP Top 10** protection
 - **Rate limiting** by IP/tenant
 - **Geographic blocking** (if required)
 - **DDoS protection**
 
-**Secrets Management:**
+- *Secrets Management:**
 ```yaml
-#  HashiCorp Vault Integration
+# HashiCorp Vault Integration
 database:
   engine: postgresql
   path: secret/db/credentials
@@ -454,12 +454,12 @@ jwt_signing:
 external_apis:
   engine: kv
   path: secret/external/
-```
+```text
 
 ###  4.8 Infrastructure Blueprint
 
-**Terraform Module Structure:**
-```
+- *Terraform Module Structure:**
+```text
 infrastructure/
 ├── modules/
 │   ├── vpc/
@@ -475,32 +475,32 @@ infrastructure/
 └── policies/
     ├── security/
     └── compliance/
-```
+```text
 
-**Kubernetes Baseline:**
+- *Kubernetes Baseline:**
 ```yaml
-#  Resource Management
+# Resource Management
 HPA: enabled (CPU/memory)
 PDB: max_unavailable 25%
 VPA: enabled for right-sizing
 
-#  Security
+# Security
 PSS: restricted
 NetworkPolicies: default-deny
 PodSecurityPolicy: deprecated, use PSS
 
-#  Monitoring
+# Monitoring
 ServiceMonitor: enabled
 PrometheusRule: SLO alerts
-```
+```text
 
-**GitOps Integration:**
+- *GitOps Integration:**
 - **Tool**: ArgoCD for production, Flux for dev
 - **Structure**: App-of-apps pattern
 - **Sync**: Automatic for dev, manual approval for prod
 - **Secrets**: External Secrets Operator with Vault
 
----
+- --
 
 ##  Implementation Roadmap
 
@@ -532,10 +532,10 @@ PrometheusRule: SLO alerts
 4. Advanced analytics
 5. Custom integrations
 
-**Total Timeline**: 28-36 weeks to enterprise readiness
-**Investment**: $800K-1.2M in engineering resources
-**ROI**: $2-5M ARR potential from enterprise deals
+- **Total Timeline**: 28-36 weeks to enterprise readiness
+- **Investment**: $800K-1.2M in engineering resources
+- **ROI**: $2-5M ARR potential from enterprise deals
 
----
+- --
 
-*Report generated on 2025-08-09 | Assessment covers security, architecture, and enterprise readiness*
+- Report generated on 2025-08-09 | Assessment covers security, architecture, and enterprise readiness*

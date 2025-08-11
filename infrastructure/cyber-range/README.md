@@ -1,4 +1,4 @@
-#  XORB PTaaS Red vs Blue Cyber Range
+# XORB PTaaS Red vs Blue Cyber Range
 
 A comprehensive, production-ready cyber range environment for conducting realistic Red vs Blue team exercises with advanced security controls, monitoring, and automation.
 
@@ -14,7 +14,7 @@ The XORB PTaaS Cyber Range is a self-contained, isolated environment designed to
 
 ##  🌐 Network Topology
 
-```
+```text
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Control       │    │   Red Team      │    │   Blue Team     │
 │   Plane         │    │   Infrastructure│    │   SOC           │
@@ -34,7 +34,7 @@ The XORB PTaaS Cyber Range is a self-contained, isolated environment designed to
 │   Web Targets   │    │ Internal Targets│    │   OT/IoT        │
 │   10.100.0.0/24 │    │   10.110.0.0/24 │    │   10.120.0.0/24 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-```
+```text
 
 ##  🚀 Quick Start
 
@@ -50,73 +50,73 @@ The XORB PTaaS Cyber Range is a self-contained, isolated environment designed to
 
 ####  Option A: Cloud Deployment (AWS)
 ```bash
-#  Deploy cloud infrastructure
+# Deploy cloud infrastructure
 cd terraform/
 terraform init
 terraform plan -var="cluster_name=xorb-cyber-range"
 terraform apply
 
-#  Configure kubectl
+# Configure kubectl
 export KUBECONFIG=./kubeconfig_xorb-cyber-range
-```
+```text
 
 ####  Option B: Local Kubernetes
 ```bash
-#  Verify cluster resources
+# Verify cluster resources
 kubectl top nodes
 kubectl get namespaces
-```
+```text
 
 ###  2. Deploy Cyber Range Components
 
 ```bash
-#  Create namespaces and network policies
+# Create namespaces and network policies
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/network-policies.yaml
 
-#  Deploy control plane
+# Deploy control plane
 kubectl apply -f k8s/control-plane.yaml
 
-#  Deploy team infrastructure
+# Deploy team infrastructure
 kubectl apply -f k8s/red-team.yaml
 kubectl apply -f k8s/blue-team.yaml
 
-#  Deploy target environments
+# Deploy target environments
 kubectl apply -f k8s/targets.yaml
 
-#  Deploy monitoring stack
+# Deploy monitoring stack
 kubectl apply -f monitoring/prometheus-config.yaml
 kubectl apply -f monitoring/grafana-config.yaml
 kubectl apply -f monitoring/alertmanager-config.yaml
-```
+```text
 
 ###  3. Configure Firewall Rules
 
 ```bash
-#  Make scripts executable
+# Make scripts executable
 chmod +x scripts/*.sh firewall/*.sh
 
-#  Start in staging mode (safe training)
+# Start in staging mode (safe training)
 sudo ./firewall/iptables-staging.sh
 
-#  Verify configuration
+# Verify configuration
 sudo ./firewall/iptables-staging.sh status
-```
+```text
 
 ###  4. Verify Deployment
 
 ```bash
-#  Check all pods are running
+# Check all pods are running
 kubectl get pods --all-namespaces
 
-#  Access control interfaces
+# Access control interfaces
 kubectl port-forward -n cyber-range-control svc/xorb-admin-service 3000:3000
 kubectl port-forward -n cyber-range-control svc/grafana-service 3001:3000
 
-#  Open in browser
-#  - Admin Console: http://localhost:3000
-#  - Grafana: http://localhost:3001 (admin/SecureAdminPass123!)
-```
+# Open in browser
+# - Admin Console: http://localhost:3000
+# - Grafana: http://localhost:3001 (admin/SecureAdminPass123!)
+```text
 
 ##  🎯 Operation Modes
 
@@ -128,12 +128,12 @@ kubectl port-forward -n cyber-range-control svc/grafana-service 3001:3000
 - **Safety**: Maximum - no real attacks possible
 
 ```bash
-#  Switch to staging mode
+# Switch to staging mode
 sudo ./scripts/mode-switch.sh staging
 
-#  Verify staging mode
+# Verify staging mode
 sudo ./scripts/mode-switch.sh status
-```
+```text
 
 ###  Live Exercise Mode
 - **Purpose**: Active red vs blue exercises
@@ -143,13 +143,13 @@ sudo ./scripts/mode-switch.sh status
 - **Safety**: Controlled - time limits and kill switch active
 
 ```bash
-#  Switch to live mode (requires confirmation)
+# Switch to live mode (requires confirmation)
 sudo ./scripts/mode-switch.sh live
 
-#  Monitor exercise
+# Monitor exercise
 watch kubectl get pods --all-namespaces
 tail -f /var/log/cyber-range/mode-switch.log
-```
+```text
 
 ##  🚨 Emergency Controls
 
@@ -157,19 +157,19 @@ tail -f /var/log/cyber-range/mode-switch.log
 Immediately terminates all attack activities and isolates the environment:
 
 ```bash
-#  Manual activation
+# Manual activation
 sudo ./scripts/kill-switch.sh activate
 
-#  Specific reason codes
+# Specific reason codes
 sudo ./scripts/kill-switch.sh activate security_breach
 sudo ./scripts/kill-switch.sh activate malware_detected
 
-#  Check status
+# Check status
 sudo ./scripts/kill-switch.sh status
 
-#  Restore from backup
+# Restore from backup
 sudo ./scripts/kill-switch.sh restore /path/to/backup
-```
+```text
 
 ###  Auto-Termination
 - Exercises auto-terminate after configured duration (default: 8 hours)
@@ -208,7 +208,7 @@ sudo ./scripts/kill-switch.sh restore /path/to/backup
 ###  Campaign Management
 
 ```bash
-#  Create new campaign via API
+# Create new campaign via API
 curl -X POST http://localhost:8080/api/v1/campaigns \
   -H "Content-Type: application/json" \
   -d '{
@@ -218,12 +218,12 @@ curl -X POST http://localhost:8080/api/v1/campaigns \
     "mode": "staging"
   }'
 
-#  Start campaign
+# Start campaign
 curl -X POST http://localhost:8080/api/v1/campaigns/{id}/start
 
-#  Monitor campaign status
+# Monitor campaign status
 curl http://localhost:8080/api/v1/campaigns/{id}/status
-```
+```text
 
 ##  🛡️ Security Features
 
@@ -249,22 +249,22 @@ curl http://localhost:8080/api/v1/campaigns/{id}/status
 
 ###  Environment Variables
 ```bash
-#  Core configuration
+# Core configuration
 export CYBER_RANGE_MODE="staging"          # staging, live
 export KILL_SWITCH_ENABLED="true"
 export MAX_EXERCISE_DURATION="8h"
 export AUTO_RESET="true"
 
-#  Network configuration
+# Network configuration
 export RED_TEAM_NETWORK="10.20.0.0/16"
 export BLUE_TEAM_NETWORK="10.30.0.0/24"
 export TARGET_NETWORKS="10.100.0.0/24,10.110.0.0/24,10.120.0.0/24"
 
-#  Security settings
+# Security settings
 export RATE_LIMITING="true"
 export MALWARE_DETECTION="true"
 export GEOGRAPHIC_RESTRICTIONS="true"
-```
+```text
 
 ###  Customization
 - **Target Configuration**: Add custom vulnerable applications
@@ -276,42 +276,42 @@ export GEOGRAPHIC_RESTRICTIONS="true"
 
 ###  Red Team Access
 ```bash
-#  Access red team tools
+# Access red team tools
 kubectl exec -it -n cyber-range-red deployment/metasploit -- /bin/bash
 kubectl exec -it -n cyber-range-red deployment/attack-tools -- /bin/bash
 
-#  Check allowed targets
+# Check allowed targets
 curl http://red-team-c2-service:8080/api/targets
 
-#  View attack logs
+# View attack logs
 kubectl logs -n cyber-range-red deployment/red-team-c2 -f
-```
+```text
 
 ###  Blue Team Access
 ```bash
-#  Access SIEM interfaces
+# Access SIEM interfaces
 kubectl port-forward -n cyber-range-blue svc/kibana 5601:5601
 kubectl port-forward -n cyber-range-blue svc/jupyter-hunting 8888:8888
 
-#  Check detection alerts
+# Check detection alerts
 kubectl logs -n cyber-range-blue deployment/wazuh-manager -f
 
-#  Access threat hunting platform
-#  Jupyter: http://localhost:8888 (token in logs)
-```
+# Access threat hunting platform
+# Jupyter: http://localhost:8888 (token in logs)
+```text
 
 ###  White Team Controls
 ```bash
-#  Exercise management
+# Exercise management
 kubectl port-forward -n cyber-range-control svc/xorb-admin-service 3000:3000
 
-#  Real-time monitoring
+# Real-time monitoring
 kubectl port-forward -n cyber-range-control svc/grafana-service 3001:3000
 
-#  Emergency controls
+# Emergency controls
 sudo ./scripts/kill-switch.sh status
 sudo ./scripts/mode-switch.sh status
-```
+```text
 
 ##  🚨 Troubleshooting
 
@@ -319,39 +319,39 @@ sudo ./scripts/mode-switch.sh status
 
 ####  Pods Not Starting
 ```bash
-#  Check resource quotas
+# Check resource quotas
 kubectl describe quota -n cyber-range-red
 
-#  Check node resources
+# Check node resources
 kubectl top nodes
 
-#  Check pod events
+# Check pod events
 kubectl describe pod -n cyber-range-red <pod-name>
-```
+```text
 
 ####  Network Connectivity Issues
 ```bash
-#  Verify network policies
+# Verify network policies
 kubectl get networkpolicy --all-namespaces
 
-#  Check iptables rules
+# Check iptables rules
 sudo iptables -L -n | grep CYBER-RANGE
 
-#  Test connectivity
+# Test connectivity
 kubectl exec -it -n cyber-range-red <pod> -- ping 10.100.0.10
-```
+```text
 
 ####  Kill Switch Not Working
 ```bash
-#  Check kill switch logs
+# Check kill switch logs
 tail -f /var/log/cyber-range/kill-switch.log
 
-#  Verify permissions
+# Verify permissions
 ls -la /opt/cyber-range/scripts/kill-switch.sh
 
-#  Manual network isolation
+# Manual network isolation
 sudo iptables -P FORWARD DROP
-```
+```text
 
 ###  Log Locations
 - **Kill Switch**: `/var/log/cyber-range/kill-switch.log`
@@ -362,16 +362,16 @@ sudo iptables -P FORWARD DROP
 
 ###  Support Commands
 ```bash
-#  Health check all components
+# Health check all components
 kubectl get pods --all-namespaces | grep -v Running
 kubectl get services --all-namespaces
 
-#  Validate environment
+# Validate environment
 ./scripts/validate-environment.sh
 
-#  Generate debug report
+# Generate debug report
 ./scripts/debug-report.sh
-```
+```text
 
 ##  🔄 Maintenance
 
@@ -383,24 +383,24 @@ kubectl get services --all-namespaces
 
 ###  Backup Procedures
 ```bash
-#  Backup configurations
+# Backup configurations
 kubectl get all --all-namespaces -o yaml > cyber-range-backup.yaml
 
-#  Backup persistent data
+# Backup persistent data
 ./scripts/backup-data.sh
 
-#  Test restore procedures
+# Test restore procedures
 ./scripts/test-restore.sh
-```
+```text
 
 ###  Updates
 ```bash
-#  Update container images
+# Update container images
 kubectl set image deployment/xorb-orchestrator xorb-orchestrator=xorb/orchestrator:latest -n cyber-range-control
 
-#  Rolling restart services
+# Rolling restart services
 kubectl rollout restart deployment --all -n cyber-range-control
-```
+```text
 
 ##  📄 License
 
@@ -421,6 +421,6 @@ For technical support or questions:
 - **Email**: cyber-range-support@xorb-security.com
 - **Slack**: #cyber-range-support
 
----
+- --
 
-**⚠️ Security Notice**: This cyber range contains intentionally vulnerable systems and should only be deployed in isolated, controlled environments. Never expose cyber range components to production networks or the public internet.
+- **⚠️ Security Notice**: This cyber range contains intentionally vulnerable systems and should only be deployed in isolated, controlled environments. Never expose cyber range components to production networks or the public internet.

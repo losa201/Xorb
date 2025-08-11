@@ -1,4 +1,4 @@
-#  🚀 XORB Platform Implementation Guide
+# 🚀 XORB Platform Implementation Guide
 
 [![Implementation Status](https://img.shields.io/badge/Implementation-Production%20Ready-green)](#production-ready)
 [![Security Implementation](https://img.shields.io/badge/Security-Enterprise%20Grade-blue)](#security-implementation)
@@ -27,20 +27,20 @@ This guide consolidates all implementation insights from the XORB platform strat
 
 ###  Environment Setup
 ```bash
-#  Create and activate virtual environment
+# Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate
 
-#  Install production dependencies
+# Install production dependencies
 pip install -r requirements.lock
 
-#  Validate environment
+# Validate environment
 python tools/scripts/validate_environment.py
-```
+```text
 
 ###  Database Initialization
 ```bash
-#  PostgreSQL with pgvector extension
+# PostgreSQL with pgvector extension
 docker run -d --name xorb-postgres \
   -e POSTGRES_DB=xorb \
   -e POSTGRES_USER=xorb_user \
@@ -48,36 +48,36 @@ docker run -d --name xorb-postgres \
   -p 5432:5432 \
   ankane/pgvector:v0.5.1
 
-#  Redis with TLS configuration
+# Redis with TLS configuration
 docker run -d --name xorb-redis \
   -v ./infra/redis/redis-tls.conf:/usr/local/etc/redis/redis.conf \
   -p 6379:6379 \
   redis:7-alpine redis-server /usr/local/etc/redis/redis.conf
-```
+```text
 
 ##  🔐 Security Implementation
 
 ###  TLS/mTLS Configuration
 ```bash
-#  Initialize Certificate Authority
+# Initialize Certificate Authority
 ./scripts/ca/make-ca.sh
 
-#  Generate service certificates
+# Generate service certificates
 services=(api orchestrator agent redis postgres temporal)
 for service in "${services[@]}"; do
     ./scripts/ca/issue-cert.sh "$service" both
 done
 
-#  Generate client certificates
+# Generate client certificates
 clients=(redis-client postgres-client temporal-client)
 for client in "${clients[@]}"; do
     ./scripts/ca/issue-cert.sh "$client" client
 done
-```
+```text
 
 ###  Security Middleware Configuration
 ```python
-#  FastAPI middleware stack (app/main.py)
+# FastAPI middleware stack (app/main.py)
 app.add_middleware(GlobalErrorHandler)
 app.add_middleware(APISecurityMiddleware)
 app.add_middleware(AdvancedRateLimitingMiddleware)
@@ -87,36 +87,36 @@ app.add_middleware(PerformanceMiddleware)
 app.add_middleware(AuditLoggingMiddleware)
 app.add_middleware(GZipMiddleware)
 app.add_middleware(RequestIdMiddleware)
-```
+```text
 
 ###  Vault Integration
 ```bash
-#  Initialize HashiCorp Vault for secret management
+# Initialize HashiCorp Vault for secret management
 cd infra/vault && ./setup-vault-dev.sh
 
-#  Configure Vault secrets
+# Configure Vault secrets
 python3 src/common/vault_manager.py health
 python3 src/common/vault_manager.py test
-```
+```text
 
 ##  🎯 PTaaS Implementation
 
 ###  Security Scanner Integration
 ```bash
-#  Install security scanning tools
+# Install security scanning tools
 apt-get update && apt-get install -y nmap nikto
 
-#  Install Nuclei vulnerability scanner
+# Install Nuclei vulnerability scanner
 go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
 
-#  Install SSLScan
+# Install SSLScan
 git clone https://github.com/rbsec/sslscan.git
 cd sslscan && make static && make install
-```
+```text
 
 ###  PTaaS Service Configuration
 ```python
-#  Scanner service configuration (app/services/ptaas_scanner_service.py)
+# Scanner service configuration (app/services/ptaas_scanner_service.py)
 SCANNER_CONFIG = {
     "nmap": {
         "binary_path": "/usr/bin/nmap",
@@ -133,11 +133,11 @@ SCANNER_CONFIG = {
         "timeout": 1800
     }
 }
-```
+```text
 
 ###  Scan Profiles Implementation
 ```yaml
-#  Scan profile configuration (ptaas_config.json)
+# Scan profile configuration (ptaas_config.json)
 scan_profiles:
   quick:
     duration: 300
@@ -154,13 +154,13 @@ scan_profiles:
   web_focused:
     duration: 1200
     scanners: ["web_vulnerability_scan", "ssl_scan", "directory_enumeration"]
-```
+```text
 
 ##  🤖 AI/ML Services Implementation
 
 ###  Threat Intelligence Engine
 ```python
-#  Advanced threat intelligence configuration
+# Advanced threat intelligence configuration
 THREAT_INTELLIGENCE_CONFIG = {
     "correlation_engine": {
         "enabled": True,
@@ -178,86 +178,86 @@ THREAT_INTELLIGENCE_CONFIG = {
         "sensitivity": 0.95
     }
 }
-```
+```text
 
 ###  Vector Database Configuration
 ```python
-#  pgvector configuration for AI operations
+# pgvector configuration for AI operations
 VECTOR_CONFIG = {
     "embedding_dimension": 384,
     "similarity_threshold": 0.8,
     "index_type": "ivfflat",
     "lists": 100
 }
-```
+```text
 
 ##  🔄 Orchestration Implementation
 
 ###  Temporal Workflow Setup
 ```bash
-#  Start Temporal server
+# Start Temporal server
 docker run -d --name temporal \
   -p 7233:7233 \
   temporalio/auto-setup:1.20.0
 
-#  Initialize workflow worker
+# Initialize workflow worker
 cd src/orchestrator && python main.py
-```
+```text
 
 ###  Workflow Configuration
 ```python
-#  Workflow definitions (src/orchestrator/workflows.py)
+# Workflow definitions (src/orchestrator/workflows.py)
 @workflow.defn
 class PTaaSOrchestrationWorkflow:
     async def run(self, scan_request: ScanRequest) -> ScanResult:
         # Implement comprehensive scan orchestration
         # with error handling and retry policies
         pass
-```
+```text
 
 ##  🏭 Production Deployment
 
 ###  Docker Compose Production
 ```bash
-#  Deploy with production configuration
+# Deploy with production configuration
 docker-compose -f docker-compose.production.yml up -d
 
-#  Verify deployment health
+# Verify deployment health
 curl http://localhost:8000/api/v1/health
 curl http://localhost:8000/api/v1/readiness
-```
+```text
 
 ###  Kubernetes Deployment
 ```bash
-#  Deploy to Kubernetes cluster
+# Deploy to Kubernetes cluster
 kubectl apply -f k8s/namespace.yaml
 kubectl apply -f k8s/configmaps/
 kubectl apply -f k8s/secrets/
 kubectl apply -f k8s/deployments/
 kubectl apply -f k8s/services/
 
-#  Verify deployment
+# Verify deployment
 kubectl get pods -n xorb-platform
 kubectl get services -n xorb-platform
-```
+```text
 
 ###  Service Mesh Integration
 ```bash
-#  Install Istio service mesh
+# Install Istio service mesh
 istioctl install --set values.defaultRevision=default
 
-#  Apply mTLS policies
+# Apply mTLS policies
 kubectl apply -f k8s/mtls/istio-mtls-policy.yaml
 
-#  Verify mTLS status
+# Verify mTLS status
 istioctl authn tls-check xorb-api.xorb-platform.svc.cluster.local
-```
+```text
 
 ##  📊 Monitoring Implementation
 
 ###  Prometheus Configuration
 ```yaml
-#  prometheus.yml
+# prometheus.yml
 global:
   scrape_interval: 15s
 
@@ -269,23 +269,23 @@ scrape_configs:
   - job_name: 'xorb-orchestrator'
     static_configs:
       - targets: ['orchestrator:8001']
-```
+```text
 
 ###  Grafana Dashboard Setup
 ```bash
-#  Deploy monitoring stack
+# Deploy monitoring stack
 docker-compose -f docker-compose.monitoring.yml up -d
 
-#  Access Grafana
+# Access Grafana
 open http://localhost:3010
-#  Login: admin / SecureAdminPass123!
-```
+# Login: admin / SecureAdminPass123!
+```text
 
 ##  🛡️ Compliance Implementation
 
 ###  Security Policy Configuration
 ```yaml
-#  OPA policy configuration (policies/security-policy.rego)
+# OPA policy configuration (policies/security-policy.rego)
 package xorb.security
 
 allow {
@@ -298,11 +298,11 @@ allow {
     jwt.verify_es256(input.token, cert)
     payload := jwt.decode_verify(input.token, constraint)
 }
-```
+```text
 
 ###  Audit Logging Implementation
 ```python
-#  Audit logging configuration
+# Audit logging configuration
 AUDIT_CONFIG = {
     "enabled": True,
     "log_level": "INFO",
@@ -310,25 +310,25 @@ AUDIT_CONFIG = {
     "retention_days": 90,
     "encryption": True
 }
-```
+```text
 
 ##  🧪 Testing Implementation
 
 ###  Test Suite Configuration
 ```bash
-#  Run comprehensive test suite
+# Run comprehensive test suite
 pytest --cov=src/api/app --cov-report=html --cov-report=term-missing
 
-#  Run security tests
+# Run security tests
 pytest -m security
 
-#  Run performance tests
+# Run performance tests
 pytest -m performance
-```
+```text
 
 ###  Integration Testing
 ```python
-#  Integration test configuration (conftest.py)
+# Integration test configuration (conftest.py)
 @pytest.fixture
 async def test_client():
     async with AsyncClient(app=app, base_url="http://test") as client:
@@ -339,13 +339,13 @@ async def authenticated_client(test_client):
     token = await get_test_token()
     test_client.headers.update({"Authorization": f"Bearer {token}"})
     return test_client
-```
+```text
 
 ##  🔧 Configuration Management
 
 ###  Environment Variables
 ```bash
-#  Production environment configuration
+# Production environment configuration
 export DATABASE_URL="postgresql://user:pass@localhost:5432/xorb"
 export REDIS_URL="rediss://user:pass@localhost:6379/0"
 export TEMPORAL_HOST="temporal:7233"
@@ -354,11 +354,11 @@ export ENVIRONMENT="production"
 export ENABLE_METRICS="true"
 export RATE_LIMIT_PER_MINUTE="60"
 export RATE_LIMIT_PER_HOUR="1000"
-```
+```text
 
 ###  Configuration Validation
 ```python
-#  Configuration validation (app/core/config.py)
+# Configuration validation (app/core/config.py)
 class Settings(BaseSettings):
     database_url: str
     redis_url: str
@@ -369,13 +369,13 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
-```
+```text
 
 ##  🚀 Deployment Automation
 
 ###  CI/CD Pipeline
 ```yaml
-#  .github/workflows/deploy.yml
+# .github/workflows/deploy.yml
 name: Deploy XORB Platform
 on:
   push:
@@ -394,20 +394,20 @@ jobs:
       - name: Deploy to production
         run: |
           docker-compose -f docker-compose.production.yml up -d
-```
+```text
 
 ###  Health Monitoring
 ```bash
-#  Automated health monitoring
+# Automated health monitoring
 ./scripts/health-monitor.sh
 
-#  Performance benchmarking
+# Performance benchmarking
 ./scripts/performance-benchmark.sh
 
-#  Security validation
+# Security validation
 ./scripts/validate/test_tls.sh
 ./scripts/validate/test_mtls.sh
-```
+```text
 
 ##  🎯 Success Metrics
 
@@ -424,6 +424,6 @@ jobs:
 - **Concurrent Users**: 1000+ simultaneous users
 - **Uptime**: 99.9% availability SLA
 
----
+- --
 
-*This implementation guide consolidates all strategic implementation knowledge from the XORB platform development, providing a single authoritative source for production deployment.*
+- This implementation guide consolidates all strategic implementation knowledge from the XORB platform development, providing a single authoritative source for production deployment.*

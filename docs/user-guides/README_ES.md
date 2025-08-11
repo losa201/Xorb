@@ -4,8 +4,6 @@
 </h1>
 
 <h4 align="center">Escáner de vulnerabilidades rápido y personalizable basado en un sencillo DSL basado en YAML.</h4>
-
-
 <p align="center">
 <img src="https://img.shields.io/github/go-mod/go-version/projectdiscovery/nuclei">
 <a href="https://github.com/projectdiscovery/nuclei/releases"><img src="https://img.shields.io/github/downloads/projectdiscovery/nuclei/total">
@@ -35,32 +33,28 @@
   <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_PT-BR.md">Portuguese</a>
 </p>
 
----
+- --
 
 Nuclei se utiliza para enviar peticiones a múltiples objetivos basándose en una plantilla, lo que resulta en cero falsos positivos y proporciona un escaneo rápido en un gran número de hosts. Nuclei ofrece escaneos para una variedad de protocolos, incluyendo TCP, DNS, HTTP, SSL, File, Whois, Websocket, Headless, Code, etc. Con plantillas potentes y flexibles, Nuclei puede utilizarse para modelar todo tipo de comprobaciones de seguridad.
 
 Tenemos un [repositorio dedicado](https://github.com/projectdiscovery/nuclei-templates) que alberga varios tipos de plantillas de vulnerabilidades, contribuidas por **más de 300** investigadores y ingenieros de seguridad.
 
 ##  Cómo funciona
-
-
 <h3 align="center">
   <img src="static/nuclei-flow.jpg" alt="nuclei-flow" width="700px"></a>
 </h3>
-
-
 | :exclamation:  **Descargo de responsabilidad**  |
 |---------------------------------|
 | **Este proyecto está en desarrollo activo**. Es de esperar que se produzcan cambios importantes con las nuevas versiones. Consulte el registro de cambios de la versión antes de actualizar. |
 | Este proyecto fue principalmente desarrollado para ser utilizado como una herramienta CLI independiente. **Ejecutar nuclei como un servicio puede suponer riesgos de seguridad.** Se recomienda utilizarlo con precaución y tomar medidas de seguridad adicionales. |
 
-#  Instalación de Nuclei
+# Instalación de Nuclei
 
 Nuclei requiere **go1.22** para instalarse correctamente. Ejecute el siguiente comando para instalar la última versión -
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```
+```text
 
 <details>
   <summary>Brew</summary>
@@ -79,7 +73,7 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 </details>
 
-**Más métodos de instalación [pueden encontrarse aquí](https://docs.projectdiscovery.io/tools/nuclei/install).**
+- *Más métodos de instalación [pueden encontrarse aquí](https://docs.projectdiscovery.io/tools/nuclei/install).**
 
 <table>
 <tr>
@@ -101,11 +95,9 @@ La sintaxis de referencia YAML DSL está disponible [aquí](SYNTAX-REFERENCE.md)
 
 ```sh
 nuclei -h
-```
+```text
 
 Esto mostrará ayuda sobre la herramienta. Aquí están todas las opciones que soporta.
-
-
 ```console
 Nuclei es un escáner de vulnerabilidades rápido y basado en plantillas
 que se centra en su amplia configurabilidad, extensibilidad y facilidad de uso.
@@ -308,8 +300,6 @@ CLOUD:
 AUTHENTICATION:
    -sf, -secret-file string[]  ruta al archivo de configuración que contiene los secrets para el escaneo autenticado de nuclei
    -ps, -prefetch-secrets      precarga los secrets del archivo de secrets
-
-
 EXAMPLES:
 Ejecutar nuclei en un solo host:
    $ nuclei -target example.com
@@ -327,7 +317,7 @@ Ejecutar nuclei con salidas Markdown ordenadas (con variables de entorno):
    $ MARKDOWN_EXPORT_SORT_MODE=template nuclei -target example.com -markdown-export nuclei_report/
 
 Documentación adicional disponible en: https://docs.nuclei.sh/getting-started/running
-```
+```text
 
 ###  Ejecutando Nuclei
 
@@ -336,8 +326,6 @@ Consulta https://docs.projectdiscovery.io/tools/nuclei/running para obtener deta
 ###  Uso de Nuclei desde código Go
 
 La guía completa sobre cómo usar Nuclei como biblioteca/SDK está disponible en [godoc](https://pkg.go.dev/github.com/projectdiscovery/nuclei/v3/lib#section-readme).
-
-
 ###  Recursos
 
 Puedes acceder a la documentación principal de Nuclei en https://docs.projectdiscovery.io/tools/nuclei/, y obtener más información sobre Nuclei en la nube con [ProjectDiscovery Cloud Platform](https://cloud.projectdiscovery.io).
@@ -355,8 +343,6 @@ Si tienes una idea o algún tipo de mejora, eres bienvenido a contribuir y parti
   <img src="https://contrib.rocks/image?repo=projectdiscovery/nuclei&max=500">
 </a>
 </p>
-
-
 También echa un vistazo a los siguientes proyectos de código abierto similares que pueden adaptarse a tu flujo de trabajo:
 
 [FFuF](https://github.com/ffuf/ffuf), [Qsfuzz](https://github.com/ameenmaali/qsfuzz), [Inception](https://github.com/proabiral/inception), [Snallygaster](https://github.com/hannob/snallygaster), [Gofingerprint](https://github.com/Static-Flow/gofingerprint), [Sn1per](https://github.com/1N3/Sn1per/tree/master/templates), [Google tsunami](https://github.com/google/tsunami-security-scanner), [Jaeles](https://github.com/jaeles-project/jaeles), [ChopChop](https://github.com/michelin/ChopChop)

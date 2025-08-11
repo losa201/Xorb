@@ -1,4 +1,4 @@
-#  Clean Architecture Refactoring Summary
+# Clean Architecture Refactoring Summary
 
 ##  Overview
 
@@ -23,7 +23,7 @@ The Xorb API has been successfully refactored from a monolithic structure to a c
 ##  New Architecture Layers
 
 ###  1. Domain Layer (`/app/domain/`)
-**Purpose**: Contains business entities, value objects, and domain logic
+- **Purpose**: Contains business entities, value objects, and domain logic
 
 ####  Key Files:
 - `entities.py` - Core business entities (User, Organization, EmbeddingRequest, etc.)
@@ -38,7 +38,7 @@ The Xorb API has been successfully refactored from a monolithic structure to a c
 - **Repository Contracts**: Abstract interfaces independent of implementation
 
 ###  2. Service Layer (`/app/services/`)
-**Purpose**: Contains business logic and orchestrates domain operations
+- **Purpose**: Contains business logic and orchestrates domain operations
 
 ####  Key Files:
 - `interfaces.py` - Service contracts
@@ -53,7 +53,7 @@ The Xorb API has been successfully refactored from a monolithic structure to a c
 - **Transaction Management**: Proper handling of multi-step operations
 
 ###  3. Infrastructure Layer (`/app/infrastructure/`)
-**Purpose**: Contains implementations of external concerns
+- **Purpose**: Contains implementations of external concerns
 
 ####  Key Files:
 - `repositories.py` - Concrete repository implementations (in-memory for testing)
@@ -65,7 +65,7 @@ The Xorb API has been successfully refactored from a monolithic structure to a c
 - **Framework Independence**: No framework coupling in business logic
 
 ###  4. Controller Layer (`/app/controllers/`)
-**Purpose**: Thin HTTP handlers that delegate to services
+- **Purpose**: Thin HTTP handlers that delegate to services
 
 ####  Key Files:
 - `base.py` - Base controller with common functionality
@@ -80,7 +80,7 @@ The Xorb API has been successfully refactored from a monolithic structure to a c
 - **Clean Response Formats**: Standardized API responses
 
 ###  5. Dependency Injection (`/app/container.py`)
-**Purpose**: Manages service dependencies and lifecycle
+- **Purpose**: Manages service dependencies and lifecycle
 
 ####  Key Improvements:
 - **Centralized Configuration**: All dependencies configured in one place
@@ -91,51 +91,51 @@ The Xorb API has been successfully refactored from a monolithic structure to a c
 ##  Specific Refactoring Changes
 
 ###  Authentication (`/app/routers/auth.py`)
-**Before:**
+- *Before:**
 ```python
-#  Direct password verification and token creation
+# Direct password verification and token creation
 if not security.verify_password(form_data.password, security.get_password_hash("secret")):
     raise HTTPException(...)
 access_token = security.create_access_token(data={"sub": form_data.username, "roles": ["admin"]})
-```
+```text
 
-**After:**
+- *After:**
 ```python
-#  Service-based authentication with domain entities
+# Service-based authentication with domain entities
 user = await auth_service.authenticate_user(username=form_data.username, password=form_data.password)
 access_token = await auth_service.create_access_token(user)
-```
+```text
 
 ###  Embeddings (`/app/routers/embeddings.py`)
-**Before:**
+- *Before:**
 ```python
-#  Direct API calls in controllers
+# Direct API calls in controllers
 response = self.client.embeddings.create(input=texts, model=model, ...)
-```
+```text
 
-**After:**
+- *After:**
 ```python
-#  Service-based approach with domain entities
+# Service-based approach with domain entities
 result = await embedding_service.generate_embeddings(
     texts=request.input, model=request.model, user=current_user, org=current_org
 )
-```
+```text
 
 ###  Discovery (`/app/routers/discovery.py`)
-**Before:**
+- *Before:**
 ```python
-#  Direct Temporal client usage
+# Direct Temporal client usage
 client = await Client.connect("temporal:7233")
 handle = await client.start_workflow(DiscoveryWorkflow.run, domain, ...)
-```
+```text
 
-**After:**
+- *After:**
 ```python
-#  Service-based workflow management
+# Service-based workflow management
 workflow = await discovery_service.start_discovery(
     domain=request.domain, user=current_user, org=current_org
 )
-```
+```text
 
 ##  Key Benefits Achieved
 
@@ -168,7 +168,7 @@ workflow = await discovery_service.start_discovery(
 
 All clean architecture components pass validation tests:
 
-```
+```text
 ============================================================
 CLEAN ARCHITECTURE VALIDATION TESTS
 ============================================================
@@ -193,7 +193,7 @@ CLEAN ARCHITECTURE VALIDATION TESTS
 
 RESULTS: 4/4 tests passed
 🎉 All tests passed! Clean architecture refactoring successful.
-```
+```text
 
 ##  Migration Notes
 

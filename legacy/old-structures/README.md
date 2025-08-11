@@ -1,4 +1,4 @@
-#  Legacy Old Structures
+# Legacy Old Structures
 
 This directory contains deprecated directory structures that have been superseded by the new enterprise organization under `services/`.
 

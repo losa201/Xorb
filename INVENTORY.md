@@ -1,4 +1,4 @@
-#  Repository Inventory - XORB Enterprise Cybersecurity Platform
+# Repository Inventory - XORB Enterprise Cybersecurity Platform
 
 ##  Overview Statistics
 - **Total Lines of Code**: ~621,940 (Python only)
@@ -12,7 +12,7 @@
 ##  Directory Structure Analysis
 
 ###  Core Application Layer (`src/`)
-```
+```text
 src/
 ├── api/                    # FastAPI REST API (Clean Architecture)
 ├── orchestrator/           # Temporal workflow orchestration
@@ -21,10 +21,10 @@ src/
 ├── common/                # Shared utilities
 ├── analytics/             # Analytics engine
 └── security/              # Security modules
-```
+```text
 
 ###  Service Architecture (`services/`)
-```
+```text
 services/
 ├── ptaas/                 # PTaaS Frontend & Backend
 │   ├── web/              # React + TypeScript frontend
@@ -32,10 +32,10 @@ services/
 ├── xorb-core/            # XORB Backend Platform
 ├── infrastructure/       # Shared infrastructure
 └── legacy/               # Legacy code preservation
-```
+```text
 
 ###  Infrastructure (`infra/`)
-```
+```text
 infra/
 ├── docker/               # Container definitions
 ├── kubernetes/           # K8s manifests
@@ -43,15 +43,15 @@ infra/
 ├── vault/                # HashiCorp Vault configs
 ├── monitoring/           # Prometheus, Grafana configs
 └── targets/              # Testing targets
-```
+```text
 
 ###  Package Management (`packages/`)
-```
+```text
 packages/
 ├── common/               # Shared libraries
 ├── types/                # Type definitions
 └── configs/              # Configuration templates
-```
+```text
 
 ##  Component Analysis
 
@@ -114,7 +114,7 @@ graph TD
     J[Scanner Service] --> C
     K[SIEM Engine] --> D
     L[Vault] --> C
-```
+```text
 
 ##  Technology Stack Distribution
 
@@ -217,7 +217,7 @@ graph TD
 - **Missing caching** in hot paths
 - **Resource leaks** in long-running processes
 
----
+- --
 
 ##  Audit Strategy
 
@@ -236,4 +236,4 @@ graph TD
 - **MERGE_PLAN.md**: Service consolidation strategy
 - **PATCH_PREVIEWS/**: Code fix demonstrations
 
-**Ready to begin systematic file-by-file analysis.**
+- *Ready to begin systematic file-by-file analysis.**

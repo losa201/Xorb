@@ -1,4 +1,4 @@
-#  Legacy Deprecated Services
+# Legacy Deprecated Services
 
 This directory contains deprecated services and applications that are no longer actively maintained.
 

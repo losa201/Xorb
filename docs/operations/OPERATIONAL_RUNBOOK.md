@@ -1,4 +1,4 @@
-#  🔧 XORB Platform Operational Runbook
+# 🔧 XORB Platform Operational Runbook
 
 [![Operational Status](https://img.shields.io/badge/Operations-Production%20Ready-green)](#production-operations)
 [![Monitoring](https://img.shields.io/badge/Monitoring-Comprehensive-blue)](#monitoring-operations)
@@ -21,336 +21,336 @@ This runbook consolidates all operational insights from XORB platform strategic 
 
 ###  Health Check Procedures
 ```bash
-#  Primary health checks (run every 5 minutes)
+# Primary health checks (run every 5 minutes)
 curl -f http://localhost:8000/api/v1/health || echo "API service down"
 curl -f http://localhost:8000/api/v1/readiness || echo "API not ready"
 
-#  Service-specific health checks
+# Service-specific health checks
 docker-compose ps | grep -v "Up" || echo "Container issues detected"
 redis-cli -h localhost -p 6379 ping || echo "Redis connectivity issue"
 pg_isready -h localhost -p 5432 || echo "PostgreSQL connectivity issue"
-```
+```text
 
 ###  Performance Monitoring
 ```bash
-#  Performance metrics collection
+# Performance metrics collection
 ./scripts/performance-benchmark.sh
 ./scripts/health-monitor.sh
 
-#  Resource utilization monitoring
+# Resource utilization monitoring
 docker stats --no-stream
 df -h  # Disk usage
 free -h  # Memory usage
 top -n 1 -b | head -20  # CPU usage
-```
+```text
 
 ###  Log Management
 ```bash
-#  Application log monitoring
+# Application log monitoring
 tail -f logs/xorb-api.log | grep -E "(ERROR|WARN|CRITICAL)"
 tail -f logs/orchestrator.log | grep -E "(FAILED|ERROR)"
 tail -f logs/audit.log | grep -E "(SECURITY|VIOLATION)"
 
-#  Container log monitoring
+# Container log monitoring
 docker-compose logs -f --tail=100 api
 docker-compose logs -f --tail=100 orchestrator
 docker-compose logs -f --tail=100 redis
-```
+```text
 
 ##  🔐 Security Operations
 
 ###  Certificate Management
 ```bash
-#  Daily certificate health check
+# Daily certificate health check
 ./scripts/validate/test_tls.sh
 ./scripts/validate/test_mtls.sh
 
-#  Certificate expiry monitoring (run daily)
+# Certificate expiry monitoring (run daily)
 find ./secrets/tls -name "*.pem" -exec openssl x509 -noout -dates -in {} \; | \
 grep "notAfter" | while read line; do
     echo "Certificate expiry: $line"
 done
 
-#  Automated certificate rotation (when needed)
+# Automated certificate rotation (when needed)
 ./scripts/rotate-certs.sh --check-expiry
-```
+```text
 
 ###  Security Monitoring
 ```bash
-#  Security event monitoring
+# Security event monitoring
 grep -E "(FAILED_LOGIN|UNAUTHORIZED|SECURITY_VIOLATION)" logs/audit.log
 grep -E "(RATE_LIMIT_EXCEEDED|SUSPICIOUS_ACTIVITY)" logs/security.log
 
-#  Vulnerability scan status
+# Vulnerability scan status
 curl -s http://localhost:8000/api/v1/ptaas/health | jq '.scanner_status'
 
-#  Security policy validation
+# Security policy validation
 conftest test --policy policies/security-policy.rego infra/docker-compose.tls.yml
-```
+```text
 
 ###  Access Control Verification
 ```bash
-#  Verify mTLS authentication
+# Verify mTLS authentication
 openssl s_client -connect api:8443 -cert secrets/tls/api-client/cert.pem \
   -key secrets/tls/api-client/key.pem -CAfile secrets/tls/ca/ca.pem
 
-#  API authentication testing
+# API authentication testing
 curl -H "Authorization: Bearer invalid_token" \
   http://localhost:8000/api/v1/protected/endpoint
-#  Should return 401 Unauthorized
-```
+# Should return 401 Unauthorized
+```text
 
 ##  📊 Monitoring Operations
 
 ###  Prometheus Metrics Monitoring
 ```bash
-#  Key metrics to monitor
+# Key metrics to monitor
 curl -s http://localhost:9092/api/v1/query?query=up | jq '.data.result'
 curl -s http://localhost:9092/api/v1/query?query=http_requests_total | jq '.data.result'
 curl -s http://localhost:9092/api/v1/query?query=ptaas_scans_active | jq '.data.result'
 
-#  Alert rule validation
+# Alert rule validation
 curl -s http://localhost:9092/api/v1/rules | jq '.data.groups[].rules[].alerts'
-```
+```text
 
 ###  Grafana Dashboard Monitoring
 ```bash
-#  Dashboard health check
+# Dashboard health check
 curl -f http://localhost:3010/api/health
 curl -f http://localhost:3010/api/datasources/proxy/1/api/v1/query?query=up
 
-#  Alert notification testing
+# Alert notification testing
 curl -X POST http://localhost:3010/api/annotations \
   -H "Content-Type: application/json" \
   -d '{"text":"Test annotation","tags":["test"]}'
-```
+```text
 
 ###  Database Operations
 ```bash
-#  PostgreSQL health and performance
+# PostgreSQL health and performance
 psql -h localhost -U xorb_user -d xorb -c "SELECT version();"
 psql -h localhost -U xorb_user -d xorb -c "SELECT pg_stat_database.datname,
   pg_stat_database.tup_returned, pg_stat_database.tup_fetched
   FROM pg_stat_database WHERE datname='xorb';"
 
-#  Redis operations monitoring
+# Redis operations monitoring
 redis-cli -h localhost -p 6379 info replication
 redis-cli -h localhost -p 6379 info memory
 redis-cli -h localhost -p 6379 info stats
-```
+```text
 
 ##  🎯 PTaaS Operations
 
 ###  Scanner Health Monitoring
 ```bash
-#  Scanner availability check
+# Scanner availability check
 nmap --version || echo "Nmap not available"
 nuclei -version || echo "Nuclei not available"
 nikto -Version || echo "Nikto not available"
 
-#  Scanner service status
+# Scanner service status
 curl -s http://localhost:8000/api/v1/ptaas/scanners/status | jq '.'
 
-#  Active scan monitoring
+# Active scan monitoring
 curl -s http://localhost:8000/api/v1/ptaas/sessions/active | jq '.count'
-```
+```text
 
 ###  Scan Queue Management
 ```bash
-#  Queue depth monitoring
+# Queue depth monitoring
 curl -s http://localhost:8000/api/v1/ptaas/queue/status | jq '.'
 
-#  Scan performance metrics
+# Scan performance metrics
 curl -s http://localhost:8000/api/v1/ptaas/metrics | jq '.scan_times'
 
-#  Failed scan investigation
+# Failed scan investigation
 curl -s http://localhost:8000/api/v1/ptaas/sessions?status=failed | jq '.'
-```
+```text
 
 ###  Orchestration Monitoring
 ```bash
-#  Temporal workflow health
+# Temporal workflow health
 curl -f http://localhost:8233/api/v1/namespaces/default/workflows
 
-#  Workflow execution monitoring
+# Workflow execution monitoring
 temporal workflow list --namespace default
 temporal workflow describe --workflow-id <workflow_id>
 
-#  Activity failure investigation
+# Activity failure investigation
 temporal workflow show --workflow-id <workflow_id> --run-id <run_id>
-```
+```text
 
 ##  🚨 Incident Response
 
 ###  Service Recovery Procedures
 ```bash
-#  API service restart
+# API service restart
 docker-compose restart api
 sleep 30
 curl -f http://localhost:8000/api/v1/health
 
-#  Database connection recovery
+# Database connection recovery
 docker-compose restart postgres
 sleep 60
 pg_isready -h localhost -p 5432
 
-#  Redis service recovery
+# Redis service recovery
 docker-compose restart redis
 sleep 15
 redis-cli -h localhost -p 6379 ping
-```
+```text
 
 ###  Security Incident Response
 ```bash
-#  Immediate security lockdown
+# Immediate security lockdown
 ./scripts/emergency-security-lockdown.sh
 
-#  Certificate compromise response
+# Certificate compromise response
 ./scripts/emergency-cert-rotation.sh --revoke-all
 ./scripts/ca/issue-cert.sh api both --emergency
 
-#  Suspicious activity investigation
+# Suspicious activity investigation
 grep -E "(RATE_LIMIT|UNAUTHORIZED|FAILED_AUTH)" logs/audit.log | tail -100
 grep -E "suspicious|malicious|attack" logs/security.log | tail -50
-```
+```text
 
 ###  Performance Issue Resolution
 ```bash
-#  High CPU usage investigation
+# High CPU usage investigation
 top -p $(pgrep -f "uvicorn\|python")
 docker stats --no-stream | grep -E "(api|orchestrator)"
 
-#  Memory leak investigation
+# Memory leak investigation
 ps aux --sort=-%mem | head -10
 docker stats --format "table {{.Container}}\t{{.MemUsage}}" --no-stream
 
-#  Database performance tuning
+# Database performance tuning
 psql -h localhost -U xorb_user -d xorb -c "SELECT query, mean_exec_time
   FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 10;"
-```
+```text
 
 ##  🔄 Backup and Recovery
 
 ###  Database Backup Operations
 ```bash
-#  Daily database backup
+# Daily database backup
 pg_dump -h localhost -U xorb_user -d xorb > backup_$(date +%Y%m%d).sql
 gzip backup_$(date +%Y%m%d).sql
 
-#  Backup verification
+# Backup verification
 gunzip -c backup_$(date +%Y%m%d).sql.gz | head -50
 
-#  Recovery procedure
+# Recovery procedure
 dropdb -h localhost -U xorb_user xorb_recovery
 createdb -h localhost -U xorb_user xorb_recovery
 gunzip -c backup_$(date +%Y%m%d).sql.gz | psql -h localhost -U xorb_user -d xorb_recovery
-```
+```text
 
 ###  Configuration Backup
 ```bash
-#  Configuration backup
+# Configuration backup
 tar -czf config_backup_$(date +%Y%m%d).tar.gz \
   docker-compose*.yml infra/ config/ .env*
 
-#  Certificate backup
+# Certificate backup
 tar -czf cert_backup_$(date +%Y%m%d).tar.gz secrets/tls/
 
-#  Recovery verification
+# Recovery verification
 tar -tzf config_backup_$(date +%Y%m%d).tar.gz
 tar -tzf cert_backup_$(date +%Y%m%d).tar.gz
-```
+```text
 
 ##  📈 Capacity Planning
 
 ###  Resource Utilization Monitoring
 ```bash
-#  CPU utilization trends
+# CPU utilization trends
 sar -u 1 60  # Monitor for 1 minute
 
-#  Memory utilization analysis
+# Memory utilization analysis
 free -h && cat /proc/meminfo | grep -E "(MemTotal|MemFree|MemAvailable)"
 
-#  Disk space monitoring
+# Disk space monitoring
 df -h
 du -sh /var/lib/docker/  # Docker storage usage
 du -sh logs/  # Log storage usage
-```
+```text
 
 ###  Scaling Decision Matrix
 ```bash
-#  Performance threshold monitoring
+# Performance threshold monitoring
 avg_response_time=$(curl -s http://localhost:9092/api/v1/query?query=avg_over_time(http_request_duration_seconds[5m]) | jq '.data.result[0].value[1]')
 if (( $(echo "$avg_response_time > 0.5" | bc -l) )); then
     echo "Performance degradation detected - consider scaling"
 fi
 
-#  Active connection monitoring
+# Active connection monitoring
 active_connections=$(curl -s http://localhost:8000/api/v1/metrics | jq '.active_connections')
 if [ "$active_connections" -gt 800 ]; then
     echo "High connection count - consider horizontal scaling"
 fi
-```
+```text
 
 ##  🛠️ Maintenance Operations
 
 ###  Scheduled Maintenance
 ```bash
-#  Weekly maintenance tasks
+# Weekly maintenance tasks
 ./scripts/weekly-maintenance.sh
 
-#  Database maintenance
+# Database maintenance
 psql -h localhost -U xorb_user -d xorb -c "VACUUM ANALYZE;"
 psql -h localhost -U xorb_user -d xorb -c "REINDEX DATABASE xorb;"
 
-#  Log rotation
+# Log rotation
 logrotate -f /etc/logrotate.d/xorb-platform
 
-#  Container image updates
+# Container image updates
 docker-compose pull
 docker-compose up -d --force-recreate
-```
+```text
 
 ###  Security Updates
 ```bash
-#  Dependency security scanning
+# Dependency security scanning
 safety check -r requirements.lock
 
-#  Container security scanning
+# Container security scanning
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
   aquasec/trivy image xorb-api:latest
 
-#  Security policy updates
+# Security policy updates
 git pull origin main -- policies/
 conftest test --policy policies/ .
-```
+```text
 
 ##  📋 Compliance Operations
 
 ###  Audit Trail Management
 ```bash
-#  Audit log integrity verification
+# Audit log integrity verification
 sha256sum logs/audit.log > logs/audit.log.sha256
 gpg --sign logs/audit.log.sha256
 
-#  Compliance report generation
+# Compliance report generation
 ./scripts/generate-compliance-report.sh --framework SOC2
 ./scripts/generate-compliance-report.sh --framework PCI-DSS
 
-#  Access review procedures
+# Access review procedures
 grep -E "(LOGIN|LOGOUT|ACCESS_GRANTED|ACCESS_DENIED)" logs/audit.log | \
   awk '{print $1, $2, $5, $6}' | sort | uniq -c
-```
+```text
 
 ###  Data Protection Operations
 ```bash
-#  Encryption verification
+# Encryption verification
 openssl enc -aes-256-cbc -d -in sensitive_data.enc -out /dev/null
 echo $?  # Should return 0 if encryption is valid
 
-#  GDPR compliance procedures
+# GDPR compliance procedures
 ./scripts/gdpr-data-export.sh --user-id <user_id>
 ./scripts/gdpr-data-deletion.sh --user-id <user_id> --confirm
-```
+```text
 
 ##  🎯 Success Metrics
 
@@ -368,6 +368,6 @@ echo $?  # Should return 0 if encryption is valid
 - Security policy violations
 - Backup failures
 
----
+- --
 
-*This operational runbook consolidates all strategic operational knowledge from XORB platform implementations, providing comprehensive procedures for production operations and incident response.*
+- This operational runbook consolidates all strategic operational knowledge from XORB platform implementations, providing comprehensive procedures for production operations and incident response.*

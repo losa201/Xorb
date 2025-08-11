@@ -1,8 +1,8 @@
-#  XORB Platform Strategic TLS Deployment Status
+# XORB Platform Strategic TLS Deployment Status
 
 ##  🎯 Deployment Summary
 
-**Status**: ✅ **COMPLETED - Enterprise-Grade TLS/mTLS Implementation**
+- **Status**: ✅ **COMPLETED - Enterprise-Grade TLS/mTLS Implementation**
 
 The XORB Platform now has a comprehensive, strategically implemented TLS/mTLS security architecture that follows enterprise security best practices and zero-trust principles.
 
@@ -92,23 +92,23 @@ The XORB Platform now has a comprehensive, strategically implemented TLS/mTLS se
 ##  📊 Deployment Validation Results
 
 ###  Certificate Generation Status ✅
-```
+```text
 ✅ Root CA: Generated with 4096-bit key
 ✅ Intermediate CA: Generated and signed by Root CA
 ✅ API Certificates: Server + Client with proper SANs
 ✅ Infrastructure Certificates: All services covered
 ✅ Client Certificates: Dedicated client authentication
 ✅ Certificate Chains: Complete trust chains generated
-```
+```text
 
 ###  Infrastructure Deployment Status
-```
+```text
 ✅ CA Service: Container deployed and healthy
 ✅ Redis TLS: Configuration deployed (health check pending)
 ✅ PostgreSQL TLS: Configuration deployed (certificate access resolved)
 ✅ Envoy Proxy: mTLS termination configurations ready
 ✅ Monitoring Stack: TLS-enabled Prometheus/Grafana ready
-```
+```text
 
 ###  Security Policy Compliance ✅
 - **No Plaintext Protocols**: All services configured for TLS-only
@@ -126,21 +126,21 @@ The XORB Platform now has a comprehensive, strategically implemented TLS/mTLS se
 
 ###  Deployment Commands
 ```bash
-#  Generate all certificates
+# Generate all certificates
 ./scripts/ca/make-ca.sh
 
-#  Issue service certificates
+# Issue service certificates
 ./scripts/ca/issue-cert.sh [service] [server|client|both]
 
-#  Deploy TLS-enabled services
+# Deploy TLS-enabled services
 docker-compose -f infra/docker-compose.tls.yml up -d
 
-#  Validate deployment
+# Validate deployment
 ./scripts/validate/test_comprehensive.sh
 
-#  Certificate rotation
+# Certificate rotation
 ./scripts/rotate-certs.sh
-```
+```text
 
 ###  Monitoring & Alerting
 - **Certificate Expiry**: 7-day advance warning alerts
@@ -194,6 +194,6 @@ This TLS deployment represents a **production-ready, enterprise-grade security i
 
 The XORB Platform now has **industry-leading TLS/mTLS security** that exceeds enterprise security standards and provides a solid foundation for secure, scalable operations.
 
----
+- --
 
-**Security Classification**: This deployment implements military-grade cryptographic standards with comprehensive certificate management and zero-trust architecture principles.
+- **Security Classification**: This deployment implements military-grade cryptographic standards with comprehensive certificate management and zero-trust architecture principles.

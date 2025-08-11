@@ -1,14 +1,14 @@
-#  REST API Reference
+# REST API Reference
 
 The XORB Red/Blue Agent Framework provides a comprehensive REST API for managing missions, agents, and system operations. This API follows RESTful principles and uses JSON for data exchange.
 
 ##  🌐 Base URL
 
-```
+```text
 Production: https://api.xorb-security.com/v1
 Staging:    https://staging-api.xorb-security.com/v1
 Local:      http://localhost:8000/api/v1
-```
+```text
 
 ##  🔐 Authentication
 
@@ -24,9 +24,9 @@ Content-Type: application/json
   "username": "your-username",
   "password": "your-password"
 }
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
@@ -34,7 +34,7 @@ Content-Type: application/json
   "expires_in": 3600,
   "refresh_token": "refresh_token_here"
 }
-```
+```text
 
 ###  Using Access Token
 
@@ -42,7 +42,7 @@ Include the token in the Authorization header:
 
 ```http
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-```
+```text
 
 ###  Refresh Token
 
@@ -53,7 +53,7 @@ Content-Type: application/json
 {
   "refresh_token": "refresh_token_here"
 }
-```
+```text
 
 ##  📊 Response Format
 
@@ -72,7 +72,7 @@ All API responses follow a consistent format:
     "version": "1.0.0"
   }
 }
-```
+```text
 
 ###  Error Response
 ```json
@@ -93,7 +93,7 @@ All API responses follow a consistent format:
     "request_id": "req_123456789"
   }
 }
-```
+```text
 
 ###  HTTP Status Codes
 
@@ -166,9 +166,9 @@ Authorization: Bearer {token}
     "slack_channel": "#security-ops"
   }
 }
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -193,7 +193,7 @@ Authorization: Bearer {token}
     ]
   }
 }
-```
+```text
 
 ###  Start Mission
 
@@ -202,9 +202,9 @@ Start execution of a pending mission.
 ```http
 POST /missions/{mission_id}/start
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -216,7 +216,7 @@ Authorization: Bearer {token}
     "sandboxes_created": 3
   }
 }
-```
+```text
 
 ###  Get Mission Status
 
@@ -225,9 +225,9 @@ Retrieve detailed status of a mission.
 ```http
 GET /missions/{mission_id}
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -274,7 +274,7 @@ Authorization: Bearer {token}
     }
   }
 }
-```
+```text
 
 ###  List Missions
 
@@ -283,9 +283,9 @@ List missions with optional filtering.
 ```http
 GET /missions?status=executing&environment=staging&limit=20&offset=0
 Authorization: Bearer {token}
-```
+```text
 
-**Query Parameters:**
+- *Query Parameters:**
 - `status` - Filter by mission status (pending, executing, completed, failed, cancelled)
 - `environment` - Filter by environment (production, staging, development, cyber_range)
 - `agent_type` - Filter by agent type
@@ -294,7 +294,7 @@ Authorization: Bearer {token}
 - `limit` - Number of results per page (default: 50, max: 100)
 - `offset` - Number of results to skip
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -318,7 +318,7 @@ Authorization: Bearer {token}
     }
   }
 }
-```
+```text
 
 ###  Stop Mission
 
@@ -333,9 +333,9 @@ Authorization: Bearer {token}
   "reason": "Emergency stop requested by user",
   "force": false
 }
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -347,7 +347,7 @@ Authorization: Bearer {token}
     "sandboxes_cleaned": 3
   }
 }
-```
+```text
 
 ###  Get Mission Results
 
@@ -356,14 +356,14 @@ Retrieve detailed results from a completed mission.
 ```http
 GET /missions/{mission_id}/results?format=json
 Authorization: Bearer {token}
-```
+```text
 
-**Query Parameters:**
+- *Query Parameters:**
 - `format` - Response format (json, pdf, csv, xml)
 - `include_raw_data` - Include raw telemetry data (true/false)
 - `include_screenshots` - Include screenshot data (true/false)
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -433,7 +433,7 @@ Authorization: Bearer {token}
     ]
   }
 }
-```
+```text
 
 ##  🤖 Agent Management
 
@@ -444,15 +444,15 @@ List available agents and their current status.
 ```http
 GET /agents?type=red_team&status=available
 Authorization: Bearer {token}
-```
+```text
 
-**Query Parameters:**
+- *Query Parameters:**
 - `type` - Filter by agent type (red_team, blue_team)
 - `status` - Filter by status (available, assigned, running, error)
 - `capability` - Filter by technique capability
 - `environment` - Filter by supported environment
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -479,7 +479,7 @@ Authorization: Bearer {token}
     ]
   }
 }
-```
+```text
 
 ###  Get Agent Details
 
@@ -488,9 +488,9 @@ Get detailed information about a specific agent type.
 ```http
 GET /agents/{agent_type}
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -535,7 +535,7 @@ Authorization: Bearer {token}
     }
   }
 }
-```
+```text
 
 ###  Execute Agent Task
 
@@ -556,9 +556,9 @@ Authorization: Bearer {token}
   "environment": "development",
   "timeout_seconds": 300
 }
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -579,7 +579,7 @@ Authorization: Bearer {token}
     }
   }
 }
-```
+```text
 
 ##  📦 Sandbox Management
 
@@ -590,9 +590,9 @@ List active sandbox environments.
 ```http
 GET /sandboxes?mission_id={mission_id}&status=running
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -625,7 +625,7 @@ Authorization: Bearer {token}
     ]
   }
 }
-```
+```text
 
 ###  Get Sandbox Details
 
@@ -634,9 +634,9 @@ Get detailed information about a specific sandbox.
 ```http
 GET /sandboxes/{sandbox_id}
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -671,7 +671,7 @@ Authorization: Bearer {token}
     ]
   }
 }
-```
+```text
 
 ###  Stop Sandbox
 
@@ -686,9 +686,9 @@ Authorization: Bearer {token}
   "force": false,
   "cleanup_data": true
 }
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -699,7 +699,7 @@ Authorization: Bearer {token}
     "cleanup_performed": true
   }
 }
-```
+```text
 
 ##  🎛️ Capability Management
 
@@ -710,16 +710,16 @@ List available techniques with filtering options.
 ```http
 GET /capabilities/techniques?category=reconnaissance&environment=staging
 Authorization: Bearer {token}
-```
+```text
 
-**Query Parameters:**
+- *Query Parameters:**
 - `category` - Filter by MITRE ATT&CK category
 - `environment` - Filter by allowed environment
 - `risk_level` - Filter by risk level (low, medium, high, critical)
 - `platform` - Filter by supported platform (linux, windows, macos)
 - `search` - Search by name or description
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -751,7 +751,7 @@ Authorization: Bearer {token}
     "filtered": 12
   }
 }
-```
+```text
 
 ###  Get Technique Details
 
@@ -760,9 +760,9 @@ Get detailed information about a specific technique.
 ```http
 GET /capabilities/techniques/{technique_id}
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -818,7 +818,7 @@ Authorization: Bearer {token}
     }
   }
 }
-```
+```text
 
 ###  Check Technique Permission
 
@@ -827,9 +827,9 @@ Check if a technique is allowed in a specific environment.
 ```http
 GET /capabilities/techniques/{technique_id}/permission?environment=staging
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -844,7 +844,7 @@ Authorization: Bearer {token}
     ]
   }
 }
-```
+```text
 
 ###  List Environment Policies
 
@@ -853,9 +853,9 @@ List capability policies for different environments.
 ```http
 GET /capabilities/environments
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -888,7 +888,7 @@ Authorization: Bearer {token}
     ]
   }
 }
-```
+```text
 
 ##  📈 Telemetry & Analytics
 
@@ -899,16 +899,16 @@ Retrieve analytics data for missions.
 ```http
 GET /analytics/missions?start_date=2024-01-01&end_date=2024-01-31
 Authorization: Bearer {token}
-```
+```text
 
-**Query Parameters:**
+- *Query Parameters:**
 - `start_date` - Start date (YYYY-MM-DD)
 - `end_date` - End date (YYYY-MM-DD)
 - `environment` - Filter by environment
 - `agent_type` - Filter by agent type
 - `aggregation` - Time aggregation (hour, day, week, month)
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -942,7 +942,7 @@ Authorization: Bearer {token}
     ]
   }
 }
-```
+```text
 
 ###  Get Agent Performance
 
@@ -951,9 +951,9 @@ Retrieve performance metrics for agents.
 ```http
 GET /analytics/agents/{agent_type}/performance?days=30
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -987,7 +987,7 @@ Authorization: Bearer {token}
     }
   }
 }
-```
+```text
 
 ###  Export Telemetry Data
 
@@ -1009,9 +1009,9 @@ Authorization: Bearer {token}
   },
   "include_sensitive_data": false
 }
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -1023,7 +1023,7 @@ Authorization: Bearer {token}
     "expires_at": "2024-01-22T11:45:00Z"
   }
 }
-```
+```text
 
 ##  🔧 System Management
 
@@ -1033,9 +1033,9 @@ Check overall system health.
 
 ```http
 GET /health
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -1068,7 +1068,7 @@ GET /health
     }
   }
 }
-```
+```text
 
 ###  System Statistics
 
@@ -1077,9 +1077,9 @@ Get comprehensive system statistics.
 ```http
 GET /system/stats
 Authorization: Bearer {token}
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "success": true,
@@ -1115,7 +1115,7 @@ Authorization: Bearer {token}
     }
   }
 }
-```
+```text
 
 ##  🔄 WebSocket API
 
@@ -1141,7 +1141,7 @@ ws.onmessage = function(event) {
     const data = JSON.parse(event.data);
     console.log('Received update:', data);
 };
-```
+```text
 
 ###  WebSocket Message Types
 
@@ -1160,7 +1160,7 @@ ws.onmessage = function(event) {
     }
   ]
 }
-```
+```text
 
 ####  Agent Events
 ```json
@@ -1176,7 +1176,7 @@ ws.onmessage = function(event) {
     "execution_time": 125
   }
 }
-```
+```text
 
 ##  📝 Rate Limiting
 
@@ -1192,7 +1192,7 @@ X-RateLimit-Limit: 1000
 X-RateLimit-Remaining: 999
 X-RateLimit-Reset: 1642248000
 X-RateLimit-Window: 3600
-```
+```text
 
 ##  🧪 Testing & Examples
 
@@ -1202,14 +1202,14 @@ X-RateLimit-Window: 3600
 import requests
 import json
 
-#  Authentication
+# Authentication
 auth_response = requests.post('http://localhost:8000/api/v1/auth/login', json={
     'username': 'your-username',
     'password': 'your-password'
 })
 token = auth_response.json()['data']['access_token']
 
-#  Create mission
+# Create mission
 mission_config = {
     'name': 'API Test Mission',
     'environment': 'development',
@@ -1225,24 +1225,24 @@ mission_response = requests.post(
 )
 mission_id = mission_response.json()['data']['mission_id']
 
-#  Start mission
+# Start mission
 start_response = requests.post(
     f'http://localhost:8000/api/v1/missions/{mission_id}/start',
     headers=headers
 )
 
 print(f"Mission {mission_id} started successfully")
-```
+```text
 
 ###  curl Examples
 
 ```bash
-#  Get access token
+# Get access token
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username":"admin","password":"password"}'
 
-#  Create mission
+# Create mission
 curl -X POST http://localhost:8000/api/v1/missions \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer YOUR_TOKEN" \
@@ -1253,10 +1253,10 @@ curl -X POST http://localhost:8000/api/v1/missions \
     "targets": [{"host": "scanme.nmap.org"}]
   }'
 
-#  Check mission status
+# Check mission status
 curl http://localhost:8000/api/v1/missions/MISSION_ID \
   -H "Authorization: Bearer YOUR_TOKEN"
-```
+```text
 
 ##  🔍 Error Codes
 
@@ -1284,6 +1284,6 @@ curl http://localhost:8000/api/v1/missions/MISSION_ID \
 - `SYSTEM_DATABASE_ERROR` - Database connection error
 - `SYSTEM_INTERNAL_ERROR` - Unexpected internal error
 
----
+- --
 
 For more information, see the [Python SDK documentation](./python_sdk.md) and [WebSocket API reference](./websocket_api.md).

@@ -1,4 +1,4 @@
-#  XORB Infrastructure Services
+# XORB Infrastructure Services
 
 ##  Overview
 Shared infrastructure services that support the entire XORB ecosystem, including monitoring, secret management, and database configurations.
@@ -24,7 +24,7 @@ Shared infrastructure services that support the entire XORB ecosystem, including
 - **Backup Systems**: Automated backup and disaster recovery
 
 ##  Service Structure
-```
+```text
 infrastructure/
 ├── monitoring/
 │   ├── prometheus.yml      # Metrics configuration
@@ -37,7 +37,7 @@ infrastructure/
 └── databases/
     ├── postgresql/        # PostgreSQL configurations
     └── redis/             # Redis cluster setup
-```
+```text
 
 ##  Access Points
 - **Prometheus**: http://localhost:9092
@@ -48,13 +48,13 @@ infrastructure/
 
 ##  Deployment
 ```bash
-#  Start monitoring stack
+# Start monitoring stack
 ./tools/scripts/setup-monitoring.sh start
 
-#  Initialize Vault
+# Initialize Vault
 cd services/infrastructure/vault
 ./setup-vault-dev.sh
 
-#  Start database services
+# Start database services
 docker-compose -f docker-compose.infrastructure.yml up -d
-```
+```text

@@ -50,15 +50,15 @@ class AppSettings(BaseSettings):
     max_login_attempts: int = Field(default=5, env="MAX_LOGIN_ATTEMPTS")
     lockout_duration_minutes: int = Field(default=30, env="LOCKOUT_DURATION_MINUTES")
     
-    # Database settings
-    database_url: str = Field(default="postgresql://user:pass@localhost/xorb", env="DATABASE_URL")
+    # Database settings - secure connection required
+    database_url: str = Field(alias="DATABASE_URL", description="PostgreSQL connection URL with strong credentials")
     database_min_pool_size: int = Field(default=5, env="DB_MIN_POOL_SIZE")
     database_max_pool_size: int = Field(default=20, env="DB_MAX_POOL_SIZE")
     database_pool_timeout: int = Field(default=30, env="DB_POOL_TIMEOUT")
     database_command_timeout: int = Field(default=60, env="DB_COMMAND_TIMEOUT")
     
-    # Redis settings
-    redis_url: str = Field(default="redis://localhost:6379/0", env="REDIS_URL")
+    # Redis settings - secure connection required
+    redis_url: str = Field(alias="REDIS_URL", description="Redis connection URL with authentication")
     redis_max_connections: int = Field(default=20, env="REDIS_MAX_CONNECTIONS")
     redis_socket_timeout: int = Field(default=5, env="REDIS_SOCKET_TIMEOUT")
     
@@ -73,10 +73,21 @@ class AppSettings(BaseSettings):
     rate_limit_per_hour: int = Field(default=1000, env="RATE_LIMIT_PER_HOUR")
     rate_limit_per_day: int = Field(default=10000, env="RATE_LIMIT_PER_DAY")
     
-    # CORS settings (simplified strings)
-    cors_allow_origins: str = Field(default="*", env="CORS_ALLOW_ORIGINS")
-    cors_allow_methods: str = Field(default="GET,POST,PUT,DELETE,PATCH,OPTIONS", env="CORS_ALLOW_METHODS")
-    cors_allow_headers: str = Field(default="*", env="CORS_ALLOW_HEADERS")
+    # CORS settings - secure by default, environment-specific
+    cors_allow_origins: str = Field(
+        default="http://localhost:3000,http://localhost:8080",  # Development-safe defaults
+        env="CORS_ALLOW_ORIGINS",
+        description="Comma-separated list of allowed origins. Use specific domains in production."
+    )
+    cors_allow_methods: str = Field(
+        default="GET,POST,PUT,DELETE,PATCH,OPTIONS", 
+        env="CORS_ALLOW_METHODS"
+    )
+    cors_allow_headers: str = Field(
+        default="Accept,Authorization,Content-Type,X-CSRF-Token,X-Requested-With", 
+        env="CORS_ALLOW_HEADERS",
+        description="Specific headers only, no wildcards in production"
+    )
     cors_allow_credentials: bool = Field(default=True, env="CORS_ALLOW_CREDENTIALS")
     cors_max_age: int = Field(default=3600, env="CORS_MAX_AGE")
     
@@ -213,6 +224,106 @@ class AppSettings(BaseSettings):
         allowed_backends = ["memory", "redis", "hybrid"]
         if v not in allowed_backends:
             raise ValueError(f"Cache backend must be one of: {allowed_backends}")
+        return v
+    
+    @validator("cors_allow_origins")
+    def validate_cors_origins(cls, v, values):
+        environment = values.get("environment", "development")
+        
+        # Production security requirements
+        if environment == "production":
+            if "*" in v:
+                raise ValueError("CORS wildcard origins (*) are not allowed in production")
+            
+            # Validate all origins are proper URLs
+            origins = [origin.strip() for origin in v.split(",") if origin.strip()]
+            for origin in origins:
+                if not origin.startswith(("https://", "http://")):
+                    raise ValueError(f"CORS origin '{origin}' must be a valid URL with protocol in production")
+                
+                # Require HTTPS in production
+                if not origin.startswith("https://"):
+                    raise ValueError(f"CORS origin '{origin}' must use HTTPS in production")
+        
+        # Development: Allow localhost but warn about wildcards
+        elif environment == "development" and "*" in v:
+            # Log warning but allow for development
+            import logging
+            logging.getLogger(__name__).warning(
+                "CORS wildcard origins detected in development. "
+                "Consider using specific origins for better security."
+            )
+        
+        return v
+    
+    @validator("cors_allow_headers")
+    def validate_cors_headers(cls, v, values):
+        environment = values.get("environment", "development")
+        
+        # Production security requirements
+        if environment == "production" and "*" in v:
+            raise ValueError("CORS wildcard headers (*) are not allowed in production")
+        
+        return v
+    
+    @validator("database_url")
+    def validate_database_url(cls, v, values):
+        environment = values.get("environment", "development")
+        
+        # Database URL is required
+        if not v:
+            raise ValueError("DATABASE_URL environment variable is required")
+        
+        # Check for weak default credentials
+        weak_patterns = [
+            "user:pass@",
+            "user:password@", 
+            "postgres:postgres@",
+            "admin:admin@",
+            "root:root@",
+            "test:test@",
+            ":@",  # Empty password
+            "@localhost/test",  # Test database
+        ]
+        
+        v_lower = v.lower()
+        for pattern in weak_patterns:
+            if pattern in v_lower:
+                raise ValueError(f"Database URL contains weak credentials. Use strong passwords in production.")
+        
+        # Production-specific requirements
+        if environment == "production":
+            if "localhost" in v_lower:
+                raise ValueError("Database should not use localhost in production")
+            
+            # Ensure SSL mode is enabled in production PostgreSQL URLs
+            if "postgresql://" in v_lower and "sslmode=" not in v_lower:
+                raise ValueError("Database connections must use SSL in production (add ?sslmode=require)")
+        
+        return v
+    
+    @validator("redis_url")
+    def validate_redis_url(cls, v, values):
+        environment = values.get("environment", "development")
+        
+        # Redis URL is required
+        if not v:
+            raise ValueError("REDIS_URL environment variable is required")
+        
+        # Check for weak default credentials
+        if ":@" in v or "redis://localhost:6379" in v:
+            # Allow for development but warn
+            if environment != "development":
+                raise ValueError("Redis URL should include authentication in non-development environments")
+        
+        # Production-specific requirements
+        if environment == "production":
+            if "localhost" in v.lower():
+                raise ValueError("Redis should not use localhost in production")
+            
+            if ":@" in v:
+                raise ValueError("Redis must use authentication in production")
+        
         return v
     
     model_config = SettingsConfigDict(

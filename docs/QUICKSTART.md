@@ -1,4 +1,4 @@
----
+- --
 title: "XORB Platform TLS/mTLS Quick Start Guide"
 description: "Get the XORB Platform TLS/mTLS security stack up and running in minutes"
 category: "Getting Started"
@@ -7,7 +7,7 @@ last_updated: "2025-01-11"
 author: "XORB Platform Team"
 difficulty: "Beginner"
 estimated_time: "5-15 minutes"
----
+- --
 
 # 🚀 XORB Platform TLS/mTLS Quick Start Guide
 
@@ -23,102 +23,102 @@ Get the XORB Platform TLS/mTLS security stack up and running in minutes with thi
 ###  1. Clone and Initialize
 
 ```bash
-#  Clone the repository
+# Clone the repository
 git clone <repository-url>
 cd xorb-platform
 
-#  Initialize the Certificate Authority
+# Initialize the Certificate Authority
 ./scripts/ca/make-ca.sh
-```
+```text
 
 ###  2. Generate Essential Certificates
 
 ```bash
-#  Using Make (recommended)
+# Using Make (recommended)
 make quick-start
 
-#  Or manually
+# Or manually
 ./scripts/ca/issue-cert.sh api both
 ./scripts/ca/issue-cert.sh redis server
 ./scripts/ca/issue-cert.sh redis-client client
-```
+```text
 
 ###  3. Deploy with TLS
 
 ```bash
-#  Deploy the full TLS stack
+# Deploy the full TLS stack
 make deploy-tls
 
-#  Or manually
+# Or manually
 docker-compose -f infra/docker-compose.tls.yml up -d
-```
+```text
 
 ###  4. Validate Security
 
 ```bash
-#  Run comprehensive validation
+# Run comprehensive validation
 make validate
 
-#  Or run specific tests
+# Or run specific tests
 ./scripts/validate/test_tls.sh
 ./scripts/validate/test_mtls.sh
-```
+```text
 
 ###  5. Verify Services
 
 ```bash
-#  Check service health
+# Check service health
 make health
 
-#  Test API endpoint
+# Test API endpoint
 curl --cacert secrets/tls/ca/ca.pem \
      --cert secrets/tls/api-client/cert.pem \
      --key secrets/tls/api-client/key.pem \
      https://envoy-api:8443/api/v1/health
-```
+```text
 
 ##  🎯 Development Setup
 
 ###  Quick Development Environment
 
 ```bash
-#  Setup for development
+# Setup for development
 make dev-setup
 
-#  Start minimal services
+# Start minimal services
 docker-compose -f docker-compose.development.yml up -d
 
-#  Run development tests
+# Run development tests
 make dev-test
-```
+```text
 
 ###  Local Testing
 
 ```bash
-#  Test individual components
+# Test individual components
 make validate-tls     # TLS protocols and ciphers
 make validate-mtls    # Mutual TLS authentication
 make validate-redis   # Redis TLS configuration
 make validate-docker  # Docker-in-Docker TLS
-```
+```text
 
 ##  🏭 Production Deployment
 
 ###  Full Production Stack
 
 ```bash
-#  Generate all certificates
+# Generate all certificates
 make certs-generate
 
-#  Deploy production environment
+# Deploy production environment
 make deploy-prod
 
-#  Run comprehensive validation
+# Run comprehensive validation
 make validate
 
-#  Run security audit
+# Run security audit
 make audit
-```
+```text
 
 ###  Production Checklist
 
@@ -135,52 +135,52 @@ make audit
 ###  Certificate Management
 
 ```bash
-#  Initialize CA
+# Initialize CA
 make ca-init
 
-#  Generate specific service certificate
+# Generate specific service certificate
 make cert-api
 make cert-redis
 make cert-postgres
 
-#  Rotate certificates
+# Rotate certificates
 make rotate-certs
 
-#  Emergency rotation
+# Emergency rotation
 make emergency-rotation
-```
+```text
 
 ###  Service Operations
 
 ```bash
-#  Start services
+# Start services
 make start
 
-#  Stop services
+# Stop services
 make stop
 
-#  Restart services
+# Restart services
 make restart
 
-#  Check health
+# Check health
 make health
-```
+```text
 
 ###  Validation and Testing
 
 ```bash
-#  Comprehensive validation
+# Comprehensive validation
 make validate
 
-#  Security policy check
+# Security policy check
 make security-scan
 
-#  Performance benchmarks
+# Performance benchmarks
 make performance
 
-#  Generate reports
+# Generate reports
 make reports
-```
+```text
 
 ##  🔧 Configuration Files
 
@@ -194,66 +194,66 @@ make reports
 ###  Environment Variables
 
 ```bash
-#  Set in your environment or .env file
+# Set in your environment or .env file
 export TLS_ENABLED=true
 export REDIS_URL=rediss://redis:6379
 export REDIS_TLS_CERT_FILE=/run/tls/redis-client/cert.pem
 export REDIS_TLS_KEY_FILE=/run/tls/redis-client/key.pem
 export REDIS_TLS_CA_FILE=/run/tls/ca/ca.pem
-```
+```text
 
 ##  🧪 Testing Examples
 
 ###  Manual TLS Testing
 
 ```bash
-#  Test TLS connection
+# Test TLS connection
 openssl s_client -connect envoy-api:8443 \
   -CAfile secrets/tls/ca/ca.pem \
   -cert secrets/tls/api-client/cert.pem \
   -key secrets/tls/api-client/key.pem
 
-#  Test Redis TLS
+# Test Redis TLS
 redis-cli --tls \
   --cert secrets/tls/redis-client/cert.pem \
   --key secrets/tls/redis-client/key.pem \
   --cacert secrets/tls/ca/ca.pem \
   -h redis -p 6379 ping
 
-#  Test HTTP endpoint
+# Test HTTP endpoint
 curl -v --cacert secrets/tls/ca/ca.pem \
   --cert secrets/tls/api-client/cert.pem \
   --key secrets/tls/api-client/key.pem \
   https://envoy-api:8443/api/v1/health
-```
+```text
 
 ###  Automated Testing
 
 ```bash
-#  Run all validation scripts
+# Run all validation scripts
 ./scripts/validate/test_comprehensive.sh
 
-#  Run performance benchmarks
+# Run performance benchmarks
 ./scripts/performance-benchmark.sh
 
-#  Monitor health continuously
+# Monitor health continuously
 ./scripts/health-monitor.sh daemon
-```
+```text
 
 ##  📊 Monitoring and Observability
 
 ###  Health Monitoring
 
 ```bash
-#  Start health monitoring daemon
+# Start health monitoring daemon
 ./scripts/health-monitor.sh daemon
 
-#  Generate health report
+# Generate health report
 ./scripts/health-monitor.sh report
 
-#  Check certificate status
+# Check certificate status
 make cert-status
-```
+```text
 
 ###  Metrics and Dashboards
 
@@ -264,15 +264,15 @@ make cert-status
 ###  Log Locations
 
 ```bash
-#  Application logs
+# Application logs
 docker-compose logs -f
 
-#  Security logs
+# Security logs
 tail -f logs/security/*.log
 
-#  Certificate rotation logs
+# Certificate rotation logs
 tail -f logs/cert-rotation/*.log
-```
+```text
 
 ##  🚨 Troubleshooting
 
@@ -281,53 +281,53 @@ tail -f logs/cert-rotation/*.log
 ####  Certificate Problems
 
 ```bash
-#  Check certificate validity
+# Check certificate validity
 openssl x509 -in secrets/tls/api/cert.pem -noout -dates
 
-#  Verify certificate chain
+# Verify certificate chain
 openssl verify -CAfile secrets/tls/ca/ca.pem secrets/tls/api/cert.pem
 
-#  Regenerate certificate
+# Regenerate certificate
 ./scripts/ca/issue-cert.sh api both
-```
+```text
 
 ####  Connection Issues
 
 ```bash
-#  Test basic connectivity
+# Test basic connectivity
 nc -zv envoy-api 8443
 
-#  Check TLS handshake
+# Check TLS handshake
 openssl s_client -connect envoy-api:8443 -verify_return_error
 
-#  Debug Envoy proxy
+# Debug Envoy proxy
 curl http://localhost:9901/config_dump
-```
+```text
 
 ####  Service Health
 
 ```bash
-#  Check container status
+# Check container status
 docker-compose ps
 
-#  View service logs
+# View service logs
 docker-compose logs api
 docker-compose logs envoy-api
 
-#  Check resource usage
+# Check resource usage
 docker stats
-```
+```text
 
 ###  Debug Mode
 
 ```bash
-#  Enable verbose logging
+# Enable verbose logging
 export VERBOSE=true
 
-#  Run with debug output
+# Run with debug output
 ./scripts/validate/test_tls.sh -v
 ./scripts/rotate-certs.sh -v
-```
+```text
 
 ##  🔗 Next Steps
 
@@ -365,8 +365,8 @@ export VERBOSE=true
 - **Technical Support**: Create an issue in the repository
 - **Emergency**: Follow incident response procedures
 
----
+- --
 
-**⚠️ Security Notice**: This quick start guide provides a secure TLS/mTLS implementation. Ensure you understand the security implications and follow your organization's security policies.
+- **⚠️ Security Notice**: This quick start guide provides a secure TLS/mTLS implementation. Ensure you understand the security implications and follow your organization's security policies.
 
-**🎯 Success Criteria**: After completing this guide, you should have a fully functional TLS/mTLS secured XORB Platform with automated certificate management and comprehensive monitoring.
+- **🎯 Success Criteria**: After completing this guide, you should have a fully functional TLS/mTLS secured XORB Platform with automated certificate management and comprehensive monitoring.

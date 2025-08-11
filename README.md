@@ -1,4 +1,4 @@
-#  🔐 XORB Platform - End-to-End TLS/mTLS Security Implementation
+# 🔐 XORB Platform - End-to-End TLS/mTLS Security Implementation
 
 [![Security Status](https://img.shields.io/badge/Security-TLS%201.3%20%2B%20mTLS-green?style=flat-square)](docs/SECURITY.md)
 [![Compliance](https://img.shields.io/badge/Compliance-SOC2%20%7C%20PCI%20DSS-blue?style=flat-square)](docs/SECURITY.md#compliance-and-governance)
@@ -29,7 +29,7 @@ A production-ready implementation of end-to-end TLS/mTLS security for the XORB P
 
 ## 🏗️ Architecture Overview
 
-```
+```text
 ┌─────────────────┐    HTTPS/TLS 1.3    ┌─────────────────┐
 │   External      │◄──────────────────►│   Envoy Proxy   │
 │   Clients       │   HSTS + Security   │   (mTLS Term)   │
@@ -49,7 +49,7 @@ A production-ready implementation of end-to-end TLS/mTLS security for the XORB P
 │  │(TLS-only)   │    │ (TLS+SSL)   │    │ Docker(TLS) │     │
 │  └─────────────┘    └─────────────┘    └─────────────┘     │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 ## ✨ Key Features
 
@@ -84,94 +84,94 @@ A production-ready implementation of end-to-end TLS/mTLS security for the XORB P
 ### 1. Initialize Certificate Authority
 
 ```bash
-#  Create CA infrastructure and generate certificates
+# Create CA infrastructure and generate certificates
 ./scripts/ca/make-ca.sh
-```
+```text
 
 ### 2. Generate Service Certificates
 
 ```bash
-#  Generate certificates for all services
+# Generate certificates for all services
 services=(api orchestrator agent redis postgres temporal dind scanner)
 for service in "${services[@]}"; do
     ./scripts/ca/issue-cert.sh "$service" both
 done
 
-#  Generate client certificates
+# Generate client certificates
 clients=(redis-client postgres-client temporal-client dind-client)
 for client in "${clients[@]}"; do
     ./scripts/ca/issue-cert.sh "$client" client
 done
-```
+```text
 
 ### 3. Deploy with TLS/mTLS
 
 ```bash
-#  Start all services with TLS configuration
+# Start all services with TLS configuration
 docker-compose -f infra/docker-compose.tls.yml up -d
 
-#  Verify deployment
+# Verify deployment
 docker-compose -f infra/docker-compose.tls.yml ps
-```
+```text
 
 ### 4. Validate Security
 
 ```bash
-#  Run comprehensive TLS validation
+# Run comprehensive TLS validation
 ./scripts/validate/test_tls.sh
 
-#  Test mTLS authentication
+# Test mTLS authentication
 ./scripts/validate/test_mtls.sh
 
-#  Validate Redis TLS configuration
+# Validate Redis TLS configuration
 ./scripts/validate/test_redis_tls.sh
 
-#  Test Docker-in-Docker TLS
+# Test Docker-in-Docker TLS
 ./scripts/validate/test_dind_tls.sh
-```
+```text
 
 ## 📋 Implementation Components
 
 ### Certificate Authority Infrastructure
-```
+```text
 scripts/ca/
 ├── make-ca.sh              # Root and Intermediate CA setup
 ├── issue-cert.sh           # Service certificate generation
 └── docker/ca/Dockerfile    # CA container for runtime operations
-```
+```text
 
 ### Docker Compose Configuration
-```
+```text
 infra/
 ├── docker-compose.tls.yml  # Complete TLS/mTLS stack
 ├── redis/redis-tls.conf    # Redis TLS-only configuration
 └── postgres/init-tls.sql   # PostgreSQL SSL setup
-```
+```text
 
 ### Envoy Proxy Configuration
-```
+```text
 envoy/
 ├── api.envoy.yaml         # API service mTLS termination
 └── agent.envoy.yaml       # Agent service mTLS termination
-```
+```text
 
 ### Validation and Testing
-```
+```text
 scripts/validate/
 ├── test_tls.sh           # TLS protocol and cipher validation
 ├── test_mtls.sh          # Mutual TLS authentication testing
 ├── test_redis_tls.sh     # Redis TLS-specific validation
 └── test_dind_tls.sh      # Docker-in-Docker TLS testing
-```
+```text
 
 ### Kubernetes Integration
-```
+```text
 k8s/mtls/
 ├── namespace.yaml           # Secure namespace setup
 ├── cluster-issuer.yaml      # cert-manager CA configuration
 ├── service-certificates.yaml # Auto-generated certificates
 └── istio-mtls-policy.yaml   # Istio strict mTLS policies
-```
+```text
 
 ## 🔧 Configuration Examples
 
@@ -188,7 +188,7 @@ api:
     API_TLS_CA: "/run/tls/ca/ca.pem"
   depends_on:
     - envoy-api
-```
+```text
 
 ### Envoy mTLS Configuration
 ```yaml
@@ -205,40 +205,40 @@ transport_socket:
     tls_params:
       tls_minimum_protocol_version: TLSv1_2
       tls_maximum_protocol_version: TLSv1_3
-```
+```text
 
 ### Redis TLS Configuration
 ```conf
-#  Disable plaintext completely
+# Disable plaintext completely
 port 0
 
-#  Enable TLS on standard port
+# Enable TLS on standard port
 tls-port 6379
 tls-cert-file /run/tls/redis/cert.pem
 tls-key-file /run/tls/redis/key.pem
 tls-ca-cert-file /run/tls/ca/ca.pem
 
-#  Require client certificates
+# Require client certificates
 tls-auth-clients yes
 tls-protocols "TLSv1.2 TLSv1.3"
-```
+```text
 
 ## 🔄 Certificate Management
 
 ### Automated Rotation
 ```bash
-#  Check certificates nearing expiry and rotate
+# Check certificates nearing expiry and rotate
 ./scripts/rotate-certs.sh
 
-#  Force rotation of all certificates
+# Force rotation of all certificates
 ./scripts/rotate-certs.sh --force
 
-#  Rotate specific service certificate
+# Rotate specific service certificate
 ./scripts/rotate-certs.sh --service api
 
-#  Preview rotation actions (dry run)
+# Preview rotation actions (dry run)
 ./scripts/rotate-certs.sh --dry-run
-```
+```text
 
 ### Certificate Monitoring
 - **Expiry Alerts**: 7-day warning threshold
@@ -250,32 +250,32 @@ tls-protocols "TLSv1.2 TLSv1.3"
 
 ### TLS Protocol Testing
 ```bash
-#  Validate TLS versions and cipher suites
+# Validate TLS versions and cipher suites
 openssl s_client -connect api:8443 -tls1_3 -CAfile secrets/tls/ca/ca.pem
 
-#  Test weak protocol rejection
+# Test weak protocol rejection
 openssl s_client -connect api:8443 -tls1_1  # Should fail
-```
+```text
 
 ### mTLS Authentication Testing
 ```bash
-#  Valid client certificate (should succeed)
+# Valid client certificate (should succeed)
 curl --cacert secrets/tls/ca/ca.pem \
      --cert secrets/tls/api-client/cert.pem \
      --key secrets/tls/api-client/key.pem \
      https://envoy-api:8443/api/v1/health
 
-#  No client certificate (should fail)
+# No client certificate (should fail)
 curl --cacert secrets/tls/ca/ca.pem \
      https://envoy-api:8443/api/v1/health
-```
+```text
 
 ### Security Policy Validation
 ```bash
-#  Test configurations against security policies
+# Test configurations against security policies
 conftest test --policy policies/tls-security.rego infra/docker-compose.tls.yml
 conftest test --policy policies/tls-security.rego envoy/*.yaml
-```
+```text
 
 ## 📊 Monitoring and Reporting
 
@@ -287,13 +287,13 @@ conftest test --policy policies/tls-security.rego envoy/*.yaml
 
 ### Security Reports
 ```bash
-#  Generate comprehensive TLS security report
+# Generate comprehensive TLS security report
 ./scripts/validate/test_tls.sh --report-only
 
-#  View HTML reports
+# View HTML reports
 open reports/tls/tls_summary.html
 open reports/mtls/mtls_summary.html
-```
+```text
 
 ### Alerting Integration
 - Slack notifications for certificate expiry
@@ -305,23 +305,23 @@ open reports/mtls/mtls_summary.html
 
 ### cert-manager Integration
 ```bash
-#  Deploy cert-manager and certificates
+# Deploy cert-manager and certificates
 kubectl apply -f k8s/mtls/namespace.yaml
 kubectl apply -f k8s/mtls/cluster-issuer.yaml
 kubectl apply -f k8s/mtls/service-certificates.yaml
 
-#  Verify certificate issuance
+# Verify certificate issuance
 kubectl get certificates -n xorb-platform
-```
+```text
 
 ### Istio Service Mesh
 ```bash
-#  Apply strict mTLS policies
+# Apply strict mTLS policies
 kubectl apply -f k8s/mtls/istio-mtls-policy.yaml
 
-#  Verify mTLS status
+# Verify mTLS status
 istioctl authn tls-check xorb-api.xorb-platform.svc.cluster.local
-```
+```text
 
 ## 🛡️ Security Policies
 
@@ -336,13 +336,13 @@ The implementation includes comprehensive security policies that enforce:
 
 ### CI/CD Integration
 ```yaml
-#  GitHub Actions example
+# GitHub Actions example
 - name: Validate TLS Configuration
   run: |
     conftest test --policy policies/tls-security.rego \
                   --output table \
                   infra/docker-compose.tls.yml
-```
+```text
 
 ## 🚨 Security Operations
 
@@ -354,10 +354,10 @@ The implementation includes comprehensive security policies that enforce:
 
 ### Certificate Compromise Response
 ```bash
-#  Immediate certificate revocation and replacement
+# Immediate certificate revocation and replacement
 ./scripts/emergency-cert-rotation.sh --service compromised-service
 ./scripts/validate/test_mtls.sh --service compromised-service
-```
+```text
 
 ## 📚 Documentation
 
@@ -411,8 +411,8 @@ Security contributions are welcome! Please:
 - **Documentation**: See [docs/](docs/) directory
 - **Emergency**: Follow incident response procedures
 
----
+- --
 
-**⚠️ Security Notice**: This implementation contains cryptographic software and security controls. Ensure compliance with local regulations and organizational security policies before deployment.
+- **⚠️ Security Notice**: This implementation contains cryptographic software and security controls. Ensure compliance with local regulations and organizational security policies before deployment.
 
-**🔐 Enterprise Ready**: This TLS/mTLS implementation is production-tested and suitable for enterprise deployment with proper operational procedures.
+- **🔐 Enterprise Ready**: This TLS/mTLS implementation is production-tested and suitable for enterprise deployment with proper operational procedures.

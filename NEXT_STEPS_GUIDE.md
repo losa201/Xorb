@@ -1,4 +1,4 @@
-#  🚀 XORB Platform - Next Steps Guide
+# 🚀 XORB Platform - Next Steps Guide
 
 ##  🎉 Current Status: FULLY OPERATIONAL ✅
 
@@ -8,28 +8,28 @@ The XORB Security Platform is now **production-ready** with all core systems fun
 
 ###  1. 🌐 **Deploy the Frontend Interface**
 ```bash
-#  Navigate to frontend
+# Navigate to frontend
 cd services/ptaas/web
 
-#  Install dependencies (if not already done)
+# Install dependencies (if not already done)
 npm install
 
-#  Start development server
+# Start development server
 npm run dev
 
-#  Or build for production
+# Or build for production
 npm run build
 npm run serve
-```
-**Access at**: http://localhost:3000
+```text
+- **Access at**: http://localhost:3000
 
 ###  2. 🧪 **Run Security Scans**
 ```bash
-#  Start XORB API server
+# Start XORB API server
 cd src/api
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-#  Test PTaaS scanning (example)
+# Test PTaaS scanning (example)
 curl -X POST "http://localhost:8000/api/v1/ptaas/sessions" \
   -H "Content-Type: application/json" \
   -d '{
@@ -39,38 +39,38 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/sessions" \
     }],
     "scan_type": "quick"
   }'
-```
+```text
 
 ###  3. 📊 **Set Up Monitoring Stack**
 ```bash
-#  Setup Prometheus + Grafana monitoring
+# Setup Prometheus + Grafana monitoring
 ./tools/scripts/setup-monitoring.sh
 
-#  Access points:
-#  Grafana: http://localhost:3010 (admin/SecureAdminPass123!)
-#  Prometheus: http://localhost:9092
-```
+# Access points:
+# Grafana: http://localhost:3010 (admin/SecureAdminPass123!)
+# Prometheus: http://localhost:9092
+```text
 
 ###  4. 🔧 **Configure External Services**
 
 ####  Database Setup
 ```bash
-#  PostgreSQL with pgvector
+# PostgreSQL with pgvector
 docker run -d --name xorb-postgres \
   -e POSTGRES_DB=xorb \
   -e POSTGRES_USER=xorb \
   -e POSTGRES_PASSWORD=secure_password \
   -p 5432:5432 \
   ankane/pgvector:v0.5.1
-```
+```text
 
 ####  Redis Setup
 ```bash
-#  Redis for caching and sessions
+# Redis for caching and sessions
 docker run -d --name xorb-redis \
   -p 6379:6379 \
   redis:7-alpine redis-server --requirepass secure_redis_password
-```
+```text
 
 ##  🛠️ Development & Enhancement
 
@@ -79,46 +79,46 @@ Install optional ML libraries for enhanced features:
 ```bash
 pip install torch transformers scikit-learn pandas numpy
 pip install yara-python netaddr
-```
+```text
 
 ###  6. 🔐 **Security Enhancements**
 ```bash
-#  Run comprehensive security scan
+# Run comprehensive security scan
 ./tools/scripts/security-scan.sh
 
-#  Setup SSL/TLS certificates
+# Setup SSL/TLS certificates
 ./tools/scripts/generate-tls-certs.sh
 
-#  Configure firewall
+# Configure firewall
 ./tools/scripts/setup-firewall.sh
-```
+```text
 
 ###  7. 🧪 **Testing & Validation**
 ```bash
-#  Run comprehensive platform tests
+# Run comprehensive platform tests
 cd tools/scripts
 python3 test_complete_platform.py
 
-#  Validate environment
+# Validate environment
 python3 validate_environment.py
 
-#  API testing
+# API testing
 python3 test_xorb_api.py
-```
+```text
 
 ##  📈 Production Deployment
 
 ###  8. 🐳 **Docker Deployment**
 ```bash
-#  Enterprise deployment
+# Enterprise deployment
 docker-compose -f docker-compose.enterprise.yml up -d
 
-#  Production deployment
+# Production deployment
 docker-compose -f docker-compose.production.yml up -d
 
-#  Monitor deployment
+# Monitor deployment
 docker-compose logs -f
-```
+```text
 
 ###  9. ☁️ **Cloud Deployment Options**
 
@@ -126,18 +126,18 @@ docker-compose logs -f
 ```bash
 cd services/ptaas/web
 
-#  Vercel
+# Vercel
 npm run deploy:vercel
 
-#  Netlify
+# Netlify
 npm run deploy:netlify
 
-#  Cloudflare Pages
+# Cloudflare Pages
 npm run deploy
 
-#  Firebase
+# Firebase
 npm run deploy:firebase
-```
+```text
 
 ####  Backend Deployment
 - **AWS**: Use ECS/EKS with RDS and ElastiCache
@@ -157,7 +157,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/compliance-scan" 
     "compliance_framework": "PCI-DSS",
     "targets": ["web.company.com"]
   }'
-```
+```text
 
 #####  Threat Intelligence Analysis
 ```bash
@@ -168,7 +168,7 @@ curl -X POST "http://localhost:8000/api/v1/security/threat-intelligence/analyze"
     "context": {"source": "siem_alerts"},
     "analysis_type": "comprehensive"
   }'
-```
+```text
 
 #####  MITRE ATT&CK Analysis
 ```bash
@@ -178,13 +178,13 @@ curl -X POST "http://localhost:8000/api/v1/mitre-attack/analyze" \
     "indicators": ["T1566.001", "T1059.001"],
     "context": {"attack_scenario": "spear_phishing"}
   }'
-```
+```text
 
 ##  🎯 Advanced Features
 
 ###  11. 🔥 **Advanced Red Team Operations**
 ```bash
-#  Create sophisticated attack simulation
+# Create sophisticated attack simulation
 curl -X POST "http://localhost:8000/api/v1/sophisticated-red-team/objectives" \
   -H "Content-Type: application/json" \
   -d '{
@@ -192,22 +192,22 @@ curl -X POST "http://localhost:8000/api/v1/sophisticated-red-team/objectives" \
     "target_environment": "enterprise_network",
     "simulation_level": "advanced"
   }'
-```
+```text
 
 ###  12. 🧠 **AI-Enhanced Security**
 ```bash
-#  Behavioral analytics
+# Behavioral analytics
 curl -X POST "http://localhost:8000/api/v1/ai-security/network/microsegmentation/analyze-flow" \
   -H "Content-Type: application/json" \
   -d '{
     "network_flows": ["10.0.1.0/24", "10.0.2.0/24"],
     "analysis_type": "anomaly_detection"
   }'
-```
+```text
 
 ###  13. 📊 **Compliance Automation**
 ```bash
-#  Generate compliance report
+# Generate compliance report
 curl -X POST "http://localhost:8000/api/v1/security/compliance/report" \
   -H "Content-Type: application/json" \
   -d '{
@@ -215,7 +215,7 @@ curl -X POST "http://localhost:8000/api/v1/security/compliance/report" \
     "time_period": "current",
     "report_format": "json"
   }'
-```
+```text
 
 ##  🚀 Integration & Automation
 
@@ -227,7 +227,7 @@ curl -X POST "http://localhost:8000/api/v1/security/compliance/report" \
 
 ###  15. 🤖 **Automation Workflows**
 ```bash
-#  Schedule recurring scans
+# Schedule recurring scans
 curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/workflows" \
   -H "Content-Type: application/json" \
   -d '{
@@ -235,7 +235,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/workflows" \
     "targets": ["*.company.com"],
     "triggers": [{"trigger_type": "scheduled", "schedule": "0 2 * * 1"}]
   }'
-```
+```text
 
 ##  📚 Resources & Documentation
 
@@ -290,9 +290,9 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/workflows" \
 - Advanced reporting and dashboards
 - Mobile application interface
 
----
+- --
 
-**🎯 The XORB Platform is production-ready and waiting for your security operations!**
+- *🎯 The XORB Platform is production-ready and waiting for your security operations!**
 
 Start with any of the immediate action items above, and you'll have a fully functional enterprise security platform running within minutes.
 

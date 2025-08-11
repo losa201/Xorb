@@ -1,4 +1,4 @@
-#  XORB Pristine Architecture Deployment Guide
+# XORB Pristine Architecture Deployment Guide
 
 ##  🎯 STRUCTURAL SUPREMACY ACHIEVED
 
@@ -14,7 +14,7 @@ The XORB Pristine Architecture represents the pinnacle of cybersecurity platform
 
 ###  Service Tier Structure
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                        EDGE TIER                            │
 │  ┌─────────────────┐    ┌─────────────────────────────────┐ │
@@ -48,11 +48,11 @@ The XORB Pristine Architecture represents the pinnacle of cybersecurity platform
 │  │ Collector   │  │             │  │                     │ │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 ###  EPYC CPU Optimization
 
-```
+```text
 NUMA Node 0 (Cores 0-15)     NUMA Node 1 (Cores 16-31)
 ┌─────────────────────────┐   ┌─────────────────────────┐
 │ CCX 0    │ CCX 1        │   │ CCX 4    │ CCX 5        │
@@ -64,7 +64,7 @@ NUMA Node 0 (Cores 0-15)     NUMA Node 1 (Cores 16-31)
 │ L3: 16MB │ L3: 16MB     │   │ L3: 16MB │ L3: 16MB     │
 └─────────────────────────┘   └─────────────────────────┘
      Memory Controller            Memory Controller
-```
+```text
 
 ##  📦 Deployment Instructions
 
@@ -82,105 +82,105 @@ NUMA Node 0 (Cores 0-15)     NUMA Node 1 (Cores 16-31)
 ```bash
 git clone https://github.com/your-org/xorb.git
 cd xorb
-```
+```text
 
 2. **Configure Environment Variables**
 ```bash
 cp .env.example .env.pristine
-```
+```text
 
 Edit `.env.pristine`:
 ```bash
-#  XORB Pristine Architecture Configuration
+# XORB Pristine Architecture Configuration
 COMPOSE_PROJECT_NAME=xorb-pristine
 COMPOSE_FILE=infra/docker-compose-pristine.yml
 
-#  EPYC Optimization
+# EPYC Optimization
 EPYC_OPTIMIZATION=true
 NUMA_TOPOLOGY_DETECTION=true
 CCX_AFFINITY_ENABLED=true
 THERMAL_MANAGEMENT=true
 
-#  Service Mesh
+# Service Mesh
 SERVICE_MESH_ENABLED=true
 ISTIO_VERSION=1.18.0
 CIRCUIT_BREAKER_ENABLED=true
 BULKHEAD_ISOLATION=true
 
-#  Observability
+# Observability
 JAEGER_TRACING=true
 PROMETHEUS_MONITORING=true
 GRAFANA_DASHBOARDS=true
 CUSTOM_METRICS=true
 
-#  AI Integration
+# AI Integration
 NVIDIA_API_KEY=your_nvidia_key
 OPENROUTER_API_KEY=your_openrouter_key
 LLM_STRATEGY=free_tier_optimized
 
-#  Security
+# Security
 JWT_SECRET=your-secure-jwt-secret
 DATABASE_ENCRYPTION=true
 TLS_ENABLED=true
-```
+```text
 
 3. **System Optimization**
 ```bash
-#  EPYC-specific kernel parameters
+# EPYC-specific kernel parameters
 echo 'vm.numa_balancing=0' | sudo tee -a /etc/sysctl.conf
 echo 'kernel.numa_balancing=0' | sudo tee -a /etc/sysctl.conf
 
-#  CPU governor optimization for EPYC
+# CPU governor optimization for EPYC
 echo 'performance' | sudo tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
-#  Huge pages configuration
+# Huge pages configuration
 echo 'vm.nr_hugepages=2048' | sudo tee -a /etc/sysctl.conf
 
-#  Apply settings
+# Apply settings
 sudo sysctl -p
-```
+```text
 
 ###  Deployment Steps
 
 1. **Build Services**
 ```bash
-#  Build all pristine architecture services
+# Build all pristine architecture services
 docker-compose -f infra/docker-compose-pristine.yml build
 
-#  Verify EPYC optimization in builds
+# Verify EPYC optimization in builds
 docker-compose -f infra/docker-compose-pristine.yml config | grep -i epyc
-```
+```text
 
 2. **Initialize Data Stores**
 ```bash
-#  Start data stores first
+# Start data stores first
 docker-compose -f infra/docker-compose-pristine.yml up -d postgres redis timescaledb vector-store
 
-#  Wait for initialization
+# Wait for initialization
 sleep 30
 
-#  Verify data store health
+# Verify data store health
 docker-compose -f infra/docker-compose-pristine.yml exec postgres pg_isready
 docker-compose -f infra/docker-compose-pristine.yml exec redis redis-cli ping
-```
+```text
 
 3. **Deploy Core Services**
 ```bash
-#  Deploy core tier (critical business logic)
+# Deploy core tier (critical business logic)
 docker-compose -f infra/docker-compose-pristine.yml up -d \
   campaign-orchestrator \
   target-registry \
   agent-lifecycle \
   evidence-collector
 
-#  Verify core services health
+# Verify core services health
 curl http://localhost:8001/health  # Campaign Orchestrator
 curl http://localhost:8002/health  # Target Registry
-```
+```text
 
 4. **Deploy Domain Services**
 ```bash
-#  Deploy domain tier (domain-specific services)
+# Deploy domain tier (domain-specific services)
 docker-compose -f infra/docker-compose-pristine.yml up -d \
   vulnerability-scanner \
   exploitation-engine \
@@ -188,91 +188,91 @@ docker-compose -f infra/docker-compose-pristine.yml up -d \
   ai-gateway \
   threat-intelligence
 
-#  Verify AI Gateway
+# Verify AI Gateway
 curl http://localhost:8010/health
-```
+```text
 
 5. **Deploy Platform Services**
 ```bash
-#  Deploy platform tier (infrastructure services)
+# Deploy platform tier (infrastructure services)
 docker-compose -f infra/docker-compose-pristine.yml up -d \
   api-gateway \
   auth-service \
   metrics-collector
 
-#  Verify API Gateway
+# Verify API Gateway
 curl http://localhost:8000/health
-```
+```text
 
 6. **Deploy Edge Services**
 ```bash
-#  Deploy edge tier (external-facing services)
+# Deploy edge tier (external-facing services)
 docker-compose -f infra/docker-compose-pristine.yml up -d \
   web-interface \
   external-integrations
 
-#  Verify web interface
+# Verify web interface
 curl http://localhost:3000
-```
+```text
 
 7. **Deploy Observability Stack**
 ```bash
-#  Deploy monitoring and observability
+# Deploy monitoring and observability
 docker-compose -f infra/docker-compose-pristine.yml up -d \
   prometheus \
   grafana \
   jaeger \
   alertmanager
 
-#  Verify observability stack
+# Verify observability stack
 curl http://localhost:9090/targets    # Prometheus
 curl http://localhost:3001           # Grafana
 curl http://localhost:16686          # Jaeger
-```
+```text
 
 8. **Deploy Service Mesh & Fault Tolerance**
 ```bash
-#  Deploy service mesh and fault tolerance
+# Deploy service mesh and fault tolerance
 docker-compose -f infra/docker-compose-pristine.yml up -d \
   istio-proxy \
   circuit-breaker-manager \
   bulkhead-manager
 
-#  Verify service mesh
+# Verify service mesh
 curl http://localhost:15000/stats  # Istio Proxy
-```
+```text
 
 ###  Verification & Health Checks
 
 1. **Service Health Dashboard**
 ```bash
-#  Check all service health statuses
+# Check all service health statuses
 ./scripts/health-check-pristine.sh
-```
+```text
 
 2. **EPYC Optimization Verification**
 ```bash
-#  Verify NUMA topology detection
+# Verify NUMA topology detection
 curl http://localhost:8001/metrics | grep epyc_numa
 
-#  Check CCX affinity assignments
+# Check CCX affinity assignments
 curl http://localhost:8001/metrics | grep epyc_ccx
 
-#  Monitor thermal state
+# Monitor thermal state
 curl http://localhost:8001/metrics | grep epyc_thermal
-```
+```text
 
 3. **Performance Benchmarks**
 ```bash
-#  Run comprehensive performance tests
+# Run comprehensive performance tests
 ./scripts/performance-benchmark-pristine.sh
 
-#  Expected results:
-#  - Campaign creation: <100ms p95
-#  - Vulnerability scanning: <30s p95
-#  - AI inference: <2s p95
-#  - Evidence collection: <500ms p95
-```
+# Expected results:
+# - Campaign creation: <100ms p95
+# - Vulnerability scanning: <30s p95
+# - AI inference: <2s p95
+# - Evidence collection: <500ms p95
+```text
 
 ##  🔧 Configuration Management
 
@@ -296,7 +296,7 @@ bulkhead:
   max_concurrent_requests: 50
   queue_size: 200
   timeout_seconds: 30
-```
+```text
 
 ####  AI Gateway (Domain Tier)
 ```yaml
@@ -314,7 +314,7 @@ ai_models:
     - "01-ai/yi-1.5-34b-chat:free"
 
 fallback_strategy: "free_tier_optimized"
-```
+```text
 
 ###  Monitoring Configuration
 
@@ -362,16 +362,16 @@ fallback_strategy: "free_tier_optimized"
 
 ####  Horizontal Scaling
 ```bash
-#  Scale core services
+# Scale core services
 docker-compose -f infra/docker-compose-pristine.yml up -d --scale campaign-orchestrator=3
 
-#  Scale domain services based on workload
+# Scale domain services based on workload
 docker-compose -f infra/docker-compose-pristine.yml up -d --scale vulnerability-scanner=5
-```
+```text
 
 ####  Vertical Scaling (EPYC Optimization)
 ```yaml
-#  Increase resources for AI workloads
+# Increase resources for AI workloads
 ai-gateway:
   deploy:
     resources:
@@ -379,45 +379,45 @@ ai-gateway:
         cpus: '8.0'
         memory: 16G
   cpuset: "24-31"  # Dedicate full CCX
-```
+```text
 
 ###  Disaster Recovery
 
 1. **Database Backups**
 ```bash
-#  Automated daily backups
+# Automated daily backups
 ./scripts/backup-pristine-databases.sh
 
-#  Point-in-time recovery capability
+# Point-in-time recovery capability
 ./scripts/restore-database.sh --timestamp="2024-01-15T10:30:00Z"
-```
+```text
 
 2. **Service Recovery**
 ```bash
-#  Rolling restart with zero downtime
+# Rolling restart with zero downtime
 ./scripts/rolling-restart-pristine.sh
 
-#  Emergency failover
+# Emergency failover
 ./scripts/emergency-failover.sh --target-region=backup
-```
+```text
 
 ###  Performance Tuning
 
 ####  EPYC-Specific Tuning
 ```bash
-#  CPU frequency scaling
+# CPU frequency scaling
 echo 'performance' > /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
-#  NUMA memory allocation
+# NUMA memory allocation
 numactl --cpunodebind=0 --membind=0 docker-compose up campaign-orchestrator
 
-#  CCX-aware task scheduling
+# CCX-aware task scheduling
 echo 2 > /proc/sys/kernel/sched_domain/cpu*/domain1/max_newidle_lb_cost
-```
+```text
 
 ####  Service-Specific Tuning
 ```yaml
-#  High-performance PostgreSQL configuration
+# High-performance PostgreSQL configuration
 postgres:
   environment:
     - shared_buffers=8GB
@@ -426,7 +426,7 @@ postgres:
     - checkpoint_completion_target=0.9
     - wal_buffers=64MB
     - default_statistics_target=100
-```
+```text
 
 ##  🎯 Success Metrics
 
@@ -446,15 +446,15 @@ postgres:
 
 ##  🚀 Deployment Status
 
-**✅ PRISTINE ARCHITECTURE**: COMPLETE
-**✅ EPYC OPTIMIZATION**: ENABLED
-**✅ SERVICE MESH**: ACTIVE
-**✅ FAULT TOLERANCE**: OPERATIONAL
-**✅ OBSERVABILITY**: COMPREHENSIVE
-**✅ SECURITY HARDENING**: IMPLEMENTED
+- **✅ PRISTINE ARCHITECTURE**: COMPLETE
+- **✅ EPYC OPTIMIZATION**: ENABLED
+- **✅ SERVICE MESH**: ACTIVE
+- **✅ FAULT TOLERANCE**: OPERATIONAL
+- **✅ OBSERVABILITY**: COMPREHENSIVE
+- **✅ SECURITY HARDENING**: IMPLEMENTED
 
----
+- --
 
-**STRUCTURAL SUPREMACY ACHIEVED**
-**DEPLOYMENT READINESS**: 100%
-**OPERATIONAL EXCELLENCE**: SUPREME
+- *STRUCTURAL SUPREMACY ACHIEVED**
+- **DEPLOYMENT READINESS**: 100%
+- **OPERATIONAL EXCELLENCE**: SUPREME

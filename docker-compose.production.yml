@@ -5,10 +5,11 @@ services:
   xorb-api:
     build:
       context: .
-      dockerfile: src/api/Dockerfile.production
+      dockerfile: Dockerfile.unified
+      target: production
       args:
         BUILD_DATE: ${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
-        VERSION: ${VERSION:-latest}
+        VERSION: ${VERSION:-3.2.0}
         VCS_REF: ${VCS_REF:-$(git rev-parse --short HEAD)}
     container_name: xorb-api
     restart: unless-stopped

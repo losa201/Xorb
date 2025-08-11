@@ -1,4 +1,4 @@
-#  🏗️ XORB Platform Comprehensive Architecture
+# 🏗️ XORB Platform Comprehensive Architecture
 
 [![Architecture Status](https://img.shields.io/badge/Architecture-Production%20Ready-green)](#production-ready-components)
 [![Security Implementation](https://img.shields.io/badge/Security-Enterprise%20Grade-blue)](#security-architecture)
@@ -19,7 +19,7 @@ The XORB Platform represents a sophisticated, production-ready Penetration Testi
 
 ##  🏛️ System Architecture Overview
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    XORB Platform Architecture                       │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -56,7 +56,7 @@ The XORB Platform represents a sophisticated, production-ready Penetration Testi
 │  │ TLS Encrypted   │    │ TLS Only        │    │ AI Operations   │ │
 │  └─────────────────┘    └─────────────────┘    └─────────────────┘ │
 └─────────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ##  🔐 Security Architecture
 
@@ -119,11 +119,11 @@ The XORB Platform represents a sophisticated, production-ready Penetration Testi
 - **Data Encryption**: At-rest and in-transit encryption
 
 ###  Data Flow
-```
+```text
 Scan Input → Scanner Services → Raw Results → AI Processing →
 Correlation Engine → Threat Intelligence → Risk Assessment →
 Report Generation → API Response → Frontend Display
-```
+```text
 
 ##  🔄 Orchestration Architecture
 
@@ -209,6 +209,6 @@ Report Generation → API Response → Frontend Display
 - **Blockchain Integration**: Immutable audit trails
 - **Zero-Trust Evolution**: Enhanced zero-trust architecture
 
----
+- --
 
-*This architecture documentation represents the consolidated wisdom from all strategic assessments and implementations of the XORB platform, providing a single authoritative source for architectural understanding.*
+- This architecture documentation represents the consolidated wisdom from all strategic assessments and implementations of the XORB platform, providing a single authoritative source for architectural understanding.*

@@ -1,4 +1,4 @@
-#  XORB PTaaS Red vs Blue Cyber Range - Network Architecture
+# XORB PTaaS Red vs Blue Cyber Range - Network Architecture
 
 ##  Network Topology Diagram
 
@@ -98,7 +98,7 @@ graph TB
     class XORB,ADMIN,MONITOR,KILLSWITCH control
     class WEBAPP,WEBDB,FILESERVER,MAILSERVER,ADSERVER,IOTDEVICES,SCADA target
     class FIREWALL,ROUTER,SWITCH,SCENARIOS,TRAFFIC,VULNGEN infra
-```
+```text
 
 ##  Network Segmentation Strategy
 
@@ -117,17 +117,17 @@ graph TB
 ###  Firewall Rules Matrix
 
 ####  Staging Mode (Safe Training)
-```
+```text
 CONTROL → ALL_VLANS: ALLOW (Management)
 BLUE_TEAM → TARGET_*: ALLOW (Monitoring)
 RED_TEAM → TARGET_*: DENY (Blocked attacks)
 RED_TEAM → BLUE_TEAM: DENY
 TARGET_* → INTERNET: DENY
 SIMULATION → TARGET_*: ALLOW (Benign traffic)
-```
+```text
 
 ####  Live Exercise Mode (Active Red Team)
-```
+```text
 CONTROL → ALL_VLANS: ALLOW (Management)
 BLUE_TEAM → TARGET_*: ALLOW (Monitoring)
 RED_TEAM → TARGET_*: ALLOW (Active attacks)
@@ -135,7 +135,7 @@ RED_TEAM → BLUE_TEAM: DENY
 RED_TEAM → CONTROL: DENY
 TARGET_* → INTERNET: CONTROLLED (Limited egress)
 SIMULATION → TARGET_*: ALLOW (Background traffic)
-```
+```text
 
 ##  Security Isolation Features
 

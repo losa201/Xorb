@@ -1,4 +1,4 @@
-#  XORB Centralized Configuration Management
+# XORB Centralized Configuration Management
 
 ##  Overview
 
@@ -18,42 +18,42 @@ The XORB platform now features a comprehensive centralized configuration managem
 ```python
 from src.common.config_manager import get_config, get_feature_flag
 
-#  Get current configuration
+# Get current configuration
 config = get_config()
 print(f"Database URL: {config.database.get_url()}")
 print(f"API Port: {config.api_service.port}")
 
-#  Check feature flags
+# Check feature flags
 if get_feature_flag("advanced_analytics", False):
     print("Advanced analytics enabled")
-```
+```text
 
 ###  2. Environment Switching
 
 ```bash
-#  Switch to different environments
+# Switch to different environments
 ./tools/scripts/config-manager.sh switch development
 ./tools/scripts/config-manager.sh switch production
 
-#  Validate configuration
+# Validate configuration
 ./tools/scripts/config-manager.sh validate production
 
-#  Deploy environment
+# Deploy environment
 ./tools/scripts/config-manager.sh deploy staging --dry-run
-```
+```text
 
 ###  3. Docker Compose Deployment
 
 ```bash
-#  Development environment
+# Development environment
 docker-compose -f docker-compose.development.yml up -d
 
-#  Production environment
+# Production environment
 docker-compose -f docker-compose.production.yml up -d
 
-#  Check status
+# Check status
 docker-compose ps
-```
+```text
 
 ##  Configuration Structure
 
@@ -91,7 +91,7 @@ class XORBConfig:
 
     # External integrations
     integrations: Dict[str, Dict[str, Any]]
-```
+```text
 
 ##  Environment-Specific Settings
 
@@ -110,7 +110,7 @@ class XORBConfig:
     "performance_profiling": true
   }
 }
-```
+```text
 
 ###  Production Environment
 
@@ -128,7 +128,7 @@ class XORBConfig:
     "password_min_length": 12
   }
 }
-```
+```text
 
 ##  Secret Management
 
@@ -137,14 +137,14 @@ class XORBConfig:
 The system integrates with HashiCorp Vault for secure secret management:
 
 ```python
-#  Secrets are automatically loaded from Vault
+# Secrets are automatically loaded from Vault
 config = get_config()
 db_url = config.database.get_url()  # Password loaded from Vault
 
-#  Manual secret access
+# Manual secret access
 vault_client = VaultClient()
 secret = vault_client.get_secret("xorb/config")
-```
+```text
 
 ###  Environment Variables
 
@@ -154,7 +154,7 @@ Fallback to environment variables when Vault is unavailable:
 export DATABASE_PASSWORD="secure_password"
 export JWT_SECRET="very_long_secret_key"
 export REDIS_PASSWORD="redis_password"
-```
+```text
 
 ##  Feature Flags
 
@@ -165,13 +165,13 @@ from src.common.config_manager import get_config_manager
 
 manager = get_config_manager()
 
-#  Get feature flags
+# Get feature flags
 analytics_enabled = manager.get_feature_flag("advanced_analytics", False)
 multi_tenant = manager.get_feature_flag("multi_tenant", False)
 
-#  Set feature flags dynamically
+# Set feature flags dynamically
 manager.set_feature_flag("beta_features", True)
-```
+```text
 
 ###  Available Feature Flags
 
@@ -190,49 +190,49 @@ manager.set_feature_flag("beta_features", True)
 Configuration files are monitored for changes and automatically reloaded:
 
 ```python
-#  Register callback for configuration changes
+# Register callback for configuration changes
 def on_config_changed(new_config):
     print(f"Configuration updated for {new_config.environment}")
 
 manager = get_config_manager()
 manager.register_reload_callback(on_config_changed)
-```
+```text
 
 ###  Manual Reload
 
 ```python
 from src.common.config_manager import reload_config
 
-#  Trigger manual reload
+# Trigger manual reload
 reload_config()
-```
+```text
 
 ##  Configuration Management CLI
 
 ###  Available Commands
 
 ```bash
-#  Validate configuration
+# Validate configuration
 ./tools/scripts/config-manager.sh validate production
 
-#  Deploy environment
+# Deploy environment
 ./tools/scripts/config-manager.sh deploy staging
 
-#  Switch environments
+# Switch environments
 ./tools/scripts/config-manager.sh switch development
 
-#  Export configuration
+# Export configuration
 ./tools/scripts/config-manager.sh export production json
 
-#  Compare configurations
+# Compare configurations
 ./tools/scripts/config-manager.sh diff staging production
 
-#  Show status
+# Show status
 ./tools/scripts/config-manager.sh status
 
-#  Hot-reload
+# Hot-reload
 ./tools/scripts/config-manager.sh reload
-```
+```text
 
 ###  Options
 
@@ -252,25 +252,25 @@ print(f"Host: {db_config.host}")
 print(f"Port: {db_config.port}")
 print(f"Database: {db_config.name}")
 print(f"Connection URL: {db_config.get_url()}")
-```
+```text
 
 ###  Service Ports
 
 ```python
-#  Get service-specific configuration
+# Get service-specific configuration
 api_config = manager.get_service_config("api")
 orchestrator_config = manager.get_service_config("orchestrator")
 
 print(f"API: {api_config.host}:{api_config.port}")
 print(f"Orchestrator: {orchestrator_config.host}:{orchestrator_config.port}")
-```
+```text
 
 ##  Docker Integration
 
 ###  Environment Variables
 
 ```yaml
-#  docker-compose.yml
+# docker-compose.yml
 services:
   api:
     environment:
@@ -279,18 +279,18 @@ services:
       - REDIS_HOST=redis
     volumes:
       - ./config:/app/config:ro
-```
+```text
 
 ###  Secrets Management
 
 ```yaml
-#  Production secrets
+# Production secrets
 secrets:
   jwt_secret:
     file: ./secrets/jwt_secret
   encryption_key:
     file: ./secrets/encryption_key
-```
+```text
 
 ##  Validation and Error Handling
 
@@ -299,12 +299,12 @@ secrets:
 The system validates configuration automatically:
 
 ```python
-#  Validation rules
+# Validation rules
 - Production environments require JWT secrets
 - Service ports must be unique
 - Database connection parameters must be valid
 - Feature flag values must be boolean
-```
+```text
 
 ###  Error Handling
 
@@ -316,22 +316,22 @@ except ValidationError as e:
 except Exception as e:
     print(f"Configuration error: {e}")
     # Falls back to default configuration
-```
+```text
 
 ##  Export and Import
 
 ###  Export Configuration
 
 ```bash
-#  Export as JSON
+# Export as JSON
 ./tools/scripts/config-manager.sh export production json
 
-#  Export as YAML
+# Export as YAML
 ./tools/scripts/config-manager.sh export production yaml
 
-#  Export as environment variables
+# Export as environment variables
 ./tools/scripts/config-manager.sh export production env
-```
+```text
 
 ###  Programmatic Export
 
@@ -340,51 +340,51 @@ from src.common.config_manager import get_config_manager, ConfigFormat
 
 manager = get_config_manager()
 
-#  Export without secrets
+# Export without secrets
 json_config = manager.export_config(ConfigFormat.JSON, include_secrets=False)
 yaml_config = manager.export_config(ConfigFormat.YAML, include_secrets=False)
 env_config = manager.export_config(ConfigFormat.ENV, include_secrets=False)
-```
+```text
 
 ##  Migration from Legacy Configuration
 
 ###  Step 1: Update Imports
 
 ```python
-#  Old way
+# Old way
 from src.common.config import get_settings
 settings = get_settings()
 
-#  New way
+# New way
 from src.common.config_manager import get_config
 config = get_config()
-```
+```text
 
 ###  Step 2: Update Configuration Access
 
 ```python
-#  Old way
+# Old way
 database_url = settings.database_url
 api_port = settings.api_port
 
-#  New way
+# New way
 database_url = config.database.get_url()
 api_port = config.api_service.port
-```
+```text
 
 ###  Step 3: Update Environment Variables
 
 The new system uses structured environment variables:
 
 ```bash
-#  Old
+# Old
 DATABASE_URL=postgresql://...
 
-#  New
+# New
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
 DATABASE_NAME=xorb_dev
-```
+```text
 
 ##  Best Practices
 
@@ -443,17 +443,17 @@ DATABASE_NAME=xorb_dev
 ###  Debugging
 
 ```python
-#  Enable verbose logging
+# Enable verbose logging
 import logging
 logging.getLogger("config_manager").setLevel(logging.DEBUG)
 
-#  Check configuration status
+# Check configuration status
 from src.common.config_manager import get_config_manager
 manager = get_config_manager()
 config = manager.get_config()
 print(f"Current environment: {config.environment}")
 print(f"Debug mode: {config.debug}")
-```
+```text
 
 ##  Performance Considerations
 
@@ -469,6 +469,6 @@ print(f"Debug mode: {config.debug}")
 - Vault tokens should be rotated regularly
 - Environment variables should be secured in production
 
----
+- --
 
 For more information, see the [XORB Platform Architecture Guide](XORB_PLATFORM_ARCHITECTURE_GUIDE.md).

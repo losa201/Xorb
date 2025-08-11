@@ -1,4 +1,4 @@
-#  Environment Configuration
+# Environment Configuration
 
 The `.env` file contains critical configuration parameters for the XORB system. Below is a detailed breakdown of each variable:
 
@@ -54,4 +54,4 @@ postgres_config = {
     'user': os.environ['POSTGRES_USER'],
     'password': os.environ['POSTGRES_PASSWORD']
 }
-```
+```text

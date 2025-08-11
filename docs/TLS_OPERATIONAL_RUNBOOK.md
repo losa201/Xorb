@@ -1,4 +1,4 @@
-#  XORB Platform TLS Operational Runbook
+# XORB Platform TLS Operational Runbook
 
 ##  🎯 Overview
 
@@ -30,46 +30,46 @@ This runbook provides operational procedures for managing the XORB Platform's en
 
 ###  Certificate Validation
 ```bash
-#  Validate all service certificates
+# Validate all service certificates
 cd /root/Xorb
 openssl verify -CAfile secrets/tls/ca/ca.pem secrets/tls/*/cert.pem
 
-#  Expected output: All certificates should show "OK"
-#  ✅ Result: secrets/tls/agent/cert.pem: OK (and 9 more)
-```
+# Expected output: All certificates should show "OK"
+# ✅ Result: secrets/tls/agent/cert.pem: OK (and 9 more)
+```text
 
 ###  Certificate Expiry Monitoring
 ```bash
-#  Check certificate expiry dates
+# Check certificate expiry dates
 for cert in secrets/tls/*/cert.pem; do
     service=$(basename $(dirname "$cert"))
     expiry=$(openssl x509 -in "$cert" -noout -enddate | cut -d= -f2)
     echo "[$service] Expires: $expiry"
 done
-```
+```text
 
 ###  Service Health Validation
 ```bash
-#  PostgreSQL TLS Health Check
+# PostgreSQL TLS Health Check
 docker ps --filter name=xorb-postgres --format "table {{.Names}}\t{{.Status}}"
 
-#  Redis TLS Validation (when configured)
+# Redis TLS Validation (when configured)
 redis-cli --tls \
   --cert secrets/tls/redis-client/cert.pem \
   --key secrets/tls/redis-client/key.pem \
   --cacert secrets/tls/ca/ca.pem \
   -h localhost -p 6380 ping
-```
+```text
 
 ##  🚀 Deployment Procedures
 
 ###  Complete TLS Stack Deployment
 ```bash
-#  1. Generate/Refresh CA Infrastructure
+# 1. Generate/Refresh CA Infrastructure
 cd /root/Xorb
 ./scripts/ca/make-ca.sh
 
-#  2. Issue Service Certificates
+# 2. Issue Service Certificates
 services=(
   "api:both" "orchestrator:client" "agent:both"
   "redis:server" "redis-client:client"
@@ -84,20 +84,20 @@ for service_spec in "${services[@]}"; do
     ./scripts/ca/issue-cert.sh "$service" "$cert_type"
 done
 
-#  3. Deploy TLS Services
+# 3. Deploy TLS Services
 cd infra
 docker-compose -f docker-compose.tls.yml up -d
-```
+```text
 
 ###  Individual Service Deployment
 ```bash
-#  Core Infrastructure
+# Core Infrastructure
 docker-compose -f docker-compose.tls.yml up -d postgres redis
 
-#  Application Services
+# Application Services
 docker-compose -f docker-compose.tls.yml up -d temporal api orchestrator
 
-#  Monitoring Stack
+# Monitoring Stack
 docker run -d --name xorb-prometheus-tls \
   --network bridge -p 9092:9090 \
   -v $(pwd)/monitoring/prometheus-tls.yml:/etc/prometheus/prometheus.yml:ro \
@@ -112,53 +112,53 @@ docker run -d --name xorb-grafana-tls \
   -v /root/Xorb/secrets/tls/ca:/run/tls/ca:ro \
   -e GF_SECURITY_ADMIN_PASSWORD=SecureAdminPass123! \
   grafana/grafana:10.1.0
-```
+```text
 
 ##  🔒 Security Operations
 
 ###  Certificate Rotation Procedures
 ```bash
-#  Automated Certificate Rotation (30-day schedule)
+# Automated Certificate Rotation (30-day schedule)
 ./scripts/rotate-certs.sh
 
-#  Manual Certificate Renewal for Specific Service
+# Manual Certificate Renewal for Specific Service
 ./scripts/ca/issue-cert.sh [service] [server|client|both]
 
-#  Verify New Certificate
+# Verify New Certificate
 openssl verify -CAfile secrets/tls/ca/ca.pem secrets/tls/[service]/cert.pem
-```
+```text
 
 ###  Emergency Certificate Procedures
 ```bash
-#  Emergency CA Rotation (if compromised)
+# Emergency CA Rotation (if compromised)
 ./scripts/emergency-cert-rotation.sh
 
-#  Revoke Compromised Certificate
+# Revoke Compromised Certificate
 openssl ca -config secrets/tls/ca/intermediate/openssl.cnf \
   -revoke secrets/tls/[service]/cert.pem
 
-#  Generate CRL (Certificate Revocation List)
+# Generate CRL (Certificate Revocation List)
 openssl ca -config secrets/tls/ca/intermediate/openssl.cnf \
   -gencrl -out secrets/tls/ca/intermediate/crl/intermediate.crl.pem
-```
+```text
 
 ###  Security Validation Tests
 ```bash
-#  Comprehensive Security Test Suite
+# Comprehensive Security Test Suite
 ./scripts/validate/test_comprehensive.sh
 
-#  TLS Protocol Validation
+# TLS Protocol Validation
 ./scripts/validate/test_tls.sh
 
-#  mTLS Authentication Testing
+# mTLS Authentication Testing
 ./scripts/validate/test_mtls.sh
 
-#  Redis TLS Configuration Test
+# Redis TLS Configuration Test
 ./scripts/validate/test_redis_tls.sh
 
-#  Docker-in-Docker TLS Test
+# Docker-in-Docker TLS Test
 ./scripts/validate/test_dind_tls.sh
-```
+```text
 
 ##  📊 Monitoring and Alerting
 
@@ -169,7 +169,7 @@ openssl ca -config secrets/tls/ca/intermediate/openssl.cnf \
 
 ###  Key Metrics to Monitor
 ```bash
-#  Certificate Expiry Alerts (7-day warning)
+# Certificate Expiry Alerts (7-day warning)
 for cert in secrets/tls/*/cert.pem; do
     days_left=$(openssl x509 -in "$cert" -noout -checkend $((7*24*3600)) 2>/dev/null && echo "7+" || echo "EXPIRES_SOON")
     if [[ "$days_left" == "EXPIRES_SOON" ]]; then
@@ -178,15 +178,15 @@ for cert in secrets/tls/*/cert.pem; do
     fi
 done
 
-#  TLS Handshake Success Rate
-#  Prometheus metrics: tls_handshake_success_total, tls_handshake_failures_total
+# TLS Handshake Success Rate
+# Prometheus metrics: tls_handshake_success_total, tls_handshake_failures_total
 
-#  Service Availability with TLS
+# Service Availability with TLS
 curl -k --cert secrets/tls/api/cert.pem \
   --key secrets/tls/api/key.pem \
   --cacert secrets/tls/ca/ca.pem \
   https://localhost:8443/api/v1/health
-```
+```text
 
 ##  🚨 Troubleshooting
 
@@ -194,46 +194,46 @@ curl -k --cert secrets/tls/api/cert.pem \
 
 ####  1. Certificate Permission Issues
 ```bash
-#  Problem: "permission denied" accessing certificates
-#  Solution: Fix certificate permissions
+# Problem: "permission denied" accessing certificates
+# Solution: Fix certificate permissions
 chmod 644 secrets/tls/ca/ca.pem secrets/tls/*/cert.pem
 chmod 600 secrets/tls/*/key.pem
-```
+```text
 
 ####  2. Docker Compose Container Metadata Errors
 ```bash
-#  Problem: 'ContainerConfig' KeyError in docker-compose
-#  Solution: Clean Docker system and deploy individually
+# Problem: 'ContainerConfig' KeyError in docker-compose
+# Solution: Clean Docker system and deploy individually
 docker system prune -f
 docker-compose -f docker-compose.tls.yml down --remove-orphans
 docker-compose -f docker-compose.tls.yml up -d [service_name]
-```
+```text
 
 ####  3. TLS Handshake Failures
 ```bash
-#  Problem: TLS handshake failures between services
-#  Solution: Verify certificate chain and SAN configuration
+# Problem: TLS handshake failures between services
+# Solution: Verify certificate chain and SAN configuration
 openssl x509 -in secrets/tls/[service]/cert.pem -noout -text | grep -A5 "Subject Alternative Name"
-```
+```text
 
 ####  4. Service Discovery Issues
 ```bash
-#  Problem: Services cannot connect via TLS hostnames
-#  Solution: Verify network configuration and DNS resolution
+# Problem: Services cannot connect via TLS hostnames
+# Solution: Verify network configuration and DNS resolution
 docker network inspect infra_xorb-secure
-```
+```text
 
 ###  Log Analysis
 ```bash
-#  PostgreSQL TLS Logs
+# PostgreSQL TLS Logs
 docker logs xorb-postgres | grep -i tls
 
-#  Prometheus Configuration Errors
+# Prometheus Configuration Errors
 docker logs xorb-prometheus-tls | grep -i "error\|failed"
 
-#  General TLS Debug
+# General TLS Debug
 openssl s_client -connect localhost:[port] -CAfile secrets/tls/ca/ca.pem
-```
+```text
 
 ##  📋 Maintenance Schedule
 
@@ -283,11 +283,11 @@ openssl s_client -connect localhost:[port] -CAfile secrets/tls/ca/ca.pem
 - **Deployment Status**: `docs/TLS_DEPLOYMENT_COMPLETION_REPORT.md`
 - **Strategic Plan**: `docs/STRATEGIC_TLS_DEPLOYMENT_STATUS.md`
 
----
+- --
 
 ##  🛡️ Security Classification
 
-**OPERATIONAL STATUS**: ✅ **PRODUCTION READY**
+- **OPERATIONAL STATUS**: ✅ **PRODUCTION READY**
 
 This TLS implementation provides **enterprise-grade security** with:
 - Military-grade cryptographic standards (TLS 1.2+, ECDHE ciphers)
@@ -298,8 +298,8 @@ This TLS implementation provides **enterprise-grade security** with:
 
 The XORB Platform now operates with **industry-leading TLS/mTLS security** that exceeds enterprise standards and provides an impenetrable foundation for secure, scalable operations.
 
----
+- --
 
-**Deployment Team**: Strategic Security Implementation
-**Classification**: Enterprise Maximum Security - TLS/mTLS Operational
-**Last Updated**: August 11, 2025
+- **Deployment Team**: Strategic Security Implementation
+- **Classification**: Enterprise Maximum Security - TLS/mTLS Operational
+- **Last Updated**: August 11, 2025

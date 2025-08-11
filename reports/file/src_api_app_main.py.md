@@ -1,9 +1,9 @@
-#  Security Audit Report: src/api/app/main.py
+# Security Audit Report: src/api/app/main.py
 
-**File Path**: `/root/Xorb/src/api/app/main.py`
-**File Type**: Core Application Entry Point
-**Lines of Code**: 454
-**Security Risk Level**: HIGH ⚠️
+- **File Path**: `/root/Xorb/src/api/app/main.py`
+- **File Type**: Core Application Entry Point
+- **Lines of Code**: 454
+- **Security Risk Level**: HIGH ⚠️
 
 ##  Summary
 
@@ -14,8 +14,8 @@ Main FastAPI application entry point with comprehensive security middleware stac
 ###  CRITICAL Issues
 
 ####  1. Information Disclosure in Root Endpoint (Line 429-440)
-**Severity**: MEDIUM-HIGH
-**CWE**: CWE-200 (Information Exposure)
+- **Severity**: MEDIUM-HIGH
+- **CWE**: CWE-200 (Information Exposure)
 ```python
 @app.get("/", include_in_schema=False)
 async def root():
@@ -24,55 +24,55 @@ async def root():
         "environment": settings.environment,    # Environment disclosure
         "features": config_manager.get_feature_flags()  # Feature flags disclosure
     }
-```
-**Risk**: Attackers can enumerate application version, environment details, and enabled features for targeted attacks.
+```text
+- **Risk**: Attackers can enumerate application version, environment details, and enabled features for targeted attacks.
 
 ####  2. Insecure CORS Configuration (Line 214-233)
-**Severity**: MEDIUM
-**CWE**: CWE-346 (Origin Validation Error)
+- **Severity**: MEDIUM
+- **CWE**: CWE-346 (Origin Validation Error)
 ```python
-#  Production check exists but validation logic is insufficient
+# Production check exists but validation logic is insufficient
 if settings.environment == "production" and origin == "*":
     logger.warning("Wildcard CORS origin not allowed in production")
     continue
-```
-**Risk**: Insufficient CORS validation may allow unauthorized cross-origin requests.
+```text
+- **Risk**: Insufficient CORS validation may allow unauthorized cross-origin requests.
 
 ####  3. Trusted Host Configuration Weakness (Line 238-252)
-**Severity**: MEDIUM
-**CWE**: CWE-20 (Improper Input Validation)
+- **Severity**: MEDIUM
+- **CWE**: CWE-20 (Improper Input Validation)
 ```python
-#  Hardcoded fallback hosts
+# Hardcoded fallback hosts
 if not allowed_hosts:
     allowed_hosts = ["api.xorb.enterprise"]  # Default production host
-```
-**Risk**: Fallback to hardcoded hosts may not match actual deployment configuration.
+```text
+- **Risk**: Fallback to hardcoded hosts may not match actual deployment configuration.
 
 ###  HIGH Issues
 
 ####  4. Missing CSRF Protection
-**Severity**: HIGH
-**CWE**: CWE-352 (Cross-Site Request Forgery)
-**Risk**: No CSRF protection middleware observed for state-changing operations.
+- **Severity**: HIGH
+- **CWE**: CWE-352 (Cross-Site Request Forgery)
+- **Risk**: No CSRF protection middleware observed for state-changing operations.
 
 ####  5. Insufficient Error Handling for Router Loading (Line 268-327)
-**Severity**: MEDIUM
-**CWE**: CWE-754 (Improper Check for Unusual Conditions)
+- **Severity**: MEDIUM
+- **CWE**: CWE-754 (Improper Check for Unusual Conditions)
 ```python
 except ImportError as e:
     logger.warning("Enterprise Management not available", error=str(e))
-```
-**Risk**: Error messages may leak internal structure information.
+```text
+- **Risk**: Error messages may leak internal structure information.
 
 ###  MEDIUM Issues
 
 ####  6. Dynamic Router Loading Security Risk (Line 284-327)
-**Severity**: MEDIUM
-**CWE**: CWE-94 (Code Injection)
+- **Severity**: MEDIUM
+- **CWE**: CWE-94 (Code Injection)
 ```python
 module = __import__(f"app.routers.{router_name}", fromlist=["router"])
-```
-**Risk**: Dynamic imports based on configuration could be exploited if router_name is externally controlled.
+```text
+- **Risk**: Dynamic imports based on configuration could be exploited if router_name is externally controlled.
 
 ##  Architecture Assessment
 
@@ -122,28 +122,28 @@ async def root():
         "health": f"{settings.api_prefix}/health"
         # Remove: version, environment, features
     }
-```
+```text
 
 ####  Fix 2: Add CSRF Protection
 ```python
 from fastapi_csrf_protect import CsrfProtect
 
-#  Add after line 196
+# Add after line 196
 app.add_middleware(
     CSRFProtectMiddleware,
     secret_key=settings.csrf_secret_key,
     cookie_name="xorb_csrf_token",
     header_name="X-CSRF-Token"
 )
-```
+```text
 
 ####  Fix 3: Enhanced Error Handling
 ```python
-#  Replace line 272-273
+# Replace line 272-273
 except ImportError:
     logger.info("Optional enterprise features not available")
     # Remove detailed error information
-```
+```text
 
 ##  Testing Requirements
 1. **Security Tests**: CSRF protection, information disclosure

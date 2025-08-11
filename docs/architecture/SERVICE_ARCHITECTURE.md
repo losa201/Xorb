@@ -1,10 +1,10 @@
-#  XORB Enterprise Service Architecture
+# XORB Enterprise Service Architecture
 
 ##  Service Overview
 
 The XORB platform follows a microservices architecture with clear separation of concerns:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │                        XORB Ecosystem                           │
 ├─────────────────────────────────────────────────────────────────┤
@@ -28,7 +28,7 @@ The XORB platform follows a microservices architecture with clear separation of 
 │  │   Port 9092     │ │   Port 8200     │ │   Ports 5432-5434   │ │
 │  └─────────────────┘ └─────────────────┘ └─────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
-```
+```text
 
 ##  Service Responsibilities
 
@@ -76,11 +76,11 @@ The XORB platform follows a microservices architecture with clear separation of 
 
 ##  Data Flow Architecture
 
-```
+```text
 User Action (PTaaS) → API Gateway (XORB) → Service Layer →
 Orchestrator (Workflows) → Executors → Database →
 Cache (Redis) → Response → Real-time Updates (WebSocket)
-```
+```text
 
 ##  Security Architecture
 
@@ -103,24 +103,24 @@ Cache (Redis) → Response → Real-time Updates (WebSocket)
 
 ###  Development Environment
 ```bash
-#  PTaaS Frontend
+# PTaaS Frontend
 cd services/ptaas/web && npm run dev
 
-#  XORB API Gateway
+# XORB API Gateway
 cd services/xorb-core/api && uvicorn app.main:app --reload
 
-#  Infrastructure
+# Infrastructure
 docker-compose -f docker-compose.infrastructure.yml up -d
-```
+```text
 
 ###  Production Environment
 ```bash
-#  Container orchestration with Docker Swarm/Kubernetes
-#  Load balancing with NGINX
-#  CDN deployment for frontend assets
-#  Multi-region database replication
-#  Automated scaling and health monitoring
-```
+# Container orchestration with Docker Swarm/Kubernetes
+# Load balancing with NGINX
+# CDN deployment for frontend assets
+# Multi-region database replication
+# Automated scaling and health monitoring
+```text
 
 ##  Performance Characteristics
 

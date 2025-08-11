@@ -1,11 +1,11 @@
----
+- --
 title: "XORB Platform Documentation Hub"
 description: "Comprehensive documentation portal for the XORB Enterprise Cybersecurity Platform"
 category: "Documentation Hub"
 tags: ["documentation", "hub", "navigation", "platform", "enterprise"]
 last_updated: "2025-01-11"
 author: "XORB Documentation Team"
----
+- --
 
 # 📚 XORB Platform Documentation Hub
 
@@ -111,7 +111,7 @@ make security-scan
 
 # Check platform health
 make health-check
-```
+```text
 
 ### **Important URLs**
 - **API Documentation**: http://localhost:8000/docs
@@ -129,7 +129,7 @@ make health-check
 
 ### **Status Overview**
 - ✅ **Core Documentation**: Complete and up-to-date
-- ✅ **API Documentation**: Auto-generated and current  
+- ✅ **API Documentation**: Auto-generated and current
 - ✅ **Security Documentation**: Comprehensive and compliant
 - 🚧 **User Guides**: In progress (multiple languages)
 - ✅ **Developer Guides**: Complete and validated
@@ -199,7 +199,7 @@ make health-check
 - Style guide compliance validation
 - User feedback integration
 
----
+- --
 
 ## 📞 Need Help?
 
@@ -208,6 +208,6 @@ make health-check
 - 🐛 **Bug Reports**: Create GitHub issue with detailed information
 - 💡 **Feature Requests**: Submit enhancement proposals
 
-**Last Updated**: January 11, 2025  
-**Next Review**: February 2025  
-**Maintainers**: XORB Documentation Team
+- **Last Updated**: January 11, 2025
+- **Next Review**: February 2025
+- **Maintainers**: XORB Documentation Team

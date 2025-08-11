@@ -1,25 +1,25 @@
 # 🚀 PR Blueprint: XORB Security Remediation
 
-**Blueprint ID**: XORB_PR_BLUEPRINT_2025_01_11  
-**Created**: January 11, 2025  
-**Total PRs**: 12  
-**Estimated Timeline**: 8 weeks  
+- **Blueprint ID**: XORB_PR_BLUEPRINT_2025_01_11
+- **Created**: January 11, 2025
+- **Total PRs**: 12
+- **Estimated Timeline**: 8 weeks
 
 ## 📋 PR Strategy Overview
 
 This blueprint organizes security fixes into **atomic, testable PRs** to ensure:
 - **Zero-downtime deployments** with rollback capability
-- **Incremental security improvements** without breaking changes  
+- **Incremental security improvements** without breaking changes
 - **Comprehensive testing** at each step
 - **Clear documentation** for each change
 
 ## 🚨 Phase 1: Critical Security PRs (Week 1)
 
 ### PR #1: 🔐 Secure JWT Secret Management
-**Branch**: `security/jwt-secret-management`  
-**Priority**: P0 - CRITICAL  
-**Effort**: 1 day  
-**Reviewers**: @security-team, @backend-lead  
+- **Branch**: `security/jwt-secret-management`
+- **Priority**: P0 - CRITICAL
+- **Effort**: 1 day
+- **Reviewers**: @security-team, @backend-lead
 
 #### Description
 Implements secure JWT secret management with HashiCorp Vault integration, proper entropy validation, and automatic rotation to address **XORB-2025-001**.
@@ -35,7 +35,7 @@ Implements secure JWT secret management with HashiCorp Vault integration, proper
 # Unit Tests
 pytest tests/unit/test_secure_jwt.py -v
 
-# Integration Tests  
+# Integration Tests
 pytest tests/integration/test_jwt_auth.py -v
 
 # Security Validation
@@ -43,7 +43,7 @@ python scripts/validate_jwt_security.py
 
 # Performance Tests
 pytest tests/performance/test_jwt_performance.py -v
-```
+```text
 
 #### Deployment Plan
 1. **Pre-deployment**: Initialize Vault with JWT secrets
@@ -60,15 +60,15 @@ kubectl rollout undo deployment/xorb-api
 
 # Vault rollback
 vault kv rollback -version=1 secret/jwt-signing
-```
+```text
 
----
+- --
 
 ### PR #2: 🧹 Remove Hardcoded Credentials
-**Branch**: `security/remove-hardcoded-credentials`  
-**Priority**: P1 - HIGH  
-**Effort**: 2 days  
-**Reviewers**: @security-team, @dev-team  
+- **Branch**: `security/remove-hardcoded-credentials`
+- **Priority**: P1 - HIGH
+- **Effort**: 2 days
+- **Reviewers**: @security-team, @dev-team
 
 #### Description
 Removes all hardcoded test credentials from codebase and implements secure credential generation for testing.
@@ -90,33 +90,33 @@ pytest tests/fixtures/test_secure_credentials.py -v
 
 # Full test suite with new credentials
 pytest tests/ -v --tb=short
-```
+```text
 
 #### Git History Cleanup
 ```bash
 # WARNING: This rewrites git history
 git filter-branch --force --index-filter \
 'git rm --cached --ignore-unmatch tests/unit/test_config_security.py' \
---prune-empty --tag-name-filter cat -- --all
+- -prune-empty --tag-name-filter cat -- --all
 
 # Force push (coordinate with team)
 git push origin --force --all
-```
+```text
 
----
+- --
 
-### PR #3: 🌐 Secure CORS Configuration  
-**Branch**: `security/secure-cors-config`  
-**Priority**: P1 - HIGH  
-**Effort**: 1 day  
-**Reviewers**: @frontend-lead, @security-team  
+### PR #3: 🌐 Secure CORS Configuration
+- **Branch**: `security/secure-cors-config`
+- **Priority**: P1 - HIGH
+- **Effort**: 1 day
+- **Reviewers**: @frontend-lead, @security-team
 
 #### Description
 Implements secure CORS configuration with environment-specific validation and removes wildcard origins in production.
 
 #### Changes
 - ✅ **New**: `src/api/app/middleware/secure_cors.py` - Secure CORS validation
-- ✅ **Modified**: `src/api/app/main.py` - Updated CORS middleware configuration  
+- ✅ **Modified**: `src/api/app/main.py` - Updated CORS middleware configuration
 - ✅ **Modified**: `src/api/app/core/config.py` - Secure CORS defaults
 - ✅ **New**: `tests/unit/test_secure_cors.py` - CORS security tests
 
@@ -130,7 +130,7 @@ pytest tests/integration/test_cors_security.py -v
 
 # Browser-based CORS testing
 npm run test:cors
-```
+```text
 
 #### Frontend Impact Assessment
 - ✅ **Development**: Local origins (localhost:3000) still allowed
@@ -138,15 +138,15 @@ npm run test:cors
 - ✅ **Production**: Only app.xorb.enterprise allowed
 - ⚠️ **Breaking Change**: Wildcard origins removed
 
----
+- --
 
 ## 🎯 Phase 2: High Priority PRs (Weeks 2-3)
 
 ### PR #4: 🐳 Container Security Hardening
-**Branch**: `security/container-hardening`  
-**Priority**: P2 - HIGH  
-**Effort**: 3 days  
-**Reviewers**: @devops-team, @security-team  
+- **Branch**: `security/container-hardening`
+- **Priority**: P2 - HIGH
+- **Effort**: 3 days
+- **Reviewers**: @devops-team, @security-team
 
 #### Description
 Implements comprehensive container security with non-root users, security contexts, and resource limits.
@@ -174,7 +174,7 @@ xorb-api:
   ulimits:
     nproc: 200
     nofile: 4096
-```
+```text
 
 #### Test Plan
 ```bash
@@ -189,7 +189,7 @@ kubectl describe pod xorb-api | grep -A 10 "Security Context"
 
 # Performance impact test
 docker stats xorb-api
-```
+```text
 
 #### Deployment Strategy
 1. **Stage 1**: Deploy to development environment
@@ -198,13 +198,13 @@ docker stats xorb-api
 4. **Stage 4**: Production deployment with canary rollout
 5. **Stage 5**: Full traffic migration after validation
 
----
+- --
 
 ### PR #5: 🛡️ Input Validation Framework
-**Branch**: `security/input-validation-framework`  
-**Priority**: P2 - HIGH  
-**Effort**: 5 days  
-**Reviewers**: @backend-team, @security-team  
+- **Branch**: `security/input-validation-framework`
+- **Priority**: P2 - HIGH
+- **Effort**: 5 days
+- **Reviewers**: @backend-team, @security-team
 
 #### Description
 Implements comprehensive input validation framework with security-focused validation rules across all API endpoints.
@@ -220,27 +220,27 @@ Implements comprehensive input validation framework with security-focused valida
 ```python
 class SecurityInputValidation:
     """Security-focused input validation"""
-    
+
     # SQL Injection prevention
     SQL_INJECTION_PATTERNS = [
         re.compile(r"(\b(union|select|insert|delete|update|drop|create|alter|exec)\b)", re.IGNORECASE),
         re.compile(r"['\";].*['\";]"),
         re.compile(r"(--|#|/\*|\*/)")
     ]
-    
-    # XSS prevention  
+
+    # XSS prevention
     XSS_PATTERNS = [
         re.compile(r"<script[^>]*>.*?</script>", re.IGNORECASE),
         re.compile(r"javascript:", re.IGNORECASE),
         re.compile(r"on\w+\s*=", re.IGNORECASE)
     ]
-    
+
     # Command injection prevention
     COMMAND_INJECTION_PATTERNS = [
         re.compile(r"[;&|`$()]"),
         re.compile(r"(curl|wget|nc|netcat|telnet|ssh|ftp)", re.IGNORECASE)
     ]
-```
+```text
 
 #### Test Plan
 ```bash
@@ -255,17 +255,17 @@ pytest tests/performance/test_validation_performance.py -v
 
 # API endpoint coverage
 python scripts/validation/check_endpoint_coverage.py
-```
+```text
 
----
+- --
 
 ## 🔧 Phase 3: Medium Priority PRs (Weeks 4-6)
 
 ### PR #6: 📝 Secure Logging Implementation
-**Branch**: `security/secure-logging`  
-**Priority**: P3 - MEDIUM  
-**Effort**: 4 days  
-**Reviewers**: @backend-team, @compliance-team  
+- **Branch**: `security/secure-logging`
+- **Priority**: P3 - MEDIUM
+- **Effort**: 4 days
+- **Reviewers**: @backend-team, @compliance-team
 
 #### Description
 Implements PII masking and secure logging practices to ensure GDPR compliance and prevent sensitive data exposure.
@@ -280,29 +280,29 @@ Implements PII masking and secure logging practices to ensure GDPR compliance an
 ```python
 class PIIMaskingProcessor:
     """Processor for masking PII in logs"""
-    
+
     PII_PATTERNS = {
         'email': re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'),
         'ssn': re.compile(r'\b\d{3}-\d{2}-\d{4}\b'),
         'credit_card': re.compile(r'\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b'),
         'phone': re.compile(r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b'),
     }
-    
+
     def process(self, logger, name, event_dict):
         """Mask PII in log events"""
         for key, value in event_dict.items():
             if isinstance(value, str):
                 event_dict[key] = self._mask_pii(value)
         return event_dict
-```
+```text
 
----
+- --
 
 ### PR #7: ⚡ Rate Limiting Enhancement
-**Branch**: `security/rate-limiting-enhancement`  
-**Priority**: P3 - MEDIUM  
-**Effort**: 3 days  
-**Reviewers**: @backend-team, @devops-team  
+- **Branch**: `security/rate-limiting-enhancement`
+- **Priority**: P3 - MEDIUM
+- **Effort**: 3 days
+- **Reviewers**: @backend-team, @devops-team
 
 #### Description
 Implements comprehensive rate limiting with Redis backend and tenant-aware limits to prevent DoS attacks.
@@ -313,7 +313,7 @@ Implements comprehensive rate limiting with Redis backend and tenant-aware limit
 - ✅ **New**: `src/api/app/rate_limiting/redis_backend.py` - Redis-backed rate limiting
 - ✅ **New**: `tests/integration/test_rate_limiting.py` - Rate limiting tests
 
----
+- --
 
 ## 📦 PR Packaging Strategy
 
@@ -325,7 +325,7 @@ Implements comprehensive rate limiting with Redis backend and tenant-aware limit
 
 ### PR Size Guidelines
 - **Lines of code**: <500 lines per PR (excluding tests)
-- **Files changed**: <15 files per PR  
+- **Files changed**: <15 files per PR
 - **Review time**: <2 hours for thorough review
 - **Test coverage**: 100% for new security code
 
@@ -357,7 +357,7 @@ kubectl apply -f k8s/production/canary/
 
 # 6. Full production deployment
 kubectl apply -f k8s/production/
-```
+```text
 
 ### Emergency Rollback Process
 ```bash
@@ -372,7 +372,7 @@ kubectl apply -f k8s/rollback/previous-config.yaml
 
 # 4. Notify team
 ./scripts/notifications/send-rollback-alert.sh
-```
+```text
 
 ## 📊 Success Metrics
 
@@ -382,7 +382,7 @@ kubectl apply -f k8s/rollback/previous-config.yaml
 - ✅ **<100ms latency impact** from security enhancements
 - ✅ **Zero security incidents** during deployment
 
-### Development Metrics  
+### Development Metrics
 - ✅ **<24 hour review time** for security PRs
 - ✅ **100% PR approval rate** before merge
 - ✅ **Zero failed deployments** due to security changes
@@ -404,7 +404,7 @@ kubectl apply -f k8s/rollback/previous-config.yaml
 | 6-7 | #8-10 | Medium Priority | Config, Dependencies |
 | 8 | #11-12 | Low Priority & Cleanup | TLS, Documentation |
 
----
-**Blueprint Status**: APPROVED  
-**Next Review**: January 18, 2025  
-**Emergency Contact**: security@xorb.enterprise
+- --
+- **Blueprint Status**: APPROVED
+- **Next Review**: January 18, 2025
+- **Emergency Contact**: security@xorb.enterprise

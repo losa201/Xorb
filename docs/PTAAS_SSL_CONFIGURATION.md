@@ -1,4 +1,4 @@
-#  PTaaS SSL Configuration Summary
+# PTaaS SSL Configuration Summary
 
 ##  Overview
 
@@ -35,7 +35,7 @@ X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
 X-XSS-Protection: 1; mode=block
 Referrer-Policy: strict-origin-when-cross-origin
-```
+```text
 
 ###  Server Configuration
 - **Production Domain**: `ptaas.verteidiq.com` (HTTPS only)
@@ -60,22 +60,22 @@ Referrer-Policy: strict-origin-when-cross-origin
 
 ###  Quick Deployment
 ```bash
-#  Deploy with SSL support
+# Deploy with SSL support
 ./scripts/deploy-ptaas-ssl.sh
 
-#  View deployment status
+# View deployment status
 docker-compose ps
 
-#  Check logs
+# Check logs
 docker-compose logs -f nginx
-```
+```text
 
 ###  Environment Variables
 ```bash
 export ENVIRONMENT=production
 export VITE_API_URL=https://ptaas.verteidiq.com/api
 export NODE_ENV=production
-```
+```text
 
 ##  🔗 Cloudflare Integration
 
@@ -85,9 +85,9 @@ export NODE_ENV=production
 - **Client-facing SSL**: Handled by Cloudflare (Universal SSL)
 
 ###  Traffic Flow
-```
+```text
 Client → Cloudflare (Universal SSL) → Origin Server (Cloudflare Origin SSL)
-```
+```text
 
 ###  Benefits
 - **DDoS Protection**: Cloudflare shields origin server
@@ -118,27 +118,27 @@ Client → Cloudflare (Universal SSL) → Origin Server (Cloudflare Origin SSL)
 
 ###  Log Locations
 ```bash
-#  Nginx access/error logs
+# Nginx access/error logs
 docker-compose logs nginx
 
-#  Frontend application logs
+# Frontend application logs
 docker-compose logs ptaas-frontend
 
-#  API gateway logs
+# API gateway logs
 docker-compose logs xorb-api-gateway
-```
+```text
 
 ###  Monitoring Commands
 ```bash
-#  SSL certificate expiry check
+# SSL certificate expiry check
 openssl x509 -in ssl/verteidiq.crt -dates -noout
 
-#  Test HTTPS connectivity
+# Test HTTPS connectivity
 curl -I https://ptaas.verteidiq.com
 
-#  Validate SSL configuration
+# Validate SSL configuration
 openssl s_client -connect ptaas.verteidiq.com:443 -servername ptaas.verteidiq.com
-```
+```text
 
 ##  🔧 Troubleshooting
 
@@ -150,7 +150,7 @@ openssl s_client -connect ptaas.verteidiq.com:443 -servername ptaas.verteidiq.co
 ```bash
 docker-compose ps
 docker-compose logs nginx
-```
+```text
 
 ####  SSL Certificate Issues
 - **Cause**: Invalid or expired certificate
@@ -158,7 +158,7 @@ docker-compose logs nginx
 ```bash
 openssl x509 -in ssl/verteidiq.crt -text -noout
 openssl rsa -in ssl/verteidiq.key -check
-```
+```text
 
 ####  API Connection Issues
 - **Cause**: Backend service not running or misconfigured
@@ -166,23 +166,23 @@ openssl rsa -in ssl/verteidiq.key -check
 ```bash
 curl http://localhost:8000/health
 docker-compose logs xorb-api-gateway
-```
+```text
 
 ###  Debug Commands
 ```bash
-#  Test nginx configuration
+# Test nginx configuration
 docker run --rm -v $(pwd)/legacy/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro nginx:alpine nginx -t
 
-#  Check certificate details
+# Check certificate details
 openssl x509 -in ssl/verteidiq.crt -subject -issuer -dates -noout
 
-#  Test SSL handshake
+# Test SSL handshake
 openssl s_client -connect localhost:443 -servername ptaas.verteidiq.com
 
-#  Verify Docker networking
+# Verify Docker networking
 docker network ls
 docker network inspect xorb_xorb-net
-```
+```text
 
 ##  🔄 Maintenance
 
@@ -194,23 +194,23 @@ Cloudflare Origin certificates are valid for 15 years. When renewal is needed:
 
 ###  Updates and Deployments
 ```bash
-#  Update and redeploy
+# Update and redeploy
 git pull
 ./scripts/deploy-ptaas-ssl.sh
 
-#  Rolling update (zero downtime)
+# Rolling update (zero downtime)
 docker-compose up -d --no-deps ptaas-frontend
 docker-compose up -d --no-deps nginx
-```
+```text
 
 ###  Backup SSL Certificates
 ```bash
-#  Backup SSL certificates
+# Backup SSL certificates
 tar -czf ssl-backup-$(date +%Y%m%d).tar.gz ssl/
 
-#  Store backup securely (encrypted)
+# Store backup securely (encrypted)
 gpg -c ssl-backup-$(date +%Y%m%d).tar.gz
-```
+```text
 
 ##  ✅ Configuration Validation
 

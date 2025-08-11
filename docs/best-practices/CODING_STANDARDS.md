@@ -1,10 +1,10 @@
-#  XORB Platform Coding Standards
+# XORB Platform Coding Standards
 
 ##  Overview
 
 This document defines the coding standards and best practices for the XORB platform. Following these standards ensures consistency, maintainability, and quality across the codebase.
 
----
+- --
 
 ##  General Principles
 
@@ -15,7 +15,7 @@ This document defines the coding standards and best practices for the XORB platf
 - Separate concerns into different classes
 - Example:
 ```python
-#  Good - Single responsibility
+# Good - Single responsibility
 class UserRepository:
     def save(self, user: User) -> User:
         # Only handles user persistence
@@ -26,7 +26,7 @@ class UserValidator:
         # Only handles user validation
         pass
 
-#  Bad - Multiple responsibilities
+# Bad - Multiple responsibilities
 class UserManager:
     def save(self, user: User) -> User:
         # Handles both validation AND persistence
@@ -37,7 +37,7 @@ class UserManager:
     def validate(self, user: User) -> bool:
         # Validation logic
         pass
-```
+```text
 
 ####  2. Open/Closed Principle (OCP)
 - Open for extension, closed for modification
@@ -60,7 +60,7 @@ class IntrusionDetector(ThreatDetector):
     def detect(self, data: Any) -> ThreatResult:
         # Intrusion detection logic
         pass
-```
+```text
 
 ####  3. Liskov Substitution Principle (LSP)
 - Derived classes must be substitutable for base classes
@@ -76,33 +76,33 @@ class CriticalSecurityEvent(SecurityEvent):
         # Must return bool, not break the contract
         self.escalate()
         return super().process()
-```
+```text
 
 ####  4. Interface Segregation Principle (ISP)
 - Many specific interfaces are better than one general interface
 - Example:
 ```python
-#  Good - Segregated interfaces
+# Good - Segregated interfaces
 class Readable(Protocol):
     def read(self) -> str: ...
 
 class Writable(Protocol):
     def write(self, data: str) -> None: ...
 
-#  Bad - Fat interface
+# Bad - Fat interface
 class FileHandler(Protocol):
     def read(self) -> str: ...
     def write(self, data: str) -> None: ...
     def compress(self) -> None: ...
     def encrypt(self) -> None: ...
-```
+```text
 
 ####  5. Dependency Inversion Principle (DIP)
 - Depend on abstractions, not concretions
 - Use dependency injection
 - Example:
 ```python
-#  Good - Depends on abstraction
+# Good - Depends on abstraction
 class ThreatAnalysisService:
     def __init__(self, detector: ThreatDetector):
         self.detector = detector
@@ -110,13 +110,13 @@ class ThreatAnalysisService:
     def analyze(self, data: Any) -> ThreatResult:
         return self.detector.detect(data)
 
-#  Bad - Depends on concrete implementation
+# Bad - Depends on concrete implementation
 class ThreatAnalysisService:
     def __init__(self):
         self.detector = MalwareDetector()  # Tight coupling
-```
+```text
 
----
+- --
 
 ##  Python Standards
 
@@ -127,14 +127,12 @@ class ThreatAnalysisService:
 - **Formatting**: Black code formatter
 
 ```python
-#  Good formatting example
+# Good formatting example
 from typing import Dict, List, Optional
 from uuid import UUID
 
 from src.domain.entities.base import AggregateRoot
 from src.domain.value_objects.security import ThreatLevel
-
-
 class SecurityIncident(AggregateRoot):
     """Represents a security incident in the system."""
 
@@ -151,7 +149,7 @@ class SecurityIncident(AggregateRoot):
         self.description = description
         self.affected_assets = affected_assets
         self.metadata = metadata or {}
-```
+```text
 
 ###  Naming Conventions
 - **Classes**: PascalCase (`SecurityIncident`)
@@ -176,7 +174,7 @@ async def process_security_events(
     """Process a list of security events with optional filtering."""
     # Implementation
     pass
-```
+```text
 
 ###  Documentation
 - **Docstrings**: All public classes and functions
@@ -222,7 +220,7 @@ class ThreatIntelligenceEngine:
         """
         # Implementation
         pass
-```
+```text
 
 ###  Error Handling
 - Use custom exceptions for domain-specific errors
@@ -272,9 +270,9 @@ async def analyze_threat(indicator: ThreatIndicator) -> ThreatResult:
             error_code="INTERNAL_ERROR",
             details={"original_error": str(e)}
         ) from e
-```
+```text
 
----
+- --
 
 ##  Architecture Patterns
 
@@ -315,7 +313,7 @@ class PostgreSQLSecurityEventRepository(SecurityEventRepository):
         """Save security event to PostgreSQL."""
         # Implementation
         pass
-```
+```text
 
 ###  Use Case Pattern
 ```python
@@ -377,13 +375,13 @@ class AnalyzeThreatUseCase:
             recommendations=analysis_result.recommendations,
             confidence=analysis_result.confidence
         )
-```
+```text
 
 ###  Command Query Responsibility Segregation (CQRS)
 ```python
 from abc import ABC, abstractmethod
 
-#  Command side (Write operations)
+# Command side (Write operations)
 class Command(ABC):
     """Base command class."""
     pass
@@ -427,7 +425,7 @@ class CreateSecurityIncidentHandler(CommandHandler):
 
         return await self.incident_repository.save(incident)
 
-#  Query side (Read operations)
+# Query side (Read operations)
 class Query(ABC):
     """Base query class."""
     pass
@@ -465,9 +463,9 @@ class GetSecurityIncidentsHandler(QueryHandler):
             date_range=query.date_range,
             limit=query.limit
         )
-```
+```text
 
----
+- --
 
 ##  Testing Standards
 
@@ -537,7 +535,7 @@ class TestThreatAnalysisService:
             await service.analyze_threat(invalid_indicator)
 
         assert "Invalid threat indicator" in str(exc_info.value)
-```
+```text
 
 ###  Test Categories
 - **Unit Tests**: Test individual components in isolation
@@ -580,9 +578,9 @@ class SecurityIncidentFactory(SQLAlchemyModelFactory):
 
     # Relationships
     primary_indicator = SubFactory(ThreatIndicatorFactory)
-```
+```text
 
----
+- --
 
 ##  Performance Standards
 
@@ -591,7 +589,7 @@ class SecurityIncidentFactory(SQLAlchemyModelFactory):
 import asyncio
 from typing import List
 
-#  Good - Concurrent execution
+# Good - Concurrent execution
 async def process_multiple_threats(
     indicators: List[ThreatIndicator]
 ) -> List[ThreatResult]:
@@ -602,7 +600,7 @@ async def process_multiple_threats(
     ]
     return await asyncio.gather(*tasks)
 
-#  Bad - Sequential execution
+# Bad - Sequential execution
 async def process_multiple_threats_sequential(
     indicators: List[ThreatIndicator]
 ) -> List[ThreatResult]:
@@ -612,11 +610,11 @@ async def process_multiple_threats_sequential(
         result = await analyze_single_threat(indicator)
         results.append(result)
     return results
-```
+```text
 
 ###  Database Optimization
 ```python
-#  Good - Batch operations
+# Good - Batch operations
 async def save_multiple_events(
     events: List[SecurityEvent]
 ) -> List[SecurityEvent]:
@@ -627,7 +625,7 @@ async def save_multiple_events(
             [event.to_dict() for event in events]
         )
 
-#  Good - Use connection pooling
+# Good - Use connection pooling
 class DatabaseRepository:
     def __init__(self, pool: asyncpg.Pool):
         self.pool = pool
@@ -635,7 +633,7 @@ class DatabaseRepository:
     async def execute_query(self, query: str, *params):
         async with self.pool.acquire() as connection:
             return await connection.fetch(query, *params)
-```
+```text
 
 ###  Caching Strategies
 ```python
@@ -664,9 +662,9 @@ class ThreatIntelligenceService:
         score = await self._calculate_reputation(indicator)
         await self.redis.setex(cache_key, 3600, score)  # 1 hour TTL
         return score
-```
+```text
 
----
+- --
 
 ##  Security Standards
 
@@ -703,7 +701,7 @@ class ThreatIndicatorInput(BaseModel):
         if not 0.0 <= v <= 1.0:
             raise ValueError('Confidence must be between 0.0 and 1.0')
         return v
-```
+```text
 
 ###  Secret Management
 ```python
@@ -733,9 +731,9 @@ class SecurityConfig:
         return os.getenv('DATABASE_URL', '').replace(
             '://', '://***:***@', 1
         ) if 'DATABASE_URL' in os.environ else 'Not configured'
-```
+```text
 
----
+- --
 
 ##  Monitoring and Logging
 
@@ -780,13 +778,13 @@ class ThreatAnalysisService:
                 exc_info=True
             )
             raise
-```
+```text
 
 ###  Metrics Collection
 ```python
 from prometheus_client import Counter, Histogram, Gauge
 
-#  Define metrics
+# Define metrics
 threat_analysis_total = Counter(
     'threat_analysis_total',
     'Total number of threat analyses',
@@ -830,9 +828,9 @@ class ThreatAnalysisService:
                     result='error'
                 ).inc()
                 raise
-```
+```text
 
----
+- --
 
 ##  Code Review Checklist
 

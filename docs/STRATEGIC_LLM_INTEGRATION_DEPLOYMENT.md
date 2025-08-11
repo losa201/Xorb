@@ -1,4 +1,4 @@
-#  Strategic LLM Integration Deployment Guide
+# Strategic LLM Integration Deployment Guide
 
 ##  Overview
 
@@ -32,64 +32,64 @@ The strategic LLM integration provides:
 Create a `.env` file in the project root:
 
 ```bash
-#  Strategic LLM Configuration (Free Tier)
+# Strategic LLM Configuration (Free Tier)
 NVIDIA_API_KEY=your_nvidia_api_key_here
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 
-#  Request Limits (Free Tier - No Cost!)
+# Request Limits (Free Tier - No Cost!)
 LLM_FREE_TIER=true
 LLM_DAILY_REQUEST_LIMIT=100
 LLM_MONTHLY_REQUEST_LIMIT=2000
 LLM_HOURLY_REQUEST_LIMIT=20
 LLM_EMERGENCY_REQUEST_LIMIT=150
 
-#  EPYC Optimization
+# EPYC Optimization
 EPYC_OPTIMIZATION=true
 AI_ENHANCED=true
-```
+```text
 
 ##  Deployment Steps
 
 ###  1. Verify Configuration
 
 ```bash
-#  Check configuration
+# Check configuration
 cat config/llm_strategic_config.json
 
-#  Verify environment variables
+# Verify environment variables
 source .env
 echo "NVIDIA API: ${NVIDIA_API_KEY:0:10}..."
 echo "OpenRouter API: ${OPENROUTER_API_KEY:0:10}..."
-```
+```text
 
 ###  2. Deploy with Docker Compose
 
 ```bash
-#  Deploy the strategic platform
+# Deploy the strategic platform
 cd /root/Xorb
 docker-compose -f infra/docker-compose.yml up -d
 
-#  Verify services
+# Verify services
 docker-compose ps
-```
+```text
 
 ###  3. Health Check
 
 ```bash
-#  Check intelligence engine health
+# Check intelligence engine health
 curl http://localhost:8001/health
 
-#  Check AI integration status
+# Check AI integration status
 curl http://localhost:8001/status
-```
+```text
 
 ##  Strategic Capabilities
 
 ###  1. AI-Enhanced Vulnerability Analysis
 
-**Endpoint**: `POST /campaigns/{campaign_id}/ai-analysis`
+- **Endpoint**: `POST /campaigns/{campaign_id}/ai-analysis`
 
-**Example Request**:
+- **Example Request**:
 ```bash
 curl -X POST http://localhost:8001/campaigns/test-campaign/ai-analysis \
   -H "Content-Type: application/json" \
@@ -108,13 +108,13 @@ curl -X POST http://localhost:8001/campaigns/test-campaign/ai-analysis \
       }
     ]
   }'
-```
+```text
 
 ###  2. Strategic Payload Generation
 
-**Endpoint**: `POST /payloads/generate`
+- **Endpoint**: `POST /payloads/generate`
 
-**Example Request**:
+- **Example Request**:
 ```bash
 curl -X POST http://localhost:8001/payloads/generate \
   -H "Content-Type: application/json" \
@@ -129,13 +129,13 @@ curl -X POST http://localhost:8001/payloads/generate \
     },
     "complexity": "enhanced"
   }'
-```
+```text
 
 ###  3. Intelligence Fusion
 
-**Endpoint**: `POST /intelligence/fusion`
+- **Endpoint**: `POST /intelligence/fusion`
 
-**Example Request**:
+- **Example Request**:
 ```bash
 curl -X POST http://localhost:8001/intelligence/fusion \
   -H "Content-Type: application/json" \
@@ -147,7 +147,7 @@ curl -X POST http://localhost:8001/intelligence/fusion \
     },
     "objectives": ["correlation", "threat_assessment", "risk_scoring"]
   }'
-```
+```text
 
 ##  Model Selection Strategy
 
@@ -193,10 +193,10 @@ curl -X POST http://localhost:8001/intelligence/fusion \
 ###  Monitoring
 
 ```bash
-#  Check current usage
+# Check current usage
 curl http://localhost:8001/intelligence/statistics
 
-#  Response includes:
+# Response includes:
 {
   "ai_integration": {
     "free_tier": true,
@@ -216,7 +216,7 @@ curl http://localhost:8001/intelligence/statistics
     "cost_savings": "100% (Free Tier)"
   }
 }
-```
+```text
 
 ##  Security Considerations
 
@@ -230,7 +230,7 @@ curl http://localhost:8001/intelligence/statistics
 ###  Authorization Controls
 
 ```python
-#  All AI requests include authorization context
+# All AI requests include authorization context
 {
   "authorized_testing_only": True,
   "compliance_requirements": "SOC2_TYPE2",
@@ -239,7 +239,7 @@ curl http://localhost:8001/intelligence/statistics
     "clearance": "authorized"
   }
 }
-```
+```text
 
 ##  Performance Optimization
 
@@ -284,12 +284,12 @@ curl http://localhost:8001/intelligence/statistics
 ###  Logs and Monitoring
 
 ```bash
-#  View intelligence engine logs
+# View intelligence engine logs
 docker-compose logs xorb-intelligence-engine
 
-#  Monitor real-time activity
+# Monitor real-time activity
 docker-compose logs -f xorb-intelligence-engine | grep "Strategic"
-```
+```text
 
 ##  Advanced Configuration
 
@@ -304,7 +304,7 @@ Edit `config/llm_strategic_config.json`:
     "payload_generation": "Enhanced payload generation template"
   }
 }
-```
+```text
 
 ###  Model Selection Preferences
 
@@ -318,7 +318,7 @@ Edit `config/llm_strategic_config.json`:
     }
   }
 }
-```
+```text
 
 ##  Integration Examples
 
@@ -336,29 +336,29 @@ async def analyze_vulnerabilities(scan_results):
         ) as response:
             return await response.json()
 
-#  Usage
+# Usage
 results = asyncio.run(analyze_vulnerabilities(scan_data))
-```
+```text
 
 ###  REST API Integration
 
 ```bash
 # !/bin/bash
-#  AI-enhanced security workflow
+# AI-enhanced security workflow
 
-#  1. Generate payloads
+# 1. Generate payloads
 PAYLOADS=$(curl -s -X POST http://localhost:8001/payloads/generate \
   -H "Content-Type: application/json" \
   -d '{"vulnerabilities": {...}}')
 
-#  2. Analyze results
+# 2. Analyze results
 ANALYSIS=$(curl -s -X POST http://localhost:8001/campaigns/test/ai-analysis \
   -H "Content-Type: application/json" \
   -d '{"scan_results": [...]}')
 
-#  3. Generate report
+# 3. Generate report
 echo "Strategic analysis complete with AI enhancement"
-```
+```text
 
 ##  Monitoring and Alerting
 
@@ -373,9 +373,9 @@ echo "Strategic analysis complete with AI enhancement"
 
 Import the strategic AI dashboard:
 ```bash
-#  Located at: grafana/xorb-strategic-ai-dashboard.json
-#  Metrics: Cost, performance, model usage, cache hits
-```
+# Located at: grafana/xorb-strategic-ai-dashboard.json
+# Metrics: Cost, performance, model usage, cache hits
+```text
 
 ##  Support and Maintenance
 
@@ -404,9 +404,9 @@ The Strategic LLM Integration provides supreme cognitive capabilities for cybers
 
 For additional support, refer to the comprehensive logs and monitoring capabilities built into the platform.
 
----
+- --
 
-**Deployment Status**: ✅ Complete
-**AI Enhancement**: ✅ Active
-**EPYC Optimization**: ✅ Enabled
-**Strategic Capabilities**: ✅ Fully Operational
+- **Deployment Status**: ✅ Complete
+- **AI Enhancement**: ✅ Active
+- **EPYC Optimization**: ✅ Enabled
+- **Strategic Capabilities**: ✅ Fully Operational

@@ -1,15 +1,15 @@
-#  Unified Authentication API Documentation
+# Unified Authentication API Documentation
 
 ##  Overview
 
 The XORB Platform's Unified Authentication API provides comprehensive authentication, authorization, and session management capabilities. This API consolidates all authentication functionality into a single, secure, and scalable service.
 
 ##  Base URL
-```
+```text
 Production: https://api.verteidiq.com/auth
 Staging: https://staging-api.verteidiq.com/auth
 Development: http://localhost:8000/auth
-```
+```text
 
 ##  Authentication Methods
 
@@ -40,7 +40,7 @@ The API supports multiple authentication methods:
 - JWT tokens with proper expiration and signature verification
 - Secure API key generation and validation
 
----
+- --
 
 ##  Endpoints
 
@@ -49,7 +49,7 @@ The API supports multiple authentication methods:
 ####  POST /auth/login
 Authenticate user with username and password.
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "username": "string",
@@ -58,9 +58,9 @@ Authenticate user with username and password.
   "device_fingerprint": "string",
   "remember_me": false
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
@@ -82,9 +82,9 @@ Authenticate user with username and password.
     "risk_score": 0.1
   }
 }
-```
+```text
 
-**Response (401 Unauthorized):**
+- *Response (401 Unauthorized):**
 ```json
 {
   "success": false,
@@ -92,9 +92,9 @@ Authenticate user with username and password.
   "message": "Invalid username or password",
   "attempts_remaining": 3
 }
-```
+```text
 
-**Response (423 Locked):**
+- *Response (423 Locked):**
 ```json
 {
   "success": false,
@@ -102,19 +102,19 @@ Authenticate user with username and password.
   "message": "Account locked due to too many failed attempts",
   "lockout_until": "2024-01-15T15:00:00Z"
 }
-```
+```text
 
 ####  POST /auth/refresh
 Refresh access token using refresh token.
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "refresh_token": "string"
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "access_token": "string",
@@ -122,40 +122,40 @@ Refresh access token using refresh token.
   "expires_in": 1800,
   "expires_at": "2024-01-15T14:30:00Z"
 }
-```
+```text
 
 ####  POST /auth/logout
 Logout user and revoke tokens.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "revoke_all_sessions": false
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
   "message": "Successfully logged out"
 }
-```
+```text
 
 ####  POST /auth/validate
 Validate access token and return user information.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "valid": true,
@@ -172,28 +172,28 @@ Authorization: Bearer <access_token>
     "type": "access"
   }
 }
-```
+```text
 
 ###  API Key Management
 
 ####  POST /auth/api-keys
 Create a new API key.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "name": "My API Key",
   "scopes": ["read", "write"],
   "expires_in_days": 365
 }
-```
+```text
 
-**Response (201 Created):**
+- *Response (201 Created):**
 ```json
 {
   "api_key": "xorb_1234567890abcdef...",
@@ -203,17 +203,17 @@ Authorization: Bearer <access_token>
   "created_at": "2024-01-15T13:00:00Z",
   "expires_at": "2025-01-15T13:00:00Z"
 }
-```
+```text
 
 ####  GET /auth/api-keys
 List user's API keys.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "api_keys": [
@@ -228,43 +228,43 @@ Authorization: Bearer <access_token>
     }
   ]
 }
-```
+```text
 
 ####  DELETE /auth/api-keys/{key_id}
 Revoke an API key.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
   "message": "API key revoked successfully"
 }
-```
+```text
 
 ###  Multi-Factor Authentication
 
 ####  POST /auth/mfa/setup
 Setup MFA for user account.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "method": "totp",
   "device_name": "My Phone"
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "method": "totp",
@@ -273,53 +273,53 @@ Authorization: Bearer <access_token>
   "backup_codes": ["12345678", "87654321"],
   "setup_token": "temp_setup_token"
 }
-```
+```text
 
 ####  POST /auth/mfa/verify
 Verify MFA setup or login challenge.
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "method": "totp",
   "code": "123456",
   "setup_token": "temp_setup_token"
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
   "message": "MFA verified successfully"
 }
-```
+```text
 
 ###  SSO Authentication
 
 ####  GET /auth/sso/{provider}/authorize
 Initiate SSO authentication flow.
 
-**Parameters:**
+- *Parameters:**
 - `provider`: One of `azure`, `google`, `okta`, `github`
 - `redirect_uri`: Post-authentication redirect URL
 - `state`: CSRF protection state parameter
 
-**Response (302 Redirect):**
+- *Response (302 Redirect):**
 Redirects to SSO provider authorization URL.
 
 ####  POST /auth/sso/{provider}/callback
 Handle SSO callback and complete authentication.
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "code": "authorization_code",
   "state": "csrf_state_token"
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
@@ -333,72 +333,72 @@ Handle SSO callback and complete authentication.
     "sso_id": "external_user_id"
   }
 }
-```
+```text
 
 ###  Password Management
 
 ####  POST /auth/password/change
 Change user password.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "current_password": "string",
   "new_password": "string"
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
   "message": "Password changed successfully"
 }
-```
+```text
 
 ####  POST /auth/password/reset/request
 Request password reset.
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "email": "user@example.com"
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
   "message": "Password reset email sent"
 }
-```
+```text
 
 ####  POST /auth/password/reset/confirm
 Confirm password reset with token.
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "reset_token": "string",
   "new_password": "string"
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
   "message": "Password reset successfully"
 }
-```
+```text
 
----
+- --
 
 ##  Security Considerations
 
@@ -426,7 +426,7 @@ Confirm password reset with token.
 - Progressive delays for repeated failures
 - Email notification on account lockout
 
----
+- --
 
 ##  Error Codes
 
@@ -443,7 +443,7 @@ Confirm password reset with token.
 | `sso_error` | SSO authentication failed |
 | `api_key_invalid` | API key is invalid or revoked |
 
----
+- --
 
 ##  SDKs and Examples
 
@@ -451,27 +451,27 @@ Confirm password reset with token.
 ```python
 from xorb_sdk import XORBClient
 
-#  Initialize client
+# Initialize client
 client = XORBClient(
     base_url="https://api.verteidiq.com",
     api_key="xorb_your_api_key_here"
 )
 
-#  Authenticate with username/password
+# Authenticate with username/password
 auth_result = await client.auth.login(
     username="user@example.com",
     password="SecurePassword123!"
 )
 
-#  Use access token for API calls
+# Use access token for API calls
 client.set_access_token(auth_result.access_token)
 
-#  Create API key
+# Create API key
 api_key = await client.auth.create_api_key(
     name="Backend Service",
     scopes=["read", "write"]
 )
-```
+```text
 
 ###  JavaScript SDK Example
 ```javascript
@@ -495,11 +495,11 @@ client.setAccessToken(authResult.accessToken);
 // Validate token
 const userInfo = await client.auth.validate();
 console.log('Authenticated as:', userInfo.user.username);
-```
+```text
 
 ###  cURL Examples
 ```bash
-#  Login
+# Login
 curl -X POST https://api.verteidiq.com/auth/login \
   -H "Content-Type: application/json" \
   -d '{
@@ -507,11 +507,11 @@ curl -X POST https://api.verteidiq.com/auth/login \
     "password": "SecurePassword123!"
   }'
 
-#  Use access token
+# Use access token
 curl -X GET https://api.verteidiq.com/auth/validate \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
-#  Create API key
+# Create API key
 curl -X POST https://api.verteidiq.com/auth/api-keys \
   -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
   -H "Content-Type: application/json" \
@@ -519,9 +519,9 @@ curl -X POST https://api.verteidiq.com/auth/api-keys \
     "name": "My API Key",
     "scopes": ["read", "write"]
   }'
-```
+```text
 
----
+- --
 
 ##  Monitoring and Observability
 
@@ -535,11 +535,11 @@ The authentication service exposes the following Prometheus metrics:
 - `xorb_auth_api_key_usage_total` - API key usage count
 
 ###  Health Check
-```
+```text
 GET /auth/health
-```
+```text
 
-**Response:**
+- *Response:**
 ```json
 {
   "status": "healthy",
@@ -551,7 +551,7 @@ GET /auth/health
     "vault": "healthy"
   }
 }
-```
+```text
 
 ###  Audit Logging
 All authentication events are logged with the following information:
@@ -562,7 +562,7 @@ All authentication events are logged with the following information:
 - Risk assessment data
 - Device fingerprint
 
----
+- --
 
 ##  Migration Guide
 
@@ -604,19 +604,19 @@ If migrating from the legacy authentication services:
 
 Update environment variables:
 ```bash
-#  Old scattered configuration
+# Old scattered configuration
 AUTH_SECRET_KEY=...
 PASSWORD_MIN_LENGTH=...
 MAX_LOGIN_ATTEMPTS=...
 
-#  New unified configuration
+# New unified configuration
 JWT_SECRET=...
 PASSWORD_MIN_LENGTH=12
 MAX_LOGIN_ATTEMPTS=5
 LOCKOUT_DURATION_MINUTES=30
-```
+```text
 
----
+- --
 
 ##  Support and Resources
 

@@ -1,4 +1,4 @@
-#  Red Team Agents
+# Red Team Agents
 
 The XORB Red/Blue Agent Framework includes specialized red team agents that simulate real-world attack scenarios. These agents follow the MITRE ATT&CK framework and provide comprehensive offensive security testing capabilities.
 
@@ -31,7 +31,7 @@ The Reconnaissance Agent specializes in information gathering and target discove
 
 ####  Network Reconnaissance
 
-**`recon.port_scan` (T1046 - Network Service Scanning)**
+- *`recon.port_scan` (T1046 - Network Service Scanning)**
 - Discover open ports and services on target systems
 - Supports TCP, UDP, and stealth scanning modes
 - Configurable timing and port ranges
@@ -47,9 +47,9 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "timing": "normal"
   }
 }
-```
+```text
 
-**`recon.service_enum` (T1046 - Network Service Scanning)**
+- *`recon.service_enum` (T1046 - Network Service Scanning)**
 - Enumerate services and gather version information
 - Banner grabbing and service fingerprinting
 - Dependent on port scanning results
@@ -64,11 +64,11 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "aggressive": false
   }
 }
-```
+```text
 
 ####  Web Application Reconnaissance
 
-**`recon.web_crawl` (T1592.002 - Gather Victim Host Information)**
+- *`recon.web_crawl` (T1592.002 - Gather Victim Host Information)**
 - Crawl web applications to discover endpoints and technologies
 - Extract forms, links, and technology stack information
 - Configurable crawl depth and user agents
@@ -83,11 +83,11 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "user_agent": "Mozilla/5.0 (compatible; XORBBot/1.0)"
   }
 }
-```
+```text
 
 ####  DNS and Infrastructure
 
-**`recon.dns_enum` (T1590.002 - DNS)**
+- *`recon.dns_enum` (T1590.002 - DNS)**
 - Comprehensive DNS enumeration
 - Multiple record type queries (A, AAAA, MX, NS, TXT)
 - DNS zone transfer attempts
@@ -101,9 +101,9 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "record_types": ["A", "AAAA", "MX", "NS", "TXT"]
   }
 }
-```
+```text
 
-**`recon.subdomain_enum` (T1590.002 - DNS)**
+- *`recon.subdomain_enum` (T1590.002 - DNS)**
 - Subdomain enumeration using wordlists
 - DNS brute forcing with common subdomains
 - Integration with public subdomain databases
@@ -117,11 +117,11 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "wordlist": ["www", "mail", "ftp", "admin", "dev"]
   }
 }
-```
+```text
 
 ####  Network Discovery
 
-**`recon.network_discovery` (T1018 - Remote System Discovery)**
+- *`recon.network_discovery` (T1018 - Remote System Discovery)**
 - Discover live hosts on network segments
 - ARP scanning and ping sweeps
 - Network topology mapping
@@ -134,9 +134,9 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "network": "192.168.1.0/24"
   }
 }
-```
+```text
 
-**`recon.os_fingerprint` (T1082 - System Information Discovery)**
+- *`recon.os_fingerprint` (T1082 - System Information Discovery)**
 - Operating system fingerprinting
 - Network stack analysis
 - Service behavior analysis
@@ -149,7 +149,7 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "target": "example.com"
   }
 }
-```
+```text
 
 ###  Execution Flow
 
@@ -205,7 +205,7 @@ The Reconnaissance Agent follows a systematic approach:
     ]
   }
 }
-```
+```text
 
 ##  ⚔️ Exploitation Agent
 
@@ -215,7 +215,7 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
 
 ####  Web Application Exploitation
 
-**`exploit.web_sqli` (T1190 - Exploit Public-Facing Application)**
+- *`exploit.web_sqli` (T1190 - Exploit Public-Facing Application)**
 - SQL injection attack automation
 - Multiple injection techniques (boolean, union, time-based, error-based)
 - Database fingerprinting and enumeration
@@ -231,9 +231,9 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     "database": "mysql"
   }
 }
-```
+```text
 
-**`exploit.web_shell` (T1505.003 - Web Shell)**
+- *`exploit.web_shell` (T1505.003 - Web Shell)**
 - Web shell upload and deployment
 - Multiple shell types (PHP, ASP, JSP, Python)
 - Bypass techniques for upload restrictions
@@ -248,11 +248,11 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     "filename": "shell.php"
   }
 }
-```
+```text
 
 ####  Credential Attacks
 
-**`exploit.brute_force` (T1110 - Brute Force)**
+- *`exploit.brute_force` (T1110 - Brute Force)**
 - Automated brute force attacks
 - Support for multiple protocols (SSH, RDP, HTTP, FTP)
 - Smart wordlist management
@@ -269,9 +269,9 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     "delay": 1.0
   }
 }
-```
+```text
 
-**`exploit.credential_stuffing` (T1110.004 - Credential Stuffing)**
+- *`exploit.credential_stuffing` (T1110.004 - Credential Stuffing)**
 - Use previously breached credentials
 - Large-scale credential testing
 - Success rate optimization
@@ -288,17 +288,17 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     ]
   }
 }
-```
+```text
 
 ####  System Exploitation
 
-**`exploit.buffer_overflow` (T1068 - Exploitation for Privilege Escalation)**
+- *`exploit.buffer_overflow` (T1068 - Exploitation for Privilege Escalation)**
 - Buffer overflow exploitation
 - Payload generation and delivery
 - Exploit development and testing
 - Memory corruption techniques
 
-**`exploit.privilege_escalation` (T1068 - Exploitation for Privilege Escalation)**
+- *`exploit.privilege_escalation` (T1068 - Exploitation for Privilege Escalation)**
 - Local privilege escalation
 - Kernel exploit detection and execution
 - SUID/SGID binary exploitation
@@ -312,7 +312,7 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     "target_user": "root"
   }
 }
-```
+```text
 
 ###  Exploitation Workflow
 
@@ -342,7 +342,7 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
 
 ####  Web-Based Persistence
 
-**`persist.web_shell` (T1505.003 - Server Software Component)**
+- *`persist.web_shell` (T1505.003 - Server Software Component)**
 - Deploy and maintain web shells
 - Multiple backup shell locations
 - Shell health monitoring and restoration
@@ -359,11 +359,11 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     ]
   }
 }
-```
+```text
 
 ####  System-Level Persistence
 
-**`persist.scheduled_task` (T1053.005 - Scheduled Task)**
+- *`persist.scheduled_task` (T1053.005 - Scheduled Task)**
 - Create scheduled tasks for persistence
 - Windows Task Scheduler integration
 - Linux cron job manipulation
@@ -378,9 +378,9 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "trigger": "daily"
   }
 }
-```
+```text
 
-**`persist.service_creation` (T1543.003 - Windows Service)**
+- *`persist.service_creation` (T1543.003 - Windows Service)**
 - Create system services for persistence
 - Service configuration and management
 - Privilege escalation through services
@@ -395,11 +395,11 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "start_type": "auto"
   }
 }
-```
+```text
 
 ####  User Account Manipulation
 
-**`persist.user_account` (T1136.001 - Local Account)**
+- *`persist.user_account` (T1136.001 - Local Account)**
 - Create hidden user accounts
 - Modify existing account permissions
 - Password policy bypass
@@ -414,11 +414,11 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "groups": ["Administrators"]
   }
 }
-```
+```text
 
 ####  File System Persistence
 
-**`persist.startup_script` (T1037 - Boot or Logon Initialization Scripts)**
+- *`persist.startup_script` (T1037 - Boot or Logon Initialization Scripts)**
 - Modify startup scripts and configurations
 - Registry autorun entries (Windows)
 - Systemd service files (Linux)
@@ -432,9 +432,9 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "script_content": "#!/bin/bash\n# Network monitoring service\n/opt/monitor/agent &"
   }
 }
-```
+```text
 
-**`persist.registry_autorun` (T1547.001 - Registry Run Keys)**
+- *`persist.registry_autorun` (T1547.001 - Registry Run Keys)**
 - Windows registry autorun entries
 - Multiple registry locations
 - Registry key obfuscation
@@ -449,11 +449,11 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "value_data": "C:\\Windows\\System32\\security.exe"
   }
 }
-```
+```text
 
 ####  Network-Based Persistence
 
-**`persist.ssh_keys` (T1098.004 - SSH Authorized Keys)**
+- *`persist.ssh_keys` (T1098.004 - SSH Authorized Keys)**
 - SSH key-based persistence
 - Authorized_keys file manipulation
 - Key generation and installation
@@ -467,7 +467,7 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQAB..."
   }
 }
-```
+```text
 
 ###  Persistence Strategy
 
@@ -488,7 +488,7 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
 
 ####  Process Manipulation
 
-**`evasion.process_hollowing` (T1055.012 - Process Hollowing)**
+- *`evasion.process_hollowing` (T1055.012 - Process Hollowing)**
 - Inject malicious code into legitimate processes
 - Memory manipulation and code injection
 - Process replacement techniques
@@ -502,11 +502,11 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "payload": "base64_encoded_shellcode"
   }
 }
-```
+```text
 
 ####  Network Evasion
 
-**`evasion.domain_fronting` (T1090.004 - Domain Fronting)**
+- *`evasion.domain_fronting` (T1090.004 - Domain Fronting)**
 - Hide C2 communications using domain fronting
 - CDN-based traffic obfuscation
 - SSL/TLS certificate manipulation
@@ -521,9 +521,9 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "cdn_provider": "cloudflare"
   }
 }
-```
+```text
 
-**`evasion.traffic_obfuscation` (T1001 - Data Obfuscation)**
+- *`evasion.traffic_obfuscation` (T1001 - Data Obfuscation)**
 - Encrypt and obfuscate network traffic
 - Protocol mimicry and tunneling
 - Steganographic data hiding
@@ -537,11 +537,11 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "port": 443
   }
 }
-```
+```text
 
 ####  File System Evasion
 
-**`evasion.timestomp` (T1070.006 - Timestomp)**
+- *`evasion.timestomp` (T1070.006 - Timestomp)**
 - Manipulate file timestamps
 - Hide file creation and modification times
 - Timestamp normalization
@@ -555,9 +555,9 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "timestamp": "2020-01-01 00:00:00"
   }
 }
-```
+```text
 
-**`evasion.file_masquerading` (T1036 - Masquerading)**
+- *`evasion.file_masquerading` (T1036 - Masquerading)**
 - Disguise malicious files as legitimate ones
 - File extension manipulation
 - Icon and metadata spoofing
@@ -572,11 +572,11 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "legitimate_path": "C:\\Windows\\System32"
   }
 }
-```
+```text
 
 ####  Anti-Forensics
 
-**`evasion.log_clearing` (T1070.002 - Clear Linux or Mac System Logs)**
+- *`evasion.log_clearing` (T1070.002 - Clear Linux or Mac System Logs)**
 - Clear system and application logs
 - Selective log entry deletion
 - Log rotation manipulation
@@ -589,11 +589,11 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "log_types": ["system", "auth", "application"]
   }
 }
-```
+```text
 
 ####  Antivirus Evasion
 
-**`evasion.av_bypass` (T1027 - Obfuscated Files or Information)**
+- *`evasion.av_bypass` (T1027 - Obfuscated Files or Information)**
 - Bypass antivirus and EDR solutions
 - Payload obfuscation and packing
 - Signature evasion techniques
@@ -607,7 +607,7 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "techniques": ["packing", "obfuscation", "encryption"]
   }
 }
-```
+```text
 
 ###  Evasion Strategy
 
@@ -628,7 +628,7 @@ The Collection Agent specializes in data collection and credential harvesting, i
 
 ####  Input Capture
 
-**`collection.keylogging` (T1056.001 - Keylogging)**
+- *`collection.keylogging` (T1056.001 - Keylogging)**
 - Capture keystrokes from target systems
 - Hardware and software keyloggers
 - Credential extraction from keystrokes
@@ -642,9 +642,9 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "output_file": "keylog.txt"
   }
 }
-```
+```text
 
-**`collection.screen_capture` (T1113 - Screen Capture)**
+- *`collection.screen_capture` (T1113 - Screen Capture)**
 - Capture screenshots and screen recordings
 - Periodic screenshot collection
 - Screen content analysis
@@ -658,9 +658,9 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "quality": "medium"
   }
 }
-```
+```text
 
-**`collection.clipboard` (T1115 - Clipboard Data)**
+- *`collection.clipboard` (T1115 - Clipboard Data)**
 - Monitor and capture clipboard content
 - Real-time clipboard surveillance
 - Sensitive data detection
@@ -673,11 +673,11 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "duration": 300
   }
 }
-```
+```text
 
 ####  Credential Harvesting
 
-**`collection.credential_dumping` (T1003 - OS Credential Dumping)**
+- *`collection.credential_dumping` (T1003 - OS Credential Dumping)**
 - Extract credentials from system memory
 - Password hash dumping
 - Cached credential extraction
@@ -691,9 +691,9 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "target_users": ["admin", "user"]
   }
 }
-```
+```text
 
-**`collection.browser_data` (T1555.003 - Credentials from Web Browsers)**
+- *`collection.browser_data` (T1555.003 - Credentials from Web Browsers)**
 - Extract saved passwords from browsers
 - Cookie and session token harvesting
 - Browser history and bookmark analysis
@@ -707,11 +707,11 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "data_types": ["passwords", "cookies", "history"]
   }
 }
-```
+```text
 
 ####  File and Data Collection
 
-**`collection.file_search` (T1005 - Data from Local System)**
+- *`collection.file_search` (T1005 - Data from Local System)**
 - Search for sensitive files and documents
 - Pattern-based file discovery
 - Content analysis and filtering
@@ -726,9 +726,9 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "keywords": ["password", "confidential", "secret"]
   }
 }
-```
+```text
 
-**`collection.network_shares` (T1039 - Data from Network Shared Drive)**
+- *`collection.network_shares` (T1039 - Data from Network Shared Drive)**
 - Enumerate and access network shares
 - SMB/CIFS share discovery
 - Network file system access
@@ -741,17 +741,17 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "target_networks": ["192.168.1.0/24"]
   }
 }
-```
+```text
 
 ####  Forensic Collection
 
-**`collection.memory_dump` (T1005 - Data from Local System)**
+- *`collection.memory_dump` (T1005 - Data from Local System)**
 - Create memory dumps for analysis
 - Live memory acquisition
 - Process memory extraction
 - Artifact preservation
 
-**`collection.forensic_artifacts` (T1005 - Data from Local System)**
+- *`collection.forensic_artifacts` (T1005 - Data from Local System)**
 - Collect forensic artifacts
 - System registry extraction
 - Log file collection
@@ -797,7 +797,7 @@ Red team agents respect environment-specific policies:
     "max_risk_level": "critical"
   }
 }
-```
+```text
 
 ###  Resource Constraints
 
@@ -824,7 +824,7 @@ Each agent type has specific resource requirements:
     "network_bandwidth_mb": 25
   }
 }
-```
+```text
 
 ##  📈 Performance Metrics
 
@@ -895,7 +895,7 @@ Red team agents collect comprehensive performance metrics:
 - **Forensic Tools**: Integrate with forensic workflows
 - **Ticketing Systems**: Create tickets for findings
 
----
+- --
 
 For more detailed information, see:
 - [Blue Team Agents](./blue_team.md)

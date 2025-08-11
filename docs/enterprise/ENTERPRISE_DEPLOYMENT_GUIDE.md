@@ -1,8 +1,8 @@
-#  XORB Enterprise Deployment Guide
+# XORB Enterprise Deployment Guide
 
-**Version**: 2.0
-**Date**: January 2025
-**Audience**: Enterprise IT Teams, DevOps Engineers, Security Teams
+- **Version**: 2.0
+- **Date**: January 2025
+- **Audience**: Enterprise IT Teams, DevOps Engineers, Security Teams
 
 ##  🎯 **Executive Summary**
 
@@ -35,7 +35,7 @@ Optional Components:
   - Grafana: v10.0+
   - Jaeger: v1.49+
   - ElasticSearch: v8.0+ (for log aggregation)
-```
+```text
 
 ###  **Network Requirements**
 
@@ -60,7 +60,7 @@ Internal Communication:
   - Redis: 6379/tcp
   - Temporal: 7233/tcp
   - Vault: 8200/tcp
-```
+```text
 
 ##  🚀 **Deployment Options**
 
@@ -69,29 +69,29 @@ Internal Communication:
 ####  **1.1 Prepare Kubernetes Cluster**
 
 ```bash
-#  Create namespace
+# Create namespace
 kubectl create namespace xorb-production
 
-#  Create service accounts
+# Create service accounts
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: xorb-api
   namespace: xorb-production
----
+- --
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: xorb-orchestrator
   namespace: xorb-production
 EOF
-```
+```text
 
 ####  **1.2 Deploy Infrastructure Components**
 
 ```bash
-#  Deploy PostgreSQL with pgvector
+# Deploy PostgreSQL with pgvector
 helm repo add bitnami https://charts.bitnami.com/bitnami
 helm install xorb-postgres bitnami/postgresql \
   --namespace xorb-production \
@@ -101,30 +101,30 @@ helm install xorb-postgres bitnami/postgresql \
   --set primary.resources.requests.memory=2Gi \
   --set primary.resources.requests.cpu=1000m
 
-#  Deploy Redis Cluster
+# Deploy Redis Cluster
 helm install xorb-redis bitnami/redis \
   --namespace xorb-production \
   --set auth.password=SecureRedisPassword123! \
   --set replica.replicaCount=3 \
   --set sentinel.enabled=true
 
-#  Deploy Temporal
+# Deploy Temporal
 helm repo add temporalio https://go.temporal.io/helm-charts
 helm install xorb-temporal temporalio/temporal \
   --namespace xorb-production \
   --set server.replicaCount=3 \
   --set cassandra.config.cluster_size=3 \
   --set web.enabled=true
-```
+```text
 
 ####  **1.3 Deploy XORB Platform**
 
 ```bash
-#  Clone repository
+# Clone repository
 git clone https://github.com/your-org/xorb.git
 cd xorb
 
-#  Create configuration secrets
+# Create configuration secrets
 kubectl create secret generic xorb-config \
   --namespace xorb-production \
   --from-literal=database-url="postgresql://postgres:SecurePassword123!@xorb-postgres:5432/xorb_production" \
@@ -134,32 +134,32 @@ kubectl create secret generic xorb-config \
   --from-literal=nvidia-api-key="your-nvidia-key" \
   --from-literal=openrouter-api-key="your-openrouter-key"
 
-#  Deploy XORB services
+# Deploy XORB services
 kubectl apply -f deploy/kubernetes/production/
 
-#  Verify deployment
+# Verify deployment
 kubectl get pods -n xorb-production
 kubectl get services -n xorb-production
-```
+```text
 
 ###  **Option 2: Docker Compose Deployment**
 
 ####  **2.1 Production Docker Compose**
 
 ```bash
-#  Clone repository
+# Clone repository
 git clone https://github.com/your-org/xorb.git
 cd xorb
 
-#  Copy environment template
+# Copy environment template
 cp .env.template .env.production
 
-#  Edit configuration
+# Edit configuration
 vim .env.production
-```
+```text
 
 ```env
-#  .env.production
+# .env.production
 ENVIRONMENT=production
 DATABASE_URL=postgresql://postgres:SecurePassword123!@postgres:5432/xorb_production
 REDIS_URL=redis://:SecureRedisPassword123!@redis:6379
@@ -172,23 +172,23 @@ RATE_LIMIT_PER_MINUTE=1000
 RATE_LIMIT_PER_HOUR=10000
 CORS_ALLOW_ORIGINS=https://your-domain.com
 ENABLE_METRICS=true
-```
+```text
 
 ```bash
-#  Deploy with production configuration
+# Deploy with production configuration
 docker-compose -f docker-compose.enterprise.yml up -d
 
-#  Verify deployment
+# Verify deployment
 docker-compose -f docker-compose.enterprise.yml ps
 docker-compose -f docker-compose.enterprise.yml logs
-```
+```text
 
 ##  🔐 **Security Configuration**
 
 ###  **SSL/TLS Configuration**
 
 ```yaml
-#  ingress-tls.yaml
+# ingress-tls.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -215,18 +215,18 @@ spec:
             name: xorb-api
             port:
               number: 80
-```
+```text
 
 ###  **Vault Secret Management**
 
 ```bash
-#  Initialize Vault
+# Initialize Vault
 kubectl exec -it vault-0 -n xorb-production -- vault operator init
 
-#  Configure authentication
+# Configure authentication
 kubectl exec -it vault-0 -n xorb-production -- vault auth enable kubernetes
 
-#  Create policies
+# Create policies
 kubectl exec -it vault-0 -n xorb-production -- vault policy write xorb-policy - <<EOF
 path "secret/xorb/*" {
   capabilities = ["read", "list"]
@@ -236,17 +236,17 @@ path "database/creds/xorb-app" {
 }
 EOF
 
-#  Store secrets
+# Store secrets
 kubectl exec -it vault-0 -n xorb-production -- vault kv put secret/xorb/config \
   jwt_secret="your-jwt-secret" \
   database_password="SecurePassword123!" \
   redis_password="SecureRedisPassword123!"
-```
+```text
 
 ###  **Network Policies**
 
 ```yaml
-#  network-policy.yaml
+# network-policy.yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -277,14 +277,14 @@ spec:
       port: 5432  # PostgreSQL
     - protocol: TCP
       port: 6379  # Redis
-```
+```text
 
 ##  📊 **Monitoring & Observability**
 
 ###  **Prometheus Configuration**
 
 ```yaml
-#  prometheus-config.yaml
+# prometheus-config.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -316,17 +316,17 @@ data:
     - job_name: 'redis-exporter'
       static_configs:
       - targets: ['redis-exporter:9121']
-```
+```text
 
 ###  **Grafana Dashboards**
 
 ```bash
-#  Import XORB dashboards
+# Import XORB dashboards
 kubectl create configmap xorb-dashboards \
   --namespace xorb-production \
   --from-file=services/infrastructure/monitoring/grafana/dashboards/
 
-#  Configure Grafana data sources
+# Configure Grafana data sources
 kubectl apply -f - <<EOF
 apiVersion: v1
 kind: ConfigMap
@@ -343,87 +343,87 @@ data:
       access: proxy
       isDefault: true
 EOF
-```
+```text
 
 ##  🔄 **Database Setup**
 
 ###  **PostgreSQL Initialization**
 
 ```sql
--- Connect to PostgreSQL
+- - Connect to PostgreSQL
 psql -h localhost -U postgres -d xorb_production
 
--- Create extensions
+- - Create extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "vector";
 
--- Create application user
+- - Create application user
 CREATE USER xorb_app WITH PASSWORD 'SecureAppPassword123!';
 
--- Grant permissions
+- - Grant permissions
 GRANT CONNECT ON DATABASE xorb_production TO xorb_app;
 GRANT USAGE ON SCHEMA public TO xorb_app;
 GRANT CREATE ON SCHEMA public TO xorb_app;
 
--- Create initial tables (run migrations)
--- This would typically be done via Alembic migrations
-```
+- - Create initial tables (run migrations)
+- - This would typically be done via Alembic migrations
+```text
 
 ###  **Database Migrations**
 
 ```bash
-#  Run database migrations
+# Run database migrations
 kubectl exec -it xorb-api-0 -n xorb-production -- \
   python -m alembic upgrade head
 
-#  Verify migrations
+# Verify migrations
 kubectl exec -it xorb-api-0 -n xorb-production -- \
   python -m alembic current
-```
+```text
 
 ##  🧪 **Testing Deployment**
 
 ###  **Health Checks**
 
 ```bash
-#  API health check
+# API health check
 curl -f https://api.your-domain.com/health
 
-#  Readiness check
+# Readiness check
 curl -f https://api.your-domain.com/readiness
 
-#  Orchestrator health
+# Orchestrator health
 curl -f https://api.your-domain.com:8080/health
 
-#  Database connectivity
+# Database connectivity
 kubectl exec -it xorb-api-0 -n xorb-production -- \
   python -c "import asyncpg; import asyncio; asyncio.run(asyncpg.connect('${DATABASE_URL}').close())"
-```
+```text
 
 ###  **Functional Testing**
 
 ```bash
-#  Test API authentication
+# Test API authentication
 curl -X POST https://api.your-domain.com/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "test123"}'
 
-#  Test PTaaS functionality
+# Test PTaaS functionality
 curl -X POST https://api.your-domain.com/ptaas/scan \
   -H "Authorization: Bearer ${JWT_TOKEN}" \
   -H "Content-Type: application/json" \
   -d '{"targets": [{"host": "test.example.com", "ports": [80, 443]}], "scan_type": "quick"}'
 
-#  Test threat intelligence
+# Test threat intelligence
 curl -X GET https://api.your-domain.com/intelligence/threats \
   -H "Authorization: Bearer ${JWT_TOKEN}"
-```
+```text
 
 ###  **Performance Testing**
 
 ```bash
-#  Install testing tools
+# Install testing tools
 kubectl run load-test --image=loadimpact/k6:latest --rm -it --restart=Never -- \
   run - <<EOF
 import http from 'k6/http';
@@ -448,14 +448,14 @@ export default function () {
   sleep(1);
 }
 EOF
-```
+```text
 
 ##  🔧 **Configuration Management**
 
 ###  **Environment Variables**
 
 ```yaml
-#  configmap.yaml
+# configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -472,26 +472,26 @@ data:
   CACHE_TTL: "3600"
   DATABASE_POOL_SIZE: "20"
   REDIS_POOL_SIZE: "10"
-```
+```text
 
 ###  **Multi-Environment Support**
 
 ```bash
-#  Staging environment
+# Staging environment
 kubectl create namespace xorb-staging
 kubectl apply -f deploy/kubernetes/staging/ -n xorb-staging
 
-#  Development environment
+# Development environment
 kubectl create namespace xorb-development
 kubectl apply -f deploy/kubernetes/development/ -n xorb-development
-```
+```text
 
 ##  📈 **Scaling Configuration**
 
 ###  **Horizontal Pod Autoscaling**
 
 ```yaml
-#  hpa.yaml
+# hpa.yaml
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
@@ -517,12 +517,12 @@ spec:
       target:
         type: Utilization
         averageUtilization: 80
-```
+```text
 
 ###  **Vertical Pod Autoscaling**
 
 ```yaml
-#  vpa.yaml
+# vpa.yaml
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
 metadata:
@@ -544,14 +544,14 @@ spec:
       minAllowed:
         cpu: 100m
         memory: 256Mi
-```
+```text
 
 ##  🔄 **Backup & Disaster Recovery**
 
 ###  **Database Backup**
 
 ```bash
-#  Create backup job
+# Create backup job
 kubectl apply -f - <<EOF
 apiVersion: batch/v1
 kind: CronJob
@@ -589,16 +589,16 @@ spec:
               claimName: backup-pvc
           restartPolicy: OnFailure
 EOF
-```
+```text
 
 ###  **Application State Backup**
 
 ```bash
-#  Backup secrets and configurations
+# Backup secrets and configurations
 kubectl get secrets -n xorb-production -o yaml > xorb-secrets-backup.yaml
 kubectl get configmaps -n xorb-production -o yaml > xorb-config-backup.yaml
 kubectl get persistentvolumeclaims -n xorb-production -o yaml > xorb-pvc-backup.yaml
-```
+```text
 
 ##  🚨 **Troubleshooting**
 
@@ -607,84 +607,84 @@ kubectl get persistentvolumeclaims -n xorb-production -o yaml > xorb-pvc-backup.
 ####  **1. Pod Startup Issues**
 
 ```bash
-#  Check pod status
+# Check pod status
 kubectl describe pod xorb-api-0 -n xorb-production
 
-#  Check logs
+# Check logs
 kubectl logs xorb-api-0 -n xorb-production --follow
 
-#  Check events
+# Check events
 kubectl get events -n xorb-production --sort-by='.lastTimestamp'
-```
+```text
 
 ####  **2. Database Connection Issues**
 
 ```bash
-#  Test database connectivity
+# Test database connectivity
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "SELECT version();"
 
-#  Check database logs
+# Check database logs
 kubectl logs xorb-postgres-0 -n xorb-production
-```
+```text
 
 ####  **3. Performance Issues**
 
 ```bash
-#  Check resource usage
+# Check resource usage
 kubectl top pods -n xorb-production
 kubectl top nodes
 
-#  Check HPA status
+# Check HPA status
 kubectl describe hpa xorb-api-hpa -n xorb-production
 
-#  Check metrics
+# Check metrics
 curl -s https://api.your-domain.com/metrics | grep -E "(http_requests|response_time)"
-```
+```text
 
 ###  **Log Analysis**
 
 ```bash
-#  Centralized logging with ELK
+# Centralized logging with ELK
 kubectl logs -l app=xorb -n xorb-production --since=1h | \
   jq -r 'select(.level == "ERROR") | .message'
 
-#  Performance metrics
+# Performance metrics
 kubectl logs -l app=xorb-api -n xorb-production --since=10m | \
   grep "response_time" | awk '{print $NF}' | sort -n
-```
+```text
 
 ##  📞 **Support & Maintenance**
 
 ###  **Maintenance Windows**
 
 ```bash
-#  Planned maintenance procedure
+# Planned maintenance procedure
 1. Scale down to minimum replicas
 2. Run maintenance tasks
 3. Scale back up
 4. Verify functionality
 
-#  Example maintenance scaling
+# Example maintenance scaling
 kubectl scale deployment xorb-api --replicas=1 -n xorb-production
-#  Perform maintenance
+# Perform maintenance
 kubectl scale deployment xorb-api --replicas=3 -n xorb-production
-```
+```text
 
 ###  **Update Procedures**
 
 ```bash
-#  Rolling update
+# Rolling update
 kubectl set image deployment/xorb-api \
   xorb-api=ghcr.io/your-org/xorb:v2.1.0 \
   -n xorb-production
 
-#  Monitor rollout
+# Monitor rollout
 kubectl rollout status deployment/xorb-api -n xorb-production
 
-#  Rollback if needed
+# Rollback if needed
 kubectl rollout undo deployment/xorb-api -n xorb-production
-```
+```text
 
 ##  🏆 **Best Practices**
 
@@ -709,9 +709,9 @@ kubectl rollout undo deployment/xorb-api -n xorb-production
 - Regular backup testing
 - Document all procedures and configurations
 
----
+- --
 
-**For additional support or questions, contact:**
+- *For additional support or questions, contact:**
 - **Email**: enterprise-support@xorb-security.com
 - **Documentation**: https://docs.xorb-security.com
 - **Support Portal**: https://support.xorb-security.com

@@ -1,4 +1,4 @@
-#  XORB Platform Strategic TLS Deployment Plan
+# XORB Platform Strategic TLS Deployment Plan
 
 ##  Executive Summary
 
@@ -23,7 +23,7 @@ This document outlines the strategic approach for deploying comprehensive end-to
 ##  🏗️ Architecture Overview
 
 ###  Certificate Hierarchy
-```
+```text
 XORB Root CA (4096-bit, 10 years)
 └── XORB Intermediate CA (4096-bit, 5 years)
     ├── Service Certificates (2048-bit, 30 days)
@@ -43,7 +43,7 @@ XORB Root CA (4096-bit, 10 years)
         ├── redis-client.xorb.local
         ├── postgres-client.xorb.local
         └── temporal-client.xorb.local
-```
+```text
 
 ###  Service Communication Matrix
 | Source Service | Target Service | Protocol | Port | Auth Method |
@@ -68,15 +68,15 @@ XORB Root CA (4096-bit, 10 years)
 
 ###  Phase 2: Service Certificate Generation
 ```bash
-#  Generate all required certificates
+# Generate all required certificates
 ./scripts/ca/make-ca.sh
 
-#  Service certificates (server + client)
+# Service certificates (server + client)
 ./scripts/ca/issue-cert.sh api both
 ./scripts/ca/issue-cert.sh orchestrator both
 ./scripts/ca/issue-cert.sh agent both
 
-#  Service-only certificates
+# Service-only certificates
 ./scripts/ca/issue-cert.sh redis server
 ./scripts/ca/issue-cert.sh postgres server
 ./scripts/ca/issue-cert.sh temporal server
@@ -84,12 +84,12 @@ XORB Root CA (4096-bit, 10 years)
 ./scripts/ca/issue-cert.sh grafana server
 ./scripts/ca/issue-cert.sh dind server
 
-#  Client-only certificates
+# Client-only certificates
 ./scripts/ca/issue-cert.sh redis-client client
 ./scripts/ca/issue-cert.sh postgres-client client
 ./scripts/ca/issue-cert.sh temporal-client client
 ./scripts/ca/issue-cert.sh scanner-client client
-```
+```text
 
 ###  Phase 3: Service Configuration
 1. **Redis Configuration**: TLS-only mode with client certificate validation
@@ -125,21 +125,21 @@ The existing `infra/docker-compose.tls.yml` provides:
 
 ####  Automated Rotation Strategy
 ```bash
-#  Daily certificate check (cron job)
+# Daily certificate check (cron job)
 0 2 * * * /path/to/scripts/check-cert-expiry.sh
 
-#  Automatic rotation for certificates expiring within 7 days
+# Automatic rotation for certificates expiring within 7 days
 ./scripts/rotate-certs.sh --days-before-expiry 7 --auto-reload
-```
+```text
 
 ####  Certificate Backup and Recovery
 ```bash
-#  Automated backup
+# Automated backup
 ./scripts/backup-certificates.sh --retention-days 90
 
-#  Emergency certificate restoration
+# Emergency certificate restoration
 ./scripts/restore-certificates.sh --backup-date 2025-01-10
-```
+```text
 
 ###  Service-Specific Configurations
 
@@ -167,24 +167,24 @@ The existing `infra/docker-compose.tls.yml` provides:
 
 ####  Certificate Validation Tests
 ```bash
-#  Run comprehensive TLS validation
+# Run comprehensive TLS validation
 ./scripts/validate/test_comprehensive.sh
 
-#  Individual service tests
+# Individual service tests
 ./scripts/validate/test_tls.sh
 ./scripts/validate/test_mtls.sh
 ./scripts/validate/test_redis_tls.sh
 ./scripts/validate/test_dind_tls.sh
-```
+```text
 
 ####  Security Compliance Tests
 ```bash
-#  Policy validation with Conftest
+# Policy validation with Conftest
 conftest test --policy policies/tls-security.rego infra/docker-compose.tls.yml
 
-#  Container security scanning
+# Container security scanning
 docker run --rm -v $(pwd):/work trivy config /work/infra/docker-compose.tls.yml
-```
+```text
 
 ###  Monitoring Dashboard
 
@@ -196,7 +196,7 @@ docker run --rm -v $(pwd):/work trivy config /work/infra/docker-compose.tls.yml
 
 ####  Alerting Rules
 ```yaml
-#  Certificate expiry alert (7 days)
+# Certificate expiry alert (7 days)
 - alert: CertificateExpiryWarning
   expr: cert_expiry_days < 7
   labels:
@@ -204,32 +204,32 @@ docker run --rm -v $(pwd):/work trivy config /work/infra/docker-compose.tls.yml
   annotations:
     summary: "Certificate {{ $labels.service }} expires in {{ $value }} days"
 
-#  TLS handshake failure alert
+# TLS handshake failure alert
 - alert: TLSHandshakeFailure
   expr: rate(tls_handshake_failures_total[5m]) > 0.1
   labels:
     severity: critical
   annotations:
     summary: "High TLS handshake failure rate: {{ $value }}/sec"
-```
+```text
 
 ##  🔒 Security Policies
 
 ###  OPA/Conftest Policies
 ```rego
-#  Ensure no plaintext protocols
+# Ensure no plaintext protocols
 deny[msg] {
     input.services[_].ports[_].target == 80
     msg = "HTTP port 80 detected - only HTTPS allowed"
 }
 
-#  Require TLS certificates for all services
+# Require TLS certificates for all services
 deny[msg] {
     service := input.services[_]
     not service.volumes[_].source =~ "tls"
     msg = sprintf("Service %s missing TLS certificate volumes", [service.name])
 }
-```
+```text
 
 ###  Container Security Standards
 - **Non-root users**: All containers run with unprivileged users
@@ -311,6 +311,6 @@ deny[msg] {
 - [ ] Document any configuration changes
 - [ ] Schedule regular maintenance tasks
 
----
+- --
 
-**Security Notice**: This deployment implements enterprise-grade TLS/mTLS security. All certificates and private keys must be protected with appropriate access controls and monitoring.
+- **Security Notice**: This deployment implements enterprise-grade TLS/mTLS security. All certificates and private keys must be protected with appropriate access controls and monitoring.

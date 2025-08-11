@@ -1,4 +1,4 @@
----
+- --
 title: "How to [Task Description]"
 description: "Brief description of what this guide accomplishes"
 category: "User Guide"
@@ -8,7 +8,7 @@ author: "Your Name"
 difficulty: "Beginner|Intermediate|Advanced"
 estimated_time: "X minutes"
 prerequisites: ["List any", "required knowledge", "or setup"]
----
+- --
 
 # How to [Task Description]
 
@@ -29,7 +29,7 @@ Before you begin, ensure you have:
 
 - [ ] **Required Knowledge**: Basic understanding of [relevant concepts]
 - [ ] **Access Requirements**: [Permissions, accounts, or roles needed]
-- [ ] **Tools/Software**: 
+- [ ] **Tools/Software**:
   - [Tool 1] (version X.X or higher)
   - [Tool 2] (with specific configuration)
 - [ ] **Environment Setup**: [Any required environment configuration]
@@ -43,14 +43,14 @@ Clear description of what this step accomplishes and why it's necessary.
 ```bash
 # Code example with comments
 command --option value
-```
+```text
 
-**Expected Output:**
-```
+- *Expected Output:**
+```text
 Example of what users should see
-```
+```text
 
-**📝 Note:** Any important information or warnings for this step.
+- *📝 Note:** Any important information or warnings for this step.
 
 ### Step 2: [Second Action]
 
@@ -61,9 +61,9 @@ Continue with detailed instructions. Include screenshots if they add value.
   "example": "configuration",
   "with": "realistic values"
 }
-```
+```text
 
-**💡 Tip:** Helpful advice or best practices for this step.
+- *💡 Tip:** Helpful advice or best practices for this step.
 
 ### Step 3: [Third Action]
 
@@ -76,9 +76,9 @@ try:
     print(f"Success: {result}")
 except Exception as e:
     print(f"Error: {e}")
-```
+```text
 
-**⚠️ Warning:** Important warnings about potential issues.
+- *⚠️ Warning:** Important warnings about potential issues.
 
 ## ✅ Verification
 
@@ -99,23 +99,23 @@ How to confirm that the task was completed successfully:
 
 ### Common Issue 1: [Problem Description]
 
-**Symptoms:**
+- *Symptoms:**
 - [Symptom 1]
 - [Symptom 2]
 
-**Solution:**
+- *Solution:**
 ```bash
 # Steps to resolve
 fix-command --parameter
-```
+```text
 
-**Why this works:** Brief explanation of the root cause.
+- *Why this works:** Brief explanation of the root cause.
 
 ### Common Issue 2: [Another Problem]
 
-**If you see:** `Error message or symptom`
+- *If you see:** `Error message or symptom`
 
-**Try this:**
+- *Try this:**
 1. [First solution step]
 2. [Second solution step]
 3. [Alternative approach if needed]
@@ -150,15 +150,15 @@ After completing this guide, you might want to:
 - **YYYY-MM-DD**: Updated for [new feature/change]
 - **YYYY-MM-DD**: Added troubleshooting section
 
----
+- --
 
-**Was this guide helpful?** 
+- *Was this guide helpful?**
 - 👍 Yes, it worked perfectly
 - 🤔 Partially, but I had issues with [specific step]
 - 👎 No, I couldn't complete it because [reason]
 
-*Your feedback helps us improve this documentation.*
+- Your feedback helps us improve this documentation.*
 
-**Last Updated**: [Date]  
-**Next Review**: [Date]  
-**Maintainer**: [Team/Person responsible]
+- **Last Updated**: [Date]
+- **Next Review**: [Date]
+- **Maintainer**: [Team/Person responsible]

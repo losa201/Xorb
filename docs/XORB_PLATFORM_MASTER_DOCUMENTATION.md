@@ -1,15 +1,15 @@
-#  🔐 XORB Platform - Comprehensive Master Documentation
+# 🔐 XORB Platform - Comprehensive Master Documentation
 
-**Version**: Enterprise v3.0.0
-**Updated**: 2025-08-11
-**Classification**: Enterprise-Grade Cybersecurity Platform
+- **Version**: Enterprise v3.0.0
+- **Updated**: 2025-08-11
+- **Classification**: Enterprise-Grade Cybersecurity Platform
 
 [![Security Status](https://img.shields.io/badge/Security-TLS%201.3%20%2B%20mTLS-green)](docs/SECURITY.md)
 [![Compliance](https://img.shields.io/badge/Compliance-SOC2%20%7C%20PCI%20DSS-blue)](docs/SECURITY.md#compliance-and-governance)
 [![Enterprise Ready](https://img.shields.io/badge/Enterprise-Ready-success)](#enterprise-readiness)
 [![PTaaS](https://img.shields.io/badge/PTaaS-Production--Ready-blue)](#ptaas-implementation)
 
----
+- --
 
 ##  📋 **Table of Contents**
 
@@ -28,7 +28,7 @@
 13. [Troubleshooting](#troubleshooting)
 14. [Best Practices](#best-practices)
 
----
+- --
 
 ##  🎯 **Platform Overview**
 
@@ -50,13 +50,13 @@ XORB is a production-ready enterprise cybersecurity platform that provides compr
 - **Security Posture**: 97.8% compliance score with automated controls
 - **Market Position**: Enterprise-ready competitor to CrowdStrike, SentinelOne
 
----
+- --
 
 ##  🏗️ **Architecture**
 
 ###  **System Architecture Overview**
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                XORB Enterprise Platform                    │
 ├─────────────────────────────────────────────────────────────┤
@@ -84,7 +84,7 @@ XORB is a production-ready enterprise cybersecurity platform that provides compr
 │  ├─ PostgreSQL (Multi-tenant RLS)  ├─ Redis (Cache/Session)│
 │  ├─ FastAPI (Clean Architecture)   └─ Temporal (Workflows) │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 ###  **Service Architecture**
 
@@ -130,13 +130,13 @@ XORB is a production-ready enterprise cybersecurity platform that provides compr
 - **React Router DOM 6.26.2** for routing
 - **React Hook Form 7.53.0** with Zod validation
 
----
+- --
 
 ##  🔐 **Security Implementation**
 
 ###  **Transport Security Architecture**
 
-```
+```text
 ┌─────────────────┐    HTTPS/TLS    ┌─────────────────┐
 │   External      │◄──────────────►│   Envoy Proxy   │
 │   Clients       │   HSTS + Security   │   (mTLS Term)   │
@@ -156,11 +156,11 @@ XORB is a production-ready enterprise cybersecurity platform that provides compr
 │  │(TLS-only)   │    │ (TLS+SSL)   │    │ Docker(TLS) │     │
 │  └─────────────┘    └─────────────┘    └─────────────┘     │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 ###  **Certificate Hierarchy**
 
-```
+```text
 XORB Root CA (RSA 4096, 10 years)
 ├── Subject: CN=XORB Root CA, O=XORB Platform, C=US
 ├── Usage: Certificate Signing, CRL Signing
@@ -170,7 +170,7 @@ XORB Root CA (RSA 4096, 10 years)
     └── Service Certificates (RSA 2048, 30 days)
         ├── Server Certificates (serverAuth)
         └── Client Certificates (clientAuth)
-```
+```text
 
 ###  **Security Features**
 
@@ -194,7 +194,7 @@ XORB Root CA (RSA 4096, 10 years)
 - **Field-level Encryption**: Sensitive database columns encrypted
 - **Secure Secret Management**: HashiCorp Vault integration
 
----
+- --
 
 ##  🎯 **PTaaS Implementation**
 
@@ -219,7 +219,7 @@ XORB Root CA (RSA 4096, 10 years)
 ####  **PTaaS API Endpoints**
 
 ```bash
-#  Core PTaaS Operations
+# Core PTaaS Operations
 POST   /api/v1/ptaas/sessions                    # Create scan session
 GET    /api/v1/ptaas/sessions/{id}               # Get session status
 POST   /api/v1/ptaas/sessions/{id}/cancel        # Cancel session
@@ -227,11 +227,11 @@ GET    /api/v1/ptaas/profiles                    # Available profiles
 POST   /api/v1/ptaas/validate-target             # Target validation
 GET    /api/v1/ptaas/scan-results/{id}           # Detailed results
 
-#  Advanced Orchestration
+# Advanced Orchestration
 POST   /api/v1/ptaas/orchestration/workflows                # Create workflow
 POST   /api/v1/ptaas/orchestration/compliance-scan          # Compliance scan
 POST   /api/v1/ptaas/orchestration/threat-simulation        # Threat simulation
-```
+```text
 
 ###  **Compliance Framework Support**
 
@@ -244,13 +244,13 @@ POST   /api/v1/ptaas/orchestration/threat-simulation        # Threat simulation
 - **NIST**: National Institute of Standards and Technology
 - **CIS**: Center for Internet Security controls
 
----
+- --
 
 ##  🤖 **AI Intelligence Engine**
 
 ###  **Behavioral Analytics Engine**
 
-**Production Features:**
+- *Production Features:**
 - ML-powered user/entity behavioral profiling with sklearn support
 - Anomaly detection using statistical and machine learning algorithms
 - Risk scoring with dynamic assessment and temporal decay
@@ -258,7 +258,7 @@ POST   /api/v1/ptaas/orchestration/threat-simulation        # Threat simulation
 - Graceful fallbacks when ML dependencies unavailable
 
 ```python
-#  Advanced profiling example
+# Advanced profiling example
 result = engine.update_profile("user_id", {
     "login_frequency": 8.5,
     "access_patterns": 6.2,
@@ -267,11 +267,11 @@ result = engine.update_profile("user_id", {
     "privilege_usage": 4.3,
     "command_sequence_complexity": 5.7
 })
-```
+```text
 
 ###  **Threat Hunting Engine**
 
-**Production Features:**
+- *Production Features:**
 - Custom DSL query language with SQL-like syntax
 - Real-time threat correlation and analysis
 - Saved query management with version control
@@ -279,15 +279,15 @@ result = engine.update_profile("user_id", {
 - Integration with SIEM and security tools
 
 ```sql
--- Example threat hunting queries
+- - Example threat hunting queries
 FIND processes WHERE name = "suspicious.exe" AND network_connections > 10
 FIND authentication WHERE action = "failed" AND count > 5 AND timeframe = "1h"
 FIND events WHERE action = "privilege_escalation" AND success = true
-```
+```text
 
 ###  **Digital Forensics Engine**
 
-**Production Features:**
+- *Production Features:**
 - Legal-grade evidence collection with tamper-proof handling
 - Blockchain-style chain of custody with cryptographic verification
 - Automated evidence gathering from multiple sources
@@ -296,14 +296,14 @@ FIND events WHERE action = "privilege_escalation" AND success = true
 
 ###  **Network Microsegmentation**
 
-**Production Features:**
+- *Production Features:**
 - Zero-trust network policy engine with dynamic evaluation
 - Context-aware access decisions based on multiple factors
 - Compliance template support (PCI-DSS, HIPAA, SOX)
 - Real-time policy enforcement and violation detection
 - Advanced security policy management and automation
 
----
+- --
 
 ##  🚀 **Development Setup**
 
@@ -318,58 +318,58 @@ FIND events WHERE action = "privilege_escalation" AND success = true
 ###  **Quick Start**
 
 ```bash
-#  1. Environment Setup
+# 1. Environment Setup
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.lock  # 150+ production dependencies
 
-#  2. Frontend Dependencies
+# 2. Frontend Dependencies
 cd services/ptaas/web && npm install
 
-#  3. Start Development Stack
+# 3. Start Development Stack
 cd src/api && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-#  4. Start Orchestrator
+# 4. Start Orchestrator
 cd src/orchestrator && python main.py
 
-#  5. Validate Environment
+# 5. Validate Environment
 python tools/scripts/validate_environment.py
-```
+```text
 
 ###  **Docker Development**
 
 ```bash
-#  Enterprise deployment
+# Enterprise deployment
 docker-compose -f docker-compose.enterprise.yml up -d
 
-#  Development environment
+# Development environment
 docker-compose -f docker-compose.development.yml up -d
 
-#  Production deployment
+# Production deployment
 docker-compose -f docker-compose.production.yml up -d
 
-#  TLS/mTLS deployment
+# TLS/mTLS deployment
 docker-compose -f infra/docker-compose.tls.yml up -d
-```
+```text
 
 ###  **Testing Strategy**
 
 ```bash
-#  Comprehensive test suite
+# Comprehensive test suite
 pytest                                         # All tests
 pytest tests/unit/                            # Unit tests
 pytest tests/integration/                     # Integration tests
 pytest tests/security/                        # Security tests
 pytest tests/performance/                     # Performance tests
 
-#  Coverage reporting (75% threshold)
+# Coverage reporting (75% threshold)
 pytest --cov=src/api/app --cov-report=html --cov-report=term-missing
 
-#  Frontend testing
+# Frontend testing
 cd services/ptaas/web && npm test
 cd services/ptaas/web && npm run test:coverage
-```
+```text
 
----
+- --
 
 ##  🐳 **Deployment Guide**
 
@@ -407,77 +407,77 @@ Production Architecture:
     │  │Port 5432    │ Port 6379   │ Ports 9090/3001         │  │
     │  └─────────────┴─────────────┴─────────────────────────┘  │
     └───────────────────────────────────────────────────────────┘
-```
+```text
 
 ###  **Deployment Methods**
 
 ####  **Docker Deployment**
 ```bash
-#  Single-Node Deployment
+# Single-Node Deployment
 docker-compose -f infra/docker-compose.production.yml up -d
 
-#  Multi-Node Docker Swarm
+# Multi-Node Docker Swarm
 docker swarm init
 docker stack deploy -c infra/docker-compose.production.yml xorb
-```
+```text
 
 ####  **Kubernetes Deployment**
 ```bash
-#  Helm Chart
+# Helm Chart
 helm repo add xorb https://charts.xorb-security.com
 helm install xorb-platform xorb/xorb --namespace xorb-system --create-namespace
 
-#  Custom Manifests
+# Custom Manifests
 kubectl apply -f infra/k8s/namespace.yaml
 kubectl apply -f infra/k8s/services/
 kubectl apply -f infra/k8s/deployments/
-```
+```text
 
 ####  **Cloud Deployment**
 ```bash
-#  AWS (Terraform)
+# AWS (Terraform)
 cd infra/terraform/aws
 terraform init && terraform plan -var-file="production.tfvars" && terraform apply
 
-#  Azure (ARM/Bicep)
+# Azure (ARM/Bicep)
 az deployment group create --resource-group xorb-rg --template-file infra/azure/main.bicep
 
-#  Google Cloud (Deployment Manager)
+# Google Cloud (Deployment Manager)
 gcloud deployment-manager deployments create xorb-platform --config infra/gcp/xorb-platform.yaml
-```
+```text
 
 ###  **TLS/mTLS Deployment**
 
 ####  **Certificate Management**
 ```bash
-#  Initialize Certificate Authority
+# Initialize Certificate Authority
 ./scripts/ca/make-ca.sh
 
-#  Generate Service Certificates
+# Generate Service Certificates
 services=(api orchestrator agent redis postgres temporal dind scanner)
 for service in "${services[@]}"; do
     ./scripts/ca/issue-cert.sh "$service" both
 done
 
-#  Deploy TLS Stack
+# Deploy TLS Stack
 docker-compose -f infra/docker-compose.tls.yml up -d
-```
+```text
 
 ####  **Certificate Rotation**
 ```bash
-#  Automated rotation (30-day schedule)
+# Automated rotation (30-day schedule)
 ./scripts/rotate-certs.sh
 
-#  Emergency rotation
+# Emergency rotation
 ./scripts/emergency-cert-rotation.sh
 
-#  Certificate monitoring
+# Certificate monitoring
 for cert in secrets/tls/*/cert.pem; do
     openssl x509 -in "$cert" -noout -enddate
 done
-```
+```text
 
----
+- --
 
 ##  📚 **API Documentation**
 
@@ -489,53 +489,53 @@ done
 ###  **Authentication**
 
 ```bash
-#  JWT Token Authentication
+# JWT Token Authentication
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "user@company.com", "password": "password"}'
 
-#  Use token in requests
+# Use token in requests
 curl -H "Authorization: Bearer {token}" \
   http://localhost:8000/api/v1/ptaas/sessions
-```
+```text
 
 ###  **Core API Endpoints**
 
 ####  **PTaaS Operations (12 routes)**
 ```bash
-#  Core functionality
+# Core functionality
 POST   /api/v1/ptaas/sessions                    # Create scan session
 GET    /api/v1/ptaas/sessions/{id}               # Get session status
 GET    /api/v1/ptaas/profiles                    # Available profiles
 POST   /api/v1/ptaas/validate-target             # Target validation
 GET    /api/v1/ptaas/scan-results/{id}           # Detailed results
 
-#  Advanced orchestration
+# Advanced orchestration
 POST   /api/v1/ptaas/orchestration/workflows                # Create workflow
 POST   /api/v1/ptaas/orchestration/compliance-scan          # Compliance scan
 POST   /api/v1/ptaas/orchestration/threat-simulation        # Threat simulation
-```
+```text
 
 ####  **Intelligence API (8 routes)**
 ```bash
-#  AI-powered analysis
+# AI-powered analysis
 POST   /api/v1/intelligence/analyze                  # AI threat analysis
 POST   /api/v1/intelligence/threat-hunting/query     # Threat hunting
 POST   /api/v1/intelligence/behavioral/analyze       # Behavioral analysis
 POST   /api/v1/platform/forensics/evidence           # Collect evidence
 POST   /api/v1/platform/network/segments             # Create network segment
-```
+```text
 
 ####  **Platform Management (6 routes)**
 ```bash
-#  Service management
+# Service management
 GET    /api/v1/platform/services                    # List all services
 GET    /api/v1/platform/services/{id}/status        # Service status
 POST   /api/v1/platform/services/{id}/start         # Start service
 POST   /api/v1/platform/services/{id}/stop          # Stop service
 GET    /api/v1/platform/health                      # Platform health
 GET    /api/v1/platform/metrics                     # Platform metrics
-```
+```text
 
 ###  **Example API Usage**
 
@@ -543,7 +543,7 @@ GET    /api/v1/platform/metrics                     # Platform metrics
 ```python
 import requests
 
-#  Create comprehensive security scan
+# Create comprehensive security scan
 ptaas_request = {
     "targets": [{
         "host": "web.company.com",
@@ -565,11 +565,11 @@ response = requests.post(
     headers={"Authorization": "Bearer YOUR_TOKEN"},
     json=ptaas_request
 )
-```
+```text
 
 ####  **AI Threat Analysis**
 ```python
-#  AI-powered threat analysis
+# AI-powered threat analysis
 intelligence_request = {
     "indicators": [
         "suspicious_network_activity",
@@ -588,9 +588,9 @@ response = requests.post(
     headers={"Authorization": "Bearer YOUR_TOKEN"},
     json=intelligence_request
 )
-```
+```text
 
----
+- --
 
 ##  ⚙️ **Configuration Management**
 
@@ -598,54 +598,54 @@ response = requests.post(
 
 ####  **Core Configuration**
 ```env
-#  Database Configuration
+# Database Configuration
 DATABASE_URL=postgresql://user:pass@host:5432/xorb
 REDIS_URL=redis://host:6379/0
 
-#  Security Configuration
+# Security Configuration
 JWT_SECRET=your-jwt-secret-key
 ENCRYPTION_KEY=your-encryption-key
 API_KEY_SECRET=your-api-key-secret
 
-#  TLS/SSL Configuration
+# TLS/SSL Configuration
 TLS_ENABLED=true
 REDIS_TLS_CERT_FILE=/run/tls/redis-client/cert.pem
 REDIS_TLS_KEY_FILE=/run/tls/redis-client/key.pem
 REDIS_TLS_CA_FILE=/run/tls/ca/ca.pem
 
-#  External Services
+# External Services
 NVIDIA_API_KEY=your-nvidia-key
 OPENROUTER_API_KEY=your-openrouter-key
 AZURE_CLIENT_ID=your-azure-client-id
 GOOGLE_CLIENT_ID=your-google-client-id
 
-#  Rate Limiting & Security
+# Rate Limiting & Security
 RATE_LIMIT_PER_MINUTE=60
 RATE_LIMIT_PER_HOUR=1000
 CORS_ALLOW_ORIGINS=https://your-frontend.com
 SECURITY_HEADERS_ENABLED=true
 
-#  Monitoring & Observability
+# Monitoring & Observability
 ENABLE_METRICS=true
 ENABLE_TRACING=true
 LOG_LEVEL=INFO
-```
+```text
 
 ###  **HashiCorp Vault Integration**
 
 ####  **Vault Infrastructure**
 ```bash
-#  Initialize development Vault
+# Initialize development Vault
 cd infra/vault && ./setup-vault-dev.sh
 
-#  Production Vault setup
+# Production Vault setup
 cd infra/vault && ./init-vault.sh
 
-#  Vault management
+# Vault management
 python3 src/common/vault_manager.py health
 python3 src/common/vault_manager.py list-secrets
 python3 src/common/vault_manager.py rotate-jwt-key
-```
+```text
 
 ####  **Vault Secret Structure**
 - `secret/xorb/config` - JWT secrets, database config, XORB API keys
@@ -655,7 +655,7 @@ python3 src/common/vault_manager.py rotate-jwt-key
 
 ###  **Feature Flags**
 ```yaml
-#  config/feature-flags.yaml
+# config/feature-flags.yaml
 features:
   ai_threat_detection: true
   quantum_cryptography: true
@@ -665,9 +665,9 @@ features:
   automated_response: true
   multi_tenant: true
   white_label: false
-```
+```text
 
----
+- --
 
 ##  📊 **Monitoring & Observability**
 
@@ -682,35 +682,35 @@ features:
 
 ###  **Access Points**
 ```bash
-#  Application Services
+# Application Services
 API Documentation: http://localhost:8000/docs
 API Health Check: http://localhost:8000/api/v1/health
 PTaaS API: http://localhost:8000/api/v1/ptaas
 Frontend Application: http://localhost:3000
 Temporal Web UI: http://localhost:8233
 
-#  Monitoring Services (when stack is running)
+# Monitoring Services (when stack is running)
 Prometheus: http://localhost:9092
 Grafana: http://localhost:3010 (admin / SecureAdminPass123!)
 AlertManager: http://localhost:9093
 Node Exporter: http://localhost:9100
 cAdvisor: http://localhost:8083
-```
+```text
 
 ###  **Setup Monitoring Stack**
 ```bash
-#  Complete monitoring deployment
+# Complete monitoring deployment
 ./tools/scripts/setup-monitoring.sh
 
-#  Individual commands
+# Individual commands
 ./tools/scripts/setup-monitoring.sh start
 ./tools/scripts/setup-monitoring.sh stop
 ./tools/scripts/setup-monitoring.sh restart
 ./tools/scripts/setup-monitoring.sh status
 
-#  Docker Compose method
+# Docker Compose method
 docker-compose -f docker-compose.monitoring.yml up -d
-```
+```text
 
 ###  **Key Metrics Dashboard**
 ```json
@@ -740,9 +740,9 @@ docker-compose -f docker-compose.monitoring.yml up -d
     "error_rate": "0.1%"
   }
 }
-```
+```text
 
----
+- --
 
 ##  🏢 **Enterprise Features**
 
@@ -750,14 +750,14 @@ docker-compose -f docker-compose.monitoring.yml up -d
 
 ####  **Complete Tenant Isolation**
 ```sql
--- Tenant-specific schemas
+- - Tenant-specific schemas
 CREATE SCHEMA "tenant_12345678_90ab_cdef_1234_567890abcdef";
 
--- Row-level security policies
+- - Row-level security policies
 CREATE POLICY tenant_isolation ON sensitive_data
   FOR ALL TO application_role
   USING (tenant_id = current_setting('app.current_tenant_id')::uuid);
-```
+```text
 
 ####  **Tenant Management Features**
 - **Tenant Service**: Complete CRUD operations with caching
@@ -786,7 +786,7 @@ CREATE POLICY tenant_isolation ON sensitive_data
 
 ###  **Security Middleware Stack**
 ```python
-#  9-layer security middleware (ordered from outermost to innermost)
+# 9-layer security middleware (ordered from outermost to innermost)
 middleware_stack = [
     "GlobalErrorHandler",           # Comprehensive error handling
     "APISecurityMiddleware",        # Security headers, validation
@@ -798,7 +798,7 @@ middleware_stack = [
     "GZipMiddleware",              # Response compression
     "RequestIdMiddleware"          # Unique request tracking
 ]
-```
+```text
 
 ###  **Access Control Matrix**
 | Role | PTaaS Access | Intelligence | Platform Management | Compliance |
@@ -809,7 +809,7 @@ middleware_stack = [
 | **Compliance Officer** | Compliance Scans | Audit Reports | Health Monitoring | Framework Specific |
 | **User** | Basic Scans | Limited Analysis | No Access | Limited Reports |
 
----
+- --
 
 ##  ⚖️ **Compliance & Governance**
 
@@ -835,7 +835,7 @@ middleware_stack = [
 
 ###  **Automated Compliance Monitoring**
 ```bash
-#  Real-time compliance scanning
+# Real-time compliance scanning
 curl -X POST http://localhost:8000/api/v1/ptaas/orchestration/compliance-scan \
   -H "Authorization: Bearer TOKEN" \
   -d '{
@@ -843,7 +843,7 @@ curl -X POST http://localhost:8000/api/v1/ptaas/orchestration/compliance-scan \
     "targets": ["web.company.com"],
     "assessment_type": "full"
   }'
-```
+```text
 
 ###  **Business Impact Assessment**
 | Enterprise Feature | Estimated ARR Impact | Status |
@@ -857,7 +857,7 @@ curl -X POST http://localhost:8000/api/v1/ptaas/orchestration/compliance-scan \
 | Container Security | $75K+ | ✅ Complete |
 | **TOTAL POTENTIAL** | **$2.325M+** | **✅ Complete** |
 
----
+- --
 
 ##  🛠️ **Troubleshooting**
 
@@ -865,80 +865,80 @@ curl -X POST http://localhost:8000/api/v1/ptaas/orchestration/compliance-scan \
 
 ####  **Certificate Problems**
 ```bash
-#  Check certificate validity
+# Check certificate validity
 openssl x509 -in secrets/tls/api/cert.pem -noout -dates
 
-#  Verify certificate chain
+# Verify certificate chain
 openssl verify -CAfile secrets/tls/ca/ca.pem secrets/tls/api/cert.pem
 
-#  Regenerate certificate
+# Regenerate certificate
 ./scripts/ca/issue-cert.sh api both
-```
+```text
 
 ####  **Service Connection Issues**
 ```bash
-#  Test basic connectivity
+# Test basic connectivity
 nc -zv envoy-api 8443
 
-#  Check TLS handshake
+# Check TLS handshake
 openssl s_client -connect envoy-api:8443 -verify_return_error
 
-#  Test mTLS connection
+# Test mTLS connection
 curl --cacert secrets/tls/ca/ca.pem \
      --cert secrets/tls/api-client/cert.pem \
      --key secrets/tls/api-client/key.pem \
      https://envoy-api:8443/api/v1/health
-```
+```text
 
 ####  **Database Connection Issues**
 ```bash
-#  PostgreSQL connection test
+# PostgreSQL connection test
 PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c "SELECT 1;"
 
-#  Redis connection test
+# Redis connection test
 redis-cli -h $REDIS_HOST ping
-```
+```text
 
 ####  **API Service Issues**
 ```bash
-#  Check service logs
+# Check service logs
 docker logs xorb_api
 
-#  Check container status
+# Check container status
 docker-compose ps
 
-#  Resource usage
+# Resource usage
 docker stats
 
-#  Service health endpoints
+# Service health endpoints
 curl http://localhost:8000/api/v1/health
 curl http://localhost:8000/api/v1/readiness
-```
+```text
 
 ###  **Log Collection**
 ```bash
-#  Collect all service logs
+# Collect all service logs
 mkdir logs-$(date +%Y%m%d)
 docker logs xorb_api > logs-$(date +%Y%m%d)/api.log
 docker logs xorb_intelligence > logs-$(date +%Y%m%d)/intelligence.log
 docker logs xorb_orchestrator > logs-$(date +%Y%m%d)/orchestrator.log
 
-#  Create support bundle
+# Create support bundle
 tar -czf xorb-support-$(date +%Y%m%d).tar.gz logs-$(date +%Y%m%d)/
-```
+```text
 
 ###  **Debug Mode**
 ```bash
-#  Enable verbose logging
+# Enable verbose logging
 export VERBOSE=true
 export DEBUG=true
 
-#  Debug-specific validation
+# Debug-specific validation
 ./scripts/validate/test_tls.sh -v
 ./scripts/rotate-certs.sh -v
-```
+```text
 
----
+- --
 
 ##  🎯 **Best Practices**
 
@@ -997,7 +997,7 @@ export DEBUG=true
 - **Frontend**: Code splitting, lazy loading, optimize bundle size
 - **Infrastructure**: Horizontal scaling, load balancing, CDN usage
 
----
+- --
 
 ##  📞 **Support & Resources**
 
@@ -1012,45 +1012,45 @@ export DEBUG=true
 
 ####  **Quick Development Commands**
 ```bash
-#  Environment setup
+# Environment setup
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.lock
 
-#  Start services
+# Start services
 cd src/api && uvicorn app.main:app --reload --port 8000
 cd src/orchestrator && python main.py
 
-#  Run tests
+# Run tests
 pytest --cov=src/api/app --cov-report=html
 
-#  Validate environment
+# Validate environment
 python tools/scripts/validate_environment.py
-```
+```text
 
 ####  **TLS/Security Commands**
 ```bash
-#  Certificate management
+# Certificate management
 ./scripts/ca/make-ca.sh
 ./scripts/ca/issue-cert.sh [service] [server|client|both]
 ./scripts/rotate-certs.sh
 
-#  Security validation
+# Security validation
 ./scripts/validate/test_tls.sh
 ./scripts/validate/test_mtls.sh
 ./scripts/validate/test_comprehensive.sh
-```
+```text
 
 ####  **Deployment Commands**
 ```bash
-#  Docker deployments
+# Docker deployments
 docker-compose -f docker-compose.development.yml up -d
 docker-compose -f docker-compose.production.yml up -d
 docker-compose -f infra/docker-compose.tls.yml up -d
 
-#  Monitoring
+# Monitoring
 ./tools/scripts/setup-monitoring.sh
 docker-compose -f docker-compose.monitoring.yml up -d
-```
+```text
 
 ###  **Support Channels**
 - **Documentation**: Comprehensive docs in `/docs` directory
@@ -1058,7 +1058,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 - **Security**: Contact security team for security-related issues
 - **Enterprise Support**: Available for enterprise customers
 
----
+- --
 
 ##  🏁 **Conclusion**
 
@@ -1097,11 +1097,11 @@ The XORB platform is **enterprise-ready** and positioned for:
 - Healthcare and financial services penetration
 - Global market expansion with compliance frameworks
 
-**XORB represents a complete transformation from development platform to enterprise-grade cybersecurity solution, ready to capture significant market share in the $50B+ cybersecurity market.**
+- *XORB represents a complete transformation from development platform to enterprise-grade cybersecurity solution, ready to capture significant market share in the $50B+ cybersecurity market.**
 
----
+- --
 
-**© 2025 XORB Security Platform. All rights reserved.**
-**Classification**: Enterprise Production Ready
-**Version**: 3.0.0
-**Last Updated**: August 11, 2025
+- *© 2025 XORB Security Platform. All rights reserved.**
+- **Classification**: Enterprise Production Ready
+- **Version**: 3.0.0
+- **Last Updated**: August 11, 2025

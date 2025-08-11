@@ -1,4 +1,4 @@
-#  Xorb PTaaS Architecture
+# Xorb PTaaS Architecture
 
 ##  Overview
 ![Xorb PTaaS Architecture](architecture-diagram.png)
@@ -121,4 +121,4 @@ This file is part of the Xorb PTaaS project and is licensed under the MIT Licens
 
 ##  End of File
 
-#  vim: set ts=4 sw=4 et:
+# vim: set ts=4 sw=4 et:

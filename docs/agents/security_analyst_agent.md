@@ -1,4 +1,4 @@
-#  Security Analyst Agent
+# Security Analyst Agent
 
 ##  Overview
 The Security Analyst Agent specializes in threat detection, vulnerability assessment, and security policy enforcement within the swarm environment.
@@ -20,6 +20,6 @@ Uses heartbeat_gossip protocol with security-enhanced message signing
 
 ##  Example Usage
 ```python
-#  Security validation workflow
+# Security validation workflow
 security_agent.validate_endpoint("/api/v1/users")
-```
+```text

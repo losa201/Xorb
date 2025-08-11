@@ -1,4 +1,4 @@
-#  XORB Security Policy
+# XORB Security Policy
 
 ##  TLS Configuration
 - All services must use TLS 1.2 or higher

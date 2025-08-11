@@ -1,4 +1,4 @@
-#  XORB Enterprise Production Readiness Checklist
+# XORB Enterprise Production Readiness Checklist
 
 ##  🎯 **Executive Summary**
 
@@ -102,79 +102,79 @@ XORB Enterprise Cybersecurity Platform is **PRODUCTION-READY** with comprehensiv
 ###  **Step 1: Environment Preparation**
 
 ```bash
-#  1. Copy production environment template
+# 1. Copy production environment template
 cp .env.production.template .env
 
-#  2. Configure environment variables
+# 2. Configure environment variables
 nano .env
 
-#  3. Generate secure secrets
+# 3. Generate secure secrets
 python -c "import secrets; print(secrets.token_urlsafe(32))" # For JWT_SECRET
 python -c "import secrets; print(secrets.token_urlsafe(32))" # For SECRET_KEY
 
-#  4. Validate configuration
+# 4. Validate configuration
 python tools/scripts/validate_environment.py
-```
+```text
 
 ###  **Step 2: Database Setup**
 
 ```bash
-#  1. Initialize PostgreSQL with pgvector
+# 1. Initialize PostgreSQL with pgvector
 docker-compose -f docker-compose.production.yml up -d postgres
 
-#  2. Create database and user
+# 2. Create database and user
 docker exec -it xorb_postgres psql -U postgres -c "CREATE DATABASE xorb_production;"
 docker exec -it xorb_postgres psql -U postgres -c "CREATE USER xorb_user WITH PASSWORD 'secure_password';"
 docker exec -it xorb_postgres psql -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE xorb_production TO xorb_user;"
 
-#  3. Enable pgvector extension
+# 3. Enable pgvector extension
 docker exec -it xorb_postgres psql -U postgres -d xorb_production -c "CREATE EXTENSION vector;"
 
-#  4. Run database migrations
+# 4. Run database migrations
 cd src/api && alembic upgrade head
-```
+```text
 
 ###  **Step 3: Core Services Deployment**
 
 ```bash
-#  1. Start infrastructure services
+# 1. Start infrastructure services
 docker-compose -f docker-compose.production.yml up -d redis prometheus grafana
 
-#  2. Start main application
+# 2. Start main application
 docker-compose -f docker-compose.production.yml up -d api orchestrator worker
 
-#  3. Verify services are running
+# 3. Verify services are running
 docker-compose -f docker-compose.production.yml ps
-```
+```text
 
 ###  **Step 4: Monitoring Setup**
 
 ```bash
-#  1. Initialize monitoring stack
+# 1. Initialize monitoring stack
 ./tools/scripts/setup-monitoring.sh
 
-#  2. Configure Grafana dashboards
-#  Access Grafana at http://localhost:3010 (admin/SecureAdminPass123!)
-#  Import XORB dashboards from infra/monitoring/grafana/dashboards/
+# 2. Configure Grafana dashboards
+# Access Grafana at http://localhost:3010 (admin/SecureAdminPass123!)
+# Import XORB dashboards from infra/monitoring/grafana/dashboards/
 
-#  3. Test alerting
+# 3. Test alerting
 curl -X POST http://localhost:8000/api/v1/health
-```
+```text
 
 ###  **Step 5: Security Validation**
 
 ```bash
-#  1. Run security scan on deployed system
+# 1. Run security scan on deployed system
 ./tools/scripts/security-scan.sh
 
-#  2. Validate SSL configuration
+# 2. Validate SSL configuration
 openssl s_client -connect your-domain.com:443 -servername your-domain.com
 
-#  3. Test authentication
+# 3. Test authentication
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "your-password"}'
-```
+```text
 
 ##  📊 **Post-Deployment Validation**
 
@@ -232,24 +232,24 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 ###  **Performance Tuning**
 
 ```python
-#  Database Connection Pool Optimization
+# Database Connection Pool Optimization
 DATABASE_POOL_SIZE=20
 DATABASE_MAX_OVERFLOW=30
 DATABASE_POOL_TIMEOUT=30
 
-#  Redis Configuration
+# Redis Configuration
 REDIS_POOL_SIZE=10
 REDIS_SOCKET_TIMEOUT=5
 
-#  API Rate Limiting
+# API Rate Limiting
 RATE_LIMIT_PER_MINUTE=1000
 RATE_LIMIT_PER_HOUR=10000
-```
+```text
 
 ###  **Memory & CPU Optimization**
 
 ```yaml
-#  Kubernetes Resource Limits
+# Kubernetes Resource Limits
 resources:
   limits:
     memory: "2Gi"
@@ -257,19 +257,19 @@ resources:
   requests:
     memory: "1Gi"
     cpu: "500m"
-```
+```text
 
 ###  **Monitoring Optimization**
 
 ```yaml
-#  Prometheus Scrape Configuration
+# Prometheus Scrape Configuration
 scrape_configs:
   - job_name: 'xorb-api'
     static_configs:
       - targets: ['api:8000']
     scrape_interval: 15s
     metrics_path: /metrics
-```
+```text
 
 ##  🚨 **Incident Response Plan**
 
@@ -374,19 +374,19 @@ scrape_configs:
 
 ##  ✅ **Final Production Approval**
 
-**Deployment Approved By:**
+- *Deployment Approved By:**
 - [ ] Security Team Lead: _________________ Date: _________
 - [ ] Operations Manager: ________________ Date: _________
 - [ ] Platform Architect: ________________ Date: _________
 - [ ] Compliance Officer: ________________ Date: _________
 
-**Production Readiness Confirmed:**
+- *Production Readiness Confirmed:**
 - [ ] All critical tests passed
 - [ ] Security requirements met
 - [ ] Monitoring and alerting functional
 - [ ] Backup and recovery tested
 - [ ] Documentation complete and current
 
----
+- --
 
-**🚀 XORB Enterprise is PRODUCTION-READY for enterprise deployment with comprehensive security, monitoring, and compliance capabilities.**
+- *🚀 XORB Enterprise is PRODUCTION-READY for enterprise deployment with comprehensive security, monitoring, and compliance capabilities.**

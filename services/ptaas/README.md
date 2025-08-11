@@ -1,4 +1,4 @@
-#  PTAAS Service
+# PTAAS Service
 
 This service implements the real-world PTAAS (Penetration Testing as a Service) functionality for the XORB platform.
 
@@ -12,12 +12,12 @@ The PTAAS service follows a modular architecture with the following components:
 
 ##  Installation
 ```bash
-#  Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-#  Start the service
+# Start the service
 python -m ptaas_service.core.main
-```
+```text
 
 ##  Configuration
 The service uses environment variables for configuration, which can be set in the `.env` file:
@@ -25,7 +25,7 @@ The service uses environment variables for configuration, which can be set in th
 PTAAS_PORT=8000
 PTAAS_LOG_LEVEL=INFO
 THREAT_INTELLIGENCE_API_KEY=your_api_key
-```
+```text
 
 ##  Components
 ###  Core Service

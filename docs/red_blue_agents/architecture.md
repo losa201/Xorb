@@ -1,4 +1,4 @@
-#  Architecture Guide
+# Architecture Guide
 
 ##  System Architecture Overview
 
@@ -61,22 +61,22 @@ graph TB
     API --> AS
     WS --> AS
     SDK --> API
-```
+```text
 
 ##  Core Components
 
 ###  1. Agent Scheduler
 
-**Purpose**: Central orchestrator responsible for mission planning, agent coordination, and execution management.
+- **Purpose**: Central orchestrator responsible for mission planning, agent coordination, and execution management.
 
-**Key Responsibilities**:
+- **Key Responsibilities**:
 - Mission lifecycle management (create, start, monitor, stop)
 - Agent assignment and task distribution
 - Resource allocation and quota management
 - Cross-agent communication and dependency resolution
 - Real-time mission monitoring and health checks
 
-**Design Patterns**:
+- **Design Patterns**:
 - **Command Pattern**: Mission commands are encapsulated as objects
 - **Observer Pattern**: Real-time status updates to interested parties
 - **State Machine**: Mission and agent state transitions
@@ -95,20 +95,20 @@ class AgentScheduler:
         # Generate agent tasks
         # Start execution coordination
         # Begin monitoring
-```
+```text
 
 ###  2. Capability Registry
 
-**Purpose**: Manages technique definitions, environment policies, and capability validation.
+- **Purpose**: Manages technique definitions, environment policies, and capability validation.
 
-**Key Responsibilities**:
+- **Key Responsibilities**:
 - Technique definition storage and retrieval
 - Environment-specific policy enforcement
 - Parameter validation and constraint checking
 - Dependency resolution for complex attack chains
 - Dynamic capability loading and hot reloading
 
-**Data Structures**:
+- **Data Structures**:
 ```python
 @dataclass
 class TechniqueDefinition:
@@ -133,9 +133,9 @@ class EnvironmentPolicy:
     max_risk_level: str
     max_concurrent_agents: int
     sandbox_constraints: Dict[str, Any]
-```
+```text
 
-**Caching Strategy**:
+- **Caching Strategy**:
 - Redis-backed caching for frequently accessed techniques
 - TTL-based cache invalidation
 - Background cache warming for critical techniques
@@ -143,14 +143,14 @@ class EnvironmentPolicy:
 
 ###  3. Sandbox Orchestrator
 
-**Purpose**: Manages isolated execution environments for agents using container technologies.
+- **Purpose**: Manages isolated execution environments for agents using container technologies.
 
-**Container Technologies**:
+- **Container Technologies**:
 - **Docker Sidecar**: Standard Docker containers with network isolation
 - **Kata Containers**: Hardware-level isolation using lightweight VMs
 - **Docker-in-Docker**: Nested container support for complex scenarios
 
-**Resource Management**:
+- **Resource Management**:
 ```python
 @dataclass
 class ResourceConstraints:
@@ -167,9 +167,9 @@ class NetworkPolicy:
     allowed_outbound: List[str]
     blocked_outbound: List[str]
     dns_servers: List[str]
-```
+```text
 
-**Container Lifecycle**:
+- **Container Lifecycle**:
 1. **Creation**: Generate container configuration from sandbox config
 2. **Startup**: Initialize container with security policies
 3. **Monitoring**: Track resource usage and health
@@ -178,7 +178,7 @@ class NetworkPolicy:
 
 ###  4. Specialized Agents
 
-**Agent Hierarchy**:
+- **Agent Hierarchy**:
 ```python
 BaseAgent (ABC)
 ├── RedTeamAgent (ABC)
@@ -192,9 +192,9 @@ BaseAgent (ABC)
     ├── AnalysisAgent
     ├── HuntingAgent
     └── ResponseAgent
-```
+```text
 
-**Agent Communication**:
+- **Agent Communication**:
 - **Message Passing**: Async message queues for inter-agent communication
 - **Shared State**: Redis-backed shared memory for mission context
 - **Event System**: Pub/sub for real-time event notifications
@@ -202,16 +202,16 @@ BaseAgent (ABC)
 
 ###  5. Telemetry System
 
-**Purpose**: Comprehensive data collection for learning, monitoring, and compliance.
+- **Purpose**: Comprehensive data collection for learning, monitoring, and compliance.
 
-**Data Collection Layers**:
+- **Data Collection Layers**:
 1. **Agent Telemetry**: Task execution metrics, success rates, errors
 2. **System Telemetry**: Resource usage, performance metrics
 3. **Security Telemetry**: Audit logs, access patterns, anomalies
 4. **Learning Telemetry**: Model performance, adaptation metrics
 
-**Storage Architecture**:
-```
+- **Storage Architecture**:
+```text
 Redis (Hot Data)
 ├── Real-time metrics (TTL: 1 hour)
 ├── Agent status (TTL: 24 hours)
@@ -223,9 +223,9 @@ PostgreSQL (Cold Data)
 ├── Agent performance (Indexed by agent_type, technique)
 ├── Learning models (Versioned storage)
 └── Audit logs (Append-only, encrypted)
-```
+```text
 
-**Data Pipeline**:
+- **Data Pipeline**:
 ```mermaid
 graph LR
     A[Agents] --> B[Telemetry Collector]
@@ -235,19 +235,19 @@ graph LR
     C --> F[Real-time Dashboards]
     D --> G[Historical Analysis]
     E --> H[Alerting]
-```
+```text
 
 ###  6. Autonomous Learning Engine
 
-**Purpose**: Self-learning algorithms that adapt agent behavior based on success patterns.
+- **Purpose**: Self-learning algorithms that adapt agent behavior based on success patterns.
 
-**Machine Learning Components**:
+- **Machine Learning Components**:
 - **Technique Selection**: RL-based technique selection optimization
 - **Parameter Tuning**: Automated parameter optimization
 - **Success Prediction**: Ensemble models for technique success probability
 - **Anomaly Detection**: Unsupervised learning for unusual patterns
 
-**Learning Loop**:
+- **Learning Loop**:
 1. **Data Collection**: Gather execution telemetry
 2. **Feature Engineering**: Extract relevant features from raw data
 3. **Model Training**: Update models with new data
@@ -273,31 +273,31 @@ class AutonomousLearningEngine:
 
         # Train success prediction model
         await self.success_predictor.update(features)
-```
+```text
 
 ##  Security Architecture
 
 ###  Defense in Depth
 
-**Layer 1: Network Isolation**
+- *Layer 1: Network Isolation**
 - Container-level network namespaces
 - Software-defined networking with micro-segmentation
 - Ingress/egress traffic filtering
 - DNS sinkholing for malicious domains
 
-**Layer 2: Container Security**
+- *Layer 2: Container Security**
 - Non-privileged containers by default
 - Minimal capability sets (CAP_DROP)
 - Read-only root filesystems where possible
 - Security contexts and SELinux/AppArmor profiles
 
-**Layer 3: Application Security**
+- *Layer 3: Application Security**
 - Input validation and sanitization
 - Parameterized queries for database access
 - Secure credential management (Vault integration)
 - Rate limiting and DDoS protection
 
-**Layer 4: Data Security**
+- *Layer 4: Data Security**
 - Encryption at rest (AES-256)
 - Encryption in transit (TLS 1.3)
 - Key rotation and management
@@ -305,21 +305,21 @@ class AutonomousLearningEngine:
 
 ###  Threat Model
 
-**Assets**:
+- **Assets**:
 - Technique definitions and capabilities
 - Mission data and results
 - Agent execution telemetry
 - Learning models and algorithms
 - Infrastructure credentials
 
-**Threats**:
+- **Threats**:
 - **Insider Threats**: Malicious administrators or compromised accounts
 - **Container Escape**: Breaking out of sandbox isolation
 - **Data Exfiltration**: Unauthorized access to sensitive data
 - **Supply Chain**: Compromised dependencies or container images
 - **DoS Attacks**: Resource exhaustion or service disruption
 
-**Mitigations**:
+- **Mitigations**:
 - **Zero Trust**: Never trust, always verify
 - **Least Privilege**: Minimal necessary permissions
 - **Audit Everything**: Comprehensive logging and monitoring
@@ -328,20 +328,20 @@ class AutonomousLearningEngine:
 
 ###  Compliance Framework
 
-**SOC 2 Type II**:
+- **SOC 2 Type II**:
 - Security: Protection against unauthorized access
 - Availability: System uptime and performance
 - Processing Integrity: Complete and accurate processing
 - Confidentiality: Protection of confidential information
 - Privacy: Protection of personal information
 
-**ISO 27001**:
+- **ISO 27001**:
 - Information Security Management System (ISMS)
 - Risk assessment and treatment
 - Security controls implementation
 - Continuous improvement process
 
-**NIST Cybersecurity Framework**:
+- **NIST Cybersecurity Framework**:
 - Identify: Asset management and risk assessment
 - Protect: Access control and data security
 - Detect: Anomaly detection and monitoring
@@ -352,36 +352,36 @@ class AutonomousLearningEngine:
 
 ###  Horizontal Scaling
 
-**Stateless Design**:
+- **Stateless Design**:
 - Agent Scheduler instances can be load balanced
 - Sandbox Orchestrator supports distributed container management
 - Telemetry Collector can run in cluster mode
 
-**Database Scaling**:
+- **Database Scaling**:
 - PostgreSQL read replicas for analytics workloads
 - Redis Cluster for high-availability caching
 - Partitioning strategies for large datasets
 
-**Container Orchestration**:
+- **Container Orchestration**:
 - Kubernetes support for multi-node deployments
 - Auto-scaling based on resource utilization
 - Spot instance support for cost optimization
 
 ###  Performance Optimization
 
-**Caching Strategies**:
+- **Caching Strategies**:
 - Multi-level caching (L1: Memory, L2: Redis, L3: Database)
 - Cache warming for frequently accessed data
 - Intelligent cache invalidation
 - CDN integration for static assets
 
-**Database Optimization**:
+- **Database Optimization**:
 - Query optimization and indexing strategies
 - Connection pooling and prepared statements
 - Materialized views for complex analytics
 - Archival strategies for historical data
 
-**Monitoring & Profiling**:
+- **Monitoring & Profiling**:
 - Application Performance Monitoring (APM)
 - Distributed tracing for request flows
 - Resource utilization monitoring
@@ -391,19 +391,19 @@ class AutonomousLearningEngine:
 
 ###  API Design
 
-**RESTful API**:
+- **RESTful API**:
 - Resource-based URLs
 - HTTP status codes for semantic meaning
 - JSON API specification compliance
 - OpenAPI 3.0 documentation
 
-**WebSocket API**:
+- **WebSocket API**:
 - Real-time mission status updates
 - Agent telemetry streaming
 - Interactive debugging sessions
 - Event-driven notifications
 
-**GraphQL API** (Future):
+- *GraphQL API** (Future):
 - Flexible query capabilities
 - Reduced over-fetching
 - Real-time subscriptions
@@ -411,7 +411,7 @@ class AutonomousLearningEngine:
 
 ###  SDK Architecture
 
-**Python SDK**:
+- **Python SDK**:
 ```python
 from xorb_agents import AgentFramework
 
@@ -420,21 +420,21 @@ framework = AgentFramework(
     api_key="your-api-key"
 )
 
-#  High-level mission management
+# High-level mission management
 mission = await framework.missions.create({
     "name": "Web App Test",
     "targets": ["https://example.com"]
 })
 
-#  Low-level agent control
+# Low-level agent control
 agent = await framework.agents.get("red_recon_001")
 result = await agent.execute_technique("recon.port_scan", {
     "target": "example.com",
     "ports": "1-1000"
 })
-```
+```text
 
-**Go SDK** (Future):
+- *Go SDK** (Future):
 ```go
 import "github.com/xorb-security/go-agent-sdk"
 
@@ -444,17 +444,17 @@ mission, err := client.Missions.Create(context.Background(), &agents.MissionConf
     Name: "Web App Test",
     Targets: []string{"https://example.com"},
 })
-```
+```text
 
 ###  Event-Driven Architecture
 
-**Event Types**:
+- **Event Types**:
 - **Mission Events**: Created, Started, Completed, Failed
 - **Agent Events**: Assigned, Started, Task Completed, Error
 - **System Events**: Resource Threshold, Security Alert, Model Update
 - **User Events**: Login, Permission Change, Configuration Update
 
-**Event Processing**:
+- **Event Processing**:
 ```python
 @event_handler("mission.completed")
 async def handle_mission_completed(event: MissionCompletedEvent):
@@ -466,13 +466,13 @@ async def handle_mission_completed(event: MissionCompletedEvent):
 
     # Send notifications
     await notifications.send_mission_complete(event.mission_id)
-```
+```text
 
 ##  Deployment Architecture
 
 ###  Container Orchestration
 
-**Docker Compose** (Development):
+- *Docker Compose** (Development):
 ```yaml
 version: '3.8'
 services:
@@ -490,9 +490,9 @@ services:
     privileged: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-```
+```text
 
-**Kubernetes** (Production):
+- *Kubernetes** (Production):
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -518,9 +518,9 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
-```
+```text
 
-**Helm Charts**:
+- **Helm Charts**:
 - Templated Kubernetes manifests
 - Environment-specific value files
 - Secret management integration
@@ -528,7 +528,7 @@ spec:
 
 ###  Infrastructure as Code
 
-**Terraform Modules**:
+- **Terraform Modules**:
 ```hcl
 module "agent_framework" {
   source = "./modules/agent-framework"
@@ -545,9 +545,9 @@ module "agent_framework" {
   enable_kata_containers = true
   enable_monitoring     = true
 }
-```
+```text
 
-**Ansible Playbooks**:
+- **Ansible Playbooks**:
 - Host provisioning and configuration
 - Application deployment automation
 - Security hardening
@@ -555,7 +555,7 @@ module "agent_framework" {
 
 ###  Monitoring Stack
 
-**Prometheus Configuration**:
+- **Prometheus Configuration**:
 ```yaml
 global:
   scrape_interval: 15s
@@ -569,15 +569,15 @@ scrape_configs:
   - job_name: 'sandbox-orchestrator'
     static_configs:
       - targets: ['sandbox-orchestrator:8081']
-```
+```text
 
-**Grafana Dashboards**:
+- **Grafana Dashboards**:
 - Executive: High-level mission success rates
 - Operations: Infrastructure health and performance
 - Security: Threat landscape and technique effectiveness
 - Development: Application metrics and debugging
 
-**AlertManager Rules**:
+- **AlertManager Rules**:
 ```yaml
 groups:
   - name: agent_framework
@@ -589,7 +589,7 @@ groups:
           severity: warning
         annotations:
           summary: "High mission failure rate detected"
-```
+```text
 
 ##  Future Architecture Considerations
 

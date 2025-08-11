@@ -1,9 +1,9 @@
-#  XORB Cybersecurity Platform - GEMINI Context
+# XORB Cybersecurity Platform - GEMINI Context
 
 ##  📌 Project Overview
 XORB is an enterprise-grade cybersecurity operations platform designed for penetration testing as a service (PTaaS), compliance validation, and advanced attack simulation. The system integrates security orchestration, compliance frameworks (NIST, CIS, ISO27001, SOC2), and real-time attack simulation capabilities with enhanced AI-powered intelligence.
 
-**Key Components:**
+- *Key Components:**
 - **Compliance Engine**: Implements security standards validation with real-time SIEM integration
 - **Attack Simulation**: Real-world attack scenario generation with ML-powered threat analysis
 - **SIEM Integration**: Security event monitoring and response with behavioral analytics
@@ -19,25 +19,25 @@ XORB is an enterprise-grade cybersecurity operations platform designed for penet
 
 ###  Deployment
 ```bash
-#  Initial setup
+# Initial setup
 chmod +x deploy.sh
 ./deploy.sh
-```
+```text
 
 ###  Service Activation
 ```bash
-#  Start core services
+# Start core services
 python3 activate_xorb_services.py
 
-#  Run compliance validation
+# Run compliance validation
 python3 compliance_validation.py
 
-#  Launch attack simulation
+# Launch attack simulation
 python3 activate_attack_simulation.py
 
-#  Start security monitoring
+# Start security monitoring
 python3 activate_siem_engine.py
-```
+```text
 
 ##  🧪 Testing & Validation
 - **Compliance Tests**: Run `compliance_validation.py` with specific framework parameters
@@ -46,7 +46,7 @@ python3 activate_siem_engine.py
 - **Audit Reports**: Review output in `AUDIT_REPORT.md` and `COMPREHENSIVE_SYSTEM_AUDIT.md`
 
 ##  📂 Directory Structure
-```
+```text
 /root/Xorb/
 ├── Security Frameworks
 │   ├── compliance_template.py  # Base compliance implementation
@@ -75,7 +75,7 @@ python3 activate_siem_engine.py
 └── Deployment
     ├── deploy.sh  # Deployment automation script
     └── .env.template  # Environment configuration
-```
+```text
 
 ##  🧱 Development Conventions
 - **Python Style**: PEP8-compliant with type hints

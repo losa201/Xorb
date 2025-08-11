@@ -1,4 +1,4 @@
-#  XORB PTaaS Security & Compliance Report
+# XORB PTaaS Security & Compliance Report
 
 ##  Overview
 This report documents the security and compliance status of the XORB PTaaS platform for verteidiq.com. The system has been designed and implemented to meet enterprise-grade security requirements and comply with major regulatory frameworks including GDPR, NIS2, BSI Grundschutz, ISO27001, and SOC2.

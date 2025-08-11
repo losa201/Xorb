@@ -1,4 +1,4 @@
-#  BaseAgent
+# BaseAgent
 
 ##  Overview
 Core foundation for all specialized agent implementations

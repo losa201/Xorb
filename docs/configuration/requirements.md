@@ -1,4 +1,4 @@
-#  Requirements Configuration
+# Requirements Configuration
 
 This directory contains multiple requirements files for different components of the XORB system:
 

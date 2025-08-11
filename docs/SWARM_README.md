@@ -1,4 +1,4 @@
-#  XORB Swarm Intelligence Architecture
+# XORB Swarm Intelligence Architecture
 
 ##  Overview
 The XORB Autonomous Cybersecurity System employs a sophisticated swarm intelligence architecture that enables coordinated, adaptive, and intelligent behavior across multiple agents. This architecture is designed to provide enhanced cybersecurity capabilities through collective intelligence, emergent behavior, and decentralized decision-making.

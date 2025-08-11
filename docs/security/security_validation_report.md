@@ -1,5 +1,5 @@
-#  XORB Security Configuration Validation Report
-**Total Issues Found**: 1617
+# XORB Security Configuration Validation Report
+- **Total Issues Found**: 1617
 
 ##  CRITICAL Issues (464)
 

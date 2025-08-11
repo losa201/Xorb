@@ -1,4 +1,4 @@
-#  PTaaS Frontend-Backend Integration Strategic Plan
+# PTaaS Frontend-Backend Integration Strategic Plan
 
 ##  Executive Summary
 
@@ -51,7 +51,7 @@ interface APIResponse<T> {
   errors?: ValidationError[];
   meta?: PaginationMeta;
 }
-```
+```text
 
 ####  1.2 Authentication Integration
 - **SSO Flow**: Implement enterprise SSO with frontend redirect handling
@@ -60,32 +60,32 @@ interface APIResponse<T> {
 
 ####  1.3 Security Headers & CORS
 ```python
-#  Backend CORS Configuration
+# Backend CORS Configuration
 CORS_ORIGINS = [
     "https://app.verteidiq.com",
     "https://staging.verteidiq.com",
     "http://localhost:3000"  # Development
 ]
 
-#  Security Headers
+# Security Headers
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Strict-Transport-Security": "max-age=31536000",
     "Content-Security-Policy": "default-src 'self'"
 }
-```
+```text
 
 ###  Phase 2: Real-time Data Integration (Weeks 3-4)
 
 ####  2.1 WebSocket Implementation
 ```python
-#  Backend WebSocket Manager
+# Backend WebSocket Manager
 class PTaaSWebSocketManager:
     async def broadcast_scan_update(self, tenant_id: str, scan_data: dict)
     async def send_security_alert(self, tenant_id: str, alert: SecurityAlert)
     async def update_compliance_status(self, tenant_id: str, status: ComplianceStatus)
-```
+```text
 
 ```typescript
 // Frontend WebSocket Client
@@ -94,7 +94,7 @@ class PTaaSWebSocket {
   subscribe(event: string, callback: Function): void
   unsubscribe(event: string): void
 }
-```
+```text
 
 ####  2.2 Real-time Dashboard Updates
 - **Live Scan Feed**: Real-time penetration test progress
@@ -106,7 +106,7 @@ class PTaaSWebSocket {
 
 ####  3.1 API Endpoints for Dashboard Data
 ```python
-#  Dashboard Data Endpoints
+# Dashboard Data Endpoints
 @router.get("/api/v1/dashboard/metrics")
 async def get_dashboard_metrics(
     tenant_id: str = Depends(get_current_tenant),
@@ -123,7 +123,7 @@ async def get_compliance_status(
     tenant_id: str = Depends(get_current_tenant),
     frameworks: List[str] = Query(default=["gdpr", "nis2"])
 ) -> ComplianceStatus
-```
+```text
 
 ####  3.2 Frontend Data Layer
 ```typescript
@@ -144,13 +144,13 @@ const useVulnerabilityTrends = () => {
     refetchInterval: 60000 // 1 minute
   });
 };
-```
+```text
 
 ###  Phase 4: Enterprise Features Integration (Weeks 7-8)
 
 ####  4.1 Penetration Testing Orchestration
 ```python
-#  Scan Management Endpoints
+# Scan Management Endpoints
 @router.post("/api/v1/scans")
 async def start_penetration_test(
     scan_request: ScanRequest,
@@ -168,7 +168,7 @@ async def download_scan_report(
     scan_id: str,
     format: ReportFormat = ReportFormat.PDF
 ) -> StreamingResponse
-```
+```text
 
 ####  4.2 Compliance Automation
 ```typescript
@@ -188,7 +188,7 @@ const useComplianceFrameworks = () => {
     queryFn: apiClient.compliance.getFrameworks
   });
 };
-```
+```text
 
 ##  Technical Implementation Details
 
@@ -252,7 +252,7 @@ class PTaaSAPIClient {
   public reports = new ReportsAPI(this.httpClient);
   public auth = new AuthAPI(this.httpClient);
 }
-```
+```text
 
 ###  Authentication Flow
 
@@ -288,7 +288,7 @@ class EnterpriseSSOClient {
     localStorage.setItem('refresh_token', tokens.refresh_token);
   }
 }
-```
+```text
 
 ###  WebSocket Integration
 
@@ -331,7 +331,7 @@ class PTaaSWebSocket {
     callbacks.forEach(callback => callback(message.data));
   }
 }
-```
+```text
 
 ###  Error Handling & Resilience
 
@@ -374,7 +374,7 @@ class APIErrorHandler {
     }
   }
 }
-```
+```text
 
 ##  Security Considerations
 
@@ -388,7 +388,7 @@ const CSP_POLICY = {
   'img-src': ["'self'", "data:", "https:"],
   'connect-src': ["'self'", "https://api.verteidiq.com", "wss://api.verteidiq.com"]
 };
-```
+```text
 
 ###  2. Token Security
 ```typescript
@@ -412,7 +412,7 @@ class TokenManager {
     localStorage.setItem(key, encrypted);
   }
 }
-```
+```text
 
 ##  Performance Optimization
 
@@ -427,7 +427,7 @@ const SecurityDashboard = lazy(() =>
 
 // Route-based code splitting
 const ComplianceCenter = lazy(() => import('./pages/ComplianceCenter'));
-```
+```text
 
 ###  2. API Response Caching
 ```typescript
@@ -446,7 +446,7 @@ const queryClient = new QueryClient({
     }
   }
 });
-```
+```text
 
 ###  3. Bundle Optimization
 ```typescript
@@ -465,7 +465,7 @@ export default defineConfig({
     }
   }
 });
-```
+```text
 
 ##  Monitoring & Analytics
 
@@ -485,7 +485,7 @@ const performanceMonitor = {
     }
   }
 };
-```
+```text
 
 ###  2. Error Tracking
 ```typescript
@@ -501,7 +501,7 @@ Sentry.init({
     return event;
   }
 });
-```
+```text
 
 ##  Deployment Strategy
 
@@ -529,11 +529,11 @@ const configs: Record<string, EnvironmentConfig> = {
     FEATURES: { enableDebugMode: false }
   }
 };
-```
+```text
 
 ###  2. CI/CD Integration
 ```yaml
-#  .github/workflows/frontend-deploy.yml
+# .github/workflows/frontend-deploy.yml
 name: Deploy PTaaS Frontend
 on:
   push:
@@ -570,7 +570,7 @@ jobs:
       - name: Deploy to CDN
         run: npm run deploy
         working-directory: PTaaS
-```
+```text
 
 ##  Implementation Timeline
 
@@ -632,6 +632,6 @@ jobs:
 3. **Compliance Issues**: Regular compliance reviews
 4. **Vendor Dependencies**: Backup plans for critical services
 
----
+- --
 
 This strategic plan provides a comprehensive roadmap for integrating the PTaaS frontend with the enterprise backend, ensuring scalability, security, and maintainability while delivering exceptional user experience for enterprise customers.

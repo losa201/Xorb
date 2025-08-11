@@ -1,4 +1,4 @@
-#  XORB Docker Containerization Guide
+# XORB Docker Containerization Guide
 
 ##  Overview
 
@@ -31,67 +31,67 @@ All containers implement security best practices:
 
 ###  API Service (`src/api/Dockerfile`)
 
-**Features:**
+- *Features:**
 - FastAPI application with Gunicorn in production
 - Multi-stage build with development and production targets
 - Health checks and graceful shutdown handling
 - Configuration management integration
 - Security middleware and rate limiting
 
-**Build Targets:**
+- *Build Targets:**
 - `development`: Hot-reload, debugging tools, verbose logging
 - `production`: Optimized runtime, multiple workers, security hardening
 - `testing`: Test execution environment with coverage tools
 
-**Key Environment Variables:**
+- *Key Environment Variables:**
 ```bash
 XORB_ENV=production          # Environment configuration
 WORKERS=8                    # Gunicorn worker processes
 TIMEOUT=60                   # Request timeout
 DEBUG=false                  # Debug mode
 LOG_LEVEL=INFO              # Logging level
-```
+```text
 
 ###  Orchestrator Service (`src/orchestrator/Dockerfile`)
 
-**Features:**
+- *Features:**
 - Temporal workflow orchestration
 - Circuit breaker pattern for resilience
 - Async workflow execution
 - Configuration-driven service discovery
 
-**Environment Variables:**
+- *Environment Variables:**
 ```bash
 TEMPORAL_HOST=temporal:7233  # Temporal server connection
 XORB_ENV=production         # Environment configuration
-```
+```text
 
 ###  Worker Service (`src/services/worker/Dockerfile`)
 
-**Features:**
+- *Features:**
 - Background job processing
 - Scalable worker processes
 - Resource-aware concurrency
 - Redis queue integration
 
-**Environment Variables:**
+- *Environment Variables:**
 ```bash
 WORKER_CONCURRENCY=8        # Worker process count
 WORKER_MAX_MEMORY=512m      # Memory limit per worker
-```
+```text
 
 ##  Docker Compose Configurations
 
 ###  Development Environment (`docker-compose.development.yml`)
 
-**Features:**
+- *Features:**
 - Hot-reload for all services
 - Development databases with logging
 - Monitoring stack (Prometheus, Grafana)
 - Volume mounts for code changes
 - Debug-friendly configuration
 
-**Services:**
+- *Services:**
 - PostgreSQL with pgvector extension
 - Redis with persistence
 - API, Orchestrator, Worker services
@@ -99,21 +99,21 @@ WORKER_MAX_MEMORY=512m      # Memory limit per worker
 - Prometheus metrics
 - Grafana dashboards
 
-**Usage:**
+- *Usage:**
 ```bash
-#  Start development environment
+# Start development environment
 docker-compose -f docker-compose.development.yml up -d
 
-#  View logs
+# View logs
 docker-compose -f docker-compose.development.yml logs -f api-dev
 
-#  Scale workers
+# Scale workers
 docker-compose -f docker-compose.development.yml up -d --scale worker-dev=4
-```
+```text
 
 ###  Production Environment (`docker-compose.production.yml`)
 
-**Features:**
+- *Features:**
 - Production-optimized containers
 - Secrets management
 - Resource limits and reservations
@@ -121,7 +121,7 @@ docker-compose -f docker-compose.development.yml up -d --scale worker-dev=4
 - Load balancing and SSL termination
 - Comprehensive monitoring stack
 
-**Production Services:**
+- *Production Services:**
 - PostgreSQL with performance tuning
 - Redis with clustering support
 - Multiple API replicas (3x)
@@ -130,7 +130,7 @@ docker-compose -f docker-compose.development.yml up -d --scale worker-dev=4
 - Temporal server
 - Full monitoring stack
 
-**Resource Allocation:**
+- *Resource Allocation:**
 ```yaml
 api-prod:
   deploy:
@@ -142,7 +142,7 @@ api-prod:
       reservations:
         memory: 512M
         cpus: '0.5'
-```
+```text
 
 ##  Container Management Scripts
 
@@ -150,28 +150,28 @@ api-prod:
 
 Comprehensive container management tool with the following capabilities:
 
-**Commands:**
+- *Commands:**
 ```bash
-#  Build all services for development
+# Build all services for development
 ./tools/scripts/docker-build.sh build --environment development --target development
 
-#  Build and push production images
+# Build and push production images
 ./tools/scripts/docker-build.sh build --environment production --target production --push --version v1.2.3
 
-#  Run security scans
+# Run security scans
 ./tools/scripts/docker-build.sh security-scan api orchestrator worker
 
-#  Generate size report
+# Generate size report
 ./tools/scripts/docker-build.sh size-report
 
-#  Deploy services
+# Deploy services
 ./tools/scripts/docker-build.sh deploy --environment production
 
-#  Clean up resources
+# Clean up resources
 ./tools/scripts/docker-build.sh clean --environment development
-```
+```text
 
-**Features:**
+- *Features:**
 - Parallel and sequential builds
 - Build caching optimization
 - Security vulnerability scanning
@@ -183,7 +183,7 @@ Comprehensive container management tool with the following capabilities:
 
 Automated container testing suite covering:
 
-**Test Categories:**
+- *Test Categories:**
 1. **Docker Environment** - Verify Docker daemon and resources
 2. **Image Building** - Test multi-stage build process
 3. **Security Validation** - Verify non-root user, labels, permissions
@@ -193,12 +193,12 @@ Automated container testing suite covering:
 7. **Health Endpoints** - Verify service health checks
 8. **Volume Mounts** - Test file system integration
 
-**Usage:**
+- *Usage:**
 ```bash
-#  Run all container tests
+# Run all container tests
 python test_containers.py
 
-#  Expected output:
+# Expected output:
 🔧 XORB Container Test Suite
 ============================================================
 🧪 Running: Docker Environment
@@ -221,7 +221,7 @@ python test_containers.py
 
 🎯 Summary: 8/8 tests passed
 🎉 All container tests passed!
-```
+```text
 
 ##  Configuration Management Integration
 
@@ -232,11 +232,11 @@ All containers use the centralized configuration management system:
 ```python
 from common.config_manager import get_config
 
-#  Configuration automatically loaded based on XORB_ENV
+# Configuration automatically loaded based on XORB_ENV
 config = get_config()
 db_url = config.database.get_url()
 api_port = config.api_service.port
-```
+```text
 
 ###  Environment-specific Configs
 
@@ -252,31 +252,31 @@ Containers automatically load configuration based on the `XORB_ENV` environment 
 Production containers integrate with HashiCorp Vault and Docker secrets:
 
 ```yaml
-#  Docker Compose secrets
+# Docker Compose secrets
 secrets:
   postgres_password:
     file: ./secrets/postgres_password
   jwt_secret:
     file: ./secrets/jwt_secret
 
-#  Service configuration
+# Service configuration
 api-prod:
   secrets:
     - postgres_password
     - jwt_secret
-```
+```text
 
 ##  Performance Optimization
 
 ###  Image Size Optimization
 
-**Before Optimization:**
+- *Before Optimization:**
 - API Service: ~1.2GB
 - Orchestrator: ~1.1GB
 - Worker: ~1.0GB
 - **Total: ~3.3GB**
 
-**After Multi-stage Optimization:**
+- *After Multi-stage Optimization:**
 - API Service: ~400MB
 - Orchestrator: ~350MB
 - Worker: ~300MB
@@ -284,28 +284,28 @@ api-prod:
 
 ###  Build Optimization
 
-**Caching Strategy:**
+- *Caching Strategy:**
 ```dockerfile
-#  Dependencies cached separately from source code
+# Dependencies cached separately from source code
 COPY requirements.lock ./
 RUN pip install --no-cache-dir -r requirements.lock
 
-#  Source code copied after dependencies
+# Source code copied after dependencies
 COPY --chown=xorb:xorb . .
-```
+```text
 
-**Build Cache Tags:**
+- *Build Cache Tags:**
 ```bash
-#  Build with cache reference
+# Build with cache reference
 docker build --cache-from xorb/api:dev-cache --target development -t xorb/api:dev .
 
-#  Push cache for CI/CD
+# Push cache for CI/CD
 docker push xorb/api:dev-cache
-```
+```text
 
 ###  Runtime Optimization
 
-**Resource Limits:**
+- *Resource Limits:**
 ```yaml
 deploy:
   resources:
@@ -315,9 +315,9 @@ deploy:
     reservations:
       memory: 512M
       cpus: '0.5'
-```
+```text
 
-**Health Checks:**
+- *Health Checks:**
 ```yaml
 healthcheck:
   test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -325,7 +325,7 @@ healthcheck:
   timeout: 10s
   retries: 3
   start_period: 60s
-```
+```text
 
 ##  Monitoring and Observability
 
@@ -350,7 +350,7 @@ Structured logging from all containers:
   "duration": 0.245,
   "status_code": 200
 }
-```
+```text
 
 ###  Dashboards
 
@@ -366,16 +366,16 @@ Grafana dashboards for container monitoring:
 
 Automated security scanning with Trivy:
 ```bash
-#  Scan for vulnerabilities
+# Scan for vulnerabilities
 ./tools/scripts/docker-build.sh security-scan
 
-#  Expected output:
+# Expected output:
 🔒 Running security scans on images...
 Scanning api for vulnerabilities...
 ✅ No HIGH or CRITICAL vulnerabilities found
 Scanning orchestrator for vulnerabilities...
 ✅ No HIGH or CRITICAL vulnerabilities found
-```
+```text
 
 ###  Security Compliance
 
@@ -394,18 +394,18 @@ All containers meet security compliance requirements:
 Production deployment with zero downtime:
 
 ```bash
-#  Build new version
+# Build new version
 ./tools/scripts/docker-build.sh build --version v1.2.3 --target production --push
 
-#  Deploy to staging
+# Deploy to staging
 ./tools/scripts/docker-build.sh deploy --environment staging
 
-#  Run tests against staging
+# Run tests against staging
 ./tools/scripts/docker-build.sh test --environment staging
 
-#  Deploy to production
+# Deploy to production
 ./tools/scripts/docker-build.sh deploy --environment production --version v1.2.3
-```
+```text
 
 ###  Rolling Updates
 
@@ -420,78 +420,78 @@ deploy:
   rollback_config:
     parallelism: 1
     delay: 30s
-```
+```text
 
 ###  Scaling Operations
 
 Dynamic service scaling:
 ```bash
-#  Scale API services
+# Scale API services
 docker-compose -f docker-compose.production.yml up -d --scale api-prod=5
 
-#  Scale workers based on load
+# Scale workers based on load
 docker-compose -f docker-compose.production.yml up -d --scale worker-prod=8
-```
+```text
 
 ##  Troubleshooting
 
 ###  Common Issues
 
-**1. Container Won't Start**
+- *1. Container Won't Start**
 ```bash
-#  Check logs
+# Check logs
 docker-compose logs -f api-prod
 
-#  Check configuration
+# Check configuration
 ./tools/scripts/config-manager.sh validate production
-```
+```text
 
-**2. Out of Memory Errors**
+- *2. Out of Memory Errors**
 ```bash
-#  Check resource usage
+# Check resource usage
 docker stats
 
-#  Increase memory limits
-#  Edit docker-compose.yml resources section
-```
+# Increase memory limits
+# Edit docker-compose.yml resources section
+```text
 
-**3. Health Check Failures**
+- *3. Health Check Failures**
 ```bash
-#  Test health endpoint manually
+# Test health endpoint manually
 curl http://localhost:8000/health
 
-#  Check container status
+# Check container status
 docker-compose ps
-```
+```text
 
 ###  Debugging Tools
 
-**Container Shell Access:**
+- *Container Shell Access:**
 ```bash
-#  Development containers
+# Development containers
 docker-compose exec api-dev /bin/bash
 
-#  Production containers (limited shell)
+# Production containers (limited shell)
 docker-compose exec api-prod /bin/sh
-```
+```text
 
-**Log Analysis:**
+- *Log Analysis:**
 ```bash
-#  Follow logs for specific service
+# Follow logs for specific service
 docker-compose logs -f --tail=100 api-prod
 
-#  Search logs for errors
+# Search logs for errors
 docker-compose logs api-prod 2>&1 | grep ERROR
-```
+```text
 
-**Performance Analysis:**
+- *Performance Analysis:**
 ```bash
-#  Monitor resource usage
+# Monitor resource usage
 docker stats api-prod orchestrator-prod worker-prod
 
-#  Generate performance report
+# Generate performance report
 ./tools/scripts/docker-build.sh size-report
-```
+```text
 
 ##  Best Practices
 
@@ -536,15 +536,15 @@ If migrating from previous container setup:
 Update existing configurations to use centralized config management:
 
 ```python
-#  Old approach
+# Old approach
 database_url = os.getenv('DATABASE_URL')
 
-#  New approach
+# New approach
 from common.config_manager import get_config
 config = get_config()
 database_url = config.database.get_url()
-```
+```text
 
----
+- --
 
 This containerization implementation provides a robust, secure, and scalable foundation for the XORB platform with comprehensive tooling for development, testing, and production operations.

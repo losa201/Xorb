@@ -1,4 +1,4 @@
-#  XORB Red/Blue Agent Framework
+# XORB Red/Blue Agent Framework
 
 ##  Overview
 
@@ -58,7 +58,7 @@ graph TB
 
     N[XORB PTaaS API] --> A
     O[Mission Control] --> N
-```
+```text
 
 ###  Core Components
 
@@ -114,14 +114,14 @@ graph TB
 ```python
 from src.services.red_blue_agents import AgentScheduler, CapabilityRegistry, SandboxOrchestrator
 
-#  Initialize framework
+# Initialize framework
 capability_registry = CapabilityRegistry()
 sandbox_orchestrator = SandboxOrchestrator()
 scheduler = AgentScheduler(capability_registry, sandbox_orchestrator)
 
 await scheduler.initialize()
 
-#  Create mission
+# Create mission
 mission_config = {
     "name": "Web Application Assessment",
     "description": "Automated penetration test of web application",
@@ -147,12 +147,12 @@ mission_config = {
 
 mission_id = await scheduler.create_mission(mission_config)
 await scheduler.start_mission(mission_id)
-```
+```text
 
 ####  Creating a Blue Team Mission
 
 ```python
-#  Blue team defensive mission
+# Blue team defensive mission
 blue_mission_config = {
     "name": "Threat Hunting Exercise",
     "description": "Proactive threat hunting across network infrastructure",
@@ -174,7 +174,7 @@ blue_mission_config = {
 
 blue_mission_id = await scheduler.create_mission(blue_mission_config)
 await scheduler.start_mission(blue_mission_id)
-```
+```text
 
 ##  📖 Documentation Structure
 
@@ -245,7 +245,7 @@ Example environment policy:
     }
   }
 }
-```
+```text
 
 ###  Technique Definitions
 
@@ -269,7 +269,7 @@ Techniques are defined using JSON manifests following the MITRE ATT&CK framework
     }
   ]
 }
-```
+```text
 
 ##  🛡️ Security Considerations
 
@@ -425,8 +425,8 @@ This project is licensed under the MIT License - see the [LICENSE](../../LICENSE
 - [XORB Threat Intelligence](https://github.com/xorb-security/threat-intelligence)
 - [XORB Security Orchestration](https://github.com/xorb-security/security-orchestration)
 
----
+- --
 
-**⚠️ Important Security Notice**
+- *⚠️ Important Security Notice**
 
 This framework is designed for authorized security testing and cyber range environments only. Users are responsible for ensuring compliance with all applicable laws and regulations. The framework includes safety mechanisms to prevent accidental deployment in production environments, but proper configuration and oversight are essential.

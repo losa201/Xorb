@@ -4,8 +4,6 @@
 </h1>
 
 <h4 align="center">Pemindai kerentanan yang cepat dan dapat disesuaikan berdasarkan DSL berbasis YAML sederhana.</h4>
-
-
 <p align="center">
 <img src="https://img.shields.io/github/go-mod/go-version/projectdiscovery/nuclei?filename=v2%2Fgo.mod">
 <a href="https://github.com/projectdiscovery/nuclei/releases"><img src="https://img.shields.io/github/downloads/projectdiscovery/nuclei/total">
@@ -37,30 +35,24 @@
   <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_PT-BR.md">Portuguese</a>
 </p>
 
----
+- --
 
 Nuclei digunakan untuk mengirim permintaan lintas target berdasarkan templat, yang menghasilkan nol positif palsu dan menyediakan pemindaian yang cepat pada banyak host. Nuclei menawarkan pemindaian untuk berbagai protokol, termasuk TCP, DNS, HTTP, SSL, File, Whois, Websocket, Headless, dll. Dengan templating yang kuat dan fleksibel, Nuclei dapat digunakan untuk memodelkan semua jenis pemeriksaan keamanan.
 
 Kami memiliki [repositori khusus](https://github.com/projectdiscovery/nuclei-templates) yang menampung berbagai jenis templat kerentanan yang disumbangkan oleh **lebih dari 300** peneliti dan teknisi keamanan.
-
-
 ##  Cara Kerja
-
-
 <h3 align="center">
   <img src="static/nuclei-flow.jpg" alt="nuclei-flow" width="700px"></a>
 </h3>
-
-
-#  Instalasi Nuclei
+# Instalasi Nuclei
 
 Nuclei membutuhkan **go1.22** agar dapat diinstall. Jalankan perintah berikut untuk menginstal versi terbaru -
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```
+```text
 
-**Metode [instalasi lain dapat ditemukan di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
+- *Metode [instalasi lain dapat ditemukan di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
 
 <table>
 <tr>
@@ -82,11 +74,9 @@ Untuk referensi penulisan sintaks DSL berbasis YAML tersedia [di sini](SYNTAX-RE
 
 ```sh
 nuclei -h
-```
+```text
 
 Ini akan menampilkan bantuan untuk alat tersebut. Berikut adalah semua flag yang didukungnya.
-
-
 ```console
 Nuclei is a fast, template based vulnerability scanner focusing
 on extensive configurability, massive extensibility and ease of use.
@@ -271,8 +261,6 @@ CLOUD:
    -auth                  configure projectdiscovery cloud (pdcp) api key
    -cup, -cloud-upload    upload scan results to pdcp dashboard
    -sid, -scan-id string  upload scan results to given scan id
-
-
 EXAMPLES:
 Run nuclei on single host:
 	$ nuclei -target example.com
@@ -290,7 +278,7 @@ Run nuclei with sorted Markdown outputs (with environment variables):
 	$ MARKDOWN_EXPORT_SORT_MODE=template nuclei -target example.com -markdown-export nuclei_report/
 
 Additional documentation is available at: https://docs.nuclei.sh/getting-started/running
-```
+```text
 
 ###  Menjalankan Nuclei
 
@@ -298,13 +286,13 @@ Memindai domain target dengan templat Nuclei yang [dikurasi oleh komunitas](http
 
 ```sh
 nuclei -u https://example.com
-```
+```text
 
 Memindai URL target dengan templat Nuclei yang [dikurasi oleh komunitas](https://github.com/projectdiscovery/nuclei-templates).
 
 ```sh
 nuclei -list urls.txt
-```
+```text
 
 Contoh dari berkas `urls.txt`:
 
@@ -313,11 +301,11 @@ http://example.com
 http://app.example.com
 http://test.example.com
 http://uat.example.com
-```
+```text
 
-**Contoh lebih detil tentang menjalankan Nuclei dapat ditemukan [di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei).**
+- *Contoh lebih detil tentang menjalankan Nuclei dapat ditemukan [di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei).**
 
-#  Untuk Teknisi Keamanan
+# Untuk Teknisi Keamanan
 
 Nuclei menawarkan sejumlah besar fitur yang berguna bagi teknisi keamanan untuk menyesuaikan alur kerja di organisasi mereka. Dengan berbagai kemampuan pemindaian (seperti misalnya DNS, HTTP, TCP), teknisi keamanan dapat dengan mudah membuat rangkaian pemeriksaan khusus mereka dengan Nuclei.
 
@@ -333,7 +321,7 @@ Nuclei menawarkan sejumlah besar fitur yang berguna bagi teknisi keamanan untuk 
 <tr>
 <td>
 
-**Untuk Pemburu Celah Berhadiah:**
+- *Untuk Pemburu Celah Berhadiah:**
 
 Nuclei memungkinkan Anda untuk menyesuaikan pendekatan pengujian Anda dengan rangkaian pemeriksaan Anda sendiri dan dengan mudah menjalankan program celah berhadiah Anda. Selain itu, Nuclei dapat dengan mudah diintegrasikan ke dalam alur kerja pemindaian berkelanjutan.
 
@@ -351,7 +339,7 @@ Silakan periksa proyek sumber terbuka kami yang lain yang mungkin cocok dengan a
 <tr>
 <td>
 
-**Untuk Penguji Penetrasi:**
+- *Untuk Penguji Penetrasi:**
 
 Nuclei sangat meningkatkan cara Anda mendekati penilaian keamanan dengan menambah proses manual yang berulang. Para konsultan sudah mengonversi langkah penilaian manual mereka dengan Nuclei, ini memungkinkan mereka untuk menjalankan serangkaian pendekatan penilaian khusus mereka di ribuan host secara otomatis.
 
@@ -364,9 +352,7 @@ Para penguji penetrasi mendapatkan kekuatan penuh dari templat publik dan kemamp
 </td>
 </tr>
 </table>
-
-
-#  Untuk Pengembang dan Organisasi
+# Untuk Pengembang dan Organisasi
 
 Nuclei dibangun dengan kesederhanaan dalam pemikiran, dengan templat yang didukung komunitas oleh ratusan peneliti keamanan, memungkinkan Anda untuk tidak tertinggal dengan ancaman keamanan terbaru menggunakan pemindaian Nuclei terus menerus pada host. Ini dirancang agar mudah diintegrasikan ke dalam siklus pengujian regresi, untuk memverifikasi perbaikan dan menghilangkan kerentanan agar tidak terjadi di masa mendatang.
 

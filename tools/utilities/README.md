@@ -1,4 +1,4 @@
-#  XORB Utilities & Scripts
+# XORB Utilities & Scripts
 
 This directory contains core utilities and automation scripts for XORB platform operations.
 

@@ -1,11 +1,11 @@
----
+- --
 title: "Documentation Contributing Guidelines"
 description: "Comprehensive guide for contributing to XORB Platform documentation"
 category: "Contributing"
 tags: ["contributing", "documentation", "guidelines", "standards", "workflow"]
 last_updated: "2025-01-11"
 author: "XORB Documentation Team"
----
+- --
 
 # 📝 Documentation Contributing Guidelines
 
@@ -49,24 +49,24 @@ git checkout -b docs/your-feature-name
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.lock
-```
+```text
 
 ## 📖 Documentation Types
 
 ### **1. User Guides**
-**Purpose**: Help users accomplish specific tasks  
-**Audience**: End users, administrators  
-**Location**: `docs/user-guides/`
+- **Purpose**: Help users accomplish specific tasks
+- **Audience**: End users, administrators
+- **Location**: `docs/user-guides/`
 
-**Template Structure**:
+- **Template Structure**:
 ```markdown
----
+- --
 title: "How to [Task]"
 description: "Step-by-step guide for [specific goal]"
 category: "User Guide"
 difficulty: "Beginner|Intermediate|Advanced"
 estimated_time: "X minutes"
----
+- --
 
 # How to [Task]
 
@@ -90,14 +90,14 @@ How to confirm the task was completed successfully.
 
 ## Troubleshooting
 Common issues and their solutions.
-```
+```text
 
 ### **2. API Documentation**
-**Purpose**: Technical reference for developers  
-**Audience**: Developers, integrators  
-**Location**: `docs/api/`
+- **Purpose**: Technical reference for developers
+- **Audience**: Developers, integrators
+- **Location**: `docs/api/`
 
-**Standards**:
+- **Standards**:
 - Auto-generated from code when possible
 - Include request/response examples
 - Document all parameters and return values
@@ -105,11 +105,11 @@ Common issues and their solutions.
 - Include error codes and messages
 
 ### **3. Architecture Documentation**
-**Purpose**: Technical design and system overview  
-**Audience**: Architects, senior developers  
-**Location**: `docs/architecture/`
+- **Purpose**: Technical design and system overview
+- **Audience**: Architects, senior developers
+- **Location**: `docs/architecture/`
 
-**Components**:
+- **Components**:
 - System overview diagrams
 - Component interaction diagrams
 - Technology stack details
@@ -117,11 +117,11 @@ Common issues and their solutions.
 - Performance characteristics
 
 ### **4. Operational Documentation**
-**Purpose**: Deployment, monitoring, maintenance  
-**Audience**: DevOps, SRE, administrators  
-**Location**: `docs/operations/`
+- **Purpose**: Deployment, monitoring, maintenance
+- **Audience**: DevOps, SRE, administrators
+- **Location**: `docs/operations/`
 
-**Content Areas**:
+- **Content Areas**:
 - Deployment procedures
 - Configuration management
 - Monitoring and alerting
@@ -138,27 +138,27 @@ Common issues and their solutions.
 ## H2 - Major Sections
 ### H3 - Subsections
 #### H4 - Details (avoid going deeper)
-```
+```text
 
 #### **Code Blocks**
 ```markdown
 # Always specify language for syntax highlighting
 ```bash
 echo "Shell commands"
-```
+```text
 
 ```python
 # Python code example
 def example_function():
     return "Hello, XORB!"
-```
+```text
 
 ```json
 {
   "config": "JSON configuration"
 }
-```
-```
+```text
+```text
 
 #### **Lists**
 ```markdown
@@ -172,7 +172,7 @@ def example_function():
 1. First step
 2. Second step
 3. Third step
-```
+```text
 
 #### **Links**
 ```markdown
@@ -185,7 +185,7 @@ def example_function():
 
 # Link to specific sections
 [Security Overview](SECURITY.md#security-overview)
-```
+```text
 
 #### **Tables**
 ```markdown
@@ -193,11 +193,11 @@ def example_function():
 |----------|----------|----------|
 | Row 1    | Data     | More data|
 | Row 2    | Data     | More data|
-```
+```text
 
 #### **Frontmatter Requirements**
 ```yaml
----
+- --
 title: "Document Title"
 description: "Brief description of document purpose"
 category: "Category Name"
@@ -206,8 +206,8 @@ last_updated: "YYYY-MM-DD"
 author: "Author Name"
 difficulty: "Beginner|Intermediate|Advanced" # For guides
 estimated_time: "X minutes" # For tutorials
----
-```
+- --
+```text
 
 ### **Language and Tone**
 
@@ -250,7 +250,7 @@ curl -X POST "https://api.xorb.platform/v1/scans" \
   "status": "initiated",
   "estimated_completion": "2025-01-11T10:30:00Z"
 }
-```
+```text
 
 ### **Screenshots and Images**
 - **Purpose**: Include when they add value, not decoration
@@ -261,8 +261,8 @@ curl -X POST "https://api.xorb.platform/v1/scans" \
 
 ```markdown
 ![XORB Dashboard Overview](images/dashboard-overview.png)
-*The main XORB dashboard showing active scans and system status*
-```
+- The main XORB dashboard showing active scans and system status*
+```text
 
 ### **Cross-References**
 - **Link Liberally**: Connect related information
@@ -277,7 +277,7 @@ curl -X POST "https://api.xorb.platform/v1/scans" \
 # Before starting, check existing issues
 # Create issue for significant changes
 # Discuss approach with documentation team
-```
+```text
 
 ### **2. Writing Phase**
 ```bash
@@ -287,7 +287,7 @@ git checkout -b docs/feature-name
 # Write/update documentation
 # Follow style guide and templates
 # Include all required frontmatter
-```
+```text
 
 ### **3. Review Phase**
 ```bash
@@ -297,7 +297,7 @@ git checkout -b docs/feature-name
 # ✅ Spelling and grammar checked
 # ✅ Follows style guide
 # ✅ Includes proper frontmatter
-```
+```text
 
 ### **4. Testing Phase**
 ```bash
@@ -305,7 +305,7 @@ git checkout -b docs/feature-name
 # Verify on clean environment when possible
 # Check rendered markdown formatting
 # Validate accessibility
-```
+```text
 
 ### **5. Submission Phase**
 ```bash
@@ -319,7 +319,7 @@ git commit -m "docs: add user guide for API authentication
 
 # Push and create pull request
 git push origin docs/feature-name
-```
+```text
 
 ## 📝 Review Process
 
@@ -349,7 +349,7 @@ git push origin docs/feature-name
 - [ ] Target audience needs are met
 - [ ] Prerequisites are clearly stated
 - [ ] Instructions are step-by-step and clear
-```
+```text
 
 ### **Review Checklist for Reviewers**
 ```markdown
@@ -361,7 +361,7 @@ git push origin docs/feature-name
 - [ ] Appropriate level of detail for audience
 - [ ] Good cross-references and linking
 - [ ] Proper categorization and tagging
-```
+```text
 
 ## 🛠️ Tools and Resources
 
@@ -382,7 +382,7 @@ git push origin docs/feature-name
     "shd101wyy.markdown-preview-enhanced"
   ]
 }
-```
+```text
 
 ### **Validation Scripts**
 ```bash
@@ -397,7 +397,7 @@ markdownlint docs/**/*.md
 
 # Custom validation script
 ./scripts/validate-docs.sh
-```
+```text
 
 ## 📊 Quality Metrics
 
@@ -447,7 +447,7 @@ docs/templates/
 ├── api-reference-template.md
 ├── architecture-template.md
 └── runbook-template.md
-```
+```text
 
 ### **Documentation as Code**
 - Version control all documentation
@@ -485,14 +485,14 @@ docs/templates/
 - **Style Guide**: This document and examples
 - **Templates**: Available in `docs/templates/`
 
----
+- --
 
-**Thank you for contributing to XORB Platform documentation!** 🎉
+- *Thank you for contributing to XORB Platform documentation!** 🎉
 
 Your contributions help make the platform more accessible and successful for everyone. Every improvement, no matter how small, makes a difference.
 
----
+- --
 
-**Last Updated**: January 11, 2025  
-**Next Review**: February 2025  
-**Maintainers**: XORB Documentation Team
+- **Last Updated**: January 11, 2025
+- **Next Review**: February 2025
+- **Maintainers**: XORB Documentation Team

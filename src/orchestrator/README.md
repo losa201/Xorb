@@ -1,4 +1,4 @@
-#  Orchestrator Service
+# Orchestrator Service
 
 The Orchestrator Service is the core component of the XORB platform responsible for autonomous workflow execution and task coordination.
 
@@ -14,7 +14,7 @@ This service provides:
 
 The orchestrator follows a layered architecture pattern:
 
-```
+```text
 orchestrator/
 ├── workflows/        # Temporal workflow definitions
 ├── activities/       # Task implementation units
@@ -22,7 +22,7 @@ orchestrator/
 ├── services/         # Business logic and domain services
 ├── infrastructure/   # External system integrations
 └── config/           # Configuration and settings
-```
+```text
 
 ##  Key Features
 
@@ -47,14 +47,14 @@ The service requires the following environment variables:
 
 ```bash
 python main.py
-```
+```text
 
 ###  Docker Deployment
 
 ```bash
 docker build -t xorb-orchestrator .
 docker run xorb-orchestrator
-```
+```text
 
 ##  Development
 
@@ -70,7 +70,7 @@ docker run xorb-orchestrator
 Run unit tests:
 ```bash
 pytest tests/
-```
+```text
 
 ##  Integration Points
 

@@ -1,4 +1,4 @@
-#  🛡️ XORB PTaaS Architecture
+# 🛡️ XORB PTaaS Architecture
 
 ##  🧠 Core Components
 
@@ -43,7 +43,7 @@ graph TD
     I[User Interface] --> A
     J[API Layer] --> A
     K[Automation Engine] --> A
-```
+```text
 
 ##  🧩 Integration Points
 
@@ -186,7 +186,7 @@ graph TD
 
 ##  📁 Directory Structure
 
-```
+```text
 /root/Xorb/
 ├── ptaas/                  # PTaaS core components
 ├── tools/                  # Security tool integrations
@@ -199,7 +199,7 @@ graph TD
 ├── config/                 # Configuration files
 ├── scripts/                # Utility scripts
 └── venv/                   # Python virtual environment
-```
+```text
 
 ##  🧠 Implementation Details
 

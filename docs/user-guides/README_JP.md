@@ -34,11 +34,11 @@
   <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_PT-BR.md">ポルトガル語</a>
 </p>
 
----
+- --
 
 Nucleiは、テンプレートに基づいてターゲット間でリクエストを送信するために使用され、偽陽性がゼロであり、多数のホストで高速なスキャンを提供します。Nucleiは、TCP、DNS、HTTP、SSL、ファイル、Whois、Websocket、Headless、Codeなど、さまざまなプロトコルのスキャンを提供します。強力で柔軟なテンプレートを使用して、Nucleiはすべての種類のセキュリティチェックをモデル化するために使用できます。
 
-**300人以上の** セキュリティ研究者およびエンジニアが提供するさまざまなタイプの脆弱性テンプレートを収容する[専用リポジトリ](https://github.com/projectdiscovery/nuclei-templates)を持っています。
+- *300人以上の** セキュリティ研究者およびエンジニアが提供するさまざまなタイプの脆弱性テンプレートを収容する[専用リポジトリ](https://github.com/projectdiscovery/nuclei-templates)を持っています。
 
 ##  動作原理
 
@@ -51,13 +51,13 @@ Nucleiは、テンプレートに基づいてターゲット間でリクエス�
 | **このプロジェクトは積極的に開発されています**。リリースによって重大な変更が発生することがあります。更新する前にリリースの変更ログを確認してください。 |
 | このプロジェクトは主にスタンドアロンのCLIツールとして使用されることを目的として構築されました。**Nucleiをサービスとして実行すると、セキュリティリスクが生じる可能性があります。**注意して使用し、追加のセキュリティ対策を講じることをお勧めします。 |
 
-#  Nucleiのインストール
+# Nucleiのインストール
 
 Nucleiを正常にインストールするには、**go1.22**が必要です。以下のコマンドを実行して最新バージョンをインストールしてください -
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```
+```text
 
 <details>
   <summary>Brew</summary>
@@ -76,7 +76,7 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 </details>
 
-**より多くのインストール方法は[こちら](https://docs.projectdiscovery.io/tools/nuclei/install)で見つけることができます。**
+- *より多くのインストール方法は[こちら](https://docs.projectdiscovery.io/tools/nuclei/install)で見つけることができます。**
 
 <table>
 <tr>
@@ -98,7 +98,7 @@ YAML DSLの構文リファレンスは[こちら](SYNTAX-REFERENCE.md)で確認�
 
 ```sh
 nuclei -h
-```
+```text
 
 これにより、ツールのヘルプが表示されます。ここには、サポートされているすべてのスイッチがあります。
 

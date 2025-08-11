@@ -1,11 +1,11 @@
----
+- --
 title: "XORB Platform Security Documentation"
 description: "Comprehensive security policies, procedures, and incident response protocols for the XORB Platform"
 category: "Security"
 tags: ["security", "tls", "mtls", "compliance", "incident-response"]
 last_updated: "2025-01-11"
 author: "XORB Security Team"
----
+- --
 
 # XORB Platform Security Documentation
 
@@ -25,7 +25,7 @@ The XORB Platform implements a comprehensive security architecture with end-to-e
 - **HSTS**: Enabled on all public endpoints with `includeSubDomains` and `preload`
 
 ####  Mutual TLS (mTLS) Implementation
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                      Security Boundaries                    │
 ├─────────────────────────────────────────────────────────────┤
@@ -36,12 +36,12 @@ The XORB Platform implements a comprehensive security architecture with end-to-e
 │ HSTS Enabled     │ Client Cert     │ Certificate Auth       │
 │ Rate Limited     │ Verification    │ Zero Trust Network     │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 ###  Certificate Management
 
 ####  Certificate Authority Hierarchy
-```
+```text
 XORB Root CA (RSA 4096, 10 years)
 ├── Subject: CN=XORB Root CA, O=XORB Platform, C=US
 ├── Usage: Certificate Signing, CRL Signing
@@ -51,7 +51,7 @@ XORB Root CA (RSA 4096, 10 years)
     └── Service Certificates (RSA 2048, 30 days)
         ├── Server Certificates (serverAuth)
         └── Client Certificates (clientAuth)
-```
+```text
 
 ####  Certificate Lifecycle
 1. **Generation**: Automated via CA scripts with proper SANs
@@ -80,14 +80,14 @@ XORB Root CA (RSA 4096, 10 years)
 
 ####  Network Segmentation
 ```yaml
-#  Internal Services Network
+# Internal Services Network
 networks:
   xorb-secure:
     driver: bridge
     ipam:
       config:
         - subnet: 172.20.0.0/16
-```
+```text
 
 ####  Firewall Rules
 - **Ingress**: Only HTTPS (443) and TLS-encrypted service ports
@@ -107,7 +107,7 @@ securityContext:
   capabilities:
     drop: ["ALL"]
     add: ["NET_RAW", "NET_ADMIN"]  # Only for security scanners
-```
+```text
 
 ####  Resource Limits
 ```yaml
@@ -118,7 +118,7 @@ resources:
   requests:
     memory: "256Mi"
     cpu: "250m"
-```
+```text
 
 ###  Data Protection
 
@@ -138,18 +138,18 @@ resources:
 
 ####  HashiCorp Vault Integration
 ```bash
-#  Vault Configuration
+# Vault Configuration
 vault auth enable approle
 vault secrets enable -path=secret kv-v2
 vault secrets enable database
 vault secrets enable transit
 
-#  Dynamic Database Credentials
+# Dynamic Database Credentials
 vault write database/config/postgresql \
     plugin_name=postgresql-database-plugin \
     connection_url="postgresql://{{username}}:{{password}}@postgres:5432/xorb?sslmode=require" \
     allowed_roles="xorb-app"
-```
+```text
 
 ####  Secret Rotation
 - **Database Passwords**: 7-day rotation
@@ -171,7 +171,7 @@ vault write database/config/postgresql \
 
 ####  Intrusion Detection
 ```yaml
-#  Falco Rules for Container Security
+# Falco Rules for Container Security
 - rule: Unexpected Network Activity
   condition: >
     spawned_process and not proc_name_exists and
@@ -180,7 +180,7 @@ vault write database/config/postgresql \
     Unexpected network activity (user=%user.name command=%proc.cmdline
     connection=%fd.name)
   priority: WARNING
-```
+```text
 
 ###  Audit Logging
 
@@ -203,7 +203,7 @@ vault write database/config/postgresql \
   "cipher_suite": "TLS_AES_256_GCM_SHA384",
   "result": "success"
 }
-```
+```text
 
 ###  Vulnerability Management
 
@@ -240,16 +240,16 @@ vault write database/config/postgresql \
 
 ####  1. Detection and Analysis
 ```bash
-#  Security Monitoring Dashboard
+# Security Monitoring Dashboard
 curl -H "Authorization: Bearer $TOKEN" \
      https://monitoring.xorb.local/api/v1/alerts
 
-#  TLS Certificate Validation
+# TLS Certificate Validation
 ./scripts/validate/test_tls.sh --report-only
 
-#  Audit Log Analysis
+# Audit Log Analysis
 grep "SECURITY_VIOLATION" /var/log/xorb/audit.log
-```
+```text
 
 ####  2. Containment
 - Isolate affected services
@@ -279,19 +279,19 @@ grep "SECURITY_VIOLATION" /var/log/xorb/audit.log
 
 ####  Certificate Revocation Process
 ```bash
-#  Revoke compromised certificate
+# Revoke compromised certificate
 openssl ca -config ca/intermediate/openssl.cnf \
            -revoke compromised-cert.pem \
            -passin pass:xorb-intermediate-ca-key
 
-#  Generate new CRL
+# Generate new CRL
 openssl ca -config ca/intermediate/openssl.cnf \
            -gencrl \
            -out crl/intermediate.crl.pem
 
-#  Update Envoy CRL configuration
+# Update Envoy CRL configuration
 curl -X POST envoy-admin:9901/runtime_modify?crl_file=/etc/ssl/certs/crl.pem
-```
+```text
 
 ##  📋 Compliance and Governance
 
@@ -331,27 +331,27 @@ curl -X POST envoy-admin:9901/runtime_modify?crl_file=/etc/ssl/certs/crl.pem
 
 ####  Certificate Management
 ```bash
-#  Daily certificate health check
+# Daily certificate health check
 ./scripts/validate/test_tls.sh > reports/daily-tls-$(date +%Y%m%d).log
 
-#  Check expiring certificates
+# Check expiring certificates
 find secrets/tls -name "cert.pem" -exec openssl x509 -in {} -checkend $((7*24*3600)) -noout \; -print
 
-#  Automated rotation check
+# Automated rotation check
 ./scripts/rotate-certs.sh --dry-run
-```
+```text
 
 ####  Security Monitoring
 ```bash
-#  Monitor failed TLS connections
+# Monitor failed TLS connections
 grep "TLS handshake failed" /var/log/envoy/access.log | tail -100
 
-#  Check for certificate validation errors
+# Check for certificate validation errors
 journalctl -u docker-compose -f | grep "certificate verify failed"
 
-#  Audit API access patterns
+# Audit API access patterns
 curl -s "https://api.xorb.local/api/v1/audit/summary" | jq '.failed_requests'
-```
+```text
 
 ###  Backup and Recovery
 
@@ -384,7 +384,7 @@ curl -s "https://api.xorb.local/api/v1/audit/summary" | jq '.failed_requests'
 - **Security Vendor**: security-vendor@partner.com
 - **Law Enforcement**: As required by local regulations
 
----
+- --
 
 ##  📚 Additional Resources
 
@@ -393,6 +393,6 @@ curl -s "https://api.xorb.local/api/v1/audit/summary" | jq '.failed_requests'
 - [Incident Response Playbook](./INCIDENT_RESPONSE.md)
 - [Security Architecture Diagrams](./architecture/security/)
 
-**Last Updated**: 2024-01-15
-**Next Review**: 2024-04-15
-**Document Owner**: Security Team
+- **Last Updated**: 2024-01-15
+- **Next Review**: 2024-04-15
+- **Document Owner**: Security Team

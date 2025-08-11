@@ -1,4 +1,4 @@
-#  CLAUDE.md
+# CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -6,61 +6,61 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ###  Development Setup
 ```bash
-#  Install dependencies
+# Install dependencies
 pip install -r requirements.txt
 
-#  Start API service (main development server)
+# Start API service (main development server)
 cd src/api && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-#  Start orchestrator service (workflow engine)
+# Start orchestrator service (workflow engine)
 cd src/orchestrator && python main.py
 
-#  Alternative: Use simple versions
+# Alternative: Use simple versions
 cd src/api && python simple_main.py
 cd src/orchestrator && python simple_main.py
-```
+```text
 
 ###  Docker Development
 ```bash
-#  Full platform deployment
+# Full platform deployment
 docker-compose -f deploy/configs/docker-compose.yml up -d
 
-#  Development environment
+# Development environment
 docker-compose -f deploy/configs/docker-compose.dev.yml up -d
 
-#  Build specific services
+# Build specific services
 cd src/api && docker build -t xorb-api .
 cd src/orchestrator && docker build -t xorb-orchestrator .
-```
+```text
 
 ###  Testing
 ```bash
-#  Run all tests
+# Run all tests
 pytest
 
-#  Run with coverage
+# Run with coverage
 pytest --cov=src --cov-report=term-missing
 
-#  Run specific test categories
+# Run specific test categories
 pytest -m unit
 pytest -m integration
 pytest -m security
 
-#  Run tests in legacy directory
+# Run tests in legacy directory
 cd legacy && pytest
-```
+```text
 
 ###  Quick Deployment
 ```bash
-#  Quick start platform (recommended for development)
+# Quick start platform (recommended for development)
 ./tools/scripts/quick_start.sh development
 
-#  Production deployment
+# Production deployment
 ./tools/scripts/quick_start.sh production
 
-#  Platform status check
+# Platform status check
 curl http://localhost:8000/health
-```
+```text
 
 ##  Architecture Overview
 

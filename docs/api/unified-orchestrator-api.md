@@ -1,15 +1,15 @@
-#  Unified Orchestrator API Documentation
+# Unified Orchestrator API Documentation
 
 ##  Overview
 
 The XORB Platform's Unified Orchestrator provides comprehensive service orchestration, workflow management, and system monitoring capabilities. This API consolidates service management, workflow execution, and operational monitoring into a single, powerful orchestration engine.
 
 ##  Base URL
-```
+```text
 Production: https://api.verteidiq.com/orchestrator
 Staging: https://staging-api.verteidiq.com/orchestrator
 Development: http://localhost:8000/orchestrator
-```
+```text
 
 ##  Core Concepts
 
@@ -36,7 +36,7 @@ Task executors implement specific operation types:
 - **Report Generation**
 - **Notification Delivery**
 
----
+- --
 
 ##  Endpoints
 
@@ -45,12 +45,12 @@ Task executors implement specific operation types:
 ####  GET /orchestrator/services
 List all registered services and their status.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "services": [
@@ -77,17 +77,17 @@ Authorization: Bearer <access_token>
     "maintenance_services": 1
   }
 }
-```
+```text
 
 ####  POST /orchestrator/services
 Register a new service.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "service_id": "threat-analyzer",
@@ -105,26 +105,26 @@ Authorization: Bearer <access_token>
   "restart_policy": "on-failure",
   "max_restarts": 3
 }
-```
+```text
 
-**Response (201 Created):**
+- *Response (201 Created):**
 ```json
 {
   "success": true,
   "service_id": "threat-analyzer",
   "message": "Service registered successfully"
 }
-```
+```text
 
 ####  POST /orchestrator/services/{service_id}/start
 Start a specific service.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
@@ -133,17 +133,17 @@ Authorization: Bearer <access_token>
   "start_time": "2024-01-15T14:05:00Z",
   "message": "Service started successfully"
 }
-```
+```text
 
 ####  POST /orchestrator/services/{service_id}/stop
 Stop a specific service.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
@@ -152,17 +152,17 @@ Authorization: Bearer <access_token>
   "stop_time": "2024-01-15T14:10:00Z",
   "message": "Service stopped successfully"
 }
-```
+```text
 
 ####  POST /orchestrator/services/{service_id}/restart
 Restart a specific service.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
@@ -172,17 +172,17 @@ Authorization: Bearer <access_token>
   "restart_count": 1,
   "message": "Service restarted successfully"
 }
-```
+```text
 
 ####  GET /orchestrator/services/{service_id}/health
 Get detailed health information for a service.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "service_id": "threat-analyzer",
@@ -209,25 +209,25 @@ Authorization: Bearer <access_token>
     "network_io_mb": 2.1
   }
 }
-```
+```text
 
 ###  Workflow Management
 
 ####  GET /orchestrator/workflows
 List all workflow definitions.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Query Parameters:**
+- *Query Parameters:**
 - `enabled`: Filter by enabled status (true/false)
 - `type`: Filter by workflow type
 - `limit`: Number of results (default: 100)
 - `offset`: Pagination offset (default: 0)
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "workflows": [
@@ -264,17 +264,17 @@ Authorization: Bearer <access_token>
     "has_more": false
   }
 }
-```
+```text
 
 ####  POST /orchestrator/workflows
 Create a new workflow definition.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "id": "compliance-check-workflow",
@@ -345,26 +345,26 @@ Authorization: Bearer <access_token>
   "sla_minutes": 60,
   "tags": ["compliance", "monthly", "automated"]
 }
-```
+```text
 
-**Response (201 Created):**
+- *Response (201 Created):**
 ```json
 {
   "success": true,
   "workflow_id": "compliance-check-workflow",
   "message": "Workflow created successfully"
 }
-```
+```text
 
 ####  POST /orchestrator/workflows/{workflow_id}/execute
 Execute a workflow.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "trigger_data": {
@@ -381,9 +381,9 @@ Authorization: Bearer <access_token>
     "custom_timeout_minutes": 120
   }
 }
-```
+```text
 
-**Response (202 Accepted):**
+- *Response (202 Accepted):**
 ```json
 {
   "success": true,
@@ -394,17 +394,17 @@ Authorization: Bearer <access_token>
   "estimated_duration_minutes": 60,
   "message": "Workflow execution started"
 }
-```
+```text
 
 ####  GET /orchestrator/workflows/executions
 List workflow executions.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Query Parameters:**
+- *Query Parameters:**
 - `workflow_id`: Filter by workflow ID
 - `status`: Filter by status (pending, running, completed, failed, cancelled)
 - `limit`: Number of results (default: 50)
@@ -412,7 +412,7 @@ Authorization: Bearer <access_token>
 - `start_time`: Filter executions after this time (ISO 8601)
 - `end_time`: Filter executions before this time (ISO 8601)
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "executions": [
@@ -452,17 +452,17 @@ Authorization: Bearer <access_token>
     "has_more": true
   }
 }
-```
+```text
 
 ####  GET /orchestrator/workflows/executions/{execution_id}
 Get detailed execution information.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "execution_id": "exec_1234567890abcdef",
@@ -537,25 +537,25 @@ Authorization: Bearer <access_token>
     "critical_issues": 3
   }
 }
-```
+```text
 
 ####  POST /orchestrator/workflows/executions/{execution_id}/cancel
 Cancel a running workflow execution.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "reason": "User requested cancellation",
   "force": false
 }
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "success": true,
@@ -564,19 +564,19 @@ Authorization: Bearer <access_token>
   "cancelled_at": "2024-01-15T14:45:00Z",
   "message": "Workflow execution cancelled successfully"
 }
-```
+```text
 
 ###  Task Executor Management
 
 ####  GET /orchestrator/task-executors
 List all registered task executors.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "task_executors": [
@@ -600,17 +600,17 @@ Authorization: Bearer <access_token>
     }
   ]
 }
-```
+```text
 
 ####  POST /orchestrator/task-executors
 Register a new task executor.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Request Body:**
+- *Request Body:**
 ```json
 {
   "task_type": "custom_analysis",
@@ -628,28 +628,28 @@ Authorization: Bearer <access_token>
     "output_retention_days": 30
   }
 }
-```
+```text
 
-**Response (201 Created):**
+- *Response (201 Created):**
 ```json
 {
   "success": true,
   "task_type": "custom_analysis",
   "message": "Task executor registered successfully"
 }
-```
+```text
 
 ###  System Monitoring
 
 ####  GET /orchestrator/metrics
 Get orchestrator system metrics.
 
-**Headers:**
-```
+- *Headers:**
+```text
 Authorization: Bearer <access_token>
-```
+```text
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "timestamp": "2024-01-15T14:00:00Z",
@@ -689,12 +689,12 @@ Authorization: Bearer <access_token>
     "network_mbps_out": 38.7
   }
 }
-```
+```text
 
 ####  GET /orchestrator/health
 Get orchestrator health status.
 
-**Response (200 OK):**
+- *Response (200 OK):**
 ```json
 {
   "status": "healthy",
@@ -731,9 +731,9 @@ Get orchestrator health status.
     "memory_usage": 67.8
   }
 }
-```
+```text
 
----
+- --
 
 ##  Workflow Definition Schema
 
@@ -784,7 +784,7 @@ Get orchestrator health status.
     "retry_conditions": ["timeout", "network_error"]
   }
 }
-```
+```text
 
 ###  Task Types and Parameters
 
@@ -803,7 +803,7 @@ Get orchestrator health status.
     "max_scan_time_minutes": 120
   }
 }
-```
+```text
 
 ####  compliance_check
 ```json
@@ -818,7 +818,7 @@ Get orchestrator health status.
     "output_format": "json|pdf|csv"
   }
 }
-```
+```text
 
 ####  threat_analysis
 ```json
@@ -833,9 +833,9 @@ Get orchestrator health status.
     "correlation_rules": ["lateral_movement", "privilege_escalation"]
   }
 }
-```
+```text
 
----
+- --
 
 ##  Error Handling
 
@@ -853,7 +853,7 @@ Get orchestrator health status.
   },
   "timestamp": "2024-01-15T14:30:00Z"
 }
-```
+```text
 
 ###  Common Error Codes
 
@@ -871,7 +871,7 @@ Get orchestrator health status.
 | `INSUFFICIENT_RESOURCES` | Not enough system resources |
 | `ORCHESTRATOR_UNAVAILABLE` | Orchestrator service unavailable |
 
----
+- --
 
 ##  SDK Examples
 
@@ -879,21 +879,21 @@ Get orchestrator health status.
 ```python
 from xorb_sdk import XORBOrchestratorClient
 
-#  Initialize client
+# Initialize client
 orchestrator = XORBOrchestratorClient(
     base_url="https://api.verteidiq.com",
     access_token="your_access_token"
 )
 
-#  List services
+# List services
 services = await orchestrator.services.list()
 print(f"Running services: {services.summary.running_services}")
 
-#  Start a service
+# Start a service
 result = await orchestrator.services.start("threat-analyzer")
 print(f"Service started: {result.success}")
 
-#  Execute workflow
+# Execute workflow
 execution = await orchestrator.workflows.execute(
     workflow_id="vulnerability-scan-workflow",
     trigger_data={
@@ -903,10 +903,10 @@ execution = await orchestrator.workflows.execute(
 )
 print(f"Execution ID: {execution.execution_id}")
 
-#  Monitor execution
+# Monitor execution
 status = await orchestrator.workflows.get_execution(execution.execution_id)
 print(f"Status: {status.status}, Progress: {status.progress.percent_complete}%")
-```
+```text
 
 ###  JavaScript SDK
 ```javascript
@@ -948,35 +948,35 @@ const pollExecution = async (executionId) => {
 };
 
 pollExecution(execution.executionId);
-```
+```text
 
----
+- --
 
 ##  Monitoring and Observability
 
 ###  Prometheus Metrics
-```
-#  Service metrics
+```text
+# Service metrics
 xorb_orchestrator_services_total
 xorb_orchestrator_services_running
 xorb_orchestrator_services_failed
 
-#  Workflow metrics
+# Workflow metrics
 xorb_orchestrator_workflows_total
 xorb_orchestrator_workflows_active
 xorb_orchestrator_workflow_duration_seconds
 xorb_orchestrator_workflow_success_rate
 
-#  Task metrics
+# Task metrics
 xorb_orchestrator_tasks_executed_total
 xorb_orchestrator_task_duration_seconds
 xorb_orchestrator_task_retry_count
 
-#  System metrics
+# System metrics
 xorb_orchestrator_cpu_usage_percent
 xorb_orchestrator_memory_usage_percent
 xorb_orchestrator_queue_size
-```
+```text
 
 ###  Grafana Dashboards
 Pre-built dashboards available for:
@@ -994,7 +994,7 @@ Recommended alert rules:
 - System resource usage > 80%
 - Queue size growing consistently
 
----
+- --
 
 ##  Best Practices
 
@@ -1020,7 +1020,7 @@ Recommended alert rules:
 4. **Monitor and tune system resources**
 5. **Use priority queues for critical workflows**
 
----
+- --
 
 ##  Migration Guide
 
@@ -1052,13 +1052,13 @@ Recommended alert rules:
 ###  Configuration Migration
 Update environment variables and configuration:
 ```bash
-#  New unified configuration
+# New unified configuration
 ORCHESTRATOR_MAX_WORKERS=10
 ORCHESTRATOR_QUEUE_SIZE=1000
 ORCHESTRATOR_HEALTH_CHECK_INTERVAL=30
-```
+```text
 
----
+- --
 
 ##  Support and Resources
 

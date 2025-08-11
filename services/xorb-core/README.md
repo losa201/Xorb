@@ -1,10 +1,10 @@
-#  XORB Core Platform
+# XORB Core Platform
 
 ##  Overview
 XORB Core provides the backend platform and services that power the entire cybersecurity ecosystem. It includes API gateways, orchestration engines, threat intelligence, and security services.
 
 ##  Service Architecture
-```
+```text
 xorb-core/
 ├── api/                    # Main API Gateway (Port 8000)
 │   ├── app/                # FastAPI application
@@ -24,7 +24,7 @@ xorb-core/
     ├── monitoring.py       # Security monitoring
     ├── zero_trust.py       # Zero trust architecture
     └── audit.py            # Security auditing
-```
+```text
 
 ##  Key Features
 - **FastAPI Gateway**: Production-ready API with comprehensive middleware
@@ -35,15 +35,15 @@ xorb-core/
 
 ##  Development
 ```bash
-#  API Service
+# API Service
 cd services/xorb-core/api
 source ../../../venv/bin/activate
 uvicorn app.main:app --reload --port 8000
 
-#  Orchestrator Service
+# Orchestrator Service
 cd services/xorb-core/orchestrator
 python main.py
-```
+```text
 
 ##  Database Dependencies
 - **PostgreSQL**: Primary database with pgvector extensions

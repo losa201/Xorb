@@ -35,30 +35,26 @@
   <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_PT-BR.md">포르투갈어</a>
 </p>
 
----
+- --
 
 Nuclei는 템플릿을 기반으로 대상 간에 요청을 보내기 위해 사용되며 긍정 오류(false positives)가 0이고 다수의 호스트에서 빠른 스캔을 제공합니다. Nuclei는 TCP, DNS, HTTP, SSL, File, Whois, Websocket, Headless 등을 포함한 다양한 프로토콜의 스캔을 제공합니다. 강력하고 유연한 템플릿을 통해 Nuclei는 모든 종류의 보안 검사를 모델링 할 수 있습니다.
 
-**300명 이상의** 보안 연구원과 엔지니어가 제공한 다양한 유형의 취약점 템플릿을 보관하는 [전용 저장소](https://github.com/projectdiscovery/nuclei-templates)를 보유하고 있습니다.
-
-
+- *300명 이상의** 보안 연구원과 엔지니어가 제공한 다양한 유형의 취약점 템플릿을 보관하는 [전용 저장소](https://github.com/projectdiscovery/nuclei-templates)를 보유하고 있습니다.
 
 ##  작동 방식
 
 <h3 align="center">
   <img src="static/nuclei-flow.jpg" alt="nuclei-flow" width="700px"></a>
 </h3>
-
-
-#  설치
+# 설치
 
 Nuclei를 성공적으로 설치하기 위해서 **go1.22**가 필요합니다. 다음 명령을 실행하여 최신 버전을 설치합니다.
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```
+```text
 
-**자세한 설치 방법은 [여기](https://nuclei.projectdiscovery.io/nuclei/get-started/)에서 찾을 수 있습니다.**
+- *자세한 설치 방법은 [여기](https://nuclei.projectdiscovery.io/nuclei/get-started/)에서 찾을 수 있습니다.**
 
 <table>
 <tr>
@@ -81,11 +77,9 @@ YAML DSL의 참조 구문은 [여기](SYNTAX-REFERENCE.md)에서 확인할 수 �
 
 ```sh
 nuclei -h
-```
+```text
 
 도구에 대한 도움말이 표시됩니다. 다음은 지원하는 모든 스위치들입니다.
-
-
 ```console
 Nuclei는 빠르고, 템플릿 기반의 취약점 스캐너로
 넓은 설정 가능성, 대규모 확장성 및 사용 편의성에 중점을 두고 있습니다.
@@ -269,8 +263,6 @@ CLOUD:
    -auth                  projectdiscovery 클라우드 (pdcp) API 키 구성
    -cup, -cloud-upload    스캔 결과를 pdcp 대시보드에 업로드
    -sid, -scan-id string  주어진 스캔 ID에 스캔 결과 업로드
-
-
 예시:
 단일 호스트에서 nuclei 실행:
 	$ nuclei -target example.com
@@ -288,7 +280,7 @@ JSON 출력으로 nuclei 실행:
 	$ MARKDOWN_EXPORT_SORT_MODE=template nuclei -target example.com -markdown-export nuclei_report/
 
 추가 문서는 여기에서 확인할 수 있습니다: https://docs.nuclei.sh/getting-started/running
-```
+```text
 
 ###  Nuclei 실행
 
@@ -296,13 +288,13 @@ JSON 출력으로 nuclei 실행:
 
 ```sh
 nuclei -u https://example.com
-```
+```text
 
 [community-curated](https://github.com/projectdiscovery/nuclei-templates) nuclei 템플릿으로 대상 URL들을 스캔합니다.
 
 ```sh
 nuclei -list urls.txt
-```
+```text
 
 `urls.txt`의 예시:
 
@@ -311,11 +303,11 @@ http://example.com
 http://app.example.com
 http://test.example.com
 http://uat.example.com
-```
+```text
 
-**nuclei를 실행하는 자세한 예는 [여기](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)에서 찾을 수 있습니다.**
+- *nuclei를 실행하는 자세한 예는 [여기](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)에서 찾을 수 있습니다.**
 
-#  보안 엔지니어를 위한
+# 보안 엔지니어를 위한
 
 Nuclei는 보안 엔지니어가 조직에서 워크플로를 커스텀하는 데 도움이 되는 많은 기능을 제공합니다.
 다양한 스캔 기능(DNS, HTTP, TCP 등)을 통해 보안 엔지니어는 Nuclei를 사용하여 맞춤형 검사 세트를 쉽게 만들 수 있습니다.
@@ -332,7 +324,7 @@ Nuclei는 보안 엔지니어가 조직에서 워크플로를 커스텀하는 �
 <tr>
 <td>
 
-**Bug Bounty hunter들을 위해:**
+- *Bug Bounty hunter들을 위해:**
 
 Nuclei를 사용하면 자체 검사 모음으로 테스트 접근 방식을 사용자 정의하고 버그 바운티 프로그램에서 쉽게 실행할 수 있습니다.
 또한 Nuclei는 모든 연속 스캔 워크플로에 쉽게 통합될 수 있습니다.
@@ -351,7 +343,7 @@ Nuclei를 사용하면 자체 검사 모음으로 테스트 접근 방식을 사
 <tr>
 <td>
 
-**침투 테스터들을 위해:**
+- *침투 테스터들을 위해:**
 
 Nuclei는 수동적이고 반복적인 프로세스를 보강하여 보안 평가에 접근하는 방식을 크게 개선합니다.
 컨설턴트들은 이미 Nuclei를 사용해 수동 평가 단계를 전환하고 있으며 이를 통해 수천 개의 호스트에서 자동화된 방식으로 맞춤형 평가 접근 방식을 실행할 수 있습니다.
@@ -365,9 +357,7 @@ Nuclei는 수동적이고 반복적인 프로세스를 보강하여 보안 평�
 </td>
 </tr>
 </table>
-
-
-#  개발자를 위한
+# 개발자를 위한
 
 Nuclei는 단순성을 염두에 두고 구축되었으며 수백 명의 보안 연구원들이 지원하는 커뮤니티 템플릿을 사용하여 호스트에서 지속적인 Nuclei 스캔을 사용하여 최신 보안 위협에 대한 업데이트를 유지할 수 있습니다.
 

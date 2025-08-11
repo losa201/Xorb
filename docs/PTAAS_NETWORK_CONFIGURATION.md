@@ -1,4 +1,4 @@
-#  PTaaS Frontend Network Configuration
+# PTaaS Frontend Network Configuration
 
 ##  Overview
 
@@ -40,15 +40,15 @@ Successfully configured network access for the PTaaS frontend to communicate wit
 ###  🚀 Deployment Commands
 
 ```bash
-#  Start all services
+# Start all services
 docker-compose up -d
 
-#  Start only PTaaS frontend
+# Start only PTaaS frontend
 docker-compose up -d ptaas-frontend
 
-#  Test connectivity
+# Test connectivity
 ./scripts/test-ptaas-connectivity.sh
-```
+```text
 
 ###  🌐 Access Points
 
@@ -65,11 +65,11 @@ docker-compose up -d ptaas-frontend
 
 ###  📋 Service Architecture
 
-```
+```text
 Internet → Nginx (ports 80/443) → PTaaS Frontend (port 3000)
                 ↓
         API Requests → https://ptaas.verteidiq.com
-```
+```text
 
 ###  🔧 Configuration Files Modified
 
@@ -82,13 +82,13 @@ Internet → Nginx (ports 80/443) → PTaaS Frontend (port 3000)
 
 ###  ✅ Verification Results
 
-**External Connectivity**:
+- **External Connectivity**:
 - ✅ DNS Resolution: ptaas.verteidiq.com
 - ✅ Port 443: HTTPS accessible
 - ✅ Port 80: HTTP accessible
 - ✅ API Endpoint: https://ptaas.verteidiq.com/api
 
-**Local Configuration**:
+- **Local Configuration**:
 - ✅ Firewall: Ports 80/443 allowed
 - ✅ Docker Network: xorb-net configured
 - ✅ Nginx Config: Valid syntax

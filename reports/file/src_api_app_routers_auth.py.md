@@ -1,9 +1,9 @@
-#  Security Audit Report: src/api/app/routers/auth.py
+# Security Audit Report: src/api/app/routers/auth.py
 
-**File Path**: `/root/Xorb/src/api/app/routers/auth.py`
-**File Type**: Authentication API Router
-**Lines of Code**: 105
-**Security Risk Level**: CRITICAL 🚨
+- **File Path**: `/root/Xorb/src/api/app/routers/auth.py`
+- **File Type**: Authentication API Router
+- **Lines of Code**: 105
+- **Security Risk Level**: CRITICAL 🚨
 
 ##  Summary
 
@@ -14,75 +14,75 @@ Authentication router containing **CRITICAL security vulnerabilities** that comp
 ###  CRITICAL Issues
 
 ####  1. Insecure Development Token Endpoint (Lines 83-104)
-**Severity**: CRITICAL
-**CWE**: CWE-798 (Use of Hard-coded Credentials)
+- **Severity**: CRITICAL
+- **CWE**: CWE-798 (Use of Hard-coded Credentials)
 ```python
 @router.post("/auth/dev-token", response_model=Token)
 async def create_dev_token(username: str = "dev", role: str = "admin"):
     if os.getenv("DEV_MODE", "false").lower() != "true":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-```
-**Risk**:
+```text
+- **Risk**:
 - Development endpoint that generates admin tokens
 - Only protected by environment variable check
 - Could be exposed in production if DEV_MODE misconfigured
 - Allows arbitrary admin token creation
 
 ####  2. Dummy Token Authentication (Lines 56-60)
-**Severity**: CRITICAL
-**CWE**: CWE-862 (Missing Authorization)
+- **Severity**: CRITICAL
+- **CWE**: CWE-862 (Missing Authorization)
 ```python
 def get_current_token():
     """Dependency to extract current token - simplified for this example"""
     # In a real implementation, this would extract the token from the Authorization header
     return "dummy_token"
-```
-**Risk**:
+```text
+- **Risk**:
 - Authentication bypass - returns hardcoded dummy token
 - All logout operations use this dummy authentication
 - Complete authentication failure
 
 ####  3. Information Disclosure in Error Handling (Lines 37-48)
-**Severity**: HIGH
-**CWE**: CWE-209 (Information Exposure Through Error Messages)
+- **Severity**: HIGH
+- **CWE**: CWE-209 (Information Exposure Through Error Messages)
 ```python
 if "Invalid" in str(e) or "credentials" in str(e).lower():
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=str(e),  # Exposes internal error details
     )
-```
-**Risk**: Internal error messages exposed to attackers for reconnaissance.
+```text
+- **Risk**: Internal error messages exposed to attackers for reconnaissance.
 
 ###  HIGH Issues
 
 ####  4. Missing Rate Limiting on Authentication Endpoints
-**Severity**: HIGH
-**CWE**: CWE-307 (Improper Restriction of Authentication Attempts)
-**Risk**: No protection against brute force attacks on login endpoint.
+- **Severity**: HIGH
+- **CWE**: CWE-307 (Improper Restriction of Authentication Attempts)
+- **Risk**: No protection against brute force attacks on login endpoint.
 
 ####  5. Incomplete Token Revocation Implementation (Lines 62-80)
-**Severity**: HIGH
-**CWE**: CWE-613 (Insufficient Session Expiration)
+- **Severity**: HIGH
+- **CWE**: CWE-613 (Insufficient Session Expiration)
 ```python
 @router.post("/auth/logout")
 async def logout(token: str = Depends(get_current_token)):
     # Uses dummy token - cannot actually revoke real tokens
     success = await auth_service.revoke_token(token)
-```
-**Risk**: Token revocation may not work due to dummy token implementation.
+```text
+- **Risk**: Token revocation may not work due to dummy token implementation.
 
 ###  MEDIUM Issues
 
 ####  6. Generic Error Handling (Lines 49-53, 76-80)
-**Severity**: MEDIUM
-**CWE**: CWE-754 (Improper Check for Unusual Conditions)
-**Risk**: Generic error responses may mask important security events.
+- **Severity**: MEDIUM
+- **CWE**: CWE-754 (Improper Check for Unusual Conditions)
+- **Risk**: Generic error responses may mask important security events.
 
 ####  7. Missing Input Validation
-**Severity**: MEDIUM
-**CWE**: CWE-20 (Improper Input Validation)
-**Risk**: No validation on username/password parameters beyond basic OAuth2 form.
+- **Severity**: MEDIUM
+- **CWE**: CWE-20 (Improper Input Validation)
+- **Risk**: No validation on username/password parameters beyond basic OAuth2 form.
 
 ##  Architecture Assessment
 

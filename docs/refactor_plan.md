@@ -1,4 +1,4 @@
-#  Xorb Refactor Plan
+# Xorb Refactor Plan
 
 ##  1. Performance Optimizations
 - Replace manual NumPy neural network with PyTorch implementation

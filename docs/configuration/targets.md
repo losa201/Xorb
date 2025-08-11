@@ -1,4 +1,4 @@
-#  Targets Configuration
+# Targets Configuration
 
 The `targets.json` file defines the target assets to be analyzed and processed by the XORB system. This configuration is used across multiple modules including security analysis, service fusion, and monitoring.
 
@@ -16,7 +16,7 @@ The `targets.json` file defines the target assets to be analyzed and processed b
     }
   }
 ]
-```
+```text
 
 ##  Field Definitions
 

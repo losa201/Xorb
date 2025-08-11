@@ -1,12 +1,12 @@
-#  XORB Platform Architecture Guide
+# XORB Platform Architecture Guide
 
-**Production-Ready Enterprise Cybersecurity Platform**
+- *Production-Ready Enterprise Cybersecurity Platform**
 
 [![Architecture](https://img.shields.io/badge/Architecture-Production--Ready-green.svg)](#architecture)
 [![PTaaS](https://img.shields.io/badge/PTaaS-Implemented-blue.svg)](#ptaas)
 [![Security](https://img.shields.io/badge/Security-Enterprise--Grade-red.svg)](#security)
 
----
+- --
 
 ##  🏗️ **Complete Enterprise Architecture Overview**
 
@@ -22,12 +22,12 @@ The XORB cybersecurity platform is now a **fully operational enterprise-grade sy
 7. [Production Deployment](#production-deployment)
 8. [API Reference](#api-reference)
 
----
+- --
 
 ##  🎯 **Platform Architecture**
 
 ###  **Core Components**
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                XORB Enterprise Platform                    │
 ├─────────────────────────────────────────────────────────────┤
@@ -55,10 +55,10 @@ The XORB cybersecurity platform is now a **fully operational enterprise-grade sy
 │  ├─ PostgreSQL (Multi-tenant RLS)  ├─ Redis (Cache/Session)│
 │  ├─ FastAPI (Clean Architecture)   └─ Temporal (Workflows) │
 └─────────────────────────────────────────────────────────────┘
-```
+```text
 
 ###  **Service Dependency Graph**
-```
+```text
 Database ────┬─→ Vector Store ──→ Threat Intelligence
              │                   Intelligence Service
              │
@@ -76,9 +76,9 @@ Database ────┬─→ Vector Store ──→ Threat Intelligence
 
 Cache ──→ Streaming Analytics
 Security Tools ──→ PTaaS Results ──→ Intelligence Analysis
-```
+```text
 
----
+- --
 
 ##  🎯 **PTaaS Implementation**
 
@@ -86,7 +86,7 @@ Security Tools ──→ PTaaS Results ──→ Intelligence Analysis
 
 ####  **Integrated Security Tools**
 ```python
-#  Available scanners with production integration
+# Available scanners with production integration
 scanners = {
     "nmap": {
         "features": ["network_discovery", "port_scanning", "service_detection", "os_fingerprinting"],
@@ -121,7 +121,7 @@ scanners = {
         "production_ready": True
     }
 }
-```
+```text
 
 ####  **PTaaS API Endpoints**
 ```yaml
@@ -154,7 +154,7 @@ Advanced Orchestration:
   POST /api/v1/ptaas/orchestration/threat-simulation:
     description: Advanced threat simulation
     scenarios: [APT, ransomware, insider_threat, phishing]
-```
+```text
 
 ####  **Scan Profile Capabilities**
 ```yaml
@@ -181,9 +181,9 @@ Web-Focused Scan (20 minutes):
   coverage: Web-specific ports and services
   features: [web_vulnerability_scanning, ssl_analysis, directory_discovery]
   use_cases: [web_application_testing, ssl_compliance]
-```
+```text
 
----
+- --
 
 ##  🏢 **Service Registry**
 
@@ -230,7 +230,7 @@ Web-Focused Scan (20 minutes):
 5. `threat_hunting`, `forensics`, `network_microsegmentation`
 6. `threat_intelligence`, `intelligence_service`, `ml_model_manager`
 
----
+- --
 
 ##  🌐 **Unified API Gateway**
 
@@ -238,7 +238,7 @@ The platform provides comprehensive API endpoints with **35+ production-ready ro
 
 ###  **🎯 PTaaS Operations (12 routes)**
 ```http
-#  Core PTaaS functionality
+# Core PTaaS functionality
 POST   /api/v1/ptaas/sessions                    # Create scan session
 GET    /api/v1/ptaas/sessions/{id}               # Get session status
 POST   /api/v1/ptaas/sessions/{id}/cancel        # Cancel session
@@ -249,12 +249,12 @@ GET    /api/v1/ptaas/sessions                    # List sessions
 GET    /api/v1/ptaas/metrics                     # PTaaS metrics
 GET    /api/v1/ptaas/health                      # Service health
 
-#  Advanced orchestration
+# Advanced orchestration
 POST   /api/v1/ptaas/orchestration/workflows                # Create workflow
 POST   /api/v1/ptaas/orchestration/workflows/{id}/execute   # Execute workflow
 POST   /api/v1/ptaas/orchestration/compliance-scan          # Compliance scan
 POST   /api/v1/ptaas/orchestration/threat-simulation        # Threat simulation
-```
+```text
 
 ###  **🎛️ Service Management (6 routes)**
 ```http
@@ -264,7 +264,7 @@ POST   /api/v1/platform/services/{id}/start         # Start service
 POST   /api/v1/platform/services/{id}/stop          # Stop service
 POST   /api/v1/platform/services/{id}/restart       # Restart service
 POST   /api/v1/platform/services/bulk-action        # Bulk operations
-```
+```text
 
 ###  **📊 Analytics & Monitoring (4 routes)**
 ```http
@@ -272,7 +272,7 @@ GET    /api/v1/platform/health                      # Platform health
 GET    /api/v1/platform/metrics                     # Platform metrics
 GET    /api/v1/platform/dashboard                   # Comprehensive dashboard
 POST   /api/v1/platform/analytics/behavioral/profile # Behavioral profiling
-```
+```text
 
 ###  **🔍 Intelligence & Security (8 routes)**
 ```http
@@ -284,29 +284,29 @@ GET    /api/v1/platform/forensics/evidence/{id}      # Retrieve evidence
 POST   /api/v1/platform/forensics/evidence/{id}/chain # Chain of custody
 POST   /api/v1/platform/network/segments             # Create network segment
 POST   /api/v1/platform/network/segments/{id}/evaluate # Evaluate access
-```
+```text
 
----
+- --
 
 ##  🤖 **AI Intelligence Integration**
 
 ###  **🧠 Behavioral Analytics Engine**
-**Production Features:**
+- *Production Features:**
 - ML-powered user/entity behavioral profiling with sklearn support
 - Anomaly detection using statistical and machine learning algorithms
 - Risk scoring with dynamic assessment and temporal decay
 - Pattern recognition for complex behavioral analysis
 - Graceful fallbacks when ML dependencies unavailable
 
-**Key Implementation:**
+- *Key Implementation:**
 ```python
-#  Production behavioral analytics
+# Production behavioral analytics
 from ptaas.behavioral_analytics import BehavioralAnalyticsEngine
 
 engine = BehavioralAnalyticsEngine()
 await engine.initialize()
 
-#  Advanced profiling
+# Advanced profiling
 result = engine.update_profile("user_id", {
     "login_frequency": 8.5,
     "access_patterns": 6.2,
@@ -316,32 +316,32 @@ result = engine.update_profile("user_id", {
     "command_sequence_complexity": 5.7
 })
 
-#  Risk assessment
+# Risk assessment
 dashboard = engine.get_risk_dashboard()
-```
+```text
 
 ###  **🔍 Threat Hunting Engine**
-**Production Features:**
+- *Production Features:**
 - Custom DSL query language with SQL-like syntax
 - Real-time threat correlation and analysis
 - Saved query management with version control
 - Advanced pattern matching and behavioral analysis
 - Integration with SIEM and security tools
 
-**Query Examples:**
+- *Query Examples:**
 ```sql
--- Find suspicious processes
+- - Find suspicious processes
 FIND processes WHERE name = "suspicious.exe" AND network_connections > 10
 
--- Detect failed login patterns
+- - Detect failed login patterns
 FIND authentication WHERE action = "failed" AND count > 5 AND timeframe = "1h"
 
--- Identify privilege escalation
+- - Identify privilege escalation
 FIND events WHERE action = "privilege_escalation" AND success = true
-```
+```text
 
 ###  **🔬 Digital Forensics Engine**
-**Production Features:**
+- *Production Features:**
 - Legal-grade evidence collection with tamper-proof handling
 - Blockchain-style chain of custody with cryptographic verification
 - Automated evidence gathering from multiple sources
@@ -349,14 +349,14 @@ FIND events WHERE action = "privilege_escalation" AND success = true
 - Integration with incident response workflows
 
 ###  **🌐 Network Microsegmentation**
-**Production Features:**
+- *Production Features:**
 - Zero-trust network policy engine with dynamic evaluation
 - Context-aware access decisions based on multiple factors
 - Compliance template support (PCI-DSS, HIPAA, SOX)
 - Real-time policy enforcement and violation detection
 - Advanced security policy management and automation
 
----
+- --
 
 ##  🔐 **Security & Authentication**
 
@@ -369,7 +369,7 @@ FIND events WHERE action = "privilege_escalation" AND success = true
 
 ###  **🛡️ Security Middleware Stack**
 ```python
-#  Production middleware stack (ordered from outermost to innermost)
+# Production middleware stack (ordered from outermost to innermost)
 middleware_stack = [
     "GlobalErrorHandler",           # Comprehensive error handling
     "APISecurityMiddleware",        # Security headers, validation
@@ -379,7 +379,7 @@ middleware_stack = [
     "GZipMiddleware",              # Response compression
     "RequestIdMiddleware"          # Unique request tracking
 ]
-```
+```text
 
 ###  **👥 Access Control Matrix**
 | Role | PTaaS Access | Intelligence | Platform Management | Compliance |
@@ -390,7 +390,7 @@ middleware_stack = [
 | **Compliance Officer** | Compliance Scans | Audit Reports | Health Monitoring | Framework Specific |
 | **User** | Basic Scans | Limited Analysis | No Access | Limited Reports |
 
----
+- --
 
 ##  📊 **Monitoring & Observability**
 
@@ -440,104 +440,104 @@ middleware_stack = [
     "error_rate": "0.1%"
   }
 }
-```
+```text
 
----
+- --
 
 ##  🚀 **Production Deployment**
 
 ###  **🚀 Quick Start Commands**
 ```bash
-#  1. Environment Setup
+# 1. Environment Setup
 python3 -m venv venv && source venv/bin/activate
 pip install -r requirements.lock
 
-#  2. Start XORB Platform (Production-Ready)
+# 2. Start XORB Platform (Production-Ready)
 cd src/api && uvicorn app.main:app --host 0.0.0.0 --port 8000
 
-#  3. Verify Platform Health
+# 3. Verify Platform Health
 curl http://localhost:8000/api/v1/health
 curl http://localhost:8000/api/v1/info
 
-#  4. Test PTaaS Functionality
+# 4. Test PTaaS Functionality
 curl http://localhost:8000/api/v1/ptaas/profiles
 curl -X POST http://localhost:8000/api/v1/ptaas/sessions \
   -H "Content-Type: application/json" \
   -d '{"targets": [{"host": "scanme.nmap.org", "ports": [80, 443]}], "scan_type": "quick"}'
-```
+```text
 
 ###  **🐳 Docker Deployment**
 ```bash
-#  Enterprise production deployment
+# Enterprise production deployment
 docker-compose -f docker-compose.enterprise.yml up -d
 
-#  Development environment
+# Development environment
 docker-compose -f docker-compose.development.yml up -d
 
-#  Production with monitoring
+# Production with monitoring
 docker-compose -f docker-compose.production.yml up -d
 docker-compose -f docker-compose.monitoring.yml up -d
-```
+```text
 
 ###  **⚙️ Environment Configuration**
-**Required Environment Variables:**
+- *Required Environment Variables:**
 ```env
-#  Core Database
+# Core Database
 DATABASE_URL=postgresql://user:pass@host:5432/xorb
 REDIS_URL=redis://host:6379/0
 
-#  Security & Authentication
+# Security & Authentication
 JWT_SECRET=your-jwt-secret-key
 API_KEY_SECRET=your-api-key-secret
 
-#  PTaaS Configuration
+# PTaaS Configuration
 PTAAS_SCANNER_TIMEOUT=1800
 PTAAS_MAX_CONCURRENT_SCANS=10
 PTAAS_SCAN_RATE_LIMIT=100
 
-#  Rate Limiting
+# Rate Limiting
 RATE_LIMIT_PER_MINUTE=60
 RATE_LIMIT_PER_HOUR=1000
 
-#  CORS & Security
+# CORS & Security
 CORS_ALLOW_ORIGINS=https://your-frontend.com
 SECURITY_HEADERS_ENABLED=true
 
-#  Monitoring & Observability
+# Monitoring & Observability
 ENABLE_METRICS=true
 ENABLE_TRACING=true
 LOG_LEVEL=INFO
-```
+```text
 
 ###  **🔒 Security Configuration**
 ```env
-#  Advanced Security
+# Advanced Security
 SECURITY_HEADERS=true
 HSTS_MAX_AGE=31536000
 CSP_POLICY=default-src 'self'
 
-#  API Security
+# API Security
 API_KEY_REQUIRED=true
 RATE_LIMITING_ENABLED=true
 AUDIT_LOGGING_ENABLED=true
 
-#  Multi-tenant Security
+# Multi-tenant Security
 TENANT_ISOLATION_ENABLED=true
 RLS_ENABLED=true
 
-#  Encryption & Secrets
+# Encryption & Secrets
 VAULT_ADDR=https://vault.example.com
 VAULT_TOKEN=your-vault-token
 ENCRYPTION_KEY=your-encryption-key
-```
+```text
 
----
+- --
 
 ##  📚 **API Reference Examples**
 
 ###  **PTaaS Operations**
 ```python
-#  Create comprehensive security scan
+# Create comprehensive security scan
 import requests
 
 ptaas_request = {
@@ -566,11 +566,11 @@ response = requests.post(
 
 session = response.json()
 print(f"Scan initiated: {session['session_id']}")
-```
+```text
 
 ###  **Intelligence Analysis**
 ```python
-#  AI-powered threat analysis
+# AI-powered threat analysis
 intelligence_request = {
     "indicators": [
         "suspicious_network_activity",
@@ -597,11 +597,11 @@ response = requests.post(
 analysis = response.json()
 print(f"Threat level: {analysis['threat_level']}")
 print(f"Confidence: {analysis['confidence_score']}")
-```
+```text
 
 ###  **Compliance Automation**
 ```python
-#  Automated compliance scanning
+# Automated compliance scanning
 compliance_request = {
     "compliance_framework": "PCI-DSS",
     "scope": {
@@ -625,9 +625,9 @@ response = requests.post(
 
 compliance_scan = response.json()
 print(f"Compliance scan initiated: {compliance_scan['scan_id']}")
-```
+```text
 
----
+- --
 
 ##  🎯 **Platform Status Summary**
 
@@ -656,7 +656,7 @@ The XORB platform is now **enterprise-ready** with:
 - Complete monitoring and observability stack
 - Scalable microservices architecture with clean separation
 
----
+- --
 
 ##  🔮 **Architecture Evolution**
 
@@ -674,9 +674,9 @@ The XORB platform is now **enterprise-ready** with:
 - 🔄 Cloud-native security posture management
 - 🔄 Extended threat simulation capabilities
 
----
+- --
 
-*Generated by XORB Enterprise Platform v3.0.0*
-*Architecture Documentation - January 2025*
+- Generated by XORB Enterprise Platform v3.0.0*
+- Architecture Documentation - January 2025*
 
-**© 2025 XORB Security, Inc. All rights reserved.**
+- *© 2025 XORB Security, Inc. All rights reserved.**

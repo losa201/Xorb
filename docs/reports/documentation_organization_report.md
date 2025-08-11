@@ -1,4 +1,4 @@
-#  XORB Documentation Organization Report
+# XORB Documentation Organization Report
 Generated: 2025-08-10 22:15:43
 
 ##  Summary Statistics

@@ -1,4 +1,4 @@
-#  Configuration Reference
+# Configuration Reference
 
 This comprehensive guide covers all configuration options for the XORB Red/Blue Agent Framework, from basic setup to advanced enterprise deployments.
 
@@ -17,14 +17,14 @@ The framework uses a layered configuration approach:
 ###  Core Application Settings
 
 ```bash
-#  Application Environment
+# Application Environment
 XORB_ENV=production                    # Environment: development, staging, production
 DEBUG=false                           # Enable debug logging and features
 LOG_LEVEL=INFO                        # Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
 LOG_FORMAT=json                       # Log format: json, text
 SERVICE_NAME=xorb-red-blue-agents     # Service identifier for logging and metrics
 
-#  API Configuration
+# API Configuration
 API_HOST=0.0.0.0                      # API server bind address
 API_PORT=8000                         # API server port
 API_WORKERS=4                         # Number of worker processes
@@ -32,12 +32,12 @@ API_TIMEOUT=30                        # Request timeout in seconds
 CORS_ALLOW_ORIGINS=*                  # CORS allowed origins (comma-separated)
 CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS  # CORS allowed methods
 CORS_ALLOW_HEADERS=*                  # CORS allowed headers
-```
+```text
 
 ###  Database Configuration
 
 ```bash
-#  PostgreSQL Database
+# PostgreSQL Database
 DATABASE_URL=postgresql://user:pass@host:5432/dbname  # Primary database connection
 DATABASE_POOL_SIZE=20                 # Connection pool size
 DATABASE_MAX_OVERFLOW=30              # Maximum pool overflow
@@ -46,42 +46,42 @@ DATABASE_POOL_RECYCLE=3600           # Connection recycle time
 DATABASE_SSL_MODE=prefer             # SSL mode: disable, allow, prefer, require
 DATABASE_SCHEMA=public               # Default schema
 
-#  Database Migrations
+# Database Migrations
 ALEMBIC_CONFIG=alembic.ini           # Alembic configuration file
 AUTO_MIGRATE=true                    # Auto-run migrations on startup
 MIGRATION_TIMEOUT=300                # Migration timeout in seconds
 
-#  Read Replicas (Optional)
+# Read Replicas (Optional)
 DATABASE_READ_URL=postgresql://readonly:pass@read-host:5432/dbname
 READ_REPLICA_RATIO=0.3               # Percentage of reads to route to replica
-```
+```text
 
 ###  Redis Configuration
 
 ```bash
-#  Redis Cache and Session Storage
+# Redis Cache and Session Storage
 REDIS_URL=redis://redis:6379/0       # Primary Redis connection
 REDIS_PASSWORD=secure_password       # Redis password (if required)
 REDIS_SSL=false                      # Use SSL for Redis connection
 REDIS_TIMEOUT=5                      # Connection timeout
 REDIS_RETRY_ATTEMPTS=3               # Retry attempts for failed operations
 
-#  Redis Cluster (Optional)
+# Redis Cluster (Optional)
 REDIS_CLUSTER_ENABLED=false          # Enable Redis cluster mode
 REDIS_CLUSTER_NODES=redis1:6379,redis2:6379,redis3:6379  # Cluster node list
 REDIS_CLUSTER_SKIP_FULL_COVERAGE=false  # Skip full coverage check
 
-#  Cache Configuration
+# Cache Configuration
 CACHE_TTL_DEFAULT=3600               # Default cache TTL in seconds
 CACHE_TTL_TECHNIQUES=7200            # Technique cache TTL
 CACHE_TTL_SESSIONS=1800              # Session cache TTL
 CACHE_PREFIX=xorb_agents             # Cache key prefix
-```
+```text
 
 ###  Temporal Workflow Engine
 
 ```bash
-#  Temporal Configuration
+# Temporal Configuration
 TEMPORAL_HOST=temporal:7233           # Temporal server address
 TEMPORAL_NAMESPACE=xorb-agents        # Temporal namespace
 TEMPORAL_TASK_QUEUE=agent-tasks      # Default task queue name
@@ -89,58 +89,58 @@ TEMPORAL_CLIENT_TIMEOUT=30           # Client connection timeout
 TEMPORAL_WORKFLOW_TIMEOUT=86400      # Default workflow timeout (24 hours)
 TEMPORAL_ACTIVITY_TIMEOUT=3600       # Default activity timeout (1 hour)
 
-#  Temporal TLS (Optional)
+# Temporal TLS (Optional)
 TEMPORAL_TLS_ENABLED=false           # Enable TLS for Temporal connection
 TEMPORAL_TLS_CERT_PATH=/certs/client.crt    # Client certificate path
 TEMPORAL_TLS_KEY_PATH=/certs/client.key     # Client private key path
 TEMPORAL_TLS_CA_PATH=/certs/ca.crt          # CA certificate path
-```
+```text
 
 ###  Security Configuration
 
 ```bash
-#  Authentication and Authorization
+# Authentication and Authorization
 JWT_SECRET=your-super-secure-jwt-secret-key-here  # JWT signing secret
 JWT_ALGORITHM=HS256                   # JWT algorithm
 JWT_EXPIRATION=3600                   # JWT expiration time in seconds
 JWT_REFRESH_EXPIRATION=86400          # Refresh token expiration
 API_KEY_HEADER=X-API-Key             # API key header name
 
-#  Encryption
+# Encryption
 ENCRYPTION_KEY=your-32-character-encryption-key!!  # Data encryption key
 ENCRYPTION_ALGORITHM=AES-256-GCM      # Encryption algorithm
 HASH_ALGORITHM=bcrypt                # Password hashing algorithm
 BCRYPT_ROUNDS=12                     # Bcrypt rounds for password hashing
 
-#  Rate Limiting
+# Rate Limiting
 RATE_LIMIT_ENABLED=true              # Enable rate limiting
 RATE_LIMIT_PER_MINUTE=60             # Requests per minute per user
 RATE_LIMIT_PER_HOUR=1000             # Requests per hour per user
 RATE_LIMIT_PER_DAY=10000             # Requests per day per user
 RATE_LIMIT_REDIS_KEY_PREFIX=rl:      # Redis key prefix for rate limiting
 
-#  Session Security
+# Session Security
 SESSION_SECURE=true                  # Secure session cookies
 SESSION_HTTP_ONLY=true               # HTTP-only session cookies
 SESSION_SAME_SITE=strict             # SameSite cookie attribute
 SESSION_TIMEOUT=1800                 # Session timeout in seconds
-```
+```text
 
 ###  Sandbox Configuration
 
 ```bash
-#  Docker Configuration
+# Docker Configuration
 DOCKER_HOST=unix:///var/run/docker.sock  # Docker daemon socket
 DOCKER_API_VERSION=auto              # Docker API version
 DOCKER_TIMEOUT=60                    # Docker operation timeout
 DOCKER_TLS_VERIFY=false              # Verify Docker daemon TLS certificate
 
-#  Kata Containers (Optional)
+# Kata Containers (Optional)
 KATA_RUNTIME_ENABLED=false           # Enable Kata containers
 KATA_RUNTIME_PATH=/usr/bin/kata-runtime  # Kata runtime binary path
 KATA_CONFIG_PATH=/etc/kata-containers/config.toml  # Kata configuration
 
-#  Sandbox Limits
+# Sandbox Limits
 MAX_SANDBOXES_GLOBAL=100             # Maximum sandboxes globally
 MAX_SANDBOXES_PER_MISSION=10         # Maximum sandboxes per mission
 MAX_SANDBOXES_PER_USER=5             # Maximum sandboxes per user
@@ -148,23 +148,23 @@ DEFAULT_SANDBOX_TTL=3600             # Default sandbox TTL in seconds
 MAX_SANDBOX_TTL=86400                # Maximum allowed sandbox TTL
 SANDBOX_CLEANUP_INTERVAL=300         # Cleanup check interval in seconds
 
-#  Resource Defaults
+# Resource Defaults
 DEFAULT_CPU_CORES=1.0                # Default CPU allocation
 DEFAULT_MEMORY_MB=512                # Default memory allocation
 DEFAULT_DISK_MB=1024                 # Default disk allocation
 DEFAULT_NETWORK_MB=100               # Default network bandwidth
 
-#  Network Configuration
+# Network Configuration
 SANDBOX_NETWORK_DRIVER=bridge        # Default network driver
 SANDBOX_NETWORK_SUBNET=172.20.0.0/16  # Sandbox network subnet
 SANDBOX_DNS_SERVERS=8.8.8.8,8.8.4.4  # DNS servers for sandboxes
 SANDBOX_ISOLATION_ENABLED=true       # Enable network isolation
-```
+```text
 
 ###  Machine Learning and Analytics
 
 ```bash
-#  Learning Engine
+# Learning Engine
 ML_ENABLED=true                      # Enable machine learning features
 ML_MODEL_PATH=/app/models            # Path to ML models
 ML_UPDATE_INTERVAL=3600              # Model update interval in seconds
@@ -172,63 +172,63 @@ ML_TRAINING_ENABLED=true             # Enable model training
 ML_BATCH_SIZE=32                     # Training batch size
 ML_LEARNING_RATE=0.001               # Learning rate for training
 
-#  Feature Engineering
+# Feature Engineering
 FEATURE_EXTRACTION_ENABLED=true     # Enable feature extraction
 FEATURE_WINDOW_SIZE=100              # Feature window size
 FEATURE_UPDATE_INTERVAL=300          # Feature update interval
 
-#  Model Storage
+# Model Storage
 MODEL_STORAGE_BACKEND=filesystem     # Storage backend: filesystem, s3, gcs
 MODEL_VERSIONING_ENABLED=true       # Enable model versioning
 MODEL_RETENTION_DAYS=30              # Model retention period
 
-#  Analytics
+# Analytics
 ANALYTICS_ENABLED=true               # Enable analytics collection
 ANALYTICS_BATCH_SIZE=1000            # Analytics batch size
 ANALYTICS_FLUSH_INTERVAL=60          # Analytics flush interval
 TELEMETRY_SAMPLING_RATE=1.0          # Telemetry sampling rate (0.0-1.0)
-```
+```text
 
 ###  Monitoring and Observability
 
 ```bash
-#  Prometheus Metrics
+# Prometheus Metrics
 PROMETHEUS_ENABLED=true              # Enable Prometheus metrics
 PROMETHEUS_PORT=9090                 # Prometheus metrics port
 PROMETHEUS_METRICS_PATH=/metrics     # Metrics endpoint path
 PROMETHEUS_NAMESPACE=xorb_agents     # Metrics namespace
 PROMETHEUS_PUSH_GATEWAY=http://pushgateway:9091  # Push gateway URL
 
-#  Health Checks
+# Health Checks
 HEALTH_CHECK_ENABLED=true           # Enable health check endpoints
 HEALTH_CHECK_INTERVAL=30            # Health check interval
 HEALTH_CHECK_TIMEOUT=10             # Health check timeout
 HEALTH_CHECK_RETRIES=3              # Health check retry attempts
 
-#  Logging
+# Logging
 LOG_TO_FILE=false                   # Log to file in addition to stdout
 LOG_FILE_PATH=/var/log/xorb/agents.log  # Log file path
 LOG_FILE_MAX_SIZE=100MB             # Maximum log file size
 LOG_FILE_BACKUP_COUNT=5             # Number of backup log files
 LOG_STRUCTURED=true                 # Use structured logging
 
-#  Distributed Tracing
+# Distributed Tracing
 TRACING_ENABLED=false               # Enable distributed tracing
 TRACING_BACKEND=jaeger              # Tracing backend: jaeger, zipkin
 TRACING_ENDPOINT=http://jaeger:14268/api/traces  # Tracing endpoint
 TRACING_SAMPLE_RATE=0.1             # Trace sampling rate
-```
+```text
 
 ###  External Integrations
 
 ```bash
-#  Notification Services
+# Notification Services
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
 SLACK_CHANNEL=#security-ops          # Default Slack channel
 DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/YOUR/WEBHOOK
 TEAMS_WEBHOOK_URL=https://outlook.office.com/webhook/YOUR/TEAMS/WEBHOOK
 
-#  Email Configuration
+# Email Configuration
 EMAIL_ENABLED=true                  # Enable email notifications
 EMAIL_SMTP_HOST=smtp.your-domain.com  # SMTP server host
 EMAIL_SMTP_PORT=587                 # SMTP server port
@@ -238,79 +238,79 @@ EMAIL_SMTP_TLS=true                 # Enable SMTP TLS
 EMAIL_FROM_ADDRESS=noreply@your-domain.com  # From email address
 EMAIL_FROM_NAME=XORB Security Platform     # From name
 
-#  Webhook Configuration
+# Webhook Configuration
 WEBHOOK_TIMEOUT=30                  # Webhook timeout in seconds
 WEBHOOK_RETRY_ATTEMPTS=3            # Webhook retry attempts
 WEBHOOK_RETRY_DELAY=5               # Webhook retry delay in seconds
 
-#  External APIs
+# External APIs
 VIRUSTOTAL_API_KEY=your-vt-api-key  # VirusTotal API key
 SHODAN_API_KEY=your-shodan-api-key  # Shodan API key
 THREAT_INTEL_API_KEY=your-ti-api-key  # Threat intelligence API key
 THREAT_INTEL_API_URL=https://api.threatintel.com  # Threat intelligence API URL
-```
+```text
 
 ###  Compliance and Audit
 
 ```bash
-#  Audit Logging
+# Audit Logging
 AUDIT_LOG_ENABLED=true              # Enable audit logging
 AUDIT_LOG_LEVEL=INFO                # Audit log level
 AUDIT_LOG_FILE=/var/log/xorb/audit.log  # Audit log file path
 AUDIT_LOG_RETENTION_DAYS=365        # Audit log retention period
 AUDIT_LOG_ENCRYPTION=true           # Encrypt audit logs
 
-#  Compliance
+# Compliance
 SOC2_COMPLIANCE=true                # Enable SOC2 compliance features
 HIPAA_COMPLIANCE=false              # Enable HIPAA compliance features
 GDPR_COMPLIANCE=true                # Enable GDPR compliance features
 PCI_COMPLIANCE=false                # Enable PCI compliance features
 
-#  Data Retention
+# Data Retention
 DATA_RETENTION_ENABLED=true         # Enable data retention policies
 MISSION_DATA_RETENTION_DAYS=90      # Mission data retention
 TELEMETRY_DATA_RETENTION_DAYS=30    # Telemetry data retention
 LOG_DATA_RETENTION_DAYS=365         # Log data retention
 BACKUP_RETENTION_DAYS=90            # Backup retention period
 
-#  Privacy
+# Privacy
 ANONYMIZE_PII=true                  # Anonymize personally identifiable information
 DATA_MINIMIZATION=true              # Enable data minimization practices
 CONSENT_REQUIRED=false              # Require explicit consent for data collection
-```
+```text
 
 ##  📁 Configuration Files
 
 ###  Main Configuration (`config/app.yaml`)
 
 ```yaml
-#  Main application configuration
+# Main application configuration
 application:
   name: "XORB Red/Blue Agent Framework"
   version: "2.1.0"
   environment: "${XORB_ENV:-development}"
   debug: "${DEBUG:-false}"
 
-#  Database configuration
+# Database configuration
 database:
   url: "${DATABASE_URL}"
   pool_size: "${DATABASE_POOL_SIZE:-20}"
   max_overflow: "${DATABASE_MAX_OVERFLOW:-30}"
   echo: "${DATABASE_ECHO:-false}"
 
-#  Redis configuration
+# Redis configuration
 redis:
   url: "${REDIS_URL}"
   timeout: "${REDIS_TIMEOUT:-5}"
   retry_attempts: "${REDIS_RETRY_ATTEMPTS:-3}"
 
-#  Temporal configuration
+# Temporal configuration
 temporal:
   host: "${TEMPORAL_HOST:-temporal:7233}"
   namespace: "${TEMPORAL_NAMESPACE:-xorb-agents}"
   task_queue: "${TEMPORAL_TASK_QUEUE:-agent-tasks}"
 
-#  Security configuration
+# Security configuration
 security:
   jwt:
     secret: "${JWT_SECRET}"
@@ -324,7 +324,7 @@ security:
     per_minute: "${RATE_LIMIT_PER_MINUTE:-60}"
     per_hour: "${RATE_LIMIT_PER_HOUR:-1000}"
 
-#  Sandbox configuration
+# Sandbox configuration
 sandbox:
   docker:
     host: "${DOCKER_HOST:-unix:///var/run/docker.sock}"
@@ -338,14 +338,14 @@ sandbox:
     default_memory: "${DEFAULT_MEMORY_MB:-512}"
     default_disk: "${DEFAULT_DISK_MB:-1024}"
 
-#  Machine learning configuration
+# Machine learning configuration
 machine_learning:
   enabled: "${ML_ENABLED:-true}"
   model_path: "${ML_MODEL_PATH:-/app/models}"
   update_interval: "${ML_UPDATE_INTERVAL:-3600}"
   training_enabled: "${ML_TRAINING_ENABLED:-true}"
 
-#  Monitoring configuration
+# Monitoring configuration
 monitoring:
   prometheus:
     enabled: "${PROMETHEUS_ENABLED:-true}"
@@ -360,7 +360,7 @@ monitoring:
     format: "${LOG_FORMAT:-json}"
     structured: "${LOG_STRUCTURED:-true}"
 
-#  External integrations
+# External integrations
 integrations:
   notifications:
     slack:
@@ -375,7 +375,7 @@ integrations:
     api_key: "${THREAT_INTEL_API_KEY}"
     api_url: "${THREAT_INTEL_API_URL}"
 
-#  Compliance and audit
+# Compliance and audit
 compliance:
   audit_logging:
     enabled: "${AUDIT_LOG_ENABLED:-true}"
@@ -388,7 +388,7 @@ compliance:
   privacy:
     anonymize_pii: "${ANONYMIZE_PII:-true}"
     data_minimization: "${DATA_MINIMIZATION:-true}"
-```
+```text
 
 ###  Logging Configuration (`config/logging.yaml`)
 
@@ -462,12 +462,12 @@ loggers:
 root:
   level: WARNING
   handlers: [console]
-```
+```text
 
 ###  Agent Configuration (`config/agents.yaml`)
 
 ```yaml
-#  Agent type definitions and configurations
+# Agent type definitions and configurations
 agents:
   red_recon:
     name: "Reconnaissance Agent"
@@ -667,7 +667,7 @@ agents:
       - recover.forensic_collection
       - recover.system_restore
 
-#  Global agent settings
+# Global agent settings
 global_settings:
   max_agents_per_mission: 10
   agent_startup_timeout: 300
@@ -676,7 +676,7 @@ global_settings:
   performance_monitoring: true
   auto_scaling: true
   resource_monitoring: true
-```
+```text
 
 ##  🎯 Capability Manifests
 
@@ -912,7 +912,7 @@ global_settings:
     "audit_level": "comprehensive"
   }
 }
-```
+```text
 
 ###  Technique Definitions
 
@@ -1017,7 +1017,7 @@ Example technique definition:
     ]
   }
 }
-```
+```text
 
 ##  🐳 Docker Compose Configuration
 
@@ -1203,7 +1203,7 @@ volumes:
   redis_dev_data:
   prometheus_dev_data:
   grafana_dev_data:
-```
+```text
 
 ###  Production Environment (`docker-compose.production.yml`)
 
@@ -1381,14 +1381,14 @@ secrets:
     external: true
   encryption_key:
     external: true
-```
+```text
 
 ##  ☸️ Kubernetes Configuration
 
 ###  Helm Values (`values.yaml`)
 
 ```yaml
-#  Global configuration
+# Global configuration
 global:
   environment: production
   version: "2.1.0"
@@ -1410,7 +1410,7 @@ global:
       cpu: 500m
       memory: 512Mi
 
-#  Agent Scheduler
+# Agent Scheduler
 agentScheduler:
   enabled: true
   replicaCount: 3
@@ -1460,7 +1460,7 @@ agentScheduler:
     PROMETHEUS_ENABLED: "true"
     AUDIT_LOG_ENABLED: "true"
 
-#  Sandbox Orchestrator
+# Sandbox Orchestrator
 sandboxOrchestrator:
   enabled: true
   replicaCount: 2
@@ -1483,7 +1483,7 @@ sandboxOrchestrator:
     MAX_SANDBOXES_GLOBAL: "200"
     KATA_RUNTIME_ENABLED: "true"
 
-#  Telemetry Collector
+# Telemetry Collector
 telemetryCollector:
   enabled: true
   replicaCount: 2
@@ -1503,7 +1503,7 @@ telemetryCollector:
     ML_ENABLED: "true"
     ANALYTICS_ENABLED: "true"
 
-#  PostgreSQL
+# PostgreSQL
 postgresql:
   enabled: true
   image:
@@ -1552,7 +1552,7 @@ postgresql:
         cpu: 2000m
         memory: 4Gi
 
-#  Redis
+# Redis
 redis:
   enabled: true
   architecture: replication
@@ -1585,7 +1585,7 @@ redis:
         cpu: 1000m
         memory: 2Gi
 
-#  Temporal
+# Temporal
 temporal:
   enabled: true
 
@@ -1607,7 +1607,7 @@ temporal:
   postgresql:
     enabled: false  # Use external PostgreSQL
 
-#  Monitoring
+# Monitoring
 monitoring:
   prometheus:
     enabled: true
@@ -1663,35 +1663,35 @@ monitoring:
             - api_url: '${SLACK_WEBHOOK_URL}'
               channel: '#security-alerts'
 
-#  Service Mesh (Optional)
+# Service Mesh (Optional)
 istio:
   enabled: false
 
-#  Network Policies
+# Network Policies
 networkPolicies:
   enabled: true
 
-#  Pod Security Policies
+# Pod Security Policies
 podSecurityPolicy:
   enabled: true
 
-#  RBAC
+# RBAC
 rbac:
   create: true
 
-#  Service Account
+# Service Account
 serviceAccount:
   create: true
   annotations: {}
 
-#  Secrets
+# Secrets
 secrets:
   create: true
 
-#  ConfigMaps
+# ConfigMaps
 configMaps:
   create: true
-```
+```text
 
 ##  🔍 Configuration Validation
 
@@ -1711,7 +1711,7 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Any
 
-#  Configure logging
+# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -1905,7 +1905,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-```
+```text
 
 ##  🛠️ Configuration Tools
 
@@ -1979,8 +1979,8 @@ if __name__ == "__main__":
     import sys
     environment = sys.argv[1] if len(sys.argv) > 1 else "development"
     generate_env_file(environment)
-```
+```text
 
----
+- --
 
 This comprehensive configuration reference covers all aspects of the XORB Red/Blue Agent Framework configuration. For specific deployment scenarios, refer to the [Installation Guide](./installation.md) and [Operations Documentation](./operations/).

@@ -1,4 +1,4 @@
-#  XORB Cybersecurity Platform Project Overview
+# XORB Cybersecurity Platform Project Overview
 
 ##  📌 Project Summary
 XORB is a comprehensive cybersecurity platform designed for threat detection, vulnerability management, and security automation. The system provides RESTful APIs for security operations, AI-powered threat analysis, and post-quantum cryptography capabilities. It includes components for attack simulation, SIEM (Security Information and Event Management), and compliance management.
@@ -35,7 +35,7 @@ XORB is a comprehensive cybersecurity platform designed for threat detection, vu
 ├── activate_*.py               # Service activation scripts
 ├── *.py                        # Core Python modules
 └── reports/                    # Security assessment reports
-```
+```text
 
 ##  🛠️ Development & Operations
 ###  Build & Deployment

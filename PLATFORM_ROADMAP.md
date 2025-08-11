@@ -1,4 +1,4 @@
-#  🚀 XORB Platform - Advanced Operations Roadmap
+# 🚀 XORB Platform - Advanced Operations Roadmap
 
 ##  🎉 Current Achievement Status
 
@@ -15,7 +15,7 @@
 
 ####  Database Setup
 ```bash
-#  PostgreSQL with pgvector for AI operations
+# PostgreSQL with pgvector for AI operations
 docker run -d --name xorb-postgres \
   -e POSTGRES_DB=xorb \
   -e POSTGRES_USER=xorb_user \
@@ -23,45 +23,45 @@ docker run -d --name xorb-postgres \
   -p 5432:5432 \
   ankane/pgvector:v0.5.1
 
-#  Connect XORB to database
+# Connect XORB to database
 export DATABASE_URL="postgresql://xorb_user:secure_password@localhost:5432/xorb"
-```
+```text
 
 ####  Redis Caching
 ```bash
-#  Redis for sessions and caching
+# Redis for sessions and caching
 docker run -d --name xorb-redis \
   -p 6379:6379 \
   redis:7-alpine redis-server --requirepass secure_redis_password
 
 export REDIS_URL="redis://:secure_redis_password@localhost:6379/0"
-```
+```text
 
 ####  Load Balancing
 ```bash
-#  Nginx load balancer configuration
-#  Multiple XORB API instances behind proxy
-#  Auto-scaling based on demand
-```
+# Nginx load balancer configuration
+# Multiple XORB API instances behind proxy
+# Auto-scaling based on demand
+```text
 
 ###  2. 📊 **Monitoring & Observability Stack**
 
 ####  Prometheus + Grafana
 ```bash
-#  Deploy monitoring stack
+# Deploy monitoring stack
 docker-compose -f monitoring-stack.yml up -d
 
-#  Access points:
-#  Prometheus: http://localhost:9090
-#  Grafana: http://localhost:3001 (admin/admin123)
-```
+# Access points:
+# Prometheus: http://localhost:9090
+# Grafana: http://localhost:3001 (admin/admin123)
+```text
 
 ####  ELK Stack for Logging
 ```bash
-#  Elasticsearch + Logstash + Kibana
-#  Centralized log aggregation
-#  Real-time log analysis
-```
+# Elasticsearch + Logstash + Kibana
+# Centralized log aggregation
+# Real-time log analysis
+```text
 
 ####  Custom Dashboards
 - Security operations dashboard
@@ -73,23 +73,23 @@ docker-compose -f monitoring-stack.yml up -d
 
 ####  Real Scanner Integration
 ```bash
-#  Install security tools
+# Install security tools
 ./tools/scripts/install_nuclei.sh
 apt-get install nmap nikto sqlmap
 
-#  Configure scanner service
+# Configure scanner service
 python3 setup_scanner_integration.py
-```
+```text
 
 ####  External Threat Feeds
 ```bash
-#  VirusTotal API integration
+# VirusTotal API integration
 export VIRUSTOTAL_API_KEY="your_vt_api_key"
 
-#  MISP platform connection
+# MISP platform connection
 export MISP_URL="https://your-misp-instance.com"
 export MISP_KEY="your_misp_api_key"
-```
+```text
 
 ####  SIEM Integration
 - Splunk connector
@@ -103,38 +103,38 @@ export MISP_KEY="your_misp_api_key"
 
 #####  AWS Deployment
 ```bash
-#  ECS/EKS with RDS and ElastiCache
+# ECS/EKS with RDS and ElastiCache
 terraform apply -var-file="aws-production.tfvars"
 
-#  Auto-scaling groups
-#  Application Load Balancer
-#  RDS PostgreSQL cluster
-#  ElastiCache Redis
-```
+# Auto-scaling groups
+# Application Load Balancer
+# RDS PostgreSQL cluster
+# ElastiCache Redis
+```text
 
 #####  Azure Deployment
 ```bash
-#  Container Instances with Azure Database
+# Container Instances with Azure Database
 az deployment create --template-file azure-template.json
 
-#  Azure Container Registry
-#  Azure Database for PostgreSQL
-#  Azure Redis Cache
-```
+# Azure Container Registry
+# Azure Database for PostgreSQL
+# Azure Redis Cache
+```text
 
 #####  Google Cloud
 ```bash
-#  Cloud Run with Cloud SQL
+# Cloud Run with Cloud SQL
 gcloud run deploy xorb-platform --source .
 
-#  Cloud SQL PostgreSQL
-#  Memorystore Redis
-#  Cloud Load Balancing
-```
+# Cloud SQL PostgreSQL
+# Memorystore Redis
+# Cloud Load Balancing
+```text
 
 ####  CI/CD Pipeline
 ```yaml
-#  GitHub Actions workflow
+# GitHub Actions workflow
 name: XORB Platform Deployment
 on:
   push:
@@ -146,29 +146,29 @@ jobs:
       - uses: actions/checkout@v3
       - name: Deploy to production
         run: ./deploy-production.sh
-```
+```text
 
 ###  5. 🤖 **AI/ML Enhancement Options**
 
 ####  Advanced ML Libraries
 ```bash
-#  Install enhanced AI capabilities
+# Install enhanced AI capabilities
 pip install torch transformers scikit-learn
 pip install yara-python netaddr nltk spacy
 
-#  Enable advanced threat intelligence
+# Enable advanced threat intelligence
 export ENABLE_ADVANCED_ML=true
-```
+```text
 
 ####  Custom Model Training
 ```python
-#  Train custom threat detection models
+# Train custom threat detection models
 from xorb.ml import ThreatDetectionTrainer
 
 trainer = ThreatDetectionTrainer()
 model = trainer.train_on_historical_data()
 trainer.deploy_model(model)
-```
+```text
 
 ####  NLP Enhancements
 - Named Entity Recognition for IOCs
@@ -180,23 +180,23 @@ trainer.deploy_model(model)
 
 ####  Ticketing Systems
 ```bash
-#  Jira integration
+# Jira integration
 export JIRA_URL="https://company.atlassian.net"
 export JIRA_TOKEN="your_jira_token"
 
-#  ServiceNow integration
+# ServiceNow integration
 export SERVICENOW_INSTANCE="company.service-now.com"
 export SERVICENOW_CREDENTIALS="user:password"
-```
+```text
 
 ####  Chat Platforms
 ```bash
-#  Slack notifications
+# Slack notifications
 export SLACK_WEBHOOK_URL="https://hooks.slack.com/..."
 
-#  Microsoft Teams
+# Microsoft Teams
 export TEAMS_WEBHOOK_URL="https://outlook.office.com/webhook/..."
-```
+```text
 
 ####  Security Tools
 - SOAR platform integration
@@ -240,32 +240,32 @@ export TEAMS_WEBHOOK_URL="https://outlook.office.com/webhook/..."
 
 ###  Option A: Enhanced Local Development
 ```bash
-#  Setup enhanced development environment
+# Setup enhanced development environment
 ./tools/scripts/setup-development-environment.sh
 
-#  Install optional ML libraries
+# Install optional ML libraries
 pip install -r requirements-enhanced.txt
 
-#  Start with monitoring
+# Start with monitoring
 docker-compose -f docker-compose.monitoring.yml up -d
-```
+```text
 
 ###  Option B: Cloud Deployment
 ```bash
-#  Choose your cloud provider
+# Choose your cloud provider
 ./tools/scripts/deploy-aws.sh     # AWS deployment
 ./tools/scripts/deploy-azure.sh   # Azure deployment
 ./tools/scripts/deploy-gcp.sh     # Google Cloud deployment
-```
+```text
 
 ###  Option C: Container Orchestration
 ```bash
-#  Kubernetes deployment
+# Kubernetes deployment
 kubectl apply -f k8s/
 
-#  Docker Swarm
+# Docker Swarm
 docker stack deploy -c docker-stack.yml xorb
-```
+```text
 
 ##  📊 **Success Metrics & KPIs**
 
@@ -305,12 +305,12 @@ docker stack deploy -c docker-stack.yml xorb
 
 ##  🎉 **Current Platform Status**
 
-**✅ MISSION ACCOMPLISHED**: The XORB platform has been successfully transformed from a broken codebase to a fully deployed, enterprise-grade security platform!
+- **✅ MISSION ACCOMPLISHED**: The XORB platform has been successfully transformed from a broken codebase to a fully deployed, enterprise-grade security platform!
 
-**🚀 READY FOR**: Any of the advanced operations listed above. The platform is production-ready and can be enhanced in any direction based on your specific needs and requirements.
+- **🚀 READY FOR**: Any of the advanced operations listed above. The platform is production-ready and can be enhanced in any direction based on your specific needs and requirements.
 
-**🔥 NEXT STEP**: Choose any option above and we can implement it immediately!
+- **🔥 NEXT STEP**: Choose any option above and we can implement it immediately!
 
----
+- --
 
-*The XORB platform is now a fully operational, enterprise-grade security solution ready for advanced operations and production deployment.*
+- The XORB platform is now a fully operational, enterprise-grade security solution ready for advanced operations and production deployment.*

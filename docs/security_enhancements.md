@@ -1,4 +1,4 @@
-#  Xorb Security Enhancements Documentation
+# Xorb Security Enhancements Documentation
 
 This document outlines the comprehensive security enhancements implemented in the Xorb platform.
 
