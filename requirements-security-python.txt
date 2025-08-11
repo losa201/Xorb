@@ -1,0 +1,5 @@
+pymetasploit3>=1.0.0
+sqlmap>=1.5.0
+faraday-cli>=1.0.0
+matplotlib>=3.4.0
+wapiti3>=3.0.0

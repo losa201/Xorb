@@ -144,9 +144,16 @@ class SecurityMiddleware:
             if self._check_suspicious_path(request.path):
                 return False
             
+            # Validate request content
+            if not await self.validate_request_content(request):
+                return False
+            
             # Check rate limiting
             if not await self._check_rate_limiting(request):
                 return False
+            
+            # Trigger compliance monitoring
+            await self._trigger_compliance_check(request)
             
             return True
             
