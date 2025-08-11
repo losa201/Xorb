@@ -618,3 +618,17 @@ class NotificationService(ABC):
     ) -> bool:
         """Send webhook notification"""
         raise NotImplementedError("send_webhook must be implemented by subclass")
+
+
+class IntelligenceService(ABC):
+    """Interface for intelligence and analytics operations"""
+    
+    @abstractmethod
+    async def analyze_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze data and return intelligence insights"""
+        raise NotImplementedError("analyze_data must be implemented by subclass")
+    
+    @abstractmethod
+    async def get_intelligence_report(self, query: Dict[str, Any]) -> Dict[str, Any]:
+        """Generate intelligence report based on query"""
+        raise NotImplementedError("get_intelligence_report must be implemented by subclass")

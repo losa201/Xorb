@@ -66,6 +66,8 @@ class DecisionContext(BaseModel):
 
 class DecisionRequest(BaseModel):
     """Request for AI decision"""
+    model_config = {"protected_namespaces": ()}
+    
     decision_type: DecisionType
     context: DecisionContext
     model_preferences: List[ModelType] = Field(default_factory=list)
@@ -75,6 +77,8 @@ class DecisionRequest(BaseModel):
 
 class DecisionResponse(BaseModel):
     """AI decision response"""
+    model_config = {"protected_namespaces": ()}
+    
     decision_id: str
     decision_type: DecisionType
     recommendation: str
@@ -101,6 +105,8 @@ class LearningFeedback(BaseModel):
 
 class ModelTrainingRequest(BaseModel):
     """Request for model training/fine-tuning"""
+    model_config = {"protected_namespaces": ()}
+    
     model_type: ModelType
     training_data: List[Dict[str, Any]]
     learning_type: LearningType
@@ -111,6 +117,8 @@ class ModelTrainingRequest(BaseModel):
 
 class IntelligenceMetrics(BaseModel):
     """Intelligence system metrics"""
+    model_config = {"protected_namespaces": ()}
+    
     total_decisions: int
     avg_confidence_score: float
     avg_processing_time_ms: float
