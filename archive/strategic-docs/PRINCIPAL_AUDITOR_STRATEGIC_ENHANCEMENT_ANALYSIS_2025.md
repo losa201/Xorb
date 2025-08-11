@@ -74,7 +74,7 @@ class AdvancedThreatIntelligenceFusion:
         - Predictive threat emergence detection
         - Automated threat hunting query generation
         """
-```text
+```
 
 - **Business Impact**: 300% improvement in threat detection accuracy, 80% reduction in false positives
 
@@ -102,7 +102,7 @@ class QuantumSafeFramework:
         - Quantum-safe key distribution
         - Future-proof autonomous decision algorithms
         """
-```text
+```
 
 - **Business Impact**: 5-10 year competitive advantage, regulatory compliance for quantum-era requirements
 
@@ -130,7 +130,7 @@ class AdvancedBehavioralAnalytics:
         - Temporal behavior pattern recognition
         - Risk-adaptive authentication recommendations
         """
-```text
+```
 
 - **Business Impact**: 400% improvement in insider threat detection, 90% reduction in credential abuse
 
@@ -158,7 +158,7 @@ class EnterpriseComplianceEngine:
         - Automated remediation recommendations
         - Executive compliance dashboards
         """
-```text
+```
 
 - **Business Impact**: 70% reduction in compliance overhead, 95% audit readiness, real-time risk visibility
 
@@ -186,7 +186,7 @@ class AdvancedAPISecurityFramework:
         - Advanced rate limiting with ML optimization
         - Real-time API vulnerability assessment
         """
-```text
+```
 
 - **Business Impact**: 99.9% API security, 85% reduction in API-based attacks, enhanced user experience
 

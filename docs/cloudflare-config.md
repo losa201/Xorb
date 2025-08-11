@@ -3,7 +3,7 @@
 ##  DNS Records
 
 ###  A Records
-```text
+```
 Type: A
 Name: @
 Content: YOUR_SERVER_IP
@@ -21,10 +21,10 @@ Name: api
 Content: YOUR_SERVER_IP
 TTL: Auto
 Proxy: Enabled (Orange Cloud)
-```text
+```
 
 ###  CNAME Records
-```text
+```
 Type: CNAME
 Name: ptaas
 Target: verteidiq.com
@@ -42,7 +42,7 @@ Name: customers
 Target: verteidiq.com
 TTL: Auto
 Proxy: Enabled (Orange Cloud)
-```text
+```
 
 ##  SSL/TLS Configuration
 
@@ -85,7 +85,7 @@ Proxy: Enabled (Orange Cloud)
 
 // Geographic restrictions (if needed)
 (ip.geoip.country ne "US" and ip.geoip.country ne "DE" and ip.geoip.country ne "GB")
-```text
+```
 
 ###  Firewall Rules
 1. **Challenge suspicious requests**
@@ -123,7 +123,7 @@ Settings:
   - Cache Level: Cache Everything
   - Edge TTL: 1 year
   - Browser TTL: 1 year
-```text
+```
 
 ####  Next.js Assets
 ```javascript
@@ -133,7 +133,7 @@ Settings:
   - Cache Level: Cache Everything
   - Edge TTL: 1 year
   - Browser TTL: 1 year
-```text
+```
 
 ####  HTML Files
 ```javascript
@@ -143,7 +143,7 @@ Settings:
   - Cache Level: Cache Everything
   - Edge TTL: 1 hour
   - Browser TTL: 1 hour
-```text
+```
 
 ####  API Routes
 ```javascript
@@ -151,7 +151,7 @@ Settings:
 Expression: (http.request.uri.path matches "^/api/.*")
 Settings:
   - Cache Level: Bypass
-```text
+```
 
 ###  Page Rules (Legacy - migrate to Rules Engine)
 
@@ -233,26 +233,26 @@ Settings:
   "enabled": true,
   "weight": 0
 }
-```text
+```
 
 ##  Headers
 
 ###  Security Headers (Already configured in Nginx, but as backup)
-```text
+```
 Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
 X-XSS-Protection: 1; mode=block
 Referrer-Policy: strict-origin-when-cross-origin
 Permissions-Policy: camera=(), microphone=(), geolocation=()
-```text
+```
 
 ###  Custom Headers
-```text
+```
 X-Powered-By: XORB-PTaaS
 X-Security-Level: Enterprise
 Access-Control-Allow-Origin: https://verteidiq.com
-```text
+```
 
 ##  Workers (Advanced)
 
@@ -280,7 +280,7 @@ async function handleRequest(request) {
 
   return newResponse
 }
-```text
+```
 
 ##  Implementation Checklist
 

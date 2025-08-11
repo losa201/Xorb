@@ -25,7 +25,7 @@ The XORB platform represents a **sophisticated, enterprise-grade cybersecurity o
 ##  🏗️ **Architecture Analysis**
 
 ###  **Core Service Architecture**
-```text
+```
 XORB Platform
 ├── Frontend Layer (PTaaS Web App)
 │   ├── React 18.3.1 + TypeScript 5.5.3
@@ -57,7 +57,7 @@ XORB Platform
     ├── Kubernetes orchestration
     ├── Service mesh capabilities
     └── Comprehensive monitoring stack
-```text
+```
 
 ###  **Service Distribution**
 - **Primary API Services**: `/src/api/` - FastAPI application with 15+ routers

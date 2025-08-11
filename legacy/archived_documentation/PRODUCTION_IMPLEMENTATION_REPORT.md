@@ -44,7 +44,7 @@ report = orchestrator.generate_report()
 # Vulnerabilities: Categorized by severity
 # MITRE Mapping: T1595, T1046, T1190, T1210, etc.
 # Compliance: PCI-DSS, OWASP, NIST validation
-```text
+```
 
 - *Performance Metrics:**
 - **Execution Time**: 3-5 seconds for comprehensive target assessment
@@ -75,7 +75,7 @@ enrichment = await engine.enrich_evidence_enhanced(
 # Attack Position: initial_access
 # Impersonation: Yes (Amazon brand abuse)
 # Recommendations: Immediate containment
-```text
+```
 
 - *Intelligence Sources:**
 - **5 Real Threat Feeds**: Malware Bazaar, URLhaus, FeodoTracker, AlienVault OTX, ThreatFox
@@ -104,7 +104,7 @@ result = await scanner.comprehensive_scan(target)
 # Services: Detailed service enumeration
 # Tools Used: Nmap, Nuclei, custom checks
 # Recommendations: Specific mitigation guidance
-```text
+```
 
 ###  4. **Behavioral Analytics Engine** (`ptaas/behavioral_analytics.py`)
 
@@ -126,7 +126,7 @@ result = engine.update_profile(user_id, features)
 # Anomalies: Off-hours access, geo anomaly
 # Patterns: Data exfiltration risk
 # Recommendations: Enhanced monitoring
-```text
+```
 
 ###  5. **Threat Hunting Engine** (`ptaas/threat_hunting_engine.py`)
 
@@ -150,7 +150,7 @@ result = engine.execute_query(
 # Results Found: 15 events
 # Pattern Matches: Brute force indicators
 # Export: JSON format for sharing
-```text
+```
 
 - --
 
@@ -163,7 +163,7 @@ result = engine.execute_query(
 - **Logging & Monitoring**: Structured logging with performance metrics
 
 ###  **Microservices Architecture**
-```text
+```
 services/
 ├── ptaas/                  # PTaaS Frontend & Core Logic
 ├── xorb-core/             # XORB Backend Platform
@@ -171,7 +171,7 @@ services/
 │   ├── intelligence/      # Threat Intelligence Engine
 │   └── security/          # Security Services
 └── infrastructure/        # Shared Services (Monitoring, Vault)
-```text
+```
 
 ###  **Technology Stack**
 - **Backend**: Python 3.12, FastAPI, AsyncPG, Redis
@@ -194,7 +194,7 @@ services/
 ✅ Compliance framework checking
 ✅ Executive report generation
 ✅ Risk scoring and recommendations
-```text
+```
 
 ####  **Threat Intelligence Testing**
 ```bash
@@ -204,7 +204,7 @@ services/
 ✅ Service impersonation detection
 ✅ Campaign tracking and correlation
 ✅ Real threat feed parsing (5 sources)
-```text
+```
 
 ####  **Security Scanner Testing**
 ```bash
@@ -214,7 +214,7 @@ services/
 ✅ SSL/TLS configuration analysis
 ✅ Custom security checks
 ✅ Performance optimization validation
-```text
+```
 
 ###  **Performance Benchmarks**
 - **Attack Simulation**: 3-5 seconds for complete target assessment
@@ -260,7 +260,7 @@ services/
 vs. Commercial PTaaS: ✅ Complete automation, ✅ ML intelligence
 vs. Open Source Tools: ✅ Enterprise features, ✅ Compliance reporting
 vs. Manual Testing: ✅ 10x faster execution, ✅ Consistent methodology
-```text
+```
 
 - --
 
@@ -284,7 +284,7 @@ python3 activate_attack_simulation.py
 # Access services
 curl http://localhost:8000/health  # API Health
 curl http://localhost:3000         # Frontend Dashboard
-```text
+```
 
 - --
 

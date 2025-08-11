@@ -124,7 +124,7 @@ find reports/ -name "*.md" -o -name "*.json" | wc -l  # All reports present
 grep -r "CRITICAL\|HIGH" reports/risk/  # Risk categorization verified
 grep -r "CVSS" reports/risk/  # CVSS scoring implemented
 grep -r "CWE-" reports/risk/  # CWE classification complete
-```text
+```
 
 ### Security Validation
 ```bash
@@ -132,7 +132,7 @@ grep -r "CWE-" reports/risk/  # CWE classification complete
 patch -p1 --dry-run < EXEMPLAR_FIX_JWT_SECRET.patch  # Patch applies cleanly
 python -m pytest tests/unit/test_secure_jwt.py  # Tests pass
 bandit -r src/api/app/core/secure_jwt.py  # No security issues
-```text
+```
 
 ### Documentation Validation
 ```bash
@@ -140,7 +140,7 @@ bandit -r src/api/app/core/secure_jwt.py  # No security issues
 find . -name "*.md" | xargs wc -l | tail -1  # 2000+ lines of documentation
 grep -r "TODO\|FIXME\|XXX" reports/  # No incomplete sections
 vale --config .vale.ini reports/  # Documentation quality check
-```text
+```
 
 ## 🎖️ Principal Auditor Certification
 

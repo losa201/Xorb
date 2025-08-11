@@ -47,7 +47,7 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "timing": "normal"
   }
 }
-```text
+```
 
 - *`recon.service_enum` (T1046 - Network Service Scanning)**
 - Enumerate services and gather version information
@@ -64,7 +64,7 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "aggressive": false
   }
 }
-```text
+```
 
 ####  Web Application Reconnaissance
 
@@ -83,7 +83,7 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "user_agent": "Mozilla/5.0 (compatible; XORBBot/1.0)"
   }
 }
-```text
+```
 
 ####  DNS and Infrastructure
 
@@ -101,7 +101,7 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "record_types": ["A", "AAAA", "MX", "NS", "TXT"]
   }
 }
-```text
+```
 
 - *`recon.subdomain_enum` (T1590.002 - DNS)**
 - Subdomain enumeration using wordlists
@@ -117,7 +117,7 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "wordlist": ["www", "mail", "ftp", "admin", "dev"]
   }
 }
-```text
+```
 
 ####  Network Discovery
 
@@ -134,7 +134,7 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "network": "192.168.1.0/24"
   }
 }
-```text
+```
 
 - *`recon.os_fingerprint` (T1082 - System Information Discovery)**
 - Operating system fingerprinting
@@ -149,7 +149,7 @@ The Reconnaissance Agent specializes in information gathering and target discove
     "target": "example.com"
   }
 }
-```text
+```
 
 ###  Execution Flow
 
@@ -205,7 +205,7 @@ The Reconnaissance Agent follows a systematic approach:
     ]
   }
 }
-```text
+```
 
 ##  ⚔️ Exploitation Agent
 
@@ -231,7 +231,7 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     "database": "mysql"
   }
 }
-```text
+```
 
 - *`exploit.web_shell` (T1505.003 - Web Shell)**
 - Web shell upload and deployment
@@ -248,7 +248,7 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     "filename": "shell.php"
   }
 }
-```text
+```
 
 ####  Credential Attacks
 
@@ -269,7 +269,7 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     "delay": 1.0
   }
 }
-```text
+```
 
 - *`exploit.credential_stuffing` (T1110.004 - Credential Stuffing)**
 - Use previously breached credentials
@@ -288,7 +288,7 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     ]
   }
 }
-```text
+```
 
 ####  System Exploitation
 
@@ -312,7 +312,7 @@ The Exploitation Agent specializes in initial access and privilege escalation, i
     "target_user": "root"
   }
 }
-```text
+```
 
 ###  Exploitation Workflow
 
@@ -359,7 +359,7 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     ]
   }
 }
-```text
+```
 
 ####  System-Level Persistence
 
@@ -378,7 +378,7 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "trigger": "daily"
   }
 }
-```text
+```
 
 - *`persist.service_creation` (T1543.003 - Windows Service)**
 - Create system services for persistence
@@ -395,7 +395,7 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "start_type": "auto"
   }
 }
-```text
+```
 
 ####  User Account Manipulation
 
@@ -414,7 +414,7 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "groups": ["Administrators"]
   }
 }
-```text
+```
 
 ####  File System Persistence
 
@@ -432,7 +432,7 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "script_content": "#!/bin/bash\n# Network monitoring service\n/opt/monitor/agent &"
   }
 }
-```text
+```
 
 - *`persist.registry_autorun` (T1547.001 - Registry Run Keys)**
 - Windows registry autorun entries
@@ -449,7 +449,7 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "value_data": "C:\\Windows\\System32\\security.exe"
   }
 }
-```text
+```
 
 ####  Network-Based Persistence
 
@@ -467,7 +467,7 @@ The Persistence Agent specializes in maintaining access to compromised systems, 
     "public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQAB..."
   }
 }
-```text
+```
 
 ###  Persistence Strategy
 
@@ -502,7 +502,7 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "payload": "base64_encoded_shellcode"
   }
 }
-```text
+```
 
 ####  Network Evasion
 
@@ -521,7 +521,7 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "cdn_provider": "cloudflare"
   }
 }
-```text
+```
 
 - *`evasion.traffic_obfuscation` (T1001 - Data Obfuscation)**
 - Encrypt and obfuscate network traffic
@@ -537,7 +537,7 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "port": 443
   }
 }
-```text
+```
 
 ####  File System Evasion
 
@@ -555,7 +555,7 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "timestamp": "2020-01-01 00:00:00"
   }
 }
-```text
+```
 
 - *`evasion.file_masquerading` (T1036 - Masquerading)**
 - Disguise malicious files as legitimate ones
@@ -572,7 +572,7 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "legitimate_path": "C:\\Windows\\System32"
   }
 }
-```text
+```
 
 ####  Anti-Forensics
 
@@ -589,7 +589,7 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "log_types": ["system", "auth", "application"]
   }
 }
-```text
+```
 
 ####  Antivirus Evasion
 
@@ -607,7 +607,7 @@ The Evasion Agent specializes in defense evasion and stealth techniques, impleme
     "techniques": ["packing", "obfuscation", "encryption"]
   }
 }
-```text
+```
 
 ###  Evasion Strategy
 
@@ -642,7 +642,7 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "output_file": "keylog.txt"
   }
 }
-```text
+```
 
 - *`collection.screen_capture` (T1113 - Screen Capture)**
 - Capture screenshots and screen recordings
@@ -658,7 +658,7 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "quality": "medium"
   }
 }
-```text
+```
 
 - *`collection.clipboard` (T1115 - Clipboard Data)**
 - Monitor and capture clipboard content
@@ -673,7 +673,7 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "duration": 300
   }
 }
-```text
+```
 
 ####  Credential Harvesting
 
@@ -691,7 +691,7 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "target_users": ["admin", "user"]
   }
 }
-```text
+```
 
 - *`collection.browser_data` (T1555.003 - Credentials from Web Browsers)**
 - Extract saved passwords from browsers
@@ -707,7 +707,7 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "data_types": ["passwords", "cookies", "history"]
   }
 }
-```text
+```
 
 ####  File and Data Collection
 
@@ -726,7 +726,7 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "keywords": ["password", "confidential", "secret"]
   }
 }
-```text
+```
 
 - *`collection.network_shares` (T1039 - Data from Network Shared Drive)**
 - Enumerate and access network shares
@@ -741,7 +741,7 @@ The Collection Agent specializes in data collection and credential harvesting, i
     "target_networks": ["192.168.1.0/24"]
   }
 }
-```text
+```
 
 ####  Forensic Collection
 
@@ -797,7 +797,7 @@ Red team agents respect environment-specific policies:
     "max_risk_level": "critical"
   }
 }
-```text
+```
 
 ###  Resource Constraints
 
@@ -824,7 +824,7 @@ Each agent type has specific resource requirements:
     "network_bandwidth_mb": 25
   }
 }
-```text
+```
 
 ##  📈 Performance Metrics
 

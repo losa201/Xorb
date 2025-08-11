@@ -20,7 +20,7 @@ Based on comprehensive code analysis and the provided system insights, the XORB 
 ###  ⚠️ **Critical Architectural Debt**
 
 ####  1. **Service Proliferation & Duplication**
-```text
+```
 Problem: 47 different service classes with overlapping responsibilities
 Impact: Maintenance complexity, testing overhead, deployment fragmentation
 
@@ -29,10 +29,10 @@ Evidence:
 - 3 Password context initializations
 - 6 different main.py entry points
 - Multiple backup system implementations
-```text
+```
 
 ####  2. **Dependency Management Chaos**
-```text
+```
 Problem: 6 different requirements files across services
 Impact: Version conflicts, security vulnerabilities, deployment complexity
 
@@ -43,10 +43,10 @@ Current State:
 ├── src/orchestrator/requirements.txt
 ├── requirements/requirements-ml.txt
 └── requirements/requirements-execution.txt
-```text
+```
 
 ####  3. **Configuration Fragmentation**
-```text
+```
 Problem: Multiple configuration systems and entry points
 Impact: Environment management complexity, debugging difficulty
 
@@ -54,14 +54,14 @@ Fragmentation Points:
 - 6 main.py files indicating separate runtime contexts
 - Distributed configuration management
 - Inconsistent environment variable usage
-```text
+```
 
 ####  4. **Service Discovery & Communication**
-```text
+```
 Problem: No unified service mesh or communication protocol
 Current: Point-to-point service communication
 Impact: Network complexity, debugging difficulty, scaling challenges
-```text
+```
 
 - --
 
@@ -81,7 +81,7 @@ Complexity Indicators:
   Coupling: TIGHT (shared dependencies across services)
   Cohesion: MEDIUM (domain separation exists but fragmented)
   Documentation: PARTIAL (implementation-focused)
-```text
+```
 
 ###  **Service Architecture Analysis**
 
@@ -106,10 +106,10 @@ Service Distribution:
     ├── threat_intelligence (AI correlation)
     ├── intelligence_service (LLM integration)
     └── ml_model_manager (ML lifecycle)
-```text
+```
 
 ####  Service Dependency Graph
-```text
+```
 Database ──┬── Vector Store ──── Threat Intelligence
            │                  └── Intelligence Service
            │
@@ -120,7 +120,7 @@ Database ──┬── Vector Store ──── Threat Intelligence
            └── ML Model Manager
 
 Cache ──── Streaming Analytics
-```text
+```
 
 - **Analysis**: Good logical separation but **tight coupling** at data layer.
 
@@ -133,7 +133,7 @@ Authentication: ~15 routes (16% - multiple implementations)
 Health/Monitoring: ~10 routes (11% - distributed)
 Legacy Services: ~25 routes (27% - needs consolidation)
 Core Business Logic: ~21 routes (23% - fragmented)
-```text
+```
 
 - **Analysis**: Platform gateway is well-designed, but legacy and auth routes show fragmentation.
 
@@ -146,7 +146,7 @@ Container Strategy: Docker Compose based
 Orchestration: Custom service orchestrator (not K8s native)
 Data Strategy: Centralized PostgreSQL + Redis
 Monitoring: Custom health checks + Prometheus metrics
-```text
+```
 
 - **Analysis**: **Not cloud-native ready**. Custom orchestration limits scalability.
 
@@ -164,7 +164,7 @@ UnifiedAuthService        # src/xorb/core_platform/auth.py
 
 # Problem: Inconsistent auth behavior across services
 # Solution Required: Single authoritative auth service
-```text
+```
 
 ###  **Issue #2: Service Runtime Fragmentation**
 ```yaml
@@ -178,7 +178,7 @@ Entry Points Analysis:
 
 Problem: Multiple runtime contexts prevent unified deployment
 Impact: Container proliferation, service discovery complexity
-```text
+```
 
 ###  **Issue #3: Data Layer Bottlenecks**
 ```sql
@@ -192,7 +192,7 @@ Bottleneck Analysis:
 ├── Query Performance: Mixed OLTP/OLAP workloads
 ├── Vector Operations: Resource intensive on main DB
 └── Cache Strategy: Single Redis instance
-```text
+```
 
 ###  **Issue #4: Observability Fragmentation**
 ```yaml
@@ -205,7 +205,7 @@ Current Monitoring:
 
 Problem: No unified observability strategy
 Impact: Debugging complexity, performance blind spots
-```text
+```
 
 - --
 
@@ -226,7 +226,7 @@ Bottlenecks Identified:
 3. Single-threaded Python components
 4. Memory-intensive ML models
 5. No horizontal scaling capability
-```text
+```
 
 ###  **Scaling Blockers**
 ```python
@@ -251,7 +251,7 @@ Bottlenecks Identified:
    - No resource isolation between services
    - ML models compete for memory/CPU
    - No automatic resource scaling
-```text
+```
 
 - --
 
@@ -295,7 +295,7 @@ Week 5-6: Code Quality & Testing
 - Remove duplicate code patterns
 - Implement comprehensive integration tests
 - Establish code quality gates (coverage, complexity)
-```text
+```
 
 ###  **Phase 2: Architecture Modernization (8-10 weeks)**
 ```yaml
@@ -313,7 +313,7 @@ Week 7-10: Observability & Reliability
 - Unified logging with structured JSON
 - Distributed tracing with OpenTelemetry
 - Comprehensive health checks and circuit breakers
-```text
+```
 
 ###  **Phase 3: Cloud-Native Transformation (6-8 weeks)**
 ```yaml
@@ -331,7 +331,7 @@ Week 7-8: Production Readiness
 - Multi-environment configuration
 - Disaster recovery and backup automation
 - Performance testing and optimization
-```text
+```
 
 - --
 
@@ -356,7 +356,7 @@ Reliability:
 - Error Rate: <0.1% for critical paths
 - Recovery Time: <5 minutes for service restart
 - Dependency Failure Isolation: 100% graceful degradation
-```text
+```
 
 ###  **Business Impact Metrics**
 ```yaml
@@ -371,7 +371,7 @@ Operational Efficiency:
 - Developer Productivity: 50% improvement in feature delivery
 - Security Response Time: <1 hour for critical threats
 - Customer Onboarding: <24 hours for new tenants
-```text
+```
 
 - --
 

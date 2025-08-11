@@ -45,7 +45,7 @@ app.middleware("http")(LoggingMiddleware(app))                           # 2nd
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):             # 3rd
     # Security headers added AFTER other processing
-```text
+```
 - *Risk:** Authentication bypass via middleware ordering exploitation
 - *Impact:** Complete authentication bypass for certain request types
 
@@ -57,7 +57,7 @@ if settings.environment == "production" and origin == "*":
     logger.warning("Wildcard CORS origin not allowed in production")
     continue
 # Development allows wildcards - potential for confusion
-```text
+```
 - *Risk:** Cross-origin attacks in misconfigured environments
 - *Impact:** Data exfiltration via CORS bypass
 
@@ -68,7 +68,7 @@ if settings.environment == "production" and origin == "*":
 except ImportError as e:
     logger.warning("Enterprise Management not available", error=str(e))
 # Error messages could expose internal structure
-```text
+```
 - *Risk:** Information disclosure about internal architecture
 - *Impact:** Reconnaissance for targeted attacks
 
@@ -85,7 +85,7 @@ except ImportError as e:
 if config_manager.is_production():
     # Only applies host restrictions in production
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=allowed_hosts)
-```text
+```
 - *Risk:** Host header injection in non-production environments
 - *Impact:** Cache poisoning, password reset bypass
 
@@ -100,7 +100,7 @@ if config_manager.is_production():
 5. GZipMiddleware              # ✅ Correct position
 6. TrustedHostMiddleware       # ❌ Should be first
 7. Global Exception Handler    # ✅ Correct position
-```text
+```
 
 ###  Recommended Order (Secure)
 ```python
@@ -111,7 +111,7 @@ if config_manager.is_production():
 5. LoggingMiddleware          # Log after security processing
 6. GZipMiddleware             # Compress responses
 7. Global Exception Handler   # Handle errors last
-```text
+```
 
 ##  Immediate Remediation (7 days)
 
@@ -146,7 +146,7 @@ app.middleware("http")(LoggingMiddleware(app))
 
 # 6. Compression last
 app.add_middleware(GZipMiddleware, minimum_size=1000)
-```text
+```
 
 ###  2. Secure CORS Configuration
 ```python
@@ -174,7 +174,7 @@ def get_validated_cors_origins() -> List[str]:
             validated_origins.append(origin)
 
     return validated_origins
-```text
+```
 
 ###  3. Secure Router Loading
 ```python
@@ -197,7 +197,7 @@ def load_optional_router(router_name: str, display_name: str, app: FastAPI):
         # Log error securely
         logger.error(f"Failed to load router: {display_name}", error_id=str(hash(str(e))))
         return False
-```text
+```
 
 ##  Configuration Security Enhancements
 
@@ -221,7 +221,7 @@ def get_environment_security_config() -> Dict[str, Any]:
         })
 
     return base_config
-```text
+```
 
 ###  2. Security Headers Enhancement
 ```python
@@ -241,7 +241,7 @@ def get_enhanced_security_headers(environment: str) -> Dict[str, str]:
         })
 
     return headers
-```text
+```
 
 ##  Compliance Impact
 
@@ -272,7 +272,7 @@ async def test_cors_security():
     # Test wildcard origin handling
     # Test origin validation
     # Test preflight request handling
-```text
+```
 
 ###  Integration Testing
 ```python
@@ -281,7 +281,7 @@ async def test_security_middleware_stack():
     # Verify middleware order
     # Test error handling paths
     # Validate security headers presence
-```text
+```
 
 ##  Risk Scoring
 
@@ -303,7 +303,7 @@ class SecurityMiddlewareMonitor:
         # Check for unusual request patterns
         # Monitor CORS violations
         # Track authentication bypass attempts
-```text
+```
 
 ###  Alerting
 - Monitor for CORS violations

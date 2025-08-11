@@ -18,6 +18,7 @@ from ..security import (
     require_permission,
     Permission
 )
+from ..auth.rbac_dependencies import require_permission as rbac_require_permission
 
 
 class TaskType(str, Enum):
@@ -316,7 +317,7 @@ async def get_task(
 async def update_task(
     task_id: str,
     request: UpdateTaskRequest,
-    context: SecurityContext = Depends(require_permission(Permission.TASK_PRIORITY))
+    current_user = Depends(rbac_require_permission("job:priority"))
 ) -> Task:
     """Update task configuration"""
     

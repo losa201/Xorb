@@ -21,7 +21,7 @@ Authentication router containing **CRITICAL security vulnerabilities** that comp
 async def create_dev_token(username: str = "dev", role: str = "admin"):
     if os.getenv("DEV_MODE", "false").lower() != "true":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-```text
+```
 - **Risk**:
 - Development endpoint that generates admin tokens
 - Only protected by environment variable check
@@ -36,7 +36,7 @@ def get_current_token():
     """Dependency to extract current token - simplified for this example"""
     # In a real implementation, this would extract the token from the Authorization header
     return "dummy_token"
-```text
+```
 - **Risk**:
 - Authentication bypass - returns hardcoded dummy token
 - All logout operations use this dummy authentication
@@ -51,7 +51,7 @@ if "Invalid" in str(e) or "credentials" in str(e).lower():
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail=str(e),  # Exposes internal error details
     )
-```text
+```
 - **Risk**: Internal error messages exposed to attackers for reconnaissance.
 
 ###  HIGH Issues
@@ -69,7 +69,7 @@ if "Invalid" in str(e) or "credentials" in str(e).lower():
 async def logout(token: str = Depends(get_current_token)):
     # Uses dummy token - cannot actually revoke real tokens
     success = await auth_service.revoke_token(token)
-```text
+```
 - **Risk**: Token revocation may not work due to dummy token implementation.
 
 ###  MEDIUM Issues

@@ -28,7 +28,7 @@ As the principal auditor and engineer, I have successfully **strategically enhan
 
 ###  Enhanced Service Architecture
 
-```text
+```
 XORB Enhanced Platform Architecture
 ├── 🎯 Production-Ready Concrete Services
 │   ├── ProductionPTaaSService - Real PTaaS implementation
@@ -53,7 +53,7 @@ XORB Enhanced Platform Architecture
     ├── Service Registry - Dynamic service discovery
     ├── Event-Driven Architecture - Asynchronous processing
     └── Enterprise Security - Advanced access controls
-```text
+```
 
 - --
 
@@ -79,7 +79,7 @@ async def get_scan_results() -> Dict[str, Any]       # ✅ Complete
 async def cancel_scan() -> bool                      # ✅ Complete
 async def get_available_scan_profiles() -> List     # ✅ Complete
 async def create_compliance_scan() -> Dict          # ✅ Complete
-```text
+```
 
 ####  **ProductionThreatIntelligenceService** - Advanced Implementation
 
@@ -96,7 +96,7 @@ async def analyze_indicators() -> Dict[str, Any]     # ✅ Complete
 async def correlate_threats() -> Dict[str, Any]      # ✅ Complete
 async def get_threat_prediction() -> Dict[str, Any]  # ✅ Complete
 async def generate_threat_report() -> Dict[str, Any] # ✅ Complete
-```text
+```
 
 ###  2. Advanced AI/ML Engine
 
@@ -117,7 +117,7 @@ async def analyze_behavioral_anomalies() -> BehavioralProfile # ✅ Complete
 async def detect_advanced_threats() -> Dict[str, Any]       # ✅ Complete
 async def train_adaptive_model() -> MLModelMetrics          # ✅ Complete
 async def generate_security_insights() -> Dict[str, Any]    # ✅ Complete
-```text
+```
 
 - **ML Model Architecture**:
 - **Rule-Based Fallbacks**: Always-available baseline predictions
@@ -145,7 +145,7 @@ async def get_service_health_dashboard() -> Dict[str, Any]  # ✅ Complete
 async def create_alert_rule() -> str                        # ✅ Complete
 async def get_performance_analytics() -> Dict[str, Any]     # ✅ Complete
 async def get_security_metrics() -> Dict[str, Any]          # ✅ Complete
-```text
+```
 
 - **Enterprise Metrics**:
 - **System Metrics**: CPU, memory, disk, network utilization
@@ -214,7 +214,7 @@ PTaaS Performance:
   Status Queries: < 100ms
   Result Processing: < 1 second
   Compliance Analysis: < 5 seconds
-```text
+```
 
 - --
 
@@ -235,7 +235,7 @@ PTaaS Performance:
 - ✅ **Health Monitoring**: Continuous service health validation
 
 ####  **3. Data Flow Architecture**
-```text
+```
 Data Flow: Enhanced XORB Platform
 ┌─────────────────────────────────────────────────────────┐
 │  Input Layer (API Requests)                            │
@@ -252,7 +252,7 @@ Data Flow: Enhanced XORB Platform
 │  ├─ Metrics Storage ←── Real-time Collection          │
 │  └─ Results Cache ←─── Analysis Results               │
 └─────────────────────────────────────────────────────────┘
-```text
+```
 
 - --
 

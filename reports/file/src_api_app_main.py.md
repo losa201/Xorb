@@ -24,7 +24,7 @@ async def root():
         "environment": settings.environment,    # Environment disclosure
         "features": config_manager.get_feature_flags()  # Feature flags disclosure
     }
-```text
+```
 - **Risk**: Attackers can enumerate application version, environment details, and enabled features for targeted attacks.
 
 ####  2. Insecure CORS Configuration (Line 214-233)
@@ -35,7 +35,7 @@ async def root():
 if settings.environment == "production" and origin == "*":
     logger.warning("Wildcard CORS origin not allowed in production")
     continue
-```text
+```
 - **Risk**: Insufficient CORS validation may allow unauthorized cross-origin requests.
 
 ####  3. Trusted Host Configuration Weakness (Line 238-252)
@@ -45,7 +45,7 @@ if settings.environment == "production" and origin == "*":
 # Hardcoded fallback hosts
 if not allowed_hosts:
     allowed_hosts = ["api.xorb.enterprise"]  # Default production host
-```text
+```
 - **Risk**: Fallback to hardcoded hosts may not match actual deployment configuration.
 
 ###  HIGH Issues
@@ -61,7 +61,7 @@ if not allowed_hosts:
 ```python
 except ImportError as e:
     logger.warning("Enterprise Management not available", error=str(e))
-```text
+```
 - **Risk**: Error messages may leak internal structure information.
 
 ###  MEDIUM Issues
@@ -71,7 +71,7 @@ except ImportError as e:
 - **CWE**: CWE-94 (Code Injection)
 ```python
 module = __import__(f"app.routers.{router_name}", fromlist=["router"])
-```text
+```
 - **Risk**: Dynamic imports based on configuration could be exploited if router_name is externally controlled.
 
 ##  Architecture Assessment
@@ -122,7 +122,7 @@ async def root():
         "health": f"{settings.api_prefix}/health"
         # Remove: version, environment, features
     }
-```text
+```
 
 ####  Fix 2: Add CSRF Protection
 ```python
@@ -135,7 +135,7 @@ app.add_middleware(
     cookie_name="xorb_csrf_token",
     header_name="X-CSRF-Token"
 )
-```text
+```
 
 ####  Fix 3: Enhanced Error Handling
 ```python
@@ -143,7 +143,7 @@ app.add_middleware(
 except ImportError:
     logger.info("Optional enterprise features not available")
     # Remove detailed error information
-```text
+```
 
 ##  Testing Requirements
 1. **Security Tests**: CSRF protection, information disclosure

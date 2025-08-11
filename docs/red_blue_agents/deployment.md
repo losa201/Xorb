@@ -32,7 +32,7 @@ df -h
 
 # Validate network connectivity
 ping -c 3 google.com
-```text
+```
 
 ###  Environment Setup
 
@@ -81,7 +81,7 @@ curl http://localhost:8000/red-blue-agents/health
 
 # View logs
 docker-compose -f docker-compose.red-blue-agents.yml logs -f agent-scheduler
-```text
+```
 
 ####  Production Deployment
 
@@ -100,7 +100,7 @@ docker-compose -f docker-compose.red-blue-agents.yml --profile monitoring up -d
 
 # Verify deployment
 scripts/health-check.sh
-```text
+```
 
 ##  🏗️ Architecture Deployment
 
@@ -154,7 +154,7 @@ graph TB
     SO --> PR
     TC --> PR
     PR --> GR
-```text
+```
 
 ###  Service Dependencies
 
@@ -178,7 +178,7 @@ graph TB
    - Prometheus
    - Grafana
    - Jaeger (optional)
-```text
+```
 
 ##  🔧 Configuration Management
 
@@ -207,7 +207,7 @@ DEFAULT_SANDBOX_TTL=7200
 # Learning settings
 ML_ENABLED=true
 ANALYTICS_ENABLED=true
-```text
+```
 
 ####  Staging Environment
 
@@ -233,7 +233,7 @@ DEFAULT_SANDBOX_TTL=3600
 ML_ENABLED=true
 ANALYTICS_ENABLED=true
 PROMETHEUS_ENABLED=true
-```text
+```
 
 ####  Production Environment
 
@@ -260,7 +260,7 @@ ML_ENABLED=true
 ANALYTICS_ENABLED=true
 PROMETHEUS_ENABLED=true
 AUDIT_LOG_ENABLED=true
-```text
+```
 
 ###  Secret Management
 
@@ -284,7 +284,7 @@ vault kv put secret/xorb-agents/app \
 vault kv put secret/xorb-agents/external \
   virustotal_api_key="${VIRUSTOTAL_API_KEY}" \
   shodan_api_key="${SHODAN_API_KEY}"
-```text
+```
 
 ####  Kubernetes Secrets
 
@@ -301,7 +301,7 @@ data:
   encryption-key: <base64-encoded-key>
   database-password: <base64-encoded-password>
   redis-password: <base64-encoded-password>
-```text
+```
 
 ##  ☸️ Kubernetes Deployment
 
@@ -316,7 +316,7 @@ kubectl apply -f k8s/rbac.yaml
 
 # Apply network policies
 kubectl apply -f k8s/network-policies.yaml
-```text
+```
 
 ###  Helm Chart Deployment
 
@@ -334,7 +334,7 @@ helm install xorb-agents xorb/red-blue-agents \
 # Verify deployment
 kubectl get pods -n xorb-agents
 kubectl get services -n xorb-agents
-```text
+```
 
 ###  Custom Kubernetes Manifests
 
@@ -438,7 +438,7 @@ spec:
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-```text
+```
 
 ###  Service Mesh Integration (Istio)
 
@@ -471,7 +471,7 @@ spec:
     retries:
       attempts: 3
       perTryTimeout: 30s
-```text
+```
 
 ##  🌐 Cloud Platform Deployment
 
@@ -502,7 +502,7 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 helm install xorb-agents xorb/red-blue-agents \
   --namespace xorb-agents \
   --values values.aws.yaml
-```text
+```
 
 ####  RDS Database Setup
 
@@ -523,7 +523,7 @@ aws rds create-db-instance \
   --backup-retention-period 7 \
   --multi-az \
   --deletion-protection
-```text
+```
 
 ####  ElastiCache Redis Setup
 
@@ -541,7 +541,7 @@ aws elasticache create-replication-group \
   --security-group-ids sg-yyyyyyyy \
   --at-rest-encryption-enabled \
   --transit-encryption-enabled
-```text
+```
 
 ###  Azure Deployment
 
@@ -567,7 +567,7 @@ az aks create \
 az aks get-credentials \
   --resource-group xorb-agents-rg \
   --name xorb-agents-cluster
-```text
+```
 
 ####  Azure Database for PostgreSQL
 
@@ -583,7 +583,7 @@ az postgres flexible-server create \
   --tier GeneralPurpose \
   --storage-size 128 \
   --version 14
-```text
+```
 
 ###  Google Cloud Platform Deployment
 
@@ -604,7 +604,7 @@ gcloud container clusters create xorb-agents-cluster \
 # Get credentials
 gcloud container clusters get-credentials xorb-agents-cluster \
   --zone us-central1-a
-```text
+```
 
 ####  Cloud SQL PostgreSQL
 
@@ -620,7 +620,7 @@ gcloud sql instances create xorb-agents-db \
   --backup-start-time 02:00 \
   --maintenance-window-day SAT \
   --maintenance-window-hour 06
-```text
+```
 
 ##  🔍 Health Checks and Monitoring
 
@@ -681,7 +681,7 @@ fi
 
 echo ""
 echo "🎉 All services are healthy!"
-```text
+```
 
 ###  Prometheus Monitoring
 
@@ -721,7 +721,7 @@ alerting:
     - static_configs:
         - targets:
           - alertmanager:9093
-```text
+```
 
 ###  Alert Rules
 
@@ -765,7 +765,7 @@ groups:
         annotations:
           summary: "Sandbox resources exhausted"
           description: "Sandbox resource utilization is above 90%"
-```text
+```
 
 ##  🔒 Security Hardening
 
@@ -794,7 +794,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
     CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```text
+```
 
 ###  Network Security
 
@@ -830,7 +830,7 @@ spec:
       port: 5432  # PostgreSQL
     - protocol: TCP
       port: 6379  # Redis
-```text
+```
 
 ###  Secret Rotation
 
@@ -864,7 +864,7 @@ kubectl patch deployment agent-scheduler \
 kubectl rollout status deployment/agent-scheduler --namespace=xorb-agents
 
 echo "✅ Secret rotation complete"
-```text
+```
 
 ##  📈 Scaling and Performance
 
@@ -910,7 +910,7 @@ spec:
       - type: Percent
         value: 10
         periodSeconds: 60
-```text
+```
 
 ###  Database Performance Tuning
 
@@ -946,7 +946,7 @@ log_temp_files = 0
 autovacuum = on
 autovacuum_max_workers = 3
 autovacuum_naptime = 1min
-```text
+```
 
 ###  Redis Performance Tuning
 
@@ -975,7 +975,7 @@ lazyfree-lazy-eviction yes
 lazyfree-lazy-expire yes
 lazyfree-lazy-server-del yes
 replica-lazy-flush yes
-```text
+```
 
 ##  🔄 Backup and Recovery
 
@@ -1015,7 +1015,7 @@ echo "✅ Backup complete"
 
 # Cleanup old backups (keep 30 days)
 find /backups -type d -mtime +30 -exec rm -rf {} \;
-```text
+```
 
 ###  Disaster Recovery
 
@@ -1057,7 +1057,7 @@ tar -xzf "$BACKUP_DIR/models.tar.gz"
 docker-compose up -d
 
 echo "✅ Restore complete"
-```text
+```
 
 ##  🧪 Testing Deployment
 
@@ -1101,7 +1101,7 @@ curl -s -X POST http://localhost:8000/red-blue-agents/missions/$MISSION_ID/stop 
   -H "Authorization: Bearer $TEST_TOKEN"
 
 echo "✅ Smoke tests passed"
-```text
+```
 
 ###  Load Testing
 
@@ -1121,7 +1121,7 @@ fi
 k6 run --vus 50 --duration 5m scripts/load-test.js
 
 echo "✅ Load tests complete"
-```text
+```
 
 ```javascript
 // scripts/load-test.js
@@ -1147,7 +1147,7 @@ export default function() {
 
   sleep(1);
 }
-```text
+```
 
 ##  📚 Deployment Troubleshooting
 
@@ -1175,7 +1175,7 @@ async def test():
     await conn.close()
 asyncio.run(test())
 "
-```text
+```
 
 ####  Network Connectivity Issues
 
@@ -1191,7 +1191,7 @@ netstat -tulpn | grep :6379
 
 # Test external connectivity
 docker-compose exec agent-scheduler curl -I https://google.com
-```text
+```
 
 ####  Performance Issues
 
@@ -1208,7 +1208,7 @@ LIMIT 10;"
 
 # Monitor Redis performance
 docker-compose exec redis redis-cli info stats
-```text
+```
 
 ###  Debug Mode Deployment
 
@@ -1225,7 +1225,7 @@ docker-compose exec agent-scheduler bash
 
 # Check application logs in detail
 tail -f logs/agent-scheduler.log
-```text
+```
 
 ##  🎯 Production Checklist
 

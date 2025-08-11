@@ -15,7 +15,7 @@ This document outlines the comprehensive restructuring of the XORB platform acco
 ##  🎯 **Target Architecture**
 
 ###  **Clean Architecture Structure**
-```text
+```
 xorb-platform/
 ├── 📁 domain/                    # Domain Layer (Business Logic)
 │   ├── entities/                 # Core business entities
@@ -49,10 +49,10 @@ xorb-platform/
     ├── environments/            # Environment-specific configs
     ├── policies/                # Security and business policies
     └── schemas/                 # Configuration schemas
-```text
+```
 
 ###  **Microservices Organization**
-```text
+```
 services/
 ├── 📁 identity-service/         # Authentication & Authorization
 ├── 📁 threat-intelligence/      # Threat analysis and correlation
@@ -63,7 +63,7 @@ services/
 ├── 📁 reporting-service/        # Analytics and reporting
 ├── 📁 orchestration-service/    # Workflow orchestration
 └── 📁 gateway-service/          # API Gateway
-```text
+```
 
 - --
 

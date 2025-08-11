@@ -28,7 +28,7 @@ As the Principal Auditor and Engineer, I have successfully **transformed the XOR
 
 ###  Enhanced Platform Architecture (v4.0)
 
-```text
+```
 XORB Advanced Platform Architecture
 ├── 🧠 Advanced AI Intelligence Layer
 │   ├── Enhanced Threat Prediction Engine
@@ -112,7 +112,7 @@ XORB Advanced Platform Architecture
     ├── Real-World Threat Intelligence
     ├── Enterprise Multi-Tenant Architecture
     └── Comprehensive API Gateway
-```text
+```
 
 - --
 
@@ -159,7 +159,7 @@ async def _run_ensemble_prediction(self, feature_vector: np.ndarray,
     ensemble_prediction = self._combine_ensemble_predictions(predictions, model_weights)
 
     return ensemble_prediction
-```text
+```
 
 - **Performance Metrics**:
 - **Threat Detection Accuracy**: 95%+ with ensemble methods
@@ -209,7 +209,7 @@ class AutoEncoder(nn.Module):
 
         self.encoder = nn.Sequential(*encoder_layers)
         self.decoder = nn.Sequential(*decoder_layers)
-```text
+```
 
 - **Performance Metrics**:
 - **Anomaly Detection Accuracy**: 90%+ with multi-algorithm ensemble
@@ -264,7 +264,7 @@ async def implement_hybrid_cryptography(
             'hybrid_ciphertext': classical_result,
             'security_level': 'hybrid_quantum_classical'
         }
-```text
+```
 
 - **Security Advantages**:
 - **Future-Proof Protection**: Defense against quantum computing threats
@@ -315,7 +315,7 @@ async def create_orchestration_plan(
     )
 
     return orchestration_plan
-```text
+```
 
 - **Operational Excellence**:
 - **Task Success Rate**: 85%+ autonomous task completion
@@ -359,7 +359,7 @@ class PerformanceProfiler:
             }
         }
         return results
-```text
+```
 
 - **Performance Impact**:
 - **System Health Monitoring**: Real-time health score calculation

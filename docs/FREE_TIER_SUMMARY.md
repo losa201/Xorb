@@ -33,7 +33,7 @@ LLM_FREE_TIER=true
 LLM_DAILY_REQUEST_LIMIT=100
 LLM_MONTHLY_REQUEST_LIMIT=2000
 LLM_HOURLY_REQUEST_LIMIT=20
-```text
+```
 
 ##  💡 Strategic Intelligence Capabilities
 
@@ -41,25 +41,25 @@ LLM_HOURLY_REQUEST_LIMIT=20
 ```bash
 POST /campaigns/{id}/ai-analysis
 # Uses free NVIDIA models for vulnerability assessment
-```text
+```
 
 ###  2. **Strategic Payload Generation**
 ```bash
 POST /payloads/generate
 # AI-powered payload creation using free models
-```text
+```
 
 ###  3. **Intelligence Fusion**
 ```bash
 POST /intelligence/fusion
 # Multi-source intelligence correlation
-```text
+```
 
 ###  4. **Threat Assessment**
 ```bash
 GET /intelligence/statistics
 # Real-time free tier usage monitoring
-```text
+```
 
 ##  📊 Monitoring Dashboard
 
@@ -75,7 +75,7 @@ GET /intelligence/statistics
     "status": "healthy"
   }
 }
-```text
+```
 
 ##  🎮 Deployment Commands
 
@@ -92,7 +92,7 @@ curl http://localhost:8001/health
 curl -X POST http://localhost:8001/payloads/generate \
   -H "Content-Type: application/json" \
   -d '{"vulnerabilities": {"type": "test"}}'
-```text
+```
 
 ##  🚀 EPYC Architecture Benefits
 

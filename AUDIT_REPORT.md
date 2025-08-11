@@ -65,7 +65,7 @@ graph TB
     ORCH --> COMMON
     WORKER --> COMMON
     PTAAS --> API
-```text
+```
 
 ###  Module Coupling Analysis
 
@@ -132,7 +132,7 @@ graph TB
 - **File**: `src/api/app/routers/enterprise_auth.py:100`
 ```python
 # TODO: Validate state against stored value
-```text
+```
 - **Evidence**: SSO callback handler contains TODO for CSRF protection
 - **Impact**: Authentication bypass, session hijacking
 - **Fix**: Implement state validation with Redis backend
@@ -145,7 +145,7 @@ process = await asyncio.create_subprocess_exec(
     stdout=asyncio.subprocess.PIPE,
     stderr=asyncio.subprocess.PIPE
 )
-```text
+```
 - **Evidence**: Scanner service uses subprocess without input sanitization
 - **Impact**: Command injection through scan parameters
 - **Fix**: Implement argument validation and sanitization
@@ -154,7 +154,7 @@ process = await asyncio.create_subprocess_exec(
 - **File**: `src/api/app/container.py:46`
 ```python
 'nvidia_api_key': os.getenv('NVIDIA_API_KEY', 'your_nvidia_api_key_here'),
-```text
+```
 - **Evidence**: Default fallback exposes API key pattern
 - **Impact**: Credential exposure in logs/errors
 - **Fix**: Fail gracefully without fallback secrets
@@ -205,7 +205,7 @@ Outdated Critical:
   - cryptography: 42.0.1 (latest: 43.0.1) - Security updates
   - aiohttp: 3.9.1 (latest: 3.9.5) - CVE fixes
   - sqlalchemy: 2.0.23 (latest: 2.0.27) - Performance fixes
-```text
+```
 
 - *Frontend Dependencies:**
 ```yaml
@@ -217,7 +217,7 @@ Potential Vulnerabilities:
   - 127 packages requiring updates
   - 23 high-severity security advisories
   - 8 critical vulnerabilities in transitive deps
-```text
+```
 
 ###  Supply Chain Security
 - **No software bill of materials (SBOM) generation**
@@ -236,7 +236,7 @@ Potential Vulnerabilities:
 ```python
 badges = self.db.query(Badge).filter(Badge.active == True).all()
 # Used in loop without eager loading
-```text
+```
 - **Impact**: Database performance degradation with scale
 - **Fix**: Implement eager loading and query optimization
 
@@ -286,7 +286,7 @@ Coverage by Module:
   src/api/app/services/: ~45% (17 services, 8 tested)
   src/api/app/middleware/: ~70% (10 middleware, 7 tested)
   src/api/app/infrastructure/: ~30% (11 components, 3 tested)
-```text
+```
 
 ###  Critical Test Gaps
 
@@ -351,7 +351,7 @@ Security Monitoring: 60%
   - Rate limiting violations
   - Suspicious activity detection
   - Compliance audit trail
-```text
+```
 
 ###  Operational Maturity Assessment
 
@@ -388,7 +388,7 @@ Business Metrics:
   - Scan Success Rate: > 95%
   - Report Generation Time: < 5 minutes
   - Platform Uptime: > 99.9%
-```text
+```
 
 - --
 
@@ -418,7 +418,7 @@ Quality Metrics:
   Accuracy: 90% (Generally accurate)
   Completeness: 85% (Some gaps in advanced topics)
   Usability: 80% (Well-organized but dense)
-```text
+```
 
 ###  Developer Experience Evaluation
 

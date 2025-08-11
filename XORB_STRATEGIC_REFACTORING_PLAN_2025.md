@@ -29,7 +29,7 @@
 ##  🏗️ Strategic Refactoring Architecture
 
 ###  Phase 1: Documentation Consolidation (DRY-RUN READY)
-```text
+```
 Current Structure (BLOATED):
 ├── PRINCIPAL_AUDITOR_*.md (47 files)
 ├── STRATEGIC_*.md (27 files)
@@ -44,10 +44,10 @@ Target Structure (CLEAN):
 │   └── legacy/          # Archived historical docs
 ├── README.md            # Single authoritative overview
 └── CLAUDE.md           # Development guidance (preserved)
-```text
+```
 
 ###  Phase 2: Artifact and Demo Cleanup
-```text
+```
 Current Structure (CLUTTERED):
 ├── demonstrate_*.py (16 files)
 ├── *_report_*.json (100+ files)
@@ -61,10 +61,10 @@ Target Structure (ORGANIZED):
 ├── archive/
 │   └── temp_artifacts/  # Temporary files archived
 └── Clean root directory
-```text
+```
 
 ###  Phase 3: Configuration Standardization
-```text
+```
 Current Structure (FRAGMENTED):
 ├── docker-compose.*.yml (19 files)
 ├── infra/docker-compose.*.yml
@@ -78,7 +78,7 @@ Target Structure (STANDARDIZED):
 │   │   └── enterprise.yml
 │   └── config/          # Unified configuration
 └── docker-compose.yml   # Default development
-```text
+```
 
 ##  🛡️ Safety Protocols
 
@@ -106,7 +106,7 @@ mkdir -p docs/{architecture,implementation,operations,legacy}
 # PRINCIPAL_AUDITOR_*.md → docs/architecture/
 # STRATEGIC_*.md → docs/operations/
 # Legacy docs → docs/legacy/
-```text
+```
 
 - **Estimated Impact**: 80-90% reduction in root-level documentation files
 
@@ -117,7 +117,7 @@ mkdir -p demo/{scripts,reports,archive}
 mv demonstrate_*.py demo/scripts/
 mv *_report_*.json demo/reports/
 mv strategic_*.json demo/archive/
-```text
+```
 
 - **Estimated Impact**: 70% reduction in root-level clutter
 
@@ -127,7 +127,7 @@ mv strategic_*.json demo/archive/
 mkdir -p infra/compose
 # Consolidate and standardize compose files
 # Maintain backward compatibility via symlinks
-```text
+```
 
 - **Estimated Impact**: 50% reduction in configuration complexity
 
@@ -188,7 +188,7 @@ git checkout -b refactor/platform-hygiene-2025
 
 # Backup current state
 git tag -a backup-pre-refactor-$(date +%Y%m%d) -m "Backup before refactoring"
-```text
+```
 
 ###  DRY-RUN Validation
 ```bash
@@ -201,7 +201,7 @@ echo "Would move these files to docs/ structure"
 echo "Testing artifact cleanup..."
 find . -name "demonstrate_*.py" -o -name "*_report_*.json" | wc -l
 echo "Would organize these artifacts"
-```text
+```
 
 ##  🎖️ Quality Assurance
 

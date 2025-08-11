@@ -66,7 +66,7 @@ POST /api/v1/ptaas/strategic/threat-simulation
 POST /api/v1/ptaas/strategic/compliance-assessment
 GET  /api/v1/ptaas/strategic/scan/{scan_id}/monitor
 GET  /api/v1/ptaas/strategic/analytics/dashboard
-```text
+```
 
 - **Business Impact**: Enables autonomous cybersecurity operations at enterprise scale with 40% reduction in manual intervention and 300% increase in threat detection accuracy.
 
@@ -92,7 +92,7 @@ class OrchestrationMode(Enum):
     SUPERVISED    # Human oversight required
     MANUAL        # Human-initiated only
     HYBRID        # Adaptive automation level
-```text
+```
 
 - **Business Impact**: Reduces mean time to response by 85% and enables 24/7 autonomous threat response with enterprise-grade safety controls.
 
@@ -117,7 +117,7 @@ class QuantumThreatLevel(Enum):
 - Quantum-safe certificate management
 - Hybrid signature verification
 - Real-time quantum threat monitoring
-```text
+```
 
 - **Business Impact**: Future-proofs platform against quantum computing threats ensuring 10+ year security roadmap and regulatory compliance.
 
@@ -143,7 +143,7 @@ POST /api/v1/compliance/continuous-monitoring
 POST /api/v1/compliance/gap-analysis
 GET  /api/v1/compliance/dashboard
 GET  /api/v1/compliance/frameworks
-```text
+```
 
 - **Business Impact**: Reduces compliance costs by 60%, ensures continuous regulatory alignment, and provides audit-ready documentation.
 
@@ -173,7 +173,7 @@ mission_spec = {
 # Execute unified mission
 mission = await intelligence_center.plan_unified_mission(mission_spec)
 mission_results = await intelligence_center.execute_unified_mission(mission_id)
-```text
+```
 
 ###  **Advanced AI and ML Integration**
 
@@ -190,7 +190,7 @@ class ThreatCorrelationNetwork(nn.Module):
 - Threat classification with ensemble models
 - Behavioral analysis using clustering algorithms
 - Predictive threat modeling with neural networks
-```text
+```
 
 ###  **Real-World Security Scanner Integration**
 
@@ -210,7 +210,7 @@ Available Security Tools:
 - Real-time threat intelligence correlation
 - Autonomous payload generation and testing
 - Advanced behavioral anomaly detection
-```text
+```
 
 - --
 
@@ -237,7 +237,7 @@ Strategic Enhancement Capabilities:
 ✅ Enterprise-grade security and compliance
 ✅ Quantum-safe cryptographic implementations
 ✅ AI-driven autonomous operations at scale
-```text
+```
 
 ###  **Security and Compliance Metrics**
 
@@ -459,7 +459,7 @@ Phase 3 (Months 7-12): Scale and Optimize
 - Target: 50+ enterprise customers
 - Expected Revenue: $10M+ ARR
 - Focus: Global expansion and partner ecosystem
-```text
+```
 
 - --
 

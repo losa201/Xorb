@@ -81,7 +81,7 @@ graph TB
     ORCH --> REDIS
     API --> PG
     API --> REDIS
-```text
+```
 
 ###  Service Responsibilities
 
@@ -317,7 +317,7 @@ graph TB
     SCAN --> REDIS
     INTEL --> PG
     REPORT --> PG
-```text
+```
 
 ###  4.2 Authentication & Authorization
 
@@ -353,7 +353,7 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 - - Create policy
 CREATE POLICY tenant_isolation ON users
     USING (tenant_id = current_setting('app.current_tenant')::UUID);
-```text
+```
 
 ###  4.4 Data Architecture
 
@@ -394,7 +394,7 @@ dead_letter: enabled
 # Deduplication
 key: sha256(tenant_id + target + scan_type)
 window: 5 minutes
-```text
+```
 
 ###  4.6 Observability Stack
 
@@ -416,7 +416,7 @@ api_latency_p95:
 scan_success_rate:
   target: 95%
   window: 1h
-```text
+```
 
 - *Burn Rate Alerts:**
 - Fast burn: 2% budget in 1 hour
@@ -432,7 +432,7 @@ scan_success_rate:
 3. Antivirus scanning (ClamAV)
 4. Sandbox execution
 5. Size limits per tenant plan
-```text
+```
 
 - *WAF Configuration:**
 - **OWASP Top 10** protection
@@ -454,12 +454,12 @@ jwt_signing:
 external_apis:
   engine: kv
   path: secret/external/
-```text
+```
 
 ###  4.8 Infrastructure Blueprint
 
 - *Terraform Module Structure:**
-```text
+```
 infrastructure/
 ├── modules/
 │   ├── vpc/
@@ -475,7 +475,7 @@ infrastructure/
 └── policies/
     ├── security/
     └── compliance/
-```text
+```
 
 - *Kubernetes Baseline:**
 ```yaml
@@ -492,7 +492,7 @@ PodSecurityPolicy: deprecated, use PSS
 # Monitoring
 ServiceMonitor: enabled
 PrometheusRule: SLO alerts
-```text
+```
 
 - *GitOps Integration:**
 - **Tool**: ArgoCD for production, Flux for dev

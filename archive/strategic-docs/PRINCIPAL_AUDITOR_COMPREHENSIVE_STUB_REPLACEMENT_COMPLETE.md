@@ -34,7 +34,7 @@ As Principal Auditor and Engineer, I have conducted a comprehensive analysis and
 # For now, return mock data for demo purposes
 if username == "admin":
     return {"mock": "data"}
-```text
+```
 
 - *AFTER:**
 ```python
@@ -70,14 +70,14 @@ async def _get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]
     except Exception as e:
         self.logger.error(f"Failed to retrieve user {username}: {e}")
         return None
-```text
+```
 
 ####  **Production Authentication Service** (`src/api/app/services/production_authentication_service.py`)
 - *BEFORE:**
 ```python
 # TODO: Load from configuration file or database
 self.security_policies = {"basic": "config"}
-```text
+```
 
 - *AFTER:**
 ```python
@@ -113,13 +113,13 @@ async def _load_security_policies(self) -> None:
                 "retention_days": int(os.getenv("AUDIT_RETENTION_DAYS", "365"))
             }
         }
-```text
+```
 
 - *BEFORE:**
 ```python
 # TODO: Initialize audit log destination (file, database, SIEM)
 self.audit_enabled = True
-```text
+```
 
 - *AFTER:**
 ```python
@@ -166,7 +166,7 @@ async def _setup_audit_logging(self) -> None:
     except Exception as e:
         logger.error(f"Failed to setup audit logging: {e}")
         self.audit_enabled = False
-```text
+```
 
 ###  **2. Infrastructure & Database Enhancements**
 
@@ -174,7 +174,7 @@ async def _setup_audit_logging(self) -> None:
 - *BEFORE:**
 ```python
 # TODO: Add alembic migration logic when package is available
-```text
+```
 
 - *AFTER:**
 ```python
@@ -200,7 +200,7 @@ if ALEMBIC_AVAILABLE:
         logger.warning(f"Migrations directory not found at {migrations_dir}, using basic schema")
 else:
     logger.info("Alembic not available - using basic table creation")
-```text
+```
 
 ####  **Redis Compatibility Layer** (`src/api/app/infrastructure/redis_compatibility.py`)
 - *BEFORE:**
@@ -208,7 +208,7 @@ else:
 # TODO: Implement TTL for memory store
 self._memory_store[key] = value
 return True
-```text
+```
 
 - *AFTER:**
 ```python
@@ -243,7 +243,7 @@ async def _cleanup_expired_memory_keys(self):
 
     except Exception as e:
         logger.error(f"Memory store cleanup failed: {e}")
-```text
+```
 
 ###  **3. Enterprise Security Platform**
 
@@ -269,13 +269,13 @@ class EnterpriseSecurityPlatform:
         # Environment-aware security policies
         # JWT token validation
         # Role-based access control
-```text
+```
 
 ####  **Enterprise Auth Router** (`services/xorb-core/api/app/routers/enterprise_auth.py`)
 - *BEFORE:**
 ```python
 # TODO: Add admin role check
-```text
+```
 
 - *AFTER:**
 ```python
@@ -293,7 +293,7 @@ if not await check_admin_permissions(current_tenant, "sso_configuration"):
         status_code=status.HTTP_403_FORBIDDEN,
         detail="Administrator privileges required for SSO configuration"
     )
-```text
+```
 
 ###  **4. AI/ML Enhancements**
 
@@ -303,7 +303,7 @@ if not await check_admin_permissions(current_tenant, "sso_configuration"):
 class TensorFlowStub:
     pass
 tf = TensorFlowStub()
-```text
+```
 
 - *AFTER:**
 ```python
@@ -340,13 +340,13 @@ class TensorFlowStub:
     class NNStub:
         def relu(self, x):
             return max(0, x) if isinstance(x, (int, float)) else x
-```text
+```
 
 ####  **PTaaS Orchestrator** (`src/api/app/services/ptaas_orchestrator_service.py`)
 - *BEFORE:**
 ```python
 # import cron_descriptor  # TODO: Install cron-descriptor package if needed
-```text
+```
 
 - *AFTER:**
 ```python
@@ -356,7 +356,7 @@ try:
     CRON_AVAILABLE = True
 except ImportError:
     CRON_AVAILABLE = False
-```text
+```
 
 - --
 
@@ -469,7 +469,7 @@ except ImportError:
 ✅ Enterprise security platform available
 ✅ Redis client initialized
 ✅ All stub replacements and enhancements validated successfully
-```text
+```
 
 ###  **Import Testing**
 - ✅ All critical services import without errors

@@ -29,7 +29,7 @@ A production-ready implementation of end-to-end TLS/mTLS security for the XORB P
 
 ## 🏗️ Architecture Overview
 
-```text
+```
 ┌─────────────────┐    HTTPS/TLS 1.3    ┌─────────────────┐
 │   External      │◄──────────────────►│   Envoy Proxy   │
 │   Clients       │   HSTS + Security   │   (mTLS Term)   │
@@ -49,7 +49,7 @@ A production-ready implementation of end-to-end TLS/mTLS security for the XORB P
 │  │(TLS-only)   │    │ (TLS+SSL)   │    │ Docker(TLS) │     │
 │  └─────────────┘    └─────────────┘    └─────────────┘     │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ## ✨ Key Features
 
@@ -86,7 +86,7 @@ A production-ready implementation of end-to-end TLS/mTLS security for the XORB P
 ```bash
 # Create CA infrastructure and generate certificates
 ./scripts/ca/make-ca.sh
-```text
+```
 
 ### 2. Generate Service Certificates
 
@@ -102,7 +102,7 @@ clients=(redis-client postgres-client temporal-client dind-client)
 for client in "${clients[@]}"; do
     ./scripts/ca/issue-cert.sh "$client" client
 done
-```text
+```
 
 ### 3. Deploy with TLS/mTLS
 
@@ -112,7 +112,7 @@ docker-compose -f infra/docker-compose.tls.yml up -d
 
 # Verify deployment
 docker-compose -f infra/docker-compose.tls.yml ps
-```text
+```
 
 ### 4. Validate Security
 
@@ -128,50 +128,50 @@ docker-compose -f infra/docker-compose.tls.yml ps
 
 # Test Docker-in-Docker TLS
 ./scripts/validate/test_dind_tls.sh
-```text
+```
 
 ## 📋 Implementation Components
 
 ### Certificate Authority Infrastructure
-```text
+```
 scripts/ca/
 ├── make-ca.sh              # Root and Intermediate CA setup
 ├── issue-cert.sh           # Service certificate generation
 └── docker/ca/Dockerfile    # CA container for runtime operations
-```text
+```
 
 ### Docker Compose Configuration
-```text
+```
 infra/
 ├── docker-compose.tls.yml  # Complete TLS/mTLS stack
 ├── redis/redis-tls.conf    # Redis TLS-only configuration
 └── postgres/init-tls.sql   # PostgreSQL SSL setup
-```text
+```
 
 ### Envoy Proxy Configuration
-```text
+```
 envoy/
 ├── api.envoy.yaml         # API service mTLS termination
 └── agent.envoy.yaml       # Agent service mTLS termination
-```text
+```
 
 ### Validation and Testing
-```text
+```
 scripts/validate/
 ├── test_tls.sh           # TLS protocol and cipher validation
 ├── test_mtls.sh          # Mutual TLS authentication testing
 ├── test_redis_tls.sh     # Redis TLS-specific validation
 └── test_dind_tls.sh      # Docker-in-Docker TLS testing
-```text
+```
 
 ### Kubernetes Integration
-```text
+```
 k8s/mtls/
 ├── namespace.yaml           # Secure namespace setup
 ├── cluster-issuer.yaml      # cert-manager CA configuration
 ├── service-certificates.yaml # Auto-generated certificates
 └── istio-mtls-policy.yaml   # Istio strict mTLS policies
-```text
+```
 
 ## 🔧 Configuration Examples
 
@@ -188,7 +188,7 @@ api:
     API_TLS_CA: "/run/tls/ca/ca.pem"
   depends_on:
     - envoy-api
-```text
+```
 
 ### Envoy mTLS Configuration
 ```yaml
@@ -205,7 +205,7 @@ transport_socket:
     tls_params:
       tls_minimum_protocol_version: TLSv1_2
       tls_maximum_protocol_version: TLSv1_3
-```text
+```
 
 ### Redis TLS Configuration
 ```conf
@@ -221,7 +221,7 @@ tls-ca-cert-file /run/tls/ca/ca.pem
 # Require client certificates
 tls-auth-clients yes
 tls-protocols "TLSv1.2 TLSv1.3"
-```text
+```
 
 ## 🔄 Certificate Management
 
@@ -238,7 +238,7 @@ tls-protocols "TLSv1.2 TLSv1.3"
 
 # Preview rotation actions (dry run)
 ./scripts/rotate-certs.sh --dry-run
-```text
+```
 
 ### Certificate Monitoring
 - **Expiry Alerts**: 7-day warning threshold
@@ -255,7 +255,7 @@ openssl s_client -connect api:8443 -tls1_3 -CAfile secrets/tls/ca/ca.pem
 
 # Test weak protocol rejection
 openssl s_client -connect api:8443 -tls1_1  # Should fail
-```text
+```
 
 ### mTLS Authentication Testing
 ```bash
@@ -268,14 +268,14 @@ curl --cacert secrets/tls/ca/ca.pem \
 # No client certificate (should fail)
 curl --cacert secrets/tls/ca/ca.pem \
      https://envoy-api:8443/api/v1/health
-```text
+```
 
 ### Security Policy Validation
 ```bash
 # Test configurations against security policies
 conftest test --policy policies/tls-security.rego infra/docker-compose.tls.yml
 conftest test --policy policies/tls-security.rego envoy/*.yaml
-```text
+```
 
 ## 📊 Monitoring and Reporting
 
@@ -293,7 +293,7 @@ conftest test --policy policies/tls-security.rego envoy/*.yaml
 # View HTML reports
 open reports/tls/tls_summary.html
 open reports/mtls/mtls_summary.html
-```text
+```
 
 ### Alerting Integration
 - Slack notifications for certificate expiry
@@ -312,7 +312,7 @@ kubectl apply -f k8s/mtls/service-certificates.yaml
 
 # Verify certificate issuance
 kubectl get certificates -n xorb-platform
-```text
+```
 
 ### Istio Service Mesh
 ```bash
@@ -321,7 +321,7 @@ kubectl apply -f k8s/mtls/istio-mtls-policy.yaml
 
 # Verify mTLS status
 istioctl authn tls-check xorb-api.xorb-platform.svc.cluster.local
-```text
+```
 
 ## 🛡️ Security Policies
 
@@ -342,7 +342,7 @@ The implementation includes comprehensive security policies that enforce:
     conftest test --policy policies/tls-security.rego \
                   --output table \
                   infra/docker-compose.tls.yml
-```text
+```
 
 ## 🚨 Security Operations
 
@@ -357,7 +357,7 @@ The implementation includes comprehensive security policies that enforce:
 # Immediate certificate revocation and replacement
 ./scripts/emergency-cert-rotation.sh --service compromised-service
 ./scripts/validate/test_mtls.sh --service compromised-service
-```text
+```
 
 ## 📚 Documentation
 
@@ -411,8 +411,8 @@ Security contributions are welcome! Please:
 - **Documentation**: See [docs/](docs/) directory
 - **Emergency**: Follow incident response procedures
 
-- --
+---
 
-- **⚠️ Security Notice**: This implementation contains cryptographic software and security controls. Ensure compliance with local regulations and organizational security policies before deployment.
+**⚠️ Security Notice**: This implementation contains cryptographic software and security controls. Ensure compliance with local regulations and organizational security policies before deployment.
 
-- **🔐 Enterprise Ready**: This TLS/mTLS implementation is production-tested and suitable for enterprise deployment with proper operational procedures.
+**🔐 Enterprise Ready**: This TLS/mTLS implementation is production-tested and suitable for enterprise deployment with proper operational procedures.

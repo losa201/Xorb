@@ -46,7 +46,7 @@ Explain the business problem this system solves and its role in the larger platf
 
 ## 🏗️ Architecture Diagram
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                        System Overview                      │
 ├─────────────────────────────────────────────────────────────┤
@@ -68,7 +68,7 @@ Explain the business problem this system solves and its role in the larger platf
 │  │             │    │ Queue       │    │  Layer      │     │
 │  └─────────────┘    └─────────────┘    └─────────────┘     │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ### Component Descriptions
 
@@ -105,13 +105,13 @@ Explain the business problem this system solves and its role in the larger platf
 - **Cache**: [e.g., Redis 7]
 
 - *API Endpoints:**
-```text
+```
 GET    /api/v1/resources       # List resources
 POST   /api/v1/resources       # Create resource
 GET    /api/v1/resources/{id}  # Get specific resource
 PUT    /api/v1/resources/{id}  # Update resource
 DELETE /api/v1/resources/{id}  # Delete resource
-```text
+```
 
 - *Data Model:**
 ```sql
@@ -123,7 +123,7 @@ CREATE TABLE resources (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
-```text
+```
 
 ### Data Architecture
 
@@ -227,7 +227,7 @@ CREATE TABLE resources (
 - Database query performance
 - Cache hit rates
 - Resource utilization
-```text
+```
 
 ## 🔄 Deployment Architecture
 
@@ -276,7 +276,7 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
-```text
+```
 
 ## 🧪 Testing Strategy
 

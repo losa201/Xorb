@@ -75,22 +75,22 @@
 ##  🚀 OPERATIONAL READINESS
 
 ###  Infrastructure Services Deployed ✅
-```text
+```
 ✅ CA Service: Running and healthy
 ✅ Redis TLS: Deployed with TLS-only configuration
 ✅ Certificate Generation: 10 services fully certified
 ✅ Validation Scripts: Comprehensive test suite available
 ✅ Security Policies: OPA enforcement rules active
-```text
+```
 
 ###  Certificate Lifecycle Management ✅
-```text
+```
 ✅ Automated Generation: Enhanced scripts operational
 ✅ Chain Validation: All certificates verified
 ✅ Rotation Capability: Automated renewal scripts ready
 ✅ Monitoring Integration: Expiry tracking configured
 ✅ Backup Procedures: Certificate preservation implemented
-```text
+```
 
 ###  Deployment Commands Ready ✅
 ```bash
@@ -107,37 +107,37 @@ openssl verify -CAfile secrets/tls/ca/ca.pem secrets/tls/*/cert.pem
 
 # Certificate Management
 ./scripts/rotate-certs.sh                   # Automated rotation
-```text
+```
 
 ##  📊 VALIDATION RESULTS
 
 ###  Certificate Infrastructure Verification ✅
-```text
+```
 ✅ Root CA Generated: 4096-bit key with 10-year validity
 ✅ Intermediate CA Signed: Proper certificate chain established
 ✅ Service Certificates: All 10 services certified with proper SANs
 ✅ Client Certificates: Dedicated client authentication certificates
 ✅ Certificate Chains: Complete trust chains validated
 ✅ File Permissions: Secure permissions applied (400/444)
-```text
+```
 
 ###  Security Compliance Testing ✅
-```text
+```
 ✅ Certificate Validation: All certificates pass chain verification
 ✅ SAN Configuration: Proper Subject Alternative Names configured
 ✅ Key Usage Extensions: Correct certificate purposes assigned
 ✅ Expiry Management: 30-day validity periods enforced
 ✅ CA Trust Chain: Complete root-to-leaf validation successful
-```text
+```
 
 ###  Production Infrastructure ✅
-```text
+```
 ✅ Docker Compose TLS: Full service orchestration configured
 ✅ Network Security: Dedicated secure network established
 ✅ Service Health: TLS-aware health checks implemented
 ✅ Volume Management: Secure certificate mounting configured
 ✅ Environment Variables: TLS configuration properly set
-```text
+```
 
 ##  🎯 STRATEGIC IMPACT ASSESSMENT
 

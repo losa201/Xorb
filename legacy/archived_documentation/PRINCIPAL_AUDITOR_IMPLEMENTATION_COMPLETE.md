@@ -57,7 +57,7 @@ query_id = await hunter.create_custom_hunting_query(
     query_logic="behavioral_anomaly AND privilege_escalation",
     engine=AnalysisEngine.ML_CLUSTERING
 )
-```text
+```
 
 ###  **2. Quantum-Safe Security Service**
 - **File**: `src/api/app/services/quantum_safe_security_service.py`
@@ -92,7 +92,7 @@ context = await quantum_service.establish_zero_trust_context(
     action="read",
     context_data={"location": "office", "device": "trusted"}
 )
-```text
+```
 
 ###  **3. Enterprise Compliance Automation Service**
 - **File**: `src/api/app/services/enterprise_compliance_automation_service.py`
@@ -126,7 +126,7 @@ report = await compliance_service.generate_compliance_report(
 progress = await compliance_service.track_remediation_progress(
     gap_id="gap_pci_encryption_001"
 )
-```text
+```
 
 - --
 
@@ -165,7 +165,7 @@ progress = await compliance_service.track_remediation_progress(
 ##  🏗️ **Architecture Excellence**
 
 ###  **Enterprise Microservices Architecture**
-```text
+```
 XORB Enterprise Platform/
 ├── 🎯 PTaaS Services (Production-Ready)
 │   ├── Real-World Scanner Integration
@@ -192,7 +192,7 @@ XORB Enterprise Platform/
     ├── Dependency Injection
     ├── Service Registry
     └── Health Monitoring
-```text
+```
 
 ###  **Technology Stack Enhancements**
 - **AI/ML**: scikit-learn, NumPy, pandas with graceful fallbacks
@@ -223,7 +223,7 @@ query_result = await autonomous_hunter.execute_hunting_query(
     query_id="lateral_movement_detection",
     parameters={"sensitivity": "high"}
 )
-```text
+```
 
 ###  **Quantum-Safe Operations**
 ```python
@@ -240,7 +240,7 @@ encrypted = await quantum_service.hybrid_encrypt(
     recipient_key_id=quantum_key_id,
     security_level=SecurityLevel.QUANTUM_RESISTANT
 )
-```text
+```
 
 ###  **Compliance Automation**
 ```python
@@ -256,7 +256,7 @@ dashboard = await compliance_service.generate_compliance_report(
     period_start="2025-01-01",
     period_end="2025-06-30"
 )
-```text
+```
 
 - --
 
@@ -293,7 +293,7 @@ dashboard = await compliance_service.generate_compliance_report(
 ✅ SecurityScannerService: Production-ready scanner integration
 ✅ AdvancedPTaaSOrchestrator: Enterprise orchestration engine
 ✅ EnhancedThreatIntelligenceService: AI-powered threat intelligence
-```text
+```
 
 ###  **Code Quality Assessment**
 - ✅ **Clean Architecture**: Proper separation of concerns and dependency injection
@@ -316,7 +316,7 @@ cd src/api && uvicorn app.main:app --host 0.0.0.0 --port 8000
 curl http://localhost:8000/api/v1/health
 curl http://localhost:8000/api/v1/ptaas/profiles
 curl http://localhost:8000/docs
-```text
+```
 
 ###  **Enterprise Features Available**
 - **🎯 PTaaS API**: Production-ready penetration testing endpoints

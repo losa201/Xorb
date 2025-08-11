@@ -33,13 +33,13 @@ Successfully enhanced the XORB Enterprise Cybersecurity Platform with advanced s
 - **Comprehensive Security Dashboard**: Real-time metrics, alerts, and threat visualization
 
 - *New Endpoints:**
-```text
+```
 GET  /api/v1/security/dashboard          # Security monitoring dashboard
 GET  /api/v1/security/events             # Query security events
 POST /api/v1/security/threat-intelligence # Update threat intel
 GET  /api/v1/security/statistics         # Security statistics and trends
 POST /api/v1/security/analyze-request    # Real-time threat analysis
-```text
+```
 
 ###  **Enhanced PTaaS Platform**
 - **Production Security Tools**: Nmap, Nuclei, Nikto, SSLScan, Gobuster integration
@@ -49,13 +49,13 @@ POST /api/v1/security/analyze-request    # Real-time threat analysis
 - **Comprehensive Vulnerability Assessment**: CVSS scoring, remediation guidance, compliance mapping
 
 - *New Endpoints:**
-```text
+```
 POST /api/v1/enhanced-ptaas/scans              # Create advanced security scans
 GET  /api/v1/enhanced-ptaas/scans/{id}         # Get scan status and results
 GET  /api/v1/enhanced-ptaas/scans/{id}/report  # Generate comprehensive reports
 POST /api/v1/enhanced-ptaas/scans/{id}/actions # Control scan execution
 GET  /api/v1/enhanced-ptaas/tools/available    # List security tools and capabilities
-```text
+```
 
 ##  📊 Platform Status (Before → After)
 
@@ -120,7 +120,7 @@ source venv/bin/activate
 # Start the API server
 cd src/api
 uvicorn app.main:app --reload --port 8000
-```text
+```
 
 ###  **Access New Security Features**
 ```bash
@@ -134,7 +134,7 @@ curl http://localhost:8000/api/v1/enhanced-ptaas/tools/available
 curl -X POST http://localhost:8000/api/v1/enhanced-ptaas/scans \
   -H "Content-Type: application/json" \
   -d '{"name": "Security Assessment", "targets": [{"host": "example.com"}], "scan_type": "comprehensive"}'
-```text
+```
 
 ###  **API Documentation**
 - **Swagger UI**: http://localhost:8000/docs

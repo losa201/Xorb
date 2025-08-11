@@ -118,7 +118,7 @@ quantum_service = QuantumSafeSecurityService(config={
         "threat_assessment": {"enabled": True, "automated": True}
     }
 })
-```text
+```
 
 ###  **Sophisticated Architecture Implementation**
 ```python
@@ -136,7 +136,7 @@ quantum_safe = container.get(QuantumSafeSecurityService)
 # - Performance monitoring
 # - Health checks
 # - Configuration management
-```text
+```
 
 - --
 
@@ -201,7 +201,7 @@ curl http://localhost:8000/api/v1/quantum/crypto-agility/assess-organization
 
 # Monitor enterprise platform health
 curl http://localhost:8000/api/v1/health/enterprise-platform
-```text
+```
 
 ###  **Enterprise Integration**
 - ✅ **Kubernetes Ready**: Helm charts and production deployment configs

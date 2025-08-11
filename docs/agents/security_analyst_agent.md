@@ -22,4 +22,4 @@ Uses heartbeat_gossip protocol with security-enhanced message signing
 ```python
 # Security validation workflow
 security_agent.validate_endpoint("/api/v1/users")
-```text
+```

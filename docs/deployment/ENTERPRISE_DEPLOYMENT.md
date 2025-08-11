@@ -17,7 +17,7 @@ docker-compose -f docker-compose.development.yml up -d
 # - XORB API: http://localhost:8000
 # - Grafana: http://localhost:3010
 # - Prometheus: http://localhost:9092
-```text
+```
 
 ###  Production Cluster
 ```bash
@@ -29,7 +29,7 @@ docker-compose -f docker-compose.production.yml up -d
 # - SSL termination
 # - Database replication
 # - Backup systems
-```text
+```
 
 ##  Service Deployment
 
@@ -45,7 +45,7 @@ vercel deploy --prod
 # Or deploy to static hosting
 aws s3 sync dist/ s3://your-bucket/
 aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
-```text
+```
 
 ###  XORB Core Platform Deployment
 ```bash
@@ -65,7 +65,7 @@ docker run -d \
   --restart unless-stopped \
   -e TEMPORAL_HOST=temporal:7233 \
   xorb/orchestrator:latest
-```text
+```
 
 ###  Infrastructure Services
 ```bash
@@ -83,7 +83,7 @@ docker run -d \
   -e POSTGRES_REPLICATION_USER=replicator \
   -p 5432:5432 \
   postgres:15-alpine
-```text
+```
 
 ##  Environment Configuration
 
@@ -112,7 +112,7 @@ export LOG_LEVEL=INFO
 # External Services
 export NVIDIA_API_KEY=vault:secret/xorb/external#nvidia_key
 export OPENROUTER_API_KEY=vault:secret/xorb/external#openrouter_key
-```text
+```
 
 ###  Multi-Tenant Configuration
 ```yaml
@@ -130,7 +130,7 @@ tenants:
     rate_limits:
       api_calls_per_minute: 5000
       concurrent_scans: 50
-```text
+```
 
 ##  Load Balancing & High Availability
 
@@ -168,7 +168,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     }
 }
-```text
+```
 
 ###  Kubernetes Deployment
 ```yaml
@@ -199,7 +199,7 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "500m"
-```text
+```
 
 ##  Monitoring & Observability
 
@@ -211,7 +211,7 @@ curl http://localhost:8000/readiness
 
 # Detailed service status
 curl http://localhost:8000/api/v1/status
-```text
+```
 
 ###  Monitoring Configuration
 ```yaml
@@ -226,7 +226,7 @@ scrape_configs:
     static_configs:
       - targets: ['orchestrator-1:8080', 'orchestrator-2:8080']
     metrics_path: '/metrics'
-```text
+```
 
 ##  Security Deployment
 
@@ -239,7 +239,7 @@ openssl req -x509 -newkey rsa:4096 -keyout xorb.key -out xorb.crt \
 # Deploy certificates
 kubectl create secret tls xorb-tls-secret \
   --cert=xorb.crt --key=xorb.key
-```text
+```
 
 ###  Network Security
 ```bash
@@ -249,7 +249,7 @@ ufw allow 443/tcp   # HTTPS
 ufw allow 8000/tcp  # API (internal only)
 ufw deny 5432/tcp   # PostgreSQL (internal only)
 ufw deny 6379/tcp   # Redis (internal only)
-```text
+```
 
 ##  Backup & Disaster Recovery
 
@@ -261,7 +261,7 @@ pg_dump -h postgres -U xorb -d xorb_production | \
 
 # Redis backup
 redis-cli --rdb /backups/redis_$(date +%Y%m%d_%H%M%S).rdb
-```text
+```
 
 ###  Service Recovery
 ```bash
@@ -272,7 +272,7 @@ gunzip -c /backups/xorb_latest.sql.gz | \
 # Restart services with health checks
 docker-compose restart
 ./tools/scripts/validate_environment.py
-```text
+```
 
 ##  Performance Tuning
 
@@ -284,7 +284,7 @@ ALTER SYSTEM SET effective_cache_size = '6GB';
 ALTER SYSTEM SET work_mem = '256MB';
 ALTER SYSTEM SET maintenance_work_mem = '1GB';
 SELECT pg_reload_conf();
-```text
+```
 
 ###  Application Scaling
 ```bash
@@ -293,4 +293,4 @@ docker-compose scale api=3 orchestrator=2
 
 # Resource limits
 docker update --memory=2g --cpus="1.5" xorb-api
-```text
+```

@@ -24,7 +24,7 @@ predictions = await predict_threats(
     context={"critical_assets": ["database", "payment_system"]}
 )
 # Returns: Attack probability, timeframe, and automated countermeasures
-```text
+```
 
 ###  🛡️ **Automated Compliance Orchestration**
 - *Comprehensive regulatory framework automation**
@@ -42,7 +42,7 @@ report = await conduct_compliance_assessment(
     organization="Enterprise Corp"
 )
 # Returns: 90% compliance score with specific remediation plan
-```text
+```
 
 ###  🚨 **Intelligent Incident Response Automation**
 - *Military-grade incident response with AI orchestration**
@@ -61,7 +61,7 @@ incident = await create_security_incident(
     severity=IncidentSeverity.CRITICAL
 )
 # Automatically: Isolates system, collects evidence, alerts team, starts remediation
-```text
+```
 
 ###  ⚡ **Enterprise Performance Engine**
 - *Military-grade performance with intelligent optimization**
@@ -118,7 +118,7 @@ GET  /api/v1/enterprise-security/incidents/{id}      # Real-time incident tracki
 POST /api/v1/enterprise/organizations                 # Multi-tenant org creation
 GET  /api/v1/enterprise/organizations/{id}/usage     # Usage analytics & billing
 GET  /api/v1/enterprise/system/health                # Platform health monitoring
-```text
+```
 
 ###  **Advanced PTaaS Platform**
 ```bash
@@ -131,7 +131,7 @@ GET  /api/v1/enhanced-ptaas/scans/{id}/report         # Multi-format reporting
 GET  /api/v1/security/dashboard                       # Real-time security metrics
 POST /api/v1/security/threat-intelligence             # Threat intel integration
 GET  /api/v1/security/events                         # Security event analysis
-```text
+```
 
 - --
 
@@ -194,7 +194,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 # 3. Access Enterprise Features
 curl http://localhost:8000/api/v1/enterprise-security/dashboard
 curl http://localhost:8000/api/v1/enterprise/system/health
-```text
+```
 
 ###  **Enterprise Endpoints Live**
 - **🎯 AI Security Center**: http://localhost:8000/api/v1/enterprise-security/dashboard

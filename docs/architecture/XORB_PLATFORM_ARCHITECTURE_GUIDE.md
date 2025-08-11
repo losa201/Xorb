@@ -27,7 +27,7 @@ The XORB cybersecurity platform is now a **fully operational enterprise-grade sy
 ##  🎯 **Platform Architecture**
 
 ###  **Core Components**
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                XORB Enterprise Platform                    │
 ├─────────────────────────────────────────────────────────────┤
@@ -55,10 +55,10 @@ The XORB cybersecurity platform is now a **fully operational enterprise-grade sy
 │  ├─ PostgreSQL (Multi-tenant RLS)  ├─ Redis (Cache/Session)│
 │  ├─ FastAPI (Clean Architecture)   └─ Temporal (Workflows) │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Service Dependency Graph**
-```text
+```
 Database ────┬─→ Vector Store ──→ Threat Intelligence
              │                   Intelligence Service
              │
@@ -76,7 +76,7 @@ Database ────┬─→ Vector Store ──→ Threat Intelligence
 
 Cache ──→ Streaming Analytics
 Security Tools ──→ PTaaS Results ──→ Intelligence Analysis
-```text
+```
 
 - --
 
@@ -121,7 +121,7 @@ scanners = {
         "production_ready": True
     }
 }
-```text
+```
 
 ####  **PTaaS API Endpoints**
 ```yaml
@@ -154,7 +154,7 @@ Advanced Orchestration:
   POST /api/v1/ptaas/orchestration/threat-simulation:
     description: Advanced threat simulation
     scenarios: [APT, ransomware, insider_threat, phishing]
-```text
+```
 
 ####  **Scan Profile Capabilities**
 ```yaml
@@ -181,7 +181,7 @@ Web-Focused Scan (20 minutes):
   coverage: Web-specific ports and services
   features: [web_vulnerability_scanning, ssl_analysis, directory_discovery]
   use_cases: [web_application_testing, ssl_compliance]
-```text
+```
 
 - --
 
@@ -254,7 +254,7 @@ POST   /api/v1/ptaas/orchestration/workflows                # Create workflow
 POST   /api/v1/ptaas/orchestration/workflows/{id}/execute   # Execute workflow
 POST   /api/v1/ptaas/orchestration/compliance-scan          # Compliance scan
 POST   /api/v1/ptaas/orchestration/threat-simulation        # Threat simulation
-```text
+```
 
 ###  **🎛️ Service Management (6 routes)**
 ```http
@@ -264,7 +264,7 @@ POST   /api/v1/platform/services/{id}/start         # Start service
 POST   /api/v1/platform/services/{id}/stop          # Stop service
 POST   /api/v1/platform/services/{id}/restart       # Restart service
 POST   /api/v1/platform/services/bulk-action        # Bulk operations
-```text
+```
 
 ###  **📊 Analytics & Monitoring (4 routes)**
 ```http
@@ -272,7 +272,7 @@ GET    /api/v1/platform/health                      # Platform health
 GET    /api/v1/platform/metrics                     # Platform metrics
 GET    /api/v1/platform/dashboard                   # Comprehensive dashboard
 POST   /api/v1/platform/analytics/behavioral/profile # Behavioral profiling
-```text
+```
 
 ###  **🔍 Intelligence & Security (8 routes)**
 ```http
@@ -284,7 +284,7 @@ GET    /api/v1/platform/forensics/evidence/{id}      # Retrieve evidence
 POST   /api/v1/platform/forensics/evidence/{id}/chain # Chain of custody
 POST   /api/v1/platform/network/segments             # Create network segment
 POST   /api/v1/platform/network/segments/{id}/evaluate # Evaluate access
-```text
+```
 
 - --
 
@@ -318,7 +318,7 @@ result = engine.update_profile("user_id", {
 
 # Risk assessment
 dashboard = engine.get_risk_dashboard()
-```text
+```
 
 ###  **🔍 Threat Hunting Engine**
 - *Production Features:**
@@ -338,7 +338,7 @@ FIND authentication WHERE action = "failed" AND count > 5 AND timeframe = "1h"
 
 - - Identify privilege escalation
 FIND events WHERE action = "privilege_escalation" AND success = true
-```text
+```
 
 ###  **🔬 Digital Forensics Engine**
 - *Production Features:**
@@ -379,7 +379,7 @@ middleware_stack = [
     "GZipMiddleware",              # Response compression
     "RequestIdMiddleware"          # Unique request tracking
 ]
-```text
+```
 
 ###  **👥 Access Control Matrix**
 | Role | PTaaS Access | Intelligence | Platform Management | Compliance |
@@ -440,7 +440,7 @@ middleware_stack = [
     "error_rate": "0.1%"
   }
 }
-```text
+```
 
 - --
 
@@ -464,7 +464,7 @@ curl http://localhost:8000/api/v1/ptaas/profiles
 curl -X POST http://localhost:8000/api/v1/ptaas/sessions \
   -H "Content-Type: application/json" \
   -d '{"targets": [{"host": "scanme.nmap.org", "ports": [80, 443]}], "scan_type": "quick"}'
-```text
+```
 
 ###  **🐳 Docker Deployment**
 ```bash
@@ -477,7 +477,7 @@ docker-compose -f docker-compose.development.yml up -d
 # Production with monitoring
 docker-compose -f docker-compose.production.yml up -d
 docker-compose -f docker-compose.monitoring.yml up -d
-```text
+```
 
 ###  **⚙️ Environment Configuration**
 - *Required Environment Variables:**
@@ -507,7 +507,7 @@ SECURITY_HEADERS_ENABLED=true
 ENABLE_METRICS=true
 ENABLE_TRACING=true
 LOG_LEVEL=INFO
-```text
+```
 
 ###  **🔒 Security Configuration**
 ```env
@@ -529,7 +529,7 @@ RLS_ENABLED=true
 VAULT_ADDR=https://vault.example.com
 VAULT_TOKEN=your-vault-token
 ENCRYPTION_KEY=your-encryption-key
-```text
+```
 
 - --
 
@@ -566,7 +566,7 @@ response = requests.post(
 
 session = response.json()
 print(f"Scan initiated: {session['session_id']}")
-```text
+```
 
 ###  **Intelligence Analysis**
 ```python
@@ -597,7 +597,7 @@ response = requests.post(
 analysis = response.json()
 print(f"Threat level: {analysis['threat_level']}")
 print(f"Confidence: {analysis['confidence_score']}")
-```text
+```
 
 ###  **Compliance Automation**
 ```python
@@ -625,7 +625,7 @@ response = requests.post(
 
 compliance_scan = response.json()
 print(f"Compliance scan initiated: {compliance_scan['scan_id']}")
-```text
+```
 
 - --
 

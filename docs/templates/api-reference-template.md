@@ -35,7 +35,7 @@ This API requires authentication using a Bearer token in the Authorization heade
 ```bash
 curl -H "Authorization: Bearer YOUR_API_TOKEN" \
      https://api.xorb.platform/v1/endpoint
-```text
+```
 
 - *Getting an API Token:**
 1. [Log into the platform](link-to-login)
@@ -63,7 +63,7 @@ Retrieve a list of resources or a specific resource.
 curl -X GET "https://api.xorb.platform/v1/endpoint?limit=10&sort=asc" \
      -H "Authorization: Bearer YOUR_API_TOKEN" \
      -H "Content-Type: application/json"
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -84,7 +84,7 @@ curl -X GET "https://api.xorb.platform/v1/endpoint?limit=10&sort=asc" \
     "has_more": true
   }
 }
-```text
+```
 
 - *Response Fields:**
 
@@ -110,7 +110,7 @@ Create a new resource.
     "setting2": true
   }
 }
-```text
+```
 
 - *Request Example:**
 ```bash
@@ -121,7 +121,7 @@ curl -X POST "https://api.xorb.platform/v1/endpoint" \
        "name": "New Resource",
        "description": "A test resource"
      }'
-```text
+```
 
 - *Response (201 Created):**
 ```json
@@ -133,7 +133,7 @@ curl -X POST "https://api.xorb.platform/v1/endpoint" \
   "created_at": "2025-01-11T10:35:00Z",
   "updated_at": "2025-01-11T10:35:00Z"
 }
-```text
+```
 
 ### PUT /endpoint/{id}
 
@@ -151,7 +151,7 @@ Update an existing resource.
   "name": "Updated Resource Name",
   "status": "active"
 }
-```text
+```
 
 - *Request Example:**
 ```bash
@@ -162,7 +162,7 @@ curl -X PUT "https://api.xorb.platform/v1/endpoint/resource_456" \
        "name": "Updated Resource Name",
        "status": "active"
      }'
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -173,7 +173,7 @@ curl -X PUT "https://api.xorb.platform/v1/endpoint/resource_456" \
   "created_at": "2025-01-11T10:35:00Z",
   "updated_at": "2025-01-11T10:40:00Z"
 }
-```text
+```
 
 ### DELETE /endpoint/{id}
 
@@ -189,12 +189,12 @@ Delete a resource permanently.
 ```bash
 curl -X DELETE "https://api.xorb.platform/v1/endpoint/resource_456" \
      -H "Authorization: Bearer YOUR_API_TOKEN"
-```text
+```
 
 - *Response (204 No Content):**
-```text
+```
 No response body
-```text
+```
 
 ## 🔍 Filtering and Sorting
 
@@ -211,7 +211,7 @@ curl "https://api.xorb.platform/v1/endpoint?filter=status:active,type:scan"
 
 # Date range filtering
 curl "https://api.xorb.platform/v1/endpoint?filter=created_after:2025-01-01"
-```text
+```
 
 - *Available Filters:**
 
@@ -232,7 +232,7 @@ curl "https://api.xorb.platform/v1/endpoint?sort=created_at:desc"
 
 # Sort by name alphabetically
 curl "https://api.xorb.platform/v1/endpoint?sort=name:asc"
-```text
+```
 
 ## ❌ Error Responses
 
@@ -252,7 +252,7 @@ All error responses follow a consistent format:
     "request_id": "req_123456789"
   }
 }
-```text
+```
 
 ### Common Error Codes
 
@@ -275,11 +275,11 @@ This API enforces rate limiting to ensure fair usage:
 - **Headers**: Rate limit information is included in response headers
 
 - *Response Headers:**
-```text
+```
 X-RateLimit-Limit: 100
 X-RateLimit-Remaining: 95
 X-RateLimit-Reset: 1641900000
-```text
+```
 
 ## 💻 Code Examples
 
@@ -305,7 +305,7 @@ if response.status_code == 200:
     print(f"Found {len(data['data'])} resources")
 else:
     print(f"Error: {response.status_code} - {response.text}")
-```text
+```
 
 ### JavaScript (fetch)
 ```javascript
@@ -331,7 +331,7 @@ async function getResources() {
         console.error('Error:', error);
     }
 }
-```text
+```
 
 ### cURL
 ```bash
@@ -353,7 +353,7 @@ api_request "$BASE_URL/endpoint"
 # Create a new resource
 api_request -X POST "$BASE_URL/endpoint" \
     -d '{"name": "Test Resource"}'
-```text
+```
 
 ## 🧪 Testing
 

@@ -55,7 +55,7 @@ As Principal Auditor and Engineer, I have successfully completed a comprehensive
 ##  🔧 Technical Architecture Achievements
 
 ###  Service Architecture
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                XORB Production Security Platform            │
 ├─────────────────────────────────────────────────────────────┤
@@ -69,7 +69,7 @@ As Principal Auditor and Engineer, I have successfully completed a comprehensive
 ├─────────────────────┴─────────────────┴─────────────────────┤
 │  Enhanced PTaaS Router (API Layer)                         │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  Real-World Security Tool Integration
 - **Nmap**: Network discovery, port scanning, OS fingerprinting
@@ -161,7 +161,7 @@ graph TD
     H --> I[Predictive Modeling]
     D --> J[Automated Response]
     E --> K[Multi-channel Alerts]
-```text
+```
 
 ##  🎯 Strategic Achievements
 

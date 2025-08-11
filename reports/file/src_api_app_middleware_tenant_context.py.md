@@ -20,7 +20,7 @@ await session.execute(
     "SELECT set_config('app.tenant_id', :tenant_id, false)",
     {"tenant_id": str(tenant_id)}
 )
-```text
+```
 - **Risk**: Direct SQL execution with user-controlled input
 - **Impact**: Potential SQL injection if tenant_id manipulation occurs
 - **CVSS**: 7.2 (High)
@@ -34,7 +34,7 @@ except Exception as e:
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         detail="Tenant context error"
     )
-```text
+```
 - **Risk**: Generic error handling may leak sensitive information
 - **Impact**: Information disclosure through error messages
 - **CVSS**: 6.5 (Medium-High)
@@ -46,7 +46,7 @@ except Exception as e:
     logger.error(f"Failed to set database tenant context: {e}")
     # Don't fail the request, but log the error
     pass
-```text
+```
 - **Risk**: Silent failure when tenant context cannot be set
 - **Impact**: Cross-tenant data access if RLS fails to apply
 - **CVSS**: 6.8 (Medium)
@@ -59,7 +59,7 @@ except Exception as e:
 tenant_header = request.headers.get("X-Tenant-ID")
 if tenant_header:
     tenant_id = UUID(tenant_header)
-```text
+```
 - **Risk**: Basic UUID validation only
 - **Impact**: Invalid tenant context if malformed UUID accepted
 - **CVSS**: 5.5 (Medium)
@@ -71,7 +71,7 @@ BYPASS_PATHS = {
     "/health", "/readiness", "/metrics", "/docs",
     "/openapi.json", "/auth/login", "/auth/callback", "/auth/logout"
 }
-```text
+```
 - **Risk**: Broad bypass paths may include sensitive endpoints
 - **Impact**: Unprotected endpoints bypass tenant isolation
 - **CVSS**: 5.0 (Medium)
@@ -86,7 +86,7 @@ try:
 except ImportError:
     class UserClaims:
         def __init__(self, user_id: str = "anonymous", tenant_id: str = None):
-```text
+```
 - **Risk**: Fallback may not match actual UserClaims interface
 - **Impact**: Runtime errors if interfaces diverge
 - **Remediation**: Use proper type definitions and interfaces

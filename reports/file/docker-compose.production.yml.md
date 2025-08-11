@@ -44,7 +44,7 @@ environment:
   - DATABASE_URL=postgresql://xorb_user:${POSTGRES_PASSWORD}@postgres:5432/xorb_db
   - REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
   - JWT_SECRET=${JWT_SECRET}
-```text
+```
 - *Risk:** Secrets visible in process lists, container inspection, logs
 - *Impact:** Credential exposure, unauthorized access
 
@@ -54,7 +54,7 @@ environment:
 ```yaml
 ports:
   - "127.0.0.1:5432:5432"  # Better but still exposed locally
-```text
+```
 - *Risk:** Database accessible from host system
 - *Impact:** Direct database access bypassing application layer
 
@@ -70,7 +70,7 @@ cap_drop:
 cap_add:
   - NET_BIND_SERVICE  # May be excessive
 read_only: false  # Should be true when possible
-```text
+```
 - *Risk:** Container escape, privilege escalation
 - *Impact:** Host system compromise
 
@@ -82,7 +82,7 @@ read_only: false  # Should be true when possible
 xorb-backend:
   driver: bridge
   internal: false  # Should be true for backend services
-```text
+```
 - *Risk:** Unintended external access to internal services
 - *Impact:** Service enumeration, attack surface expansion
 
@@ -95,7 +95,7 @@ temporal:
   ports:
     - "7233:7233"  # Exposed without authentication
     - "8233:8233"  # Web UI exposed
-```text
+```
 - *Risk:** Unauthorized workflow access, data manipulation
 - *Impact:** Business logic compromise
 
@@ -116,7 +116,7 @@ xorb-api:
   user: "1000:1000"          # ✅ Good
   tmpfs:
     - /tmp:noexec,nosuid,size=100m  # ✅ Good
-```text
+```
 
 ##  Immediate Remediation (7 days)
 
@@ -149,7 +149,7 @@ services:
       - POSTGRES_PASSWORD_FILE=/run/secrets/postgres_password
       - REDIS_PASSWORD_FILE=/run/secrets/redis_password
       - JWT_SECRET_FILE=/run/secrets/jwt_secret
-```text
+```
 
 ###  2. Enhanced Container Security
 ```yaml
@@ -181,7 +181,7 @@ services:
         reservations:
           memory: 1G
           cpus: '0.5'
-```text
+```
 
 ###  3. Network Security Hardening
 ```yaml
@@ -222,7 +222,7 @@ networks:
       com.docker.network.bridge.enable_icc: "true"
     labels:
       - "network.security.zone=data"
-```text
+```
 
 ###  4. Database Security Hardening
 ```yaml
@@ -252,7 +252,7 @@ postgres:
     - ./scripts/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
   networks:
     - xorb-data
-```text
+```
 
 ###  5. Temporal Security Configuration
 ```yaml
@@ -283,7 +283,7 @@ temporal:
   networks:
     - xorb-backend
     - xorb-data
-```text
+```
 
 ##  Additional Security Measures
 
@@ -304,7 +304,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
-```text
+```
 
 ###  2. Log Security Configuration
 ```yaml
@@ -315,7 +315,7 @@ logging:
     max-file: "3"
     labels: "production,security"
     env: "ENVIRONMENT,SERVICE_NAME"
-```text
+```
 
 ###  3. Monitoring and Alerting
 ```yaml
@@ -335,7 +335,7 @@ security-monitor:
     - /usr/bin/falco
     - --cri
     - /host/var/run/docker.sock
-```text
+```
 
 ##  Compliance Enhancements
 
@@ -364,7 +364,7 @@ services:
 
     # CIS 5.10 - Do not use host network mode
     network_mode: "bridge"  # Not host
-```text
+```
 
 ##  Risk Scoring
 
@@ -390,7 +390,7 @@ docker run --rm --network container:xorb-api_default \
 # Secret scanning
 docker run --rm -v $(pwd):/workspace \
   trufflesecurity/trufflehog:latest filesystem /workspace
-```text
+```
 
 - --
 

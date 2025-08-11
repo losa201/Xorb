@@ -36,7 +36,7 @@ class AdvancedPayloadEngine:
         # - Behavioral randomization and signature masking
         # - Context-aware payload customization
         # - Comprehensive safety validation
-```text
+```
 
 ####  2. Controlled Environment Framework (`src/xorb/simulation/controlled_environment_framework.py`)
 - **Status**: ✅ **PRODUCTION READY**
@@ -58,7 +58,7 @@ class ControlledEnvironmentFramework:
         # - Defensive systems (IDS, honeypots, firewalls)
         # - Real-time monitoring and safety controls
         # - Learning progress tracking and adaptation
-```text
+```
 
 ####  3. Autonomous RL Integration (`src/xorb/learning/autonomous_rl_integration.py`)
 - **Status**: ✅ **PRODUCTION READY**
@@ -80,7 +80,7 @@ class AutonomousRLIntegration:
         # - Transfer learning from previous environments
         # - Continuous safety monitoring and validation
         # - Performance optimization and adaptation
-```text
+```
 
 ####  4. Enhanced Autonomous Red Team Engine (Enhanced existing)
 - **Status**: ✅ **PRODUCTION READY**
@@ -106,7 +106,7 @@ class AutonomousRLIntegration:
 
 ###  Enhanced Component Integration
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    XORB AUTONOMOUS PLATFORM                    │
 ├─────────────────────────────────────────────────────────────────┤
@@ -132,11 +132,11 @@ class AutonomousRLIntegration:
 │  │ • Real-time adaptation       • Human oversight             │  │
 │  └─────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  Safety and Ethical Framework
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────────┐
 │                    COMPREHENSIVE SAFETY FRAMEWORK              │
 ├─────────────────────────────────────────────────────────────────┤
@@ -160,7 +160,7 @@ class AutonomousRLIntegration:
 │  ├─ Risk threshold enforcement                                 │
 │  └─ Damage prevention mechanisms                               │
 └─────────────────────────────────────────────────────────────────┘
-```text
+```
 
 ##  🎭 Sophisticated Capabilities Delivered
 
@@ -309,7 +309,7 @@ async def learn():
     print(f'Learning session started: {session_id}')
 asyncio.run(learn())
 "
-```text
+```
 
 ###  Enterprise Integration
 ```python
@@ -348,7 +348,7 @@ async def enterprise_red_team_operation():
         "learning_session": session_id,
         "payload_generated": payload.payload_id
     }
-```text
+```
 
 ##  🎯 Strategic Value Delivered
 

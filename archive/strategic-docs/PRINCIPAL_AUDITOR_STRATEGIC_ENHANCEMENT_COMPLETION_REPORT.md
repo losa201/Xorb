@@ -64,7 +64,7 @@ ml_analysis = await engine.ml_model.analyze_threat(threat_data)
 
 # Real-time threat correlation
 correlations = await engine.correlate_threats(threat_events)
-```text
+```
 
 - *Business Impact:**
 - 40% improvement in threat detection accuracy
@@ -93,7 +93,7 @@ session = await service._create_authenticated_session(integration)
 
 # Real-time threat intelligence sharing
 result = await service.submit_threat_intelligence(integration_id, indicators)
-```text
+```
 
 - *Business Impact:**
 - 70% reduction in manual security operations
@@ -144,7 +144,7 @@ workflow_steps = [
     'ticket_creation',      # 10 seconds
     'stakeholder_notification' # 5 seconds
 ]
-```text
+```
 
 - *Business Impact:**
 - 87.5% automation rate for security operations

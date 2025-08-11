@@ -47,7 +47,7 @@ class SecureJWTConfig:
     def validate_secret_strength(self):
         if len(self.secret) < 64:
             raise ValueError("JWT secret must be at least 64 characters")
-```text
+```
 
 - --
 
@@ -79,7 +79,7 @@ git filter-branch --force --index-filter \
 
 # Secure test implementation
 export TEST_JWT_SECRET=$(openssl rand -hex 64)
-```text
+```
 
 - --
 
@@ -113,7 +113,7 @@ def get_validated_cors_origins(self) -> List[str]:
             validated.append(origin)
 
     return validated or ["https://app.xorb.enterprise"]
-```text
+```
 
 - --
 
@@ -144,7 +144,7 @@ tmpfs:
   - /tmp:noexec,nosuid,size=100m
   - /var/cache:noexec,nosuid,size=50m
 user: "1001:1001"  # Non-root user
-```text
+```
 
 - --
 
@@ -173,7 +173,7 @@ class SecureInputModel(BaseModel):
         if re.search(r'[<>"\']', v):
             raise ValueError('Username contains invalid characters')
         return v.strip().lower()
-```text
+```
 
 - --
 
@@ -218,7 +218,7 @@ def mask_sensitive_data(data: dict) -> dict:
             masked[field] = "***MASKED***"
 
     return masked
-```text
+```
 
 - --
 
@@ -259,7 +259,7 @@ safety check -r requirements.lock
 
 # Add to CI/CD pipeline
 bandit -r src/ -f json -o security-report.json
-```text
+```
 
 - --
 
@@ -283,7 +283,7 @@ tls_params:
   cipher_suites:
     - TLS_AES_256_GCM_SHA384
     - TLS_CHACHA20_POLY1305_SHA256
-```text
+```
 
 - --
 

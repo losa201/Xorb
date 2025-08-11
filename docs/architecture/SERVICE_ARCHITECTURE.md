@@ -4,7 +4,7 @@
 
 The XORB platform follows a microservices architecture with clear separation of concerns:
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────────┐
 │                        XORB Ecosystem                           │
 ├─────────────────────────────────────────────────────────────────┤
@@ -28,7 +28,7 @@ The XORB platform follows a microservices architecture with clear separation of 
 │  │   Port 9092     │ │   Port 8200     │ │   Ports 5432-5434   │ │
 │  └─────────────────┘ └─────────────────┘ └─────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
-```text
+```
 
 ##  Service Responsibilities
 
@@ -76,11 +76,11 @@ The XORB platform follows a microservices architecture with clear separation of 
 
 ##  Data Flow Architecture
 
-```text
+```
 User Action (PTaaS) → API Gateway (XORB) → Service Layer →
 Orchestrator (Workflows) → Executors → Database →
 Cache (Redis) → Response → Real-time Updates (WebSocket)
-```text
+```
 
 ##  Security Architecture
 
@@ -111,7 +111,7 @@ cd services/xorb-core/api && uvicorn app.main:app --reload
 
 # Infrastructure
 docker-compose -f docker-compose.infrastructure.yml up -d
-```text
+```
 
 ###  Production Environment
 ```bash
@@ -120,7 +120,7 @@ docker-compose -f docker-compose.infrastructure.yml up -d
 # CDN deployment for frontend assets
 # Multi-region database replication
 # Automated scaling and health monitoring
-```text
+```
 
 ##  Performance Characteristics
 

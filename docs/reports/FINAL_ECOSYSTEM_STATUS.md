@@ -50,7 +50,7 @@ Quantum Security Module (Port 9004):
   Features: Post-quantum cryptography, Hybrid encryption, Key rotation
   Algorithms: CRYSTALS-Kyber/Dilithium, FALCON, SPHINCS+
   Operation Speed: <1ms average
-```text
+```
 
 ###  **Enterprise Integration** ✅
 - **Service Health**: 4/4 core services operational
@@ -72,7 +72,7 @@ Systems Compromised: 5 critical servers
 Data Exfiltrated: 847 GB
 Techniques: Spearphishing, VPN exploitation, Kerberoasting, Golden ticket
 MITRE ATT&CK: T1059.001, T1055, T1053.005, T1547.001
-```text
+```
 
 ###  **Ransomware Attack** ✅
 ```yaml
@@ -84,7 +84,7 @@ Systems Encrypted: 2,256 systems
 Ransom Demand: $4.2 million USD
 Business Impact: Complete production shutdown
 Recovery Estimate: 21 days
-```text
+```
 
 ###  **Insider Threat** ✅
 ```yaml
@@ -95,7 +95,7 @@ Data Stolen: 12.4 GB of source code and algorithms
 Estimated Damage: $2.8 million
 Behavioral Indicators: 5 critical alerts missed
 Detection: Post-incident analysis
-```text
+```
 
 - --
 
@@ -164,7 +164,7 @@ Manufacturing:
   Compliance: ISO 27001, NIST
   Focus: OT/IT security, supply chain
   Status: Ready for industrial enterprises
-```text
+```
 
 - --
 
@@ -207,7 +207,7 @@ vs. Palo Alto Networks: Faster deployment, quantum readiness
 vs. SentinelOne: Complete ecosystem, enterprise features
 vs. IBM QRadar: Modern architecture, autonomous operations
 vs. Splunk Enterprise: Cost efficiency, specialized workflows
-```text
+```
 
 - --
 
@@ -225,14 +225,14 @@ Integration Health: 5/5 services operational
 AI Capabilities: Active and responding
 Security Operations: Fully integrated
 Enterprise Readiness: CONFIRMED
-```text
+```
 
 ###  **Attack Simulation Results** ✅
 ```yaml
 APT Campaign: 89% success rate, 5 systems compromised, 847GB exfiltrated
 Ransomware: 95% success rate, 2,256 systems encrypted, $4.2M demand
 Insider Threat: 6-month campaign, 12.4GB stolen, $2.8M damage
-```text
+```
 
 ###  **Quantum Cryptography Results** ✅
 ```yaml
@@ -241,7 +241,7 @@ Key Pairs Generated: 4+ master keys
 Encryption/Decryption: SUCCESS (<1ms)
 Digital Signatures: SUCCESS (CRYSTALS-Dilithium)
 Operation Success Rate: 100%
-```text
+```
 
 - --
 

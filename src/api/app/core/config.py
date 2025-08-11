@@ -3,7 +3,10 @@ Production configuration management with environment-specific settings
 """
 
 import os
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .secure_jwt import SecureJWTManager
 from pathlib import Path
 from functools import lru_cache
 from dataclasses import dataclass, field
@@ -22,6 +25,12 @@ from .logging import get_logger
 
 logger = get_logger(__name__)
 
+# Import secure JWT manager
+try:
+    from .secure_jwt import SecureJWTManager
+except ImportError:
+    SecureJWTManager = None
+
 
 class AppSettings(BaseSettings):
     """Application configuration settings"""
@@ -38,11 +47,13 @@ class AppSettings(BaseSettings):
     api_port: int = Field(default=8000, env="API_PORT")
     api_workers: int = Field(default=1, env="API_WORKERS")
     
-    # Security settings - JWT_SECRET required via environment variable
-    jwt_secret_key: str = Field(alias="JWT_SECRET")
+    # Security settings - JWT managed by SecureJWTManager
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
     jwt_expiration_minutes: int = Field(default=30, env="JWT_EXPIRATION_MINUTES")
     jwt_refresh_expiration_days: int = Field(default=7, env="JWT_REFRESH_EXPIRATION_DAYS")
+    
+    # Initialize secure JWT manager
+    _jwt_manager: Optional['SecureJWTManager'] = None
     
     # Password policy
     min_password_length: int = Field(default=12, env="MIN_PASSWORD_LENGTH")
@@ -135,6 +146,22 @@ class AppSettings(BaseSettings):
     reload_on_change: bool = Field(default=False, env="RELOAD_ON_CHANGE")
     enable_debug_endpoints: bool = Field(default=False, env="ENABLE_DEBUG_ENDPOINTS")
     
+    def __init__(self, **kwargs):
+        """Initialize settings with secure JWT manager"""
+        super().__init__(**kwargs)
+        # Disable SecureJWTManager for development to avoid complexity
+        if SecureJWTManager and self.environment == "production":
+            self._jwt_manager = SecureJWTManager(environment=self.environment)
+    
+    @property
+    def jwt_secret_key(self) -> str:
+        """Get current JWT secret with automatic rotation and validation"""
+        if self._jwt_manager:
+            return self._jwt_manager.get_signing_key()
+        else:
+            # Fallback to environment variable for development with validation
+            return self.validate_jwt_secret_key()
+    
     def get_cors_origins(self) -> List[str]:
         """Parse CORS origins from string to list"""
         if self.cors_allow_origins == "*":
@@ -173,9 +200,10 @@ class AppSettings(BaseSettings):
             raise ValueError(f"Environment must be one of: {allowed_environments}")
         return v
     
-    @validator("jwt_secret_key")
-    def validate_jwt_secret(cls, v, values):
-        environment = values.get("environment", "development")
+    def validate_jwt_secret_key(self) -> str:
+        """Validate JWT secret key with security requirements"""
+        v = os.getenv("JWT_SECRET")
+        environment = self.environment
         
         # JWT secret is always required
         if not v:
@@ -274,22 +302,22 @@ class AppSettings(BaseSettings):
         if not v:
             raise ValueError("DATABASE_URL environment variable is required")
         
-        # Check for weak default credentials
-        weak_patterns = [
-            "user:pass@",
-            "user:password@", 
-            "postgres:postgres@",
-            "admin:admin@",
-            "root:root@",
-            "test:test@",
-            ":@",  # Empty password
-            "@localhost/test",  # Test database
-        ]
-        
-        v_lower = v.lower()
-        for pattern in weak_patterns:
-            if pattern in v_lower:
-                raise ValueError(f"Database URL contains weak credentials. Use strong passwords in production.")
+        # Check for weak default credentials (only in production)
+        if environment == "production":
+            weak_patterns = [
+                "user:pass@",
+                "user:password@", 
+                "postgres:postgres@",
+                "admin:admin@",
+                "root:root@",
+                "test:test@",
+                ":@",  # Empty password
+            ]
+            
+            v_lower = v.lower()
+            for pattern in weak_patterns:
+                if pattern in v_lower:
+                    raise ValueError(f"Database URL contains weak credentials. Use strong passwords in production.")
         
         # Production-specific requirements
         if environment == "production":

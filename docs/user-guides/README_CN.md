@@ -58,7 +58,7 @@ Nuclei需要 **go1.22** 才能安装成功。执行下列命令安装最新版�
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```text
+```
 
 <details>
   <summary>Brew</summary>
@@ -99,7 +99,7 @@ YAML的语法规范在[这里](SYNTAX-REFERENCE.md)。
 
 ```sh
 nuclei -h
-```text
+```
 
 这将显示Nuclei的帮助，以下是所有支持的命令。
 ```console
@@ -295,7 +295,7 @@ UNCOVER引擎:
 使用已排序的Markdown输出（使用环境变量）运行nuclei:
 	$ MARKDOWN_EXPORT_SORT_MODE=template nuclei -target example.com -markdown-export nuclei_report/
 
-```text
+```
 
 更多信息请参考文档: https://docs.nuclei.sh/getting-started/running
 ###  运行Nuclei
@@ -304,13 +304,13 @@ UNCOVER引擎:
 
 ```sh
 nuclei -u https://example.com
-```text
+```
 
 使用[社区提供的模板](https://github.com/projectdiscovery/nuclei-templates)扫描多个目标
 
 ```sh
 nuclei -list urls.txt
-```text
+```
 
 Example of `urls.txt`:
 
@@ -319,7 +319,7 @@ http://example.com
 http://app.example.com
 http://test.example.com
 http://uat.example.com
-```text
+```
 
 - *更多关于Nuclei的详细实例可以在[这里](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)找到**
 

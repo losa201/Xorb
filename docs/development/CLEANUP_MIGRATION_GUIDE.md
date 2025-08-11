@@ -44,7 +44,7 @@ from app.security.auth import XORBAuthenticator
 # NEW
 from app.services.unified_auth_service_consolidated import UnifiedAuthService
 from common.jwt_manager import get_jwt_manager
-```text
+```
 
 ###  2. Docker Infrastructure Cleanup ✅
 - *Status: COMPLETED**
@@ -72,7 +72,7 @@ docker-compose -f infra/docker-compose.production.yml up
 
 # NEW
 BUILD_TARGET=production docker-compose up
-```text
+```
 
 ###  3. Configuration System Unification ✅
 - *Status: COMPLETED**
@@ -103,7 +103,7 @@ from api.app.security import SecuritySettings
 # NEW
 from common.unified_config import get_config
 config = get_config()
-```text
+```
 
 ###  4. Service Orchestration Consolidation ✅
 - *Status: COMPLETED**
@@ -138,7 +138,7 @@ config = get_config()
 ##  🚀 New Unified Architecture
 
 ###  Core Services
-```text
+```
 src/
 ├── api/app/services/
 │   └── unified_auth_service_consolidated.py   # Single auth service
@@ -148,7 +148,7 @@ src/
 ├── orchestrator/
 │   └── unified_orchestrator.py              # Single orchestrator
 └── ...
-```text
+```
 
 ###  Configuration Usage
 ```python
@@ -162,7 +162,7 @@ config = get_config()
 # - config.api
 # - config.sso
 # - config.monitoring
-```text
+```
 
 ###  Authentication Usage
 ```python
@@ -175,7 +175,7 @@ from api.app.services.unified_auth_service_consolidated import UnifiedAuthServic
 # - API key management
 # - Permission checking
 # - MFA support
-```text
+```
 
 ###  Docker Usage
 ```bash
@@ -190,7 +190,7 @@ BUILD_TARGET=secure docker-compose up
 
 # With monitoring
 docker-compose --profile monitoring up
-```text
+```
 
 - --
 
@@ -208,7 +208,7 @@ find . -name "*.py" -exec sed -i 's/from.*config import Settings/from common.uni
 
 # JWT handling
 find . -name "*.py" -exec sed -i 's/JWT_SECRET/# JWT_SECRET moved to jwt_manager/g' {} \;
-```text
+```
 
 ###  2. Update Service Registration
 In dependency injection containers:
@@ -220,7 +220,7 @@ container.register(XORBAuthenticator, ...)
 
 # NEW
 container.register(AuthenticationService, UnifiedAuthService)
-```text
+```
 
 ###  3. Update Docker Configurations
 Replace multiple docker-compose files with single configuration:
@@ -228,7 +228,7 @@ Replace multiple docker-compose files with single configuration:
 ```yaml
 # docker-compose.yml (already created)
 # Use environment variables and profiles for different deployments
-```text
+```
 
 ###  4. Update Test Files
 Test files need to be updated to use new unified services:
@@ -239,7 +239,7 @@ from app.services.auth_security_service import AuthSecurityService
 
 # NEW
 from app.services.unified_auth_service_consolidated import UnifiedAuthService
-```text
+```
 
 - --
 
@@ -348,7 +348,7 @@ python -c "from api.app.services.unified_auth_service_consolidated import Unifie
 
 # Test Docker
 docker-compose config
-```text
+```
 
 - --
 

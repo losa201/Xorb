@@ -26,7 +26,7 @@ I have successfully implemented a **sophisticated, AI-powered red team agent** t
 ##  🏗️ **Architecture Overview**
 
 ###  **Core Components**
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                Sophisticated Red Team AI Agent            │
 ├─────────────────────────────────────────────────────────────┤
@@ -48,7 +48,7 @@ I have successfully implemented a **sophisticated, AI-powered red team agent** t
 │  ├─ Threat Hunting Queries   │  ├─ Real-time Monitoring   │
 │  └─ Purple Team Reports      │  └─ Webhook Notifications  │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Technology Stack Excellence**
 - **AI/ML**: PyTorch, scikit-learn, NumPy, NetworkX for advanced graph analysis
@@ -76,7 +76,7 @@ class SophisticatedRedTeamAgent(XORBService):
     - Purple team collaboration for defensive improvement
     - Real-time defensive insight generation
     """
-```text
+```
 
 ####  **🧠 AI Decision Engine**
 - **Neural Networks**: PyTorch-based decision networks with multi-head attention
@@ -99,7 +99,7 @@ ThreatActorProfile(
     },
     attribution_confidence=0.85
 )
-```text
+```
 
 ####  **🎯 Attack Planning Features**
 - **AI-Driven Technique Selection**: Multi-criteria decision making with ML models
@@ -116,7 +116,7 @@ safety_constraints = {
     'purple_team_collaboration': True,
     'real_world_prevention': True
 }
-```text
+```
 
 - --
 
@@ -147,7 +147,7 @@ level: high
     confidence_level=0.85,
     false_positive_rate=0.12
 )
-```text
+```
 
 ####  **🎓 Training Exercise Framework**
 ```python
@@ -164,7 +164,7 @@ TrainingExercise(
         # Purple Team: Joint Analysis & Learning
     ]
 )
-```text
+```
 
 ####  **🔎 Threat Hunting Queries**
 ```python
@@ -182,7 +182,7 @@ SecurityEvent
 | where UniqueWorkstations >= 5
 """
 )
-```text
+```
 
 - --
 
@@ -216,7 +216,7 @@ Core Red Team Operations:
   GET /api/v1/sophisticated-red-team/metrics:
     description: Comprehensive red team operation metrics
     features: [success_rates, detection_rates, defensive_improvements]
-```text
+```
 
 ####  **🛡️ Security & Authorization**
 - **JWT Authentication**: Enterprise-grade token-based authentication
@@ -250,7 +250,7 @@ async def plan_red_team_operation(self,
     optimized_chain = await self._optimize_for_defensive_value(attack_chain, objective)
 
     return RedTeamOperation(...)
-```text
+```
 
 ###  **2. Real-time Purple Team Collaboration**
 ```python
@@ -269,7 +269,7 @@ async def execute_red_team_operation(self, operation_id: str) -> Dict[str, Any]:
 
     # Collect purple team feedback
     purple_team_feedback = await self._collect_purple_team_feedback(operation)
-```text
+```
 
 ###  **3. Comprehensive Defensive Insights**
 ```python
@@ -289,7 +289,7 @@ async def _generate_defensive_insights(self, execution_results: Dict[str, Any]) 
             'implementation_guidance': await self._generate_implementation_guidance(technique)
         }
         insights.append(insight)
-```text
+```
 
 - --
 
@@ -319,7 +319,7 @@ class SophisticatedRedTeamValidator:
         # Integration tests
         await self._test_api_integration()
         await self._test_health_monitoring()
-```text
+```
 
 ####  **Validation Categories**
 - ✅ **Agent Initialization**: Core service startup and configuration validation

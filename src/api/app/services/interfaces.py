@@ -38,6 +38,16 @@ class AuthenticationService(ABC):
         raise NotImplementedError("logout_user must be implemented by subclass")
     
     @abstractmethod
+    async def create_access_token(self, user_data: Any, session_id: Optional[str] = None) -> str:
+        """Create access token for authenticated user"""
+        raise NotImplementedError("create_access_token must be implemented by subclass")
+    
+    @abstractmethod
+    async def revoke_token(self, token: str) -> bool:
+        """Revoke/blacklist a token"""
+        raise NotImplementedError("revoke_token must be implemented by subclass")
+    
+    @abstractmethod
     def hash_password(self, password: str) -> str:
         """Hash password securely"""
         raise NotImplementedError("hash_password must be implemented by subclass")
@@ -696,3 +706,36 @@ class OptimizationService(Protocol):
     async def get_optimization_recommendations(self) -> List[Dict[str, Any]]:
         """Get optimization recommendations"""
         ...
+
+
+class SecurityIntegrationService(ABC):
+    """Interface for security integration operations"""
+    
+    @abstractmethod
+    async def send_security_event(
+        self,
+        event_data: Dict[str, Any],
+        target_types: Optional[List[Any]] = None
+    ) -> Dict[str, Any]:
+        """Send security event to integrations"""
+        raise NotImplementedError("send_security_event must be implemented by subclass")
+    
+    @abstractmethod
+    async def create_incident(self, incident_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create incident in ticketing systems"""
+        raise NotImplementedError("create_incident must be implemented by subclass")
+    
+    @abstractmethod
+    async def block_threat_indicators(
+        self,
+        indicators: List[str],
+        threat_type: str = "ip",
+        reason: str = "XORB Threat Detection"
+    ) -> Dict[str, Any]:
+        """Block threat indicators"""
+        raise NotImplementedError("block_threat_indicators must be implemented by subclass")
+    
+    @abstractmethod
+    async def get_integration_status(self) -> Dict[str, Any]:
+        """Get status of all integrations"""
+        raise NotImplementedError("get_integration_status must be implemented by subclass")

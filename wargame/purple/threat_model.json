@@ -1,0 +1,117 @@
+{
+  "threat_model": {
+    "organization": "Meridian Dynamics Corp",
+    "last_updated": "2024-08-11T00:00:00Z",
+    "risk_appetite": "medium",
+    "assets": [
+      {
+        "name": "Customer Data",
+        "classification": "confidential",
+        "value": "high",
+        "location": "Customer Portal Database",
+        "threats": ["data_breach", "unauthorized_access"]
+      },
+      {
+        "name": "Financial Records",
+        "classification": "confidential", 
+        "value": "high",
+        "location": "Finance Department Systems",
+        "threats": ["fraud", "data_manipulation"]
+      },
+      {
+        "name": "Intellectual Property",
+        "classification": "secret",
+        "value": "critical",
+        "location": "Engineering Systems",
+        "threats": ["industrial_espionage", "data_theft"]
+      },
+      {
+        "name": "HR Records",
+        "classification": "confidential",
+        "value": "medium",
+        "location": "HR Portal",
+        "threats": ["privacy_violation", "identity_theft"]
+      }
+    ],
+    "attack_vectors": [
+      {
+        "vector": "web_application",
+        "likelihood": "high",
+        "impact": "high",
+        "mitigations": ["WAF", "input_validation", "authentication"]
+      },
+      {
+        "vector": "email_phishing",
+        "likelihood": "high",
+        "impact": "medium", 
+        "mitigations": ["email_filtering", "user_training"]
+      },
+      {
+        "vector": "cloud_misconfiguration",
+        "likelihood": "medium",
+        "impact": "high",
+        "mitigations": ["IAM_policies", "bucket_policies", "monitoring"]
+      },
+      {
+        "vector": "insider_threat",
+        "likelihood": "low",
+        "impact": "critical",
+        "mitigations": ["access_controls", "monitoring", "background_checks"]
+      }
+    ],
+    "known_vulnerabilities": [
+      {
+        "id": "VULN-001",
+        "risk_score": 8.5,
+        "exploitability": "easy",
+        "detection_difficulty": "low"
+      },
+      {
+        "id": "VULN-002", 
+        "risk_score": 6.0,
+        "exploitability": "medium",
+        "detection_difficulty": "medium"
+      },
+      {
+        "id": "VULN-003",
+        "risk_score": 9.0,
+        "exploitability": "easy",
+        "detection_difficulty": "low"
+      },
+      {
+        "id": "VULN-004",
+        "risk_score": 9.5,
+        "exploitability": "medium",
+        "detection_difficulty": "high"
+      }
+    ],
+    "defense_posture": {
+      "maturity_level": "developing",
+      "security_tools": [
+        {
+          "type": "firewall",
+          "vendor": "pfSense",
+          "coverage": "perimeter"
+        },
+        {
+          "type": "antivirus",
+          "vendor": "ClamAV",
+          "coverage": "endpoints"
+        },
+        {
+          "type": "log_aggregation",
+          "vendor": "ELK Stack",
+          "coverage": "infrastructure"
+        }
+      ],
+      "monitoring_coverage": "partial",
+      "incident_response": "basic",
+      "threat_intelligence": "none"
+    },
+    "compliance_requirements": [
+      "SOC2",
+      "GDPR",
+      "ISO27001"
+    ]
+  }
+}

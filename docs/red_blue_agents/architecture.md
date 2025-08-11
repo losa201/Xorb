@@ -61,7 +61,7 @@ graph TB
     API --> AS
     WS --> AS
     SDK --> API
-```text
+```
 
 ##  Core Components
 
@@ -95,7 +95,7 @@ class AgentScheduler:
         # Generate agent tasks
         # Start execution coordination
         # Begin monitoring
-```text
+```
 
 ###  2. Capability Registry
 
@@ -133,7 +133,7 @@ class EnvironmentPolicy:
     max_risk_level: str
     max_concurrent_agents: int
     sandbox_constraints: Dict[str, Any]
-```text
+```
 
 - **Caching Strategy**:
 - Redis-backed caching for frequently accessed techniques
@@ -167,7 +167,7 @@ class NetworkPolicy:
     allowed_outbound: List[str]
     blocked_outbound: List[str]
     dns_servers: List[str]
-```text
+```
 
 - **Container Lifecycle**:
 1. **Creation**: Generate container configuration from sandbox config
@@ -192,7 +192,7 @@ BaseAgent (ABC)
     ├── AnalysisAgent
     ├── HuntingAgent
     └── ResponseAgent
-```text
+```
 
 - **Agent Communication**:
 - **Message Passing**: Async message queues for inter-agent communication
@@ -211,7 +211,7 @@ BaseAgent (ABC)
 4. **Learning Telemetry**: Model performance, adaptation metrics
 
 - **Storage Architecture**:
-```text
+```
 Redis (Hot Data)
 ├── Real-time metrics (TTL: 1 hour)
 ├── Agent status (TTL: 24 hours)
@@ -223,7 +223,7 @@ PostgreSQL (Cold Data)
 ├── Agent performance (Indexed by agent_type, technique)
 ├── Learning models (Versioned storage)
 └── Audit logs (Append-only, encrypted)
-```text
+```
 
 - **Data Pipeline**:
 ```mermaid
@@ -235,7 +235,7 @@ graph LR
     C --> F[Real-time Dashboards]
     D --> G[Historical Analysis]
     E --> H[Alerting]
-```text
+```
 
 ###  6. Autonomous Learning Engine
 
@@ -273,7 +273,7 @@ class AutonomousLearningEngine:
 
         # Train success prediction model
         await self.success_predictor.update(features)
-```text
+```
 
 ##  Security Architecture
 
@@ -432,7 +432,7 @@ result = await agent.execute_technique("recon.port_scan", {
     "target": "example.com",
     "ports": "1-1000"
 })
-```text
+```
 
 - *Go SDK** (Future):
 ```go
@@ -444,7 +444,7 @@ mission, err := client.Missions.Create(context.Background(), &agents.MissionConf
     Name: "Web App Test",
     Targets: []string{"https://example.com"},
 })
-```text
+```
 
 ###  Event-Driven Architecture
 
@@ -466,7 +466,7 @@ async def handle_mission_completed(event: MissionCompletedEvent):
 
     # Send notifications
     await notifications.send_mission_complete(event.mission_id)
-```text
+```
 
 ##  Deployment Architecture
 
@@ -490,7 +490,7 @@ services:
     privileged: true
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-```text
+```
 
 - *Kubernetes** (Production):
 ```yaml
@@ -518,7 +518,7 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
-```text
+```
 
 - **Helm Charts**:
 - Templated Kubernetes manifests
@@ -545,7 +545,7 @@ module "agent_framework" {
   enable_kata_containers = true
   enable_monitoring     = true
 }
-```text
+```
 
 - **Ansible Playbooks**:
 - Host provisioning and configuration
@@ -569,7 +569,7 @@ scrape_configs:
   - job_name: 'sandbox-orchestrator'
     static_configs:
       - targets: ['sandbox-orchestrator:8081']
-```text
+```
 
 - **Grafana Dashboards**:
 - Executive: High-level mission success rates
@@ -589,7 +589,7 @@ groups:
           severity: warning
         annotations:
           summary: "High mission failure rate detected"
-```text
+```
 
 ##  Future Architecture Considerations
 

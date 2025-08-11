@@ -15,7 +15,7 @@ First, obtain your client credentials and certificate for mTLS authentication:
 curl -X POST https://api.xorb.security/v1/auth/certificate \
   -H "Content-Type: application/json" \
   -d '{"client_id":"your_client_id","client_secret":"your_secret"}'
-```text
+```
 
 ###  2. Obtain Access Token
 
@@ -29,7 +29,7 @@ curl -X POST https://api.xorb.security/v1/auth/token \
     "client_secret": "your_client_secret",
     "scope": "agent:read task:submit security:read"
   }'
-```text
+```
 
 Response:
 ```json
@@ -39,7 +39,7 @@ Response:
   "expires_in": 86400,
   "scope": "agent:read task:submit security:read"
 }
-```text
+```
 
 ###  3. Make Authenticated Requests
 
@@ -48,7 +48,7 @@ Response:
 curl -X GET https://api.xorb.security/v1/agents \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer your_jwt_token"
-```text
+```
 
 ##  Core API Modules
 
@@ -70,7 +70,7 @@ curl -X POST https://api.xorb.security/v1/agents \
     },
     "description": "Primary threat hunting agent"
   }'
-```text
+```
 
 ####  Monitor Agent Status
 ```bash
@@ -78,7 +78,7 @@ curl -X POST https://api.xorb.security/v1/agents \
 curl -X GET https://api.xorb.security/v1/agents/{agent_id}/status \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
-```text
+```
 
 ####  Send Agent Commands
 ```bash
@@ -94,7 +94,7 @@ curl -X POST https://api.xorb.security/v1/agents/{agent_id}/commands \
     },
     "timeout_seconds": 300
   }'
-```text
+```
 
 ###  Task Orchestration
 
@@ -119,7 +119,7 @@ curl -X POST https://api.xorb.security/v1/orchestration/tasks \
     "orchestration_strategy": "ai_optimized",
     "description": "Comprehensive internal network security assessment"
   }'
-```text
+```
 
 ####  Monitor Task Progress
 ```bash
@@ -127,14 +127,14 @@ curl -X POST https://api.xorb.security/v1/orchestration/tasks \
 curl -X GET https://api.xorb.security/v1/orchestration/tasks/{task_id} \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
-```text
+```
 
 ####  Get Orchestration Metrics
 ```bash
 curl -X GET https://api.xorb.security/v1/orchestration/metrics \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
-```text
+```
 
 ###  Security Operations
 
@@ -144,7 +144,7 @@ curl -X GET https://api.xorb.security/v1/orchestration/metrics \
 curl -X GET "https://api.xorb.security/v1/security/threats?severity=high&hours_back=24" \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
-```text
+```
 
 ####  Create Threat Alert
 ```bash
@@ -171,7 +171,7 @@ curl -X POST https://api.xorb.security/v1/security/threats \
       }
     ]
   }'
-```text
+```
 
 ####  Respond to Threat
 ```bash
@@ -188,7 +188,7 @@ curl -X POST https://api.xorb.security/v1/security/threats/{threat_id}/respond \
     "auto_execute": true,
     "notify_team": true
   }'
-```text
+```
 
 ###  Intelligence Integration
 
@@ -213,7 +213,7 @@ curl -X POST https://api.xorb.security/v1/intelligence/decisions \
     "model_preferences": ["claude_agent"],
     "explanation_required": true
   }'
-```text
+```
 
 ####  Provide Learning Feedback
 ```bash
@@ -235,7 +235,7 @@ curl -X POST https://api.xorb.security/v1/intelligence/feedback \
       "IP blocking was highly effective"
     ]
   }'
-```text
+```
 
 ####  Get Orchestration Brain Status
 ```bash
@@ -243,7 +243,7 @@ curl -X POST https://api.xorb.security/v1/intelligence/feedback \
 curl -X GET https://api.xorb.security/v1/intelligence/models/qwen3_orchestrator/brain-status \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
-```text
+```
 
 ##  SDK Examples
 
@@ -388,7 +388,7 @@ if threats['threats']:
         }
     )
     print(f"AI recommendation: {decision['recommendation']} (confidence: {decision['confidence_score']})")
-```text
+```
 
 ###  TypeScript SDK
 
@@ -531,7 +531,7 @@ const client = new XORBClient({
     console.error('API Error:', error.response?.data || error.message);
   }
 })();
-```text
+```
 
 ##  Error Handling
 
@@ -548,7 +548,7 @@ const client = new XORBClient({
   "request_id": "req_123456789",
   "timestamp": "2024-01-15T12:30:00Z"
 }
-```text
+```
 
 ###  Common HTTP Status Codes
 
@@ -573,11 +573,11 @@ Rate limits are enforced per client and role:
 - **Readonly**: 500 requests/minute
 
 Rate limit headers are included in responses:
-```text
+```
 X-RateLimit-Limit: 5000
 X-RateLimit-Remaining: 4999
 X-RateLimit-Reset: 1642248000
-```text
+```
 
 ##  Security Best Practices
 
@@ -618,7 +618,7 @@ X-RateLimit-Reset: 1642248000
 curl -X GET https://api.xorb.security/v1/telemetry/health \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
-```text
+```
 
 ###  Metrics Collection
 
@@ -627,7 +627,7 @@ curl -X GET https://api.xorb.security/v1/telemetry/health \
 curl -X GET https://api.xorb.security/v1/telemetry/metrics \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
-```text
+```
 
 ###  Audit Logging
 

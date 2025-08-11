@@ -68,7 +68,7 @@ payload_result = await payload_generator.generate_advanced_payload(
 # Multi-criteria obfuscation selection
 obfuscation_strategies = ["metamorphic", "ai_driven", "control_flow"]
 encoded_payload = await apply_obfuscation_layers(payload, strategies)
-```text
+```
 
 ###  2. AI-Driven Technique Selector (`src/xorb/intelligence/ai_technique_selector.py`)
 
@@ -91,7 +91,7 @@ scores = multi_criteria_optimizer.optimize(techniques, context)
 adversarial_tech = adversarial_selector.select_adversarial_technique(
     base_scores, defensive_analysis, context
 )
-```text
+```
 
 ###  3. Enhanced Demonstration Script (`demonstrate_enhanced_autonomous_capabilities.py`)
 

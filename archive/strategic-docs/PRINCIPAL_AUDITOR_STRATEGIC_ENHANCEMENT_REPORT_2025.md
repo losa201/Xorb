@@ -66,7 +66,7 @@ class AutonomousSecurityOperationsCenter:
 
             # Self-healing infrastructure operations
             await self.self_healing_infrastructure.heal_and_optimize()
-```text
+```
 
 - **Implementation Plan**:
 1. Integrate existing intelligence engines into unified command center
@@ -119,7 +119,7 @@ class GlobalThreatIntelligenceMesh:
 
         # Start collaborative threat sharing
         await self.threat_collaboration_engine.join_global_network()
-```text
+```
 
 - **Implementation Plan**:
 1. Build secure threat sharing protocols with privacy preservation
@@ -165,7 +165,7 @@ class QuantumEnhancedSecurityInfrastructure:
 
         # Start quantum threat monitoring
         await self.quantum_threat_monitor.monitor_quantum_landscape()
-```text
+```
 
 - **Implementation Plan**:
 1. Enhance existing quantum-safe engine with hybrid capabilities
@@ -220,7 +220,7 @@ class AIComplianceAutomationSuite:
 
             # Generate executive compliance reports
             await automator.generate_executive_report()
-```text
+```
 
 - **Implementation Plan**:
 1. Build framework-specific compliance automators
@@ -272,7 +272,7 @@ class AutonomousRedTeamAsAService:
 
             # Adaptive delay based on stealth requirements
             await asyncio.sleep(self.calculate_adaptive_delay())
-```text
+```
 
 - **Implementation Plan**:
 1. Enhance existing red team engine with nation-state capabilities

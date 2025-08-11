@@ -39,7 +39,7 @@ curl http://localhost:8000/api/v1/health
 
 # API information
 curl http://localhost:8000/api/v1/info
-```text
+```
 
 - --
 
@@ -64,7 +64,7 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 # Use token in requests
 curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
   http://localhost:8000/api/v1/ptaas/sessions
-```text
+```
 
 ###  **API Key Authentication**
 For service-to-service communication:
@@ -72,7 +72,7 @@ For service-to-service communication:
 ```bash
 curl -H "X-API-Key: your-api-key" \
   http://localhost:8000/api/v1/platform/services
-```text
+```
 
 - --
 
@@ -102,7 +102,7 @@ Authorization: Bearer {token}
     "environment": "production"
   }
 }
-```text
+```
 
 - *Response:**
 ```json
@@ -116,13 +116,13 @@ Authorization: Bearer {token}
   "completed_at": null,
   "results": null
 }
-```text
+```
 
 ####  **Get Scan Status**
 ```http
 GET /api/v1/ptaas/sessions/{session_id}
 Authorization: Bearer {token}
-```text
+```
 
 - *Response:**
 ```json
@@ -146,13 +146,13 @@ Authorization: Bearer {token}
     }
   }
 }
-```text
+```
 
 ####  **Available Scan Profiles**
 ```http
 GET /api/v1/ptaas/profiles
 Authorization: Bearer {token}
-```text
+```
 
 - *Response:**
 ```json
@@ -185,7 +185,7 @@ Authorization: Bearer {token}
   },
   "available_scanners": ["nmap", "nuclei", "nikto", "sslscan", "dirb"]
 }
-```text
+```
 
 ####  **Validate Target**
 ```http
@@ -199,7 +199,7 @@ Authorization: Bearer {token}
   "scan_profile": "comprehensive",
   "authorized": true
 }
-```text
+```
 
 - *Response:**
 ```json
@@ -212,13 +212,13 @@ Authorization: Bearer {token}
   "warnings": ["Port 22 requires special authorization"],
   "errors": []
 }
-```text
+```
 
 ####  **Get Scan Results**
 ```http
 GET /api/v1/ptaas/scan-results/{session_id}?format=json
 Authorization: Bearer {token}
-```text
+```
 
 - **Supported formats**: `json`, `pdf`, `csv`
 
@@ -254,7 +254,7 @@ Authorization: Bearer {token}
   },
   "retention_days": 90
 }
-```text
+```
 
 ####  **Execute Workflow**
 ```http
@@ -269,7 +269,7 @@ Authorization: Bearer {token}
     "custom_targets": ["urgent.company.com"]
   }
 }
-```text
+```
 
 ####  **Compliance Scanning**
 ```http
@@ -287,7 +287,7 @@ Authorization: Bearer {token}
   "targets": ["web1.company.com", "db1.company.com", "gateway.company.com"],
   "assessment_type": "full"
 }
-```text
+```
 
 - **Supported frameworks**: `PCI-DSS`, `HIPAA`, `SOX`, `ISO-27001`, `GDPR`, `NIST`, `CIS`
 
@@ -308,7 +308,7 @@ Authorization: Bearer {token}
   "duration_hours": 24,
   "stealth_level": "medium"
 }
-```text
+```
 
 - **Supported simulations**:
 - `apt_simulation` - Advanced Persistent Threat
@@ -341,7 +341,7 @@ Authorization: Bearer {token}
     "business_hours_only": true
   }
 }
-```text
+```
 
 - --
 
@@ -372,7 +372,7 @@ Authorization: Bearer {token}
     }
   }
 }
-```text
+```
 
 - *Response:**
 ```json
@@ -399,7 +399,7 @@ Authorization: Bearer {token}
     "incident_escalation"
   ]
 }
-```text
+```
 
 ####  **Behavioral Analysis**
 ```http
@@ -419,7 +419,7 @@ Authorization: Bearer {token}
   },
   "timeframe": "7d"
 }
-```text
+```
 
 ####  **Threat Hunting**
 ```http
@@ -435,7 +435,7 @@ Authorization: Bearer {token}
     "end": "2025-01-15T23:59:59Z"
   }
 }
-```text
+```
 
 - --
 
@@ -447,7 +447,7 @@ Authorization: Bearer {token}
 ```http
 GET /api/v1/platform/services
 Authorization: Bearer {token}
-```text
+```
 
 - *Response:**
 ```json
@@ -472,19 +472,19 @@ Authorization: Bearer {token}
     "intelligence": 3
   }
 }
-```text
+```
 
 ####  **Platform Health**
 ```http
 GET /api/v1/platform/health
 Authorization: Bearer {token}
-```text
+```
 
 ####  **Platform Metrics**
 ```http
 GET /api/v1/platform/metrics
 Authorization: Bearer {token}
-```text
+```
 
 ####  **Forensics Evidence Collection**
 ```http
@@ -504,7 +504,7 @@ Authorization: Bearer {token}
     "size_bytes": 1048576
   }
 }
-```text
+```
 
 ####  **Network Microsegmentation**
 ```http
@@ -532,7 +532,7 @@ Authorization: Bearer {token}
     }
   ]
 }
-```text
+```
 
 - --
 
@@ -544,21 +544,21 @@ Authorization: Bearer {token}
 - **Burst Allowance**: 2x normal rate for 60 seconds
 
 ###  **Rate Limit Headers**
-```text
+```
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 45
 X-RateLimit-Reset: 1642176000
 X-RateLimit-Burst-Remaining: 30
-```text
+```
 
 ###  **Security Headers**
-```text
+```
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
 X-XSS-Protection: 1; mode=block
 Strict-Transport-Security: max-age=31536000; includeSubDomains
 Content-Security-Policy: default-src 'self'
-```text
+```
 
 ###  **Request Validation**
 - **Input Sanitization**: All inputs are validated and sanitized
@@ -582,7 +582,7 @@ Content-Security-Policy: default-src 'self'
   "request_id": "req_1234567890",
   "timestamp": "2025-01-15T10:30:00Z"
 }
-```text
+```
 
 ###  **HTTP Status Codes**
 - **200**: Success
@@ -678,7 +678,7 @@ curl -X POST "$BASE_URL/ptaas/orchestration/compliance-scan" \
     "targets": ["scanme.nmap.org"],
     "assessment_type": "focused"
   }'
-```text
+```
 
 ###  **Automated Threat Hunting**
 
@@ -733,7 +733,7 @@ class XORBThreatHunter:
 hunter = XORBThreatHunter("http://localhost:8000/api/v1", "your-token")
 results = hunter.hunt_suspicious_activity("7d")
 print(json.dumps(results, indent=2))
-```text
+```
 
 ###  **Enterprise Compliance Automation**
 
@@ -789,7 +789,7 @@ async def main():
         print(f"Compliance scan initiated: {result['scan_id']}")
 
 asyncio.run(main())
-```text
+```
 
 - --
 

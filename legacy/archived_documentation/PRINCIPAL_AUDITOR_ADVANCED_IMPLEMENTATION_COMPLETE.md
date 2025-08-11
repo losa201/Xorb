@@ -37,7 +37,7 @@ class AfricanThreatProfile:
     infrastructure_vulnerabilities: List[str]
     cybercrime_groups: List[str]
     attribution_confidence: float
-```text
+```
 
 ###  **Mobile Money Security Testing**
 - **M-Pesa Security Assessment** (Kenya)
@@ -58,7 +58,7 @@ regional_threats = {
     "egypt": ["state_sponsored_attacks", "government_targeting"],
     "morocco": ["financial_sector_attacks", "infrastructure_targeting"]
 }
-```text
+```
 
 - --
 
@@ -73,7 +73,7 @@ class VulnerabilityPredictionModel(nn.Module):
         self.vulnerability_classifier = nn.Sequential(...)
         self.severity_predictor = nn.Sequential(...)
         self.attention = nn.MultiheadAttention(...)
-```text
+```
 
 ###  **Deep Learning Code Analysis**
 ```python
@@ -83,7 +83,7 @@ class CodeAnalysisTransformer(nn.Module):
     # - Control flow analysis
     # - Data flow analysis
     # - Fix recommendation generation
-```text
+```
 
 ###  **AI-Enhanced Threat Correlation**
 - **Real-time behavioral analysis**
@@ -104,7 +104,7 @@ class AdvancedExploitFramework:
         # AI-assisted payload optimization
         # Stealth technique integration
         # Anti-forensics capabilities
-```text
+```
 
 ###  **Sophisticated Payload Generation**
 ```python
@@ -115,7 +115,7 @@ class AdvancedShellcodeGenerator:
         # Advanced encoding techniques
         # Evasion capability integration
         # Polymorphic payload creation
-```text
+```
 
 ###  **Post-Exploitation Capabilities**
 - **Advanced persistence mechanisms**
@@ -138,7 +138,7 @@ african_frameworks = {
     SARB_REGULATIONS: "South African Reserve Bank",
     EAC_GUIDELINES: "East African Community Data Protection"
 }
-```text
+```
 
 ###  **Automated Compliance Assessment**
 - **Real-time compliance monitoring**
@@ -156,7 +156,7 @@ industry_mappings = {
     "healthcare": [POPIA, NDPR, KENYA_DPA],
     "mining": [POPIA, ISO_27001, AU_CONVENTION]
 }
-```text
+```
 
 - --
 
@@ -170,7 +170,7 @@ class AdvancedThreatHuntingSystem:
         # Machine learning anomaly detection
         # Behavioral analytics
         # Threat intelligence correlation
-```text
+```
 
 ###  **Automated Incident Response**
 - **Real-time threat detection**
@@ -185,7 +185,7 @@ class AdvancedThreatHuntingSystem:
 isolation_forest = IsolationForest(contamination=0.1)
 dbscan_clustering = DBSCAN(eps=0.5, min_samples=5)
 random_forest_classifier = RandomForestClassifier(n_estimators=200)
-```text
+```
 
 - --
 
@@ -213,7 +213,7 @@ POST /api/v1/advanced-ptaas/threat-hunting/execute-hunt
 
 # Automated incident response
 POST /api/v1/advanced-ptaas/incident-response/automated
-```text
+```
 
 ###  **Enterprise Integration Capabilities**
 - **RESTful API with OpenAPI 3.0 specification**
@@ -362,7 +362,7 @@ POST /api/v1/advanced-ptaas/incident-response/automated
 ##  🛠️ **Implementation Architecture**
 
 ###  **Service-Oriented Architecture**
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                     XORB Advanced PTaaS Platform           │
 ├─────────────────────────────────────────────────────────────┤
@@ -376,7 +376,7 @@ POST /api/v1/advanced-ptaas/incident-response/automated
 ├─────────────────────────────────────────────────────────────┤
 │        🏗️ Infrastructure (Docker + Kubernetes + Cloud)     │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Technology Stack Excellence**
 - **Backend**: Python 3.12, FastAPI 0.117+, AsyncIO
@@ -450,7 +450,7 @@ kubectl apply -f deploy/kubernetes/production/
 
 # Terraform infrastructure
 terraform apply -var="environment=production"
-```text
+```
 
 ###  **Monitoring and Observability**
 - ✅ **Prometheus metrics collection**

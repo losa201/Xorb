@@ -18,6 +18,7 @@ from ..domain.tenant_entities import ScanTarget, ScanResult
 from ..middleware.audit_logging import audit_log
 from ..middleware.rate_limiting import rate_limit
 from ..auth.dependencies import get_current_user, require_permissions
+from ..auth.rbac_dependencies import require_permissions as rbac_require_permissions
 
 logger = logging.getLogger(__name__)
 security = HTTPBearer()

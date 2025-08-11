@@ -14,7 +14,7 @@ The XORB PTaaS Cyber Range is a self-contained, isolated environment designed to
 
 ##  🌐 Network Topology
 
-```text
+```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Control       │    │   Red Team      │    │   Blue Team     │
 │   Plane         │    │   Infrastructure│    │   SOC           │
@@ -34,7 +34,7 @@ The XORB PTaaS Cyber Range is a self-contained, isolated environment designed to
 │   Web Targets   │    │ Internal Targets│    │   OT/IoT        │
 │   10.100.0.0/24 │    │   10.110.0.0/24 │    │   10.120.0.0/24 │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
-```text
+```
 
 ##  🚀 Quick Start
 
@@ -58,14 +58,14 @@ terraform apply
 
 # Configure kubectl
 export KUBECONFIG=./kubeconfig_xorb-cyber-range
-```text
+```
 
 ####  Option B: Local Kubernetes
 ```bash
 # Verify cluster resources
 kubectl top nodes
 kubectl get namespaces
-```text
+```
 
 ###  2. Deploy Cyber Range Components
 
@@ -88,7 +88,7 @@ kubectl apply -f k8s/targets.yaml
 kubectl apply -f monitoring/prometheus-config.yaml
 kubectl apply -f monitoring/grafana-config.yaml
 kubectl apply -f monitoring/alertmanager-config.yaml
-```text
+```
 
 ###  3. Configure Firewall Rules
 
@@ -101,7 +101,7 @@ sudo ./firewall/iptables-staging.sh
 
 # Verify configuration
 sudo ./firewall/iptables-staging.sh status
-```text
+```
 
 ###  4. Verify Deployment
 
@@ -116,7 +116,7 @@ kubectl port-forward -n cyber-range-control svc/grafana-service 3001:3000
 # Open in browser
 # - Admin Console: http://localhost:3000
 # - Grafana: http://localhost:3001 (admin/SecureAdminPass123!)
-```text
+```
 
 ##  🎯 Operation Modes
 
@@ -133,7 +133,7 @@ sudo ./scripts/mode-switch.sh staging
 
 # Verify staging mode
 sudo ./scripts/mode-switch.sh status
-```text
+```
 
 ###  Live Exercise Mode
 - **Purpose**: Active red vs blue exercises
@@ -149,7 +149,7 @@ sudo ./scripts/mode-switch.sh live
 # Monitor exercise
 watch kubectl get pods --all-namespaces
 tail -f /var/log/cyber-range/mode-switch.log
-```text
+```
 
 ##  🚨 Emergency Controls
 
@@ -169,7 +169,7 @@ sudo ./scripts/kill-switch.sh status
 
 # Restore from backup
 sudo ./scripts/kill-switch.sh restore /path/to/backup
-```text
+```
 
 ###  Auto-Termination
 - Exercises auto-terminate after configured duration (default: 8 hours)
@@ -223,7 +223,7 @@ curl -X POST http://localhost:8080/api/v1/campaigns/{id}/start
 
 # Monitor campaign status
 curl http://localhost:8080/api/v1/campaigns/{id}/status
-```text
+```
 
 ##  🛡️ Security Features
 
@@ -264,7 +264,7 @@ export TARGET_NETWORKS="10.100.0.0/24,10.110.0.0/24,10.120.0.0/24"
 export RATE_LIMITING="true"
 export MALWARE_DETECTION="true"
 export GEOGRAPHIC_RESTRICTIONS="true"
-```text
+```
 
 ###  Customization
 - **Target Configuration**: Add custom vulnerable applications
@@ -285,7 +285,7 @@ curl http://red-team-c2-service:8080/api/targets
 
 # View attack logs
 kubectl logs -n cyber-range-red deployment/red-team-c2 -f
-```text
+```
 
 ###  Blue Team Access
 ```bash
@@ -298,7 +298,7 @@ kubectl logs -n cyber-range-blue deployment/wazuh-manager -f
 
 # Access threat hunting platform
 # Jupyter: http://localhost:8888 (token in logs)
-```text
+```
 
 ###  White Team Controls
 ```bash
@@ -311,7 +311,7 @@ kubectl port-forward -n cyber-range-control svc/grafana-service 3001:3000
 # Emergency controls
 sudo ./scripts/kill-switch.sh status
 sudo ./scripts/mode-switch.sh status
-```text
+```
 
 ##  🚨 Troubleshooting
 
@@ -327,7 +327,7 @@ kubectl top nodes
 
 # Check pod events
 kubectl describe pod -n cyber-range-red <pod-name>
-```text
+```
 
 ####  Network Connectivity Issues
 ```bash
@@ -339,7 +339,7 @@ sudo iptables -L -n | grep CYBER-RANGE
 
 # Test connectivity
 kubectl exec -it -n cyber-range-red <pod> -- ping 10.100.0.10
-```text
+```
 
 ####  Kill Switch Not Working
 ```bash
@@ -351,7 +351,7 @@ ls -la /opt/cyber-range/scripts/kill-switch.sh
 
 # Manual network isolation
 sudo iptables -P FORWARD DROP
-```text
+```
 
 ###  Log Locations
 - **Kill Switch**: `/var/log/cyber-range/kill-switch.log`
@@ -371,7 +371,7 @@ kubectl get services --all-namespaces
 
 # Generate debug report
 ./scripts/debug-report.sh
-```text
+```
 
 ##  🔄 Maintenance
 
@@ -391,7 +391,7 @@ kubectl get all --all-namespaces -o yaml > cyber-range-backup.yaml
 
 # Test restore procedures
 ./scripts/test-restore.sh
-```text
+```
 
 ###  Updates
 ```bash
@@ -400,7 +400,7 @@ kubectl set image deployment/xorb-orchestrator xorb-orchestrator=xorb/orchestrat
 
 # Rolling restart services
 kubectl rollout restart deployment --all -n cyber-range-control
-```text
+```
 
 ##  📄 License
 

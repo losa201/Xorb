@@ -9,7 +9,7 @@ XORB represents a **complete cybersecurity ecosystem** that integrates offensive
 ###  🔴 **PTaaS - Offensive Security Engine**
 - **Purpose**: Vulnerability discovery, custom payload crafting, and penetration testing
 
-```text
+```
 services/ptaas/
 ├── pentesting-engine/           # Advanced penetration testing framework
 │   ├── network-scanning/        # Network discovery and enumeration
@@ -30,12 +30,12 @@ services/ptaas/
     ├── attack-dashboard/        # Real-time attack orchestration
     ├── payload-studio/          # Malware crafting interface
     └── campaign-management/     # Penetration testing campaigns
-```text
+```
 
 ###  🛡️ **XORB Core - Defensive Security Platform**
 - **Purpose**: Threat remediation, incident response, and security orchestration
 
-```text
+```
 services/xorb-core/
 ├── threat-intelligence/         # AI-powered threat analysis
 │   ├── indicator-correlation/   # IOC analysis and correlation
@@ -57,12 +57,12 @@ services/xorb-core/
     ├── soar-workflows/          # Security orchestration workflows
     ├── compliance-automation/   # Automated compliance management
     └── risk-assessment/         # Continuous risk assessment
-```text
+```
 
 ##  Unified Security Workflows
 
 ###  **1. Continuous Security Validation Loop**
-```text
+```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   PTaaS         │    │   Integration    │    │   XORB Core     │
 │   Discovery     │───▶│   Analysis       │───▶│   Remediation   │
@@ -80,25 +80,25 @@ services/xorb-core/
                         │ • Evasion Valid  │
                         │ • Effectiveness  │
                         └──────────────────┘
-```text
+```
 
 ###  **2. Red Team / Blue Team Integration**
-```text
+```
 Red Team (PTaaS)                    Blue Team (XORB Core)
 ─────────────────                    ──────────────────────
 Attack Simulation      ──────▶       Defense Response
 Payload Development    ──────▶       Signature Creation
 Evasion Testing       ◀──────▶       Detection Enhancement
 Campaign Execution     ──────▶       Incident Response
-```text
+```
 
 ###  **3. Threat Intelligence Feedback Loop**
-```text
+```
 PTaaS Discovers Threat ──▶ XORB Analyzes Impact ──▶ XORB Creates Defense
          ▲                                                    │
          │                                                    │
          └──────── PTaaS Tests Defense ◀─────────────────────┘
-```text
+```
 
 ##  Advanced Integration Features
 
@@ -117,7 +117,7 @@ class UnifiedThreatModel:
         defenses = self.defensive_measures.generate(vulnerabilities)
         effectiveness = self.attack_vectors.test_defenses(defenses)
         return self.optimize_security_posture(effectiveness)
-```text
+```
 
 ###  **Real-Time Security Orchestration**
 - **Attack Detection**: XORB immediately detects PTaaS simulated attacks
@@ -182,4 +182,4 @@ class UnifiedThreatModel:
 
 - --
 
-- *XORB represents the future of cybersecurity: a unified platform where offensive and defensive security work together to create an impenetrable defense posture through continuous validation and improvement.**
+- **XORB represents the future of cybersecurity: a unified platform where offensive and defensive security work together to create an impenetrable defense posture through continuous validation and improvement.**

@@ -115,7 +115,7 @@ container.register(
         lockout_duration_minutes=30
     )
 )
-```text
+```
 
 ####  2. Add Security Middleware
 
@@ -126,7 +126,7 @@ from app.middleware.advanced_rate_limiter import RateLimitingMiddleware
 
 app.add_middleware(AuditLoggingMiddleware, redis_client=redis_client)
 app.add_middleware(RateLimitingMiddleware, redis_client=redis_client)
-```text
+```
 
 ####  3. Enable MFA Endpoints
 
@@ -143,7 +143,7 @@ async def setup_mfa(user: User = Depends(get_current_user)):
 async def verify_mfa(challenge_id: str, token: str):
     mfa_service = MFAService(redis_client)
     return await mfa_service.verify_mfa_challenge(challenge_id, {"token": token})
-```text
+```
 
 ###  Environment Configuration
 
@@ -169,7 +169,7 @@ MFA_CHALLENGE_EXPIRE_MINUTES=10
 
 # Redis Configuration
 REDIS_URL=redis://localhost:6379/0
-```text
+```
 
 ##  🚀 Deployment Checklist
 
@@ -204,7 +204,7 @@ async def get_security_stats():
         "rate_limit_stats": await rate_limiter.get_rate_limit_stats(),
         "mfa_stats": await mfa_service.get_mfa_stats()
     }
-```text
+```
 
 ##  📊 Security Metrics
 
@@ -238,7 +238,7 @@ KEYS user_risk:*
 
 # Monitor MFA events
 LRANGE mfa_events:2024-01-15 0 -1
-```text
+```
 
 ###  Database Queries (if using SQL audit storage)
 
@@ -258,7 +258,7 @@ WHERE event_type = 'authentication'
   AND timestamp >= NOW() - INTERVAL '1 hour'
 GROUP BY user_id, client_ip
 HAVING COUNT(*) > 5;
-```text
+```
 
 ##  🛡️ Security Hardening Recommendations
 
@@ -317,7 +317,7 @@ redis-cli SETEX account_locked:suspicious_user_id 3600 "emergency_lockout"
 
 # Clear rate limits in emergency
 redis-cli DEL rate_limit:*
-```text
+```
 
 ##  🔮 Next Phase Recommendations
 

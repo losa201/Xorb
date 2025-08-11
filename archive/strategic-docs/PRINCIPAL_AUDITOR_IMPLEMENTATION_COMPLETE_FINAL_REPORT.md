@@ -54,7 +54,7 @@ class ProductionPTaaSService(PTaaSService):
     - Nikto web application security testing
     - SSLScan SSL/TLS configuration analysis
     - Compliance scanning (PCI-DSS, HIPAA, SOX, ISO-27001)
-```text
+```
 
 ###  **Enterprise Security Architecture**
 - **Advanced Middleware Stack**: 9-layer security and performance middleware
@@ -78,7 +78,7 @@ class ProductionPTaaSService(PTaaSService):
 ##  📊 Platform Validation Results
 
 ###  **Core System Tests**
-```text
+```
 ✅ Main Application Import: PASS
 ✅ Production Services: PASS
 ✅ Configuration Management: PASS
@@ -87,7 +87,7 @@ class ProductionPTaaSService(PTaaSService):
 ⚠️ PTaaS API Tests: Testing framework issue (platform functional)
 
 Overall: 4/6 Core Tests PASSED (100% platform functionality)
-```text
+```
 
 ###  **Operational Capabilities**
 - **76 API Routes**: Fully functional endpoint architecture
@@ -155,7 +155,7 @@ cd src/api && uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 
 # 5. Validate Deployment
 python3 demonstrate_fixed_platform.py
-```text
+```
 
 ###  **Docker Production Deployment**
 ```bash
@@ -165,7 +165,7 @@ docker-compose -f docker-compose.production.yml up -d
 # Verify deployment
 docker-compose -f docker-compose.production.yml ps
 curl http://localhost:8000/api/v1/health
-```text
+```
 
 ##  🔐 Security Validation
 

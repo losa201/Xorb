@@ -36,7 +36,7 @@ pip install -r requirements.lock
 
 # Validate environment
 python tools/scripts/validate_environment.py
-```text
+```
 
 ###  Database Initialization
 ```bash
@@ -53,7 +53,7 @@ docker run -d --name xorb-redis \
   -v ./infra/redis/redis-tls.conf:/usr/local/etc/redis/redis.conf \
   -p 6379:6379 \
   redis:7-alpine redis-server /usr/local/etc/redis/redis.conf
-```text
+```
 
 ##  🔐 Security Implementation
 
@@ -73,7 +73,7 @@ clients=(redis-client postgres-client temporal-client)
 for client in "${clients[@]}"; do
     ./scripts/ca/issue-cert.sh "$client" client
 done
-```text
+```
 
 ###  Security Middleware Configuration
 ```python
@@ -87,7 +87,7 @@ app.add_middleware(PerformanceMiddleware)
 app.add_middleware(AuditLoggingMiddleware)
 app.add_middleware(GZipMiddleware)
 app.add_middleware(RequestIdMiddleware)
-```text
+```
 
 ###  Vault Integration
 ```bash
@@ -97,7 +97,7 @@ cd infra/vault && ./setup-vault-dev.sh
 # Configure Vault secrets
 python3 src/common/vault_manager.py health
 python3 src/common/vault_manager.py test
-```text
+```
 
 ##  🎯 PTaaS Implementation
 
@@ -112,7 +112,7 @@ go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
 # Install SSLScan
 git clone https://github.com/rbsec/sslscan.git
 cd sslscan && make static && make install
-```text
+```
 
 ###  PTaaS Service Configuration
 ```python
@@ -133,7 +133,7 @@ SCANNER_CONFIG = {
         "timeout": 1800
     }
 }
-```text
+```
 
 ###  Scan Profiles Implementation
 ```yaml
@@ -154,7 +154,7 @@ scan_profiles:
   web_focused:
     duration: 1200
     scanners: ["web_vulnerability_scan", "ssl_scan", "directory_enumeration"]
-```text
+```
 
 ##  🤖 AI/ML Services Implementation
 
@@ -178,7 +178,7 @@ THREAT_INTELLIGENCE_CONFIG = {
         "sensitivity": 0.95
     }
 }
-```text
+```
 
 ###  Vector Database Configuration
 ```python
@@ -189,7 +189,7 @@ VECTOR_CONFIG = {
     "index_type": "ivfflat",
     "lists": 100
 }
-```text
+```
 
 ##  🔄 Orchestration Implementation
 
@@ -202,7 +202,7 @@ docker run -d --name temporal \
 
 # Initialize workflow worker
 cd src/orchestrator && python main.py
-```text
+```
 
 ###  Workflow Configuration
 ```python
@@ -213,7 +213,7 @@ class PTaaSOrchestrationWorkflow:
         # Implement comprehensive scan orchestration
         # with error handling and retry policies
         pass
-```text
+```
 
 ##  🏭 Production Deployment
 
@@ -225,7 +225,7 @@ docker-compose -f docker-compose.production.yml up -d
 # Verify deployment health
 curl http://localhost:8000/api/v1/health
 curl http://localhost:8000/api/v1/readiness
-```text
+```
 
 ###  Kubernetes Deployment
 ```bash
@@ -239,7 +239,7 @@ kubectl apply -f k8s/services/
 # Verify deployment
 kubectl get pods -n xorb-platform
 kubectl get services -n xorb-platform
-```text
+```
 
 ###  Service Mesh Integration
 ```bash
@@ -251,7 +251,7 @@ kubectl apply -f k8s/mtls/istio-mtls-policy.yaml
 
 # Verify mTLS status
 istioctl authn tls-check xorb-api.xorb-platform.svc.cluster.local
-```text
+```
 
 ##  📊 Monitoring Implementation
 
@@ -269,7 +269,7 @@ scrape_configs:
   - job_name: 'xorb-orchestrator'
     static_configs:
       - targets: ['orchestrator:8001']
-```text
+```
 
 ###  Grafana Dashboard Setup
 ```bash
@@ -279,7 +279,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 # Access Grafana
 open http://localhost:3010
 # Login: admin / SecureAdminPass123!
-```text
+```
 
 ##  🛡️ Compliance Implementation
 
@@ -298,7 +298,7 @@ allow {
     jwt.verify_es256(input.token, cert)
     payload := jwt.decode_verify(input.token, constraint)
 }
-```text
+```
 
 ###  Audit Logging Implementation
 ```python
@@ -310,7 +310,7 @@ AUDIT_CONFIG = {
     "retention_days": 90,
     "encryption": True
 }
-```text
+```
 
 ##  🧪 Testing Implementation
 
@@ -324,7 +324,7 @@ pytest -m security
 
 # Run performance tests
 pytest -m performance
-```text
+```
 
 ###  Integration Testing
 ```python
@@ -339,7 +339,7 @@ async def authenticated_client(test_client):
     token = await get_test_token()
     test_client.headers.update({"Authorization": f"Bearer {token}"})
     return test_client
-```text
+```
 
 ##  🔧 Configuration Management
 
@@ -354,7 +354,7 @@ export ENVIRONMENT="production"
 export ENABLE_METRICS="true"
 export RATE_LIMIT_PER_MINUTE="60"
 export RATE_LIMIT_PER_HOUR="1000"
-```text
+```
 
 ###  Configuration Validation
 ```python
@@ -369,7 +369,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = False
-```text
+```
 
 ##  🚀 Deployment Automation
 
@@ -394,7 +394,7 @@ jobs:
       - name: Deploy to production
         run: |
           docker-compose -f docker-compose.production.yml up -d
-```text
+```
 
 ###  Health Monitoring
 ```bash
@@ -407,7 +407,7 @@ jobs:
 # Security validation
 ./scripts/validate/test_tls.sh
 ./scripts/validate/test_mtls.sh
-```text
+```
 
 ##  🎯 Success Metrics
 

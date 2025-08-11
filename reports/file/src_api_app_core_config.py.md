@@ -19,7 +19,7 @@ This module serves as the central configuration management system for the XORB p
 ```python
 # VULNERABLE CODE
 jwt_secret_key: str = Field(env="JWT_SECRET")
-```text
+```
 
 - **Issue**:
 - No validation for secret strength or entropy
@@ -57,7 +57,7 @@ class SecureJWTConfig:
         entropy = -sum((count/length) * math.log2(count/length)
                       for count in counts.values())
         return entropy
-```text
+```
 
 ### HIGH: Default Database URL Exposure
 - **Location**: Line 54
@@ -66,7 +66,7 @@ class SecureJWTConfig:
 ```python
 # VULNERABLE CODE
 database_url: str = Field(default="postgresql://user:pass@localhost/xorb", env="DATABASE_URL")
-```text
+```
 
 - **Issue**: Default database URL contains credentials that could be used if environment variable is not set.
 
@@ -83,7 +83,7 @@ def validate_database_url(cls, v):
         raise ValueError("Invalid database URL format")
 
     return v
-```text
+```
 
 ### MEDIUM: CORS Security Misconfiguration
 - **Location**: Line 77
@@ -92,7 +92,7 @@ def validate_database_url(cls, v):
 ```python
 # VULNERABLE CODE
 cors_allow_origins: str = Field(default="*", env="CORS_ALLOW_ORIGINS")
-```text
+```
 
 - **Issue**: Wildcard CORS origins allowed by default, enabling cross-origin attacks.
 
@@ -246,7 +246,7 @@ class SecureAppSettings(BaseSettings):
                 raise ValueError(f"Invalid origin: {origin}")
 
         return v
-```text
+```
 
 - --
 - **Security Review Status**: CRITICAL ISSUES IDENTIFIED

@@ -68,7 +68,7 @@ services:
 volumes:
   prometheus_data:
   grafana_data:
-```text
+```
 
 ##  Development Configuration (docker-compose.dev.yml)
 
@@ -114,7 +114,7 @@ services:
 
 volumes:
   testdb_data:
-```text
+```
 
 ##  Fixed Configuration (docker-compose.fixed.yml)
 
@@ -158,7 +158,7 @@ services:
 volumes:
   backup_data:
   log_data:
-```text
+```
 
 ##  Usage Instructions
 
@@ -167,29 +167,29 @@ volumes:
 To start the system in production mode:
 ```bash
 docker-compose up -d
-```text
+```
 
 For development mode with debug tools:
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-```text
+```
 
 For fixed infrastructure deployment:
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.fixed.yml up -d
-```text
+```
 
 ###  Building Images
 
 To build all images:
 ```bash
 docker-compose build
-```text
+```
 
 To build specific services:
 ```bash
 docker-compose build fusion-orchestrator security-gateway
-```text
+```
 
 ##  Configuration Management
 
@@ -210,12 +210,12 @@ The monitoring stack provides insights into the system through:
 To view logs for a specific service:
 ```bash
 docker logs xorb-orchestrator
-```text
+```
 
 To execute commands in a running container:
 ```bash
 docker exec -it xorb-orchestrator bash
-```text
+```
 
 ##  Best Practices
 

@@ -31,7 +31,7 @@ Transform Xorb into a unified XDR (Extended Detection and Response) platform tha
 src/api/app/services/auth_security_service.py
 src/api/app/services/mfa_service.py
 src/api/app/middleware/audit_logging.py
-```text
+```
 
 ###  Priority 1B: API Security & Rate Limiting
 - **Timeline**: 3 weeks
@@ -69,7 +69,7 @@ src/api/app/middleware/audit_logging.py
 - Build security dashboard with threat visualization
 
 - **Technical Components**:
-```text
+```
 src/xorb/siem/
 ├── ingestion/
 │   ├── log_parser.py
@@ -82,7 +82,7 @@ src/xorb/siem/
 └── alerting/
     ├── alert_manager.py
     └── notification_service.py
-```text
+```
 
 ###  Priority 2B: SOAR Automation Engine
 - **Timeline**: 8 weeks
@@ -96,7 +96,7 @@ src/xorb/siem/
 - Create automated remediation workflows
 
 - **Technical Components**:
-```text
+```
 src/xorb/soar/
 ├── playbooks/
 │   ├── playbook_engine.py
@@ -108,7 +108,7 @@ src/xorb/soar/
 └── integrations/
     ├── connector_framework.py
     └── security_tools/
-```text
+```
 
 ###  Priority 2C: Threat Intelligence Platform
 - **Timeline**: 4 weeks
@@ -170,7 +170,7 @@ src/xorb/soar/
 - Build threat prediction and risk scoring models
 
 - **Technical Components**:
-```text
+```
 src/xorb/ml/
 ├── models/
 │   ├── behavioral_analysis.py
@@ -183,7 +183,7 @@ src/xorb/ml/
 └── inference/
     ├── real_time_detection.py
     └── batch_processing.py
-```text
+```
 
 ###  Priority 4B: Vulnerability Management Platform
 - **Timeline**: 8 weeks
@@ -226,13 +226,13 @@ src/xorb/ml/
 ###  Data Architecture
 
 - **Data Lake Implementation**:
-```text
+```
 data/
 ├── raw/              # Raw security logs and events
 ├── processed/        # Normalized and enriched data
 ├── models/           # ML model artifacts
 └── analytics/        # Aggregated analytics data
-```text
+```
 
 - **Stream Processing**:
 - Implement Apache Kafka for real-time event streaming

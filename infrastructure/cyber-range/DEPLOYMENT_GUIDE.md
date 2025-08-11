@@ -45,7 +45,7 @@ kubectl get storageclass
 
 # Verify load balancer capability
 kubectl get svc -A | grep LoadBalancer
-```text
+```
 
 Expected output should show sufficient resources and working load balancer.
 
@@ -65,7 +65,7 @@ parameters:
 allowVolumeExpansion: true
 volumeBindingMode: WaitForFirstConsumer
 EOF
-```text
+```
 
 ###  Step 1.3: Verify Required Commands
 ```bash
@@ -77,7 +77,7 @@ for cmd in kubectl docker terraform jq curl; do
         echo "❌ $cmd is NOT available - please install"
     fi
 done
-```text
+```
 
 ##  🚀 Phase 2: Core Infrastructure Deployment
 
@@ -98,17 +98,17 @@ kubectl apply -f k8s/network-policies.yaml
 
 # Verify network policies
 kubectl get networkpolicy --all-namespaces
-```text
+```
 
 Expected output:
-```text
+```
 cyber-range            Active   <age>
 cyber-range-blue       Active   <age>
 cyber-range-control    Active   <age>
 cyber-range-red        Active   <age>
 cyber-range-simulation Active   <age>
 cyber-range-targets    Active   <age>
-```text
+```
 
 ###  Step 2.2: Deploy Control Plane
 ```bash
@@ -120,13 +120,13 @@ kubectl wait --for=condition=available --timeout=300s deployment --all -n cyber-
 
 # Check control plane status
 kubectl get pods -n cyber-range-control
-```text
+```
 
 Monitor the pods until all are running:
 ```bash
 # Watch pods come online
 watch kubectl get pods -n cyber-range-control
-```text
+```
 
 ###  Step 2.3: Configure Secrets
 ```bash
@@ -145,7 +145,7 @@ kubectl create secret generic grafana-secret \
 
 # Verify secrets created
 kubectl get secrets -n cyber-range-control
-```text
+```
 
 ##  🔴 Phase 3: Red Team Infrastructure
 
@@ -159,7 +159,7 @@ kubectl wait --for=condition=available --timeout=600s deployment --all -n cyber-
 
 # Check red team status
 kubectl get pods -n cyber-range-red
-```text
+```
 
 ###  Step 3.2: Configure Red Team Tools
 ```bash
@@ -184,7 +184,7 @@ setg VERBOSE true
 
 # Verify red team deployment
 kubectl get all -n cyber-range-red
-```text
+```
 
 ##  🔵 Phase 4: Blue Team Infrastructure
 
@@ -198,7 +198,7 @@ kubectl wait --for=condition=available --timeout=900s deployment --all -n cyber-
 
 # Check blue team status
 kubectl get pods -n cyber-range-blue
-```text
+```
 
 ###  Step 4.2: Configure Blue Team SIEM
 ```bash
@@ -246,7 +246,7 @@ alert tcp any any -> any 4444 (msg:\"Reverse Shell Detected\"; sid:1000003;)
 
 # Verify blue team deployment
 kubectl get all -n cyber-range-blue
-```text
+```
 
 ##  🎯 Phase 5: Target Environment Deployment
 
@@ -309,7 +309,7 @@ EOF
 
 # Verify target deployment
 kubectl get pods -n cyber-range-targets
-```text
+```
 
 ##  📊 Phase 6: Monitoring Stack Deployment
 
@@ -365,7 +365,7 @@ spec:
     targetPort: 9090
   type: LoadBalancer
 EOF
-```text
+```
 
 ###  Step 6.2: Deploy Grafana
 ```bash
@@ -421,7 +421,7 @@ spec:
     targetPort: 3000
   type: LoadBalancer
 EOF
-```text
+```
 
 ###  Step 6.3: Deploy AlertManager
 ```bash
@@ -430,7 +430,7 @@ kubectl apply -f monitoring/alertmanager-config.yaml
 
 # Wait for monitoring stack
 kubectl wait --for=condition=available --timeout=300s deployment prometheus grafana -n cyber-range-control
-```text
+```
 
 ##  🔧 Phase 7: Firewall and Security Configuration
 
@@ -444,7 +444,7 @@ sudo apt-get update && sudo apt-get install -y iptables
 
 # Verify iptables functionality
 sudo iptables -L
-```text
+```
 
 ###  Step 7.2: Configure Initial Firewall Rules (Staging Mode)
 ```bash
@@ -456,7 +456,7 @@ sudo ./firewall/iptables-staging.sh verify
 
 # Check current mode
 sudo ./scripts/mode-switch.sh status
-```text
+```
 
 Expected output should show "STAGING" mode with red team attacks blocked.
 
@@ -475,7 +475,7 @@ kubectl get networkpolicy --all-namespaces
 
 # Check storage
 kubectl get pvc --all-namespaces
-```text
+```
 
 ###  Step 8.2: Test Connectivity
 ```bash
@@ -491,7 +491,7 @@ kubectl port-forward -n cyber-range-control svc/grafana-service 3001:3000 &
 # Test in browser
 curl -I http://localhost:3000
 curl -I http://localhost:3001
-```text
+```
 
 ###  Step 8.3: Test Kill Switch
 ```bash
@@ -499,7 +499,7 @@ curl -I http://localhost:3001
 sudo ./scripts/kill-switch.sh test
 
 # Expected output should show all components available
-```text
+```
 
 ###  Step 8.4: Test Mode Switching
 ```bash
@@ -508,7 +508,7 @@ sudo ./scripts/mode-switch.sh dry-run live
 
 # Verify current mode
 sudo ./scripts/mode-switch.sh status
-```text
+```
 
 ##  🎮 Phase 9: First Exercise Setup
 
@@ -525,7 +525,7 @@ echo "Grafana: http://localhost:3001 (admin/SecureAdminPass123!)"
 # Access Blue Team Kibana
 kubectl port-forward -n cyber-range-blue svc/kibana 5601:5601 &
 echo "Kibana: http://localhost:5601"
-```text
+```
 
 ###  Step 9.2: Create First Campaign
 ```bash
@@ -545,7 +545,7 @@ curl -X POST http://localhost:8080/api/v1/campaigns \
 
 # Check campaign status
 curl http://localhost:8080/api/v1/campaigns
-```text
+```
 
 ###  Step 9.3: Verify Team Access
 ```bash
@@ -557,7 +557,7 @@ kubectl exec -it -n cyber-range-blue deployment/kibana -- curl -I http://elastic
 
 # Target accessibility
 kubectl exec -it -n cyber-range-targets deployment/dvwa-target -- curl -I http://localhost
-```text
+```
 
 ##  🚨 Phase 10: Emergency Procedures Testing
 
@@ -574,7 +574,7 @@ sudo ./scripts/kill-switch.sh status
 
 # Deactivate kill switch
 sudo ./scripts/kill-switch.sh deactivate
-```text
+```
 
 ###  Step 10.2: Test Mode Switching to Live
 ```bash
@@ -589,7 +589,7 @@ kubectl exec -it -n cyber-range-red deployment/attack-tools -- ping -c 3 10.100.
 
 # Switch back to staging
 sudo ./scripts/mode-switch.sh staging
-```text
+```
 
 ##  ✅ Phase 11: Deployment Validation Checklist
 
@@ -636,7 +636,7 @@ kubectl get storageclass
 kubectl describe pvc -n <namespace>
 
 # Solution: Scale cluster or adjust resource requests
-```text
+```
 
 ###  Issue: Network Connectivity Problems
 ```bash
@@ -649,7 +649,7 @@ sudo iptables -L -n | grep CYBER-RANGE
 
 # Solution: Verify firewall rules and network policies
 sudo ./firewall/iptables-staging.sh verify
-```text
+```
 
 ###  Issue: Monitoring Not Working
 ```bash
@@ -662,7 +662,7 @@ kubectl get pods -n cyber-range-control -l app=prometheus
 kubectl logs -n cyber-range-control deployment/prometheus
 
 # Solution: Verify service annotations and network policies
-```text
+```
 
 ###  Issue: Kill Switch Not Responsive
 ```bash
@@ -674,7 +674,7 @@ tail -f /var/log/cyber-range/kill-switch.log
 
 # Manual emergency isolation
 sudo iptables -P FORWARD DROP
-```text
+```
 
 ##  📞 Support and Next Steps
 

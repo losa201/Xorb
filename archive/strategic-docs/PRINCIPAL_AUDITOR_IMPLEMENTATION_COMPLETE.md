@@ -77,7 +77,7 @@ class AdvancedPayloadEngine:
         # - Sophisticated obfuscation (variable substitution, string concatenation)
         # - Anti-AV evasion techniques
         # - Comprehensive safety validation
-```text
+```
 
 ####  Advanced Exploitation Techniques
 - **SQL Injection** with multiple techniques (boolean, union, time-based, error-based)
@@ -99,7 +99,7 @@ class AutonomousOrchestrator:
         # - Risk assessment and adaptation
         # - Mission timeline optimization
         # - Human oversight integration
-```text
+```
 
 ###  🛡️ Comprehensive Safety Framework
 
@@ -145,7 +145,7 @@ mission_objectives = [
     )
     # ... additional sophisticated objectives
 ]
-```text
+```
 
 - --
 
@@ -185,7 +185,7 @@ class ProductionRedTeamAgent(BaseAgent):
 
         # Learn from execution
         await self.rl_engine.process_experience(...)
-```text
+```
 
 ###  Advanced Payload Generation System
 
@@ -218,7 +218,7 @@ class AdvancedDQNAgent:
 
         # Training optimizations
         self.optimizer = optim.Adam(self.q_network.parameters())
-```text
+```
 
 ####  Multi-Armed Bandit Optimization
 - **Upper Confidence Bound (UCB)** for exploration/exploitation balance
@@ -247,7 +247,7 @@ def plan_attack_sequence(self, objectives: List[MissionObjective],
     optimal_sequence = self._select_optimal_sequence(attack_paths, threat_intel)
 
     return optimal_sequence
-```text
+```
 
 - --
 
@@ -307,7 +307,7 @@ python demonstrate_production_red_team_capabilities.py
 # 1. controlled (default) - Safe demonstration with simulations
 # 2. staging - Limited capabilities for staging environment
 # 3. cyber_range - Full capabilities in isolated environment
-```text
+```
 
 - --
 
@@ -327,7 +327,7 @@ async def _run_exploitation(self, vulnerabilities):
             print(f"        [+] Successfully exploited {vuln['name']}")
             exploited.append(vuln)
     return exploited
-```text
+```
 
 ####  After (Production-Grade)
 ```python
@@ -357,7 +357,7 @@ async def _execute_exploitation(self, technique_id: str, parameters: Dict) -> Ex
     )
 
     return execution_result
-```text
+```
 
 ###  Key Architectural Improvements
 

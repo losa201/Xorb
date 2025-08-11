@@ -1,0 +1,331 @@
+{
+  "wargame_summary": {
+    "total_rounds": 2,
+    "duration": "10 minutes (simulated)",
+    "final_timestamp": "2025-08-11T21:39:41.876761"
+  },
+  "overall_metrics": {
+    "total_red_actions": 30,
+    "total_successful_attacks": 28,
+    "total_blue_actions": 36,
+    "total_detections": 20,
+    "environment_changes": 1
+  },
+  "trend_analysis": {
+    "attack_effectiveness_trend": [
+      0.9333333333333333,
+      0.9333333333333333
+    ],
+    "detection_rate_trend": [
+      0.6666666666666666,
+      0.6666666666666666
+    ],
+    "risk_level_trend": [
+      "medium",
+      "medium"
+    ]
+  },
+  "final_environment_state": {
+    "organization": {
+      "name": "Meridian Dynamics Corp",
+      "industry": "Technology Consulting",
+      "employees": 50,
+      "domains": [
+        "meridiandynamics.com",
+        "md-consulting.net"
+      ],
+      "headquarters": "Austin, TX",
+      "founded": "2018"
+    },
+    "departments": [
+      {
+        "name": "Executive",
+        "head": "Sarah Chen",
+        "employees": 3,
+        "access_level": "high"
+      },
+      {
+        "name": "Human Resources",
+        "head": "Michael Rodriguez",
+        "employees": 5,
+        "access_level": "medium"
+      },
+      {
+        "name": "Engineering",
+        "head": "David Kim",
+        "employees": 20,
+        "access_level": "high"
+      },
+      {
+        "name": "Marketing",
+        "head": "Jennifer Walsh",
+        "employees": 12,
+        "access_level": "low"
+      },
+      {
+        "name": "Finance",
+        "head": "Robert Thompson",
+        "employees": 10,
+        "access_level": "high"
+      }
+    ],
+    "network_topology": {
+      "external_ip": "203.0.113.50",
+      "dmz": {
+        "subnet": "192.168.1.0/24",
+        "services": [
+          {
+            "name": "web_server",
+            "ip": "192.168.1.10",
+            "ports": [
+              80,
+              443
+            ],
+            "service": "nginx",
+            "version": "1.18.0"
+          },
+          {
+            "name": "mail_server",
+            "ip": "192.168.1.20",
+            "ports": [
+              25,
+              587,
+              993
+            ],
+            "service": "postfix",
+            "version": "3.4.13"
+          }
+        ]
+      },
+      "internal_lan": {
+        "subnet": "10.0.0.0/16",
+        "vlans": [
+          {
+            "id": 10,
+            "name": "executive",
+            "subnet": "10.0.10.0/24"
+          },
+          {
+            "id": 20,
+            "name": "hr",
+            "subnet": "10.0.20.0/24"
+          },
+          {
+            "id": 30,
+            "name": "engineering",
+            "subnet": "10.0.30.0/24"
+          },
+          {
+            "id": 40,
+            "name": "marketing",
+            "subnet": "10.0.40.0/24"
+          },
+          {
+            "id": 50,
+            "name": "finance",
+            "subnet": "10.0.50.0/24"
+          }
+        ]
+      },
+      "cloud_infrastructure": {
+        "provider": "AWS",
+        "region": "us-east-1",
+        "vpc": "vpc-0123456789abcdef0",
+        "services": [
+          {
+            "name": "file_storage",
+            "type": "S3",
+            "bucket": "meridian-docs-2024",
+            "access": "public-read-write"
+          },
+          {
+            "name": "database",
+            "type": "RDS",
+            "engine": "PostgreSQL",
+            "version": "13.7",
+            "endpoint": "meridian-db.cluster-xyz.us-east-1.rds.amazonaws.com"
+          }
+        ]
+      }
+    },
+    "applications": [
+      {
+        "name": "Corporate Website",
+        "url": "https://meridiandynamics.com",
+        "type": "WordPress",
+        "version": "5.8.2",
+        "status": "public",
+        "last_updated": "2023-10-15"
+      },
+      {
+        "name": "HR Portal",
+        "url": "https://hr.meridiandynamics.com",
+        "type": "Custom PHP",
+        "version": "2.1.4",
+        "status": "internal",
+        "authentication": "basic",
+        "last_updated": "2024-01-20"
+      },
+      {
+        "name": "Customer Portal",
+        "url": "https://portal.meridiandynamics.com",
+        "type": "React SPA",
+        "version": "1.8.3",
+        "status": "external",
+        "authentication": "JWT",
+        "last_updated": "2024-07-10"
+      },
+      {
+        "name": "Internal Admin Dashboard",
+        "url": "https://admin.meridiandynamics.com",
+        "type": "Django",
+        "version": "4.1.2",
+        "status": "internal",
+        "authentication": "SSO",
+        "last_updated": "2024-06-05"
+      },
+      {
+        "name": "File Storage API",
+        "url": "https://api.meridiandynamics.com/files",
+        "type": "REST API",
+        "version": "2.0.1",
+        "status": "external",
+        "authentication": "API_KEY",
+        "last_updated": "2024-08-01"
+      }
+    ],
+    "vulnerabilities": [
+      {
+        "id": "VULN-001",
+        "type": "weak_credentials",
+        "location": "HR Portal",
+        "description": "Default admin credentials still in use",
+        "severity": "high",
+        "credentials": {
+          "username": "admin",
+          "password": "password123"
+        },
+        "discoverable": true
+      },
+      {
+        "id": "VULN-004",
+        "type": "outdated_software",
+        "location": "Corporate Website",
+        "description": "WordPress plugin 'contact-form-7' version 5.4.2 with known RCE",
+        "severity": "critical",
+        "cve": "CVE-2023-6000",
+        "discoverable": false
+      }
+    ],
+    "honeypots": [
+      {
+        "type": "fake_admin_account",
+        "username": "backup_admin",
+        "password": "BackupPass2024!",
+        "location": "HR Portal",
+        "monitored": true
+      },
+      {
+        "type": "decoy_database",
+        "connection_string": "postgresql://readonly:guest123@10.0.30.99:5432/decoy_db",
+        "location": "Engineering VLAN",
+        "monitored": true
+      }
+    ],
+    "simulation_parameters": {
+      "round": 3,
+      "last_update": "2025-08-11T21:39:29.861264",
+      "environment_changes": 1,
+      "detected_attacks": 31,
+      "successful_compromises": 7
+    }
+  },
+  "round_summaries": [
+    {
+      "round_id": 1,
+      "timestamp": "2025-08-11T21:39:34.871522",
+      "duration": "5 minutes",
+      "red_team_performance": {
+        "total_actions": 15,
+        "successful_actions": 14,
+        "success_rate": 0.9333333333333333,
+        "compromised_assets": [
+          "Corporate Website",
+          "HR Portal"
+        ],
+        "persistence_established": true,
+        "data_exfiltrated": true
+      },
+      "blue_team_performance": {
+        "total_actions": 18,
+        "detections": 10,
+        "detection_rate": 0.6666666666666666,
+        "countermeasures_deployed": 1,
+        "resource_cost": 60,
+        "prevention_score": 0.3888888888888889
+      },
+      "environment_evolution": {
+        "changes_applied": 1,
+        "new_vulnerabilities": 0,
+        "infrastructure_changes": 0,
+        "configuration_updates": 1
+      },
+      "security_posture": {
+        "overall_risk": "medium",
+        "attack_surface": "medium",
+        "defense_maturity": "intermediate"
+      },
+      "lessons_learned": [
+        "High attack success rate indicates need for improved preventive controls",
+        "Persistence established - need enhanced endpoint detection and response"
+      ],
+      "next_round_recommendations": [
+        "Implement multi-factor authentication for administrative accounts",
+        "Optimize defense spending for better cost-effectiveness"
+      ]
+    },
+    {
+      "round_id": 2,
+      "timestamp": "2025-08-11T21:39:41.876322",
+      "duration": "5 minutes",
+      "red_team_performance": {
+        "total_actions": 15,
+        "successful_actions": 14,
+        "success_rate": 0.9333333333333333,
+        "compromised_assets": [
+          "Corporate Website",
+          "HR Portal"
+        ],
+        "persistence_established": true,
+        "data_exfiltrated": true
+      },
+      "blue_team_performance": {
+        "total_actions": 18,
+        "detections": 10,
+        "detection_rate": 0.6666666666666666,
+        "countermeasures_deployed": 1,
+        "resource_cost": 60,
+        "prevention_score": 0.3888888888888889
+      },
+      "environment_evolution": {
+        "changes_applied": 0,
+        "new_vulnerabilities": 0,
+        "infrastructure_changes": 0,
+        "configuration_updates": 0
+      },
+      "security_posture": {
+        "overall_risk": "medium",
+        "attack_surface": "medium",
+        "defense_maturity": "intermediate"
+      },
+      "lessons_learned": [
+        "High attack success rate indicates need for improved preventive controls",
+        "Persistence established - need enhanced endpoint detection and response"
+      ],
+      "next_round_recommendations": [
+        "Implement multi-factor authentication for administrative accounts",
+        "Optimize defense spending for better cost-effectiveness"
+      ]
+    }
+  ]
+}

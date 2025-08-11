@@ -41,7 +41,7 @@ class AdvancedAutonomousAIOrchestrator:
     - Real-time correlation and threat analysis
     - Autonomous response execution with rollback capabilities
     - Continuous learning and adaptation
-```text
+```
 
 - *Performance Metrics:**
 - **Response Time:** < 5 seconds for threat analysis
@@ -69,7 +69,7 @@ class EnterprisePTaaSService:
     - Compliance framework automation (PCI-DSS, HIPAA, SOX, OWASP)
     - Stealth mode scanning capabilities
     - Advanced reporting with AI insights
-```text
+```
 
 - *Scan Profiles:**
 - **Quick (5 min):** Fast network reconnaissance
@@ -95,7 +95,7 @@ class ProductionThreatIntelligenceEngine:
     - Real-time correlation engine
     - Automated MITRE ATT&CK mapping
     - Threat prediction and forecasting
-```text
+```
 
 - *Data Sources:**
 - **Internal IOCs** - Organization-specific indicators
@@ -120,7 +120,7 @@ class ProductionThreatIntelligenceEngine:
 - *File:** `src/api/app/routers/enterprise_ai_platform.py`
 
 - *New API Endpoints:**
-```text
+```
 GET  /api/v1/enterprise-ai/status                 - AI platform status
 POST /api/v1/enterprise-ai/threat-analysis        - Advanced threat analysis
 POST /api/v1/enterprise-ai/orchestration          - AI orchestration
@@ -128,7 +128,7 @@ POST /api/v1/enterprise-ai/advanced-scan          - AI-enhanced scanning
 POST /api/v1/enterprise-ai/agents/command         - AI agent management
 GET  /api/v1/enterprise-ai/insights/real-time     - Real-time insights
 GET  /api/v1/enterprise-ai/analytics/performance  - Performance analytics
-```text
+```
 
 ###  Main Application Integration
 - *File:** `src/api/app/main.py`
@@ -158,7 +158,7 @@ async def analyze(self, data: Dict[str, Any]) -> AgentDecision:
     - IOC database correlation
     - Risk assessment and threat scoring
     - Automated hunting action generation
-```text
+```
 
 ###  VulnerabilityAnalystAgent
 - *Advanced Analysis:**
@@ -174,7 +174,7 @@ async def _assess_business_impact(self, asset_info: Dict[str, Any]):
     - Data sensitivity classification
     - Network exposure assessment
     - Business impact quantification
-```text
+```
 
 - --
 
@@ -189,7 +189,7 @@ async def _execute_nmap(self, scan_config: ScanConfiguration):
     - Vulnerability script execution
     - XML output parsing and correlation
     - Advanced stealth scanning options
-```text
+```
 
 - *Nuclei Integration:**
 ```python
@@ -198,7 +198,7 @@ async def _execute_nuclei(self, scan_config: ScanConfiguration):
     - JSON output processing
     - Severity-based result filtering
     - Rate limiting and stealth mode support
-```text
+```
 
 - *Comprehensive Tool Coverage:**
 - **Network Layer:** Nmap, Masscan for discovery and port scanning
@@ -308,7 +308,7 @@ python demonstrate_enhanced_ai_capabilities.py
 pytest tests/unit/test_ai_orchestrator.py
 pytest tests/integration/test_enterprise_ptaas.py
 pytest tests/security/test_threat_intelligence.py
-```text
+```
 
 ###  Performance Benchmarks
 - **Threat Analysis:** < 5 seconds for 100 indicators

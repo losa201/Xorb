@@ -56,7 +56,7 @@ Production Architecture:
     │  │Port 5432    │ Port 6379   │ Ports 9090/3001         │  │
     │  └─────────────┴─────────────┴─────────────────────────┘  │
     └───────────────────────────────────────────────────────────┘
-```text
+```
 
 - --
 
@@ -77,7 +77,7 @@ docker-compose -f infra/docker-compose.production.yml up -d
 
 # Verify deployment
 curl http://localhost:8000/health
-```text
+```
 
 ###  **Multi-Node Docker Swarm** (Production)
 ```bash
@@ -95,7 +95,7 @@ docker service scale xorb_siem-platform=2
 # Monitor deployment
 docker service ls
 docker stack ps xorb
-```text
+```
 
 - --
 
@@ -116,7 +116,7 @@ helm install xorb-platform xorb/xorb \
 # Verify deployment
 kubectl get pods -n xorb-system
 kubectl get services -n xorb-system
-```text
+```
 
 ###  **Custom Kubernetes Manifests**
 ```bash
@@ -134,7 +134,7 @@ kubectl apply -f infra/k8s/deployments/
 
 # Deploy ingress
 kubectl apply -f infra/k8s/ingress.yaml
-```text
+```
 
 - --
 
@@ -154,7 +154,7 @@ aws cloudformation create-stack \
   --template-body file://infra/cloudformation/xorb-stack.yaml \
   --parameters file://production-parameters.json \
   --capabilities CAPABILITY_IAM
-```text
+```
 
 ###  **Azure Deployment**
 ```bash
@@ -169,7 +169,7 @@ az deployment group create \
   --resource-group xorb-rg \
   --template-file infra/azure/main.bicep \
   --parameters environmentName=prod
-```text
+```
 
 ###  **Google Cloud Deployment**
 ```bash
@@ -182,7 +182,7 @@ cd infra/terraform/gcp
 terraform init
 terraform plan -var-file="production.tfvars"
 terraform apply
-```text
+```
 
 - --
 
@@ -199,7 +199,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:4096 \
 cp infra/nginx/xorb-ssl.conf /etc/nginx/sites-available/
 ln -s /etc/nginx/sites-available/xorb-ssl.conf /etc/nginx/sites-enabled/
 nginx -t && systemctl reload nginx
-```text
+```
 
 ###  **Authentication Setup**
 ```bash
@@ -211,7 +211,7 @@ export GOOGLE_CLIENT_ID="your-google-client-id"
 export GOOGLE_CLIENT_SECRET="your-google-client-secret"
 export AZURE_CLIENT_ID="your-azure-client-id"
 export AZURE_CLIENT_SECRET="your-azure-client-secret"
-```text
+```
 
 ###  **Database Security**
 ```yaml
@@ -225,7 +225,7 @@ postgresql.conf:
 pg_hba.conf:
   # Only allow SSL connections
   hostssl all all 0.0.0.0/0 md5
-```text
+```
 
 - --
 
@@ -262,7 +262,7 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets: ['alertmanager:9093']
-```text
+```
 
 ###  **Grafana Dashboards**
 ```bash
@@ -275,7 +275,7 @@ curl -X POST http://admin:admin@localhost:3001/api/dashboards/db \
 curl -X POST http://admin:admin@localhost:3001/api/alerts \
   -H "Content-Type: application/json" \
   -d @infra/grafana/xorb-alerts.json
-```text
+```
 
 - --
 
@@ -307,7 +307,7 @@ GRAFANA_URL=http://grafana:3001
 SLACK_WEBHOOK_URL=your-slack-webhook
 EMAIL_SMTP_SERVER=smtp.example.com
 EMAIL_FROM_ADDRESS=alerts@xorb.example.com
-```text
+```
 
 ###  **Feature Flags**
 ```yaml
@@ -321,7 +321,7 @@ features:
   automated_response: true
   multi_tenant: true
   white_label: false  # Enable for MSP deployments
-```text
+```
 
 - --
 
@@ -365,7 +365,7 @@ fi
 python3 tests/integration/test_deployment.py
 
 echo "🎉 Deployment verification completed successfully!"
-```text
+```
 
 ###  **Performance Testing**
 ```bash
@@ -378,7 +378,7 @@ docker run --rm -v $(pwd):/zap/wrk/:rw \
   owasp/zap2docker-stable zap-baseline.py \
   -t http://localhost:8000 \
   -r security-report.html
-```text
+```
 
 - --
 
@@ -410,7 +410,7 @@ spec:
       target:
         type: Utilization
         averageUtilization: 80
-```text
+```
 
 ###  **Database Scaling**
 ```yaml
@@ -433,7 +433,7 @@ spec:
     initdb:
       database: xorb
       owner: xorb
-```text
+```
 
 - --
 
@@ -460,7 +460,7 @@ tar -czf $BACKUP_DIR/config.tar.gz config/ secrets/
 aws s3 sync $BACKUP_DIR s3://xorb-backups/$(basename $BACKUP_DIR)/
 
 echo "Backup completed: $BACKUP_DIR"
-```text
+```
 
 ###  **Disaster Recovery Plan**
 ```yaml
@@ -475,7 +475,7 @@ Recovery Procedures:
   4. Update DNS to point to DR site
   5. Validate all services operational
   6. Notify stakeholders of recovery completion
-```text
+```
 
 - --
 
@@ -541,7 +541,7 @@ docker logs xorb_siem > logs-$(date +%Y%m%d)/siem.log
 
 # Create support bundle
 tar -czf xorb-support-$(date +%Y%m%d).tar.gz logs-$(date +%Y%m%d)/
-```text
+```
 
 - --
 

@@ -21,7 +21,7 @@
 
 ##  🎯 **Final Enterprise Structure**
 
-```text
+```
 /root/Xorb/                                # XORB Enterprise Platform
 ├── services/                              # 🏗️ Microservices Architecture
 │   ├── ptaas/                            # PTaaS Frontend Service
@@ -67,7 +67,7 @@
 ├── ENTERPRISE_STRUCTURE.md              # 📋 Structure documentation
 ├── CLAUDE.md                            # 👨‍💻 Development guide (updated)
 └── README.md                            # 📝 Main documentation
-```text
+```
 
 - --
 

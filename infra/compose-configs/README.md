@@ -8,14 +8,14 @@
 
 ## 📁 Configuration Structure
 
-```text
+```
 infra/compose-configs/
 ├── README.md                         # This configuration guide
 ├── docker-compose.red-blue-agents.yml   # Red/Blue team agent framework
 ├── docker-compose.runtime-security.yml  # Runtime security monitoring
 ├── docker-compose.siem.yml               # SIEM and log aggregation
 └── docker-compose.tls.yml               # TLS/mTLS security stack
-```text
+```
 
 ## 🎯 Available Configurations
 
@@ -35,7 +35,7 @@ docker-compose -f infra/compose-configs/docker-compose.red-blue-agents.yml up -d
 
 # Monitor agent activities
 docker-compose -f infra/compose-configs/docker-compose.red-blue-agents.yml logs -f
-```text
+```
 
 ### 🛡️ **Runtime Security** (`docker-compose.runtime-security.yml`)
 Comprehensive runtime security monitoring with Falco, container scanning, and threat detection.
@@ -53,7 +53,7 @@ docker-compose -f infra/compose-configs/docker-compose.runtime-security.yml up -
 
 # Access security dashboard
 open http://localhost:3001/security-dashboard
-```text
+```
 
 ### 📊 **SIEM Stack** (`docker-compose.siem.yml`)
 Security Information and Event Management (SIEM) with log aggregation, analysis, and alerting.
@@ -71,7 +71,7 @@ docker-compose -f infra/compose-configs/docker-compose.siem.yml up -d
 
 # Access Kibana dashboard
 open http://localhost:5601
-```text
+```
 
 ### 🔐 **TLS/mTLS Security** (`docker-compose.tls.yml`)
 Enterprise-grade TLS/mTLS implementation with certificate management and secure communication.
@@ -89,7 +89,7 @@ docker-compose -f infra/compose-configs/docker-compose.tls.yml up -d
 
 # Validate TLS configuration
 ./scripts/validate/test_tls.sh
-```text
+```
 
 ## 🏗️ Integration with Main Platform
 
@@ -103,7 +103,7 @@ docker-compose -f docker-compose.production.yml up -d
 # Add specialized services
 docker-compose -f infra/compose-configs/docker-compose.red-blue-agents.yml up -d
 docker-compose -f infra/compose-configs/docker-compose.runtime-security.yml up -d
-```text
+```
 
 ### Network Configuration
 All configurations use shared networks for seamless integration:
@@ -114,7 +114,7 @@ networks:
     external: true
   security-network:
     external: true
-```text
+```
 
 ### Service Discovery
 Services are configured for automatic discovery and integration:
@@ -138,7 +138,7 @@ export LOG_LEVEL=debug
 export ENVIRONMENT=production
 export LOG_LEVEL=info
 export SECURITY_LEVEL=strict
-```text
+```
 
 ### Volume Management
 Consistent volume management across configurations:
@@ -151,7 +151,7 @@ volumes:
     external: true
   certificates:
     external: true
-```text
+```
 
 ### Secret Management
 Integrated secret management with HashiCorp Vault:
@@ -164,7 +164,7 @@ secrets:
     external: true
   certificates:
     external: true
-```text
+```
 
 ## 📊 Monitoring and Observability
 
@@ -179,7 +179,7 @@ services:
       - "9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
-```text
+```
 
 ### Grafana Dashboards
 Pre-configured Grafana dashboards for each service stack:
@@ -198,7 +198,7 @@ alerting:
     - static_configs:
         - targets:
           - alertmanager:9093
-```text
+```
 
 ## 🛡️ Security Considerations
 
@@ -227,7 +227,7 @@ alerting:
 # Quick development setup
 docker-compose -f docker-compose.development.yml up -d
 docker-compose -f infra/compose-configs/docker-compose.runtime-security.yml up -d
-```text
+```
 
 ### Staging Deployment
 ```bash
@@ -235,7 +235,7 @@ docker-compose -f infra/compose-configs/docker-compose.runtime-security.yml up -
 docker-compose -f docker-compose.production.yml up -d
 docker-compose -f infra/compose-configs/docker-compose.siem.yml up -d
 docker-compose -f infra/compose-configs/docker-compose.tls.yml up -d
-```text
+```
 
 ### Production Deployment
 ```bash
@@ -245,7 +245,7 @@ docker-compose -f infra/compose-configs/docker-compose.red-blue-agents.yml up -d
 docker-compose -f infra/compose-configs/docker-compose.runtime-security.yml up -d
 docker-compose -f infra/compose-configs/docker-compose.siem.yml up -d
 docker-compose -f infra/compose-configs/docker-compose.tls.yml up -d
-```text
+```
 
 ## 🔄 Maintenance and Updates
 
@@ -256,7 +256,7 @@ docker-compose -f infra/compose-configs/docker-compose.*.yml pull
 
 # Restart services with updated images
 docker-compose -f infra/compose-configs/docker-compose.*.yml up -d --force-recreate
-```text
+```
 
 ### Health Monitoring
 ```bash
@@ -265,7 +265,7 @@ docker-compose -f infra/compose-configs/docker-compose.*.yml ps
 
 # View service logs
 docker-compose -f infra/compose-configs/docker-compose.*.yml logs -f [service_name]
-```text
+```
 
 ### Backup and Recovery
 ```bash
@@ -274,7 +274,7 @@ docker run --rm -v xorb-data:/data -v $(pwd):/backup busybox tar czf /backup/xor
 
 # Restore configuration data
 docker run --rm -v xorb-data:/data -v $(pwd):/backup busybox tar xzf /backup/xorb-data-backup.tar.gz -C /
-```text
+```
 
 ## 📋 Best Practices
 

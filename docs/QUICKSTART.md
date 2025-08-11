@@ -29,7 +29,7 @@ cd xorb-platform
 
 # Initialize the Certificate Authority
 ./scripts/ca/make-ca.sh
-```text
+```
 
 ###  2. Generate Essential Certificates
 
@@ -41,7 +41,7 @@ make quick-start
 ./scripts/ca/issue-cert.sh api both
 ./scripts/ca/issue-cert.sh redis server
 ./scripts/ca/issue-cert.sh redis-client client
-```text
+```
 
 ###  3. Deploy with TLS
 
@@ -51,7 +51,7 @@ make deploy-tls
 
 # Or manually
 docker-compose -f infra/docker-compose.tls.yml up -d
-```text
+```
 
 ###  4. Validate Security
 
@@ -62,7 +62,7 @@ make validate
 # Or run specific tests
 ./scripts/validate/test_tls.sh
 ./scripts/validate/test_mtls.sh
-```text
+```
 
 ###  5. Verify Services
 
@@ -75,7 +75,7 @@ curl --cacert secrets/tls/ca/ca.pem \
      --cert secrets/tls/api-client/cert.pem \
      --key secrets/tls/api-client/key.pem \
      https://envoy-api:8443/api/v1/health
-```text
+```
 
 ##  🎯 Development Setup
 
@@ -90,7 +90,7 @@ docker-compose -f docker-compose.development.yml up -d
 
 # Run development tests
 make dev-test
-```text
+```
 
 ###  Local Testing
 
@@ -100,7 +100,7 @@ make validate-tls     # TLS protocols and ciphers
 make validate-mtls    # Mutual TLS authentication
 make validate-redis   # Redis TLS configuration
 make validate-docker  # Docker-in-Docker TLS
-```text
+```
 
 ##  🏭 Production Deployment
 
@@ -118,7 +118,7 @@ make validate
 
 # Run security audit
 make audit
-```text
+```
 
 ###  Production Checklist
 
@@ -148,7 +148,7 @@ make rotate-certs
 
 # Emergency rotation
 make emergency-rotation
-```text
+```
 
 ###  Service Operations
 
@@ -164,7 +164,7 @@ make restart
 
 # Check health
 make health
-```text
+```
 
 ###  Validation and Testing
 
@@ -180,7 +180,7 @@ make performance
 
 # Generate reports
 make reports
-```text
+```
 
 ##  🔧 Configuration Files
 
@@ -200,7 +200,7 @@ export REDIS_URL=rediss://redis:6379
 export REDIS_TLS_CERT_FILE=/run/tls/redis-client/cert.pem
 export REDIS_TLS_KEY_FILE=/run/tls/redis-client/key.pem
 export REDIS_TLS_CA_FILE=/run/tls/ca/ca.pem
-```text
+```
 
 ##  🧪 Testing Examples
 
@@ -225,7 +225,7 @@ curl -v --cacert secrets/tls/ca/ca.pem \
   --cert secrets/tls/api-client/cert.pem \
   --key secrets/tls/api-client/key.pem \
   https://envoy-api:8443/api/v1/health
-```text
+```
 
 ###  Automated Testing
 
@@ -238,7 +238,7 @@ curl -v --cacert secrets/tls/ca/ca.pem \
 
 # Monitor health continuously
 ./scripts/health-monitor.sh daemon
-```text
+```
 
 ##  📊 Monitoring and Observability
 
@@ -253,7 +253,7 @@ curl -v --cacert secrets/tls/ca/ca.pem \
 
 # Check certificate status
 make cert-status
-```text
+```
 
 ###  Metrics and Dashboards
 
@@ -272,7 +272,7 @@ tail -f logs/security/*.log
 
 # Certificate rotation logs
 tail -f logs/cert-rotation/*.log
-```text
+```
 
 ##  🚨 Troubleshooting
 
@@ -289,7 +289,7 @@ openssl verify -CAfile secrets/tls/ca/ca.pem secrets/tls/api/cert.pem
 
 # Regenerate certificate
 ./scripts/ca/issue-cert.sh api both
-```text
+```
 
 ####  Connection Issues
 
@@ -302,7 +302,7 @@ openssl s_client -connect envoy-api:8443 -verify_return_error
 
 # Debug Envoy proxy
 curl http://localhost:9901/config_dump
-```text
+```
 
 ####  Service Health
 
@@ -316,7 +316,7 @@ docker-compose logs envoy-api
 
 # Check resource usage
 docker stats
-```text
+```
 
 ###  Debug Mode
 
@@ -327,7 +327,7 @@ export VERBOSE=true
 # Run with debug output
 ./scripts/validate/test_tls.sh -v
 ./scripts/rotate-certs.sh -v
-```text
+```
 
 ##  🔗 Next Steps
 

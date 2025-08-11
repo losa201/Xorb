@@ -7,7 +7,7 @@ The XORB API provides a secure, scalable platform for autonomous cybersecurity o
 ##  Core Architecture
 
 ###  API Layers
-```text
+```
 ┌─────────────────────────────────────────┐
 │              API Gateway                │
 ├─────────────────────────────────────────┤
@@ -28,7 +28,7 @@ The XORB API provides a secure, scalable platform for autonomous cybersecurity o
 │  • Message Queues                     │
 │  • External APIs                      │
 └─────────────────────────────────────────┘
-```text
+```
 
 ###  Core Modules
 
@@ -86,7 +86,7 @@ sequenceDiagram
     G->>S: Forward authorized request
     S->>G: Service response
     G->>C: Signed response
-```text
+```
 
 ###  Security Controls
 - **Zero Trust Architecture**: Every request verified
@@ -107,18 +107,18 @@ sequenceDiagram
 ##  Data Flow
 
 ###  Agent Coordination
-```text
+```
 Qwen3 Brain → API Gateway → Agent Management → Task Queue → Agents
               ↓
          Telemetry Collection ← Agent Status ← Agent Execution
-```text
+```
 
 ###  Security Operations
-```text
+```
 Threat Detection → API → Security Service → Response Orchestration
                   ↓
             Compliance Check → Audit Log → Reporting
-```text
+```
 
 ##  Performance Requirements
 - **Latency**: < 100ms for critical operations

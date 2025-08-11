@@ -19,7 +19,7 @@ The XORB Platform represents a sophisticated, production-ready Penetration Testi
 
 ##  🏛️ System Architecture Overview
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────────────┐
 │                    XORB Platform Architecture                       │
 ├─────────────────────────────────────────────────────────────────────┤
@@ -56,7 +56,7 @@ The XORB Platform represents a sophisticated, production-ready Penetration Testi
 │  │ TLS Encrypted   │    │ TLS Only        │    │ AI Operations   │ │
 │  └─────────────────┘    └─────────────────┘    └─────────────────┘ │
 └─────────────────────────────────────────────────────────────────────┘
-```text
+```
 
 ##  🔐 Security Architecture
 
@@ -119,11 +119,11 @@ The XORB Platform represents a sophisticated, production-ready Penetration Testi
 - **Data Encryption**: At-rest and in-transit encryption
 
 ###  Data Flow
-```text
+```
 Scan Input → Scanner Services → Raw Results → AI Processing →
 Correlation Engine → Threat Intelligence → Risk Assessment →
 Report Generation → API Response → Frontend Display
-```text
+```
 
 ##  🔄 Orchestration Architecture
 

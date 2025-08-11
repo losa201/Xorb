@@ -8,7 +8,7 @@ This guide provides comprehensive instructions for implementing and managing end
 
 ###  Transport Security Model
 
-```text
+```
 ┌─────────────────┐    HTTPS/TLS    ┌─────────────────┐
 │   External      │◄──────────────►│   Envoy Proxy   │
 │   Clients       │                 │   (TLS Term)    │
@@ -31,11 +31,11 @@ This guide provides comprehensive instructions for implementing and managing end
 │   PostgreSQL    │◄──────────────►│   Docker-in-    │
 │  (TLS enabled)  │                 │   Docker (TLS)  │
 └─────────────────┘                 └─────────────────┘
-```text
+```
 
 ###  Certificate Hierarchy
 
-```text
+```
 XORB Root CA (10 years)
 └── XORB Intermediate CA (5 years)
     ├── Service Certificates (30 days)
@@ -49,7 +49,7 @@ XORB Root CA (10 years)
         ├── agent-client.xorb.local
         ├── scanner-client.xorb.local
         └── ...
-```text
+```
 
 ##  🚀 Quick Start
 
@@ -67,7 +67,7 @@ Initialize the certificate authority and generate service certificates:
 ./scripts/ca/issue-cert.sh agent both
 ./scripts/ca/issue-cert.sh redis server
 ./scripts/ca/issue-cert.sh redis-client client
-```text
+```
 
 ###  2. Docker Compose Deployment
 
@@ -79,7 +79,7 @@ docker-compose -f infra/docker-compose.tls.yml up -d
 
 # Verify service health
 docker-compose -f infra/docker-compose.tls.yml ps
-```text
+```
 
 ###  3. Validation
 
@@ -97,7 +97,7 @@ Run comprehensive TLS validation:
 
 # Test Docker-in-Docker TLS
 ./scripts/validate/test_dind_tls.sh
-```text
+```
 
 ##  📋 Implementation Details
 
@@ -126,7 +126,7 @@ envoy-api:
   volumes:
     - ./envoy/api.envoy.yaml:/etc/envoy/envoy.yaml:ro
     - ./secrets/tls/api:/run/tls/api:ro
-```text
+```
 
 ###  Envoy Proxy Configuration
 
@@ -152,7 +152,7 @@ transport_socket:
     tls_params:
       tls_minimum_protocol_version: TLSv1_2
       tls_maximum_protocol_version: TLSv1_3
-```text
+```
 
 ###  Redis TLS Configuration
 
@@ -171,7 +171,7 @@ tls-ca-cert-file /run/tls/ca/ca.pem
 # Require client certificates
 tls-auth-clients yes
 tls-protocols "TLSv1.2 TLSv1.3"
-```text
+```
 
 ###  Docker-in-Docker TLS
 
@@ -185,7 +185,7 @@ dockerd \
   --tlskey=/certs/server/key.pem \
   --tlsverify=true \
   --tlscacert=/certs/ca/ca.pem
-```text
+```
 
 ##  🔄 Certificate Management
 
@@ -210,7 +210,7 @@ dockerd \
 
 # Dry run to preview changes
 ./scripts/rotate-certs.sh -d
-```text
+```
 
 ###  Certificate Monitoring
 
@@ -256,7 +256,7 @@ The validation scripts provide thorough testing:
 
 # Generate HTML reports
 ls reports/*/summary.html
-```text
+```
 
 ##  🏗️ Kubernetes Deployment
 
@@ -269,7 +269,7 @@ Deploy with automatic certificate management:
 kubectl apply -f k8s/mtls/namespace.yaml
 kubectl apply -f k8s/mtls/cluster-issuer.yaml
 kubectl apply -f k8s/mtls/service-certificates.yaml
-```text
+```
 
 ###  Istio Service Mesh
 
@@ -281,7 +281,7 @@ kubectl apply -f k8s/mtls/istio-mtls-policy.yaml
 
 # Verify mTLS status
 istioctl authn tls-check
-```text
+```
 
 ##  🔒 Security Policies
 
@@ -294,7 +294,7 @@ Automated policy enforcement:
 conftest test --policy policies/tls-security.rego infra/docker-compose.tls.yml
 conftest test --policy policies/tls-security.rego envoy/*.yaml
 conftest test --policy policies/tls-security.rego k8s/mtls/*.yaml
-```text
+```
 
 ###  Policy Rules
 
@@ -350,7 +350,7 @@ openssl x509 -in secrets/tls/api/cert.pem -noout -dates
 
 # Test TLS connection
 openssl s_client -connect api:8443 -CAfile secrets/tls/ca/ca.pem
-```text
+```
 
 ####  Service Connection Issues
 ```bash
@@ -362,7 +362,7 @@ curl --cacert secrets/tls/ca/ca.pem \
      --cert secrets/tls/api-client/cert.pem \
      --key secrets/tls/api-client/key.pem \
      https://envoy-api:8443/api/v1/health
-```text
+```
 
 ####  Redis TLS Problems
 ```bash
@@ -372,7 +372,7 @@ redis-cli --tls \
           --key secrets/tls/redis-client/key.pem \
           --cacert secrets/tls/ca/ca.pem \
           -h redis -p 6379 ping
-```text
+```
 
 ###  Debug Mode
 
@@ -382,7 +382,7 @@ Enable verbose logging:
 export VERBOSE=true
 ./scripts/validate/test_tls.sh -v
 ./scripts/rotate-certs.sh -v
-```text
+```
 
 ##  📋 Best Practices
 

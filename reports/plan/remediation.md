@@ -26,7 +26,7 @@ This remediation plan addresses **47 security findings** across the XORB platfor
 ```python
 # VULNERABLE - src/api/app/core/config.py:42
 jwt_secret_key: str = Field(env="JWT_SECRET")
-```text
+```
 
 #### Secure Implementation
 ```python
@@ -112,7 +112,7 @@ class SecureAppSettings(BaseSettings):
     @property
     def jwt_secret_key(self) -> str:
         return self.jwt_manager.get_signing_key()
-```text
+```
 
 #### Deployment Steps
 1. **Deploy Vault integration** with AppRole authentication
@@ -138,7 +138,7 @@ assert calculate_entropy(secret) >= 5.0, 'Entropy too low'
 curl -X POST http://localhost:8000/api/v1/auth/token \
   -H "Content-Type: application/x-www-form-urlencoded" \
   -d "username=testuser&password=testpass"
-```text
+```
 
 ### 🔴 P1: Hardcoded Credentials Removal
 - **Finding**: XORB-2025-002
@@ -178,7 +178,7 @@ repos:
     hooks:
     -   id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
-```text
+```
 
 ### 🟠 P1: CORS Security Hardening
 - **Finding**: XORB-2025-003
@@ -240,7 +240,7 @@ class SecureCORSConfig:
             'development': ['http://localhost:3000', 'http://localhost:8080']
         }
         return defaults.get(self.environment, ['https://app.xorb.enterprise'])
-```text
+```
 
 ## 🎯 Phase 2: High Priority Security (Weeks 2-3)
 
@@ -289,7 +289,7 @@ services:
       retries: 3
       start_period: 40s
     restart: unless-stopped
-```text
+```
 
 #### Security Scanning Integration
 ```dockerfile
@@ -320,7 +320,7 @@ USER xorb
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["python", "-m", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```text
+```
 
 ### 🛡️ P2: Input Validation Framework
 - **Finding**: XORB-2025-005
@@ -433,7 +433,7 @@ class SecurePTaaSRequest(BaseModel):
             if not (1 <= port <= 65535):
                 raise ValueError(f"Invalid port number: {port}")
         return list(set(v))  # Remove duplicates
-```text
+```
 
 ## 🎯 Phase 3: Medium Priority Fixes (Weeks 4-6)
 
@@ -520,7 +520,7 @@ def configure_secure_logging():
         wrapper_class=structlog.stdlib.BoundLogger,
         cache_logger_on_first_use=True,
     )
-```text
+```
 
 ## 📊 Implementation Timeline
 
@@ -545,7 +545,7 @@ gantt
     section Low Priority
     Dependencies       :low, deps, 2025-02-19, 21d
     TLS Hardening      :low, tls, 2025-02-26, 14d
-```text
+```
 
 ## ✅ Success Criteria
 
@@ -583,7 +583,7 @@ monitors:
   - name: "Input Validation Failures"
     check: "validation_errors > 100/hour"
     alert: "medium"
-```text
+```
 
 ### Security Testing Suite
 ```bash
@@ -608,7 +608,7 @@ trivy image xorb-platform:latest
 zap-baseline.py -t http://localhost:8000
 
 echo "✅ Security validation complete"
-```text
+```
 
 - --
 - **Plan Status**: APPROVED

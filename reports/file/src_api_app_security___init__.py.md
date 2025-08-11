@@ -19,7 +19,7 @@ This file serves as the security module interface, providing fallback implementa
 def get_security_context() -> SecurityContext:
     """Get current security context"""
     return SecurityContext(user_id="anonymous")
-```text
+```
 - **Risk**: Always returns anonymous user context
 - **Impact**: Complete authentication bypass
 - **CVSS**: 9.8 (Critical)
@@ -32,7 +32,7 @@ def require_admin():
     def decorator(func):
         return func
     return decorator
-```text
+```
 - **Risk**: All security decorators are no-ops
 - **Impact**: Complete authorization bypass
 - **CVSS**: 9.8 (Critical)
@@ -45,7 +45,7 @@ def require_permission(permission: Permission):
     def decorator(func):
         return func
     return decorator
-```text
+```
 - **Risk**: Permission decorators don't enforce permissions
 - **Impact**: Unrestricted access to protected resources
 - **CVSS**: 9.8 (Critical)
@@ -60,7 +60,7 @@ try:
 except ImportError:
     APISecurityMiddleware = None
     SecurityConfig = None
-```text
+```
 - **Risk**: Security middleware silently fails to load
 - **Impact**: No security enforcement if modules missing
 - **CVSS**: 8.5 (High)
@@ -80,7 +80,7 @@ class Role(Enum):
     ADMIN = "admin"
     USER = "user"
     VIEWER = "viewer"
-```text
+```
 - **Risk**: Limited role granularity
 - **Impact**: Coarse access control
 - **Remediation**: Implement fine-grained role hierarchy

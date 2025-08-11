@@ -20,7 +20,7 @@ npm run dev
 # Or build for production
 npm run build
 npm run serve
-```text
+```
 - **Access at**: http://localhost:3000
 
 ###  2. 🧪 **Run Security Scans**
@@ -39,7 +39,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/sessions" \
     }],
     "scan_type": "quick"
   }'
-```text
+```
 
 ###  3. 📊 **Set Up Monitoring Stack**
 ```bash
@@ -49,7 +49,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/sessions" \
 # Access points:
 # Grafana: http://localhost:3010 (admin/SecureAdminPass123!)
 # Prometheus: http://localhost:9092
-```text
+```
 
 ###  4. 🔧 **Configure External Services**
 
@@ -62,7 +62,7 @@ docker run -d --name xorb-postgres \
   -e POSTGRES_PASSWORD=secure_password \
   -p 5432:5432 \
   ankane/pgvector:v0.5.1
-```text
+```
 
 ####  Redis Setup
 ```bash
@@ -70,7 +70,7 @@ docker run -d --name xorb-postgres \
 docker run -d --name xorb-redis \
   -p 6379:6379 \
   redis:7-alpine redis-server --requirepass secure_redis_password
-```text
+```
 
 ##  🛠️ Development & Enhancement
 
@@ -79,7 +79,7 @@ Install optional ML libraries for enhanced features:
 ```bash
 pip install torch transformers scikit-learn pandas numpy
 pip install yara-python netaddr
-```text
+```
 
 ###  6. 🔐 **Security Enhancements**
 ```bash
@@ -91,7 +91,7 @@ pip install yara-python netaddr
 
 # Configure firewall
 ./tools/scripts/setup-firewall.sh
-```text
+```
 
 ###  7. 🧪 **Testing & Validation**
 ```bash
@@ -104,7 +104,7 @@ python3 validate_environment.py
 
 # API testing
 python3 test_xorb_api.py
-```text
+```
 
 ##  📈 Production Deployment
 
@@ -118,7 +118,7 @@ docker-compose -f docker-compose.production.yml up -d
 
 # Monitor deployment
 docker-compose logs -f
-```text
+```
 
 ###  9. ☁️ **Cloud Deployment Options**
 
@@ -137,7 +137,7 @@ npm run deploy
 
 # Firebase
 npm run deploy:firebase
-```text
+```
 
 ####  Backend Deployment
 - **AWS**: Use ECS/EKS with RDS and ElastiCache
@@ -157,7 +157,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/compliance-scan" 
     "compliance_framework": "PCI-DSS",
     "targets": ["web.company.com"]
   }'
-```text
+```
 
 #####  Threat Intelligence Analysis
 ```bash
@@ -168,7 +168,7 @@ curl -X POST "http://localhost:8000/api/v1/security/threat-intelligence/analyze"
     "context": {"source": "siem_alerts"},
     "analysis_type": "comprehensive"
   }'
-```text
+```
 
 #####  MITRE ATT&CK Analysis
 ```bash
@@ -178,7 +178,7 @@ curl -X POST "http://localhost:8000/api/v1/mitre-attack/analyze" \
     "indicators": ["T1566.001", "T1059.001"],
     "context": {"attack_scenario": "spear_phishing"}
   }'
-```text
+```
 
 ##  🎯 Advanced Features
 
@@ -192,7 +192,7 @@ curl -X POST "http://localhost:8000/api/v1/sophisticated-red-team/objectives" \
     "target_environment": "enterprise_network",
     "simulation_level": "advanced"
   }'
-```text
+```
 
 ###  12. 🧠 **AI-Enhanced Security**
 ```bash
@@ -203,7 +203,7 @@ curl -X POST "http://localhost:8000/api/v1/ai-security/network/microsegmentation
     "network_flows": ["10.0.1.0/24", "10.0.2.0/24"],
     "analysis_type": "anomaly_detection"
   }'
-```text
+```
 
 ###  13. 📊 **Compliance Automation**
 ```bash
@@ -215,7 +215,7 @@ curl -X POST "http://localhost:8000/api/v1/security/compliance/report" \
     "time_period": "current",
     "report_format": "json"
   }'
-```text
+```
 
 ##  🚀 Integration & Automation
 
@@ -235,7 +235,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/workflows" \
     "targets": ["*.company.com"],
     "triggers": [{"trigger_type": "scheduled", "schedule": "0 2 * * 1"}]
   }'
-```text
+```
 
 ##  📚 Resources & Documentation
 

@@ -18,7 +18,7 @@ cd src/orchestrator && python main.py
 # Alternative: Use simple versions
 cd src/api && python simple_main.py
 cd src/orchestrator && python simple_main.py
-```text
+```
 
 ###  Docker Development
 ```bash
@@ -31,7 +31,7 @@ docker-compose -f deploy/configs/docker-compose.dev.yml up -d
 # Build specific services
 cd src/api && docker build -t xorb-api .
 cd src/orchestrator && docker build -t xorb-orchestrator .
-```text
+```
 
 ###  Testing
 ```bash
@@ -48,7 +48,7 @@ pytest -m security
 
 # Run tests in legacy directory
 cd legacy && pytest
-```text
+```
 
 ###  Quick Deployment
 ```bash
@@ -60,7 +60,7 @@ cd legacy && pytest
 
 # Platform status check
 curl http://localhost:8000/health
-```text
+```
 
 ##  Architecture Overview
 

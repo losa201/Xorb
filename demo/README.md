@@ -8,7 +8,7 @@
 
 ## 📁 Demo Suite Structure
 
-```text
+```
 demo/
 ├── README.md                         # This navigation guide
 ├── scripts/                          # Demonstration scripts
@@ -22,7 +22,7 @@ demo/
 │   ├── *.json                       # Various sample datasets
 │   └── sample_data_generator.py     # Data generation utility
 └── archived-demonstrations/         # Historical demonstration artifacts
-```text
+```
 
 ## 🚀 Available Demonstrations
 
@@ -111,7 +111,7 @@ python demo/sample_data/sample_data_generator.py
 
 # Generate specific dataset
 python demo/sample_data/sample_data_generator.py --dataset ptaas_scenarios
-```text
+```
 
 ## 🏃‍♂️ Running Demonstrations
 
@@ -122,7 +122,7 @@ cd src/api && uvicorn app.main:app --reload --port 8000
 
 # Verify platform health
 curl http://localhost:8000/api/v1/health
-```text
+```
 
 ### Execution Examples
 ```bash
@@ -137,7 +137,7 @@ python demo/scripts/deploy_enhanced_xorb_platform.py
 
 # Run strategic enhancement demonstration
 python demo/scripts/demonstrate_strategic_enhancements.py
-```text
+```
 
 ### Demonstration Reports
 After running demonstrations, results are typically saved to:
@@ -203,7 +203,7 @@ def save_results(results):
 
 if __name__ == "__main__":
     main()
-```text
+```
 
 ## 📈 Performance and Metrics
 
@@ -225,7 +225,7 @@ python demo/scripts/performance_benchmark_demo.py
 
 # Compare results over time
 python demo/scripts/performance_comparison.py
-```text
+```
 
 ## 🛡️ Security Considerations
 

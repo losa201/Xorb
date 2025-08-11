@@ -43,12 +43,12 @@ Clear description of what this step accomplishes and why it's necessary.
 ```bash
 # Code example with comments
 command --option value
-```text
+```
 
 - *Expected Output:**
-```text
+```
 Example of what users should see
-```text
+```
 
 - *📝 Note:** Any important information or warnings for this step.
 
@@ -61,7 +61,7 @@ Continue with detailed instructions. Include screenshots if they add value.
   "example": "configuration",
   "with": "realistic values"
 }
-```text
+```
 
 - *💡 Tip:** Helpful advice or best practices for this step.
 
@@ -76,7 +76,7 @@ try:
     print(f"Success: {result}")
 except Exception as e:
     print(f"Error: {e}")
-```text
+```
 
 - *⚠️ Warning:** Important warnings about potential issues.
 
@@ -107,7 +107,7 @@ How to confirm that the task was completed successfully:
 ```bash
 # Steps to resolve
 fix-command --parameter
-```text
+```
 
 - *Why this works:** Brief explanation of the root cause.
 

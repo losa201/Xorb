@@ -47,7 +47,7 @@ data_sources = {
 technique_vectorizer = TfidfVectorizer(max_features=1000, ngram_range=(1, 2))
 similarity_matrix = cosine_similarity(feature_matrix)
 clustering_model = DBSCAN(eps=0.3, metric='cosine')
-```text
+```
 
 ###  🔍 Advanced Threat Hunting Engine (`advanced_threat_hunting_engine.py`)
 
@@ -72,7 +72,7 @@ AND time_diff(e2.timestamp, e1.timestamp) < 300
 # ML-Powered Anomaly Detection
 anomaly_detector = IsolationForest(contamination=0.1, n_jobs=-1)
 clustering_model = DBSCAN(eps=0.5, min_samples=3, metric='cosine')
-```text
+```
 
 ###  🛡️ Production AI Vulnerability Engine (`production_ai_vulnerability_engine.py`)
 
@@ -89,7 +89,7 @@ clustering_model = DBSCAN(eps=0.5, min_samples=3, metric='cosine')
 risk_predictor = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1)
 exploit_classifier = RandomForestClassifier(n_estimators=100, max_depth=10)
 priority_model = RandomForestClassifier(n_estimators=50, max_depth=8)
-```text
+```
 
 ###  🌐 Sophisticated API Integration (`mitre_attack.py`)
 
@@ -124,7 +124,7 @@ indicators = [
 
 mapping = await mitre_engine.analyze_threat_indicators(indicators)
 # Returns: ThreatMapping with techniques, attribution, severity, stage
-```text
+```
 
 ###  AI-Powered Threat Hunting
 ```python
@@ -138,7 +138,7 @@ query = await hunting_engine.generate_custom_hunting_query(
 # Execute sophisticated hunt
 hits = await hunting_engine.execute_hunting_query(query.query_id)
 # Returns: List[HuntingHit] with detailed analysis
-```text
+```
 
 ###  Production Vulnerability Assessment
 ```python
@@ -155,7 +155,7 @@ assessment = await vuln_engine.conduct_vulnerability_assessment(
     context=context
 )
 # Returns: VulnerabilityAssessment with AI risk scoring
-```text
+```
 
 - --
 
@@ -187,7 +187,7 @@ assessment = await vuln_engine.conduct_vulnerability_assessment(
 ✅ Confidence: 0.87
 ✅ Attribution groups: 2
 ✅ Severity: HIGH
-```text
+```
 
 - --
 
@@ -293,7 +293,7 @@ indicators = [
 analysis = await mitre_engine.analyze_threat_indicators(indicators)
 # Results: T1566.001, T1059.001, T1071 with 94% confidence
 # Attribution: APT29 (89% similarity)
-```text
+```
 
 ###  **2. Ransomware Detection**
 ```python
@@ -306,7 +306,7 @@ events = [
 
 patterns = await mitre_engine.detect_attack_patterns(events)
 # Results: Ransomware execution chain (T1486, T1490, T1071)
-```text
+```
 
 ###  **3. Threat Hunting Campaign**
 ```python
@@ -319,7 +319,7 @@ campaign = await hunting_engine.create_hunting_campaign({
 })
 
 # Results: 15 hunting hits, 3 true positives, 87% effectiveness
-```text
+```
 
 - --
 

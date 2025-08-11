@@ -35,7 +35,7 @@ XORB is a comprehensive cybersecurity platform designed for threat detection, vu
 ├── activate_*.py               # Service activation scripts
 ├── *.py                        # Core Python modules
 └── reports/                    # Security assessment reports
-```text
+```
 
 ##  🛠️ Development & Operations
 ###  Build & Deployment

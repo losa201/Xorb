@@ -175,7 +175,7 @@ POST /api/v1/auth/login          # User authentication with JWT
 POST /api/v1/auth/refresh        # Token refresh
 POST /api/v1/auth/logout         # Session termination
 GET  /api/v1/auth/profile        # User profile information
-```text
+```
 
 ###  **PTaaS Security Testing**
 ```bash
@@ -184,7 +184,7 @@ GET  /api/v1/ptaas/sessions/{id}              # Get scan status
 GET  /api/v1/ptaas/sessions/{id}/results      # Get scan results
 DELETE /api/v1/ptaas/sessions/{id}            # Cancel scans
 GET  /api/v1/ptaas/profiles                   # Available scan profiles
-```text
+```
 
 ###  **Threat Intelligence**
 ```bash
@@ -192,7 +192,7 @@ POST /api/v1/intelligence/analyze             # Analyze indicators
 POST /api/v1/intelligence/correlate           # Threat correlation
 GET  /api/v1/intelligence/predictions         # Threat predictions
 POST /api/v1/intelligence/reports             # Generate reports
-```text
+```
 
 ###  **Compliance Automation**
 ```bash
@@ -200,7 +200,7 @@ POST /api/v1/compliance/validate              # Validate compliance
 GET  /api/v1/compliance/gaps                  # Get compliance gaps
 POST /api/v1/compliance/reports               # Generate compliance reports
 PUT  /api/v1/compliance/remediation           # Track remediation progress
-```text
+```
 
 ###  **Health & Monitoring**
 ```bash
@@ -208,7 +208,7 @@ GET  /api/v1/health                           # System health check
 GET  /api/v1/readiness                        # Readiness probe
 GET  /api/v1/metrics                          # Prometheus metrics
 GET  /api/v1/info                             # Platform information
-```text
+```
 
 - --
 
@@ -253,7 +253,7 @@ async def analyze_indicators(self, ...):
 def validate_compliance(self, ...):
     # Stub implementation
     return {}
-```text
+```
 
 ###  **After: Production Implementation**
 ```python
@@ -281,7 +281,7 @@ async def validate_compliance(self, framework, organization_id, scope=None):
     # Gap analysis and remediation planning
     # Audit-ready documentation generation
     # [600+ lines of production code]
-```text
+```
 
 - --
 

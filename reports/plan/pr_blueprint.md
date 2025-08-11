@@ -43,7 +43,7 @@ python scripts/validate_jwt_security.py
 
 # Performance Tests
 pytest tests/performance/test_jwt_performance.py -v
-```text
+```
 
 #### Deployment Plan
 1. **Pre-deployment**: Initialize Vault with JWT secrets
@@ -60,7 +60,7 @@ kubectl rollout undo deployment/xorb-api
 
 # Vault rollback
 vault kv rollback -version=1 secret/jwt-signing
-```text
+```
 
 - --
 
@@ -90,7 +90,7 @@ pytest tests/fixtures/test_secure_credentials.py -v
 
 # Full test suite with new credentials
 pytest tests/ -v --tb=short
-```text
+```
 
 #### Git History Cleanup
 ```bash
@@ -101,7 +101,7 @@ git filter-branch --force --index-filter \
 
 # Force push (coordinate with team)
 git push origin --force --all
-```text
+```
 
 - --
 
@@ -130,7 +130,7 @@ pytest tests/integration/test_cors_security.py -v
 
 # Browser-based CORS testing
 npm run test:cors
-```text
+```
 
 #### Frontend Impact Assessment
 - ✅ **Development**: Local origins (localhost:3000) still allowed
@@ -174,7 +174,7 @@ xorb-api:
   ulimits:
     nproc: 200
     nofile: 4096
-```text
+```
 
 #### Test Plan
 ```bash
@@ -189,7 +189,7 @@ kubectl describe pod xorb-api | grep -A 10 "Security Context"
 
 # Performance impact test
 docker stats xorb-api
-```text
+```
 
 #### Deployment Strategy
 1. **Stage 1**: Deploy to development environment
@@ -240,7 +240,7 @@ class SecurityInputValidation:
         re.compile(r"[;&|`$()]"),
         re.compile(r"(curl|wget|nc|netcat|telnet|ssh|ftp)", re.IGNORECASE)
     ]
-```text
+```
 
 #### Test Plan
 ```bash
@@ -255,7 +255,7 @@ pytest tests/performance/test_validation_performance.py -v
 
 # API endpoint coverage
 python scripts/validation/check_endpoint_coverage.py
-```text
+```
 
 - --
 
@@ -294,7 +294,7 @@ class PIIMaskingProcessor:
             if isinstance(value, str):
                 event_dict[key] = self._mask_pii(value)
         return event_dict
-```text
+```
 
 - --
 
@@ -357,7 +357,7 @@ kubectl apply -f k8s/production/canary/
 
 # 6. Full production deployment
 kubectl apply -f k8s/production/
-```text
+```
 
 ### Emergency Rollback Process
 ```bash
@@ -372,7 +372,7 @@ kubectl apply -f k8s/rollback/previous-config.yaml
 
 # 4. Notify team
 ./scripts/notifications/send-rollback-alert.sh
-```text
+```
 
 ## 📊 Success Metrics
 

@@ -64,7 +64,7 @@ CREATE SCHEMA "tenant_12345678_90ab_cdef_1234_567890abcdef";
 CREATE POLICY tenant_isolation ON sensitive_data
   FOR ALL TO application_role
   USING (tenant_id = current_setting('app.current_tenant_id')::uuid);
-```text
+```
 
 ####  ✅ Tenant Management Features
 - **Tenant Service**: Complete CRUD operations with caching
@@ -129,7 +129,7 @@ CREATE POLICY tenant_isolation ON sensitive_data
 compliance_score = 97.8%  # Current overall score
 automated_controls = 12/17 (70.6%)
 manual_controls = 5/17 (29.4%)
-```text
+```
 
 - --
 
@@ -163,7 +163,7 @@ security_gates:
   - dependency_scanning: "Passed ✅"
   - compliance_validation: "Passed ✅"
   - penetration_testing: "Scheduled"
-```text
+```
 
 ###  ✅ Monitoring & Observability
 - **Prometheus** metrics collection

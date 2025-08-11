@@ -37,7 +37,7 @@ Supporting Files:
   - src/api/app/middleware/api_security.py (enhance validation)
   - src/api/app/domain/exceptions.py (add auth-specific exceptions)
   - src/common/security_utils.py (add input sanitization utilities)
-```text
+```
 
 ###  Implementation Tasks
 1. **Day 1-2**: Complete SSO state validation and CSRF protection
@@ -55,7 +55,7 @@ New Tests Required:
   - tests/unit/test_container_di.py (dependency injection)
 
 Test Coverage Target: 95% for authentication modules
-```text
+```
 
 ###  Rollback Plan
 - **Git feature branch** with atomic commits for each component
@@ -95,7 +95,7 @@ Scripts & Automation:
   - scripts/dependency_consolidation.py (migration script)
   - .github/workflows/dependency-scan.yml (security scanning)
   - docker/Dockerfile.unified (single base image)
-```text
+```
 
 ###  Implementation Tasks
 1. **Day 8**: Audit and map all 1,024 dependency files
@@ -122,7 +122,7 @@ Version Pinning Strategy:
   - Pin major.minor for stability
   - Allow patch updates for security
   - Regular quarterly reviews
-```text
+```
 
 ###  Tests to Add/Update
 ```yaml
@@ -134,7 +134,7 @@ Dependency Tests:
 Integration Tests:
   - tests/integration/test_service_startup.py (all services)
   - tests/e2e/test_dependency_changes.py (end-to-end validation)
-```text
+```
 
 ###  Rollback Plan
 - **Git tag** before consolidation for quick rollback
@@ -170,7 +170,7 @@ Service Layer Cleanup:
   - src/api/app/services/*.py (remove relative imports)
   - src/api/app/infrastructure/*.py (pure infrastructure)
   - src/api/app/domain/*.py (clean domain models)
-```text
+```
 
 ###  Implementation Tasks
 1. **Days 15-18**: Split enterprise_connector.py into focused classes
@@ -196,7 +196,7 @@ Clean Boundaries:
   - Domain → Services → Infrastructure
   - No circular dependencies
   - Clear public APIs
-```text
+```
 
 ###  Tests to Add/Update
 ```yaml
@@ -208,7 +208,7 @@ Architecture Tests:
 Refactoring Safety:
   - tests/integration/test_connector_backwards_compat.py
   - tests/performance/test_connector_performance.py
-```text
+```
 
 ###  Rollback Plan
 - **Feature flag system** to switch between old/new connectors
@@ -245,7 +245,7 @@ Test Types Implementation:
   Security Tests: 25+ attack scenarios
   Performance Tests: 15+ benchmark cases
   Contract Tests: 20+ service interfaces
-```text
+```
 
 ###  Files to Create/Update
 ```yaml
@@ -263,7 +263,7 @@ Enhanced Existing:
   - tests/conftest.py (improved fixtures)
   - tests/utils/test_helpers.py (testing utilities)
   - .github/workflows/test.yml (parallel execution)
-```text
+```
 
 ###  Implementation Tasks
 1. **Days 36-40**: Authentication and security test coverage
@@ -286,7 +286,7 @@ Performance Metrics:
   - Parallel Test Execution: 4x speedup
   - Flaky Test Rate: <2%
   - Test Reliability: >99%
-```text
+```
 
 ###  Tests to Add/Update
 ```yaml
@@ -299,7 +299,7 @@ Critical Test Scenarios:
   - Error handling and recovery
   - Performance under load
   - Security header validation
-```text
+```
 
 ###  Rollback Plan
 - **Test feature flags** to disable failing tests temporarily
@@ -334,7 +334,7 @@ Database Optimization:
   - Optimize N+1 query patterns
   - Implement connection pooling
   - Add query result caching
-```text
+```
 
 ###  Files to Modify
 ```yaml
@@ -349,7 +349,7 @@ Observability Enhancement:
   - infra/monitoring/grafana/dashboards/ (performance dashboards)
   - src/api/app/infrastructure/observability.py (custom metrics)
   - .github/workflows/performance-test.yml (automated testing)
-```text
+```
 
 ###  Implementation Tasks
 1. **Days 61-65**: Database query optimization and indexing
@@ -379,7 +379,7 @@ Alerting Rules:
   - Memory usage threshold (>512MB)
   - Error rate increase (>5%)
   - Security incident detection
-```text
+```
 
 ###  Tests to Add/Update
 ```yaml
@@ -393,7 +393,7 @@ Observability Tests:
   - tests/monitoring/test_metrics_collection.py
   - tests/monitoring/test_alerting_rules.py
   - tests/monitoring/test_dashboard_accuracy.py
-```text
+```
 
 ###  Rollback Plan
 - **Performance feature flags** for optimization toggles
@@ -418,7 +418,7 @@ Integration Risks:
   - Blue-green deployment capability
   - Database migration testing
   - Service compatibility validation
-```text
+```
 
 ###  Operational Risks
 ```yaml
@@ -433,7 +433,7 @@ Business Continuity:
   - Database backup before major changes
   - Service degradation graceful handling
   - Emergency contact procedures
-```text
+```
 
 ###  Success Metrics & Monitoring
 
@@ -455,7 +455,7 @@ Quality Metrics:
   - Code complexity reduction 30%
   - Technical debt ratio <10%
   - Developer satisfaction score >8/10
-```text
+```
 
 - --
 

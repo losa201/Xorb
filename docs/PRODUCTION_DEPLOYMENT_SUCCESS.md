@@ -87,7 +87,7 @@ curl -k https://localhost:8082/api/health
     "compliance": "active"
   }
 }
-```text
+```
 
 ###  **Rate Limiting Test**
 ```bash
@@ -97,7 +97,7 @@ curl -k -I https://localhost:8082/api/health
 # Headers include:
 # x-ratelimit-limit: 100
 # x-ratelimit-remaining: 97
-```text
+```
 
 ###  **Service Discovery**
 ```bash
@@ -110,7 +110,7 @@ curl http://localhost:8080/health
 # Monitoring Dashboards
 # http://localhost:3001 (Grafana)
 # http://localhost:9091 (Prometheus)
-```text
+```
 
 ##  🛡️ Security Validations Passed
 
@@ -153,7 +153,7 @@ docker stats --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemPerc}}"
 
 # Rate Limiting Status
 curl -k -I https://localhost:8082/api/health | grep -i ratelimit
-```text
+```
 
 ###  **Backup & Recovery**
 - **Automated Backups**: Configured for all services
@@ -205,7 +205,7 @@ docker-compose -f infra/docker-compose.yml restart
 
 # Emergency Stop
 docker-compose -f infra/docker-compose.yml down
-```text
+```
 
 - --
 

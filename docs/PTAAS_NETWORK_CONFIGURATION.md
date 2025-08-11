@@ -48,7 +48,7 @@ docker-compose up -d ptaas-frontend
 
 # Test connectivity
 ./scripts/test-ptaas-connectivity.sh
-```text
+```
 
 ###  🌐 Access Points
 
@@ -65,11 +65,11 @@ docker-compose up -d ptaas-frontend
 
 ###  📋 Service Architecture
 
-```text
+```
 Internet → Nginx (ports 80/443) → PTaaS Frontend (port 3000)
                 ↓
         API Requests → https://ptaas.verteidiq.com
-```text
+```
 
 ###  🔧 Configuration Files Modified
 

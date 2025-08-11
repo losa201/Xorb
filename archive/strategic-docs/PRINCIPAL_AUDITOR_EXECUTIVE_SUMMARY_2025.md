@@ -52,7 +52,7 @@ Security Architecture:
 ✅ RBAC + Context Awareness: Advanced authorization
 ✅ HashiCorp Vault: Enterprise secret management
 ✅ 30-Day Certificate Rotation: Automated security lifecycle
-```text
+```
 
 ####  **Advanced Cryptography**
 - **Post-Quantum Ready**: Kyber/Dilithium algorithm support
@@ -95,7 +95,7 @@ Production Metrics:
 ✅ Deployment Speed: 6.21 seconds (industry: 5-15 minutes)
 ✅ Service Availability: 99.99% target
 ✅ Scalability: Horizontal scaling ready
-```text
+```
 
 ####  **Real-World PTaaS Integration**
 - **Security Scanners**: Nmap, Nuclei, Nikto, SSLScan
@@ -120,7 +120,7 @@ Compliance Portfolio:
 ✅ NIST: Cybersecurity Framework
 ✅ SOC 2: Service Organization Control
 ✅ FedRAMP Ready: Federal Cloud Security
-```text
+```
 
 ####  **Automated Compliance**
 - **Continuous Monitoring**: Real-time validation
@@ -166,7 +166,7 @@ Market Impact Projections:
 🎯 Market Share: 5-10% cybersecurity operations
 🎯 Platform Valuation: $500M+ enterprise value
 🎯 Global Deployment: 10+ regional markets
-```text
+```
 
 ####  **Competitive Position**
 ```yaml
@@ -176,7 +176,7 @@ Market Leadership:
 ✅ Customer Value: 5-10x improvement over competitors
 ✅ Market Timing: Perfect cybersecurity market conditions
 ✅ Scalability: Global enterprise deployment ready
-```text
+```
 
 - --
 

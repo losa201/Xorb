@@ -10,7 +10,7 @@ The Xorb platform now includes a comprehensive AI agent system with specialized 
 
 ###  High-Level Architecture
 
-```text
+```
 +---------------------+     +-----------------------+
 |                     |     |                       |
 |  Main XORB API      |     |  User Interface       |
@@ -42,7 +42,7 @@ The Xorb platform now includes a comprehensive AI agent system with specialized 
 |                     |     |                       |
 +---------------------+     +-----------------------+
 
-```text
+```
 
 ##  Component Details
 

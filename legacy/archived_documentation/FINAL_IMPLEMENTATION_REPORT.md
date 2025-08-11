@@ -32,7 +32,7 @@ As Principal Auditor and Engineer, I have successfully transformed the XORB Ente
 ```python
 # Before (VULNERABLE):
 # TODO: Validate state against stored value
-```text
+```
 
 - **Solution**: Implemented comprehensive state validation with security logging
 ```python
@@ -50,7 +50,7 @@ if not await validate_state_parameter(state, tenant_id):
         status_code=status.HTTP_400_BAD_REQUEST,
         detail="Invalid state parameter - potential CSRF attack"
     )
-```text
+```
 
 - **Impact**: Prevents CSRF attacks and session hijacking in enterprise SSO flows.
 
@@ -80,7 +80,7 @@ def _validate_command_args(self, cmd: List[str]) -> bool:
         r'--exec',   # Execution flags
         # ... comprehensive pattern matching
     ]
-```text
+```
 
 - **Impact**: Prevents command injection attacks through scanner parameters, securing all 5 integrated security tools.
 
@@ -118,7 +118,7 @@ scanners = {
         "performance": "high"
     }
 }
-```text
+```
 
 ###  **Advanced Orchestration Engine**
 
@@ -143,7 +143,7 @@ class AdvancedPTaaSOrchestrator:
         attack_vectors: Optional[List[str]] = None
     ) -> Dict[str, Any]:
         """Execute advanced threat simulation"""
-```text
+```
 
 ###  **Security Scan Profiles**
 
@@ -160,7 +160,7 @@ class AdvancedPTaaSOrchestrator:
 
 Implemented enterprise-grade clean architecture with proper separation of concerns:
 
-```text
+```
 src/api/app/
 ├── domain/              # Business entities and rules
 │   ├── entities.py      # Core business entities
@@ -177,7 +177,7 @@ src/api/app/
 │   └── database.py     # Database management
 ├── routers/            # API endpoints
 └── middleware/         # Cross-cutting concerns
-```text
+```
 
 ###  **Dependency Injection Container**
 
@@ -198,7 +198,7 @@ class Container:
                 secret_key=self._config['secret_key']
             )
         )
-```text
+```
 
 - --
 
@@ -220,7 +220,7 @@ class ConsolidatedAuthService:
 
     # Fine-grained permissions
     PERMISSIONS = [SYSTEM_ADMIN, USER_CREATE, AGENT_EXECUTE, SECURITY_SCAN, TENANT_CREATE]
-```text
+```
 
 ###  **Security Features**
 
@@ -258,7 +258,7 @@ class ProductionMonitoring:
         MonitoringRule("critical_vulnerabilities", threshold=5.0, severity=CRITICAL),
         MonitoringRule("high_failed_auth_rate", threshold=10.0, severity=HIGH)
     ]
-```text
+```
 
 ###  **Multi-Channel Alerting**
 
@@ -294,7 +294,7 @@ class TestConsolidatedAuthService:
 
     async def test_multi_tenant_isolation(self):
         """Test tenant data isolation"""
-```text
+```
 
 ###  **Test Coverage Results**
 
@@ -328,7 +328,7 @@ Platform Scalability:
   Concurrent Users: 10,000+ active sessions
   Data Processing: 1M+ events/hour
   System Uptime: 99.9%+ availability
-```text
+```
 
 ###  **Security Effectiveness**
 
@@ -343,7 +343,7 @@ Threat Intelligence:
   Correlation Speed: < 100ms analysis
   False Positives: < 5% rate
   Behavioral Analytics: Real-time profiling
-```text
+```
 
 - --
 
@@ -364,7 +364,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 
 # 4. Kubernetes Enterprise Deployment
 kubectl apply -f deploy/kubernetes/production/
-```text
+```
 
 ###  **Environment Configuration**
 
@@ -389,7 +389,7 @@ PTAAS_SCANNER_TIMEOUT=1800
 ENABLE_METRICS=true
 ENABLE_TRACING=true
 PROMETHEUS_ENABLED=true
-```text
+```
 
 - --
 
@@ -399,7 +399,7 @@ PROMETHEUS_ENABLED=true
 
 - **Validation Script Results**: ✅ **16/16 tests passed (100% success rate)**
 
-```text
+```
 🔒 CRITICAL SECURITY FIXES: All major security vulnerabilities addressed
 🎯 PTaaS IMPLEMENTATION: Production-ready with 5 security scanners
 🔐 AUTHENTICATION: Enterprise-grade with RBAC and multi-tenancy
@@ -407,7 +407,7 @@ PROMETHEUS_ENABLED=true
 🏗️ ARCHITECTURE: Clean architecture with dependency injection
 🧪 TEST COVERAGE: Comprehensive security and functionality testing
 🚀 PRODUCTION READINESS: All components validated and operational
-```text
+```
 
 ###  **Security Assessment**
 

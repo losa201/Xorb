@@ -25,7 +25,7 @@ Successfully completed comprehensive debugging and error resolution across the X
 
 ##  📊 Platform Health Report
 
-```text
+```
 🎯 XORB PLATFORM HEALTH CHECK SUMMARY
 ============================================================
 Overall Status: HEALTHY ✅
@@ -33,7 +33,7 @@ Import Success: 8/8 (100.0%) ✅
 Syntax Success: 4/4 (100.0%) ✅
 Config Success: 4/4 (100.0%) ✅
 ============================================================
-```text
+```
 
 ##  🏗️ Architecture Improvements
 
@@ -64,7 +64,7 @@ Results:
 - ✅ All syntax validation passed
 - ✅ All configuration files valid
 - ✅ Service interfaces properly defined
-```text
+```
 
 ###  **Production Readiness Validation**
 - **API Gateway**: Main FastAPI application compiles successfully
@@ -81,7 +81,7 @@ CheckConstraint("email ~ '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$'", na
 
 # AFTER: Properly escaped regex
 CheckConstraint(r"email ~ '^[A-Za-z0-9._%-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$'", name='check_email_format')
-```text
+```
 
 ###  2. **Orchestration Controller** (Completely rewritten)
 - Removed embedded newline characters causing syntax errors

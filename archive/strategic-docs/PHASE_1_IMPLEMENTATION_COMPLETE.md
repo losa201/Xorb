@@ -40,7 +40,7 @@ class PtaasAgent(Agent):
     - Real scanner integration
     - Advanced reporting
     """
-```text
+```
 
 ###  2. New Data Structures
 ```python
@@ -62,13 +62,13 @@ class AIAnalysisResult:
     risk_score: int
     insights: List[str]
     recommendations: List[str]
-```text
+```
 
 ###  3. Enhanced Workflow
-```text
+```
 Original: Recon → Vuln Scan → Exploit → Report (4 phases)
 Enhanced: Recon → Vuln Scan → Compliance → AI Analysis → Guided Exploit → Enhanced Report (6 phases)
-```text
+```
 
 ##  🔧 Key Features Implemented
 
@@ -106,7 +106,7 @@ report_structure = {
     "recommendations": [...],
     "appendices": {...}
 }
-```text
+```
 
 ##  📊 Implementation Statistics
 
@@ -118,14 +118,14 @@ report_structure = {
 - **AI Analysis Features**: 8 core capabilities
 
 ###  Feature Completeness
-```text
+```
 ✅ Compliance Scanning:     100% Complete
 ✅ AI Analysis:             100% Complete
 ✅ Enhanced Reporting:      100% Complete
 ✅ Real API Integration:    100% Complete
 ✅ Error Handling:          100% Complete
 ✅ Documentation:           100% Complete
-```text
+```
 
 ##  🧪 Testing & Validation
 
@@ -140,7 +140,7 @@ report_structure = {
 ✅ Compliance result structure validated
 ✅ AI analysis result structure validated
 🎉 Enhanced PTaaS Agent validation successful!
-```text
+```
 
 ###  Demo Implementation
 - **Comprehensive Demo Script**: `demo_enhanced_ptaas_agent.py`
@@ -169,13 +169,13 @@ python agents/ptaas_agent.py \
     --target-domain webapp.example.com \
     --api-token YOUR_API_TOKEN \
     --compliance-frameworks PCI-DSS HIPAA
-```text
+```
 
 ###  Comprehensive Demo
 ```bash
 python demo_enhanced_ptaas_agent.py        # Demo mode
 python demo_enhanced_ptaas_agent.py --real # Real API mode
-```text
+```
 
 ###  Programmatic Usage
 ```python
@@ -193,7 +193,7 @@ report = agent.run_pentest(
     compliance_frameworks=["PCI-DSS", "HIPAA"],
     enable_ai_analysis=True
 )
-```text
+```
 
 ##  📈 Performance Metrics
 

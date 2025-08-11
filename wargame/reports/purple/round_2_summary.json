@@ -1,0 +1,43 @@
+{
+  "round_id": 2,
+  "timestamp": "2025-08-11T21:39:41.876322",
+  "duration": "5 minutes",
+  "red_team_performance": {
+    "total_actions": 15,
+    "successful_actions": 14,
+    "success_rate": 0.9333333333333333,
+    "compromised_assets": [
+      "Corporate Website",
+      "HR Portal"
+    ],
+    "persistence_established": true,
+    "data_exfiltrated": true
+  },
+  "blue_team_performance": {
+    "total_actions": 18,
+    "detections": 10,
+    "detection_rate": 0.6666666666666666,
+    "countermeasures_deployed": 1,
+    "resource_cost": 60,
+    "prevention_score": 0.3888888888888889
+  },
+  "environment_evolution": {
+    "changes_applied": 0,
+    "new_vulnerabilities": 0,
+    "infrastructure_changes": 0,
+    "configuration_updates": 0
+  },
+  "security_posture": {
+    "overall_risk": "medium",
+    "attack_surface": "medium",
+    "defense_maturity": "intermediate"
+  },
+  "lessons_learned": [
+    "High attack success rate indicates need for improved preventive controls",
+    "Persistence established - need enhanced endpoint detection and response"
+  ],
+  "next_round_recommendations": [
+    "Implement multi-factor authentication for administrative accounts",
+    "Optimize defense spending for better cost-effectiveness"
+  ]
+}

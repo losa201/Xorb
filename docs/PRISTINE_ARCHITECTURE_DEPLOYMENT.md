@@ -14,7 +14,7 @@ The XORB Pristine Architecture represents the pinnacle of cybersecurity platform
 
 ###  Service Tier Structure
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                        EDGE TIER                            │
 │  ┌─────────────────┐    ┌─────────────────────────────────┐ │
@@ -48,11 +48,11 @@ The XORB Pristine Architecture represents the pinnacle of cybersecurity platform
 │  │ Collector   │  │             │  │                     │ │
 │  └─────────────┘  └─────────────┘  └─────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  EPYC CPU Optimization
 
-```text
+```
 NUMA Node 0 (Cores 0-15)     NUMA Node 1 (Cores 16-31)
 ┌─────────────────────────┐   ┌─────────────────────────┐
 │ CCX 0    │ CCX 1        │   │ CCX 4    │ CCX 5        │
@@ -64,7 +64,7 @@ NUMA Node 0 (Cores 0-15)     NUMA Node 1 (Cores 16-31)
 │ L3: 16MB │ L3: 16MB     │   │ L3: 16MB │ L3: 16MB     │
 └─────────────────────────┘   └─────────────────────────┘
      Memory Controller            Memory Controller
-```text
+```
 
 ##  📦 Deployment Instructions
 
@@ -82,12 +82,12 @@ NUMA Node 0 (Cores 0-15)     NUMA Node 1 (Cores 16-31)
 ```bash
 git clone https://github.com/your-org/xorb.git
 cd xorb
-```text
+```
 
 2. **Configure Environment Variables**
 ```bash
 cp .env.example .env.pristine
-```text
+```
 
 Edit `.env.pristine`:
 ```bash
@@ -122,7 +122,7 @@ LLM_STRATEGY=free_tier_optimized
 JWT_SECRET=your-secure-jwt-secret
 DATABASE_ENCRYPTION=true
 TLS_ENABLED=true
-```text
+```
 
 3. **System Optimization**
 ```bash
@@ -138,7 +138,7 @@ echo 'vm.nr_hugepages=2048' | sudo tee -a /etc/sysctl.conf
 
 # Apply settings
 sudo sysctl -p
-```text
+```
 
 ###  Deployment Steps
 
@@ -149,7 +149,7 @@ docker-compose -f infra/docker-compose-pristine.yml build
 
 # Verify EPYC optimization in builds
 docker-compose -f infra/docker-compose-pristine.yml config | grep -i epyc
-```text
+```
 
 2. **Initialize Data Stores**
 ```bash
@@ -162,7 +162,7 @@ sleep 30
 # Verify data store health
 docker-compose -f infra/docker-compose-pristine.yml exec postgres pg_isready
 docker-compose -f infra/docker-compose-pristine.yml exec redis redis-cli ping
-```text
+```
 
 3. **Deploy Core Services**
 ```bash
@@ -176,7 +176,7 @@ docker-compose -f infra/docker-compose-pristine.yml up -d \
 # Verify core services health
 curl http://localhost:8001/health  # Campaign Orchestrator
 curl http://localhost:8002/health  # Target Registry
-```text
+```
 
 4. **Deploy Domain Services**
 ```bash
@@ -190,7 +190,7 @@ docker-compose -f infra/docker-compose-pristine.yml up -d \
 
 # Verify AI Gateway
 curl http://localhost:8010/health
-```text
+```
 
 5. **Deploy Platform Services**
 ```bash
@@ -202,7 +202,7 @@ docker-compose -f infra/docker-compose-pristine.yml up -d \
 
 # Verify API Gateway
 curl http://localhost:8000/health
-```text
+```
 
 6. **Deploy Edge Services**
 ```bash
@@ -213,7 +213,7 @@ docker-compose -f infra/docker-compose-pristine.yml up -d \
 
 # Verify web interface
 curl http://localhost:3000
-```text
+```
 
 7. **Deploy Observability Stack**
 ```bash
@@ -228,7 +228,7 @@ docker-compose -f infra/docker-compose-pristine.yml up -d \
 curl http://localhost:9090/targets    # Prometheus
 curl http://localhost:3001           # Grafana
 curl http://localhost:16686          # Jaeger
-```text
+```
 
 8. **Deploy Service Mesh & Fault Tolerance**
 ```bash
@@ -240,7 +240,7 @@ docker-compose -f infra/docker-compose-pristine.yml up -d \
 
 # Verify service mesh
 curl http://localhost:15000/stats  # Istio Proxy
-```text
+```
 
 ###  Verification & Health Checks
 
@@ -248,7 +248,7 @@ curl http://localhost:15000/stats  # Istio Proxy
 ```bash
 # Check all service health statuses
 ./scripts/health-check-pristine.sh
-```text
+```
 
 2. **EPYC Optimization Verification**
 ```bash
@@ -260,7 +260,7 @@ curl http://localhost:8001/metrics | grep epyc_ccx
 
 # Monitor thermal state
 curl http://localhost:8001/metrics | grep epyc_thermal
-```text
+```
 
 3. **Performance Benchmarks**
 ```bash
@@ -272,7 +272,7 @@ curl http://localhost:8001/metrics | grep epyc_thermal
 # - Vulnerability scanning: <30s p95
 # - AI inference: <2s p95
 # - Evidence collection: <500ms p95
-```text
+```
 
 ##  🔧 Configuration Management
 
@@ -296,7 +296,7 @@ bulkhead:
   max_concurrent_requests: 50
   queue_size: 200
   timeout_seconds: 30
-```text
+```
 
 ####  AI Gateway (Domain Tier)
 ```yaml
@@ -314,7 +314,7 @@ ai_models:
     - "01-ai/yi-1.5-34b-chat:free"
 
 fallback_strategy: "free_tier_optimized"
-```text
+```
 
 ###  Monitoring Configuration
 
@@ -367,7 +367,7 @@ docker-compose -f infra/docker-compose-pristine.yml up -d --scale campaign-orche
 
 # Scale domain services based on workload
 docker-compose -f infra/docker-compose-pristine.yml up -d --scale vulnerability-scanner=5
-```text
+```
 
 ####  Vertical Scaling (EPYC Optimization)
 ```yaml
@@ -379,7 +379,7 @@ ai-gateway:
         cpus: '8.0'
         memory: 16G
   cpuset: "24-31"  # Dedicate full CCX
-```text
+```
 
 ###  Disaster Recovery
 
@@ -390,7 +390,7 @@ ai-gateway:
 
 # Point-in-time recovery capability
 ./scripts/restore-database.sh --timestamp="2024-01-15T10:30:00Z"
-```text
+```
 
 2. **Service Recovery**
 ```bash
@@ -399,7 +399,7 @@ ai-gateway:
 
 # Emergency failover
 ./scripts/emergency-failover.sh --target-region=backup
-```text
+```
 
 ###  Performance Tuning
 
@@ -413,7 +413,7 @@ numactl --cpunodebind=0 --membind=0 docker-compose up campaign-orchestrator
 
 # CCX-aware task scheduling
 echo 2 > /proc/sys/kernel/sched_domain/cpu*/domain1/max_newidle_lb_cost
-```text
+```
 
 ####  Service-Specific Tuning
 ```yaml
@@ -426,7 +426,7 @@ postgres:
     - checkpoint_completion_target=0.9
     - wal_buffers=64MB
     - default_statistics_target=100
-```text
+```
 
 ##  🎯 Success Metrics
 

@@ -6,7 +6,7 @@
 
 ##  🏗️ Enterprise Architecture - FINAL STRUCTURE
 
-```text
+```
 /root/Xorb/                                    # XORB Enterprise Platform
 ├── services/                                  # 🏗️ Microservices Architecture
 │   ├── ptaas/                                # 🔴 PTaaS - Offensive Security
@@ -35,7 +35,7 @@
 ├── docs/                                      # 📖 Documentation
 ├── legacy/                                    # 🗄️ Preserved Legacy
 └── docker-compose.enterprise.yml             # 🐳 Full stack deployment
-```text
+```
 
 ##  🔒 Production Security Features - IMPLEMENTED
 
@@ -57,10 +57,10 @@ Security Stack:
 - Zero Trust Controller (Custom Python)
 - ML Threat Detection (scikit-learn)
 - Incident Response Orchestrator (Custom Python)
-```text
+```
 
 ###  3. **Network Security Architecture**
-```text
+```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Internet      │───▶│  Security Gateway │───▶│   DMZ Zone      │
 │   (Untrusted)   │    │  (WAF + DDoS)    │    │   (Filtered)    │
@@ -78,7 +78,7 @@ Security Stack:
 │ Zone        │    │ Zone        │    │ Zone        │
 │ (Basic)     │    │ (Verified)  │    │ (Privileged)│
 └─────────────┘    └─────────────┘    └─────────────┘
-```text
+```
 
 ##  ⚡ Advanced Security Features
 
@@ -103,7 +103,7 @@ Security Stack:
 ##  🚀 Unified Security Workflows
 
 ###  **Attack-Defense Integration**
-```text
+```
 PTaaS (Red Team)           XORB Core (Blue Team)
 ─────────────────         ──────────────────────
 Vulnerability Discovery ──▶ Threat Intelligence Analysis
@@ -112,7 +112,7 @@ Payload Crafting      ──▶ Detection Enhancement
 Attack Simulation     ──▶ Defense Validation
 Evasion Testing      ◀──▶ Detection Tuning
 Campaign Execution    ──▶ Incident Response
-```text
+```
 
 ###  **Continuous Security Loop**
 1. **Discovery**: PTaaS identifies vulnerabilities and attack vectors
@@ -146,7 +146,7 @@ Security Measures:
 - Resource limits and quotas
 - Network policies enforcement
 - Image vulnerability scanning
-```text
+```
 
 ###  **Network Security**
 ```yaml
@@ -157,7 +157,7 @@ Network Controls:
 - DDoS protection
 - Rate limiting per service
 - Geographic IP filtering
-```text
+```
 
 ###  **Data Protection**
 ```yaml
@@ -168,7 +168,7 @@ Data Security:
 - Data classification
 - Access controls (RBAC)
 - Data loss prevention
-```text
+```
 
 ##  📈 Performance & Scalability
 

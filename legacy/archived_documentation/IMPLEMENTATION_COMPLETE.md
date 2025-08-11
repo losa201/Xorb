@@ -144,7 +144,7 @@ async def create_scan_session(self, ...):
 async def analyze_indicators(self, ...):
     # Placeholder for threat intelligence
     return {"status": "not_implemented"}
-```text
+```
 
 ###  After: Production Implementation
 ```python
@@ -161,7 +161,7 @@ async def create_scan_session(self, targets, scan_type, user, org, metadata=None
             ports=target_data.get("ports", []),
             scan_profile=target_data.get("scan_profile", "comprehensive"),
             # ... full implementation with validation, orchestration, and state management
-```text
+```
 
 ##  🚀 Ready for Deployment
 
@@ -169,7 +169,7 @@ async def create_scan_session(self, targets, scan_type, user, org, metadata=None
 ```bash
 cd src/api
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```text
+```
 
 ###  Access Points
 - **API Documentation**: http://localhost:8000/docs
@@ -190,7 +190,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/sessions" \
     }],
     "scan_type": "comprehensive"
   }'
-```text
+```
 
 ##  🏆 Achievement Summary
 

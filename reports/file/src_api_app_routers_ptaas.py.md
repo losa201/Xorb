@@ -22,7 +22,7 @@ async def create_scan_session(
     request: ScanSessionRequest,
     # Missing authorization check for scanning external targets
     tenant_id: UUID = Depends(get_current_tenant_id),
-```text
+```
 - **Risk**: Tenants can potentially scan unauthorized external networks, leading to:
 - Legal liability for unauthorized scanning
 - Compliance violations
@@ -40,7 +40,7 @@ validation_results = {
 # Insufficient restricted port checking
 restricted_ports = [22, 23, 3389]  # Limited list
 dangerous_ports = [1433, 3306, 5432]  # Incomplete
-```text
+```
 - **Risk**:
 - Scanning of critical infrastructure
 - Targeting internal network resources
@@ -52,7 +52,7 @@ dangerous_ports = [1433, 3306, 5432]  # Incomplete
 ```python
 # Returns all session data without filtering sensitive information
 return ScanSessionResponse(**session_status)
-```text
+```
 - **Risk**: Exposure of scan results, network topology, and vulnerability data to unauthorized users.
 
 ####  4. Missing CSRF Protection on State-Changing Operations
@@ -69,7 +69,7 @@ return ScanSessionResponse(**session_status)
 except Exception as e:
     logger.error(f"Failed to create PTaaS session: {e}")
     raise HTTPException(status_code=500, detail="Internal server error")
-```text
+```
 - **Risk**: While generic error messages are returned to users, detailed errors are logged and may leak sensitive information.
 
 ####  6. Unimplemented Session Listing (Lines 220-245)
@@ -79,7 +79,7 @@ except Exception as e:
 # This would typically query a database for tenant sessions
 # For now, return a basic response structure
 sessions = []
-```text
+```
 - **Risk**: Endpoint exists but returns empty data, indicating incomplete implementation.
 
 ###  MEDIUM Issues
@@ -90,7 +90,7 @@ sessions = []
 ```python
 restricted_ports = [22, 23, 3389]  # SSH, Telnet, RDP
 dangerous_ports = [1433, 3306, 5432]  # Database ports
-```text
+```
 - **Risk**: Limited port restrictions may not cover all sensitive services.
 
 ####  8. Missing Input Sanitization for Host Parameters
@@ -195,7 +195,7 @@ async def create_scan_session(
                 status_code=403,
                 detail=f"Not authorized to scan target: {target.host}"
             )
-```text
+```
 
 ####  Fix 2: Enhanced Target Validation
 ```python
@@ -229,7 +229,7 @@ async def validate_scan_target(target: ScanTargetRequest) -> Dict[str, Any]:
     for port in target.ports:
         if port in CRITICAL_PORTS and not target.authorized:
             return {"valid": False, "error": f"Port {port} requires explicit authorization"}
-```text
+```
 
 ##  Testing Requirements
 1. **Authorization Tests**: Verify tenant isolation and scan permissions

@@ -25,7 +25,7 @@ class CognitiveAgent:
     def _calculate_risk(self, data):
         # ML-powered risk assessment
         return risk_model.predict(data)
-```text
+```
 
 ##  Trust Model Integration
 - Updates trust scores based on analysis accuracy

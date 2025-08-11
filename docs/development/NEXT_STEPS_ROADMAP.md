@@ -16,7 +16,7 @@ With the core PTaaS platform now implemented with real security tools and AI cap
 ./tools/scripts/setup-security-tools.sh
 ./tools/scripts/configure-scanning-environment.sh
 ./tools/scripts/validate-tool-integrations.sh
-```text
+```
 
 - *Key Deliverables:**
 - **Hardened Security Tools**: Production Nmap, Nuclei, Metasploit integration
@@ -34,7 +34,7 @@ class ProductionScannerOrchestrator:
         # 3. Exploitation (Metasploit + Custom modules)
         # 4. Post-exploitation (Lateral movement simulation)
         # 5. Evidence collection (Forensic artifacts)
-```text
+```
 
 ###  **1.2 Enterprise Authentication & Compliance**
 
@@ -47,7 +47,7 @@ class EnterpriseAuthManager:
     - Multi-factor authentication (hardware tokens)
     - Fine-grained RBAC (30+ permission levels)
     - API key lifecycle management
-```text
+```
 
 - *Compliance Framework:**
 - **SOC 2 Type II** audit preparation
@@ -67,7 +67,7 @@ CREATE INDEX CONCURRENTLY idx_scan_results_perf ON scan_results
 - - Vector database for threat intelligence
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE INDEX ON threat_vectors USING ivfflat (embedding vector_cosine_ops);
-```text
+```
 
 - *Performance Targets:**
 - **10,000+ concurrent scans**
@@ -89,7 +89,7 @@ class AdvancedExploitationEngine:
         payload = await self.generate_payload(target_os, constraints)
         result = await self.execute_exploit(exploit_module, payload)
         return ExploitationResult(success=True, access_level="system")
-```text
+```
 
 - *Red Team Simulation:**
 - **APT Campaign Simulation**: Multi-stage attack scenarios
@@ -113,7 +113,7 @@ class VulnerabilityIntelligenceAI:
             remediation_priority=analysis.prioritized_fixes,
             exploit_probability=analysis.exploitability_score
         )
-```text
+```
 
 - *Capabilities:**
 - **Attack Path Modeling**: AI-generated attack scenario predictions
@@ -138,7 +138,7 @@ class CloudSecurityAssessment:
             network_exposure=findings.network_vulnerabilities,
             compliance_gaps=findings.compliance_violations
         )
-```text
+```
 
 - --
 
@@ -159,7 +159,7 @@ class QuantumReadinessAssessment:
             migration_roadmap=quantum_risk.migration_plan,
             compliance_timeline=quantum_risk.regulatory_deadlines
         )
-```text
+```
 
 ###  **3.2 Industry-Specific Security Modules**
 
@@ -177,7 +177,7 @@ class FinancialServicesSecurityModule:
             remediation_plan=assessment.action_items,
             certification_readiness=assessment.audit_readiness
         )
-```text
+```
 
 - *Healthcare Module:**
 ```python
@@ -192,7 +192,7 @@ class HealthcareSecurityModule:
             access_control_effectiveness=assessment.access_controls,
             audit_trail_compliance=assessment.logging_adequacy
         )
-```text
+```
 
 ###  **3.3 Advanced Threat Hunting Platform**
 
@@ -210,7 +210,7 @@ class AdvancedThreatHunting:
             zero_day_indicators=hunting.unknown_threat_patterns,
             attribution_analysis=hunting.threat_actor_attribution
         )
-```text
+```
 
 - --
 
@@ -239,7 +239,7 @@ spec:
           limits:
             memory: "8Gi"
             cpu: "4000m"
-```text
+```
 
 - *High Availability Configuration:**
 - **Multi-region deployment**: 99.99% uptime SLA
@@ -261,7 +261,7 @@ class EnterpriseIntegrationHub:
         # Phantom, Demisto, XSOAR integration
         for finding in critical_findings:
             await self.trigger_incident_response(finding)
-```text
+```
 
 - *Enterprise API Gateway:**
 - **Rate limiting**: 100,000+ requests/minute
@@ -282,7 +282,7 @@ class ExecutiveDashboard:
             cost_of_vulnerabilities=metrics.business_impact,
             remediation_velocity=metrics.fix_rate
         )
-```text
+```
 
 - *Advanced Reporting:**
 - **Interactive dashboards**: Real-time security metrics
@@ -303,7 +303,7 @@ class ExecutiveDashboard:
 4. **Technology Companies** (SaaS providers, cloud-native companies)
 
 - *Pricing Strategy:**
-```text
+```
 Enterprise Tier: $50,000-200,000/year
 - Unlimited scanning targets
 - Advanced AI analysis
@@ -315,7 +315,7 @@ Professional Tier: $15,000-50,000/year
 - Standard AI features
 - Business hours support
 - Standard integrations
-```text
+```
 
 ###  **5.2 Partnership Strategy**
 
@@ -348,7 +348,7 @@ class CustomerOnboarding:
             security_improvement="40% vulnerability reduction",
             team_productivity="60% faster security assessments"
         )
-```text
+```
 
 - --
 
@@ -382,7 +382,7 @@ class CustomerOnboarding:
 git clone https://github.com/projectdiscovery/nuclei-templates
 ./scripts/setup-production-environment.sh
 ./scripts/configure-security-tools.sh
-```text
+```
 
 ###  **Day 3-4: Security Tool Integration**
 ```bash
@@ -390,7 +390,7 @@ git clone https://github.com/projectdiscovery/nuclei-templates
 sudo ./tools/scripts/install-security-tools.sh
 ./tools/scripts/validate-tool-functionality.sh
 ./tools/scripts/create-scanning-profiles.sh
-```text
+```
 
 ###  **Day 5-7: Enterprise Demo Environment**
 ```bash
@@ -398,7 +398,7 @@ sudo ./tools/scripts/install-security-tools.sh
 ./deploy/enterprise-demo-setup.sh
 ./scripts/create-demo-data.sh
 ./scripts/validate-demo-environment.sh
-```text
+```
 
 - --
 

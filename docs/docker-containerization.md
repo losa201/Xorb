@@ -50,7 +50,7 @@ WORKERS=8                    # Gunicorn worker processes
 TIMEOUT=60                   # Request timeout
 DEBUG=false                  # Debug mode
 LOG_LEVEL=INFO              # Logging level
-```text
+```
 
 ###  Orchestrator Service (`src/orchestrator/Dockerfile`)
 
@@ -64,7 +64,7 @@ LOG_LEVEL=INFO              # Logging level
 ```bash
 TEMPORAL_HOST=temporal:7233  # Temporal server connection
 XORB_ENV=production         # Environment configuration
-```text
+```
 
 ###  Worker Service (`src/services/worker/Dockerfile`)
 
@@ -78,7 +78,7 @@ XORB_ENV=production         # Environment configuration
 ```bash
 WORKER_CONCURRENCY=8        # Worker process count
 WORKER_MAX_MEMORY=512m      # Memory limit per worker
-```text
+```
 
 ##  Docker Compose Configurations
 
@@ -109,7 +109,7 @@ docker-compose -f docker-compose.development.yml logs -f api-dev
 
 # Scale workers
 docker-compose -f docker-compose.development.yml up -d --scale worker-dev=4
-```text
+```
 
 ###  Production Environment (`docker-compose.production.yml`)
 
@@ -142,7 +142,7 @@ api-prod:
       reservations:
         memory: 512M
         cpus: '0.5'
-```text
+```
 
 ##  Container Management Scripts
 
@@ -169,7 +169,7 @@ Comprehensive container management tool with the following capabilities:
 
 # Clean up resources
 ./tools/scripts/docker-build.sh clean --environment development
-```text
+```
 
 - *Features:**
 - Parallel and sequential builds
@@ -221,7 +221,7 @@ python test_containers.py
 
 🎯 Summary: 8/8 tests passed
 🎉 All container tests passed!
-```text
+```
 
 ##  Configuration Management Integration
 
@@ -236,7 +236,7 @@ from common.config_manager import get_config
 config = get_config()
 db_url = config.database.get_url()
 api_port = config.api_service.port
-```text
+```
 
 ###  Environment-specific Configs
 
@@ -264,7 +264,7 @@ api-prod:
   secrets:
     - postgres_password
     - jwt_secret
-```text
+```
 
 ##  Performance Optimization
 
@@ -292,7 +292,7 @@ RUN pip install --no-cache-dir -r requirements.lock
 
 # Source code copied after dependencies
 COPY --chown=xorb:xorb . .
-```text
+```
 
 - *Build Cache Tags:**
 ```bash
@@ -301,7 +301,7 @@ docker build --cache-from xorb/api:dev-cache --target development -t xorb/api:de
 
 # Push cache for CI/CD
 docker push xorb/api:dev-cache
-```text
+```
 
 ###  Runtime Optimization
 
@@ -315,7 +315,7 @@ deploy:
     reservations:
       memory: 512M
       cpus: '0.5'
-```text
+```
 
 - *Health Checks:**
 ```yaml
@@ -325,7 +325,7 @@ healthcheck:
   timeout: 10s
   retries: 3
   start_period: 60s
-```text
+```
 
 ##  Monitoring and Observability
 
@@ -350,7 +350,7 @@ Structured logging from all containers:
   "duration": 0.245,
   "status_code": 200
 }
-```text
+```
 
 ###  Dashboards
 
@@ -375,7 +375,7 @@ Scanning api for vulnerabilities...
 ✅ No HIGH or CRITICAL vulnerabilities found
 Scanning orchestrator for vulnerabilities...
 ✅ No HIGH or CRITICAL vulnerabilities found
-```text
+```
 
 ###  Security Compliance
 
@@ -405,7 +405,7 @@ Production deployment with zero downtime:
 
 # Deploy to production
 ./tools/scripts/docker-build.sh deploy --environment production --version v1.2.3
-```text
+```
 
 ###  Rolling Updates
 
@@ -420,7 +420,7 @@ deploy:
   rollback_config:
     parallelism: 1
     delay: 30s
-```text
+```
 
 ###  Scaling Operations
 
@@ -431,7 +431,7 @@ docker-compose -f docker-compose.production.yml up -d --scale api-prod=5
 
 # Scale workers based on load
 docker-compose -f docker-compose.production.yml up -d --scale worker-prod=8
-```text
+```
 
 ##  Troubleshooting
 
@@ -444,7 +444,7 @@ docker-compose logs -f api-prod
 
 # Check configuration
 ./tools/scripts/config-manager.sh validate production
-```text
+```
 
 - *2. Out of Memory Errors**
 ```bash
@@ -453,7 +453,7 @@ docker stats
 
 # Increase memory limits
 # Edit docker-compose.yml resources section
-```text
+```
 
 - *3. Health Check Failures**
 ```bash
@@ -462,7 +462,7 @@ curl http://localhost:8000/health
 
 # Check container status
 docker-compose ps
-```text
+```
 
 ###  Debugging Tools
 
@@ -473,7 +473,7 @@ docker-compose exec api-dev /bin/bash
 
 # Production containers (limited shell)
 docker-compose exec api-prod /bin/sh
-```text
+```
 
 - *Log Analysis:**
 ```bash
@@ -482,7 +482,7 @@ docker-compose logs -f --tail=100 api-prod
 
 # Search logs for errors
 docker-compose logs api-prod 2>&1 | grep ERROR
-```text
+```
 
 - *Performance Analysis:**
 ```bash
@@ -491,7 +491,7 @@ docker stats api-prod orchestrator-prod worker-prod
 
 # Generate performance report
 ./tools/scripts/docker-build.sh size-report
-```text
+```
 
 ##  Best Practices
 
@@ -543,7 +543,7 @@ database_url = os.getenv('DATABASE_URL')
 from common.config_manager import get_config
 config = get_config()
 database_url = config.database.get_url()
-```text
+```
 
 - --
 

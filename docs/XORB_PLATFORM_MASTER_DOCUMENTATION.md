@@ -56,7 +56,7 @@ XORB is a production-ready enterprise cybersecurity platform that provides compr
 
 ###  **System Architecture Overview**
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                XORB Enterprise Platform                    │
 ├─────────────────────────────────────────────────────────────┤
@@ -84,7 +84,7 @@ XORB is a production-ready enterprise cybersecurity platform that provides compr
 │  ├─ PostgreSQL (Multi-tenant RLS)  ├─ Redis (Cache/Session)│
 │  ├─ FastAPI (Clean Architecture)   └─ Temporal (Workflows) │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Service Architecture**
 
@@ -136,7 +136,7 @@ XORB is a production-ready enterprise cybersecurity platform that provides compr
 
 ###  **Transport Security Architecture**
 
-```text
+```
 ┌─────────────────┐    HTTPS/TLS    ┌─────────────────┐
 │   External      │◄──────────────►│   Envoy Proxy   │
 │   Clients       │   HSTS + Security   │   (mTLS Term)   │
@@ -156,11 +156,11 @@ XORB is a production-ready enterprise cybersecurity platform that provides compr
 │  │(TLS-only)   │    │ (TLS+SSL)   │    │ Docker(TLS) │     │
 │  └─────────────┘    └─────────────┘    └─────────────┘     │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Certificate Hierarchy**
 
-```text
+```
 XORB Root CA (RSA 4096, 10 years)
 ├── Subject: CN=XORB Root CA, O=XORB Platform, C=US
 ├── Usage: Certificate Signing, CRL Signing
@@ -170,7 +170,7 @@ XORB Root CA (RSA 4096, 10 years)
     └── Service Certificates (RSA 2048, 30 days)
         ├── Server Certificates (serverAuth)
         └── Client Certificates (clientAuth)
-```text
+```
 
 ###  **Security Features**
 
@@ -231,7 +231,7 @@ GET    /api/v1/ptaas/scan-results/{id}           # Detailed results
 POST   /api/v1/ptaas/orchestration/workflows                # Create workflow
 POST   /api/v1/ptaas/orchestration/compliance-scan          # Compliance scan
 POST   /api/v1/ptaas/orchestration/threat-simulation        # Threat simulation
-```text
+```
 
 ###  **Compliance Framework Support**
 
@@ -267,7 +267,7 @@ result = engine.update_profile("user_id", {
     "privilege_usage": 4.3,
     "command_sequence_complexity": 5.7
 })
-```text
+```
 
 ###  **Threat Hunting Engine**
 
@@ -283,7 +283,7 @@ result = engine.update_profile("user_id", {
 FIND processes WHERE name = "suspicious.exe" AND network_connections > 10
 FIND authentication WHERE action = "failed" AND count > 5 AND timeframe = "1h"
 FIND events WHERE action = "privilege_escalation" AND success = true
-```text
+```
 
 ###  **Digital Forensics Engine**
 
@@ -333,7 +333,7 @@ cd src/orchestrator && python main.py
 
 # 5. Validate Environment
 python tools/scripts/validate_environment.py
-```text
+```
 
 ###  **Docker Development**
 
@@ -349,7 +349,7 @@ docker-compose -f docker-compose.production.yml up -d
 
 # TLS/mTLS deployment
 docker-compose -f infra/docker-compose.tls.yml up -d
-```text
+```
 
 ###  **Testing Strategy**
 
@@ -367,7 +367,7 @@ pytest --cov=src/api/app --cov-report=html --cov-report=term-missing
 # Frontend testing
 cd services/ptaas/web && npm test
 cd services/ptaas/web && npm run test:coverage
-```text
+```
 
 - --
 
@@ -407,7 +407,7 @@ Production Architecture:
     │  │Port 5432    │ Port 6379   │ Ports 9090/3001         │  │
     │  └─────────────┴─────────────┴─────────────────────────┘  │
     └───────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Deployment Methods**
 
@@ -419,7 +419,7 @@ docker-compose -f infra/docker-compose.production.yml up -d
 # Multi-Node Docker Swarm
 docker swarm init
 docker stack deploy -c infra/docker-compose.production.yml xorb
-```text
+```
 
 ####  **Kubernetes Deployment**
 ```bash
@@ -431,7 +431,7 @@ helm install xorb-platform xorb/xorb --namespace xorb-system --create-namespace
 kubectl apply -f infra/k8s/namespace.yaml
 kubectl apply -f infra/k8s/services/
 kubectl apply -f infra/k8s/deployments/
-```text
+```
 
 ####  **Cloud Deployment**
 ```bash
@@ -444,7 +444,7 @@ az deployment group create --resource-group xorb-rg --template-file infra/azure/
 
 # Google Cloud (Deployment Manager)
 gcloud deployment-manager deployments create xorb-platform --config infra/gcp/xorb-platform.yaml
-```text
+```
 
 ###  **TLS/mTLS Deployment**
 
@@ -461,7 +461,7 @@ done
 
 # Deploy TLS Stack
 docker-compose -f infra/docker-compose.tls.yml up -d
-```text
+```
 
 ####  **Certificate Rotation**
 ```bash
@@ -475,7 +475,7 @@ docker-compose -f infra/docker-compose.tls.yml up -d
 for cert in secrets/tls/*/cert.pem; do
     openssl x509 -in "$cert" -noout -enddate
 done
-```text
+```
 
 - --
 
@@ -497,7 +497,7 @@ curl -X POST http://localhost:8000/api/v1/auth/login \
 # Use token in requests
 curl -H "Authorization: Bearer {token}" \
   http://localhost:8000/api/v1/ptaas/sessions
-```text
+```
 
 ###  **Core API Endpoints**
 
@@ -514,7 +514,7 @@ GET    /api/v1/ptaas/scan-results/{id}           # Detailed results
 POST   /api/v1/ptaas/orchestration/workflows                # Create workflow
 POST   /api/v1/ptaas/orchestration/compliance-scan          # Compliance scan
 POST   /api/v1/ptaas/orchestration/threat-simulation        # Threat simulation
-```text
+```
 
 ####  **Intelligence API (8 routes)**
 ```bash
@@ -524,7 +524,7 @@ POST   /api/v1/intelligence/threat-hunting/query     # Threat hunting
 POST   /api/v1/intelligence/behavioral/analyze       # Behavioral analysis
 POST   /api/v1/platform/forensics/evidence           # Collect evidence
 POST   /api/v1/platform/network/segments             # Create network segment
-```text
+```
 
 ####  **Platform Management (6 routes)**
 ```bash
@@ -535,7 +535,7 @@ POST   /api/v1/platform/services/{id}/start         # Start service
 POST   /api/v1/platform/services/{id}/stop          # Stop service
 GET    /api/v1/platform/health                      # Platform health
 GET    /api/v1/platform/metrics                     # Platform metrics
-```text
+```
 
 ###  **Example API Usage**
 
@@ -565,7 +565,7 @@ response = requests.post(
     headers={"Authorization": "Bearer YOUR_TOKEN"},
     json=ptaas_request
 )
-```text
+```
 
 ####  **AI Threat Analysis**
 ```python
@@ -588,7 +588,7 @@ response = requests.post(
     headers={"Authorization": "Bearer YOUR_TOKEN"},
     json=intelligence_request
 )
-```text
+```
 
 - --
 
@@ -629,7 +629,7 @@ SECURITY_HEADERS_ENABLED=true
 ENABLE_METRICS=true
 ENABLE_TRACING=true
 LOG_LEVEL=INFO
-```text
+```
 
 ###  **HashiCorp Vault Integration**
 
@@ -645,7 +645,7 @@ cd infra/vault && ./init-vault.sh
 python3 src/common/vault_manager.py health
 python3 src/common/vault_manager.py list-secrets
 python3 src/common/vault_manager.py rotate-jwt-key
-```text
+```
 
 ####  **Vault Secret Structure**
 - `secret/xorb/config` - JWT secrets, database config, XORB API keys
@@ -665,7 +665,7 @@ features:
   automated_response: true
   multi_tenant: true
   white_label: false
-```text
+```
 
 - --
 
@@ -695,7 +695,7 @@ Grafana: http://localhost:3010 (admin / SecureAdminPass123!)
 AlertManager: http://localhost:9093
 Node Exporter: http://localhost:9100
 cAdvisor: http://localhost:8083
-```text
+```
 
 ###  **Setup Monitoring Stack**
 ```bash
@@ -710,7 +710,7 @@ cAdvisor: http://localhost:8083
 
 # Docker Compose method
 docker-compose -f docker-compose.monitoring.yml up -d
-```text
+```
 
 ###  **Key Metrics Dashboard**
 ```json
@@ -740,7 +740,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
     "error_rate": "0.1%"
   }
 }
-```text
+```
 
 - --
 
@@ -757,7 +757,7 @@ CREATE SCHEMA "tenant_12345678_90ab_cdef_1234_567890abcdef";
 CREATE POLICY tenant_isolation ON sensitive_data
   FOR ALL TO application_role
   USING (tenant_id = current_setting('app.current_tenant_id')::uuid);
-```text
+```
 
 ####  **Tenant Management Features**
 - **Tenant Service**: Complete CRUD operations with caching
@@ -798,7 +798,7 @@ middleware_stack = [
     "GZipMiddleware",              # Response compression
     "RequestIdMiddleware"          # Unique request tracking
 ]
-```text
+```
 
 ###  **Access Control Matrix**
 | Role | PTaaS Access | Intelligence | Platform Management | Compliance |
@@ -843,7 +843,7 @@ curl -X POST http://localhost:8000/api/v1/ptaas/orchestration/compliance-scan \
     "targets": ["web.company.com"],
     "assessment_type": "full"
   }'
-```text
+```
 
 ###  **Business Impact Assessment**
 | Enterprise Feature | Estimated ARR Impact | Status |
@@ -873,7 +873,7 @@ openssl verify -CAfile secrets/tls/ca/ca.pem secrets/tls/api/cert.pem
 
 # Regenerate certificate
 ./scripts/ca/issue-cert.sh api both
-```text
+```
 
 ####  **Service Connection Issues**
 ```bash
@@ -888,7 +888,7 @@ curl --cacert secrets/tls/ca/ca.pem \
      --cert secrets/tls/api-client/cert.pem \
      --key secrets/tls/api-client/key.pem \
      https://envoy-api:8443/api/v1/health
-```text
+```
 
 ####  **Database Connection Issues**
 ```bash
@@ -897,7 +897,7 @@ PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c "SELECT 1;"
 
 # Redis connection test
 redis-cli -h $REDIS_HOST ping
-```text
+```
 
 ####  **API Service Issues**
 ```bash
@@ -913,7 +913,7 @@ docker stats
 # Service health endpoints
 curl http://localhost:8000/api/v1/health
 curl http://localhost:8000/api/v1/readiness
-```text
+```
 
 ###  **Log Collection**
 ```bash
@@ -925,7 +925,7 @@ docker logs xorb_orchestrator > logs-$(date +%Y%m%d)/orchestrator.log
 
 # Create support bundle
 tar -czf xorb-support-$(date +%Y%m%d).tar.gz logs-$(date +%Y%m%d)/
-```text
+```
 
 ###  **Debug Mode**
 ```bash
@@ -936,7 +936,7 @@ export DEBUG=true
 # Debug-specific validation
 ./scripts/validate/test_tls.sh -v
 ./scripts/rotate-certs.sh -v
-```text
+```
 
 - --
 
@@ -1025,7 +1025,7 @@ pytest --cov=src/api/app --cov-report=html
 
 # Validate environment
 python tools/scripts/validate_environment.py
-```text
+```
 
 ####  **TLS/Security Commands**
 ```bash
@@ -1038,7 +1038,7 @@ python tools/scripts/validate_environment.py
 ./scripts/validate/test_tls.sh
 ./scripts/validate/test_mtls.sh
 ./scripts/validate/test_comprehensive.sh
-```text
+```
 
 ####  **Deployment Commands**
 ```bash
@@ -1050,7 +1050,7 @@ docker-compose -f infra/docker-compose.tls.yml up -d
 # Monitoring
 ./tools/scripts/setup-monitoring.sh
 docker-compose -f docker-compose.monitoring.yml up -d
-```text
+```
 
 ###  **Support Channels**
 - **Documentation**: Comprehensive docs in `/docs` directory

@@ -31,7 +31,7 @@ Eight core modules have been implemented with a code-first, security-focused app
   + routes.py         # Login/logout/callback endpoints
 + src/api/app/infrastructure/cache.py  # Redis caching backend
 + src/api/tests/test_auth.py           # Comprehensive auth tests
-```text
+```
 
 - **Key Features**:
 - OIDC discovery document caching
@@ -45,7 +45,7 @@ Eight core modules have been implemented with a code-first, security-focused app
 authlib>=1.3.0
 httpx>=0.28.0
 redis>=5.1.0
-```text
+```
 
 ###  Usage
 
@@ -58,7 +58,7 @@ from app.auth.models import Permission
 async def get_evidence(request: Request):
     user = request.state.user  # UserClaims object
     return {"tenant_id": user.tenant_id}
-```text
+```
 
 ##  Module 2: Multi-tenancy - Postgres RLS & Safe Migrations
 
@@ -75,7 +75,7 @@ async def get_evidence(request: Request):
 + src/api/migrations/versions/001_add_tenant_isolation.py
 + src/api/migrations/versions/002_create_tenant_tables.py
 + src/api/tests/test_multitenancy.py       # RLS and isolation tests
-```text
+```
 
 - **Key Features**:
 - Automatic tenant context via middleware: `SET app.tenant_id`
@@ -93,7 +93,7 @@ ALTER TABLE evidence ENABLE ROW LEVEL SECURITY;
 CREATE POLICY evidence_tenant_isolation ON evidence
 USING (tenant_id::text = current_setting('app.tenant_id', true) OR
        bypass_rls_for_user(current_setting('app.user_role', true)));
-```text
+```
 
 ###  Rollback Plan
 1. Disable RLS: `ALTER TABLE evidence DISABLE ROW LEVEL SECURITY`
@@ -116,7 +116,7 @@ USING (tenant_id::text = current_setting('app.tenant_id', true) OR
   + validation.py     # File validation & malware scanning
 + src/api/app/services/storage_service.py  # Storage service layer
 + src/api/tests/test_storage.py           # Storage & validation tests
-```text
+```
 
 - **Key Features**:
 - Presigned URL generation for direct uploads
@@ -131,7 +131,7 @@ USING (tenant_id::text = current_setting('app.tenant_id', true) OR
 boto3>=1.35.0
 aiofiles>=24.1.0
 python-magic>=0.4.27
-```text
+```
 
 ###  Usage
 
@@ -156,7 +156,7 @@ upload_info = await service.create_upload_url(
     tenant_id=tenant_id,
     uploaded_by=user_id
 )
-```text
+```
 
 ##  Module 4: Job Orchestration - Reliable Scheduler & Workers
 
@@ -173,7 +173,7 @@ upload_info = await service.create_upload_url(
   + worker.py          # Async worker with graceful shutdown
   + service.py         # Job scheduling service
 + src/api/tests/test_jobs.py              # Job system tests
-```text
+```
 
 - **Key Features**:
 - Priority queues with Redis sorted sets
@@ -204,7 +204,7 @@ job_info = await service.schedule_job(JobScheduleRequest(
 worker = JobWorker(redis_client, queues=["default", "priority"])
 worker.register_handler(JobType.EVIDENCE_PROCESSING, process_evidence)
 await worker.start()
-```text
+```
 
 ##  Module 5: Performance - uvloop, DB Pooling, pgvector
 
@@ -220,7 +220,7 @@ await worker.start()
 + src/api/app/infrastructure/performance.py   # Performance monitoring
 + src/api/migrations/versions/003_add_pgvector_support.py
 + src/api/tests/test_performance.py           # Performance tests
-```text
+```
 
 - **Key Features**:
 - uvloop event loop for 30-40% async performance boost
@@ -236,7 +236,7 @@ uvloop>=0.20.0
 orjson>=3.10.0
 psutil>=6.1.0
 numpy>=1.26.0
-```text
+```
 
 ###  Configuration
 
@@ -247,7 +247,7 @@ DB_MAX_POOL_SIZE=20
 DB_STATEMENT_CACHE_SIZE=100
 ENABLE_UVLOOP=true
 ENABLE_ORJSON=true
-```text
+```
 
 ###  Vector Search Usage
 
@@ -273,7 +273,7 @@ results = await vector_store.search_similar(
     limit=10,
     similarity_threshold=0.8
 )
-```text
+```
 
 ##  Run Instructions
 
@@ -287,7 +287,7 @@ sudo apt-get install -y postgresql-14 postgresql-14-pgvector redis-server libmag
 # Optional: ClamAV for malware scanning
 sudo apt-get install -y clamav clamav-daemon
 sudo systemctl enable clamav-freshclam
-```text
+```
 
 ###  Database Setup
 
@@ -301,7 +301,7 @@ GRANT ALL PRIVILEGES ON DATABASE xorb TO xorb;
 
 # Enable pgvector extension
 sudo -u postgres psql -d xorb -c "CREATE EXTENSION vector;"
-```text
+```
 
 ###  Application Setup
 
@@ -322,7 +322,7 @@ uvicorn app.main:app --factory --workers 1 --port 8000 &
 
 # Start job worker (separate process)
 python -m app.jobs.worker &
-```text
+```
 
 ###  Development Commands
 
@@ -342,7 +342,7 @@ black src/
 
 # Load testing
 bombardier -c 64 -n 20000 http://127.0.0.1:8000/health
-```text
+```
 
 ###  Production Deployment
 
@@ -356,7 +356,7 @@ docker-compose -f infra/docker-compose.production.yml up -d
 # Check health
 curl http://localhost:8000/health
 curl http://localhost:8000/readiness
-```text
+```
 
 ##  Safety Notes & Migration Order
 
@@ -377,7 +377,7 @@ curl http://localhost:8000/readiness
 # Revert to previous auth dependencies
 git checkout HEAD~1 -- app/dependencies.py
 # Remove OIDC routes from main.py
-```text
+```
 
 - **RLS Rollback**:
 ```sql
@@ -385,7 +385,7 @@ git checkout HEAD~1 -- app/dependencies.py
 ALTER TABLE evidence DISABLE ROW LEVEL SECURITY;
 ALTER TABLE findings DISABLE ROW LEVEL SECURITY;
 ALTER TABLE embedding_vectors DISABLE ROW LEVEL SECURITY;
-```text
+```
 
 - **Storage Rollback**:
 - Keep old storage interface available during transition
@@ -399,7 +399,7 @@ ALTER TABLE embedding_vectors DISABLE ROW LEVEL SECURITY;
 ENABLE_OIDC_AUTH = os.getenv("ENABLE_OIDC_AUTH", "false") == "true"
 ENABLE_NEW_STORAGE = os.getenv("ENABLE_NEW_STORAGE", "false") == "true"
 ENABLE_JOB_SYSTEM = os.getenv("ENABLE_JOB_SYSTEM", "false") == "true"
-```text
+```
 
 ###  Monitoring & Alerts
 
@@ -438,7 +438,7 @@ bombardier -c 32 -n 5000 -H "Authorization: Bearer $TOKEN" \
 bombardier -c 16 -n 1000 -H "Authorization: Bearer $TOKEN" \
   -m POST -f vector_search_payload.json \
   http://localhost:8000/api/vectors/search
-```text
+```
 
 ##  Security Considerations
 

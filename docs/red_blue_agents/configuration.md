@@ -32,7 +32,7 @@ API_TIMEOUT=30                        # Request timeout in seconds
 CORS_ALLOW_ORIGINS=*                  # CORS allowed origins (comma-separated)
 CORS_ALLOW_METHODS=GET,POST,PUT,DELETE,OPTIONS  # CORS allowed methods
 CORS_ALLOW_HEADERS=*                  # CORS allowed headers
-```text
+```
 
 ###  Database Configuration
 
@@ -54,7 +54,7 @@ MIGRATION_TIMEOUT=300                # Migration timeout in seconds
 # Read Replicas (Optional)
 DATABASE_READ_URL=postgresql://readonly:pass@read-host:5432/dbname
 READ_REPLICA_RATIO=0.3               # Percentage of reads to route to replica
-```text
+```
 
 ###  Redis Configuration
 
@@ -76,7 +76,7 @@ CACHE_TTL_DEFAULT=3600               # Default cache TTL in seconds
 CACHE_TTL_TECHNIQUES=7200            # Technique cache TTL
 CACHE_TTL_SESSIONS=1800              # Session cache TTL
 CACHE_PREFIX=xorb_agents             # Cache key prefix
-```text
+```
 
 ###  Temporal Workflow Engine
 
@@ -94,7 +94,7 @@ TEMPORAL_TLS_ENABLED=false           # Enable TLS for Temporal connection
 TEMPORAL_TLS_CERT_PATH=/certs/client.crt    # Client certificate path
 TEMPORAL_TLS_KEY_PATH=/certs/client.key     # Client private key path
 TEMPORAL_TLS_CA_PATH=/certs/ca.crt          # CA certificate path
-```text
+```
 
 ###  Security Configuration
 
@@ -124,7 +124,7 @@ SESSION_SECURE=true                  # Secure session cookies
 SESSION_HTTP_ONLY=true               # HTTP-only session cookies
 SESSION_SAME_SITE=strict             # SameSite cookie attribute
 SESSION_TIMEOUT=1800                 # Session timeout in seconds
-```text
+```
 
 ###  Sandbox Configuration
 
@@ -159,7 +159,7 @@ SANDBOX_NETWORK_DRIVER=bridge        # Default network driver
 SANDBOX_NETWORK_SUBNET=172.20.0.0/16  # Sandbox network subnet
 SANDBOX_DNS_SERVERS=8.8.8.8,8.8.4.4  # DNS servers for sandboxes
 SANDBOX_ISOLATION_ENABLED=true       # Enable network isolation
-```text
+```
 
 ###  Machine Learning and Analytics
 
@@ -187,7 +187,7 @@ ANALYTICS_ENABLED=true               # Enable analytics collection
 ANALYTICS_BATCH_SIZE=1000            # Analytics batch size
 ANALYTICS_FLUSH_INTERVAL=60          # Analytics flush interval
 TELEMETRY_SAMPLING_RATE=1.0          # Telemetry sampling rate (0.0-1.0)
-```text
+```
 
 ###  Monitoring and Observability
 
@@ -217,7 +217,7 @@ TRACING_ENABLED=false               # Enable distributed tracing
 TRACING_BACKEND=jaeger              # Tracing backend: jaeger, zipkin
 TRACING_ENDPOINT=http://jaeger:14268/api/traces  # Tracing endpoint
 TRACING_SAMPLE_RATE=0.1             # Trace sampling rate
-```text
+```
 
 ###  External Integrations
 
@@ -248,7 +248,7 @@ VIRUSTOTAL_API_KEY=your-vt-api-key  # VirusTotal API key
 SHODAN_API_KEY=your-shodan-api-key  # Shodan API key
 THREAT_INTEL_API_KEY=your-ti-api-key  # Threat intelligence API key
 THREAT_INTEL_API_URL=https://api.threatintel.com  # Threat intelligence API URL
-```text
+```
 
 ###  Compliance and Audit
 
@@ -277,7 +277,7 @@ BACKUP_RETENTION_DAYS=90            # Backup retention period
 ANONYMIZE_PII=true                  # Anonymize personally identifiable information
 DATA_MINIMIZATION=true              # Enable data minimization practices
 CONSENT_REQUIRED=false              # Require explicit consent for data collection
-```text
+```
 
 ##  📁 Configuration Files
 
@@ -388,7 +388,7 @@ compliance:
   privacy:
     anonymize_pii: "${ANONYMIZE_PII:-true}"
     data_minimization: "${DATA_MINIMIZATION:-true}"
-```text
+```
 
 ###  Logging Configuration (`config/logging.yaml`)
 
@@ -462,7 +462,7 @@ loggers:
 root:
   level: WARNING
   handlers: [console]
-```text
+```
 
 ###  Agent Configuration (`config/agents.yaml`)
 
@@ -676,7 +676,7 @@ global_settings:
   performance_monitoring: true
   auto_scaling: true
   resource_monitoring: true
-```text
+```
 
 ##  🎯 Capability Manifests
 
@@ -912,7 +912,7 @@ global_settings:
     "audit_level": "comprehensive"
   }
 }
-```text
+```
 
 ###  Technique Definitions
 
@@ -1017,7 +1017,7 @@ Example technique definition:
     ]
   }
 }
-```text
+```
 
 ##  🐳 Docker Compose Configuration
 
@@ -1203,7 +1203,7 @@ volumes:
   redis_dev_data:
   prometheus_dev_data:
   grafana_dev_data:
-```text
+```
 
 ###  Production Environment (`docker-compose.production.yml`)
 
@@ -1381,7 +1381,7 @@ secrets:
     external: true
   encryption_key:
     external: true
-```text
+```
 
 ##  ☸️ Kubernetes Configuration
 
@@ -1691,7 +1691,7 @@ secrets:
 # ConfigMaps
 configMaps:
   create: true
-```text
+```
 
 ##  🔍 Configuration Validation
 
@@ -1905,7 +1905,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-```text
+```
 
 ##  🛠️ Configuration Tools
 
@@ -1979,7 +1979,7 @@ if __name__ == "__main__":
     import sys
     environment = sys.argv[1] if len(sys.argv) > 1 else "development"
     generate_env_file(environment)
-```text
+```
 
 - --
 

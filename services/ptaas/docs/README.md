@@ -11,7 +11,7 @@ PTaaS (Penetration Testing as a Service) serves as the primary web interface for
 - **Data Visualization**: Recharts for security metrics and analytics
 
 ##  Service Structure
-```text
+```
 ptaas/
 ├── web/                    # React application
 │   ├── src/
@@ -25,7 +25,7 @@ ptaas/
 ├── api/                    # PTaaS-specific APIs
 ├── docs/                   # Service documentation
 └── deployment/             # Deployment configurations
-```text
+```
 
 ##  Integration with XORB
 PTaaS integrates with the XORB platform through:
@@ -39,10 +39,10 @@ PTaaS integrates with the XORB platform through:
 cd services/ptaas/web
 npm install
 npm run dev
-```text
+```
 
 ##  Production Deployment
 ```bash
 npm run build
 # Deploy to CDN (Vercel, Netlify, etc.)
-```text
+```

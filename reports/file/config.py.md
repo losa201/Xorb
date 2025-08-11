@@ -40,7 +40,7 @@ The configuration management system demonstrates good security practices with va
 - *Issue:** Default CORS allows all origins with wildcard
 ```python
 cors_allow_origins: str = Field(default="*", env="CORS_ALLOW_ORIGINS")
-```text
+```
 - *Risk:** Cross-origin attacks by default configuration
 - *Impact:** Data exfiltration, CSRF attacks in misconfigured deployments
 
@@ -52,7 +52,7 @@ jwt_secret_key: str = Field(
     default="dev-jwt-secret-key-change-in-production-12345678901234567890",
     env="JWT_SECRET"
 )
-```text
+```
 - *Risk:** Token forgery with known secret
 - *Impact:** Authentication bypass in development/test environments
 
@@ -61,7 +61,7 @@ jwt_secret_key: str = Field(
 - *Issue:** Database URL exposed in configuration summary
 ```python
 "url_masked": settings.database_url.split("@")[-1] if "@" in settings.database_url else "Not configured"
-```text
+```
 - *Risk:** Incomplete credential masking may leak information
 - *Impact:** Information disclosure in logs/monitoring
 
@@ -72,7 +72,7 @@ jwt_secret_key: str = Field(
 rate_limit_per_minute: int = Field(default=60, env="RATE_LIMIT_PER_MINUTE")
 rate_limit_per_hour: int = Field(default=1000, env="RATE_LIMIT_PER_HOUR")
 rate_limit_per_day: int = Field(default=10000, env="RATE_LIMIT_PER_DAY")
-```text
+```
 - *Risk:** Misconfiguration could disable rate limiting
 - *Impact:** DoS vulnerability if limits set too high
 
@@ -86,7 +86,7 @@ def validate_configuration(self) -> List[str]:
     # - Security headers configuration
     # - Session timeout limits
     # - File upload restrictions
-```text
+```
 - *Risk:** Production deployment with insecure defaults
 - *Impact:** Security misconfiguration vulnerabilities
 
@@ -106,7 +106,7 @@ def validate_environment(cls, v):
 # - Environment-specific security requirements
 # - Cross-environment secret validation
 # - Production hardening checks
-```text
+```
 
 ###  CORS Configuration Issues
 ```python
@@ -125,7 +125,7 @@ def get_cors_origins(self) -> List[str]:
             validated_origins.append(f"http://{origin}")
 
     return validated_origins or ["*"]  # ❌ Falls back to wildcard
-```text
+```
 
 ##  Immediate Remediation (14 days)
 
@@ -150,7 +150,7 @@ class AppSettings(BaseSettings):
         env="RATE_LIMIT_PER_MINUTE",
         ge=1, le=1000  # Validation range
     )
-```text
+```
 
 ###  2. Enhanced CORS Validation
 ```python
@@ -188,7 +188,7 @@ def get_cors_origins(self) -> List[str]:
         raise ValueError("No valid CORS origins configured for production")
 
     return validated_origins
-```text
+```
 
 ###  3. Enhanced Configuration Validation
 ```python
@@ -242,7 +242,7 @@ def validate_configuration(self) -> List[str]:
         issues.append("Redis should not use localhost in production")
 
     return issues
-```text
+```
 
 ###  4. Secure Configuration Summary
 ```python
@@ -298,7 +298,7 @@ def get_configuration_summary(self) -> Dict[str, Any]:
         },
         "features": self.get_feature_flags()
     }
-```text
+```
 
 ##  Additional Security Enhancements
 
@@ -325,7 +325,7 @@ class DevelopmentSecurityConfig(SecurityConfig):
     strict_transport_security: bool = False
     session_timeout_minutes: int = 480  # 8 hours
     max_file_upload_size_mb: int = 100  # More lenient
-```text
+```
 
 ###  2. Configuration Encryption
 ```python
@@ -346,7 +346,7 @@ class EncryptedConfigField:
         from cryptography.fernet import Fernet
         f = Fernet(key.encode())
         return f.decrypt(self.encrypted_value.encode()).decode()
-```text
+```
 
 ##  Risk Scoring
 

@@ -36,7 +36,7 @@ openssl verify -CAfile secrets/tls/ca/ca.pem secrets/tls/*/cert.pem
 
 # Expected output: All certificates should show "OK"
 # ✅ Result: secrets/tls/agent/cert.pem: OK (and 9 more)
-```text
+```
 
 ###  Certificate Expiry Monitoring
 ```bash
@@ -46,7 +46,7 @@ for cert in secrets/tls/*/cert.pem; do
     expiry=$(openssl x509 -in "$cert" -noout -enddate | cut -d= -f2)
     echo "[$service] Expires: $expiry"
 done
-```text
+```
 
 ###  Service Health Validation
 ```bash
@@ -59,7 +59,7 @@ redis-cli --tls \
   --key secrets/tls/redis-client/key.pem \
   --cacert secrets/tls/ca/ca.pem \
   -h localhost -p 6380 ping
-```text
+```
 
 ##  🚀 Deployment Procedures
 
@@ -87,7 +87,7 @@ done
 # 3. Deploy TLS Services
 cd infra
 docker-compose -f docker-compose.tls.yml up -d
-```text
+```
 
 ###  Individual Service Deployment
 ```bash
@@ -112,7 +112,7 @@ docker run -d --name xorb-grafana-tls \
   -v /root/Xorb/secrets/tls/ca:/run/tls/ca:ro \
   -e GF_SECURITY_ADMIN_PASSWORD=SecureAdminPass123! \
   grafana/grafana:10.1.0
-```text
+```
 
 ##  🔒 Security Operations
 
@@ -126,7 +126,7 @@ docker run -d --name xorb-grafana-tls \
 
 # Verify New Certificate
 openssl verify -CAfile secrets/tls/ca/ca.pem secrets/tls/[service]/cert.pem
-```text
+```
 
 ###  Emergency Certificate Procedures
 ```bash
@@ -140,7 +140,7 @@ openssl ca -config secrets/tls/ca/intermediate/openssl.cnf \
 # Generate CRL (Certificate Revocation List)
 openssl ca -config secrets/tls/ca/intermediate/openssl.cnf \
   -gencrl -out secrets/tls/ca/intermediate/crl/intermediate.crl.pem
-```text
+```
 
 ###  Security Validation Tests
 ```bash
@@ -158,7 +158,7 @@ openssl ca -config secrets/tls/ca/intermediate/openssl.cnf \
 
 # Docker-in-Docker TLS Test
 ./scripts/validate/test_dind_tls.sh
-```text
+```
 
 ##  📊 Monitoring and Alerting
 
@@ -186,7 +186,7 @@ curl -k --cert secrets/tls/api/cert.pem \
   --key secrets/tls/api/key.pem \
   --cacert secrets/tls/ca/ca.pem \
   https://localhost:8443/api/v1/health
-```text
+```
 
 ##  🚨 Troubleshooting
 
@@ -198,7 +198,7 @@ curl -k --cert secrets/tls/api/cert.pem \
 # Solution: Fix certificate permissions
 chmod 644 secrets/tls/ca/ca.pem secrets/tls/*/cert.pem
 chmod 600 secrets/tls/*/key.pem
-```text
+```
 
 ####  2. Docker Compose Container Metadata Errors
 ```bash
@@ -207,21 +207,21 @@ chmod 600 secrets/tls/*/key.pem
 docker system prune -f
 docker-compose -f docker-compose.tls.yml down --remove-orphans
 docker-compose -f docker-compose.tls.yml up -d [service_name]
-```text
+```
 
 ####  3. TLS Handshake Failures
 ```bash
 # Problem: TLS handshake failures between services
 # Solution: Verify certificate chain and SAN configuration
 openssl x509 -in secrets/tls/[service]/cert.pem -noout -text | grep -A5 "Subject Alternative Name"
-```text
+```
 
 ####  4. Service Discovery Issues
 ```bash
 # Problem: Services cannot connect via TLS hostnames
 # Solution: Verify network configuration and DNS resolution
 docker network inspect infra_xorb-secure
-```text
+```
 
 ###  Log Analysis
 ```bash
@@ -233,7 +233,7 @@ docker logs xorb-prometheus-tls | grep -i "error\|failed"
 
 # General TLS Debug
 openssl s_client -connect localhost:[port] -CAfile secrets/tls/ca/ca.pem
-```text
+```
 
 ##  📋 Maintenance Schedule
 

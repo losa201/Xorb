@@ -17,8 +17,11 @@ from .services.interfaces import (
     AuthenticationService, AuthorizationService, EmbeddingService, DiscoveryService, 
     TenantService, RateLimitingService, NotificationService, PTaaSService, 
     ThreatIntelligenceService, SecurityOrchestrationService, ComplianceService,
-    SecurityMonitoringService, HealthService
+    SecurityMonitoringService, HealthService, SecurityIntegrationService
 )
+
+# RBAC service
+from .services.rbac_service import RBACService
 
 # Enhanced production service implementations
 from .services.production_service_implementations import (
@@ -57,6 +60,7 @@ from .services.enhanced_production_fallbacks import (
 # PTaaS and security services
 from .services.ptaas_scanner_service import SecurityScannerService
 from .services.ptaas_orchestrator_service import PTaaSOrchestrator
+from .services.integration_service import ProductionIntegrationService
 
 # Infrastructure repositories
 from .infrastructure.repositories import (
@@ -174,10 +178,11 @@ class Container:
     def _register_services(self):
         """Register service implementations"""
         
-        # Production Authentication service - ENTERPRISE GRADE
+        # Secure Authentication service - PR-004 Production-ready implementation
+        from .services.secure_authentication_service import SecureAuthenticationService
         self.register_singleton(
             AuthenticationService,
-            lambda: ProductionAuthenticationService(self._config)
+            lambda: SecureAuthenticationService()
         )
         
         # Enhanced Authorization service (production-ready)
@@ -259,6 +264,15 @@ class Container:
             )
         )
         
+        # RBAC Service - Production Role-Based Access Control
+        self.register_singleton(
+            RBACService,
+            lambda: RBACService(
+                db_session=self.get_database_session(),
+                cache_service=self.get(CacheRepository)
+            )
+        )
+        
         # Advanced PTaaS service (production-ready with real security tools)
         # PTaaS Service (Production Scanner Integration) - ENTERPRISE GRADE  
         self.register_singleton(
@@ -313,6 +327,12 @@ class Container:
         self.register_singleton(
             AdvancedRedTeamSimulationEngine, 
             lambda: AdvancedRedTeamSimulationEngine()
+        )
+        
+        # Security Integration Service - Clean Architecture Enterprise Integrations
+        self.register_singleton(
+            SecurityIntegrationService,
+            lambda: ProductionIntegrationService()
         )
         
         # Advanced Compliance Automation Engine
@@ -624,6 +644,14 @@ class Container:
             return self.get(service_name)
         except Exception:
             logger.warning(f"Advanced service {service_name} not available, using fallback")
+            return None
+    
+    async def get_database_session(self):
+        """Get async database session"""
+        try:
+            return await get_database_session()
+        except Exception as e:
+            logger.error(f"Failed to get database session: {e}")
             return None
     
     async def _seed_development_data(self):

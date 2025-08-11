@@ -46,7 +46,7 @@ async def _generate_real_pq_keys(self, algorithm: PostQuantumAlgorithm):
         key_size=3072,  # Quantum-resistant key size
         backend=default_backend()
     )
-```text
+```
 
 ###  **2. AI Vulnerability Engine Enhancement**
 - **File**: `src/api/app/services/production_ai_vulnerability_engine.py`
@@ -77,7 +77,7 @@ async def _prioritize_vulnerabilities(self, vulnerabilities):
         temporal_score * 0.15 +
         business_score * 0.1
     )
-```text
+```
 
 ###  **3. Sophisticated Red Team Agent Enhancement**
 - **File**: `src/api/app/services/sophisticated_red_team_agent.py`
@@ -104,7 +104,7 @@ safety_checks = {
     'compliance_validated': False,
     'emergency_procedures_ready': False
 }
-```text
+```
 
 ###  **4. AI-Enhanced PTaaS Engine** ⭐ **NEW**
 - **File**: `src/api/app/services/ai_enhanced_ptaas_engine.py`
@@ -135,7 +135,7 @@ async def enhanced_vulnerability_scan(self, targets, scan_config):
     # Phase 3: ML-powered correlation and prioritization
     correlated_vulns = await self._correlate_vulnerabilities(all_vulnerabilities)
     prioritized_vulns = await self._ml_prioritize_vulnerabilities(correlated_vulns)
-```text
+```
 
 ###  **5. Advanced Zero Trust Orchestrator** ⭐ **NEW**
 - **File**: `src/xorb/security/advanced_zero_trust_orchestrator.py`
@@ -162,7 +162,7 @@ verification_confidence = (
     location_confidence * 0.2 +    # Geographic verification
     behavior_confidence * 0.2      # Behavioral analysis
 )
-```text
+```
 
 - --
 
@@ -187,7 +187,7 @@ Security Orchestration:
   Policy Enforcement: < 100ms
   Threat Response: < 2 seconds
   Risk Score Updates: Real-time
-```text
+```
 
 ###  **ML Model Performance**
 ```yaml
@@ -208,7 +208,7 @@ Zero Trust Analytics:
   Trust Verification: Multi-modal confidence
   Policy Optimization: ML-driven rule effectiveness
   Session Monitoring: Real-time behavioral analysis
-```text
+```
 
 ###  **Security Enhancements**
 ```yaml
@@ -227,14 +227,14 @@ Zero Trust Architecture:
   Dynamic Policies: ML-optimized rule engine
   Micro-segmentation: Automated network isolation
   Incident Response: Sub-2-second containment
-```text
+```
 
 - --
 
 ##  🏗️ **Architecture Impact**
 
 ###  **Enhanced Service Layer**
-```text
+```
 XORB Enhanced Security Platform
 ├── Quantum Security Service ✅ ENHANCED
 │   ├── Post-Quantum Cryptography (Production)
@@ -264,7 +264,7 @@ XORB Enhanced Security Platform
     ├── Dynamic Policy Enforcement
     ├── Behavioral Anomaly Detection
     └── Automated Threat Response
-```text
+```
 
 ###  **Integration Points**
 - **FastAPI Gateway**: All services integrate via dependency injection
@@ -284,7 +284,7 @@ XORB Enhanced Security Platform
 ✅ Zero Trust Orchestrator imports successfully
 ✅ Quantum Security Service validates successfully
 ✅ ML models initialize with graceful fallbacks
-```text
+```
 
 ###  **Functionality Testing**
 - **Import Validation**: All services import without errors

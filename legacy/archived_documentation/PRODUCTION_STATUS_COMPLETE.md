@@ -52,7 +52,7 @@
 - **Overall System Maturity**: **8.4/10 (Excellent)**
 
 ###  **Architecture Assessment**
-```text
+```
 ✅ Microservices Architecture: Production-ready
 ✅ API Gateway: FastAPI with advanced middleware
 ✅ Database Layer: PostgreSQL + pgvector + Redis
@@ -60,7 +60,7 @@
 ✅ Security: Enterprise-grade implementation
 ✅ Monitoring: Comprehensive observability stack
 ✅ DevOps: Advanced CI/CD and automation
-```text
+```
 
 ###  **Security Posture**
 - **🛡️ Authentication**: JWT + RBAC implemented
@@ -135,7 +135,7 @@ curl http://localhost:9090/-/healthy
 # Grafana Health
 curl http://localhost:3001/api/health
 # Expected: 200 OK
-```text
+```
 
 - --
 

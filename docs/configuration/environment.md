@@ -54,4 +54,4 @@ postgres_config = {
     'user': os.environ['POSTGRES_USER'],
     'password': os.environ['POSTGRES_PASSWORD']
 }
-```text
+```

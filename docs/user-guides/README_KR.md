@@ -52,7 +52,7 @@ Nuclei를 성공적으로 설치하기 위해서 **go1.22**가 필요합니다. 
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```text
+```
 
 - *자세한 설치 방법은 [여기](https://nuclei.projectdiscovery.io/nuclei/get-started/)에서 찾을 수 있습니다.**
 
@@ -77,7 +77,7 @@ YAML DSL의 참조 구문은 [여기](SYNTAX-REFERENCE.md)에서 확인할 수 �
 
 ```sh
 nuclei -h
-```text
+```
 
 도구에 대한 도움말이 표시됩니다. 다음은 지원하는 모든 스위치들입니다.
 ```console
@@ -280,7 +280,7 @@ JSON 출력으로 nuclei 실행:
 	$ MARKDOWN_EXPORT_SORT_MODE=template nuclei -target example.com -markdown-export nuclei_report/
 
 추가 문서는 여기에서 확인할 수 있습니다: https://docs.nuclei.sh/getting-started/running
-```text
+```
 
 ###  Nuclei 실행
 
@@ -288,13 +288,13 @@ JSON 출력으로 nuclei 실행:
 
 ```sh
 nuclei -u https://example.com
-```text
+```
 
 [community-curated](https://github.com/projectdiscovery/nuclei-templates) nuclei 템플릿으로 대상 URL들을 스캔합니다.
 
 ```sh
 nuclei -list urls.txt
-```text
+```
 
 `urls.txt`의 예시:
 
@@ -303,7 +303,7 @@ http://example.com
 http://app.example.com
 http://test.example.com
 http://uat.example.com
-```text
+```
 
 - *nuclei를 실행하는 자세한 예는 [여기](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)에서 찾을 수 있습니다.**
 

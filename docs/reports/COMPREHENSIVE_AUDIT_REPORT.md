@@ -50,7 +50,7 @@ Backend Services:
   - SIEM Platform (Port 8003): Security monitoring
   - Quantum Crypto (Port 9004): Post-quantum cryptography
   Assessment: SECURE - Professional security architecture
-```text
+```
 
 ###  **Security Framework Analysis** ✅ DEFENSIVE
 - **Authentication**: JWT tokens, API keys, MFA support
@@ -74,7 +74,7 @@ Content Analysis:
   - Uses fictional data and scenarios only
   - No actual malicious payloads or exploits
 Assessment: SAFE - Educational simulation framework
-```text
+```
 
 ###  **AI and ML Components** ✅ DEFENSIVE
 ```yaml
@@ -86,7 +86,7 @@ Content Analysis:
   - Behavioral analysis for insider threat detection
   - Automated incident response recommendations
 Assessment: SECURE - Defensive AI implementation
-```text
+```
 
 ###  **Scanning and Assessment Tools** ✅ AUTHORIZED USE ONLY
 ```yaml
@@ -103,7 +103,7 @@ Safeguards:
   - Audit logging of all scan activities
   - Integration with compliance frameworks
 Assessment: SECURE - Professional security assessment tools
-```text
+```
 
 - --
 
@@ -118,7 +118,7 @@ Docker Configurations:
   - Resource limits and security contexts
   - Network segmentation with Docker networks
 Assessment: FOLLOWS SECURITY BEST PRACTICES
-```text
+```
 
 ###  **Network Security** ✅ HARDENED
 ```yaml
@@ -129,7 +129,7 @@ Network Architecture:
   - Firewall rules and access controls
   - VPN integration for remote access
 Assessment: ENTERPRISE-GRADE NETWORK SECURITY
-```text
+```
 
 ###  **Data Security** ✅ COMPLIANT
 ```yaml
@@ -140,7 +140,7 @@ Data Protection:
   - GDPR-compliant data processing
   - Audit trails for all data access
 Assessment: MEETS ENTERPRISE COMPLIANCE STANDARDS
-```text
+```
 
 - --
 
@@ -178,7 +178,7 @@ Security Assessment:
   - Enterprise-ready cryptographic services
 Purpose: Protection against quantum computing threats
 Assessment: CUTTING-EDGE DEFENSIVE CRYPTOGRAPHY
-```text
+```
 
 - --
 
@@ -202,7 +202,7 @@ Implementation Features:
   - Data retention policies
   - Privacy impact assessments
   - Regulatory change tracking
-```text
+```
 
 ###  **Ethical Use Guidelines** ✅ RESPONSIBLE
 - **Authorized Use Only**: All security tools require explicit authorization
@@ -230,7 +230,7 @@ Risk Mitigation Measures:
   - Regular security assessments
   - Incident response procedures
   - Employee security training
-```text
+```
 
 ###  **Operational Security** ✅ ENTERPRISE-GRADE
 - **Access Control**: Multi-factor authentication and RBAC
@@ -263,7 +263,7 @@ Revenue Potential:
   - Total Addressable Market: $173.5B
   - Serviceable Market: $4.6B
   - Target Revenue: $40M+ ARR by Year 5
-```text
+```
 
 - --
 

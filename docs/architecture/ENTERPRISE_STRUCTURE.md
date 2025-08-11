@@ -2,7 +2,7 @@
 
 ##  Final Organized Structure
 
-```text
+```
 /root/Xorb/
 ├── services/                           # Microservices Architecture
 │   ├── ptaas/                         # PTaaS Frontend Service
@@ -47,7 +47,7 @@
 ├── .env.template                      # Environment configuration template
 ├── README.md                         # Main project documentation
 └── CLAUDE.md                         # Development instructions
-```text
+```
 
 ##  Key Organizational Principles
 

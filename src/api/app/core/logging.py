@@ -185,18 +185,18 @@ def generate_correlation_id() -> str:
     return str(uuid.uuid4())
 
 
-class LoggingMiddleware:
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+
+
+class LoggingMiddleware(BaseHTTPMiddleware):
     """FastAPI middleware for request logging"""
     
     def __init__(self, app):
-        self.app = app
+        super().__init__(app)
         self.logger = get_logger("middleware.logging")
     
-    async def __call__(self, scope, receive, send):
-        if scope["type"] != "http":
-            await self.app(scope, receive, send)
-            return
-        
+    async def dispatch(self, request: Request, call_next):
         # Generate correlation ID for request
         correlation_id = generate_correlation_id()
         request_id = str(uuid.uuid4())
@@ -209,8 +209,8 @@ class LoggingMiddleware:
         
         # Log request start
         start_time = datetime.utcnow()
-        method = scope.get("method", "")
-        path = scope.get("path", "")
+        method = request.method
+        path = str(request.url.path)
         
         self.logger.info(
             "Request started",
@@ -220,29 +220,29 @@ class LoggingMiddleware:
             request_id=request_id
         )
         
-        # Process request
-        async def send_wrapper(message):
-            if message["type"] == "http.response.start":
-                # Log response
-                status_code = message.get("status", 0)
-                duration = (datetime.utcnow() - start_time).total_seconds()
-                
-                self.logger.info(
-                    "Request completed",
-                    method=method,
-                    path=path,
-                    status_code=status_code,
-                    duration_seconds=duration,
-                    correlation_id=correlation_id,
-                    request_id=request_id
-                )
-            
-            await send(message)
-        
         try:
-            await self.app(scope, receive, send_wrapper)
-        except Exception as e:
+            # Process request
+            response = await call_next(request)
+            
+            # Log response
             duration = (datetime.utcnow() - start_time).total_seconds()
+            
+            self.logger.info(
+                "Request completed",
+                method=method,
+                path=path,
+                status_code=response.status_code,
+                duration_seconds=duration,
+                correlation_id=correlation_id,
+                request_id=request_id
+            )
+            
+            return response
+            
+        except Exception as e:
+            # Log error
+            duration = (datetime.utcnow() - start_time).total_seconds()
+            
             self.logger.error(
                 "Request failed",
                 method=method,

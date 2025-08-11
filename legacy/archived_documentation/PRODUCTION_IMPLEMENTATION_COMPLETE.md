@@ -49,7 +49,7 @@ class ThreatIntelligenceModel(nn.Module):
         self.threat_classifier = nn.Linear(hidden_dim // 4, num_classes)
         self.severity_regressor = nn.Linear(hidden_dim // 4, 1)
         self.confidence_estimator = nn.Linear(hidden_dim // 4, 1)
-```text
+```
 
 ####  **Production Features**
 - **Threat Level Classification**: UNKNOWN → LOW → MEDIUM → HIGH → CRITICAL → EMERGENCY
@@ -89,7 +89,7 @@ class IntelligentScheduler:
         # AI-optimized task ordering with dependency resolution
         dependency_graph = self._build_dependency_graph(tasks)
         return self._topological_sort_with_priority(dependency_graph, tasks)
-```text
+```
 
 ####  **Production Performance**
 - **Concurrent Execution**: 10+ parallel workflows with intelligent load balancing
@@ -118,7 +118,7 @@ class QueryOptimizer:
             'rewrite_suggestions': self._suggest_rewrites(query),
             'estimated_cost': self._estimate_cost(query)
         }
-```text
+```
 
 ####  **Enterprise Capabilities**
 - **Multi-Database Support**: PostgreSQL with pgvector, Redis caching
@@ -157,7 +157,7 @@ class ThreatDetectionEngine:
             'response_actions': self._determine_response_actions(event)
         }
         return analysis_result
-```text
+```
 
 ####  **Advanced Security Features**
 - **Incident Management**: Automated incident creation, correlation, and escalation
@@ -212,7 +212,7 @@ class TestProductionSecurityMonitor:
     async def test_threat_detection_rules(self)
     async def test_behavioral_analysis(self)
     async def test_incident_creation(self)
-```text
+```
 
 ####  **Quality Assurance**
 - **100% Test Pass Rate**: All integration tests pass successfully
@@ -237,7 +237,7 @@ Accuracy Metrics:
   False Positive Rate: < 2%
   Attribution Confidence: 85%+ for known actors
   Prediction Accuracy: 82% for 24-hour timeline
-```text
+```
 
 ###  **Orchestration Engine**
 ```yaml
@@ -252,7 +252,7 @@ Reliability Metrics:
   Workflow Completion: 98%+
   Error Recovery: < 30 seconds
   Concurrent Workflows: 10+ simultaneous
-```text
+```
 
 ###  **Database Manager**
 ```yaml
@@ -267,7 +267,7 @@ Optimization Metrics:
   Index Suggestions: 90%+ accuracy
   Performance Monitoring: Real-time with < 5% overhead
   Health Checks: < 15ms response time
-```text
+```
 
 ###  **Security Monitor**
 ```yaml
@@ -282,7 +282,7 @@ Detection Metrics:
   False Positive Rate: < 1.5%
   Response Time: < 30 seconds for critical threats
   Behavioral Accuracy: 90%+ anomaly detection
-```text
+```
 
 - --
 

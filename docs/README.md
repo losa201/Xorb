@@ -111,7 +111,7 @@ make security-scan
 
 # Check platform health
 make health-check
-```text
+```
 
 ### **Important URLs**
 - **API Documentation**: http://localhost:8000/docs

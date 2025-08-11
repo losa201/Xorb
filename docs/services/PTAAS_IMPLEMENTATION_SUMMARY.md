@@ -25,7 +25,7 @@ XORB's PTaaS (Penetration Testing as a Service) platform is now **production-rea
 ##  🏗️ **Architecture Overview**
 
 ###  **PTaaS Service Stack**
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                    PTaaS API Gateway                       │
 │  ├─ Session Management     ├─ Real-time Status Monitoring  │
@@ -46,7 +46,7 @@ XORB's PTaaS (Penetration Testing as a Service) platform is now **production-rea
 │  ├─ Behavioral Analytics   ├─ Threat Hunting Engine       │
 │  ├─ Forensics Collection   └─ Network Microsegmentation   │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Production Components**
 
@@ -96,7 +96,7 @@ await scanner.run_nmap_scan(target)
 # - OS fingerprinting
 # - NSE script execution
 # - XML output parsing
-```text
+```
 
 - *Capabilities:**
 - Network discovery and port scanning
@@ -115,7 +115,7 @@ await scanner.run_nuclei_scan(target)
 # - Severity classification
 # - Rate limiting controls
 # - Template customization
-```text
+```
 
 - *Capabilities:**
 - Modern vulnerability detection with 3000+ templates
@@ -134,7 +134,7 @@ await scanner.run_nikto_scan(host, port)
 # - Plugin-based scanning
 # - JSON output support
 # - Comprehensive reporting
-```text
+```
 
 - *Capabilities:**
 - Web server vulnerability scanning
@@ -153,7 +153,7 @@ await scanner.run_sslscan(host, port)
 # - Certificate validation
 # - Vulnerability detection
 # - Compliance checking
-```text
+```
 
 - *Capabilities:**
 - SSL/TLS protocol security analysis
@@ -172,7 +172,7 @@ await scanner.run_web_discovery(host, port)
 # - Response analysis
 # - Interesting file detection
 # - Custom wordlist support
-```text
+```
 
 - *Capabilities:**
 - Web directory and file discovery
@@ -193,7 +193,7 @@ vulns = await scanner.run_custom_security_checks(target, results)
 # - Service-specific checks
 # - Backdoor detection
 # - Risk assessment
-```text
+```
 
 - *Custom Analysis Includes:**
 - **Service Version Analysis**: Known vulnerability detection
@@ -222,7 +222,7 @@ GET /api/v1/ptaas/sessions/{session_id}
 
 # Cancel session
 POST /api/v1/ptaas/sessions/{session_id}/cancel
-```text
+```
 
 ####  **Orchestration & Automation**
 ```http
@@ -248,7 +248,7 @@ POST /api/v1/ptaas/orchestration/threat-simulation
   "simulation_type": "apt_simulation",
   "attack_vectors": ["spear_phishing", "lateral_movement"]
 }
-```text
+```
 
 ###  **Scan Profiles**
 
@@ -305,7 +305,7 @@ POST /api/v1/ptaas/orchestration/threat-simulation
     "access_control_assessment"
   ]
 }
-```text
+```
 
 ####  **HIPAA (Healthcare)**
 ```json
@@ -325,7 +325,7 @@ POST /api/v1/ptaas/orchestration/threat-simulation
     "data_flow_analysis"
   ]
 }
-```text
+```
 
 ####  **SOX (Sarbanes-Oxley)**
 ```json
@@ -344,7 +344,7 @@ POST /api/v1/ptaas/orchestration/threat-simulation
     "segregation_of_duties"
   ]
 }
-```text
+```
 
 ###  **Compliance Reporting**
 - **Automated Report Generation**: Framework-specific compliance reports
@@ -384,7 +384,7 @@ stages = [
         "estimated_duration": 900
     }
 ]
-```text
+```
 
 ####  **Intelligent Result Correlation**
 - **Cross-Tool Validation**: Correlate findings across multiple scanners
@@ -419,7 +419,7 @@ result = engine.update_profile("user_id", {
     "access_patterns": 6.2,
     "data_transfer_volume": 4.8
 })
-```text
+```
 
 - *Features:**
 - **ML-Powered Profiling**: Advanced user behavior analysis
@@ -440,7 +440,7 @@ await engine.initialize()
 result = engine.execute_query(
     "FIND processes WHERE name = 'malware.exe' AND network_connections > 10"
 )
-```text
+```
 
 - *Features:**
 - **Custom Query Language**: SQL-like syntax for threat investigations
@@ -460,7 +460,7 @@ evidence_id = engine.collect_evidence(metadata, evidence_data)
 
 # Create chain of custody
 engine.create_chain_of_custody(evidence_id, initial_entry)
-```text
+```
 
 - *Features:**
 - **Legal-Grade Evidence Collection**: Tamper-proof evidence handling
@@ -490,7 +490,7 @@ Result Processing:
   XML Parsing: < 1 second/MB
   JSON Processing: < 500ms/MB
   Correlation Analysis: < 2 seconds/scan
-```text
+```
 
 ####  **API Performance**
 ```yaml
@@ -505,7 +505,7 @@ Throughput:
   API Requests: 1000+ req/minute
   Data Processing: 10MB/second
   Queue Processing: 50 jobs/minute
-```text
+```
 
 ###  **Scalability Features**
 - **Horizontal Scaling**: Multiple scanner service instances
@@ -559,7 +559,7 @@ health = await ptaas_service.health_check()
 # - Scanner availability
 # - Queue depth
 # - Performance metrics
-```text
+```
 
 ####  **Metrics Collection**
 - **Performance Metrics**: Response times, throughput, error rates
@@ -589,7 +589,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/workflows" \
     "triggers": [{"trigger_type": "scheduled", "schedule": "0 2 * * 1"}],
     "notifications": {"email": ["security-team@company.com"]}
   }'
-```text
+```
 
 ###  **2. Compliance Validation**
 ```bash
@@ -602,7 +602,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/compliance-scan" 
     "scope": {"card_data_environment": true},
     "assessment_type": "full"
   }'
-```text
+```
 
 ###  **3. Threat Simulation**
 ```bash
@@ -616,7 +616,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/threat-simulation
     "duration_hours": 24,
     "stealth_level": "high"
   }'
-```text
+```
 
 ###  **4. CI/CD Integration**
 ```python
@@ -655,7 +655,7 @@ def security_scan_pipeline():
         exit(1)
     else:
         print("✅ Security scan passed")
-```text
+```
 
 - --
 

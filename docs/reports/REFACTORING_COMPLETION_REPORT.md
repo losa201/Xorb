@@ -105,7 +105,7 @@ The XORB platform has successfully undergone comprehensive refactoring based on 
 ##  🏗️ **New Architecture Overview**
 
 ###  **Consolidated Services Structure**
-```text
+```
 ┌─────────────────────────────────────────────────────────┐
 │                 XORB Platform v3.1.0                    │
 ├─────────────────────────────────────────────────────────┤
@@ -127,10 +127,10 @@ The XORB platform has successfully undergone comprehensive refactoring based on 
 │     • 60%+ coverage target                            │
 │     • CI/CD integration                                │
 └─────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Dependency Management**
-```text
+```
 requirements-unified.lock  (Single Source of Truth)
 ├── Core Framework (FastAPI, Pydantic, AsyncPG)
 ├── Security & Auth (Cryptography, JWT, Vault)
@@ -139,7 +139,7 @@ requirements-unified.lock  (Single Source of Truth)
 ├── ML & AI (NumPy, Pandas, OpenAI)
 ├── Testing & Quality (Pytest, Black, Bandit)
 └── Production Deployment (Gunicorn, Docker)
-```text
+```
 
 - --
 
@@ -185,7 +185,7 @@ requirements-unified.lock  (Single Source of Truth)
 ##  🧪 **Testing Infrastructure**
 
 ###  **Test Coverage Strategy**
-```text
+```
 Priority-Based Testing Approach:
 ┌─────────────────┬─────────────────┬─────────────────┐
 │   CRITICAL      │      HIGH       │     MEDIUM      │
@@ -195,7 +195,7 @@ Priority-Based Testing Approach:
 │ • Crypto        │ • Data Models   │ • Config        │
 │ • Vault Client  │ • Repositories  │ • Monitoring    │
 └─────────────────┴─────────────────┴─────────────────┘
-```text
+```
 
 ###  **Test Types Implemented**
 - **Unit Tests**: Individual component testing
@@ -221,7 +221,7 @@ python scripts/test_expansion_plan.py
 
 # 4. Security Analysis
 python scripts/security_todo_analyzer.py
-```text
+```
 
 ###  **Rollback Capability**
 - **Automated Backup**: All deprecated files backed up before migration

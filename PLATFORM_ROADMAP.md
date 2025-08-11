@@ -25,7 +25,7 @@ docker run -d --name xorb-postgres \
 
 # Connect XORB to database
 export DATABASE_URL="postgresql://xorb_user:secure_password@localhost:5432/xorb"
-```text
+```
 
 ####  Redis Caching
 ```bash
@@ -35,14 +35,14 @@ docker run -d --name xorb-redis \
   redis:7-alpine redis-server --requirepass secure_redis_password
 
 export REDIS_URL="redis://:secure_redis_password@localhost:6379/0"
-```text
+```
 
 ####  Load Balancing
 ```bash
 # Nginx load balancer configuration
 # Multiple XORB API instances behind proxy
 # Auto-scaling based on demand
-```text
+```
 
 ###  2. 📊 **Monitoring & Observability Stack**
 
@@ -54,14 +54,14 @@ docker-compose -f monitoring-stack.yml up -d
 # Access points:
 # Prometheus: http://localhost:9090
 # Grafana: http://localhost:3001 (admin/admin123)
-```text
+```
 
 ####  ELK Stack for Logging
 ```bash
 # Elasticsearch + Logstash + Kibana
 # Centralized log aggregation
 # Real-time log analysis
-```text
+```
 
 ####  Custom Dashboards
 - Security operations dashboard
@@ -79,7 +79,7 @@ apt-get install nmap nikto sqlmap
 
 # Configure scanner service
 python3 setup_scanner_integration.py
-```text
+```
 
 ####  External Threat Feeds
 ```bash
@@ -89,7 +89,7 @@ export VIRUSTOTAL_API_KEY="your_vt_api_key"
 # MISP platform connection
 export MISP_URL="https://your-misp-instance.com"
 export MISP_KEY="your_misp_api_key"
-```text
+```
 
 ####  SIEM Integration
 - Splunk connector
@@ -110,7 +110,7 @@ terraform apply -var-file="aws-production.tfvars"
 # Application Load Balancer
 # RDS PostgreSQL cluster
 # ElastiCache Redis
-```text
+```
 
 #####  Azure Deployment
 ```bash
@@ -120,7 +120,7 @@ az deployment create --template-file azure-template.json
 # Azure Container Registry
 # Azure Database for PostgreSQL
 # Azure Redis Cache
-```text
+```
 
 #####  Google Cloud
 ```bash
@@ -130,7 +130,7 @@ gcloud run deploy xorb-platform --source .
 # Cloud SQL PostgreSQL
 # Memorystore Redis
 # Cloud Load Balancing
-```text
+```
 
 ####  CI/CD Pipeline
 ```yaml
@@ -146,7 +146,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Deploy to production
         run: ./deploy-production.sh
-```text
+```
 
 ###  5. 🤖 **AI/ML Enhancement Options**
 
@@ -158,7 +158,7 @@ pip install yara-python netaddr nltk spacy
 
 # Enable advanced threat intelligence
 export ENABLE_ADVANCED_ML=true
-```text
+```
 
 ####  Custom Model Training
 ```python
@@ -168,7 +168,7 @@ from xorb.ml import ThreatDetectionTrainer
 trainer = ThreatDetectionTrainer()
 model = trainer.train_on_historical_data()
 trainer.deploy_model(model)
-```text
+```
 
 ####  NLP Enhancements
 - Named Entity Recognition for IOCs
@@ -187,7 +187,7 @@ export JIRA_TOKEN="your_jira_token"
 # ServiceNow integration
 export SERVICENOW_INSTANCE="company.service-now.com"
 export SERVICENOW_CREDENTIALS="user:password"
-```text
+```
 
 ####  Chat Platforms
 ```bash
@@ -196,7 +196,7 @@ export SLACK_WEBHOOK_URL="https://hooks.slack.com/..."
 
 # Microsoft Teams
 export TEAMS_WEBHOOK_URL="https://outlook.office.com/webhook/..."
-```text
+```
 
 ####  Security Tools
 - SOAR platform integration
@@ -248,7 +248,7 @@ pip install -r requirements-enhanced.txt
 
 # Start with monitoring
 docker-compose -f docker-compose.monitoring.yml up -d
-```text
+```
 
 ###  Option B: Cloud Deployment
 ```bash
@@ -256,7 +256,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 ./tools/scripts/deploy-aws.sh     # AWS deployment
 ./tools/scripts/deploy-azure.sh   # Azure deployment
 ./tools/scripts/deploy-gcp.sh     # Google Cloud deployment
-```text
+```
 
 ###  Option C: Container Orchestration
 ```bash
@@ -265,7 +265,7 @@ kubectl apply -f k8s/
 
 # Docker Swarm
 docker stack deploy -c docker-stack.yml xorb
-```text
+```
 
 ##  📊 **Success Metrics & KPIs**
 

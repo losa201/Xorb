@@ -54,7 +54,7 @@ Nuclei requiere **go1.22** para instalarse correctamente. Ejecute el siguiente c
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```text
+```
 
 <details>
   <summary>Brew</summary>
@@ -95,7 +95,7 @@ La sintaxis de referencia YAML DSL está disponible [aquí](SYNTAX-REFERENCE.md)
 
 ```sh
 nuclei -h
-```text
+```
 
 Esto mostrará ayuda sobre la herramienta. Aquí están todas las opciones que soporta.
 ```console
@@ -317,7 +317,7 @@ Ejecutar nuclei con salidas Markdown ordenadas (con variables de entorno):
    $ MARKDOWN_EXPORT_SORT_MODE=template nuclei -target example.com -markdown-export nuclei_report/
 
 Documentación adicional disponible en: https://docs.nuclei.sh/getting-started/running
-```text
+```
 
 ###  Ejecutando Nuclei
 

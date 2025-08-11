@@ -30,7 +30,7 @@ ports:
 ports:
   - "127.0.0.1:5432:5432"  # Bind to localhost only
   - "127.0.0.1:6379:6379"  # Bind to localhost only
-```text
+```
 
 - **Security Impact**: Eliminates direct external database access, forcing all connections through the application layer.
 
@@ -71,7 +71,7 @@ networks:
         - subnet: 172.20.3.0/24
     labels:
       - "network.security.zone=data"
-```text
+```
 
 - **Security Impact**:
 - Implements network segmentation with defined security zones
@@ -108,7 +108,7 @@ def _get_or_generate_salt(self) -> bytes:
     )
 
     return salt
-```text
+```
 
 - **Security Impact**:
 - Eliminates predictable encryption keys
@@ -155,7 +155,7 @@ def verify_token(self, token: str, token_type: str = "access") -> Optional[Dict[
             return None
 
         # Continue with normal verification...
-```text
+```
 
 - **Security Impact**:
 - Enables immediate token revocation on compromise
@@ -208,7 +208,7 @@ def get_security_headers(self) -> Dict[str, str]:
         "X-Permitted-Cross-Domain-Policies": "none",
         "Cache-Control": "no-store, no-cache, must-revalidate",
     }
-```text
+```
 
 - **Security Impact**:
 - Prevents cross-origin attacks

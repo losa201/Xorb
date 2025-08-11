@@ -16,7 +16,7 @@ The `targets.json` file defines the target assets to be analyzed and processed b
     }
   }
 ]
-```text
+```
 
 ##  Field Definitions
 

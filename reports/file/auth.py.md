@@ -28,7 +28,7 @@ The authentication router contains **CRITICAL security vulnerabilities** includi
 async def create_dev_token(username: str = "dev", role: str = "admin"):
     if os.getenv("DEV_MODE", "false").lower() != "true":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-```text
+```
 - *Risks:**
 - Environment variable manipulation
 - Default admin role assignment
@@ -42,7 +42,7 @@ async def create_dev_token(username: str = "dev", role: str = "admin"):
 - *Issue:** Usage of undefined `authenticator` object
 ```python
 token_str = authenticator.generate_jwt(user_id=username, client_id=f"dev-{username}", roles=[selected_role])
-```text
+```
 - *Risk:** Runtime errors, potential code injection if dynamically resolved
 - *Impact:** Service disruption, undefined behavior
 
@@ -57,7 +57,7 @@ except DomainException as e:
     else:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                           detail="Authentication service error")
-```text
+```
 - *Risk:** Internal exception messages exposed to attackers
 - *Impact:** Information disclosure for reconnaissance
 
@@ -74,7 +74,7 @@ except DomainException as e:
 def get_current_token():
     """Dependency to extract current token - simplified for this example"""
     return "dummy_token"
-```text
+```
 - *Risk:** Authentication bypass if used in production
 - *Impact:** Complete authentication bypass
 
@@ -86,7 +86,7 @@ try:
     selected_role = Role(role)
 except Exception:
     selected_role = Role.READONLY  # Default fallback reveals role structure
-```text
+```
 - *Risk:** Role enumeration attack
 - *Impact:** Information disclosure about authorization model
 
@@ -113,7 +113,7 @@ POST /auth/logout
 ├── ❌ Dummy token extraction
 ├── ❌ No session validation
 └── ❌ Incomplete token revocation
-```text
+```
 
 ##  Immediate Remediation (7 days)
 
@@ -164,7 +164,7 @@ async def create_dev_token(
     except Exception as e:
         security_logger.error("Dev token creation failed", error=str(e))
         raise HTTPException(status_code=500, detail="Token creation failed")
-```text
+```
 
 ###  2. Implement Rate Limiting
 ```python
@@ -236,7 +236,7 @@ async def login_for_access_token(
             status_code=500,
             detail="Authentication temporarily unavailable"
         )
-```text
+```
 
 ###  3. Secure Token Extraction
 ```python
@@ -293,7 +293,7 @@ async def get_current_user(token: str = Depends(get_current_token)) -> User:
             detail="Token verification failed",
             headers={"WWW-Authenticate": "Bearer"}
         )
-```text
+```
 
 ###  4. Secure Logout Implementation
 ```python
@@ -330,7 +330,7 @@ async def logout(
             status_code=500,
             detail="Logout failed"
         )
-```text
+```
 
 ##  Security Enhancements
 
@@ -350,7 +350,7 @@ class AccountLockoutService:
         # Send security notification
         # Audit log
         pass
-```text
+```
 
 ###  2. Multi-Factor Authentication
 ```python
@@ -362,7 +362,7 @@ async def verify_mfa(
     """Verify MFA token for complete authentication"""
     # Implement MFA verification
     pass
-```text
+```
 
 ##  Compliance Impact
 
@@ -406,7 +406,7 @@ async def test_token_validation():
     # Test malformed tokens
     # Test expired tokens
     # Test token replay attacks
-```text
+```
 
 - --
 

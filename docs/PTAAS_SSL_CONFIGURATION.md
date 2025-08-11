@@ -35,7 +35,7 @@ X-Frame-Options: DENY
 X-Content-Type-Options: nosniff
 X-XSS-Protection: 1; mode=block
 Referrer-Policy: strict-origin-when-cross-origin
-```text
+```
 
 ###  Server Configuration
 - **Production Domain**: `ptaas.verteidiq.com` (HTTPS only)
@@ -68,14 +68,14 @@ docker-compose ps
 
 # Check logs
 docker-compose logs -f nginx
-```text
+```
 
 ###  Environment Variables
 ```bash
 export ENVIRONMENT=production
 export VITE_API_URL=https://ptaas.verteidiq.com/api
 export NODE_ENV=production
-```text
+```
 
 ##  🔗 Cloudflare Integration
 
@@ -85,9 +85,9 @@ export NODE_ENV=production
 - **Client-facing SSL**: Handled by Cloudflare (Universal SSL)
 
 ###  Traffic Flow
-```text
+```
 Client → Cloudflare (Universal SSL) → Origin Server (Cloudflare Origin SSL)
-```text
+```
 
 ###  Benefits
 - **DDoS Protection**: Cloudflare shields origin server
@@ -126,7 +126,7 @@ docker-compose logs ptaas-frontend
 
 # API gateway logs
 docker-compose logs xorb-api-gateway
-```text
+```
 
 ###  Monitoring Commands
 ```bash
@@ -138,7 +138,7 @@ curl -I https://ptaas.verteidiq.com
 
 # Validate SSL configuration
 openssl s_client -connect ptaas.verteidiq.com:443 -servername ptaas.verteidiq.com
-```text
+```
 
 ##  🔧 Troubleshooting
 
@@ -150,7 +150,7 @@ openssl s_client -connect ptaas.verteidiq.com:443 -servername ptaas.verteidiq.co
 ```bash
 docker-compose ps
 docker-compose logs nginx
-```text
+```
 
 ####  SSL Certificate Issues
 - **Cause**: Invalid or expired certificate
@@ -158,7 +158,7 @@ docker-compose logs nginx
 ```bash
 openssl x509 -in ssl/verteidiq.crt -text -noout
 openssl rsa -in ssl/verteidiq.key -check
-```text
+```
 
 ####  API Connection Issues
 - **Cause**: Backend service not running or misconfigured
@@ -166,7 +166,7 @@ openssl rsa -in ssl/verteidiq.key -check
 ```bash
 curl http://localhost:8000/health
 docker-compose logs xorb-api-gateway
-```text
+```
 
 ###  Debug Commands
 ```bash
@@ -182,7 +182,7 @@ openssl s_client -connect localhost:443 -servername ptaas.verteidiq.com
 # Verify Docker networking
 docker network ls
 docker network inspect xorb_xorb-net
-```text
+```
 
 ##  🔄 Maintenance
 
@@ -201,7 +201,7 @@ git pull
 # Rolling update (zero downtime)
 docker-compose up -d --no-deps ptaas-frontend
 docker-compose up -d --no-deps nginx
-```text
+```
 
 ###  Backup SSL Certificates
 ```bash
@@ -210,7 +210,7 @@ tar -czf ssl-backup-$(date +%Y%m%d).tar.gz ssl/
 
 # Store backup securely (encrypted)
 gpg -c ssl-backup-$(date +%Y%m%d).tar.gz
-```text
+```
 
 ##  ✅ Configuration Validation
 

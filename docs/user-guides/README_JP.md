@@ -57,7 +57,7 @@ Nucleiを正常にインストールするには、**go1.22**が必要です。�
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```text
+```
 
 <details>
   <summary>Brew</summary>
@@ -98,7 +98,7 @@ YAML DSLの構文リファレンスは[こちら](SYNTAX-REFERENCE.md)で確認�
 
 ```sh
 nuclei -h
-```text
+```
 
 これにより、ツールのヘルプが表示されます。ここには、サポートされているすべてのスイッチがあります。
 

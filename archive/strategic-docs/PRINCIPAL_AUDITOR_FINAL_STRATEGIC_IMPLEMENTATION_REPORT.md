@@ -27,7 +27,7 @@ JWT_SECRET="dev-jwt-secret-key-change-in-production-12345678901234567890"
 ENVIRONMENT="development"
 DATABASE_URL="postgresql://xorb_user:xorb_password@localhost:5432/xorb_dev"
 REDIS_URL="redis://localhost:6379/0"
-```text
+```
 
 ####  **Security Module Enhancement**
 - Fixed missing `require_ptaas_access` function
@@ -44,14 +44,14 @@ REDIS_URL="redis://localhost:6379/0"
 ###  2. **Architecture Validation**
 
 ####  **Microservices Structure**
-```text
+```
 ✅ Core API Service (FastAPI) - OPERATIONAL
 ✅ PTaaS Router - 9 endpoints configured
 ✅ Security Middleware - 9-layer stack
 ✅ Authentication System - JWT + MFA ready
 ✅ Database Layer - PostgreSQL + Redis
 ✅ Monitoring Stack - Prometheus integration
-```text
+```
 
 ####  **Security Implementation**
 - **TLS/mTLS Ready** - Complete certificate infrastructure
@@ -70,7 +70,7 @@ REDIS_URL="redis://localhost:6379/0"
 - **Custom Security Checks** - Advanced vulnerability analysis
 
 ####  **API Endpoints Implemented**
-```text
+```
 POST   /api/v1/sessions           - Create scan sessions
 GET    /api/v1/sessions           - List scan sessions
 GET    /api/v1/sessions/{id}      - Get scan details
@@ -79,7 +79,7 @@ GET    /api/v1/profiles           - Available scan profiles
 POST   /api/v1/validate-target    - Target validation
 GET    /api/v1/metrics           - PTaaS metrics
 GET    /api/v1/health            - Health monitoring
-```text
+```
 
 ####  **Compliance Frameworks**
 - **PCI-DSS** - Payment Card Industry compliance
@@ -94,7 +94,7 @@ GET    /api/v1/health            - Health monitoring
 ##  🏗️ Technical Architecture Enhancements
 
 ###  **Clean Architecture Implementation**
-```text
+```
 📁 src/api/app/
 ├── 🔧 core/          - Configuration, logging, security, metrics
 ├── 🛡️ middleware/    - Rate limiting, audit, tenant context
@@ -103,7 +103,7 @@ GET    /api/v1/health            - Health monitoring
 ├── 🗃️ infrastructure/ - Database, cache, observability
 ├── 🔐 security/      - Authentication, authorization, validation
 └── 📊 domain/        - Business entities and models
-```text
+```
 
 ###  **Production-Ready Features**
 - **Dependency Injection** - Advanced container orchestration
@@ -156,10 +156,10 @@ GET    /api/v1/health            - Health monitoring
 🟢 Authentication: JWT + MFA READY
 🟢 Security Middleware: 9-layer stack ACTIVE
 🟢 Database Layer: PostgreSQL + Redis CONFIGURED
-```text
+```
 
 ###  **Routes Deployed: 76+ Endpoints**
-```text
+```
 🟢 Health & Monitoring: 8 endpoints
 🟢 Authentication: 3 endpoints
 🟢 Discovery: 4 endpoints
@@ -169,7 +169,7 @@ GET    /api/v1/health            - Health monitoring
 🟢 Orchestration: 15 endpoints
 🟢 Agents: 8 endpoints
 🟢 Enterprise Management: 12+ endpoints
-```text
+```
 
 ###  **Security Validation**
 ```bash
@@ -179,7 +179,7 @@ GET    /api/v1/health            - Health monitoring
 ✅ Rate Limiting: REDIS-BACKED
 ✅ Input Validation: COMPREHENSIVE
 ✅ Audit Logging: OPERATIONAL
-```text
+```
 
 - --
 

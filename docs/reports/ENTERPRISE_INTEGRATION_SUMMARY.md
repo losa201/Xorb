@@ -54,10 +54,10 @@ As Senior Architect and Engineer, I have successfully completed the enterprise i
 - forensics (security) ← depends on [database]
 - network_microsegmentation (security) ← depends on [database]
 - threat_intelligence (intelligence) ← depends on [database, vector_store]
-```text
+```
 
 ###  Unified API Gateway Endpoints
-```text
+```
 /api/v1/platform/
 ├── services/                    # Service management
 │   ├── GET /                   # List all services
@@ -84,7 +84,7 @@ As Senior Architect and Engineer, I have successfully completed the enterprise i
 ├── GET /health                 # Platform health
 ├── GET /metrics               # Platform metrics
 └── GET /dashboard             # Comprehensive dashboard
-```text
+```
 
 ##  🔧 Integration Testing Results
 
@@ -94,7 +94,7 @@ As Senior Architect and Engineer, I have successfully completed the enterprise i
 ✓ Dependency resolution working - startup order validated
 ✓ Health check system working - tested 3 services
 ✓ Platform integration test completed successfully
-```text
+```
 
 ###  API Gateway Integration ✅
 - **Total Routes**: 89 (20 platform-specific)

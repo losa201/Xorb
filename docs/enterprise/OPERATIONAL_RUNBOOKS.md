@@ -32,7 +32,7 @@ curl -s https://api.your-domain.com/metrics | grep -E "(cpu_usage|process_cpu)"
 
 # 4. Review recent application logs for errors
 kubectl logs -l app=xorb-api -n xorb-production --since=15m | grep -E "(ERROR|WARN)"
-```text
+```
 
 ####  **Resolution Actions**
 
@@ -61,7 +61,7 @@ kubectl patch deployment xorb-api -n xorb-production -p='
     }
   }
 }'
-```text
+```
 
 ####  **Follow-up Actions**
 
@@ -100,7 +100,7 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
     FROM pg_stat_activity
     WHERE state = 'active'
     AND query_start < NOW() - INTERVAL '30 seconds';"
-```text
+```
 
 ####  **Resolution Actions**
 
@@ -123,7 +123,7 @@ kubectl scale deployment xorb-api --replicas=3 -n xorb-production
 
 # Option 4: Increase connection pool size (temporary)
 kubectl set env deployment/xorb-api DATABASE_POOL_SIZE=30 -n xorb-production
-```text
+```
 
 ####  **Follow-up Actions**
 
@@ -154,7 +154,7 @@ kubectl exec -it xorb-redis-master-0 -n xorb-production -- \
 # 3. Check application cache usage patterns
 kubectl logs -l app=xorb-api -n xorb-production --since=15m | \
   grep -E "(cache|redis)" | head -20
-```text
+```
 
 ####  **Resolution Actions**
 
@@ -193,7 +193,7 @@ kubectl patch statefulset xorb-redis-master -n xorb-production -p='
     }
   }
 }'
-```text
+```
 
 ####  **Follow-up Actions**
 
@@ -227,7 +227,7 @@ kubectl logs -l app=xorb-api -n xorb-production --since=10m | \
 
 # 4. Check resource utilization
 kubectl top pods -n xorb-production
-```text
+```
 
 ####  **Resolution Actions**
 
@@ -244,7 +244,7 @@ kubectl rollout undo deployment/xorb-api -n xorb-production
 
 # Option 4: Enable circuit breaker (if external dependency issue)
 kubectl set env deployment/xorb-api CIRCUIT_BREAKER_ENABLED=true -n xorb-production
-```text
+```
 
 ####  **Follow-up Actions**
 
@@ -284,7 +284,7 @@ kubectl scale deployment xorb-orchestrator --replicas=1 -n xorb-production
 
 # 4. Enable maintenance mode
 kubectl set env deployment/xorb-api MAINTENANCE_MODE=true -n xorb-production
-```text
+```
 
 ####  **Maintenance Steps**
 
@@ -305,7 +305,7 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
 # 4. Update statistics
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "ANALYZE;"
-```text
+```
 
 ####  **Post-Maintenance Checklist**
 
@@ -327,7 +327,7 @@ curl -f https://api.your-domain.com/readiness
 
 # 5. Monitor for 30 minutes
 kubectl logs -l app=xorb-api -n xorb-production --follow
-```text
+```
 
 - --
 
@@ -348,7 +348,7 @@ echo | openssl s_client -servername api.your-domain.com \
 # 2. Check cert-manager status
 kubectl get certificates -n xorb-production
 kubectl describe certificate xorb-tls-secret -n xorb-production
-```text
+```
 
 ####  **Renewal Process**
 
@@ -364,7 +364,7 @@ kubectl get certificaterequests -n xorb-production -w
 kubectl get secret xorb-tls-secret -n xorb-production -o yaml | \
   grep tls.crt | awk '{print $2}' | base64 -d | \
   openssl x509 -noout -dates
-```text
+```
 
 ####  **Verification**
 
@@ -379,7 +379,7 @@ echo | openssl s_client -servername api.your-domain.com \
 
 # 3. Update monitoring
 # Update certificate expiration monitoring alerts
-```text
+```
 
 - --
 
@@ -406,7 +406,7 @@ kubectl exec -it $(kubectl get pods -l app=grafana -n xorb-production -o jsonpat
 
 # 4. Import missing dashboards
 kubectl apply -f services/infrastructure/monitoring/grafana/dashboards/
-```text
+```
 
 ###  **Runbook 8: Prometheus Storage Issues**
 
@@ -430,7 +430,7 @@ kubectl exec -it prometheus-0 -n xorb-production -- \
 # 4. Clean up old data
 kubectl exec -it prometheus-0 -n xorb-production -- \
   find /prometheus -name "*.tmp" -delete
-```text
+```
 
 - --
 
@@ -463,7 +463,7 @@ kubectl get events -n xorb-production --sort-by='.lastTimestamp' > incident_even
 
 # 4. Create secure backup
 kubectl create job incident-backup --from=cronjob/postgres-backup -n xorb-production
-```text
+```
 
 ####  **Investigation**
 
@@ -488,7 +488,7 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
     WHERE created_at > NOW() - INTERVAL '24 hours'
     GROUP BY user_agent, source_ip
     HAVING COUNT(*) > 1000;"
-```text
+```
 
 ####  **Recovery**
 
@@ -509,7 +509,7 @@ kubectl patch networkpolicy xorb-network-policy -n xorb-production --type=merge 
 }'
 
 kubectl scale deployment xorb-api --replicas=3 -n xorb-production
-```text
+```
 
 - --
 
@@ -547,7 +547,7 @@ kubectl rollout restart deployment/xorb-orchestrator -n xorb-production
 # 5. Verify functionality
 sleep 60
 curl -f https://api.your-domain.com/health
-```text
+```
 
 - --
 
@@ -581,7 +581,7 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
     SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del, n_live_tup, n_dead_tup
     FROM pg_stat_user_tables
     ORDER BY n_dead_tup DESC;"
-```text
+```
 
 ####  **Optimization Actions**
 
@@ -603,7 +603,7 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
     ALTER SYSTEM SET effective_cache_size = '3GB';
     ALTER SYSTEM SET maintenance_work_mem = '256MB';
     SELECT pg_reload_conf();"
-```text
+```
 
 - --
 
@@ -647,7 +647,7 @@ kubectl scale deployment xorb-api --replicas=0 -n xorb-production
 
 # Emergency scale up
 kubectl scale deployment xorb-api --replicas=5 -n xorb-production
-```text
+```
 
 - --
 

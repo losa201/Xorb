@@ -39,7 +39,7 @@ class AdvancedRedisOrchestrator:
     - Circuit breaker patterns for resilience
     - Real-time performance metrics and trend analysis
     - Intelligent client routing and load balancing
-```text
+```
 
 - *Advanced Capabilities:**
 - **🔄 Distributed Coordination**: Leader election, consensus protocols, automatic failover
@@ -62,7 +62,7 @@ class AdvancedRedisIntelligenceEngine:
     - Automated cache optimization recommendations
     - Real-time performance trend analysis
     - Intelligent cache warming and prefetching
-```text
+```
 
 - *AI & ML Capabilities:**
 - **🤖 Machine Learning Models**: Random Forest, Isolation Forest, KMeans clustering
@@ -86,7 +86,7 @@ class SophisticatedRedisSecurityEngine:
     - Rate limiting and DDoS protection
     - Forensic data collection and analysis
     - Threat intelligence integration
-```text
+```
 
 - *Security Capabilities:**
 - **🛡️ Real-Time Threat Detection**: Command injection, privilege escalation, data exfiltration
@@ -105,7 +105,7 @@ class SophisticatedRedisSecurityEngine:
 @router.post("/redis/optimization/analyze")
 @router.get("/redis/security/status")
 @router.post("/redis/cache/warmup")
-```text
+```
 
 - *API Features:**
 - **📊 Health & Monitoring**: Comprehensive health checks, performance metrics
@@ -129,7 +129,7 @@ async def acquire_lock(self, resource_id: str, config: DistributedLockConfig):
     - Automatic lock renewal and extension
     - Deadlock detection and resolution
     - Lock statistics and monitoring
-```text
+```
 
 ###  **Message Queue Manager**
 ```python
@@ -140,7 +140,7 @@ async def create_queue(self, queue_name: str, config: MessageQueueConfig):
     - Consumer group management
     - Automatic retry and dead letter queues
     - Message ordering and deduplication
-```text
+```
 
 ###  **PubSub Coordinator**
 ```python
@@ -151,7 +151,7 @@ async def publish(self, channel: str, message: Dict[str, Any]):
     - Topic hierarchies and wildcards
     - Delivery guarantees and acknowledgments
     - Channel statistics and monitoring
-```text
+```
 
 ###  **Real-Time Analytics Engine**
 ```python
@@ -162,7 +162,7 @@ async def track_event(self, event_type: str, properties: Dict[str, Any]):
     - Real-time aggregation and metrics
     - Event correlation and pattern detection
     - Custom analytics and reporting
-```text
+```
 
 ###  **Circuit Breaker Manager**
 ```python
@@ -173,7 +173,7 @@ async def call_with_circuit_breaker(self, circuit_name: str, func: Callable):
     - Automatic recovery detection
     - Half-open state testing
     - Circuit breaker statistics
-```text
+```
 
 - --
 
@@ -200,7 +200,7 @@ self.ml_models["anomaly_detector"] = IsolationForest(
 self.ml_models["pattern_clusterer"] = KMeans(
     n_clusters=5, random_state=42
 )
-```text
+```
 
 ###  **Intelligent Cache Features**
 ```python
@@ -214,7 +214,7 @@ class IntelligentCache:
         - Adaptive TTL calculation
         - Intelligent cache promotion
         - Predictive prefetching
-```text
+```
 
 ###  **Predictive Analytics**
 - **📈 Performance Forecasting**: 24-72 hour cache performance predictions
@@ -236,7 +236,7 @@ SecurityRule(
     threat_level=SecurityThreatLevel.HIGH,
     actions=[SecurityAction.TEMPORARY_BLOCK, SecurityAction.ALERT_ADMIN]
 )
-```text
+```
 
 ###  **Security Event Types**
 - **🚨 Authentication Failures**: Multi-factor authentication bypass attempts
@@ -254,7 +254,7 @@ class SecurityAction(Enum):
     PERMANENT_BLOCK = "permanent_block"  # Permanent IP blacklisting
     EMERGENCY_LOCKDOWN = "emergency_lockdown"  # System-wide protection
     ESCALATE_TO_SOC = "escalate_to_soc"  # Security operations center alert
-```text
+```
 
 ###  **Forensic Capabilities**
 - **🔍 Evidence Collection**: Comprehensive audit trails and forensic data
@@ -277,7 +277,7 @@ class RedisPerformanceMetrics:
     network_throughput_mbps: float
     connection_count: int
     replication_lag_ms: float
-```text
+```
 
 ###  **Performance Thresholds**
 ```python
@@ -289,7 +289,7 @@ performance_thresholds = {
     "latency_warning_ms": 100,    # 100ms latency warning
     "latency_critical_ms": 500,   # 500ms latency critical
 }
-```text
+```
 
 ###  **Advanced Analytics**
 - **📈 Trend Analysis**: Performance trend detection and forecasting
@@ -307,14 +307,14 @@ performance_thresholds = {
 GET /api/v1/redis/health
 GET /api/v1/redis/cluster/status
 GET /api/v1/redis/metrics/performance?time_range_hours=24&granularity=hour
-```text
+```
 
 ###  **Intelligence & Optimization**
 ```http
 GET /api/v1/redis/intelligence/report
 POST /api/v1/redis/optimization/analyze
 POST /api/v1/redis/intelligence/predict-performance
-```text
+```
 
 ###  **Security Management**
 ```http
@@ -322,20 +322,20 @@ GET /api/v1/redis/security/status
 GET /api/v1/redis/security/events?limit=100&threat_level=high
 GET /api/v1/redis/security/events/{event_id}/investigate
 GET /api/v1/redis/security/threats?confidence_threshold=0.8
-```text
+```
 
 ###  **Cache Operations**
 ```http
 POST /api/v1/redis/cache/warmup
 POST /api/v1/redis/cache/invalidate
 GET /api/v1/redis/cache/info?namespace=threat_intelligence
-```text
+```
 
 ###  **Administrative**
 ```http
 POST /api/v1/redis/admin/emergency-shutdown
 GET /api/v1/redis/admin/system-diagnostics
-```text
+```
 
 - --
 

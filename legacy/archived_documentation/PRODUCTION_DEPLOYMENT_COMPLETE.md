@@ -19,7 +19,7 @@ The **XORB Unified Cybersecurity Platform** has been successfully transformed fr
 - **Enterprise Security Hardening** with WAF, IDS, and SIEM integration
 
 ###  🏗️ **Microservices Architecture**
-```text
+```
 XORB Enterprise Platform
 ├── 🔴 PTaaS (Offensive Security)
 │   ├── Penetration Testing Engine
@@ -36,7 +36,7 @@ XORB Enterprise Platform
     ├── Advanced Threat Detection
     ├── Incident Response Orchestrator
     └── Production Security Stack
-```text
+```
 
 ###  🔥 **Advanced Security Features Deployed**
 
@@ -118,26 +118,26 @@ Security Components:
 ✅ Zero Trust Controller (Custom Python)
 ✅ ML Threat Detection (scikit-learn)
 ✅ Incident Response Orchestrator (Custom Python)
-```text
+```
 
 ###  **Network Security Architecture**
-```text
+```
 Internet → Security Gateway → Zero Trust Controller
     ↓              ↓                    ↓
   DMZ Zone → Internal Zone → Secure Zone → Admin Zone
     ↓              ↓                    ↓         ↓
 [Filtered]   [Authenticated]      [Verified] [Privileged]
-```text
+```
 
 ###  **Data Flow Architecture**
-```text
+```
 PTaaS (Red Team) ←→ Unified Intelligence ←→ XORB Core (Blue Team)
        ↓                    ↓                         ↓
    Attack Data         Correlation              Defense Data
        ↓                    ↓                         ↓
    Vulnerability    →  Threat Analysis  →      Automated Response
    Discovery              Engine              & Remediation
-```text
+```
 
 ##  📈 **Performance & Scalability**
 

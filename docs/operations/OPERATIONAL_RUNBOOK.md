@@ -29,7 +29,7 @@ curl -f http://localhost:8000/api/v1/readiness || echo "API not ready"
 docker-compose ps | grep -v "Up" || echo "Container issues detected"
 redis-cli -h localhost -p 6379 ping || echo "Redis connectivity issue"
 pg_isready -h localhost -p 5432 || echo "PostgreSQL connectivity issue"
-```text
+```
 
 ###  Performance Monitoring
 ```bash
@@ -42,7 +42,7 @@ docker stats --no-stream
 df -h  # Disk usage
 free -h  # Memory usage
 top -n 1 -b | head -20  # CPU usage
-```text
+```
 
 ###  Log Management
 ```bash
@@ -55,7 +55,7 @@ tail -f logs/audit.log | grep -E "(SECURITY|VIOLATION)"
 docker-compose logs -f --tail=100 api
 docker-compose logs -f --tail=100 orchestrator
 docker-compose logs -f --tail=100 redis
-```text
+```
 
 ##  🔐 Security Operations
 
@@ -73,7 +73,7 @@ done
 
 # Automated certificate rotation (when needed)
 ./scripts/rotate-certs.sh --check-expiry
-```text
+```
 
 ###  Security Monitoring
 ```bash
@@ -86,7 +86,7 @@ curl -s http://localhost:8000/api/v1/ptaas/health | jq '.scanner_status'
 
 # Security policy validation
 conftest test --policy policies/security-policy.rego infra/docker-compose.tls.yml
-```text
+```
 
 ###  Access Control Verification
 ```bash
@@ -98,7 +98,7 @@ openssl s_client -connect api:8443 -cert secrets/tls/api-client/cert.pem \
 curl -H "Authorization: Bearer invalid_token" \
   http://localhost:8000/api/v1/protected/endpoint
 # Should return 401 Unauthorized
-```text
+```
 
 ##  📊 Monitoring Operations
 
@@ -111,7 +111,7 @@ curl -s http://localhost:9092/api/v1/query?query=ptaas_scans_active | jq '.data.
 
 # Alert rule validation
 curl -s http://localhost:9092/api/v1/rules | jq '.data.groups[].rules[].alerts'
-```text
+```
 
 ###  Grafana Dashboard Monitoring
 ```bash
@@ -123,7 +123,7 @@ curl -f http://localhost:3010/api/datasources/proxy/1/api/v1/query?query=up
 curl -X POST http://localhost:3010/api/annotations \
   -H "Content-Type: application/json" \
   -d '{"text":"Test annotation","tags":["test"]}'
-```text
+```
 
 ###  Database Operations
 ```bash
@@ -137,7 +137,7 @@ psql -h localhost -U xorb_user -d xorb -c "SELECT pg_stat_database.datname,
 redis-cli -h localhost -p 6379 info replication
 redis-cli -h localhost -p 6379 info memory
 redis-cli -h localhost -p 6379 info stats
-```text
+```
 
 ##  🎯 PTaaS Operations
 
@@ -153,7 +153,7 @@ curl -s http://localhost:8000/api/v1/ptaas/scanners/status | jq '.'
 
 # Active scan monitoring
 curl -s http://localhost:8000/api/v1/ptaas/sessions/active | jq '.count'
-```text
+```
 
 ###  Scan Queue Management
 ```bash
@@ -165,7 +165,7 @@ curl -s http://localhost:8000/api/v1/ptaas/metrics | jq '.scan_times'
 
 # Failed scan investigation
 curl -s http://localhost:8000/api/v1/ptaas/sessions?status=failed | jq '.'
-```text
+```
 
 ###  Orchestration Monitoring
 ```bash
@@ -178,7 +178,7 @@ temporal workflow describe --workflow-id <workflow_id>
 
 # Activity failure investigation
 temporal workflow show --workflow-id <workflow_id> --run-id <run_id>
-```text
+```
 
 ##  🚨 Incident Response
 
@@ -198,7 +198,7 @@ pg_isready -h localhost -p 5432
 docker-compose restart redis
 sleep 15
 redis-cli -h localhost -p 6379 ping
-```text
+```
 
 ###  Security Incident Response
 ```bash
@@ -212,7 +212,7 @@ redis-cli -h localhost -p 6379 ping
 # Suspicious activity investigation
 grep -E "(RATE_LIMIT|UNAUTHORIZED|FAILED_AUTH)" logs/audit.log | tail -100
 grep -E "suspicious|malicious|attack" logs/security.log | tail -50
-```text
+```
 
 ###  Performance Issue Resolution
 ```bash
@@ -227,7 +227,7 @@ docker stats --format "table {{.Container}}\t{{.MemUsage}}" --no-stream
 # Database performance tuning
 psql -h localhost -U xorb_user -d xorb -c "SELECT query, mean_exec_time
   FROM pg_stat_statements ORDER BY mean_exec_time DESC LIMIT 10;"
-```text
+```
 
 ##  🔄 Backup and Recovery
 
@@ -244,7 +244,7 @@ gunzip -c backup_$(date +%Y%m%d).sql.gz | head -50
 dropdb -h localhost -U xorb_user xorb_recovery
 createdb -h localhost -U xorb_user xorb_recovery
 gunzip -c backup_$(date +%Y%m%d).sql.gz | psql -h localhost -U xorb_user -d xorb_recovery
-```text
+```
 
 ###  Configuration Backup
 ```bash
@@ -258,7 +258,7 @@ tar -czf cert_backup_$(date +%Y%m%d).tar.gz secrets/tls/
 # Recovery verification
 tar -tzf config_backup_$(date +%Y%m%d).tar.gz
 tar -tzf cert_backup_$(date +%Y%m%d).tar.gz
-```text
+```
 
 ##  📈 Capacity Planning
 
@@ -274,7 +274,7 @@ free -h && cat /proc/meminfo | grep -E "(MemTotal|MemFree|MemAvailable)"
 df -h
 du -sh /var/lib/docker/  # Docker storage usage
 du -sh logs/  # Log storage usage
-```text
+```
 
 ###  Scaling Decision Matrix
 ```bash
@@ -289,7 +289,7 @@ active_connections=$(curl -s http://localhost:8000/api/v1/metrics | jq '.active_
 if [ "$active_connections" -gt 800 ]; then
     echo "High connection count - consider horizontal scaling"
 fi
-```text
+```
 
 ##  🛠️ Maintenance Operations
 
@@ -308,7 +308,7 @@ logrotate -f /etc/logrotate.d/xorb-platform
 # Container image updates
 docker-compose pull
 docker-compose up -d --force-recreate
-```text
+```
 
 ###  Security Updates
 ```bash
@@ -322,7 +322,7 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 # Security policy updates
 git pull origin main -- policies/
 conftest test --policy policies/ .
-```text
+```
 
 ##  📋 Compliance Operations
 
@@ -339,7 +339,7 @@ gpg --sign logs/audit.log.sha256
 # Access review procedures
 grep -E "(LOGIN|LOGOUT|ACCESS_GRANTED|ACCESS_DENIED)" logs/audit.log | \
   awk '{print $1, $2, $5, $6}' | sort | uniq -c
-```text
+```
 
 ###  Data Protection Operations
 ```bash
@@ -350,7 +350,7 @@ echo $?  # Should return 0 if encryption is valid
 # GDPR compliance procedures
 ./scripts/gdpr-data-export.sh --user-id <user_id>
 ./scripts/gdpr-data-deletion.sh --user-id <user_id> --confirm
-```text
+```
 
 ##  🎯 Success Metrics
 

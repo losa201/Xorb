@@ -22,7 +22,7 @@ XORB is a comprehensive Penetration Testing as a Service (PTaaS) platform built 
 - **Monitoring**: Prometheus, Grafana, OpenTelemetry
 
 ###  Service Architecture Map
-```text
+```
 ┌─────────────────┐    HTTPS/TLS 1.3    ┌─────────────────┐
 │   External      │◄──────────────────►│   Envoy Proxy   │
 │   Clients       │   HSTS + Security   │   (mTLS Term)   │
@@ -42,7 +42,7 @@ XORB is a comprehensive Penetration Testing as a Service (PTaaS) platform built 
 │  │(TLS-only)   │    │ (TLS+SSL)   │    │ Docker(TLS) │     │
 │  └─────────────┘    └─────────────┘    └─────────────┘     │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  Data Flow Analysis
 - **User Authentication**: JWT-based with MFA support
@@ -124,7 +124,7 @@ XORB is a comprehensive Penetration Testing as a Service (PTaaS) platform built 
 
 ##  📊 Impact vs Effort Matrix
 
-```text
+```
 High Impact  │ 1️⃣ JWT Secret    │ 3️⃣ CORS Config
             │ 2️⃣ Hardcoded    │ 7️⃣ Logging
             │    Credentials  │
@@ -133,7 +133,7 @@ Low Impact   │ 8️⃣ Rate Limiting│ 4️⃣ Docker
             │ 9️⃣ Dependencies │ 5️⃣ Input Valid
             │ 🔟 TLS Config   │ 6️⃣ Config Secrets
              Low Effort        High Effort
-```text
+```
 
 ##  🛡️ Security Strengths
 

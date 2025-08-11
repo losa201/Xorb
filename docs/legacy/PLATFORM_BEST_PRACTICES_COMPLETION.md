@@ -17,7 +17,7 @@ The XORB platform has been completely reorganized according to enterprise softwa
 ###  **1. Clean Architecture Implementation** ✅
 
 - **Structure Implemented**:
-```text
+```
 src/
 ├── 📁 domain/                    # Domain Layer (Business Logic)
 │   ├── entities/                 # Core business entities with base classes
@@ -47,7 +47,7 @@ src/
     ├── exceptions/              # Custom exceptions hierarchy
     ├── types/                   # Shared types
     └── constants/               # Application constants
-```text
+```
 
 - **Key Features**:
 - **Domain-Driven Design**: Aggregate roots, entities, value objects
@@ -97,7 +97,7 @@ class AnalyzeThreatUseCase:
     def __init__(self, threat_repo: ThreatRepository, engine: AnalysisEngine):
         self.threat_repo = threat_repo
         self.engine = engine
-```text
+```
 
 ###  **4. DevOps Excellence** ✅
 
@@ -210,7 +210,7 @@ class AnalyzeThreatUseCase:
 ##  🏗️ **New Platform Architecture**
 
 ###  **Service Architecture**
-```text
+```
 ┌─────────────────────────────────────────────────────────┐
 │                 XORB Platform v4.0.0                    │
 │               Best Practices Edition                     │
@@ -242,10 +242,10 @@ class AnalyzeThreatUseCase:
 │     • Automated Security Scanning                      │
 │     • Infrastructure as Code                           │
 └─────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Microservices Decomposition**
-```text
+```
 services/
 ├── 🔐 identity-service/         # Authentication & Authorization
 ├── 🧠 threat-intelligence/      # AI-powered threat analysis
@@ -256,7 +256,7 @@ services/
 ├── 📊 reporting-service/        # Analytics and reporting
 ├── 🔄 orchestration-service/    # Workflow orchestration
 └── 🌐 gateway-service/          # API Gateway
-```text
+```
 
 - --
 

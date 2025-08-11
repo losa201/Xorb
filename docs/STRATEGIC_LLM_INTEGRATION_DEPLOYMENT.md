@@ -46,7 +46,7 @@ LLM_EMERGENCY_REQUEST_LIMIT=150
 # EPYC Optimization
 EPYC_OPTIMIZATION=true
 AI_ENHANCED=true
-```text
+```
 
 ##  Deployment Steps
 
@@ -60,7 +60,7 @@ cat config/llm_strategic_config.json
 source .env
 echo "NVIDIA API: ${NVIDIA_API_KEY:0:10}..."
 echo "OpenRouter API: ${OPENROUTER_API_KEY:0:10}..."
-```text
+```
 
 ###  2. Deploy with Docker Compose
 
@@ -71,7 +71,7 @@ docker-compose -f infra/docker-compose.yml up -d
 
 # Verify services
 docker-compose ps
-```text
+```
 
 ###  3. Health Check
 
@@ -81,7 +81,7 @@ curl http://localhost:8001/health
 
 # Check AI integration status
 curl http://localhost:8001/status
-```text
+```
 
 ##  Strategic Capabilities
 
@@ -108,7 +108,7 @@ curl -X POST http://localhost:8001/campaigns/test-campaign/ai-analysis \
       }
     ]
   }'
-```text
+```
 
 ###  2. Strategic Payload Generation
 
@@ -129,7 +129,7 @@ curl -X POST http://localhost:8001/payloads/generate \
     },
     "complexity": "enhanced"
   }'
-```text
+```
 
 ###  3. Intelligence Fusion
 
@@ -147,7 +147,7 @@ curl -X POST http://localhost:8001/intelligence/fusion \
     },
     "objectives": ["correlation", "threat_assessment", "risk_scoring"]
   }'
-```text
+```
 
 ##  Model Selection Strategy
 
@@ -216,7 +216,7 @@ curl http://localhost:8001/intelligence/statistics
     "cost_savings": "100% (Free Tier)"
   }
 }
-```text
+```
 
 ##  Security Considerations
 
@@ -239,7 +239,7 @@ curl http://localhost:8001/intelligence/statistics
     "clearance": "authorized"
   }
 }
-```text
+```
 
 ##  Performance Optimization
 
@@ -289,7 +289,7 @@ docker-compose logs xorb-intelligence-engine
 
 # Monitor real-time activity
 docker-compose logs -f xorb-intelligence-engine | grep "Strategic"
-```text
+```
 
 ##  Advanced Configuration
 
@@ -304,7 +304,7 @@ Edit `config/llm_strategic_config.json`:
     "payload_generation": "Enhanced payload generation template"
   }
 }
-```text
+```
 
 ###  Model Selection Preferences
 
@@ -318,7 +318,7 @@ Edit `config/llm_strategic_config.json`:
     }
   }
 }
-```text
+```
 
 ##  Integration Examples
 
@@ -338,7 +338,7 @@ async def analyze_vulnerabilities(scan_results):
 
 # Usage
 results = asyncio.run(analyze_vulnerabilities(scan_data))
-```text
+```
 
 ###  REST API Integration
 
@@ -358,7 +358,7 @@ ANALYSIS=$(curl -s -X POST http://localhost:8001/campaigns/test/ai-analysis \
 
 # 3. Generate report
 echo "Strategic analysis complete with AI enhancement"
-```text
+```
 
 ##  Monitoring and Alerting
 
@@ -375,7 +375,7 @@ Import the strategic AI dashboard:
 ```bash
 # Located at: grafana/xorb-strategic-ai-dashboard.json
 # Metrics: Cost, performance, model usage, cache hits
-```text
+```
 
 ##  Support and Maintenance
 

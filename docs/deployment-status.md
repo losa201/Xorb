@@ -56,7 +56,7 @@ nginx -t                                   # Test configuration
 # Monitoring
 curl http://localhost:3005/api/health      # Health check
 tail -f /var/log/ptaas-frontend.log       # View logs
-```text
+```
 
 ###  Systemd Service (Optional)
 ```bash
@@ -64,7 +64,7 @@ tail -f /var/log/ptaas-frontend.log       # View logs
 systemctl status ptaas-frontend
 systemctl start ptaas-frontend
 systemctl enable ptaas-frontend
-```text
+```
 
 - --
 
@@ -138,7 +138,7 @@ ps aux | grep next
 
 # Verify Nginx configuration
 nginx -t
-```text
+```
 
 - --
 

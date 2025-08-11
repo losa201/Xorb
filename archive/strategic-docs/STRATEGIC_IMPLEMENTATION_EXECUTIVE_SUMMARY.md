@@ -57,13 +57,13 @@ After conducting a comprehensive analysis of the XORB platform, I present a stra
 - **Current Gap**: Multiple AI engines operate independently without unified coordination
 
 - **Strategic Solution**:
-```text
+```
 Unified Intelligence Command Center
 ├── Real-time AI Decision Engine with contextual awareness
 ├── Cross-domain Intelligence Fusion combining all threat sources
 ├── Automated Response Orchestration with safety constraints
 └── Executive-level Intelligence Dashboard with predictive insights
-```text
+```
 
 - **Business Impact**: +$750K ARR (Enterprise AI orchestration services)
 
@@ -74,13 +74,13 @@ Unified Intelligence Command Center
 - **Current Gap**: Limited to basic attack scenarios without nation-state modeling
 
 - **Strategic Solution**:
-```text
+```
 Nation-State Threat Simulation Platform
 ├── APT Group Behavioral Modeling (30+ threat actor profiles)
 ├── Supply Chain Attack Scenarios with dependency analysis
 ├── Zero-Day Exploit Simulation in controlled environments
 └── Quantum-Resistant Attack Modeling for future threats
-```text
+```
 
 - **Business Impact**: +$1.2M ARR (Government and critical infrastructure)
 
@@ -91,13 +91,13 @@ Nation-State Threat Simulation Platform
 - **Current Gap**: Strong offensive capabilities but limited automated defense
 
 - **Strategic Solution**:
-```text
+```
 Autonomous Defense Orchestration
 ├── AI-Powered Incident Response with automated containment
 ├── Predictive Defense using ML threat forecasting
 ├── Self-Healing Infrastructure with automated remediation
 └── Real-time Threat Response with <5 second reaction time
-```text
+```
 
 - **Business Impact**: +$900K ARR (Autonomous defense services)
 
@@ -108,13 +108,13 @@ Autonomous Defense Orchestration
 - **Current Gap**: Limited external threat feed integration and collaboration
 
 - **Strategic Solution**:
-```text
+```
 Collaborative Global Intelligence Platform
 ├── 50+ Real-time Threat Intelligence Feeds integration
 ├── Collaborative Defense with secure threat sharing protocols
 ├── ML-Powered Attribution Engine with 95%+ accuracy
 └── Natural Language Threat Hunting interface
-```text
+```
 
 - **Business Impact**: +$650K ARR (Global threat intelligence services)
 
@@ -125,13 +125,13 @@ Collaborative Global Intelligence Platform
 - **Current Gap**: Quantum-safe foundations exist but limited integration framework
 
 - **Strategic Solution**:
-```text
+```
 Enterprise Quantum-Safe Migration
 ├── Hybrid Quantum-Classical Systems for seamless transition
 ├── Automated Migration Framework for legacy systems
 ├── Quantum Threat Monitoring with real-time assessment
 └── Quantum-Classical Bridge Protocols
-```text
+```
 
 - **Business Impact**: +$500K ARR (Quantum-ready enterprise services)
 
@@ -140,7 +140,7 @@ Enterprise Quantum-Safe Migration
 ##  📈 **Revenue Growth Projection**
 
 ###  **16-Week Implementation Revenue Impact**
-```text
+```
 Enhancement 1: Unified Intelligence     → +$750K ARR
 Enhancement 2: Threat Simulation        → +$1.2M ARR
 Enhancement 3: Autonomous Defense       → +$900K ARR
@@ -148,7 +148,7 @@ Enhancement 4: Global Intelligence      → +$650K ARR
 Enhancement 5: Quantum-Safe Migration   → +$500K ARR
 ────────────────────────────────────────────────────
 TOTAL REVENUE IMPACT:                   → +$4.0M ARR
-```text
+```
 
 ###  **3-Year Market Leadership Trajectory**
 - **Year 1**: $4.0M ARR (Platform Enhancement)
@@ -238,13 +238,13 @@ TOTAL REVENUE IMPACT:                   → +$4.0M ARR
 ##  🛡️ **Enhanced Security & Compliance**
 
 ###  **Advanced Security Framework**
-```text
+```
 Zero Trust Evolution + Quantum-Safe Security
 ├── Multi-layer Identity Verification with quantum-safe algorithms
 ├── AI-Powered Anomaly Detection across all platform layers
 ├── Automated Compliance (SOC2, PCI-DSS, NIST, ISO-27001)
 └── Autonomous Security Incident Response with <1 minute MTTR
-```text
+```
 
 ###  **Regulatory Compliance Enhancement**
 - **SOC2 Type II**: Enhanced controls for CC6.1, CC6.6, CC6.7
@@ -256,7 +256,7 @@ Zero Trust Evolution + Quantum-Safe Security
 
 ##  🏗️ **Enhanced Architecture Overview**
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────────┐
 │           UNIFIED INTELLIGENCE COMMAND CENTER                   │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌──────────┐  │
@@ -279,7 +279,7 @@ Zero Trust Evolution + Quantum-Safe Security
 │  │Platform     │ │& Analytics  │ │Network      │ │Framework │  │
 │  └─────────────┘ └─────────────┘ └─────────────┘ └──────────┘  │
 └─────────────────────────────────────────────────────────────────┘
-```text
+```
 
 - --
 

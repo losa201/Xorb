@@ -259,7 +259,7 @@ cp .env.template .env
 # Verify deployment
 curl http://localhost:8000/health
 curl http://localhost:8000/readiness
-```text
+```
 
 ###  **Production Deployment**
 ```bash
@@ -271,7 +271,7 @@ bombardier -c 64 -n 20000 http://localhost:8000/health
 
 # Monitor logs
 docker-compose -f infra/docker-compose.production.yml logs -f api
-```text
+```
 
 - --
 
@@ -318,7 +318,7 @@ bombardier -c 64 -n 20000 http://localhost:8000/health
 # API endpoint performance
 bombardier -c 32 -n 5000 http://localhost:8000/api/evidence
 # Result: Authenticated endpoints perform within targets
-```text
+```
 
 - --
 

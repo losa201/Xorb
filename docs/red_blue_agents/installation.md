@@ -34,7 +34,7 @@ python3 --version
 
 # Git 2.25+
 git --version
-```text
+```
 
 - **Optional Dependencies**:
 ```bash
@@ -49,7 +49,7 @@ terraform --version
 
 # Helm (Kubernetes package manager)
 helm version
-```text
+```
 
 ##  🚀 Quick Installation
 
@@ -59,7 +59,7 @@ For development and testing environments:
 
 ```bash
 curl -fsSL https://install.xorb-security.com/agents | sh
-```text
+```
 
 This script will:
 1. Check system requirements
@@ -91,7 +91,7 @@ docker-compose up -d
 
 # 5. Initialize framework
 python -m src.services.red_blue_agents.cli init
-```text
+```
 
 ##  🔧 Detailed Installation Steps
 
@@ -126,7 +126,7 @@ sudo chmod +x /usr/local/bin/docker-compose
 
 # Log out and back in for group changes to take effect
 newgrp docker
-```text
+```
 
 ####  CentOS/RHEL Setup
 
@@ -159,7 +159,7 @@ sudo usermod -aG docker $USER
 # Install Docker Compose
 sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
-```text
+```
 
 ####  macOS Setup
 
@@ -175,7 +175,7 @@ brew install --cask docker
 
 # Start Docker Desktop and complete setup
 open /Applications/Docker.app
-```text
+```
 
 ###  2. Kata Containers Setup (Optional)
 
@@ -211,7 +211,7 @@ sudo systemctl restart docker
 
 # Verify installation
 sudo docker run --rm --runtime=kata-runtime hello-world
-```text
+```
 
 ####  CentOS/RHEL
 
@@ -224,7 +224,7 @@ sudo yum install -y kata-containers
 
 # Configure Docker (same as Ubuntu)
 # ... rest of configuration
-```text
+```
 
 ###  3. Repository Setup
 
@@ -248,7 +248,7 @@ pip install -r requirements-dev.txt
 
 # Set up pre-commit hooks (development)
 pre-commit install
-```text
+```
 
 ###  4. Configuration
 
@@ -258,7 +258,7 @@ Create and configure your environment file:
 
 ```bash
 cp .env.example .env
-```text
+```
 
 Edit `.env` with your specific configuration:
 
@@ -317,7 +317,7 @@ AUDIT_LOG_ENABLED=true
 SOC2_COMPLIANCE=true
 GDPR_COMPLIANCE=true
 DATA_RETENTION_DAYS=365
-```text
+```
 
 ####  Capability Configuration
 
@@ -332,7 +332,7 @@ vim src/services/red_blue_agents/configs/environment_policies.json
 
 # Add custom techniques (optional)
 vim src/services/red_blue_agents/configs/techniques/custom_techniques.json
-```text
+```
 
 ####  Network Configuration
 
@@ -358,7 +358,7 @@ networks:
       config:
         - subnet: 172.21.0.0/16
 EOF
-```text
+```
 
 ###  5. Infrastructure Services
 
@@ -373,7 +373,7 @@ docker-compose up -d postgres redis temporal
 
 # Verify services
 docker-compose ps
-```text
+```
 
 ####  Database Initialization
 
@@ -386,7 +386,7 @@ python -m src.services.red_blue_agents.cli init-db
 
 # Verify database
 psql $DATABASE_URL -c "SELECT COUNT(*) FROM techniques;"
-```text
+```
 
 ####  Redis Initialization
 
@@ -399,7 +399,7 @@ python -m src.services.red_blue_agents.cli init-redis
 
 # Verify Redis
 redis-cli -u $REDIS_URL keys "*"
-```text
+```
 
 ###  6. Application Services
 
@@ -414,7 +414,7 @@ curl http://localhost:8000/health
 
 # View logs
 docker-compose logs -f agent-scheduler
-```text
+```
 
 ####  Service Configuration
 
@@ -450,7 +450,7 @@ services:
         limits:
           cpus: '4.0'
           memory: 4G
-```text
+```
 
 ###  7. Monitoring Setup
 
@@ -488,7 +488,7 @@ alerting:
         - targets:
           - alertmanager:9093
 EOF
-```text
+```
 
 ####  Grafana Dashboards
 
@@ -498,7 +498,7 @@ EOF
 
 # Or manually copy dashboards
 cp -r monitoring/grafana/dashboards/* /var/lib/grafana/dashboards/
-```text
+```
 
 ####  Start Monitoring Stack
 
@@ -509,7 +509,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 # Access Grafana
 open http://localhost:3000
 # Default login: admin / admin (change on first login)
-```text
+```
 
 ##  🧪 Testing Installation
 
@@ -540,7 +540,7 @@ asyncio.run(test_db())
 
 # Check Redis connectivity
 redis-cli -u $REDIS_URL ping
-```text
+```
 
 ###  Integration Tests
 
@@ -555,7 +555,7 @@ pytest tests/integration/test_agents.py -v
 
 # Run end-to-end tests
 pytest tests/e2e/ -v --slow
-```text
+```
 
 ###  Sample Mission
 
@@ -569,7 +569,7 @@ python -m src.services.red_blue_agents.cli list-missions
 
 # View mission results
 python -m src.services.red_blue_agents.cli get-mission <mission_id>
-```text
+```
 
 ##  🐳 Container Images
 
@@ -593,7 +593,7 @@ docker pull xorb/blue-hunt:latest
 docker pull xorb/postgres-with-extensions:latest
 docker pull redis:7-alpine
 docker pull temporalio/auto-setup:latest
-```text
+```
 
 ###  Build Custom Images
 
@@ -610,7 +610,7 @@ docker build -t xorb/blue-detect:custom -f docker/agents/Dockerfile.blue-detect 
 
 # Push to registry
 docker push your-registry.com/xorb/agent-scheduler:custom
-```text
+```
 
 ###  Image Security Scanning
 
@@ -625,7 +625,7 @@ docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
 # Generate SBOM (Software Bill of Materials)
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
   anchore/syft xorb/agent-scheduler:latest
-```text
+```
 
 ##  ☸️ Kubernetes Deployment
 
@@ -642,7 +642,7 @@ curl https://get.helm.sh/helm-v3.10.0-linux-amd64.tar.gz | tar -xzO linux-amd64/
 # Add XORB Helm repository
 helm repo add xorb https://charts.xorb-security.com
 helm repo update
-```text
+```
 
 ###  Deploy with Helm
 
@@ -661,7 +661,7 @@ kubectl get services -n xorb-agents
 
 # Port forward for local access
 kubectl port-forward -n xorb-agents svc/agent-scheduler 8000:8000
-```text
+```
 
 ###  Custom Values
 
@@ -719,7 +719,7 @@ ingress:
     - secretName: agents-tls
       hosts:
         - agents.your-domain.com
-```text
+```
 
 ##  🔧 Troubleshooting
 
@@ -734,7 +734,7 @@ newgrp docker
 
 # Or run with sudo (not recommended for production)
 sudo docker-compose up -d
-```text
+```
 
 ####  Port Conflicts
 
@@ -745,7 +745,7 @@ sudo lsof -i :8000
 
 # Change ports in docker-compose.yml
 sed -i 's/8000:8000/8001:8000/' docker-compose.yml
-```text
+```
 
 ####  Database Connection Issues
 
@@ -760,7 +760,7 @@ docker-compose exec postgres psql -U xorb -d xorb_agents -c "SELECT 1;"
 docker-compose down -v
 docker-compose up -d postgres
 ./scripts/init-database.sh
-```text
+```
 
 ####  Out of Memory Issues
 
@@ -776,7 +776,7 @@ sudo fallocate -l 2G /swapfile
 sudo chmod 600 /swapfile
 sudo mkswap /swapfile
 sudo swapon /swapfile
-```text
+```
 
 ###  Log Analysis
 
@@ -796,7 +796,7 @@ docker-compose logs --no-color > application.log
 
 # Real-time log monitoring
 tail -f application.log | grep -E "(ERROR|FATAL)"
-```text
+```
 
 ###  Performance Tuning
 
@@ -816,7 +816,7 @@ echo "maxmemory-policy allkeys-lru" >> redis.conf
 
 # Tune container resources
 docker update --memory=2g --cpus=2 container_name
-```text
+```
 
 ###  Backup and Recovery
 
@@ -837,7 +837,7 @@ docker-compose exec -T postgres psql -U xorb xorb_agents < backup.sql
 # Restore Redis
 docker-compose exec redis cp /backup/dump.rdb /data/
 docker-compose restart redis
-```text
+```
 
 ##  📱 Management Tools
 
@@ -857,7 +857,7 @@ xorb-agents missions create config.json  # Create mission
 xorb-agents agents list               # List agents
 xorb-agents sandbox list              # List sandboxes
 xorb-agents logs tail                 # Tail logs
-```text
+```
 
 ###  Web UI
 
@@ -871,7 +871,7 @@ web-ui:
     - API_URL=http://agent-scheduler:8000
 
 # Access at http://localhost:3000
-```text
+```
 
 ###  Mobile App
 

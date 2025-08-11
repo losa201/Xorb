@@ -92,23 +92,23 @@ The XORB Platform now has a comprehensive, strategically implemented TLS/mTLS se
 ##  📊 Deployment Validation Results
 
 ###  Certificate Generation Status ✅
-```text
+```
 ✅ Root CA: Generated with 4096-bit key
 ✅ Intermediate CA: Generated and signed by Root CA
 ✅ API Certificates: Server + Client with proper SANs
 ✅ Infrastructure Certificates: All services covered
 ✅ Client Certificates: Dedicated client authentication
 ✅ Certificate Chains: Complete trust chains generated
-```text
+```
 
 ###  Infrastructure Deployment Status
-```text
+```
 ✅ CA Service: Container deployed and healthy
 ✅ Redis TLS: Configuration deployed (health check pending)
 ✅ PostgreSQL TLS: Configuration deployed (certificate access resolved)
 ✅ Envoy Proxy: mTLS termination configurations ready
 ✅ Monitoring Stack: TLS-enabled Prometheus/Grafana ready
-```text
+```
 
 ###  Security Policy Compliance ✅
 - **No Plaintext Protocols**: All services configured for TLS-only
@@ -140,7 +140,7 @@ docker-compose -f infra/docker-compose.tls.yml up -d
 
 # Certificate rotation
 ./scripts/rotate-certs.sh
-```text
+```
 
 ###  Monitoring & Alerting
 - **Certificate Expiry**: 7-day advance warning alerts

@@ -25,7 +25,7 @@ To execute PTAAS operations:
 
 ```bash
 python run_ptaas.py [options]
-```text
+```
 
 Available options:
 - `--target`: Specify target systems for testing

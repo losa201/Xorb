@@ -32,7 +32,7 @@ Multiple CRITICAL vulnerabilities discovered requiring immediate executive atten
 ```python
 def get_current_token():
     return "dummy_token"  # Complete authentication bypass
-```text
+```
 - **Business Impact**:
 - Complete platform security compromise
 - Unauthorized access to all tenant data
@@ -48,11 +48,11 @@ def get_current_token():
 - **CVSS Score**: 9.6 (CRITICAL)
 - **CWE**: CWE-798 (Hard-coded Credentials)
 - **Location**: `/secrets/` directory, multiple config files
-```text
+```
 JWT_SECRET=tp0_emT0aEVy4mZZmUS1k--pv3T_gH99RmEmhJcS1JgUI9s...
 POSTGRES_PASSWORD=xorb-db-secure-2025
 REDIS_PASSWORD=xorb_redis_password_2025
-```text
+```
 - **Business Impact**:
 - Complete database compromise possible
 - All authentication tokens can be forged
@@ -87,7 +87,7 @@ REDIS_PASSWORD=xorb_redis_password_2025
 @router.post("/auth/dev-token")
 async def create_dev_token(role: str = "admin"):
     # Creates admin tokens in production if DEV_MODE misconfigured
-```text
+```
 - **Business Impact**:
 - Privilege escalation to admin access
 - Bypasses all security controls

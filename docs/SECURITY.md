@@ -25,7 +25,7 @@ The XORB Platform implements a comprehensive security architecture with end-to-e
 - **HSTS**: Enabled on all public endpoints with `includeSubDomains` and `preload`
 
 ####  Mutual TLS (mTLS) Implementation
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │                      Security Boundaries                    │
 ├─────────────────────────────────────────────────────────────┤
@@ -36,12 +36,12 @@ The XORB Platform implements a comprehensive security architecture with end-to-e
 │ HSTS Enabled     │ Client Cert     │ Certificate Auth       │
 │ Rate Limited     │ Verification    │ Zero Trust Network     │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  Certificate Management
 
 ####  Certificate Authority Hierarchy
-```text
+```
 XORB Root CA (RSA 4096, 10 years)
 ├── Subject: CN=XORB Root CA, O=XORB Platform, C=US
 ├── Usage: Certificate Signing, CRL Signing
@@ -51,7 +51,7 @@ XORB Root CA (RSA 4096, 10 years)
     └── Service Certificates (RSA 2048, 30 days)
         ├── Server Certificates (serverAuth)
         └── Client Certificates (clientAuth)
-```text
+```
 
 ####  Certificate Lifecycle
 1. **Generation**: Automated via CA scripts with proper SANs
@@ -87,7 +87,7 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
-```text
+```
 
 ####  Firewall Rules
 - **Ingress**: Only HTTPS (443) and TLS-encrypted service ports
@@ -107,7 +107,7 @@ securityContext:
   capabilities:
     drop: ["ALL"]
     add: ["NET_RAW", "NET_ADMIN"]  # Only for security scanners
-```text
+```
 
 ####  Resource Limits
 ```yaml
@@ -118,7 +118,7 @@ resources:
   requests:
     memory: "256Mi"
     cpu: "250m"
-```text
+```
 
 ###  Data Protection
 
@@ -149,7 +149,7 @@ vault write database/config/postgresql \
     plugin_name=postgresql-database-plugin \
     connection_url="postgresql://{{username}}:{{password}}@postgres:5432/xorb?sslmode=require" \
     allowed_roles="xorb-app"
-```text
+```
 
 ####  Secret Rotation
 - **Database Passwords**: 7-day rotation
@@ -180,7 +180,7 @@ vault write database/config/postgresql \
     Unexpected network activity (user=%user.name command=%proc.cmdline
     connection=%fd.name)
   priority: WARNING
-```text
+```
 
 ###  Audit Logging
 
@@ -203,7 +203,7 @@ vault write database/config/postgresql \
   "cipher_suite": "TLS_AES_256_GCM_SHA384",
   "result": "success"
 }
-```text
+```
 
 ###  Vulnerability Management
 
@@ -249,7 +249,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 # Audit Log Analysis
 grep "SECURITY_VIOLATION" /var/log/xorb/audit.log
-```text
+```
 
 ####  2. Containment
 - Isolate affected services
@@ -291,7 +291,7 @@ openssl ca -config ca/intermediate/openssl.cnf \
 
 # Update Envoy CRL configuration
 curl -X POST envoy-admin:9901/runtime_modify?crl_file=/etc/ssl/certs/crl.pem
-```text
+```
 
 ##  📋 Compliance and Governance
 
@@ -339,7 +339,7 @@ find secrets/tls -name "cert.pem" -exec openssl x509 -in {} -checkend $((7*24*36
 
 # Automated rotation check
 ./scripts/rotate-certs.sh --dry-run
-```text
+```
 
 ####  Security Monitoring
 ```bash
@@ -351,7 +351,7 @@ journalctl -u docker-compose -f | grep "certificate verify failed"
 
 # Audit API access patterns
 curl -s "https://api.xorb.local/api/v1/audit/summary" | jq '.failed_requests'
-```text
+```
 
 ###  Backup and Recovery
 

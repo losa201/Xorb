@@ -63,7 +63,7 @@ lscpu | grep "Model name"
 # Verify AMD EPYC optimizations
 cat /proc/cpuinfo | grep -i epyc
 cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-```text
+```
 
 ###  Step 1: Deploy Optimized Namespaces
 ```bash
@@ -72,7 +72,7 @@ kubectl apply -f optimized/resource-optimized-namespace.yaml
 
 # Verify resource quotas
 kubectl describe quota --all-namespaces
-```text
+```
 
 ###  Step 2: Deploy Control Plane (Lightweight)
 ```bash
@@ -84,7 +84,7 @@ kubectl wait --for=condition=available --timeout=300s deployment --all -n cyber-
 
 # Check resource usage
 kubectl top pods -n cyber-range-control
-```text
+```
 
 ###  Step 3: Deploy Essential Red Team
 ```bash
@@ -94,7 +94,7 @@ kubectl apply -f optimized/essential-red-team.yaml
 # Verify red team deployment
 kubectl get pods -n cyber-range-red
 kubectl top pods -n cyber-range-red
-```text
+```
 
 ###  Step 4: Deploy Blue Team SIEM Lite
 ```bash
@@ -106,7 +106,7 @@ kubectl wait --for=condition=ready --timeout=600s pod -l app=elasticsearch-lite 
 
 # Check SIEM status
 kubectl get pods -n cyber-range-blue
-```text
+```
 
 ###  Step 5: Deploy Minimal Targets
 ```bash
@@ -116,7 +116,7 @@ kubectl apply -f optimized/minimal-targets.yaml
 # Verify targets are running
 kubectl get pods -n cyber-range-targets
 kubectl get svc -n cyber-range-targets
-```text
+```
 
 ###  Step 6: Configure AMD EPYC Optimizations
 ```bash
@@ -132,7 +132,7 @@ echo 'madvise' | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
 # Set vm.swappiness for memory optimization
 echo 'vm.swappiness = 1' | sudo tee -a /etc/sysctl.conf
 sudo sysctl -p
-```text
+```
 
 ##  🔧 Access Points (NodePort Services)
 
@@ -149,7 +149,7 @@ echo "Prometheus:       http://$NODE_IP:30090"
 echo "Kibana (SIEM):    http://$NODE_IP:30601"
 echo "Elasticsearch:    http://$NODE_IP:30920"
 echo "Blue Team SOC:    http://$NODE_IP:30800"
-```text
+```
 
 ##  🎮 Optimized Exercise Scenarios
 
@@ -171,7 +171,7 @@ curl "http://web-target-service.cyber-range-targets.svc.cluster.local/?id=1' OR 
 
 # SSH brute force attempt
 nmap -p 22 --script ssh-brute network-target-service.cyber-range-targets.svc.cluster.local
-```text
+```
 
 ###  Blue Team Monitoring (Lightweight)
 ```bash
@@ -185,7 +185,7 @@ nmap -p 22 --script ssh-brute network-target-service.cyber-range-targets.svc.clu
 
 # Check Suricata alerts
 kubectl logs -n cyber-range-blue daemonset/suricata-lite | grep "ALERT"
-```text
+```
 
 ##  🚨 Resource Monitoring
 
@@ -199,7 +199,7 @@ watch kubectl top pods --all-namespaces
 
 # Check resource quotas
 kubectl describe quota --all-namespaces
-```text
+```
 
 ###  Performance Tuning Commands
 ```bash
@@ -214,7 +214,7 @@ dmesg | grep -i "killed process"
 
 # Monitor CPU throttling
 cat /sys/fs/cgroup/cpu/cpu.stat
-```text
+```
 
 ##  🔧 Troubleshooting Optimized Deployment
 
@@ -230,7 +230,7 @@ kubectl describe quota -n cyber-range-targets
 
 # Solution: Reduce resource requests
 kubectl patch deployment web-target-lite -n cyber-range-targets -p '{"spec":{"template":{"spec":{"containers":[{"name":"apache-php","resources":{"requests":{"memory":"64Mi","cpu":"25m"}}}]}}}}'
-```text
+```
 
 ####  Issue: Elasticsearch Won't Start (Memory Issues)
 ```bash
@@ -239,7 +239,7 @@ kubectl logs -n cyber-range-blue deployment/elasticsearch-lite
 
 # Reduce memory further if needed
 kubectl patch deployment elasticsearch-lite -n cyber-range-blue -p '{"spec":{"template":{"spec":{"containers":[{"name":"elasticsearch","env":[{"name":"ES_JAVA_OPTS","value":"-Xms128m -Xmx256m"}]}]}}}}'
-```text
+```
 
 ####  Issue: High Memory Usage
 ```bash
@@ -251,7 +251,7 @@ kubectl rollout restart deployment elasticsearch-lite -n cyber-range-blue
 
 # Enable memory limits enforcement
 kubectl patch deployment <deployment-name> -n <namespace> -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container>","resources":{"limits":{"memory":"256Mi"}}}]}}}}'
-```text
+```
 
 ##  📊 Performance Expectations
 
@@ -277,7 +277,7 @@ kubectl get pods --all-namespaces | grep -v Running
 
 # Check resource usage baseline
 kubectl top nodes && kubectl top pods --all-namespaces
-```text
+```
 
 ###  2. Exercise Execution (60-90 minutes)
 ```bash
@@ -286,7 +286,7 @@ kubectl exec -it -n cyber-range-red deployment/red-team-essential-tools -- nmap 
 
 # Blue Team: Monitor in Kibana
 # Access: http://NODE_IP:30601
-```text
+```
 
 ###  3. Post-Exercise Analysis (15 minutes)
 ```bash
@@ -295,7 +295,7 @@ kubectl logs -n cyber-range-blue deployment/elasticsearch-lite > exercise-logs.t
 
 # Generate resource usage report
 kubectl top pods --all-namespaces > resource-usage-report.txt
-```text
+```
 
 ##  💡 Optimization Tips
 
@@ -311,7 +311,7 @@ systemctl edit kubelet
 # Optimize network stack
 echo 'net.core.rmem_max = 16777216' | sudo tee -a /etc/sysctl.conf
 echo 'net.core.wmem_max = 16777216' | sudo tee -a /etc/sysctl.conf
-```text
+```
 
 ###  Container Optimizations
 ```bash
@@ -323,7 +323,7 @@ kubectl set env deployment --all LOG_LEVEL=WARN --all-namespaces
 
 # Enable resource limits enforcement
 kubectl patch deployment --all --type='merge' -p='{"spec":{"template":{"spec":{"containers":[{"resources":{"limits":{"memory":"512Mi","cpu":"500m"}}}]}}}}' --all-namespaces
-```text
+```
 
 - --
 

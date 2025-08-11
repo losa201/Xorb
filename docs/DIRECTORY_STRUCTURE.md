@@ -4,7 +4,7 @@ This document describes the organized directory structure following best practic
 
 ##  Root Directory Structure
 
-```text
+```
 /
 ├── .archive/                    # Archived/deprecated files
 ├── build/                       # Build outputs and artifacts
@@ -36,7 +36,7 @@ This document describes the organized directory structure following best practic
 ├── ptaas/                    # PTaaS core
 ├── xorb/                     # XORB core modules
 └── [core files]              # Core project files (README, LICENSE, etc.)
-```text
+```
 
 ##  Directory Purposes
 

@@ -58,7 +58,7 @@ graph TB
 
     N[XORB PTaaS API] --> A
     O[Mission Control] --> N
-```text
+```
 
 ###  Core Components
 
@@ -147,7 +147,7 @@ mission_config = {
 
 mission_id = await scheduler.create_mission(mission_config)
 await scheduler.start_mission(mission_id)
-```text
+```
 
 ####  Creating a Blue Team Mission
 
@@ -174,7 +174,7 @@ blue_mission_config = {
 
 blue_mission_id = await scheduler.create_mission(blue_mission_config)
 await scheduler.start_mission(blue_mission_id)
-```text
+```
 
 ##  📖 Documentation Structure
 
@@ -245,7 +245,7 @@ Example environment policy:
     }
   }
 }
-```text
+```
 
 ###  Technique Definitions
 
@@ -269,7 +269,7 @@ Techniques are defined using JSON manifests following the MITRE ATT&CK framework
     }
   ]
 }
-```text
+```
 
 ##  🛡️ Security Considerations
 

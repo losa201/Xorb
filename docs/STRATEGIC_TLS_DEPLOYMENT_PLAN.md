@@ -23,7 +23,7 @@ This document outlines the strategic approach for deploying comprehensive end-to
 ##  🏗️ Architecture Overview
 
 ###  Certificate Hierarchy
-```text
+```
 XORB Root CA (4096-bit, 10 years)
 └── XORB Intermediate CA (4096-bit, 5 years)
     ├── Service Certificates (2048-bit, 30 days)
@@ -43,7 +43,7 @@ XORB Root CA (4096-bit, 10 years)
         ├── redis-client.xorb.local
         ├── postgres-client.xorb.local
         └── temporal-client.xorb.local
-```text
+```
 
 ###  Service Communication Matrix
 | Source Service | Target Service | Protocol | Port | Auth Method |
@@ -89,7 +89,7 @@ XORB Root CA (4096-bit, 10 years)
 ./scripts/ca/issue-cert.sh postgres-client client
 ./scripts/ca/issue-cert.sh temporal-client client
 ./scripts/ca/issue-cert.sh scanner-client client
-```text
+```
 
 ###  Phase 3: Service Configuration
 1. **Redis Configuration**: TLS-only mode with client certificate validation
@@ -130,7 +130,7 @@ The existing `infra/docker-compose.tls.yml` provides:
 
 # Automatic rotation for certificates expiring within 7 days
 ./scripts/rotate-certs.sh --days-before-expiry 7 --auto-reload
-```text
+```
 
 ####  Certificate Backup and Recovery
 ```bash
@@ -139,7 +139,7 @@ The existing `infra/docker-compose.tls.yml` provides:
 
 # Emergency certificate restoration
 ./scripts/restore-certificates.sh --backup-date 2025-01-10
-```text
+```
 
 ###  Service-Specific Configurations
 
@@ -175,7 +175,7 @@ The existing `infra/docker-compose.tls.yml` provides:
 ./scripts/validate/test_mtls.sh
 ./scripts/validate/test_redis_tls.sh
 ./scripts/validate/test_dind_tls.sh
-```text
+```
 
 ####  Security Compliance Tests
 ```bash
@@ -184,7 +184,7 @@ conftest test --policy policies/tls-security.rego infra/docker-compose.tls.yml
 
 # Container security scanning
 docker run --rm -v $(pwd):/work trivy config /work/infra/docker-compose.tls.yml
-```text
+```
 
 ###  Monitoring Dashboard
 
@@ -211,7 +211,7 @@ docker run --rm -v $(pwd):/work trivy config /work/infra/docker-compose.tls.yml
     severity: critical
   annotations:
     summary: "High TLS handshake failure rate: {{ $value }}/sec"
-```text
+```
 
 ##  🔒 Security Policies
 
@@ -229,7 +229,7 @@ deny[msg] {
     not service.volumes[_].source =~ "tls"
     msg = sprintf("Service %s missing TLS certificate volumes", [service.name])
 }
-```text
+```
 
 ###  Container Security Standards
 - **Non-root users**: All containers run with unprivileged users

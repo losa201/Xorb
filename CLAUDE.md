@@ -30,7 +30,7 @@ cd src/services/worker && source ../../venv/bin/activate && python worker.py
 
 # Quick validation of environment
 python tools/scripts/validate_environment.py
-```text
+```
 
 ### Docker Development
 ```bash
@@ -45,7 +45,7 @@ docker-compose -f docker-compose.production.yml up -d
 
 # View logs
 docker-compose logs -f [service_name]
-```text
+```
 
 ### Frontend Development
 ```bash
@@ -66,7 +66,7 @@ cd services/ptaas/web && npm test
 
 # Run tests with coverage
 cd services/ptaas/web && npm run test:coverage
-```text
+```
 
 ### Testing
 ```bash
@@ -99,7 +99,7 @@ pytest --cov=src/api/app --cov-report=html --cov-report=term-missing
 
 # Environment validation script (checks dependencies, config)
 python tools/scripts/validate_environment.py
-```text
+```
 
 ### Infrastructure & Deployment
 ```bash
@@ -119,7 +119,7 @@ curl http://localhost:8000/api/v1/health          # API health check
 curl http://localhost:8000/api/v1/readiness       # Readiness probe
 curl http://localhost:8000/api/v1/info            # Platform info
 python ./validation_test.py                       # Platform validation
-```text
+```
 
 ## Architecture Overview
 
@@ -250,7 +250,7 @@ curl "http://localhost:8000/api/v1/ptaas/sessions/{session_id}" \
 # Get available scan profiles
 curl "http://localhost:8000/api/v1/ptaas/profiles" \
   -H "Authorization: Bearer TOKEN"
-```text
+```
 
 ####  Advanced Orchestration
 ```bash
@@ -278,7 +278,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/threat-simulation
     "simulation_type": "apt_simulation",
     "attack_vectors": ["spear_phishing", "lateral_movement"]
   }'
-```text
+```
 
 ### Scan Profiles Available
 - **Quick** (5 min): Fast network scan with basic service detection
@@ -354,13 +354,13 @@ Key environment variables:
 ### Vault Secret Management
 XORB includes comprehensive HashiCorp Vault integration for secure secret management:
 
-- *Vault Infrastructure** (Located in `infra/vault/`):
+- **Vault Infrastructure** (Located in `infra/vault/`):
 - `vault-config.hcl` - Production Vault configuration with KV, database, transit engines
 - `vault-dev-config.hcl` - Development Vault configuration
 - `init-vault.sh` - Production initialization script with policies and roles
 - `setup-vault-dev.sh` - Development setup with auto-generated secrets
 
-- *Vault Client** (`src/common/vault_client.py`):
+- **Vault Client** (`src/common/vault_client.py`):
 - Production-ready client with AppRole authentication and token fallback
 - Automatic environment variable fallback when Vault unavailable
 - Dynamic database credential management with PostgreSQL integration
@@ -368,7 +368,7 @@ XORB includes comprehensive HashiCorp Vault integration for secure secret manage
 - Secret caching with configurable TTL and version management
 - Health monitoring and connection status checking
 
-- *Vault Management CLI** (`src/common/vault_manager.py`):
+- **Vault Management CLI** (`src/common/vault_manager.py`):
 ```bash
 # Health check and connection test
 python3 src/common/vault_manager.py health
@@ -385,7 +385,7 @@ python3 src/common/vault_manager.py backup secrets-backup.json
 
 # Comprehensive integration test
 python3 src/common/vault_manager.py test
-```text
+```
 
 - **Vault Secret Structure**:
 - `secret/xorb/config` - JWT secrets, database config, XORB API keys
@@ -400,7 +400,7 @@ cd infra/vault && ./setup-vault-dev.sh
 
 # Access Vault UI (development)
 open http://127.0.0.1:8200/ui
-```text
+```
 
 ### CI/CD Pipeline & DevSecOps
 XORB includes a comprehensive DevSecOps pipeline with multiple security scanning stages:
@@ -423,7 +423,7 @@ XORB includes a comprehensive DevSecOps pipeline with multiple security scanning
 .github/workflows/security-scan.yml         # Multi-stage security scanning
 .github/workflows/devsecops-pipeline.yml    # Full DevSecOps workflow
 .github/workflows/infrastructure-security.yml # Infrastructure security scanning
-```text
+```
 
 - **Security Scanning Tools**:
 ```bash
@@ -442,7 +442,7 @@ XORB includes a comprehensive DevSecOps pipeline with multiple security scanning
 
 # Clean old reports
 ./tools/scripts/security-scan.sh clean
-```text
+```
 
 - **Pre-commit Security Hooks**:
 ```bash
@@ -458,7 +458,7 @@ pre-commit run --all-files
 # - Checkov (Infrastructure security)
 # - Hadolint (Dockerfile security)
 # - Safety (Dependency vulnerabilities)
-```text
+```
 
 - **Security Configuration Files**:
 - `src/api/.gitleaks.toml` - Secret detection configuration
@@ -493,7 +493,7 @@ XORB includes a comprehensive monitoring and observability stack:
 
 # Using Docker Compose directly
 docker-compose -f docker-compose.monitoring.yml up -d
-```text
+```
 
 - **Configuration Files**:
 - `infra/monitoring/prometheus.yml` - Prometheus scrape configuration
@@ -511,7 +511,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 - **Frontend Application**: http://localhost:3000 (PTaaS React app)
 - **Temporal Web UI**: http://localhost:8233
 
-- *Monitoring Access Points** (when monitoring stack is running):
+- **Monitoring Access Points** (when monitoring stack is running):
 - **Prometheus**: http://localhost:9092 - Metrics and queries
 - **Grafana**: http://localhost:3010 - Dashboards and visualization (admin / SecureAdminPass123!)
 - **AlertManager**: http://localhost:9093 - Alert management
@@ -562,7 +562,7 @@ curl http://localhost:8000/docs  # Interactive API documentation
 
 # 5. Run comprehensive tests
 pytest --cov=src/api/app --cov-report=html
-```text
+```
 
 ## Development Guidelines
 

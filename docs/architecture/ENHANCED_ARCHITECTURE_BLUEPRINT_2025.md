@@ -9,7 +9,7 @@
 
 ##  🎯 Enhanced Architecture Overview
 
-```text
+```
 ┌─────────────────────────────────────────────────────────────────────────────────────┐
 │                     XORB UNIFIED INTELLIGENCE COMMAND CENTER                        │
 ├─────────────────────────────────────────────────────────────────────────────────────┤
@@ -46,7 +46,7 @@
 │  │ • Automation    │  │ • Self-Healing  │  │ • Attribution   │  │ • Zero-Trust    │ │
 │  └─────────────────┘  └─────────────────┘  └─────────────────┘  └─────────────────┘ │
 └─────────────────────────────────────────────────────────────────────────────────────┘
-```text
+```
 
 - --
 
@@ -86,7 +86,7 @@ class UnifiedIntelligenceCommandCenter:
 
         # Execute with human oversight
         return await self.execute_with_oversight(validated_operations)
-```text
+```
 
 ###  Enhanced Capabilities
 
@@ -113,7 +113,7 @@ class UnifiedDecisionEngine:
         )
 
         return self.validate_and_enhance_decision(decision)
-```text
+```
 
 - *2. Real-Time Coordination Bus**
 ```python
@@ -138,7 +138,7 @@ class AICoordinationBus:
 
         # Result correlation and synthesis
         return await self.synthesize_operation_results(results)
-```text
+```
 
 - --
 
@@ -174,7 +174,7 @@ class AutonomousDefenseEngine:
             await self.self_healing.perform_healing_operations()
 
             await asyncio.sleep(1)  # 1-second cycle
-```text
+```
 
 ###  Predictive Defense Capabilities
 
@@ -202,7 +202,7 @@ class PredictiveThreatModel:
         )
 
         return self.convert_to_actionable_threats(validated_predictions)
-```text
+```
 
 - --
 
@@ -234,7 +234,7 @@ class GlobalThreatIntelligenceNetwork:
 
         # Start collaborative threat sharing
         await self.collaboration_engine.join_global_network()
-```text
+```
 
 ###  Real-Time Attribution Engine
 
@@ -268,7 +268,7 @@ class MLAttributionEngine:
         )
 
         return self.generate_attribution_report(attribution_scores, attribution_confidence)
-```text
+```
 
 - --
 
@@ -298,7 +298,7 @@ class EnhancedQuantumSafeArchitecture:
 
         # Begin quantum threat monitoring
         await self.quantum_monitor.start_monitoring()
-```text
+```
 
 ###  Zero-Trust Evolution
 
@@ -330,7 +330,7 @@ class NextGenZeroTrust:
         )
 
         return self.enforce_access_decision(policy_decision)
-```text
+```
 
 - --
 
@@ -366,7 +366,7 @@ class AIObservabilityPlatform:
                     await self.auto_remediation.execute_remediation(root_cause)
 
             await asyncio.sleep(10)  # 10-second analysis cycle
-```text
+```
 
 ###  Predictive Performance Management
 
@@ -400,7 +400,7 @@ class PredictivePerformanceEngine:
         )
 
         return await self.apply_optimizations(optimizations)
-```text
+```
 
 - --
 
@@ -458,7 +458,7 @@ CREATE TABLE ai_decision_audit (
     tenant_id UUID NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
-```text
+```
 
 ###  Enhanced Container Architecture
 
@@ -497,7 +497,7 @@ LABEL security.scan="enabled" \
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
-```text
+```
 
 ###  Enhanced Kubernetes Deployment
 
@@ -581,7 +581,7 @@ spec:
       - name: ai-models
         persistentVolumeClaim:
           claimName: ai-models-pvc
-```text
+```
 
 - --
 
@@ -629,7 +629,7 @@ class IntelligentResourceManager:
 
         # Optimize memory allocation
         await self.optimize_memory_allocation()
-```text
+```
 
 - --
 

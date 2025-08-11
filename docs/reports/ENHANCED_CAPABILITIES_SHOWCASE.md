@@ -32,7 +32,7 @@ class AdvancedAIEngine:
     async def detect_advanced_threats() -> Dict[str, Any]
     async def train_adaptive_model() -> MLModelMetrics
     async def generate_security_insights() -> Dict[str, Any]
-```text
+```
 
 - *Features:**
 - **Threat Prediction**: ML-based predictive analytics for emerging threats
@@ -53,7 +53,7 @@ class EnterpriseObservabilityService:
     async def create_alert_rule() -> str
     async def get_performance_analytics() -> Dict[str, Any]
     async def get_security_metrics() -> Dict[str, Any]
-```text
+```
 
 - *Capabilities:**
 - **Real-time Metrics**: System and application monitoring
@@ -77,7 +77,7 @@ class EnterpriseObservabilityService:
 ##  🏗️ **Strategic Architecture Design**
 
 ###  **Enhanced Service Architecture**
-```text
+```
 XORB Enhanced Platform (Post-Enhancement)
 ├── 🎯 Production Concrete Services        # NEW: Real implementations
 │   ├── ProductionPTaaSService             # Replaces interface stubs
@@ -101,7 +101,7 @@ XORB Enhanced Platform (Post-Enhancement)
     ├── Enhanced Input Validation         # Multi-layer protection
     ├── Behavioral Monitoring            # Continuous analysis
     └── Compliance Automation            # Framework support
-```text
+```
 
 - --
 
@@ -134,7 +134,7 @@ for prediction in predictions:
     print(f"Threat: {prediction.threat_type}")
     print(f"Confidence: {prediction.confidence}")
     print(f"Recommended Actions: {prediction.recommended_actions}")
-```text
+```
 
 ###  **3. Enterprise-Grade Observability**
 ```python
@@ -160,7 +160,7 @@ dashboard_id = await observability.create_custom_dashboard(
     ],
     user=user, org=org
 )
-```text
+```
 
 - --
 
@@ -198,7 +198,7 @@ Performance Characteristics:
   PTaaS Operations: < 200ms session creation
   Threat Analysis: < 2 seconds correlation
   Dashboard Generation: < 500ms
-```text
+```
 
 ###  **Architecture Excellence**
 - **Service-Oriented Design**: Clean separation of concerns
@@ -231,7 +231,7 @@ threat_analysis = await threat_intel_service.analyze_indicators(
 # Enterprise monitoring
 health_dashboard = await observability_service.get_service_health_dashboard()
 performance_analytics = await observability_service.get_performance_analytics("1h")
-```text
+```
 
 ###  **Enterprise Integration**
 - **Multi-tenant Support**: Complete data isolation

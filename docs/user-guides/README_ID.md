@@ -50,7 +50,7 @@ Nuclei membutuhkan **go1.22** agar dapat diinstall. Jalankan perintah berikut un
 
 ```sh
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-```text
+```
 
 - *Metode [instalasi lain dapat ditemukan di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
 
@@ -74,7 +74,7 @@ Untuk referensi penulisan sintaks DSL berbasis YAML tersedia [di sini](SYNTAX-RE
 
 ```sh
 nuclei -h
-```text
+```
 
 Ini akan menampilkan bantuan untuk alat tersebut. Berikut adalah semua flag yang didukungnya.
 ```console
@@ -278,7 +278,7 @@ Run nuclei with sorted Markdown outputs (with environment variables):
 	$ MARKDOWN_EXPORT_SORT_MODE=template nuclei -target example.com -markdown-export nuclei_report/
 
 Additional documentation is available at: https://docs.nuclei.sh/getting-started/running
-```text
+```
 
 ###  Menjalankan Nuclei
 
@@ -286,13 +286,13 @@ Memindai domain target dengan templat Nuclei yang [dikurasi oleh komunitas](http
 
 ```sh
 nuclei -u https://example.com
-```text
+```
 
 Memindai URL target dengan templat Nuclei yang [dikurasi oleh komunitas](https://github.com/projectdiscovery/nuclei-templates).
 
 ```sh
 nuclei -list urls.txt
-```text
+```
 
 Contoh dari berkas `urls.txt`:
 
@@ -301,7 +301,7 @@ http://example.com
 http://app.example.com
 http://test.example.com
 http://uat.example.com
-```text
+```
 
 - *Contoh lebih detil tentang menjalankan Nuclei dapat ditemukan [di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei).**
 

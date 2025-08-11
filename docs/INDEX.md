@@ -35,7 +35,7 @@
 
 ## 📁 Documentation Structure
 
-```text
+```
 docs/
 ├── INDEX.md                          # This navigation index
 ├── README.md                         # Documentation overview
@@ -66,7 +66,7 @@ docs/
 └── legacy/                           # Legacy Documentation (Preserved)
     ├── architecture_assessment_report.md
     └── migration_guides/
-```text
+```
 
 ## 🎯 Documentation Categories
 

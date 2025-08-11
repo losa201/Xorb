@@ -71,7 +71,7 @@ class EnhancedThreatIntelligenceService(IntelligenceService, ThreatIntelligenceS
         # Real-time threat feed correlation
         # MITRE ATT&CK technique mapping
         # Actionable recommendations generation
-```text
+```
 
 ###  **2. Advanced LLM Orchestrator**
 
@@ -96,7 +96,7 @@ class AdvancedLLMOrchestrator:
         # Structured JSON response parsing with fallback
         # Comprehensive error handling and logging
         # Performance-optimized caching and rate limiting
-```text
+```
 
 ###  **3. Production Monitoring Infrastructure**
 
@@ -120,7 +120,7 @@ class ProductionMonitoring:
         # Alert management with cooldown periods
         # Performance tracking with configurable retention
         # Multi-channel notification routing
-```text
+```
 
 ###  **4. Security Scanner Integration**
 
@@ -144,7 +144,7 @@ class SecurityScannerService(SecurityService, PTaaSService):
         # Whitelist-based executable validation
         # Regex pattern matching for safety
         # Known-good scanner verification
-```text
+```
 
 ###  **5. Advanced Vulnerability Analysis**
 
@@ -169,7 +169,7 @@ class VulnerabilityMetrics:
     attack_vector: AttackVector
     exploit_availability: ExploitAvailability
     # Comprehensive scoring framework
-```text
+```
 
 - --
 
@@ -309,7 +309,7 @@ docker-compose -f docker-compose.production.yml up -d
 
 # 4. Kubernetes Enterprise Deployment
 kubectl apply -f deploy/kubernetes/production/
-```text
+```
 
 ###  **Configuration Management**
 
@@ -333,7 +333,7 @@ MONITORING_RETENTION_DAYS=30
 PTAAS_MAX_CONCURRENT_SCANS=10
 SCANNER_TIMEOUT_SECONDS=1800
 SECURITY_VALIDATION_ENABLED=true
-```text
+```
 
 - --
 

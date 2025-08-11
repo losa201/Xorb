@@ -26,7 +26,7 @@ print(f"API Port: {config.api_service.port}")
 # Check feature flags
 if get_feature_flag("advanced_analytics", False):
     print("Advanced analytics enabled")
-```text
+```
 
 ###  2. Environment Switching
 
@@ -40,7 +40,7 @@ if get_feature_flag("advanced_analytics", False):
 
 # Deploy environment
 ./tools/scripts/config-manager.sh deploy staging --dry-run
-```text
+```
 
 ###  3. Docker Compose Deployment
 
@@ -53,7 +53,7 @@ docker-compose -f docker-compose.production.yml up -d
 
 # Check status
 docker-compose ps
-```text
+```
 
 ##  Configuration Structure
 
@@ -91,7 +91,7 @@ class XORBConfig:
 
     # External integrations
     integrations: Dict[str, Dict[str, Any]]
-```text
+```
 
 ##  Environment-Specific Settings
 
@@ -110,7 +110,7 @@ class XORBConfig:
     "performance_profiling": true
   }
 }
-```text
+```
 
 ###  Production Environment
 
@@ -128,7 +128,7 @@ class XORBConfig:
     "password_min_length": 12
   }
 }
-```text
+```
 
 ##  Secret Management
 
@@ -144,7 +144,7 @@ db_url = config.database.get_url()  # Password loaded from Vault
 # Manual secret access
 vault_client = VaultClient()
 secret = vault_client.get_secret("xorb/config")
-```text
+```
 
 ###  Environment Variables
 
@@ -154,7 +154,7 @@ Fallback to environment variables when Vault is unavailable:
 export DATABASE_PASSWORD="secure_password"
 export JWT_SECRET="very_long_secret_key"
 export REDIS_PASSWORD="redis_password"
-```text
+```
 
 ##  Feature Flags
 
@@ -171,7 +171,7 @@ multi_tenant = manager.get_feature_flag("multi_tenant", False)
 
 # Set feature flags dynamically
 manager.set_feature_flag("beta_features", True)
-```text
+```
 
 ###  Available Feature Flags
 
@@ -196,7 +196,7 @@ def on_config_changed(new_config):
 
 manager = get_config_manager()
 manager.register_reload_callback(on_config_changed)
-```text
+```
 
 ###  Manual Reload
 
@@ -205,7 +205,7 @@ from src.common.config_manager import reload_config
 
 # Trigger manual reload
 reload_config()
-```text
+```
 
 ##  Configuration Management CLI
 
@@ -232,7 +232,7 @@ reload_config()
 
 # Hot-reload
 ./tools/scripts/config-manager.sh reload
-```text
+```
 
 ###  Options
 
@@ -252,7 +252,7 @@ print(f"Host: {db_config.host}")
 print(f"Port: {db_config.port}")
 print(f"Database: {db_config.name}")
 print(f"Connection URL: {db_config.get_url()}")
-```text
+```
 
 ###  Service Ports
 
@@ -263,7 +263,7 @@ orchestrator_config = manager.get_service_config("orchestrator")
 
 print(f"API: {api_config.host}:{api_config.port}")
 print(f"Orchestrator: {orchestrator_config.host}:{orchestrator_config.port}")
-```text
+```
 
 ##  Docker Integration
 
@@ -279,7 +279,7 @@ services:
       - REDIS_HOST=redis
     volumes:
       - ./config:/app/config:ro
-```text
+```
 
 ###  Secrets Management
 
@@ -290,7 +290,7 @@ secrets:
     file: ./secrets/jwt_secret
   encryption_key:
     file: ./secrets/encryption_key
-```text
+```
 
 ##  Validation and Error Handling
 
@@ -304,7 +304,7 @@ The system validates configuration automatically:
 - Service ports must be unique
 - Database connection parameters must be valid
 - Feature flag values must be boolean
-```text
+```
 
 ###  Error Handling
 
@@ -316,7 +316,7 @@ except ValidationError as e:
 except Exception as e:
     print(f"Configuration error: {e}")
     # Falls back to default configuration
-```text
+```
 
 ##  Export and Import
 
@@ -331,7 +331,7 @@ except Exception as e:
 
 # Export as environment variables
 ./tools/scripts/config-manager.sh export production env
-```text
+```
 
 ###  Programmatic Export
 
@@ -344,7 +344,7 @@ manager = get_config_manager()
 json_config = manager.export_config(ConfigFormat.JSON, include_secrets=False)
 yaml_config = manager.export_config(ConfigFormat.YAML, include_secrets=False)
 env_config = manager.export_config(ConfigFormat.ENV, include_secrets=False)
-```text
+```
 
 ##  Migration from Legacy Configuration
 
@@ -358,7 +358,7 @@ settings = get_settings()
 # New way
 from src.common.config_manager import get_config
 config = get_config()
-```text
+```
 
 ###  Step 2: Update Configuration Access
 
@@ -370,7 +370,7 @@ api_port = settings.api_port
 # New way
 database_url = config.database.get_url()
 api_port = config.api_service.port
-```text
+```
 
 ###  Step 3: Update Environment Variables
 
@@ -384,7 +384,7 @@ DATABASE_URL=postgresql://...
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
 DATABASE_NAME=xorb_dev
-```text
+```
 
 ##  Best Practices
 
@@ -453,7 +453,7 @@ manager = get_config_manager()
 config = manager.get_config()
 print(f"Current environment: {config.environment}")
 print(f"Debug mode: {config.debug}")
-```text
+```
 
 ##  Performance Considerations
 

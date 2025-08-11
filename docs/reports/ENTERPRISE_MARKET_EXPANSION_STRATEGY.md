@@ -113,14 +113,14 @@ XORB has achieved **enterprise-grade maturity** and is positioned to capture sig
 
 ####  Sales Team Structure
 
-```text
+```
 Enterprise Sales Organization (75 people)
 ├── Global Sales Leadership (5)
 ├── Enterprise Account Executives (25)
 ├── Solutions Engineers (20)
 ├── Customer Success Managers (15)
 └── Channel/Partner Managers (10)
-```text
+```
 
 - *Target Metrics**
 - 50 enterprise customers by EOY 2025

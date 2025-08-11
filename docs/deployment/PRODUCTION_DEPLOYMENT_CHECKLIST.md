@@ -36,7 +36,7 @@ git checkout main
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
-```text
+```
 
 ###  2. Database Configuration
 ```bash
@@ -52,7 +52,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 # Run migrations
 cd src/api
 alembic upgrade head
-```text
+```
 
 ###  3. Redis Configuration
 ```bash
@@ -65,7 +65,7 @@ sudo systemctl start redis-server
 sudo nano /etc/redis/redis.conf
 # Set: bind 127.0.0.1, maxmemory-policy allkeys-lru, requirepass <strong-password>
 sudo systemctl restart redis-server
-```text
+```
 
 ###  4. Vault Integration (Optional but Recommended)
 ```bash
@@ -78,7 +78,7 @@ cd infra/vault
 vault kv put secret/xorb/config \
   jwt_secret="your-jwt-secret" \
   database_url="postgresql://user:pass@localhost:5432/xorb_production"
-```text
+```
 
 - --
 
@@ -128,7 +128,7 @@ TEMPORAL_NAMESPACE=xorb-production
 # Vault (if using)
 VAULT_ADDR=https://vault.your-domain.com
 VAULT_TOKEN=your-vault-token
-```text
+```
 
 ###  2. Service Configuration
 Update `src/api/app/main.py` configurations for production:
@@ -189,7 +189,7 @@ services:
 volumes:
   postgres_data:
   redis_data:
-```text
+```
 
 ###  2. Monitoring Stack
 Deploy monitoring with `docker-compose.monitoring.yml`:
@@ -200,7 +200,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 # Verify monitoring services
 curl http://localhost:9092/api/v1/query?query=up  # Prometheus
 curl http://localhost:3010/api/health             # Grafana
-```text
+```
 
 - --
 
@@ -213,7 +213,7 @@ sudo certbot certonly --standalone -d api.your-domain.com
 
 # Configure nginx reverse proxy
 sudo nano /etc/nginx/sites-available/xorb-platform
-```text
+```
 
 ###  2. Nginx Configuration
 ```nginx
@@ -243,7 +243,7 @@ server {
         access_log off;  # Don't log health checks
     }
 }
-```text
+```
 
 ###  3. Firewall Configuration
 ```bash
@@ -257,7 +257,7 @@ sudo ufw enable
 sudo ufw deny 8000/tcp   # Block direct API access
 sudo ufw deny 5432/tcp   # Block direct database access
 sudo ufw deny 6379/tcp   # Block direct Redis access
-```text
+```
 
 - --
 
@@ -285,7 +285,7 @@ RestartSec=10
 
 [Install]
 WantedBy=multi-user.target
-```text
+```
 
 ###  2. Start Services
 ```bash
@@ -297,7 +297,7 @@ sudo systemctl start xorb-platform
 # Check service status
 sudo systemctl status xorb-platform
 sudo journalctl -u xorb-platform -f
-```text
+```
 
 ###  3. Initialize Platform Services
 ```bash
@@ -319,7 +319,7 @@ curl -X POST http://localhost:8000/api/v1/platform/services/bulk-action \
 # Verify services started successfully
 curl -H "Authorization: Bearer $ADMIN_TOKEN" \
   http://localhost:8000/api/v1/platform/services
-```text
+```
 
 - --
 
@@ -354,7 +354,7 @@ sudo nano /etc/logrotate.d/xorb-platform
         systemctl reload xorb-platform
     endscript
 }
-```text
+```
 
 ###  4. Alerting Rules
 Configure alerts for:
@@ -384,7 +384,7 @@ curl -X POST https://api.your-domain.com/auth/login \
 # Service management test (requires admin token)
 curl -H "Authorization: Bearer $TOKEN" \
   https://api.your-domain.com/api/v1/platform/services
-```text
+```
 
 ###  2. Load Testing
 ```bash
@@ -397,7 +397,7 @@ ab -n 1000 -c 10 https://api.your-domain.com/health
 # API endpoint load test
 ab -n 500 -c 5 -H "Authorization: Bearer $TOKEN" \
   https://api.your-domain.com/api/v1/platform/services
-```text
+```
 
 ###  3. Security Validation
 ```bash
@@ -411,7 +411,7 @@ curl -I https://api.your-domain.com/
 for i in {1..70}; do
   curl -s -o /dev/null -w "%{http_code}\n" https://api.your-domain.com/health
 done
-```text
+```
 
 - --
 
@@ -428,7 +428,7 @@ cp dump.rdb backup/redis_$(date +%Y%m%d).rdb
 
 # Application configuration backup
 tar -czf config_backup_$(date +%Y%m%d).tar.gz .env.production src/api/app/
-```text
+```
 
 ###  2. Update Procedures
 ```bash
@@ -454,7 +454,7 @@ sudo rm /var/www/html/index.html
 
 # Validate deployment
 curl -f https://api.your-domain.com/health
-```text
+```
 
 ###  3. Rollback Procedures
 ```bash
@@ -469,7 +469,7 @@ sudo systemctl restart xorb-platform
 
 # Verify rollback
 curl -f https://api.your-domain.com/health
-```text
+```
 
 - --
 
@@ -512,7 +512,7 @@ sudo ufw enable
 
 # Verify deployment
 curl -f https://api.your-domain.com/api/v1/platform/health
-```text
+```
 
 - --
 

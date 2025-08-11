@@ -1,4 +1,15 @@
-"""Tenant context middleware for multi-tenant isolation."""
+"""
+DEPRECATED: Vulnerable tenant context middleware - DO NOT USE
+This middleware has been replaced with SecureTenantMiddleware for security reasons.
+
+SECURITY VULNERABILITIES:
+- Allows tenant switching via headers (X-Tenant-ID)
+- Silent failure on database context errors
+- No validation of user-tenant relationships
+- Missing security event logging
+
+Use: src/api/app/middleware/secure_tenant_middleware.py instead
+"""
 import logging
 from typing import Optional
 from uuid import UUID
@@ -7,23 +18,16 @@ from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 
-try:
-    from ..auth.models import UserClaims
-except ImportError:
-    # Fallback UserClaims
-    class UserClaims:
-        def __init__(self, user_id: str = "anonymous", tenant_id: str = None):
-            self.user_id = user_id
-            self.tenant_id = tenant_id
-
-try:
-    from ..infrastructure.database import get_async_session
-except ImportError:
-    def get_async_session():
-        return None
-
+# Import secure replacement
+from .secure_tenant_middleware import SecureTenantMiddleware
 
 logger = logging.getLogger(__name__)
+
+# Issue deprecation warning
+logger.warning(
+    "SECURITY WARNING: tenant_context.py is deprecated due to security vulnerabilities. "
+    "Use secure_tenant_middleware.py instead."
+)
 
 
 class TenantContextMiddleware(BaseHTTPMiddleware):

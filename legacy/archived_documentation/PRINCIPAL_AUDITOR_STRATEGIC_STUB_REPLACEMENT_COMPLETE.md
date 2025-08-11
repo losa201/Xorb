@@ -33,7 +33,7 @@ class InMemoryUserRepository(UserRepository):
     def __init__(self):
         self._users: Dict[UUID, User] = {}  # ❌ Non-persistent
         self._username_index: Dict[str, UUID] = {}  # ❌ Lost on restart
-```text
+```
 
 ####  **After (Production Implementation):**
 ```python
@@ -50,7 +50,7 @@ class ProductionUserRepository(UserRepository):
                 .where(UserModel.id == user_id)
             )
             # ✅ Full ACID compliance, persistence, performance optimization
-```text
+```
 
 ###  **2. Advanced Database Schema** 📊 **ENTERPRISE-GRADE**
 
@@ -69,7 +69,7 @@ CREATE INDEX CONCURRENTLY idx_user_tenant_id ON users(tenant_id);
 CREATE INDEX CONCURRENTLY idx_scan_session_status ON scan_sessions(status);
 CREATE INDEX CONCURRENTLY idx_finding_severity ON scan_findings(severity);
 CREATE INDEX CONCURRENTLY idx_audit_timestamp ON audit_logs(timestamp);
-```text
+```
 
 ###  **3. Production Database Manager** ⚡ **SOPHISTICATED**
 
@@ -85,7 +85,7 @@ class ProductionDatabaseManager:
         # ✅ Performance optimization with prepared statements
         # ✅ Backup and recovery capabilities
         # ✅ Multi-tenant data isolation
-```text
+```
 
 ####  **Advanced Connection Management:**
 - **Connection Pooling**: 20 base connections, 10 overflow capacity
@@ -120,7 +120,7 @@ def _register_repositories(self):
             lambda: ProductionUserRepository(db_manager.connection_manager)
         )
         # ✅ All repositories now use production PostgreSQL backing
-```text
+```
 
 ###  **Database Schema Highlights**
 
@@ -136,7 +136,7 @@ class TenantModel(Base):
     plan = Column(Enum(TenantPlan), default=TenantPlan.BASIC)
     settings = Column(JSONB, default={})  # ✅ Flexible configuration
     rate_limits = Column(JSONB, default={})  # ✅ Per-tenant rate limiting
-```text
+```
 
 ####  **Advanced Security Features:**
 ```python
@@ -156,7 +156,7 @@ class UserModel(Base):
     # ✅ Audit and compliance
     password_changed_at = Column(TIMESTAMP, default=func.now())
     user_metadata = Column(JSONB, default={})
-```text
+```
 
 ###  **Production Validation Framework**
 
@@ -172,7 +172,7 @@ class ProductionDatabaseValidator:
         # ✅ Multi-tenant isolation verification
         # ✅ Security feature validation
         # ✅ Concurrent operation testing
-```text
+```
 
 - --
 
@@ -198,7 +198,7 @@ Throughput Capacity:
   Transactions/Second: 500+ sustained
   Data Persistence: 100% ACID compliance
   Uptime Target: 99.9% availability
-```text
+```
 
 ###  **Scalability Improvements** 📈
 
@@ -227,7 +227,7 @@ class TenantIsolatedModel:
     __table_args__ = (
         Index("idx_tenant_isolation", "tenant_id"),
     )
-```text
+```
 
 ####  **2. Advanced Authentication** 🔐
 ```python
@@ -242,7 +242,7 @@ class UserModel:
     failed_login_attempts = Column(Integer, default=0)
     locked_until = Column(TIMESTAMP)
     force_password_change = Column(Boolean, default=False)
-```text
+```
 
 ####  **3. Comprehensive Audit Logging** 📝
 ```python
@@ -253,7 +253,7 @@ class AuditLogModel:
     ip_address = Column(INET)
     success = Column(Boolean, nullable=False)
     risk_level = Column(String(20))  # SIEM integration ready
-```text
+```
 
 - --
 
@@ -300,7 +300,7 @@ export DB_MAX_OVERFLOW="10"
 # Optional performance tuning
 export STATEMENT_TIMEOUT="300000"  # 5 minutes
 export LOCK_TIMEOUT="30000"        # 30 seconds
-```text
+```
 
 ####  **Database Initialization:**
 ```bash
@@ -316,7 +316,7 @@ async def init():
 
 asyncio.run(init())
 "
-```text
+```
 
 ###  **Validation and Testing** 🧪
 
@@ -329,7 +329,7 @@ python validate_production_database_implementation.py
 # ✅ Tests Passed: 9/9 (100.0%)
 # 🎉 VALIDATION SUCCESSFUL!
 # Production database implementation is ready for enterprise deployment.
-```text
+```
 
 ####  **Health Monitoring:**
 ```bash
@@ -346,7 +346,7 @@ curl http://localhost:8000/api/v1/health
     "pool_status": "optimal"
   }
 }
-```text
+```
 
 - --
 
@@ -397,7 +397,7 @@ Security Standards:
   Authentication: MFA and advanced security features
   Authorization: Role-based access control
   Audit Logging: Complete compliance trail
-```text
+```
 
 ###  **Testing Coverage** 🧪
 
@@ -414,7 +414,7 @@ Production Readiness:
   Monitoring: Real-time health and performance metrics
   Backup/Recovery: Automated disaster recovery testing
   Scaling: Load testing with 1000+ concurrent users
-```text
+```
 
 - --
 
@@ -438,7 +438,7 @@ Fortune 500 Customers: ✅ READY
 Global Scaling: ✅ READY
 Compliance Audits: ✅ READY
 Production Workloads: ✅ READY
-```text
+```
 
 ###  **Strategic Recommendation:**
 - *APPROVED FOR IMMEDIATE PRODUCTION DEPLOYMENT**

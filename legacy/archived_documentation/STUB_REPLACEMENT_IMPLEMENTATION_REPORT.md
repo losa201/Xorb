@@ -62,7 +62,7 @@ class Counter:
     def inc(self, amount=1):
         self._value += amount
         logger.debug(f"Counter {self.name}: {self._value}")
-```text
+```
 
 - *Production Impact:**
 - Real-time metrics collection working in development
@@ -94,7 +94,7 @@ async def _fetch_misp_feed(self, client: httpx.AsyncClient, feed: ThreatFeed, he
     # Parses attributes and converts to internal format
     # Handles rate limiting and error recovery
     # Returns structured threat indicators
-```text
+```
 
 - *Production Impact:**
 - Real-time threat intelligence updates from 5+ major sources
@@ -133,7 +133,7 @@ async def webhook_alert_handler(alert: Alert):
     for service, url in webhook_urls.items():
         if url:
             await _send_webhook_alert(alert, service, url)
-```text
+```
 
 - *Production Impact:**
 - Multi-channel alert delivery ensuring no missed critical alerts

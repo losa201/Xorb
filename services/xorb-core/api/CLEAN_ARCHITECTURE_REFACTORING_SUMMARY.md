@@ -97,21 +97,21 @@ The Xorb API has been successfully refactored from a monolithic structure to a c
 if not security.verify_password(form_data.password, security.get_password_hash("secret")):
     raise HTTPException(...)
 access_token = security.create_access_token(data={"sub": form_data.username, "roles": ["admin"]})
-```text
+```
 
 - *After:**
 ```python
 # Service-based authentication with domain entities
 user = await auth_service.authenticate_user(username=form_data.username, password=form_data.password)
 access_token = await auth_service.create_access_token(user)
-```text
+```
 
 ###  Embeddings (`/app/routers/embeddings.py`)
 - *Before:**
 ```python
 # Direct API calls in controllers
 response = self.client.embeddings.create(input=texts, model=model, ...)
-```text
+```
 
 - *After:**
 ```python
@@ -119,7 +119,7 @@ response = self.client.embeddings.create(input=texts, model=model, ...)
 result = await embedding_service.generate_embeddings(
     texts=request.input, model=request.model, user=current_user, org=current_org
 )
-```text
+```
 
 ###  Discovery (`/app/routers/discovery.py`)
 - *Before:**
@@ -127,7 +127,7 @@ result = await embedding_service.generate_embeddings(
 # Direct Temporal client usage
 client = await Client.connect("temporal:7233")
 handle = await client.start_workflow(DiscoveryWorkflow.run, domain, ...)
-```text
+```
 
 - *After:**
 ```python
@@ -135,7 +135,7 @@ handle = await client.start_workflow(DiscoveryWorkflow.run, domain, ...)
 workflow = await discovery_service.start_discovery(
     domain=request.domain, user=current_user, org=current_org
 )
-```text
+```
 
 ##  Key Benefits Achieved
 
@@ -168,7 +168,7 @@ workflow = await discovery_service.start_discovery(
 
 All clean architecture components pass validation tests:
 
-```text
+```
 ============================================================
 CLEAN ARCHITECTURE VALIDATION TESTS
 ============================================================
@@ -193,7 +193,7 @@ CLEAN ARCHITECTURE VALIDATION TESTS
 
 RESULTS: 4/4 tests passed
 🎉 All tests passed! Clean architecture refactoring successful.
-```text
+```
 
 ##  Migration Notes
 

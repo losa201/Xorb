@@ -74,7 +74,7 @@ Data Protection:
   - Secure file upload handling
   - Structured audit logging
   - Environment-based secret management
-```text
+```
 
 ###  Architecture:
 ```yaml
@@ -99,7 +99,7 @@ Monitoring:
   - Structured JSON logging
   - Health check endpoints
   - Performance tracking
-```text
+```
 
 - --
 
@@ -139,7 +139,7 @@ cd Xorb/
 
 # 3. Verify operation
 curl http://localhost:8000/api/v1/health
-```text
+```
 
 ###  Production Deployment:
 ```bash
@@ -156,7 +156,7 @@ export REQUIRE_MFA=true
 
 # 4. Start with production settings
 python3 -m uvicorn src.api.app.main:app --host 0.0.0.0 --port 8000 --workers 4
-```text
+```
 
 - --
 

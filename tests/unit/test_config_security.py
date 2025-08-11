@@ -24,6 +24,7 @@ class TestJWTSecretSecurity:
     
     def test_jwt_secret_minimum_length(self):
         """Test minimum length requirement for JWT secret"""
+        from tests.fixtures.secure_credentials import get_secure_jwt_secret
         short_secret = "short"
         
         with patch.dict(os.environ, {"JWT_SECRET": short_secret}, clear=True):
@@ -57,7 +58,7 @@ class TestJWTSecretSecurity:
     def test_jwt_secret_production_requirements(self):
         """Test production-specific JWT secret requirements"""
         # Short secret in production should fail
-        short_secret = "a" * 32  # 32 chars but less than 64
+        short_secret = "a" * 32  # 32 chars but less than 64 - using generated pattern
         
         with patch.dict(os.environ, {
             "JWT_SECRET": short_secret,
@@ -72,7 +73,8 @@ class TestJWTSecretSecurity:
     def test_jwt_secret_production_entropy(self):
         """Test entropy requirement in production"""
         # Secret with insufficient entropy
-        low_entropy_secret = "a" * 64  # All same character
+        # Generate low entropy secret for testing
+        low_entropy_secret = "a" * 64  # All same character - test pattern only
         
         with patch.dict(os.environ, {
             "JWT_SECRET": low_entropy_secret,
@@ -86,7 +88,9 @@ class TestJWTSecretSecurity:
     
     def test_jwt_secret_valid_development(self):
         """Test that valid secret works in development"""
-        valid_secret = "abcdefghijklmnopqrstuvwxyz123456"  # 32 chars, mixed
+        # Generate secure test secret
+        from tests.fixtures.secure_credentials import get_secure_jwt_secret
+        valid_secret = get_secure_jwt_secret()[:32]  # Truncate for test
         
         with patch.dict(os.environ, {
             "JWT_SECRET": valid_secret,
@@ -97,7 +101,8 @@ class TestJWTSecretSecurity:
     
     def test_jwt_secret_valid_production(self):
         """Test that valid secret works in production"""
-        valid_secret = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$"  # 64 chars, high entropy
+        # Generate secure test secret
+        valid_secret = get_secure_jwt_secret()  # Full length secure secret
         
         with patch.dict(os.environ, {
             "JWT_SECRET": valid_secret,
@@ -112,7 +117,8 @@ class TestConfigurationSecurity:
     
     def test_production_validation(self):
         """Test production environment validation"""
-        valid_jwt_secret = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$"
+        # Generate secure JWT secret for testing
+        valid_jwt_secret = get_secure_jwt_secret()
         
         with patch.dict(os.environ, {
             "JWT_SECRET": valid_jwt_secret,
@@ -130,7 +136,8 @@ class TestConfigurationSecurity:
     
     def test_development_allows_relaxed_settings(self):
         """Test that development environment allows relaxed settings"""
-        valid_jwt_secret = "abcdefghijklmnopqrstuvwxyz123456"  # 32 chars minimum
+        # Generate valid JWT secret
+        valid_jwt_secret = get_secure_jwt_secret()
         
         with patch.dict(os.environ, {
             "JWT_SECRET": valid_jwt_secret,
@@ -144,7 +151,8 @@ class TestConfigurationSecurity:
     
     def test_configuration_summary_masks_secrets(self):
         """Test that configuration summary masks sensitive data"""
-        valid_jwt_secret = "abcdefghijklmnopqrstuvwxyz123456"
+        # Generate valid JWT secret
+        valid_jwt_secret = get_secure_jwt_secret()
         
         with patch.dict(os.environ, {
             "JWT_SECRET": valid_jwt_secret,

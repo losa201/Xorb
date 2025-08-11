@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 import os
 import secrets
 from fastapi.security import OAuth2PasswordRequestForm
@@ -21,36 +21,47 @@ class Token(BaseModel):
 
 
 @router.post("/auth/token", response_model=Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    """Authenticate user and return access token"""
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    request: Request = None
+):
+    """Authenticate user and return access token with comprehensive security"""
     try:
         container = get_container()
         auth_service = container.get(AuthenticationService)
         
-        # Authenticate user
-        user = await auth_service.authenticate_user(
-            username=form_data.username,
-            password=form_data.password
-        )
+        # Extract client information for security
+        client_ip = request.client.host if request and hasattr(request, 'client') else 'unknown'
+        user_agent = request.headers.get('user-agent', 'unknown') if request and hasattr(request, 'headers') else 'unknown'
         
-        # Create access token
-        access_token = await auth_service.create_access_token(user)
+        # Authenticate user with security context
+        auth_result = await auth_service.authenticate_user({
+            "username": form_data.username,
+            "password": form_data.password,
+            "ip_address": client_ip,
+            "user_agent": user_agent
+        })
         
-        return Token(access_token=access_token, token_type="bearer")
-        
-    except DomainException as e:
-        if "Invalid" in str(e) or "credentials" in str(e).lower():
+        if not auth_result.success:
+            # Log security event
+            logger.warning(f"Authentication failed for {form_data.username}: {auth_result.error_code}")
+            
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail=str(e),
+                detail=auth_result.error_message or "Authentication failed",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Authentication service error"
-            )
+        
+        return Token(
+            access_token=auth_result.access_token, 
+            token_type="bearer"
+        )
+        
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
     except Exception as e:
+        logger.error(f"Authentication error for {form_data.username}: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error"
@@ -70,14 +81,30 @@ async def logout(token: str = Depends(get_current_token)):
         container = get_container()
         auth_service = container.get(AuthenticationService)
         
-        success = await auth_service.revoke_token(token)
+        # First validate the token to get session info
+        token_validation = await auth_service.validate_token(token)
+        
+        if token_validation.get("valid"):
+            session_id = token_validation.get("session_id")
+            
+            # Logout user session
+            logout_success = await auth_service.logout_user(session_id) if session_id else False
+            
+            # Also revoke the token
+            revoke_success = await auth_service.revoke_token(token)
+            
+            success = logout_success or revoke_success
+        else:
+            # Token invalid, just try to revoke it
+            success = await auth_service.revoke_token(token)
         
         return {
-            "message": "Successfully logged out" if success else "Token not found",
-            "revoked": success
+            "message": "Successfully logged out" if success else "Logout failed",
+            "success": success
         }
         
     except Exception as e:
+        logger.error(f"Logout error: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Logout failed"
@@ -125,18 +152,15 @@ async def create_dev_token(
         container = get_container()
         auth_service = container.get(AuthenticationService)
         
-        # Create limited development token
-        additional_claims = {
+        # Create limited development token with dev user data
+        dev_user_data = {
+            "id": f"dev_{username}_{secrets.token_hex(4)}",
             "username": username,
             "roles": [role],
-            "dev_token": True,  # Mark as dev token
-            "expires_in": 3600  # 1 hour max
+            "dev_token": True
         }
         
-        token = auth_service.create_access_token(
-            subject=username,
-            additional_claims=additional_claims
-        )
+        token = await auth_service.create_access_token(dev_user_data)
         
         # Audit log
         logger.info("Development token created",

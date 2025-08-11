@@ -29,7 +29,7 @@ ENABLE_RATE_LIMITING=true
 ENABLE_AUDIT_LOGGING=true
 ENABLE_MFA=true
 LOG_LEVEL=INFO
-```text
+```
 
 ###  2. SSL Certificates
 
@@ -55,7 +55,7 @@ find /root/Xorb/ssl -name "*.crt" -exec chmod 644 {} \;
 source /root/Xorb/.env
 if [[ ${#JWT_SECRET} -lt 32 ]]; then echo "ERROR: JWT_SECRET too weak"; exit 1; fi
 if [[ -z "$XORB_API_KEY" ]]; then echo "ERROR: XORB_API_KEY not set"; exit 1; fi
-```text
+```
 
 ###  Phase 2: Automated Deployment
 
@@ -74,7 +74,7 @@ sudo ./deploy-production.sh
 # ✓ Set up monitoring and alerting
 # ✓ Run comprehensive health checks
 # ✓ Generate deployment report
-```text
+```
 
 ###  Phase 3: Post-Deployment Validation
 
@@ -92,7 +92,7 @@ sudo ./deploy-production.sh
 # ✓ SSL/TLS validation (certificate validity)
 # ✓ Monitoring validation (Prometheus, Grafana)
 # ✓ Load testing (concurrent request handling)
-```text
+```
 
 ##  🔧 Manual Deployment (Alternative)
 
@@ -110,7 +110,7 @@ until docker exec xorb-postgres pg_isready -U xorb; do sleep 2; done
 # Run migrations
 cd src/api
 python -m alembic upgrade head
-```text
+```
 
 ###  2. Service Deployment
 
@@ -121,7 +121,7 @@ ENVIRONMENT=production docker-compose -f infra/docker-compose.production.yml up 
 
 # Verify all services are running
 docker-compose -f infra/docker-compose.production.yml ps
-```text
+```
 
 ###  3. Health Verification
 
@@ -135,7 +135,7 @@ curl -f http://localhost:8080/health
 
 # Verify rate limiting
 curl -I http://localhost:8080/api/health | grep X-RateLimit
-```text
+```
 
 ##  📊 Service Architecture
 
@@ -184,7 +184,7 @@ curl -I http://localhost:8080/api/health | grep X-RateLimit
 # Heavy computation endpoints
 - 50 requests/hour per user (token bucket)
 - 5 burst requests allowed
-```text
+```
 
 ###  Environment-Based Security
 
@@ -195,7 +195,7 @@ ENABLE_AUDIT_LOGGING=true      # Full audit trail
 ENABLE_MFA=true               # Multi-factor authentication
 ALLOWED_ORIGINS=https://...   # Restrictive CORS
 LOG_LEVEL=INFO                # Minimal logging
-```text
+```
 
 ##  📈 Performance Optimizations
 
@@ -209,7 +209,7 @@ maintenance_work_mem = '64MB'
 checkpoint_completion_target = 0.9
 wal_buffers = '16MB'
 max_connections = 200
-```text
+```
 
 ###  Container Resource Limits
 
@@ -223,7 +223,7 @@ orchestrator:
   resources:
     limits: { cpus: '1.0', memory: '2G' }
     reservations: { cpus: '0.5', memory: '1G' }
-```text
+```
 
 ###  Kernel Optimizations
 
@@ -231,7 +231,7 @@ orchestrator:
 # Applied automatically by deployment script
 net.core.somaxconn = 65535
 net.core.netdev_max_backlog = 5000
-```text
+```
 
 ##  🔍 Monitoring & Alerting
 
@@ -265,7 +265,7 @@ docker-compose logs api | grep -E "(ERROR|SECURITY|VIOLATION)"
 
 # Performance issues
 docker-compose logs api | grep -E "(SLOW|TIMEOUT|HIGH_LOAD)"
-```text
+```
 
 ##  🔄 Maintenance & Updates
 
@@ -284,7 +284,7 @@ docker-compose -f infra/docker-compose.production.yml up -d
 
 # Monthly: Security scan
 docker run --rm -v /root/Xorb:/scan clair-scanner scan /scan
-```text
+```
 
 ###  Backup Strategy
 
@@ -297,7 +297,7 @@ docker run --rm -v /root/Xorb:/scan clair-scanner scan /scan
 # Manual backup
 tar -czf xorb-backup-$(date +%Y%m%d).tar.gz \
   --exclude="logs" --exclude="__pycache__" /root/Xorb
-```text
+```
 
 ##  ⚠️ Troubleshooting
 
@@ -310,7 +310,7 @@ source /root/Xorb/.env && env | grep -E "(JWT|API_KEY|PASSWORD)"
 
 # Check logs
 docker-compose -f infra/docker-compose.production.yml logs api
-```text
+```
 
 - *2. Authentication Failures**
 ```bash
@@ -320,7 +320,7 @@ echo "JWT length: ${#JWT_SECRET}"
 
 # Check API key configuration
 curl -H "X-API-Key: $XORB_API_KEY" http://localhost:8080/api/health
-```text
+```
 
 - *3. Rate Limiting Issues**
 ```bash
@@ -329,7 +329,7 @@ docker exec redis redis-cli ping
 
 # View rate limit violations
 curl -s http://localhost:9090/api/v1/query?query=rate_limit_violations_total
-```text
+```
 
 - *4. Database Connection Issues**
 ```bash
@@ -338,7 +338,7 @@ docker exec xorb-postgres pg_isready -U xorb -d xorb_db
 
 # Check connection string
 echo $DATABASE_URL | grep -v password
-```text
+```
 
 ###  Emergency Procedures
 
@@ -351,7 +351,7 @@ echo $DATABASE_URL | grep -v password
 cd /root/Xorb/backups
 tar -xzf $(ls -t xorb-backup-*.tar.gz | head -1) -C /
 docker-compose -f infra/docker-compose.production.yml restart
-```text
+```
 
 - *Security Incident Response**
 ```bash
@@ -363,7 +363,7 @@ docker-compose logs api | grep -i "security\|violation\|attack"
 
 # Temporary IP blocking (if supported by infrastructure)
 iptables -A INPUT -s <suspicious-ip> -j DROP
-```text
+```
 
 ##  ✅ Go-Live Checklist
 
@@ -394,7 +394,7 @@ iptables -A INPUT -s <suspicious-ip> -j DROP
 
 ###  Key Files & Locations
 
-```text
+```
 /root/Xorb/
 ├── .env                          # Environment configuration (secure)
 ├── deploy-production.sh          # Automated deployment script
@@ -404,7 +404,7 @@ iptables -A INPUT -s <suspicious-ip> -j DROP
 ├── logs/                         # Application logs
 ├── backups/                      # Automated backups
 └── deployment-report-*.json      # Deployment reports
-```text
+```
 
 ###  Important Commands
 
@@ -426,7 +426,7 @@ docker-compose -f infra/docker-compose.production.yml restart [service]
 
 # Emergency stop
 docker-compose -f infra/docker-compose.production.yml down
-```text
+```
 
 - --
 

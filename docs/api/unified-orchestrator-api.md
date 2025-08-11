@@ -5,11 +5,11 @@
 The XORB Platform's Unified Orchestrator provides comprehensive service orchestration, workflow management, and system monitoring capabilities. This API consolidates service management, workflow execution, and operational monitoring into a single, powerful orchestration engine.
 
 ##  Base URL
-```text
+```
 Production: https://api.verteidiq.com/orchestrator
 Staging: https://staging-api.verteidiq.com/orchestrator
 Development: http://localhost:8000/orchestrator
-```text
+```
 
 ##  Core Concepts
 
@@ -46,9 +46,9 @@ Task executors implement specific operation types:
 List all registered services and their status.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -77,15 +77,15 @@ Authorization: Bearer <access_token>
     "maintenance_services": 1
   }
 }
-```text
+```
 
 ####  POST /orchestrator/services
 Register a new service.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Request Body:**
 ```json
@@ -105,7 +105,7 @@ Authorization: Bearer <access_token>
   "restart_policy": "on-failure",
   "max_restarts": 3
 }
-```text
+```
 
 - *Response (201 Created):**
 ```json
@@ -114,15 +114,15 @@ Authorization: Bearer <access_token>
   "service_id": "threat-analyzer",
   "message": "Service registered successfully"
 }
-```text
+```
 
 ####  POST /orchestrator/services/{service_id}/start
 Start a specific service.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -133,15 +133,15 @@ Authorization: Bearer <access_token>
   "start_time": "2024-01-15T14:05:00Z",
   "message": "Service started successfully"
 }
-```text
+```
 
 ####  POST /orchestrator/services/{service_id}/stop
 Stop a specific service.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -152,15 +152,15 @@ Authorization: Bearer <access_token>
   "stop_time": "2024-01-15T14:10:00Z",
   "message": "Service stopped successfully"
 }
-```text
+```
 
 ####  POST /orchestrator/services/{service_id}/restart
 Restart a specific service.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -172,15 +172,15 @@ Authorization: Bearer <access_token>
   "restart_count": 1,
   "message": "Service restarted successfully"
 }
-```text
+```
 
 ####  GET /orchestrator/services/{service_id}/health
 Get detailed health information for a service.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -209,7 +209,7 @@ Authorization: Bearer <access_token>
     "network_io_mb": 2.1
   }
 }
-```text
+```
 
 ###  Workflow Management
 
@@ -217,9 +217,9 @@ Authorization: Bearer <access_token>
 List all workflow definitions.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Query Parameters:**
 - `enabled`: Filter by enabled status (true/false)
@@ -264,15 +264,15 @@ Authorization: Bearer <access_token>
     "has_more": false
   }
 }
-```text
+```
 
 ####  POST /orchestrator/workflows
 Create a new workflow definition.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Request Body:**
 ```json
@@ -345,7 +345,7 @@ Authorization: Bearer <access_token>
   "sla_minutes": 60,
   "tags": ["compliance", "monthly", "automated"]
 }
-```text
+```
 
 - *Response (201 Created):**
 ```json
@@ -354,15 +354,15 @@ Authorization: Bearer <access_token>
   "workflow_id": "compliance-check-workflow",
   "message": "Workflow created successfully"
 }
-```text
+```
 
 ####  POST /orchestrator/workflows/{workflow_id}/execute
 Execute a workflow.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Request Body:**
 ```json
@@ -381,7 +381,7 @@ Authorization: Bearer <access_token>
     "custom_timeout_minutes": 120
   }
 }
-```text
+```
 
 - *Response (202 Accepted):**
 ```json
@@ -394,15 +394,15 @@ Authorization: Bearer <access_token>
   "estimated_duration_minutes": 60,
   "message": "Workflow execution started"
 }
-```text
+```
 
 ####  GET /orchestrator/workflows/executions
 List workflow executions.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Query Parameters:**
 - `workflow_id`: Filter by workflow ID
@@ -452,15 +452,15 @@ Authorization: Bearer <access_token>
     "has_more": true
   }
 }
-```text
+```
 
 ####  GET /orchestrator/workflows/executions/{execution_id}
 Get detailed execution information.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -537,15 +537,15 @@ Authorization: Bearer <access_token>
     "critical_issues": 3
   }
 }
-```text
+```
 
 ####  POST /orchestrator/workflows/executions/{execution_id}/cancel
 Cancel a running workflow execution.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Request Body:**
 ```json
@@ -553,7 +553,7 @@ Authorization: Bearer <access_token>
   "reason": "User requested cancellation",
   "force": false
 }
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -564,7 +564,7 @@ Authorization: Bearer <access_token>
   "cancelled_at": "2024-01-15T14:45:00Z",
   "message": "Workflow execution cancelled successfully"
 }
-```text
+```
 
 ###  Task Executor Management
 
@@ -572,9 +572,9 @@ Authorization: Bearer <access_token>
 List all registered task executors.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -600,15 +600,15 @@ Authorization: Bearer <access_token>
     }
   ]
 }
-```text
+```
 
 ####  POST /orchestrator/task-executors
 Register a new task executor.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Request Body:**
 ```json
@@ -628,7 +628,7 @@ Authorization: Bearer <access_token>
     "output_retention_days": 30
   }
 }
-```text
+```
 
 - *Response (201 Created):**
 ```json
@@ -637,7 +637,7 @@ Authorization: Bearer <access_token>
   "task_type": "custom_analysis",
   "message": "Task executor registered successfully"
 }
-```text
+```
 
 ###  System Monitoring
 
@@ -645,9 +645,9 @@ Authorization: Bearer <access_token>
 Get orchestrator system metrics.
 
 - *Headers:**
-```text
+```
 Authorization: Bearer <access_token>
-```text
+```
 
 - *Response (200 OK):**
 ```json
@@ -689,7 +689,7 @@ Authorization: Bearer <access_token>
     "network_mbps_out": 38.7
   }
 }
-```text
+```
 
 ####  GET /orchestrator/health
 Get orchestrator health status.
@@ -731,7 +731,7 @@ Get orchestrator health status.
     "memory_usage": 67.8
   }
 }
-```text
+```
 
 - --
 
@@ -784,7 +784,7 @@ Get orchestrator health status.
     "retry_conditions": ["timeout", "network_error"]
   }
 }
-```text
+```
 
 ###  Task Types and Parameters
 
@@ -803,7 +803,7 @@ Get orchestrator health status.
     "max_scan_time_minutes": 120
   }
 }
-```text
+```
 
 ####  compliance_check
 ```json
@@ -818,7 +818,7 @@ Get orchestrator health status.
     "output_format": "json|pdf|csv"
   }
 }
-```text
+```
 
 ####  threat_analysis
 ```json
@@ -833,7 +833,7 @@ Get orchestrator health status.
     "correlation_rules": ["lateral_movement", "privilege_escalation"]
   }
 }
-```text
+```
 
 - --
 
@@ -853,7 +853,7 @@ Get orchestrator health status.
   },
   "timestamp": "2024-01-15T14:30:00Z"
 }
-```text
+```
 
 ###  Common Error Codes
 
@@ -906,7 +906,7 @@ print(f"Execution ID: {execution.execution_id}")
 # Monitor execution
 status = await orchestrator.workflows.get_execution(execution.execution_id)
 print(f"Status: {status.status}, Progress: {status.progress.percent_complete}%")
-```text
+```
 
 ###  JavaScript SDK
 ```javascript
@@ -948,14 +948,14 @@ const pollExecution = async (executionId) => {
 };
 
 pollExecution(execution.executionId);
-```text
+```
 
 - --
 
 ##  Monitoring and Observability
 
 ###  Prometheus Metrics
-```text
+```
 # Service metrics
 xorb_orchestrator_services_total
 xorb_orchestrator_services_running
@@ -976,7 +976,7 @@ xorb_orchestrator_task_retry_count
 xorb_orchestrator_cpu_usage_percent
 xorb_orchestrator_memory_usage_percent
 xorb_orchestrator_queue_size
-```text
+```
 
 ###  Grafana Dashboards
 Pre-built dashboards available for:
@@ -1056,7 +1056,7 @@ Update environment variables and configuration:
 ORCHESTRATOR_MAX_WORKERS=10
 ORCHESTRATOR_QUEUE_SIZE=1000
 ORCHESTRATOR_HEALTH_CHECK_INTERVAL=30
-```text
+```
 
 - --
 

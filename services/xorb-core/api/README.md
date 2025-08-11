@@ -61,21 +61,21 @@ Built using FastAPI with clean architecture principles:
 ```bash
 cd src/api
 uvicorn app.main:app --reload
-```text
+```
 
 ###  Production
 ```bash
 cd src/api
 docker build -t xorb-api .
 docker run -p 8000:8000 xorb-api
-```text
+```
 
 Create a local dev token (DEV_MODE=true) and call a protected endpoint:
 ```bash
 curl -s -X POST http://localhost:8000/auth/dev-token | jq -r .access_token > token.txt
 AUTH="Authorization: Bearer $(cat token.txt)"
 curl -H "$AUTH" http://localhost:8000/agents/
-```text
+```
 
 ##  Dependencies
 
@@ -92,12 +92,12 @@ curl -H "$AUTH" http://localhost:8000/agents/
 Run tests:
 ```bash
 pytest
-```text
+```
 
 Run with coverage:
 ```bash
 pytest --cov=app
-```text
+```
 
 ##  Security
 

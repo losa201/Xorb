@@ -37,7 +37,7 @@ class UserManager:
     def validate(self, user: User) -> bool:
         # Validation logic
         pass
-```text
+```
 
 ####  2. Open/Closed Principle (OCP)
 - Open for extension, closed for modification
@@ -60,7 +60,7 @@ class IntrusionDetector(ThreatDetector):
     def detect(self, data: Any) -> ThreatResult:
         # Intrusion detection logic
         pass
-```text
+```
 
 ####  3. Liskov Substitution Principle (LSP)
 - Derived classes must be substitutable for base classes
@@ -76,7 +76,7 @@ class CriticalSecurityEvent(SecurityEvent):
         # Must return bool, not break the contract
         self.escalate()
         return super().process()
-```text
+```
 
 ####  4. Interface Segregation Principle (ISP)
 - Many specific interfaces are better than one general interface
@@ -95,7 +95,7 @@ class FileHandler(Protocol):
     def write(self, data: str) -> None: ...
     def compress(self) -> None: ...
     def encrypt(self) -> None: ...
-```text
+```
 
 ####  5. Dependency Inversion Principle (DIP)
 - Depend on abstractions, not concretions
@@ -114,7 +114,7 @@ class ThreatAnalysisService:
 class ThreatAnalysisService:
     def __init__(self):
         self.detector = MalwareDetector()  # Tight coupling
-```text
+```
 
 - --
 
@@ -149,7 +149,7 @@ class SecurityIncident(AggregateRoot):
         self.description = description
         self.affected_assets = affected_assets
         self.metadata = metadata or {}
-```text
+```
 
 ###  Naming Conventions
 - **Classes**: PascalCase (`SecurityIncident`)
@@ -174,7 +174,7 @@ async def process_security_events(
     """Process a list of security events with optional filtering."""
     # Implementation
     pass
-```text
+```
 
 ###  Documentation
 - **Docstrings**: All public classes and functions
@@ -220,7 +220,7 @@ class ThreatIntelligenceEngine:
         """
         # Implementation
         pass
-```text
+```
 
 ###  Error Handling
 - Use custom exceptions for domain-specific errors
@@ -270,7 +270,7 @@ async def analyze_threat(indicator: ThreatIndicator) -> ThreatResult:
             error_code="INTERNAL_ERROR",
             details={"original_error": str(e)}
         ) from e
-```text
+```
 
 - --
 
@@ -313,7 +313,7 @@ class PostgreSQLSecurityEventRepository(SecurityEventRepository):
         """Save security event to PostgreSQL."""
         # Implementation
         pass
-```text
+```
 
 ###  Use Case Pattern
 ```python
@@ -375,7 +375,7 @@ class AnalyzeThreatUseCase:
             recommendations=analysis_result.recommendations,
             confidence=analysis_result.confidence
         )
-```text
+```
 
 ###  Command Query Responsibility Segregation (CQRS)
 ```python
@@ -463,7 +463,7 @@ class GetSecurityIncidentsHandler(QueryHandler):
             date_range=query.date_range,
             limit=query.limit
         )
-```text
+```
 
 - --
 
@@ -535,7 +535,7 @@ class TestThreatAnalysisService:
             await service.analyze_threat(invalid_indicator)
 
         assert "Invalid threat indicator" in str(exc_info.value)
-```text
+```
 
 ###  Test Categories
 - **Unit Tests**: Test individual components in isolation
@@ -578,7 +578,7 @@ class SecurityIncidentFactory(SQLAlchemyModelFactory):
 
     # Relationships
     primary_indicator = SubFactory(ThreatIndicatorFactory)
-```text
+```
 
 - --
 
@@ -610,7 +610,7 @@ async def process_multiple_threats_sequential(
         result = await analyze_single_threat(indicator)
         results.append(result)
     return results
-```text
+```
 
 ###  Database Optimization
 ```python
@@ -633,7 +633,7 @@ class DatabaseRepository:
     async def execute_query(self, query: str, *params):
         async with self.pool.acquire() as connection:
             return await connection.fetch(query, *params)
-```text
+```
 
 ###  Caching Strategies
 ```python
@@ -662,7 +662,7 @@ class ThreatIntelligenceService:
         score = await self._calculate_reputation(indicator)
         await self.redis.setex(cache_key, 3600, score)  # 1 hour TTL
         return score
-```text
+```
 
 - --
 
@@ -701,7 +701,7 @@ class ThreatIndicatorInput(BaseModel):
         if not 0.0 <= v <= 1.0:
             raise ValueError('Confidence must be between 0.0 and 1.0')
         return v
-```text
+```
 
 ###  Secret Management
 ```python
@@ -731,7 +731,7 @@ class SecurityConfig:
         return os.getenv('DATABASE_URL', '').replace(
             '://', '://***:***@', 1
         ) if 'DATABASE_URL' in os.environ else 'Not configured'
-```text
+```
 
 - --
 
@@ -778,7 +778,7 @@ class ThreatAnalysisService:
                 exc_info=True
             )
             raise
-```text
+```
 
 ###  Metrics Collection
 ```python
@@ -828,7 +828,7 @@ class ThreatAnalysisService:
                     result='error'
                 ).inc()
                 raise
-```text
+```
 
 - --
 

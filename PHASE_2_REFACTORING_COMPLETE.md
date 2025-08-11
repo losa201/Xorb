@@ -41,19 +41,19 @@
 - **Configuration Management**: 4 specialized configs with documentation
 
 ### Quantitative Impact
-```text
+```
 Phase 2 Cleanup Metrics:
 ├── Demonstration Scripts Organized: 21 files
 ├── JSON Artifacts Archived: 31 files
 ├── Docker Configurations Standardized: 4 specialized configs
 ├── Root Directory Cleanup: 90%+ clutter reduction
 └── Documentation Created: 2 comprehensive guides
-```text
+```
 
 ## 🏗️ New Organization Structure
 
 ### Demonstration Suite (`demo/`)
-```text
+```
 demo/
 ├── README.md                         # Comprehensive demo guide
 ├── scripts/                          # All demonstration scripts (21 files)
@@ -67,17 +67,17 @@ demo/
 └── sample_data/                      # Sample data for demonstrations
     ├── *.json                       # Various sample datasets
     └── sample_data_generator.py     # Data generation utility
-```text
+```
 
 ### Configuration Management (`infra/compose-configs/`)
-```text
+```
 infra/compose-configs/
 ├── README.md                         # Configuration documentation
 ├── docker-compose.red-blue-agents.yml   # Red/Blue team framework
 ├── docker-compose.runtime-security.yml  # Runtime security monitoring
 ├── docker-compose.siem.yml               # SIEM and log aggregation
 └── docker-compose.tls.yml               # TLS/mTLS security stack
-```text
+```
 
 ## 🎯 Professional Organization Benefits
 

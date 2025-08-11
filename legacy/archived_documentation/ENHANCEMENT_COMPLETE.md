@@ -41,21 +41,21 @@ As principal auditor and engineer, I have successfully transformed the XORB PTaa
 nmap_results = await self._run_advanced_nmap_scan(target, config)
 nuclei_results = await self._run_nuclei_comprehensive_scan(target, config)
 sqli_results = await self._test_sql_injection(target, port, config)
-```text
+```
 
 ###  Advanced Orchestration
 ```python
 # Sophisticated workflow execution with dependencies
 workflow_stages = self._create_scan_workflow_stages(scan_types, targets, constraints)
 await self._execute_task_graph(execution, workflow_def, task_graph)
-```text
+```
 
 ###  Intelligent Vulnerability Assessment
 ```python
 # Enhanced vulnerability analysis with threat intelligence
 enriched_vulns = await self._enrich_vulnerabilities_with_intelligence(target_vulns)
 threat_intel = await self._correlate_threat_intelligence(vulnerabilities)
-```text
+```
 
 ##  🔧 Technical Architecture
 

@@ -12,7 +12,7 @@ cd src/api
 
 # Start the server (production-ready)
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```text
+```
 
 ###  2. Access the Platform
 - **Main API**: http://localhost:8000
@@ -80,7 +80,7 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/sessions" \
     }],
     "scan_type": "comprehensive"
   }'
-```text
+```
 
 ###  Analyze Threat Indicators
 ```bash
@@ -91,12 +91,12 @@ curl -X POST "http://localhost:8000/api/v1/security/threat-intelligence/analyze"
     "context": {"source": "network_logs"},
     "analysis_type": "comprehensive"
   }'
-```text
+```
 
 ###  Check System Health
 ```bash
 curl "http://localhost:8000/api/v1/health"
-```text
+```
 
 ##  ⚠️ Known Warnings (Non-Critical)
 The following warnings appear but do not affect core functionality:

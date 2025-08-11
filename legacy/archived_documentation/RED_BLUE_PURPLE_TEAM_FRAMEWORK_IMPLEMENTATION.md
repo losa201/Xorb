@@ -93,7 +93,7 @@ class SecurityOperation(Enum):
     PURPLE_TEAM_EXERCISE = "purple_team_exercise"
     THREAT_SIMULATION = "threat_simulation"
     INCIDENT_RESPONSE_DRILL = "incident_response_drill"
-```text
+```
 
 ###  Integration with Existing XORB Components
 
@@ -117,7 +117,7 @@ GET  /operations/{id}/status # Monitor execution
 GET  /performance           # Team performance analytics
 GET  /tactical-intelligence # ML insights and recommendations
 GET  /framework-analytics   # Comprehensive framework metrics
-```text
+```
 
 ###  Example API Usage
 
@@ -142,7 +142,7 @@ POST /api/v1/team-operations/tactical-decisions
         "resource_availability": 0.7
     }
 }
-```text
+```
 
 ##  📊 Advanced Features
 

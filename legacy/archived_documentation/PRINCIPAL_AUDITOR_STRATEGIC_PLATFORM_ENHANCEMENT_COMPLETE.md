@@ -40,7 +40,7 @@ except ImportError:
     OPENAI_AVAILABLE = False
     openai = None
     AsyncOpenAI = None
-```text
+```
 
 - *Enhanced Implementation (Production-Ready):**
 ```python
@@ -72,7 +72,7 @@ class AdvancedLLMOrchestrator:
 
         # Final fallback to production rule engine
         return await self.rule_engine.make_emergency_decision(request)
-```text
+```
 
 ####  **Enterprise Features Implemented:**
 - **Multi-Provider Fallback**: OpenRouter, NVIDIA, Production Fallback, Rule-Based Engine
@@ -128,7 +128,7 @@ async def _run_investigation_tasks(self, investigation: Dict, incident: Dict, pa
     ]
 
     await asyncio.gather(*[self._execute_investigation_task(task) for task in investigation_tasks])
-```text
+```
 
 ####  **Enterprise Security Features:**
 - **Compliance Framework Integration**: Automated PCI-DSS, HIPAA, SOX validation
@@ -174,7 +174,7 @@ Test Results:
   ✅ AI Integration: PASSED
   ✅ Architecture Quality: PASSED
   ✅ Documentation Compliance: PASSED
-```text
+```
 
 - --
 
@@ -201,7 +201,7 @@ fallback_chain = [
     AIProvider.PRODUCTION_FALLBACK,   # Quaternary: Deterministic responses
     AIProvider.RULE_BASED_ENGINE     # Final: Emergency rule-based decisions
 ]
-```text
+```
 
 ####  **Production Rule Engine**
 ```python
@@ -225,7 +225,7 @@ class ProductionRuleEngine:
             reasoning=["Emergency protocol activated", "Conservative security approach", "Human oversight required"],
             provider_used="emergency_rule_engine"
         )
-```text
+```
 
 ###  **Enterprise Monitoring and Compliance**
 
@@ -251,7 +251,7 @@ alert_rules = [
         "notification_channels": ["email"]
     }
 ]
-```text
+```
 
 ####  **Comprehensive Investigation Framework**
 ```python
@@ -277,7 +277,7 @@ async def _generate_investigation_report(self, investigation: Dict) -> Dict[str,
             "documentation_requirements": investigation.get("documentation_needed")
         }
     }
-```text
+```
 
 - --
 
@@ -308,7 +308,7 @@ Performance Characteristics:
   Investigation Tasks: Parallel execution with asyncio.gather
   Alert Processing: Real-time with multi-channel delivery
   Cache Performance: 5-minute TTL with confidence-based invalidation
-```text
+```
 
 ###  **Security Enhancement Metrics**
 
@@ -324,7 +324,7 @@ Security Features Implementation:
   Error Handling: ✅ Secure error handling patterns
 
 Security Score: 100% (All critical features implemented)
-```text
+```
 
 - --
 
@@ -365,7 +365,7 @@ Reliability Improvements:
   AI Decision Accuracy: 87%+ (multi-provider consensus)
   Emergency Fallback: 100% (rule-based engine always available)
   Data Persistence: 100% ACID compliance (PostgreSQL production repos)
-```text
+```
 
 - --
 
@@ -419,7 +419,7 @@ Reliability Improvements:
     "Documentation Compliance": "PASSED"
   }
 }
-```text
+```
 
 ####  **Production Readiness Verification**
 - **Error Handling**: Comprehensive exception management across all services
@@ -465,7 +465,7 @@ Compliance Audits: ✅ READY
 Production Workloads: ✅ READY
 AI-Powered Operations: ✅ READY
 Advanced Threat Detection: ✅ READY
-```text
+```
 
 ###  **Next Steps:**
 1. **Deploy to production environment** with enterprise monitoring stack

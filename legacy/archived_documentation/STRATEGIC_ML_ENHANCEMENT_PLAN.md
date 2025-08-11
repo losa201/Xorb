@@ -103,7 +103,7 @@ After comprehensive analysis of the XORB PTaaS platform, I've identified critica
 - Ray for distributed computing
 - MLflow for experiment tracking
 - Weights & Biases for model monitoring
-```text
+```
 
 ####  Advanced Algorithms
 ```python
@@ -124,7 +124,7 @@ After comprehensive analysis of the XORB PTaaS platform, I've identified critica
 - Sentiment Analysis for threat actor profiling
 - Topic Modeling for campaign clustering
 - Knowledge Graphs for relationship inference
-```text
+```
 
 ###  Real-Time Processing Architecture
 
@@ -144,7 +144,7 @@ Model Serving:
   - TorchServe for PyTorch models
   - TensorFlow Serving for TF models
   - MLflow Model Registry for versioning
-```text
+```
 
 ###  Feature Engineering Enhancement
 
@@ -167,7 +167,7 @@ Model Serving:
 - Word embeddings for semantic analysis
 - Graph embeddings for entity relationships
 - Time-series features for temporal patterns
-```text
+```
 
 ##  Implementation Roadmap
 

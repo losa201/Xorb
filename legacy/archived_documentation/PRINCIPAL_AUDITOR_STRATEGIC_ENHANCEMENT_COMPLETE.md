@@ -52,7 +52,7 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
     - Real-time progress tracking
     - Advanced reporting with business impact
     """
-```text
+```
 
 - **Production Capabilities**:
 - **Workflow Execution**: Sequential phase execution with dependency management
@@ -90,7 +90,7 @@ class AdvancedAIThreatIntelligence(SecurityService, ThreatIntelligenceService):
     - Campaign tracking and attribution
     - Automated threat reporting
     """
-```text
+```
 
 - **Production AI Capabilities**:
 - **Anomaly Detection**: Isolation Forest for unusual threat patterns
@@ -129,7 +129,7 @@ class AdvancedReportingService(SecurityService):
     - Automated report scheduling
     - Report analytics and metrics
     """
-```text
+```
 
 - **Production Templates**:
 - **Executive Summary**: High-level security posture for executives
@@ -165,7 +165,7 @@ class EnhancedContainer:
     - Configuration management
     - Service discovery and registration
     """
-```text
+```
 
 - **Production Capabilities**:
 - **Dependency Graph**: Automated dependency resolution and ordering
@@ -197,7 +197,7 @@ class SecurityService(BaseService):
 
 class XORBService(BaseService):
     """XORB-specific service base class"""
-```text
+```
 
 - --
 

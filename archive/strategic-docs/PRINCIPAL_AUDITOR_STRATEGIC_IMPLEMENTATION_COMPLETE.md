@@ -160,7 +160,7 @@ As Principal Auditor and expert across multiple domains (architecture, engineeri
 ##  🚀 Implementation Architecture Summary
 
 ###  **Enhanced Service Layer Architecture**
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │           XORB ENHANCED PRODUCTION ARCHITECTURE             │
 ├─────────────────────────────────────────────────────────────┤
@@ -188,7 +188,7 @@ As Principal Auditor and expert across multiple domains (architecture, engineeri
 │  ├─ Quantum-Safe Operations (post-quantum protocols)      │
 │  └─ Mission Planning (autonomous multi-objective)         │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Complete Implementation Coverage**
 

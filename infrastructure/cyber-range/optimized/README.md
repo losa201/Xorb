@@ -16,7 +16,7 @@ This optimized version reduces resource requirements by **75%** while maintainin
 ##  🎯 Optimized Architecture
 
 ###  Single-Node Deployment
-```text
+```
 ┌─────────────────────────────────────────────────────────────┐
 │              AMD RYZEN EPYC 7002 (16 vCPU / 32GB)          │
 ├─────────────────────────────────────────────────────────────┤
@@ -31,7 +31,7 @@ This optimized version reduces resource requirements by **75%** while maintainin
 │                   │ 3v/6G       │                          │
 │                   └─────────────┘                          │
 └─────────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  Resource Distribution
 - **System Reserve**: 2 vCPU / 4GB RAM
@@ -52,7 +52,7 @@ lscpu | grep -i epyc
 # Ensure Kubernetes is running
 kubectl cluster-info
 kubectl get nodes
-```text
+```
 
 ###  1. Deploy Optimized Infrastructure
 ```bash
@@ -69,7 +69,7 @@ kubectl apply -f minimal-targets.yaml
 
 # Wait for all pods to be ready
 kubectl wait --for=condition=ready pod --all --all-namespaces --timeout=600s
-```text
+```
 
 ###  2. Configure Lightweight Firewall
 ```bash
@@ -78,7 +78,7 @@ sudo ./lightweight-firewall.sh staging
 
 # Verify firewall status
 sudo ./lightweight-firewall.sh status
-```text
+```
 
 ###  3. Access Services
 ```bash
@@ -91,7 +91,7 @@ echo "Grafana:          http://$NODE_IP:30300 (admin/admin)"
 echo "Prometheus:       http://$NODE_IP:30090"
 echo "Kibana (SIEM):    http://$NODE_IP:30601"
 echo "Blue Team SOC:    http://$NODE_IP:30800"
-```text
+```
 
 ##  🔴 Red Team Operations (Essential Tools)
 
@@ -114,7 +114,7 @@ curl "http://web-target-service.cyber-range-targets.svc.cluster.local/?id=1' OR 
 
 # SSH brute force simulation
 nmap -p 22 network-target-service.cyber-range-targets.svc.cluster.local
-```text
+```
 
 ###  Simplified Attack Scenarios
 1. **Web App Exploitation**: SQL injection, XSS on DVWA-like target
@@ -140,7 +140,7 @@ kubectl logs -n cyber-range-blue daemonset/suricata-lite | grep ALERT
 
 # Monitor container logs
 kubectl logs -f -n cyber-range-targets deployment/web-target-lite
-```text
+```
 
 ###  Lightweight SIEM Queries
 ```json
@@ -154,7 +154,7 @@ message:*failed* OR message:*invalid*
 
 # Web requests to targets
 kubernetes.namespace:cyber-range-targets AND message:*GET*
-```text
+```
 
 ##  🎯 Target Environment (Minimal)
 
@@ -170,7 +170,7 @@ kubectl get svc -n cyber-range-targets
 
 # Access target discovery info
 curl http://$NODE_IP:30800/targets.json
-```text
+```
 
 ##  🚨 Emergency Controls
 
@@ -184,7 +184,7 @@ sudo ./lightweight-firewall.sh status
 
 # Restore to staging mode
 sudo ./lightweight-firewall.sh staging
-```text
+```
 
 ###  Mode Switching
 ```bash
@@ -196,7 +196,7 @@ sudo ./lightweight-firewall.sh live
 
 # Clear all cyber range rules
 sudo ./lightweight-firewall.sh clear
-```text
+```
 
 ##  📊 Resource Monitoring
 
@@ -210,7 +210,7 @@ watch kubectl top pods --all-namespaces
 
 # Check resource quotas
 kubectl describe quota --all-namespaces
-```text
+```
 
 ###  Performance Optimization
 ```bash
@@ -222,7 +222,7 @@ echo 1 | sudo tee /proc/sys/vm/swappiness
 
 # Network optimization for iptables
 echo 65536 | sudo tee /proc/sys/net/netfilter/nf_conntrack_max
-```text
+```
 
 ##  🔧 Troubleshooting
 
@@ -235,7 +235,7 @@ kubectl describe nodes | grep -A 5 Allocatable
 
 # Reduce resource requests if needed
 kubectl patch deployment web-target-lite -n cyber-range-targets -p '{"spec":{"template":{"spec":{"containers":[{"name":"apache-php","resources":{"requests":{"memory":"64Mi","cpu":"25m"}}}]}}}}'
-```text
+```
 
 ####  Elasticsearch Won't Start (Memory Issues)
 ```bash
@@ -244,7 +244,7 @@ kubectl logs -n cyber-range-blue deployment/elasticsearch-lite
 
 # Reduce heap size further
 kubectl patch deployment elasticsearch-lite -n cyber-range-blue -p '{"spec":{"template":{"spec":{"containers":[{"name":"elasticsearch","env":[{"name":"ES_JAVA_OPTS","value":"-Xms128m -Xmx256m"}]}]}}}}'
-```text
+```
 
 ####  High Memory Usage
 ```bash
@@ -253,7 +253,7 @@ kubectl top pods --all-namespaces --sort-by=memory
 
 # Restart high-memory components
 kubectl rollout restart deployment elasticsearch-lite -n cyber-range-blue
-```text
+```
 
 ###  Resource Tuning
 ```bash
@@ -262,7 +262,7 @@ kubectl patch deployment <deployment> -n <namespace> -p '{"spec":{"template":{"s
 
 # Decrease limits to save resources
 kubectl patch deployment <deployment> -n <namespace> -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container>","resources":{"requests":{"memory":"32Mi","cpu":"10m"}}}]}}}}'
-```text
+```
 
 ##  🎮 Exercise Workflow
 
@@ -276,7 +276,7 @@ kubectl top nodes && kubectl top pods --all-namespaces
 
 # Ensure staging mode active
 sudo ./lightweight-firewall.sh status
-```text
+```
 
 ###  2. Exercise Briefing (10 min)
 - **Red Team**: Access essential tools, identify 3 targets
@@ -293,7 +293,7 @@ kubectl exec -it -n cyber-range-red deployment/red-team-essential-tools -- nmap 
 
 # Switch to live mode when ready
 sudo ./lightweight-firewall.sh live
-```text
+```
 
 ###  4. Post-Exercise Analysis (15 min)
 ```bash
@@ -305,7 +305,7 @@ kubectl top pods --all-namespaces > resource-report.txt
 
 # Return to staging mode
 sudo ./lightweight-firewall.sh staging
-```text
+```
 
 ##  💡 Optimization Features
 
@@ -353,7 +353,7 @@ kubectl scale deployment red-team-essential-tools --replicas=2 -n cyber-range-re
 
 # Enable additional monitoring
 kubectl patch deployment grafana-lite -n cyber-range-control -p '{"spec":{"template":{"spec":{"containers":[{"name":"grafana","env":[{"name":"GF_ALERTING_ENABLED","value":"true"}]}]}}}}'
-```text
+```
 
 ###  If You Need to Reduce Further
 ```bash
@@ -363,7 +363,7 @@ kubectl scale deployment target-monitor --replicas=0 -n cyber-range-targets
 
 # Use only essential targets
 kubectl delete deployment file-target-lite -n cyber-range-targets
-```text
+```
 
 - --
 

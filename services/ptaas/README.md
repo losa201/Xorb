@@ -17,7 +17,7 @@ pip install -r requirements.txt
 
 # Start the service
 python -m ptaas_service.core.main
-```text
+```
 
 ##  Configuration
 The service uses environment variables for configuration, which can be set in the `.env` file:
@@ -25,7 +25,7 @@ The service uses environment variables for configuration, which can be set in th
 PTAAS_PORT=8000
 PTAAS_LOG_LEVEL=INFO
 THREAT_INTELLIGENCE_API_KEY=your_api_key
-```text
+```
 
 ##  Components
 ###  Core Service

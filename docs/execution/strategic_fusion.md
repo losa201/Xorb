@@ -30,7 +30,7 @@ The strategic service fusion execution module implements intelligent service con
 ##  Usage
 ```bash
 python3 execute_strategic_fusion.py
-```text
+```
 
 ##  Best Practices
 - Monitor execution duration and success rate

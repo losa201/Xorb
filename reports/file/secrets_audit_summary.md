@@ -44,7 +44,7 @@ This comprehensive security audit examined 649+ potential secret files across th
 # From .env files:
 DATABASE_URL="postgresql://xorb_user:xorb_secure_password_2025@localhost:5432/xorb_enterprise"
 POSTGRES_PASSWORD=xorb_secure_2024
-```text
+```
 
 - *Risk Assessment:** CRITICAL
 - Complete database access possible
@@ -56,7 +56,7 @@ POSTGRES_PASSWORD=xorb_secure_2024
 ```bash
 REDIS_URL="redis://:xorb_redis_password_2025@localhost:6379/0"
 REDIS_PASSWORD=xorb_redis_2024
-```text
+```
 
 - *Risk Assessment:** HIGH
 - Session hijacking possible
@@ -68,7 +68,7 @@ REDIS_PASSWORD=xorb_redis_2024
 ```python
 password: str = "xorb_secure_password_123!"
 password: str = "neo4j_secure_password_123!"
-```text
+```
 
 - *Risk Assessment:** HIGH
 - Infrastructure deployment credentials exposed
@@ -306,7 +306,7 @@ class SecretRotationService:
 
     def rotate_database_credentials(self, schedule="0 0 1 * *"):  # Monthly
         pass
-```text
+```
 
 ####  **Monitoring and Alerting:**
 1. **Secret Access Monitoring**
@@ -326,7 +326,7 @@ security_scan:
   - secret_detection: truffleHog, git-secrets
   - vulnerability_assessment: OWASP ZAP, Bandit
   - dependency_scanning: Safety, FOSSA
-```text
+```
 
 - --
 
@@ -334,7 +334,7 @@ security_scan:
 
 ###  **Target Secret Management Architecture**
 
-```text
+```
 ┌─────────────────────────────────────────────────────────┐
 │                    HashiCorp Vault                      │
 │  ┌─────────────────┐  ┌─────────────────────────────┐   │
@@ -364,7 +364,7 @@ security_scan:
 │                                                         │
 │              Vault Agent (Auto-Auth)                    │
 └─────────────────────────────────────────────────────────┘
-```text
+```
 
 ###  **Security Controls Implementation**
 

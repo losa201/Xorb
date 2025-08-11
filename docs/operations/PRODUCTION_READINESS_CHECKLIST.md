@@ -114,7 +114,7 @@ python -c "import secrets; print(secrets.token_urlsafe(32))" # For SECRET_KEY
 
 # 4. Validate configuration
 python tools/scripts/validate_environment.py
-```text
+```
 
 ###  **Step 2: Database Setup**
 
@@ -132,7 +132,7 @@ docker exec -it xorb_postgres psql -U postgres -d xorb_production -c "CREATE EXT
 
 # 4. Run database migrations
 cd src/api && alembic upgrade head
-```text
+```
 
 ###  **Step 3: Core Services Deployment**
 
@@ -145,7 +145,7 @@ docker-compose -f docker-compose.production.yml up -d api orchestrator worker
 
 # 3. Verify services are running
 docker-compose -f docker-compose.production.yml ps
-```text
+```
 
 ###  **Step 4: Monitoring Setup**
 
@@ -159,7 +159,7 @@ docker-compose -f docker-compose.production.yml ps
 
 # 3. Test alerting
 curl -X POST http://localhost:8000/api/v1/health
-```text
+```
 
 ###  **Step 5: Security Validation**
 
@@ -174,7 +174,7 @@ openssl s_client -connect your-domain.com:443 -servername your-domain.com
 curl -X POST http://localhost:8000/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"username": "admin", "password": "your-password"}'
-```text
+```
 
 ##  📊 **Post-Deployment Validation**
 
@@ -244,7 +244,7 @@ REDIS_SOCKET_TIMEOUT=5
 # API Rate Limiting
 RATE_LIMIT_PER_MINUTE=1000
 RATE_LIMIT_PER_HOUR=10000
-```text
+```
 
 ###  **Memory & CPU Optimization**
 
@@ -257,7 +257,7 @@ resources:
   requests:
     memory: "1Gi"
     cpu: "500m"
-```text
+```
 
 ###  **Monitoring Optimization**
 
@@ -269,7 +269,7 @@ scrape_configs:
       - targets: ['api:8000']
     scrape_interval: 15s
     metrics_path: /metrics
-```text
+```
 
 ##  🚨 **Incident Response Plan**
 
