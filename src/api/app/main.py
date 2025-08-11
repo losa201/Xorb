@@ -165,6 +165,15 @@ async def lifespan(app: FastAPI):
         
         logger.info("🎉 XORB Enterprise API startup complete with Enhanced AI-Powered Capabilities")
         
+        # Start performance optimizer background tasks
+        try:
+            from .services.performance_optimizer import get_performance_optimizer
+            optimizer = await get_performance_optimizer()
+            await optimizer.start_background_tasks()
+            logger.info("✅ Performance optimizer background tasks started")
+        except Exception as e:
+            logger.warning(f"Performance optimizer initialization warning: {e}")
+        
         # Store startup metrics
         app.state.startup_time = logger.info("Startup completed successfully")
         app.state.enhanced_services_count = service_status["initialized_services"]
@@ -293,6 +302,22 @@ try:
     logger.info("✅ Security monitoring router loaded successfully")
 except ImportError as e:
     logger.warning(f"Security monitoring router not available: {e}")
+
+# Enterprise Security Center (AI + Compliance + Incident Response)
+try:
+    from .routers import enterprise_security_center
+    app.include_router(enterprise_security_center.router)
+    logger.info("✅ Enterprise Security Center loaded successfully")
+except ImportError as e:
+    logger.warning(f"Enterprise Security Center not available: {e}")
+
+# Enterprise Management (Multi-tenant administration)
+try:
+    from .routers import enterprise_management
+    app.include_router(enterprise_management.router)
+    logger.info("✅ Enterprise Management loaded successfully")
+except ImportError as e:
+    logger.warning(f"Enterprise Management not available: {e}")
 # app.include_router(production_security_platform.router)  # Production security platform with real implementations - Temporarily disabled
 app.include_router(system_status.router)
 # app.include_router(enterprise_platform.router)  # Temporarily disabled

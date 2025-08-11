@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Tuple, Union
 from dataclasses import dataclass, asdict
 import aiofiles
-import aioredis
+# import aioredis  # Temporarily disabled due to Python 3.12 compatibility issues
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, insert, update, delete
 import bcrypt
