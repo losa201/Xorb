@@ -277,6 +277,22 @@ app.include_router(mitre_attack.router, prefix="/api/v1")
 app.include_router(sophisticated_red_team.router, prefix="/api/v1")
 app.include_router(advanced_security_platform.router)  # Advanced security platform router
 app.include_router(advanced_ai_security_platform.router)  # New AI security platform router
+
+# Enhanced PTaaS router with real-world security tools
+try:
+    from .routers import enhanced_ptaas
+    app.include_router(enhanced_ptaas.router)
+    logger.info("✅ Enhanced PTaaS router loaded successfully")
+except ImportError as e:
+    logger.warning(f"Enhanced PTaaS router not available: {e}")
+
+# Security monitoring router
+try:
+    from .routers import security_monitoring
+    app.include_router(security_monitoring.router)
+    logger.info("✅ Security monitoring router loaded successfully")
+except ImportError as e:
+    logger.warning(f"Security monitoring router not available: {e}")
 # app.include_router(production_security_platform.router)  # Production security platform with real implementations - Temporarily disabled
 app.include_router(system_status.router)
 # app.include_router(enterprise_platform.router)  # Temporarily disabled

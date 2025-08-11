@@ -131,6 +131,8 @@ class IntelligenceMetrics(BaseModel):
 
 class OrchestrationBrainStatus(BaseModel):
     """Status of orchestration brain (Qwen3)"""
+    model_config = {"protected_namespaces": ()}
+    
     model_id: str
     status: str  # active, training, maintenance, error
     version: str
