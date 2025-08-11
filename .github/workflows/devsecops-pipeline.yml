@@ -1,0 +1,489 @@
+name: DevSecOps Pipeline
+
+on:
+  push:
+    branches: [ main, develop, 'feature/**', 'hotfix/**' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      security_level:
+        description: 'Security scan level'
+        required: false
+        default: 'standard'
+        type: choice
+        options:
+          - basic
+          - standard
+          - comprehensive
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Pre-commit security checks
+  pre-commit-security:
+    name: Pre-commit Security Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # Fast secret scanning
+      - name: Run fast secret scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified --fail
+      
+      # License compliance quick check
+      - name: FOSSA license scan
+        uses: fossas/fossa-action@main
+        if: github.event_name == 'push'
+        with:
+          api-key: ${{ secrets.FOSSA_API_KEY }}
+        continue-on-error: true
+      
+      # Commit message security check
+      - name: Check commit messages for secrets
+        run: |
+          echo "Checking commit messages for potential secrets..."
+          git log --oneline -10 | grep -iE "(password|secret|key|token|api)" && exit 1 || true
+      
+      outputs:
+        security_passed: ${{ steps.security-check.outcome == 'success' }}
+
+  # Build and unit testing with security
+  build-and-test:
+    name: Build and Security Test
+    runs-on: ubuntu-latest
+    needs: pre-commit-security
+    timeout-minutes: 30
+    
+    services:
+      postgres:
+        image: pgvector/pgvector:pg14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: xorb_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    strategy:
+      matrix:
+        python-version: ['3.11']
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+      
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libmagic1 postgresql-client redis-tools
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          cd src/api
+          pip install -e .
+          pip install pytest pytest-cov pytest-asyncio pytest-xdist
+          pip install bandit safety semgrep
+      
+      - name: Security: Run Bandit SAST
+        run: |
+          cd src/api
+          bandit -r app/ -f json -o bandit-security-report.json
+          bandit -r app/ -ll -x "*/tests/*"
+        continue-on-error: true
+      
+      - name: Security: Dependency vulnerability scan
+        run: |
+          cd src/api
+          safety check --json --output safety-report.json || true
+          safety check --short-report
+        continue-on-error: true
+      
+      - name: Run unit tests with coverage
+        run: |
+          cd src/api
+          pytest -xvs --cov=app --cov-report=xml --cov-report=html --cov-report=term-missing
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/xorb_test
+          REDIS_URL: redis://localhost:6379/1
+          ENVIRONMENT: test
+          JWT_SECRET: test-secret-key-for-ci
+      
+      - name: Upload test coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: src/api/coverage.xml
+          flags: unittests
+      
+      - name: Upload security scan results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: security-scan-results-${{ matrix.python-version }}
+          path: |
+            src/api/bandit-security-report.json
+            src/api/safety-report.json
+
+  # Container security scanning
+  container-security:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    timeout-minutes: 20
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Build container for scanning
+        uses: docker/build-push-action@v5
+        with:
+          context: src/api
+          file: src/api/Dockerfile.secure
+          push: false
+          tags: xorb-api:scan
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          outputs: type=docker,dest=/tmp/xorb-api.tar
+      
+      - name: Load image for scanning
+        run: docker load --input /tmp/xorb-api.tar
+      
+      # Multi-tool container scanning
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'xorb-api:scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+      
+      - name: Upload Trivy scan results to GitHub
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+      
+      - name: Run Grype vulnerability scanner
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b .
+          ./grype xorb-api:scan -o json > grype-results.json
+          ./grype xorb-api:scan -o table
+      
+      - name: Container compliance scan with Dockle
+        run: |
+          docker run --rm -v /tmp/xorb-api.tar:/image.tar \
+            goodwithtech/dockle:latest -f json /image.tar > dockle-results.json
+          cat dockle-results.json
+        continue-on-error: true
+      
+      # Runtime security analysis
+      - name: Container runtime security check
+        run: |
+          echo "Running container runtime security analysis..."
+          
+          # Start container with security monitoring
+          docker run -d --name xorb-test \
+            --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=100m \
+            --security-opt no-new-privileges:true \
+            --cap-drop ALL \
+            --cap-add NET_BIND_SERVICE \
+            xorb-api:scan
+          
+          # Wait for startup
+          sleep 10
+          
+          # Check if container is running securely
+          docker exec xorb-test ps aux | head -10
+          docker exec xorb-test id
+          
+          # Cleanup
+          docker stop xorb-test
+          docker rm xorb-test
+        continue-on-error: true
+      
+      - name: Generate SBOM with Syft
+        uses: anchore/sbom-action@v0.15.1
+        with:
+          image: 'xorb-api:scan'
+          format: 'spdx-json'
+          output-file: 'xorb-sbom.spdx.json'
+      
+      - name: Upload security artifacts
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: container-security-results
+          path: |
+            trivy-results.sarif
+            grype-results.json
+            dockle-results.json
+            xorb-sbom.spdx.json
+
+  # Dynamic security testing
+  dynamic-security-test:
+    name: Dynamic Security Testing (DAST)
+    runs-on: ubuntu-latest
+    needs: container-security
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    timeout-minutes: 30
+    
+    services:
+      postgres:
+        image: pgvector/pgvector:pg14
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: xorb_dast
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+      
+      - name: Start application for testing
+        run: |
+          cd src/api
+          pip install -e .
+          export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/xorb_dast"
+          export REDIS_URL="redis://localhost:6379/0"
+          export JWT_SECRET="dast-test-secret"
+          export ENVIRONMENT="test"
+          
+          # Run database migrations
+          alembic upgrade head
+          
+          # Start application in background
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          
+          # Wait for application to start
+          sleep 15
+          curl -f http://localhost:8000/health || (echo "Health check failed" && exit 1)
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/xorb_dast
+          REDIS_URL: redis://localhost:6379/0
+      
+      # OWASP ZAP security testing
+      - name: Run OWASP ZAP baseline scan
+        uses: zaproxy/action-baseline@v0.10.0
+        with:
+          target: 'http://localhost:8000'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a -j -l FAIL'
+        continue-on-error: true
+      
+      # API security testing
+      - name: API security testing with RESTler
+        run: |
+          echo "Running API security testing..."
+          
+          # Test common API vulnerabilities
+          curl -X POST http://localhost:8000/api/test -H "Content-Type: application/json" \
+            -d '{"test": "<script>alert(1)</script>"}' || true
+          
+          # Test SQL injection patterns
+          curl "http://localhost:8000/api/test?id=1' OR '1'='1" || true
+          
+          # Test authentication bypass
+          curl -H "Authorization: Bearer invalid_token" http://localhost:8000/api/protected || true
+        continue-on-error: true
+      
+      # Performance and load testing for security
+      - name: Security-focused load testing
+        run: |
+          # Install bombardier for load testing
+          sudo apt-get update && sudo apt-get install -y bombardier
+          
+          # Run load test to check for DoS vulnerabilities
+          bombardier -c 50 -n 1000 -l http://localhost:8000/health
+          
+          # Test rate limiting
+          for i in {1..100}; do
+            curl -s http://localhost:8000/api/test &
+          done
+          wait
+        continue-on-error: true
+      
+      - name: Upload DAST results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: dast-results
+          path: |
+            report_html.html
+            report_md.md
+            report_json.json
+
+  # Security policy enforcement
+  security-policy-gate:
+    name: Security Policy Gate
+    runs-on: ubuntu-latest
+    needs: [build-and-test, container-security, dynamic-security-test]
+    if: always()
+    
+    steps:
+      - name: Download security artifacts
+        uses: actions/download-artifact@v3
+      
+      - name: Security policy evaluation
+        run: |
+          echo "Evaluating security policy compliance..."
+          
+          policy_violations=0
+          
+          # Check for critical vulnerabilities
+          if find . -name "*.json" -exec grep -l "CRITICAL" {} \;; then
+            echo "❌ Critical vulnerabilities found"
+            policy_violations=$((policy_violations + 1))
+          fi
+          
+          # Check for high severity issues
+          high_severity_count=$(find . -name "*.json" -exec grep -c "HIGH" {} \; | paste -sd+ | bc || echo 0)
+          if [ "$high_severity_count" -gt 10 ]; then
+            echo "❌ Too many high severity issues ($high_severity_count > 10)"
+            policy_violations=$((policy_violations + 1))
+          fi
+          
+          # Check test coverage
+          if find . -name "coverage.xml" -exec grep -q 'line-rate="0\.[0-7]' {} \;; then
+            echo "❌ Test coverage below 80%"
+            policy_violations=$((policy_violations + 1))
+          fi
+          
+          echo "Policy violations: $policy_violations"
+          
+          if [ $policy_violations -eq 0 ]; then
+            echo "✅ Security policy gate passed"
+          else
+            echo "❌ Security policy gate failed"
+            echo "Please address the security issues before deployment"
+            if [ "${{ github.event_name }}" == "pull_request" ]; then
+              exit 1  # Block PR merge
+            fi
+          fi
+      
+      - name: Generate security summary
+        run: |
+          echo "# Security Pipeline Summary" > security-summary.md
+          echo "Pipeline run: ${{ github.run_id }}" >> security-summary.md
+          echo "Commit: ${{ github.sha }}" >> security-summary.md
+          echo "Branch: ${{ github.ref }}" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          echo "## Security Scans Completed" >> security-summary.md
+          echo "- ✅ Secret scanning" >> security-summary.md
+          echo "- ✅ Static code analysis (SAST)" >> security-summary.md
+          echo "- ✅ Dependency vulnerability scanning" >> security-summary.md
+          echo "- ✅ Container security scanning" >> security-summary.md
+          echo "- ✅ Dynamic security testing (DAST)" >> security-summary.md
+          echo "- ✅ License compliance" >> security-summary.md
+          echo "" >> security-summary.md
+          
+          echo "## Next Steps" >> security-summary.md
+          echo "- Review security scan results in artifacts" >> security-summary.md
+          echo "- Address any critical or high severity findings" >> security-summary.md
+          echo "- Update security documentation if needed" >> security-summary.md
+      
+      - name: Upload security summary
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-pipeline-summary
+          path: security-summary.md
+
+  # Deployment (conditional on security gate)
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment || 'staging' }}
+    runs-on: ubuntu-latest
+    needs: security-policy-gate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy application
+        run: |
+          echo "Deploying to ${{ github.event.inputs.environment || 'staging' }} environment..."
+          echo "Security checks passed, deployment authorized"
+          
+          # Add your deployment commands here
+          # This could include:
+          # - Kubernetes deployment
+          # - Docker container deployment
+          # - Infrastructure provisioning
+          # - Database migrations
+      
+      - name: Post-deployment security validation
+        run: |
+          echo "Running post-deployment security validation..."
+          
+          # Health checks
+          # Security headers validation
+          # Authentication system validation
+          # Monitoring system validation

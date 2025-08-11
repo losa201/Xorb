@@ -31,25 +31,65 @@ try:
 except ImportError:
     aioredis = None
 
-# Mock implementations for unavailable dependencies
+# Functional mock implementations for unavailable dependencies
 class MockCounter:
-    def inc(self, amount=1): pass
-    def labels(self, **kwargs): return self
+    def __init__(self, name, description, labelnames=None, registry=None):
+        self.name = name
+        self._value = 0
+        
+    def inc(self, amount=1): 
+        self._value += amount
+        logger.debug(f"Counter {self.name}: {self._value}")
+        
+    def labels(self, **kwargs): 
+        return self
 
 class MockHistogram:
-    def observe(self, value): pass
-    def time(self): return MockContextManager()
-    def labels(self, **kwargs): return self
+    def __init__(self, name, description, labelnames=None, buckets=None, registry=None):
+        self.name = name
+        self._observations = []
+        
+    def observe(self, value): 
+        self._observations.append(value)
+        logger.debug(f"Histogram {self.name}: observed {value}")
+        
+    def time(self): 
+        return MockContextManager(self)
+        
+    def labels(self, **kwargs): 
+        return self
 
 class MockGauge:
-    def set(self, value): pass
-    def inc(self, amount=1): pass
-    def dec(self, amount=1): pass
-    def labels(self, **kwargs): return self
+    def __init__(self, name, description, labelnames=None, registry=None):
+        self.name = name
+        self._value = 0
+        
+    def set(self, value): 
+        self._value = value
+        logger.debug(f"Gauge {self.name}: {value}")
+        
+    def inc(self, amount=1): 
+        self._value += amount
+        
+    def dec(self, amount=1): 
+        self._value -= amount
+        
+    def labels(self, **kwargs): 
+        return self
 
 class MockContextManager:
-    def __enter__(self): return self
-    def __exit__(self, *args): pass
+    def __init__(self, histogram=None):
+        self.histogram = histogram
+        self.start_time = None
+        
+    def __enter__(self): 
+        self.start_time = time.time()
+        return self
+        
+    def __exit__(self, *args): 
+        if self.histogram and self.start_time:
+            duration = time.time() - self.start_time
+            self.histogram.observe(duration)
 
 # Use mock implementations if real ones aren't available
 try:
@@ -82,11 +122,28 @@ except ImportError:
             return MockSpan()
     
     class MockSpan:
-        def set_attribute(self, key, value): pass
-        def set_status(self, status): pass
-        def end(self): pass
+        def __init__(self):
+            self.attributes = {}
+            self.status = None
+            self.start_time = time.time()
+            self.end_time = None
+            
+        def set_attribute(self, key, value): 
+            self.attributes[key] = value
+            logger.debug(f"Span attribute: {key} = {value}")
+            
+        def set_status(self, status): 
+            self.status = status
+            logger.debug(f"Span status: {status}")
+            
+        def end(self): 
+            self.end_time = time.time()
+            duration = self.end_time - self.start_time
+            logger.debug(f"Span completed in {duration:.3f}s")
+            
         def __enter__(self): return self
-        def __exit__(self, *args): pass
+        def __exit__(self, *args): 
+            self.end()
     
     class MockTrace:
         def get_tracer(self, name): return MockTracer()

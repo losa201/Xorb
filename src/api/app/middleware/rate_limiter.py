@@ -8,7 +8,6 @@ import time
 from dataclasses import dataclass
 from datetime import datetime
 
-import aioredis
 import structlog
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
@@ -17,6 +16,7 @@ from prometheus_client import Counter, Gauge, Histogram
 from ..container import get_container
 from ..domain.entities import Organization
 from ..domain.exceptions import RateLimitExceeded
+from ..infrastructure.redis_manager import get_redis_manager, rate_limit_check
 
 logger = structlog.get_logger("xorb.rate_limiter")
 
@@ -80,7 +80,7 @@ class ResourceBudgetManager:
     """Manages resource budgets and rate limits per organization and plan"""
 
     def __init__(self):
-        self.redis: aioredis.Redis | None = None
+        self.redis_manager = None
 
         # Plan configurations (Phase 5.4 requirements)
         self.plan_limits = {
@@ -129,8 +129,11 @@ class ResourceBudgetManager:
 
     async def initialize(self, redis_url: str = "redis://redis:6379/0"):
         """Initialize the resource budget manager"""
-        self.redis = await aioredis.from_url(redis_url)
-        logger.info("Resource Budget Manager initialized")
+        self.redis_manager = await get_redis_manager()
+        if self.redis_manager and self.redis_manager.is_healthy:
+            logger.info("Resource Budget Manager initialized with Redis")
+        else:
+            logger.warning("Resource Budget Manager initialized without Redis - using in-memory fallback")
 
     async def check_rate_limit(
         self,
@@ -235,33 +238,14 @@ class ResourceBudgetManager:
     ) -> RateLimitResult:
         """Check time-based rate limit using sliding window"""
 
-        now = int(time.time())
-        window_start = now - window_seconds
         key = f"rate_limit:{org_id}:{limit_type}"
-
-        # Use Redis sorted set for sliding window
-        pipe = self.redis.pipeline()
-
-        # Remove expired entries
-        pipe.zremrangebyscore(key, 0, window_start)
-
-        # Count current requests in window
-        pipe.zcard(key)
-
-        # Add current request with timestamp
-        pipe.zadd(key, {str(now): now})
-
-        # Set key expiration
-        pipe.expire(key, window_seconds + 60)
-
-        results = await pipe.execute()
-        current_count = results[1] + 1  # +1 for current request
-
-        remaining = max(0, limit - current_count)
-        reset_time = now + window_seconds
-
+        
+        # Use the new Redis manager rate limiting function
+        result = await rate_limit_check(key, limit, window_seconds)
+        
         # Update quota usage metric
-        usage_ratio = current_count / limit
+        current_count = result.get("current_count", 0)
+        usage_ratio = current_count / limit if limit > 0 else 0
         rate_limit_quota_usage.labels(
             org_id=org_id,
             resource_type=limit_type,
@@ -269,11 +253,11 @@ class ResourceBudgetManager:
         ).set(usage_ratio)
 
         return RateLimitResult(
-            allowed=current_count <= limit,
-            limit=limit,
-            remaining=remaining,
-            reset_time=reset_time,
-            retry_after=1 if current_count > limit else None,
+            allowed=result["allowed"],
+            limit=result["limit"],
+            remaining=result["remaining"],
+            reset_time=result["reset_time"],
+            retry_after=1 if not result["allowed"] else None,
             resource_type=limit_type
         )
 
@@ -286,8 +270,12 @@ class ResourceBudgetManager:
         """Check concurrent resource limit"""
 
         key = f"concurrent:{org_id}:{limit_type}"
-        current_count = await self.redis.get(key) or 0
-        current_count = int(current_count)
+        
+        if self.redis_manager and self.redis_manager.is_healthy:
+            current_value = await self.redis_manager.get(key)
+            current_count = int(current_value) if current_value else 0
+        else:
+            current_count = 0
 
         remaining = max(0, limit - current_count)
 
@@ -310,8 +298,12 @@ class ResourceBudgetManager:
         # This would query the database for current count
         # For now, simulate with Redis
         key = f"static:{org_id}:{limit_type}"
-        current_count = await self.redis.get(key) or 0
-        current_count = int(current_count)
+        
+        if self.redis_manager and self.redis_manager.is_healthy:
+            current_value = await self.redis_manager.get(key)
+            current_count = int(current_value) if current_value else 0
+        else:
+            current_count = 0
 
         remaining = max(0, limit - current_count)
 
@@ -326,20 +318,24 @@ class ResourceBudgetManager:
     async def increment_concurrent(self, org_id: str, resource_type: str, count: int = 1):
         """Increment concurrent resource counter"""
         key = f"concurrent:{org_id}:{resource_type}"
-        await self.redis.incrby(key, count)
-        await self.redis.expire(key, 3600)  # Auto-expire after 1 hour
+        if self.redis_manager and self.redis_manager.is_healthy:
+            current_value = await self.redis_manager.incr(key, count)
+            await self.redis_manager.expire(key, 3600)  # Auto-expire after 1 hour
 
     async def decrement_concurrent(self, org_id: str, resource_type: str, count: int = 1):
         """Decrement concurrent resource counter"""
         key = f"concurrent:{org_id}:{resource_type}"
-        current = await self.redis.get(key) or 0
-        new_value = max(0, int(current) - count)
-        await self.redis.set(key, new_value, ex=3600)
+        if self.redis_manager and self.redis_manager.is_healthy:
+            current_value = await self.redis_manager.get(key)
+            current = int(current_value) if current_value else 0
+            new_value = max(0, current - count)
+            await self.redis_manager.set(key, str(new_value), ex=3600)
 
     async def update_static_count(self, org_id: str, resource_type: str, count: int):
         """Update static resource counter"""
         key = f"static:{org_id}:{resource_type}"
-        await self.redis.set(key, count)
+        if self.redis_manager and self.redis_manager.is_healthy:
+            await self.redis_manager.set(key, str(count))
 
     async def check_slo_violations(self) -> dict[str, bool]:
         """Check for SLO violations that trigger alerts"""
@@ -351,8 +347,12 @@ class ResourceBudgetManager:
             violations['scan_latency_p95'] = False
 
             # Check queue depth
-            queue_depth = await self.redis.get("queue_depth:scans") or 0
-            violations['queue_depth'] = int(queue_depth) > self.slo_thresholds['queue_depth_max']
+            if self.redis_manager and self.redis_manager.is_healthy:
+                queue_depth_value = await self.redis_manager.get("queue_depth:scans")
+                queue_depth = int(queue_depth_value) if queue_depth_value else 0
+            else:
+                queue_depth = 0
+            violations['queue_depth'] = queue_depth > self.slo_thresholds['queue_depth_max']
 
             # Check memory usage (would integrate with container metrics)
             violations['memory_usage'] = False
@@ -396,11 +396,14 @@ class ResourceBudgetManager:
 
             for resource, window in resources:
                 key = f"rate_limit:{org_id}:{resource}"
-                now = int(time.time())
-                window_start = now - window
-
-                # Count requests in window
-                current_usage = await self.redis.zcount(key, window_start, now)
+                
+                if self.redis_manager and self.redis_manager.is_healthy:
+                    now = int(time.time())
+                    window_start = now - window
+                    current_usage = await self.redis_manager.zcount(key, window_start, now)
+                else:
+                    current_usage = 0
+                    
                 report["current_usage"][resource] = current_usage
 
                 # Calculate usage ratio
@@ -409,14 +412,22 @@ class ResourceBudgetManager:
                 report["usage_ratios"][resource] = ratio
 
             # Get concurrent usage
-            concurrent_scans = await self.redis.get(f"concurrent:{org_id}:concurrent_scans") or 0
-            report["current_usage"]["concurrent_scans"] = int(concurrent_scans)
-            report["usage_ratios"]["concurrent_scans"] = int(concurrent_scans) / limits.concurrent_scans
+            if self.redis_manager and self.redis_manager.is_healthy:
+                concurrent_scans_value = await self.redis_manager.get(f"concurrent:{org_id}:concurrent_scans")
+                concurrent_scans = int(concurrent_scans_value) if concurrent_scans_value else 0
+            else:
+                concurrent_scans = 0
+            report["current_usage"]["concurrent_scans"] = concurrent_scans
+            report["usage_ratios"]["concurrent_scans"] = concurrent_scans / limits.concurrent_scans
 
             # Get asset count
-            asset_count = await self.redis.get(f"static:{org_id}:assets") or 0
-            report["current_usage"]["assets"] = int(asset_count)
-            report["usage_ratios"]["assets"] = int(asset_count) / limits.assets_max
+            if self.redis_manager and self.redis_manager.is_healthy:
+                asset_count_value = await self.redis_manager.get(f"static:{org_id}:assets")
+                asset_count = int(asset_count_value) if asset_count_value else 0
+            else:
+                asset_count = 0
+            report["current_usage"]["assets"] = asset_count
+            report["usage_ratios"]["assets"] = asset_count / limits.assets_max
 
             return report
 

@@ -1,0 +1,66 @@
+# XORB Platform Production Configuration
+# Production-specific settings with security hardening
+
+# Environment
+environment: "production"
+debug: false
+
+# Services (Production scaling)
+services:
+  api:
+    workers: 4
+    timeout: 30
+  
+  orchestrator:
+    workers: 2
+    timeout: 60
+  
+  intelligence:
+    workers: 4
+    timeout: 45
+  
+  worker:
+    workers: 6
+    timeout: 300
+
+# Database (Production settings)
+database:
+  max_connections: 50
+  ssl_mode: "require"
+
+# Redis (Production settings)
+redis:
+  max_connections: 25
+
+# Security (Production hardening)
+security:
+  jwt_expiry_minutes: 15   # Shorter sessions
+  password_min_length: 16  # Stronger passwords
+  max_login_attempts: 3    # Stricter limits
+  lockout_duration_minutes: 30
+  require_mfa: true        # Require MFA
+
+# Monitoring (Production settings)
+monitoring:
+  log_level: "INFO"
+  prometheus_enabled: true
+  grafana_enabled: true
+  structured_logging: true
+  audit_logging: true
+
+# CORS (Restricted origins)
+cors_origins:
+  - "https://app.xorb.ai"
+  - "https://dashboard.xorb.ai"
+
+# Feature Flags (Production ready)
+features:
+  advanced_analytics: true
+  threat_hunting: true
+  compliance_automation: true
+  multi_tenant: true
+  sso_integration: true
+  ai_enhancement: true
+
+# API Settings (Production limits)
+max_request_size: 5242880  # 5MB for production

@@ -18,7 +18,10 @@ from pydantic import BaseModel
 import redis.asyncio as redis
 import asyncpg
 import uvicorn
-from passlib.context import CryptContext
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..', '..', 'src'))
+from common.security_utils import PASSWORD_CONTEXT, hash_password, verify_password
 
 app = FastAPI(
     title="XORB Security Hardener",
@@ -32,8 +35,8 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 REFRESH_TOKEN_EXPIRE_DAYS = 7
 
-# Password hashing
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# Use centralized password context
+pwd_context = PASSWORD_CONTEXT
 security = HTTPBearer()
 
 # Models

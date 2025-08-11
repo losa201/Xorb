@@ -18,32 +18,32 @@ class UserRepository(ABC):
     @abstractmethod
     async def get_by_id(self, user_id: UUID) -> Optional[User]:
         """Get user by ID"""
-        pass
+        raise NotImplementedError("get_by_id must be implemented by subclass")
     
     @abstractmethod
     async def get_by_username(self, username: str) -> Optional[User]:
         """Get user by username"""
-        pass
+        raise NotImplementedError("get_by_username must be implemented by subclass")
     
     @abstractmethod
     async def get_by_email(self, email: str) -> Optional[User]:
         """Get user by email"""
-        pass
+        raise NotImplementedError("get_by_email must be implemented by subclass")
     
     @abstractmethod
     async def create(self, user: User) -> User:
         """Create a new user"""
-        pass
+        raise NotImplementedError("create must be implemented by subclass")
     
     @abstractmethod
     async def update(self, user: User) -> User:
         """Update an existing user"""
-        pass
+        raise NotImplementedError("update must be implemented by subclass")
     
     @abstractmethod
     async def delete(self, user_id: UUID) -> bool:
         """Delete a user"""
-        pass
+        raise NotImplementedError("delete must be implemented by subclass")
 
 
 class OrganizationRepository(ABC):
@@ -52,27 +52,27 @@ class OrganizationRepository(ABC):
     @abstractmethod
     async def get_by_id(self, org_id: UUID) -> Optional[Organization]:
         """Get organization by ID"""
-        pass
+        raise NotImplementedError("get_by_id must be implemented by subclass")
     
     @abstractmethod
     async def get_by_name(self, name: str) -> Optional[Organization]:
         """Get organization by name"""
-        pass
+        raise NotImplementedError("get_by_name must be implemented by subclass")
     
     @abstractmethod
     async def create(self, organization: Organization) -> Organization:
         """Create a new organization"""
-        pass
+        raise NotImplementedError("create must be implemented by subclass")
     
     @abstractmethod
     async def update(self, organization: Organization) -> Organization:
         """Update an existing organization"""
-        pass
+        raise NotImplementedError("update must be implemented by subclass")
     
     @abstractmethod
     async def get_user_organizations(self, user_id: UUID) -> List[Organization]:
         """Get organizations for a user"""
-        pass
+        raise NotImplementedError("get_user_organizations must be implemented by subclass")
 
 
 class EmbeddingRepository(ABC):
@@ -81,22 +81,22 @@ class EmbeddingRepository(ABC):
     @abstractmethod
     async def save_request(self, request: EmbeddingRequest) -> EmbeddingRequest:
         """Save an embedding request"""
-        pass
+        raise NotImplementedError("save_request must be implemented by subclass")
     
     @abstractmethod
     async def save_result(self, result: EmbeddingResult) -> EmbeddingResult:
         """Save embedding results"""
-        pass
+        raise NotImplementedError("save_result must be implemented by subclass")
     
     @abstractmethod
     async def get_request_by_id(self, request_id: UUID) -> Optional[EmbeddingRequest]:
         """Get embedding request by ID"""
-        pass
+        raise NotImplementedError("get_request_by_id must be implemented by subclass")
     
     @abstractmethod
     async def get_result_by_request_id(self, request_id: UUID) -> Optional[EmbeddingResult]:
         """Get embedding result by request ID"""
-        pass
+        raise NotImplementedError("get_result_by_request_id must be implemented by subclass")
     
     @abstractmethod
     async def get_user_requests(
@@ -106,7 +106,7 @@ class EmbeddingRepository(ABC):
         offset: int = 0
     ) -> List[EmbeddingRequest]:
         """Get embedding requests for a user"""
-        pass
+        raise NotImplementedError("get_user_requests must be implemented by subclass")
 
 
 class DiscoveryRepository(ABC):
@@ -115,22 +115,22 @@ class DiscoveryRepository(ABC):
     @abstractmethod
     async def save_workflow(self, workflow: DiscoveryWorkflow) -> DiscoveryWorkflow:
         """Save a discovery workflow"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def get_by_id(self, workflow_id: UUID) -> Optional[DiscoveryWorkflow]:
         """Get workflow by ID"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def get_by_workflow_id(self, workflow_id: str) -> Optional[DiscoveryWorkflow]:
         """Get workflow by external workflow ID"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def update_workflow(self, workflow: DiscoveryWorkflow) -> DiscoveryWorkflow:
         """Update workflow status and results"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def get_user_workflows(
@@ -140,7 +140,7 @@ class DiscoveryRepository(ABC):
         offset: int = 0
     ) -> List[DiscoveryWorkflow]:
         """Get workflows for a user"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
 
 
 class AuthTokenRepository(ABC):
@@ -149,27 +149,27 @@ class AuthTokenRepository(ABC):
     @abstractmethod
     async def save_token(self, token: AuthToken) -> AuthToken:
         """Save an auth token"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def get_by_token(self, token: str) -> Optional[AuthToken]:
         """Get token info by token string"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def revoke_token(self, token: str) -> bool:
         """Revoke a token"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def revoke_user_tokens(self, user_id: UUID) -> int:
         """Revoke all tokens for a user"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def cleanup_expired_tokens(self) -> int:
         """Clean up expired tokens"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
 
 
 class CacheRepository(ABC):
@@ -178,29 +178,77 @@ class CacheRepository(ABC):
     @abstractmethod
     async def get(self, key: str) -> Optional[str]:
         """Get value from cache"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def set(self, key: str, value: str, ttl: int = None) -> bool:
         """Set value in cache with optional TTL"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def delete(self, key: str) -> bool:
         """Delete key from cache"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def exists(self, key: str) -> bool:
         """Check if key exists in cache"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def increment(self, key: str, amount: int = 1) -> int:
         """Increment a counter"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
     
     @abstractmethod
     async def decrement(self, key: str, amount: int = 1) -> int:
         """Decrement a counter"""
-        pass
+        raise NotImplementedError("Method must be implemented by subclass")
+
+
+class ScanSessionRepository(ABC):
+    """Interface for scan session data access"""
+    
+    @abstractmethod
+    async def create_session(self, session_data: dict) -> dict:
+        """Create a new scan session"""
+        raise NotImplementedError("Method must be implemented by subclass")
+    
+    @abstractmethod
+    async def get_session(self, session_id: UUID) -> Optional[dict]:
+        """Get scan session by ID"""
+        raise NotImplementedError("Method must be implemented by subclass")
+    
+    @abstractmethod
+    async def update_session(self, session_id: UUID, updates: dict) -> bool:
+        """Update scan session"""
+        raise NotImplementedError("Method must be implemented by subclass")
+    
+    @abstractmethod
+    async def get_user_sessions(self, user_id: UUID) -> List[dict]:
+        """Get scan sessions for a user"""
+        raise NotImplementedError("Method must be implemented by subclass")
+
+
+class TenantRepository(ABC):
+    """Interface for tenant data access"""
+    
+    @abstractmethod
+    async def create_tenant(self, tenant_data: dict) -> dict:
+        """Create a new tenant"""
+        raise NotImplementedError("Method must be implemented by subclass")
+    
+    @abstractmethod
+    async def get_tenant(self, tenant_id: UUID) -> Optional[dict]:
+        """Get tenant by ID"""
+        raise NotImplementedError("Method must be implemented by subclass")
+    
+    @abstractmethod
+    async def update_tenant(self, tenant_id: UUID, updates: dict) -> bool:
+        """Update tenant"""
+        raise NotImplementedError("Method must be implemented by subclass")
+    
+    @abstractmethod
+    async def get_tenant_by_name(self, name: str) -> Optional[dict]:
+        """Get tenant by name"""
+        raise NotImplementedError("Method must be implemented by subclass")

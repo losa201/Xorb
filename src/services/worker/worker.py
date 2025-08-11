@@ -23,7 +23,7 @@ REDIS_HOST = os.getenv("REDIS_HOST", os.getenv("REDIS_URL", "redis://redis:6379/
 REDIS_PORT = int(os.getenv("REDIS_PORT", "6379"))
 REDIS_DB = int(os.getenv("REDIS_DB", "0"))
 WORKER_ID = os.getenv("WORKER_ID", "worker-001")
-JWT_SECRET = os.getenv("JWT_SECRET", "xorb_security_platform_secret_key")
+# JWT_SECRET moved to centralized JWT manager
 ENCRYPTION_KEY = os.getenv("ENCRYPTION_KEY", Fernet.generate_key().decode())
 
 # Task handler registry
@@ -43,11 +43,17 @@ class WorkerSecurity:
 
     @staticmethod
     def verify_token(token: str) -> Optional[Dict]:
-        """Verify JWT token from task"""
+        """Verify JWT token from task using centralized JWT manager"""
         try:
-            payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
-            return payload
-        except jwt.PyJWTError:
+            # Import here to avoid circular dependencies
+            sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+            from common.jwt_manager import verify_token_sync
+            return verify_token_sync(token)
+        except ValueError as e:
+            logger.warning(f"Token verification failed: {e}")
+            return None
+        except Exception as e:
+            logger.warning(f"Token verification error: {e}")
             return None
 
 # Task data models

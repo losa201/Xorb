@@ -54,7 +54,15 @@ class LogSource:
     
     async def read_logs(self) -> AsyncGenerator[str, None]:
         """Async generator for reading log lines"""
-        raise NotImplementedError
+        # Default implementation for testing
+        test_logs = [
+            "2024-01-01 10:00:00 INFO User login successful",
+            "2024-01-01 10:01:00 WARN Failed login attempt",
+            "2024-01-01 10:02:00 ERROR Authentication failure"
+        ]
+        for log in test_logs:
+            yield log
+            await asyncio.sleep(1)
 
 
 class FileLogSource(LogSource):

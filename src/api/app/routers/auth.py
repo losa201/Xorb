@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from ..container import get_container
 from ..services.interfaces import AuthenticationService
 from ..domain.exceptions import DomainException
-from ..security.auth import authenticator, Role
+from ..security import Role, require_admin
 
 router = APIRouter()
 

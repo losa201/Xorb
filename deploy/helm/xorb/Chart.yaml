@@ -1,0 +1,45 @@
+apiVersion: v2
+name: xorb
+description: XORB Enterprise Cybersecurity Platform - Production-Ready Helm Chart
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+home: https://xorb-security.com
+sources:
+  - https://github.com/xorb-security/xorb
+maintainers:
+  - name: XORB Security Team
+    email: platform@xorb-security.com
+    url: https://xorb-security.com
+keywords:
+  - cybersecurity
+  - penetration-testing
+  - security-orchestration
+  - compliance
+  - threat-intelligence
+  - ptaas
+annotations:
+  category: Security
+  licenses: MIT
+  images: |
+    - name: xorb-api
+      image: xorb/api:1.0.0
+    - name: xorb-orchestrator  
+      image: xorb/orchestrator:1.0.0
+    - name: postgres
+      image: postgres:15-alpine
+    - name: redis
+      image: redis:7-alpine
+dependencies:
+  - name: postgresql
+    version: "12.1.9"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.3.14"  
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: ingress-nginx
+    version: "4.4.0"
+    repository: https://kubernetes.github.io/ingress-nginx
+    condition: ingress.enabled

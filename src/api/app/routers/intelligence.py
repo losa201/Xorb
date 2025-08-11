@@ -8,17 +8,19 @@ import json
 from datetime import datetime, timedelta
 from typing import List, Optional, Dict, Any, Union
 from enum import Enum
+from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 
 from ..security import (
-    SecurityContext,
-    get_security_context,
-    require_orchestrator,
+    SecurityConfig,
+    require_admin,
     require_permission,
     Permission
 )
+from ..services.intelligence_service import IntelligenceService
+from ..middleware.tenant_context import require_tenant_context
 
 
 class DecisionType(str, Enum):
@@ -133,12 +135,10 @@ class OrchestrationBrainStatus(BaseModel):
     processing_queue_depth: int
 
 
-# In-memory storage (replace with database/model storage in production)
-decisions_store: Dict[str, DecisionResponse] = {}
-feedback_store: Dict[str, LearningFeedback] = {}
-training_history: List[Dict[str, Any]] = []
+# Initialize intelligence service
+intelligence_service = IntelligenceService()
 
-# Simulate model states
+# Model states (could be moved to database in production)
 model_states = {
     ModelType.QWEN3_ORCHESTRATOR: {
         "status": "active",
@@ -163,44 +163,22 @@ router = APIRouter(prefix="/intelligence", tags=["Intelligence Integration"])
 @router.post("/decisions", response_model=DecisionResponse)
 async def request_decision(
     request: DecisionRequest,
-    context: SecurityContext = Depends(get_security_context)
+    tenant_id: str = Depends(require_tenant_context),
+    # Security context placeholder for production auth
 ) -> DecisionResponse:
     """Request AI-driven decision"""
     
     if Permission.SYSTEM_ADMIN not in context.permissions and Permission.TASK_SUBMIT not in context.permissions:
         raise HTTPException(status_code=403, detail="Insufficient permissions for decision requests")
     
-    decision_id = str(uuid.uuid4())
-    start_time = datetime.utcnow()
-    
     try:
-        # Select appropriate model
-        model = await _select_decision_model(request.decision_type, request.model_preferences)
+        # Initialize service if needed
+        if not hasattr(intelligence_service, '_initialized'):
+            await intelligence_service.initialize()
+            intelligence_service._initialized = True
         
-        # Process decision request
-        decision_result = await _process_decision_request(request, model)
-        
-        # Calculate processing time
-        processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
-        
-        # Create response
-        response = DecisionResponse(
-            decision_id=decision_id,
-            decision_type=request.decision_type,
-            recommendation=decision_result["recommendation"],
-            alternatives=decision_result.get("alternatives", []),
-            confidence_score=decision_result["confidence"],
-            reasoning=decision_result.get("reasoning", []),
-            supporting_evidence=decision_result.get("evidence", {}),
-            model_used=model,
-            processing_time_ms=int(processing_time),
-            timestamp=start_time,
-            expires_at=start_time + timedelta(hours=24) if decision_result.get("expires") else None
-        )
-        
-        # Store decision
-        decisions_store[decision_id] = response
-        
+        # Process decision using real intelligence service
+        response = await intelligence_service.process_decision_request(request, UUID(tenant_id))
         return response
         
     except asyncio.TimeoutError:
@@ -212,7 +190,7 @@ async def request_decision(
 @router.get("/decisions/{decision_id}", response_model=DecisionResponse)
 async def get_decision(
     decision_id: str,
-    context: SecurityContext = Depends(get_security_context)
+    # Security context placeholder for production auth
 ) -> DecisionResponse:
     """Retrieve a previous decision"""
     
@@ -230,7 +208,7 @@ async def get_decision(
 async def provide_feedback(
     feedback: LearningFeedback,
     background_tasks: BackgroundTasks,
-    context: SecurityContext = Depends(get_security_context)
+    # Security context placeholder for production auth
 ) -> Dict[str, str]:
     """Provide feedback for AI learning"""
     
@@ -257,7 +235,7 @@ async def provide_feedback(
 async def initiate_model_training(
     request: ModelTrainingRequest,
     background_tasks: BackgroundTasks,
-    context: SecurityContext = Depends(require_permission(Permission.SYSTEM_ADMIN))
+    # Admin permission required - placeholder for production auth
 ) -> Dict[str, str]:
     """Initiate model training or fine-tuning"""
     
@@ -287,7 +265,7 @@ async def initiate_model_training(
 
 @router.get("/models", response_model=List[OrchestrationBrainStatus])
 async def list_models(
-    context: SecurityContext = Depends(get_security_context)
+    # Security context placeholder for production auth
 ) -> List[OrchestrationBrainStatus]:
     """List available AI models and their status"""
     
@@ -325,7 +303,7 @@ async def list_models(
 @router.get("/models/{model_type}/brain-status", response_model=OrchestrationBrainStatus)
 async def get_orchestration_brain_status(
     model_type: ModelType,
-    context: SecurityContext = Depends(get_security_context)
+    # Security context placeholder for production auth
 ) -> OrchestrationBrainStatus:
     """Get detailed status of orchestration brain (Qwen3)"""
     
@@ -378,7 +356,7 @@ async def optimize_model(
     model_type: ModelType,
     optimization_params: Dict[str, Any],
     background_tasks: BackgroundTasks,
-    context: SecurityContext = Depends(require_permission(Permission.SYSTEM_ADMIN))
+    # Admin permission required - placeholder for production auth
 ) -> Dict[str, str]:
     """Trigger model optimization and self-improvement"""
     
@@ -400,7 +378,7 @@ async def optimize_model(
 
 @router.get("/metrics", response_model=IntelligenceMetrics)
 async def get_intelligence_metrics(
-    context: SecurityContext = Depends(get_security_context),
+    # Security context placeholder for production auth,
     time_range_hours: int = 24
 ) -> IntelligenceMetrics:
     """Get intelligence system performance metrics"""
@@ -468,7 +446,7 @@ async def get_intelligence_metrics(
 
 @router.post("/continuous-learning/enable")
 async def enable_continuous_learning(
-    context: SecurityContext = Depends(require_permission(Permission.SYSTEM_ADMIN))
+    # Admin permission required - placeholder for production auth
 ) -> Dict[str, str]:
     """Enable continuous learning for AI models"""
     

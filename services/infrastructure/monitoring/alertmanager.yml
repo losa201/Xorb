@@ -1,0 +1,186 @@
+# XORB AlertManager Configuration
+global:
+  smtp_smarthost: 'localhost:587'
+  smtp_from: 'alerts@xorb.security'
+  smtp_auth_username: 'alerts@xorb.security'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+# Route tree configuration
+route:
+  group_by: ['alertname', 'service']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 12h
+  receiver: 'xorb-default'
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'xorb-critical'
+      group_wait: 10s
+      repeat_interval: 5m
+
+    # Security alerts - high priority
+    - match:
+        service: security
+      receiver: 'xorb-security'
+      group_wait: 30s
+      repeat_interval: 2h
+
+    # API service alerts
+    - match:
+        service: xorb-api
+      receiver: 'xorb-api-team'
+      group_wait: 1m
+      repeat_interval: 4h
+
+    # Database alerts
+    - match_re:
+        service: postgresql|redis
+      receiver: 'xorb-database-team'
+      group_wait: 1m
+      repeat_interval: 6h
+
+    # Infrastructure alerts
+    - match:
+        service: system
+      receiver: 'xorb-infrastructure'
+      group_wait: 2m
+      repeat_interval: 8h
+
+# Notification receivers
+receivers:
+  - name: 'xorb-default'
+    email_configs:
+      - to: 'devops@xorb.security'
+        subject: '[XORB] {{ .GroupLabels.SortedPairs.Values | join " " }} alert'
+        body: |
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Status: {{ .Status }}
+          Severity: {{ .Labels.severity }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          {{ end }}
+
+  - name: 'xorb-critical'
+    email_configs:
+      - to: 'critical-alerts@xorb.security,on-call@xorb.security'
+        subject: '🚨 [CRITICAL] XORB Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
+        body: |
+          🚨 CRITICAL ALERT 🚨
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Status: {{ .Status }}
+          Severity: {{ .Labels.severity }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          Dashboard: http://grafana.xorb.security/d/xorb-overview
+          {{ end }}
+    # webhook_configs:
+    #   - url: '${PAGERDUTY_WEBHOOK_URL}'
+    #     title: 'XORB Critical Alert'
+    #     send_resolved: true
+
+  - name: 'xorb-security'
+    email_configs:
+      - to: 'security-team@xorb.security'
+        subject: '🔒 [SECURITY] XORB Security Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
+        body: |
+          🔒 SECURITY ALERT 🔒
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Status: {{ .Status }}
+          Severity: {{ .Labels.severity }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          Please investigate immediately.
+          Security Dashboard: http://grafana.xorb.security/d/xorb-security
+          {{ end }}
+    # slack_configs:
+    #   - api_url: '${SLACK_WEBHOOK_URL}'
+    #     channel: '#security-alerts'
+    #     title: 'XORB Security Alert'
+    #     text: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+    #     send_resolved: true
+
+  - name: 'xorb-api-team'
+    email_configs:
+      - to: 'api-team@xorb.security'
+        subject: '[API] XORB API Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
+        body: |
+          API Service Alert
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Status: {{ .Status }}
+          Severity: {{ .Labels.severity }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          API Dashboard: http://grafana.xorb.security/d/xorb-api
+          {{ end }}
+
+  - name: 'xorb-database-team'
+    email_configs:
+      - to: 'database-team@xorb.security'
+        subject: '[DATABASE] XORB Database Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
+        body: |
+          Database Service Alert
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Status: {{ .Status }}
+          Severity: {{ .Labels.severity }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          Database Dashboard: http://grafana.xorb.security/d/xorb-database
+          {{ end }}
+
+  - name: 'xorb-infrastructure'
+    email_configs:
+      - to: 'infra-team@xorb.security'
+        subject: '[INFRA] XORB Infrastructure Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
+        body: |
+          Infrastructure Alert
+          
+          {{ range .Alerts }}
+          Alert: {{ .Annotations.summary }}
+          Description: {{ .Annotations.description }}
+          Status: {{ .Status }}
+          Severity: {{ .Labels.severity }}
+          Service: {{ .Labels.service }}
+          Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+          
+          System Dashboard: http://grafana.xorb.security/d/xorb-system
+          {{ end }}
+
+# Inhibition rules
+inhibit_rules:
+  # Suppress lower severity alerts when higher severity is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['service', 'instance']
+
+  - source_match:
+      severity: 'warning'
+    target_match:
+      severity: 'info'
+    equal: ['service', 'instance']
+
+# Templates for customization
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

@@ -1,0 +1,205 @@
+# XORB Platform Unified Requirements
+# Consolidated from 6+ separate requirements files
+# Version: 3.1.0 - Post-Audit Consolidation
+# Last Updated: August 2025
+
+# ==============================================================================
+# CORE FRAMEWORK & RUNTIME
+# ==============================================================================
+
+# Web Framework
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.2
+pydantic-settings==2.5.2
+
+# Async Runtime & HTTP
+asyncio==3.4.3
+asyncio-mqtt==0.15.0
+httpx==0.28.0
+aiohttp==3.9.1
+aiofiles==23.2.0
+
+# ==============================================================================
+# DATA LAYER & PERSISTENCE  
+# ==============================================================================
+
+# Database Drivers
+asyncpg==0.30.0
+redis[hiredis]==5.1.0
+aioredis==2.0.1
+
+# Database Migrations & ORM
+alembic==1.13.1
+sqlalchemy==2.0.23
+
+# ==============================================================================
+# SECURITY & AUTHENTICATION
+# ==============================================================================
+
+# Password Hashing & Cryptography
+passlib[argon2]==1.7.4
+argon2-cffi==23.1.0
+python-jose[cryptography]==3.3.0
+cryptography==42.0.1
+
+# Authentication & Authorization  
+authlib==1.3.1
+pyotp==2.9.0
+qrcode[pil]==7.4.2
+
+# Input Sanitization
+bleach==6.1.0
+
+# ==============================================================================
+# WORKFLOW ORCHESTRATION & MESSAGING
+# ==============================================================================
+
+# Temporal Workflow Engine
+temporalio==1.6.0
+
+# ==============================================================================
+# MONITORING & OBSERVABILITY
+# ==============================================================================
+
+# Metrics & Instrumentation
+prometheus-client==0.21.0
+prometheus-fastapi-instrumentator==7.0.0
+
+# Structured Logging
+structlog==23.2.0
+
+# OpenTelemetry (Distributed Tracing)
+opentelemetry-api==1.22.0
+opentelemetry-sdk==1.22.0
+opentelemetry-instrumentation==0.43b0
+opentelemetry-instrumentation-fastapi==0.43b0
+opentelemetry-instrumentation-asyncpg==0.43b0
+opentelemetry-instrumentation-redis==0.43b0
+opentelemetry-exporter-prometheus==1.12.0rc1
+opentelemetry-exporter-jaeger==1.21.0
+
+# ==============================================================================
+# MACHINE LEARNING & AI
+# ==============================================================================
+
+# Core ML Libraries
+numpy==1.26.3
+pandas==2.2.0
+scikit-learn==1.4.0
+scipy==1.12.0
+
+# AI/LLM APIs
+openai==1.7.2
+
+# Gradient Boosting (Optional)
+xgboost==2.0.3
+lightgbm==4.2.0
+
+# ==============================================================================
+# WEB SCRAPING & DATA EXTRACTION
+# ==============================================================================
+
+# Web Automation
+playwright==1.40.0
+requests==2.31.0
+lxml==5.1.0
+beautifulsoup4==4.12.2
+
+# ==============================================================================
+# SECURITY INTELLIGENCE & THREAT DATA
+# ==============================================================================
+
+# Vulnerability Databases
+nvdlib==0.8.0
+
+# ==============================================================================
+# UTILITIES & HELPERS
+# ==============================================================================
+
+# Configuration & Environment
+python-dotenv==1.1.0
+python-multipart==0.0.7
+
+# Date/Time Utilities
+python-dateutil==2.8.2
+
+# Data Validation
+jsonschema==4.20.0
+
+# File Processing
+python-magic==0.4.27
+
+# CLI Tools
+click==8.1.7
+rich==13.7.0
+
+# Configuration Management
+PyYAML==6.0.1
+watchdog==4.0.0
+
+# ==============================================================================
+# DEVELOPMENT & TESTING
+# ==============================================================================
+
+# Testing Framework
+pytest==7.4.3
+pytest-asyncio==0.23.2
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+
+# Code Quality
+black==23.12.1
+isort==5.13.2
+mypy==1.8.0
+flake8==6.1.0
+bandit==1.7.5
+
+# Pre-commit Hooks
+pre-commit==3.6.0
+
+# ==============================================================================
+# PRODUCTION DEPLOYMENT
+# ==============================================================================
+
+# Process Management  
+gunicorn==21.2.0
+
+# Performance Monitoring
+psutil==5.9.6
+
+# Health Checks
+httptools==0.6.1
+
+# ==============================================================================
+# VERSION CONSTRAINTS & COMPATIBILITY
+# ==============================================================================
+
+# Core compatibility pins
+setuptools>=65.0.0
+wheel>=0.38.0
+
+# Security updates - ensure latest patches
+urllib3>=2.1.0
+certifi>=2023.11.17
+
+# ==============================================================================
+# OPTIONAL DEPENDENCIES
+# ==============================================================================
+
+# Deep Learning (Uncomment as needed)
+# torch==2.1.2
+# torchvision==0.16.2
+# transformers==4.36.2
+
+# ML Operations (Uncomment as needed)
+# mlflow==2.9.2
+# optuna==3.5.0
+
+# ==============================================================================
+# INSTALLATION NOTES
+# ==============================================================================
+
+# Install with: pip install -r requirements-unified.lock
+# Production: pip install --no-deps -r requirements-unified.lock
+# Docker: COPY requirements-unified.lock . && RUN pip install --no-deps -r requirements-unified.lock

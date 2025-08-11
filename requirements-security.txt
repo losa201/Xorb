@@ -1,0 +1,10 @@
+# Security tool requirements for PTaaS
+nmap>=0.7.0
+python-metasploit>=1.0.0
+sqlmap>=1.5.0
+nikto>=2.1.6
+hydra>=9.0
+openvas-lib>=1.0.0
+aws-prowler>=3.0.0
+faraday-client>=3.0.0
+matplotlib>=3.4.0  # For visualization

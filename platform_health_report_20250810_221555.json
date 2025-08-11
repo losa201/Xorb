@@ -1,0 +1,86 @@
+{
+  "platform": "XORB Enterprise Cybersecurity Platform",
+  "version": "3.0.0",
+  "timestamp": "2025-08-10T22:15:55.385164",
+  "health_check_id": "health_1754864155",
+  "summary": {
+    "overall_status": "healthy",
+    "import_success_rate": "8/8 (100.0%)",
+    "syntax_success_rate": "4/4 (100.0%)",
+    "config_success_rate": "4/4 (100.0%)",
+    "critical_issues": [],
+    "recommendations": []
+  },
+  "details": {
+    "imports": {
+      "fastapi": {
+        "status": "success",
+        "description": "FastAPI framework"
+      },
+      "pydantic": {
+        "status": "success",
+        "description": "Data validation"
+      },
+      "asyncio": {
+        "status": "success",
+        "description": "Async support"
+      },
+      "redis": {
+        "status": "success",
+        "description": "Redis client"
+      },
+      "json": {
+        "status": "success",
+        "description": "JSON processing"
+      },
+      "logging": {
+        "status": "success",
+        "description": "Logging system"
+      },
+      "uuid": {
+        "status": "success",
+        "description": "UUID generation"
+      },
+      "datetime": {
+        "status": "success",
+        "description": "Date/time handling"
+      }
+    },
+    "syntax_checks": {
+      "src/api/app/main.py": {
+        "status": "valid",
+        "error": null
+      },
+      "src/api/app/infrastructure/database_models.py": {
+        "status": "valid",
+        "error": null
+      },
+      "src/api/app/controllers/advanced_orchestration_controller.py": {
+        "status": "valid",
+        "error": null
+      },
+      "src/api/app/services/interfaces.py": {
+        "status": "valid",
+        "error": null
+      }
+    },
+    "configuration": {
+      "config/production.json": {
+        "status": "valid",
+        "type": "json"
+      },
+      "config/development.json": {
+        "status": "valid",
+        "type": "json"
+      },
+      "requirements.txt": {
+        "status": "valid",
+        "type": "text"
+      },
+      "docker-compose.yml": {
+        "status": "valid",
+        "type": "text"
+      }
+    }
+  }
+}

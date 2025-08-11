@@ -1,0 +1,187 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xorb-orchestrator
+  namespace: xorb-production
+  labels:
+    app: xorb-orchestrator
+    tier: application
+    component: orchestrator
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: xorb-orchestrator
+  template:
+    metadata:
+      labels:
+        app: xorb-orchestrator
+        tier: application
+        component: orchestrator
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8001"
+        prometheus.io/path: "/metrics"
+    spec:
+      securityContext:
+        runAsUser: 1000
+        runAsNonRoot: true
+        fsGroup: 1000
+      serviceAccountName: xorb-orchestrator
+      containers:
+      - name: xorb-orchestrator
+        image: xorb/orchestrator:latest
+        ports:
+        - containerPort: 8001
+          name: http
+          protocol: TCP
+        env:
+        - name: ENVIRONMENT
+          value: "production"
+        - name: LOG_LEVEL
+          value: "INFO"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: database-credentials
+              key: url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: redis-credentials
+              key: url
+        - name: TEMPORAL_HOST
+          value: "temporal:7233"
+        - name: WORKFLOW_TASK_QUEUE
+          value: "xorb-orchestrator-queue"
+        - name: MAX_CONCURRENT_WORKFLOWS
+          value: "100"
+        - name: CIRCUIT_BREAKER_THRESHOLD
+          value: "5"
+        - name: CIRCUIT_BREAKER_TIMEOUT
+          value: "60"
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+          readOnly: true
+        - name: logs
+          mountPath: /app/logs
+        - name: scanner-tools
+          mountPath: /usr/local/bin/scanners
+          readOnly: true
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8001
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /readiness
+            port: 8001
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+            add:
+            - NET_RAW  # Required for some security scanning tools
+      volumes:
+      - name: config
+        configMap:
+          name: xorb-orchestrator-config
+      - name: logs
+        emptyDir: {}
+      - name: scanner-tools
+        configMap:
+          name: scanner-tools-config
+          defaultMode: 0755
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 60
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: xorb-orchestrator
+  namespace: xorb-production
+  labels:
+    app: xorb-orchestrator
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 8001
+    protocol: TCP
+    name: http
+  selector:
+    app: xorb-orchestrator
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: xorb-orchestrator
+  namespace: xorb-production
+  labels:
+    app: xorb-orchestrator
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: xorb-orchestrator-pdb
+  namespace: xorb-production
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: xorb-orchestrator
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: xorb-workflow-cleanup
+  namespace: xorb-production
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: workflow-cleanup
+            image: xorb/orchestrator:latest
+            command:
+            - python
+            - -c
+            - |
+              import asyncio
+              from src.orchestrator.cleanup import cleanup_completed_workflows
+              asyncio.run(cleanup_completed_workflows())
+            env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: database-credentials
+                  key: url
+          restartPolicy: OnFailure
+      backoffLimit: 3

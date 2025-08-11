@@ -1,0 +1,55 @@
+# XORB Platform Development Configuration
+# Development-specific overrides
+
+# Environment
+environment: "development"
+debug: true
+
+# Services (Development settings)
+services:
+  api:
+    workers: 1  # Single worker for easier debugging
+    timeout: 60  # Longer timeout for debugging
+
+# Database (Development settings)
+database:
+  host: "localhost"
+  port: 5432
+  name: "xorb_dev"
+  username: "xorb_dev"
+  max_connections: 10
+
+# Redis (Development settings)
+redis:
+  host: "localhost"
+  port: 6379
+  database: 0
+
+# Security (Relaxed for development)
+security:
+  jwt_expiry_minutes: 120  # Longer sessions for development
+  password_min_length: 8   # Shorter passwords for dev
+  max_login_attempts: 10   # More lenient
+  require_mfa: false
+
+# Monitoring (Development settings)
+monitoring:
+  log_level: "DEBUG"
+  prometheus_enabled: true
+  grafana_enabled: true
+
+# CORS (Allow localhost)
+cors_origins:
+  - "http://localhost:3000"
+  - "http://localhost:3001"
+  - "http://localhost:8080"
+  - "http://127.0.0.1:3000"
+
+# Feature Flags (Enable all for testing)
+features:
+  advanced_analytics: true
+  threat_hunting: true
+  compliance_automation: true
+  multi_tenant: true
+  sso_integration: true
+  ai_enhancement: true

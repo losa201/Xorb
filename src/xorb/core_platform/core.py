@@ -386,7 +386,7 @@ class XORBPristineCorePlatform:
         password = data.get('password')
         
         user = await self.auth_service.user_repo.get_user_by_username(username)
-        if not user or user.password != password: # TODO: Hash passwords
+        if not user or not self.auth_service.verify_password(password, user.password):
             return web.json_response({'error': 'Invalid credentials'}, status=401)
         
         token = await self.auth_service.create_jwt_token(user)

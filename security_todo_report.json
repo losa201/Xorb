@@ -1,0 +1,77 @@
+{
+  "summary": {
+    "total_todos": 6,
+    "by_risk_level": {
+      "critical": 0,
+      "high": 0,
+      "medium": 2,
+      "low": 4,
+      "none": 0
+    },
+    "security_related": 2,
+    "immediate_action_required": 0
+  },
+  "todos_by_risk": {
+    "critical": [],
+    "high": [],
+    "medium": [
+      {
+        "file": "src/api/app/routers/enterprise_auth.py",
+        "line": 100,
+        "type": "TODO",
+        "text": "Validate state against stored value",
+        "category": "Input validation needed",
+        "recommendation": "\u26a1 MEDIUM PRIORITY - Should be addressed in current sprint\n  \u2022 Implement input validation and sanitization\n  \u2022 Use Pydantic models for validation"
+      },
+      {
+        "file": "src/api/app/services/unified_auth_service.py",
+        "line": 308,
+        "type": "TODO",
+        "text": "Implement OIDC authentication",
+        "category": "Security feature incomplete",
+        "recommendation": "\u26a1 MEDIUM PRIORITY - Should be addressed in current sprint"
+      }
+    ],
+    "low": [
+      {
+        "file": "scripts/security_todo_analyzer.py",
+        "line": 32,
+        "type": "TODO",
+        "text": ", FIXME, HACK, etc.",
+        "category": "General improvement",
+        "recommendation": "Address when convenient"
+      },
+      {
+        "file": "src/api/app/routers/enterprise_auth.py",
+        "line": 207,
+        "type": "TODO",
+        "text": "Add admin role check",
+        "category": "General improvement",
+        "recommendation": "Address when convenient"
+      },
+      {
+        "file": "src/api/app/routers/enterprise_auth.py",
+        "line": 336,
+        "type": "TODO",
+        "text": "Add admin role check",
+        "category": "General improvement",
+        "recommendation": "Address when convenient"
+      },
+      {
+        "file": "tools/scripts/orchestration/enterprise_deployment_orchestrator.py",
+        "line": 2151,
+        "type": "TODO",
+        "text": "Implement dry run logic",
+        "category": "Security-related: log",
+        "recommendation": "\ud83d\udca1 LOW PRIORITY - Address during maintenance cycles"
+      }
+    ],
+    "none": []
+  },
+  "categories": {
+    "General improvement": 3,
+    "Input validation needed": 1,
+    "Security feature incomplete": 1,
+    "Security-related: log": 1
+  }
+}

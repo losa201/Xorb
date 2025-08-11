@@ -15,38 +15,27 @@ from datetime import datetime
 
 try:
     from openai import OpenAI, AsyncOpenAI
+    OPENAI_AVAILABLE = True
 except ImportError:
-    # Mock OpenAI client if not available
+    OPENAI_AVAILABLE = False
+    # Graceful fallback - will use local reasoning
     class MockOpenAI:
-        def __init__(self, *args, **kwargs): pass
-        class chat:
-            class completions:
-                @staticmethod
-                def create(*args, **kwargs):
-                    return type('Response', (), {
-                        'choices': [type('Choice', (), {
-                            'message': type('Message', (), {
-                                'content': '{"decision": "approve", "confidence": 0.85, "reasoning": "Mock LLM response"}'
-                            })()
-                        })()]
-                    })()
+        def __init__(self, *args, **kwargs): 
+            logger.warning("OpenAI not available - using local reasoning fallbacks")
     
     class MockAsyncOpenAI:
-        def __init__(self, *args, **kwargs): pass
-        class chat:
-            class completions:
-                @staticmethod
-                async def create(*args, **kwargs):
-                    return type('Response', (), {
-                        'choices': [type('Choice', (), {
-                            'message': type('Message', (), {
-                                'content': '{"decision": "approve", "confidence": 0.85, "reasoning": "Mock async LLM response"}'
-                            })()
-                        })()]
-                    })()
+        def __init__(self, *args, **kwargs): 
+            logger.warning("AsyncOpenAI not available - using local reasoning fallbacks")
     
     OpenAI = MockOpenAI
     AsyncOpenAI = MockAsyncOpenAI
+
+try:
+    import httpx
+    HTTPX_AVAILABLE = True
+except ImportError:
+    HTTPX_AVAILABLE = False
+    logger.warning("httpx not available - LLM provider connectivity limited")
 
 logger = logging.getLogger(__name__)
 
@@ -95,10 +84,15 @@ class XORBLLMOrchestrator:
         """Initialize LLM providers with strategic configuration."""
         logger.info("Initializing XORB LLM Orchestrator with multiple providers")
         
-        # OpenRouter providers (free tier with fallback strategy)
+        # OpenRouter providers (secure configuration)
+        openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+        if not openrouter_api_key:
+            logger.warning("OPENROUTER_API_KEY not set - OpenRouter providers will be unavailable")
+            return
+        
         openrouter_config = {
             "base_url": "https://openrouter.ai/api/v1",
-            "api_key": os.getenv("OPENROUTER_API_KEY", "dummy_key")
+            "api_key": openrouter_api_key
         }
         
         self.providers[LLMProvider.OPENROUTER_QWEN] = AsyncOpenAI(
@@ -117,11 +111,15 @@ class XORBLLMOrchestrator:
             **openrouter_config
         )
         
-        # NVIDIA provider
-        self.providers[LLMProvider.NVIDIA_QWEN] = AsyncOpenAI(
-            base_url="https://integrate.api.nvidia.com/v1",
-            api_key=os.getenv("NVIDIA_API_KEY", "dummy_key")
-        )
+        # NVIDIA provider (secure configuration)
+        nvidia_api_key = os.getenv("NVIDIA_API_KEY")
+        if nvidia_api_key:
+            self.providers[LLMProvider.NVIDIA_QWEN] = AsyncOpenAI(
+                base_url="https://integrate.api.nvidia.com/v1",
+                api_key=nvidia_api_key
+            )
+        else:
+            logger.warning("NVIDIA_API_KEY not set - NVIDIA provider will be unavailable")
         
         logger.info(f"Initialized {len(self.providers)} LLM providers")
     
@@ -140,6 +138,10 @@ class XORBLLMOrchestrator:
     async def _single_provider_decision(self, prompt: str, decision_type: DecisionType) -> LLMDecision:
         """Get decision from single best-performing provider with fallback."""
         
+        if not OPENAI_AVAILABLE:
+            logger.info("OpenAI SDK not available, using local reasoning")
+            return self._local_fallback_decision(decision_type)
+        
         for provider in self.fallback_chain:
             try:
                 logger.info(f"Attempting decision with {provider.value}")
@@ -147,24 +149,33 @@ class XORBLLMOrchestrator:
                 client = self.providers[provider]
                 model_name = self._get_model_name(provider)
                 
-                response = await client.chat.completions.create(
-                    model=model_name,
-                    messages=[
-                        {"role": "system", "content": self._get_system_prompt(decision_type)},
-                        {"role": "user", "content": prompt}
-                    ],
-                    temperature=0.3,
-                    max_tokens=1000
-                )
-                
-                content = response.choices[0].message.content
-                decision = self._parse_llm_response(content)
-                
-                # Track successful provider
-                self._track_provider_success(provider, decision.confidence)
-                
-                logger.info(f"Decision obtained from {provider.value} with confidence {decision.confidence}")
-                return decision
+                # Check if this is a mock client
+                if hasattr(client, 'chat') and hasattr(client.chat, 'completions'):
+                    try:
+                        response = await client.chat.completions.create(
+                            model=model_name,
+                            messages=[
+                                {"role": "system", "content": self._get_system_prompt(decision_type)},
+                                {"role": "user", "content": prompt}
+                            ],
+                            temperature=0.3,
+                            max_tokens=1000
+                        )
+                        
+                        content = response.choices[0].message.content
+                        decision = self._parse_llm_response(content)
+                        
+                        # Track successful provider
+                        self._track_provider_success(provider, decision.confidence)
+                        
+                        logger.info(f"Decision obtained from {provider.value} with confidence {decision.confidence}")
+                        return decision
+                    except AttributeError:
+                        # This is likely a mock client
+                        logger.debug(f"Provider {provider.value} appears to be a mock client")
+                        raise Exception("Mock client detected")
+                else:
+                    raise Exception("Invalid client configuration")
                 
             except Exception as e:
                 logger.warning(f"Provider {provider.value} failed: {e}")

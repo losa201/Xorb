@@ -193,7 +193,7 @@ class XORBMicroservicesDeployment:
                 "LOG_LEVEL": "INFO",
                 "PORT": "8080",
                 "METRICS_PORT": "9090",
-                "DATABASE_URL": "postgresql://xorb_user:password@postgresql-primary:5432/xorb",
+                "DATABASE_URL": "postgresql://xorb_user:${POSTGRES_PASSWORD}@postgresql-primary:5432/xorb",
                 "REDIS_URL": "redis://redis-cluster:6379",
                 "VAULT_URL": "http://vault:8200"
             },
@@ -238,7 +238,7 @@ class XORBMicroservicesDeployment:
             environment_variables={
                 "LOG_LEVEL": "INFO",
                 "PORT": "8003",
-                "DATABASE_URL": "postgresql://xorb_user:password@postgresql-primary:5432/xorb",
+                "DATABASE_URL": "postgresql://xorb_user:${POSTGRES_PASSWORD}@postgresql-primary:5432/xorb",
                 "REDIS_URL": "redis://redis-cluster:6379",
                 "NEO4J_URL": "bolt://neo4j-cluster:7687"
             },
@@ -278,7 +278,7 @@ class XORBMicroservicesDeployment:
             environment_variables={
                 "LOG_LEVEL": "INFO",
                 "PORT": "8004",
-                "DATABASE_URL": "postgresql://xorb_user:password@postgresql-primary:5432/xorb",
+                "DATABASE_URL": "postgresql://xorb_user:${POSTGRES_PASSWORD}@postgresql-primary:5432/xorb",
                 "REDIS_URL": "redis://redis-cluster:6379",
                 "ELASTICSEARCH_URL": "http://elasticsearch-cluster:9200"
             },
@@ -356,7 +356,7 @@ class XORBMicroservicesDeployment:
             environment_variables={
                 "LOG_LEVEL": "INFO",
                 "PORT": "8001",
-                "DATABASE_URL": "postgresql://xorb_user:password@postgresql-primary:5432/xorb",
+                "DATABASE_URL": "postgresql://xorb_user:${POSTGRES_PASSWORD}@postgresql-primary:5432/xorb",
                 "REDIS_URL": "redis://redis-cluster:6379",
                 "NEO4J_URL": "bolt://neo4j-cluster:7687"
             },
@@ -471,7 +471,7 @@ class XORBMicroservicesDeployment:
             environment_variables={
                 "LOG_LEVEL": "INFO",
                 "PORT": "8008",
-                "DATABASE_URL": "postgresql://xorb_user:password@postgresql-primary:5432/xorb",
+                "DATABASE_URL": "postgresql://xorb_user:${POSTGRES_PASSWORD}@postgresql-primary:5432/xorb",
                 "REDIS_URL": "redis://redis-cluster:6379",
                 "NEO4J_URL": "bolt://neo4j-cluster:7687"
             },

@@ -1,664 +1,541 @@
 """
 Advanced threat detection engine
-Implements ML-based anomaly detection and threat intelligence integration
+Uses machine learning and rule-based detection for threat identification
 """
 
-import hashlib
-import json
+import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
+from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
-from collections import defaultdict, deque
-import statistics
+import re
+import hashlib
+import threading
+from collections import defaultdict
 
-from ..ingestion.event_normalizer import NormalizedEvent, EventCategory, EventSeverity
+from ..ingestion.event_normalizer import NormalizedEvent, EventCategory, EventSeverity, EventAction
 
-
-class ThreatLevel(Enum):
-    """Threat severity levels"""
-    CRITICAL = "critical"
-    HIGH = "high"
-    MEDIUM = "medium"
-    LOW = "low"
-    UNKNOWN = "unknown"
+logger = logging.getLogger(__name__)
 
 
 class ThreatType(Enum):
-    """Types of detected threats"""
+    """Types of threats detected"""
     MALWARE = "malware"
     BOTNET = "botnet"
     APT = "apt"
     INSIDER_THREAT = "insider_threat"
     BRUTE_FORCE = "brute_force"
+    DDoS = "ddos"
     DATA_EXFILTRATION = "data_exfiltration"
     PRIVILEGE_ESCALATION = "privilege_escalation"
     LATERAL_MOVEMENT = "lateral_movement"
-    RECONNAISSANCE = "reconnaissance"
-    DENIAL_OF_SERVICE = "denial_of_service"
+    COMMAND_INJECTION = "command_injection"
+    SQL_INJECTION = "sql_injection"
+    XSS = "xss"
     PHISHING = "phishing"
-    CRYPTOMINING = "cryptomining"
+    RECONNAISSANCE = "reconnaissance"
     UNKNOWN = "unknown"
 
 
-@dataclass
-class ThreatIndicator:
-    """Threat intelligence indicator"""
-    indicator_id: str
-    value: str
-    type: str  # ip, domain, hash, url, email
-    threat_type: ThreatType
-    severity: ThreatLevel
-    confidence: float  # 0.0 to 1.0
-    source: str
-    first_seen: datetime
-    last_seen: datetime
-    description: str = ""
-    tags: List[str] = field(default_factory=list)
-    context: Dict[str, Any] = field(default_factory=dict)
+class ThreatSeverity(Enum):
+    """Threat severity levels"""
+    CRITICAL = "critical"
+    HIGH = "high"
+    MEDIUM = "medium"
+    LOW = "low"
 
 
 @dataclass
 class ThreatDetection:
-    """Detected threat result"""
-    detection_id: str = field(default_factory=lambda: hashlib.md5(str(datetime.utcnow()).encode()).hexdigest())
-    threat_type: ThreatType = ThreatType.UNKNOWN
-    threat_level: ThreatLevel = ThreatLevel.UNKNOWN
-    confidence: float = 0.0
-    
-    # Detection details
-    title: str = ""
-    description: str = ""
-    evidence: List[NormalizedEvent] = field(default_factory=list)
-    indicators: List[ThreatIndicator] = field(default_factory=list)
-    
-    # Attack context
-    attack_vector: str = ""
-    kill_chain_phase: str = ""
-    mitre_tactics: List[str] = field(default_factory=list)
+    """Threat detection result"""
+    detection_id: str
+    threat_type: ThreatType
+    severity: ThreatSeverity
+    confidence: float
+    description: str
+    event: NormalizedEvent
+    indicators: List[str]
     mitre_techniques: List[str] = field(default_factory=list)
-    
-    # Asset context
-    affected_assets: Set[str] = field(default_factory=set)
-    compromised_accounts: Set[str] = field(default_factory=set)
-    network_indicators: Dict[str, Any] = field(default_factory=dict)
-    
-    # Timeline
-    first_observed: datetime = field(default_factory=datetime.utcnow)
-    last_observed: datetime = field(default_factory=datetime.utcnow)
-    detection_time: datetime = field(default_factory=datetime.utcnow)
-    
-    # Response
-    recommended_actions: List[str] = field(default_factory=list)
-    containment_suggestions: List[str] = field(default_factory=list)
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization"""
-        return {
-            "detection_id": self.detection_id,
-            "threat_type": self.threat_type.value,
-            "threat_level": self.threat_level.value,
-            "confidence": self.confidence,
-            "title": self.title,
-            "description": self.description,
-            "attack_vector": self.attack_vector,
-            "kill_chain_phase": self.kill_chain_phase,
-            "mitre_tactics": self.mitre_tactics,
-            "mitre_techniques": self.mitre_techniques,
-            "affected_assets": list(self.affected_assets),
-            "compromised_accounts": list(self.compromised_accounts),
-            "network_indicators": self.network_indicators,
-            "first_observed": self.first_observed.isoformat(),
-            "last_observed": self.last_observed.isoformat(),
-            "detection_time": self.detection_time.isoformat(),
-            "recommended_actions": self.recommended_actions,
-            "containment_suggestions": self.containment_suggestions,
-            "evidence_count": len(self.evidence),
-            "indicator_count": len(self.indicators)
-        }
+    iocs: List[str] = field(default_factory=list)  # Indicators of Compromise
+    recommendations: List[str] = field(default_factory=list)
+    additional_context: Dict[str, Any] = field(default_factory=dict)
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
 
-class BehavioralProfile:
-    """User/Asset behavioral profile for anomaly detection"""
+class ThreatSignature:
+    """Threat detection signature"""
     
-    def __init__(self, entity_id: str, entity_type: str = "user"):
-        self.entity_id = entity_id
-        self.entity_type = entity_type
-        self.baseline_established = False
-        
-        # Activity patterns
-        self.login_times: List[int] = []  # Hours of day
-        self.active_days: Set[int] = set()  # Days of week
-        self.source_ips: Set[str] = set()
-        self.accessed_resources: Set[str] = set()
-        self.typical_actions: Dict[str, int] = defaultdict(int)
-        
-        # Statistical baselines
-        self.avg_session_duration: float = 0.0
-        self.avg_data_volume: float = 0.0
-        self.typical_error_rate: float = 0.0
-        
-        # Learning parameters
-        self.observation_window = timedelta(days=30)
-        self.min_observations = 50
-        self.observations = 0
-        
-        # Last updated
-        self.last_updated = datetime.utcnow()
-    
-    def update_profile(self, event: NormalizedEvent):
-        """Update profile with new event"""
-        self.observations += 1
-        self.last_updated = datetime.utcnow()
-        
-        # Update patterns
-        self.login_times.append(event.timestamp.hour)
-        self.active_days.add(event.timestamp.weekday())
-        
-        if event.source_ip:
-            self.source_ips.add(event.source_ip)
-        
-        if event.action:
-            self.typical_actions[event.action] += 1
-        
-        # Maintain reasonable memory usage
-        if len(self.login_times) > 1000:
-            self.login_times = self.login_times[-500:]
-        
-        # Check if baseline is established
-        if self.observations >= self.min_observations:
-            self.baseline_established = True
-    
-    def calculate_anomaly_score(self, event: NormalizedEvent) -> float:
-        """Calculate anomaly score for event (0.0 = normal, 1.0 = highly anomalous)"""
-        if not self.baseline_established:
-            return 0.0
-        
-        anomaly_factors = []
-        
-        # Time-based anomaly
-        if self.login_times:
-            typical_hours = set(self.login_times[-100:])  # Recent patterns
-            if event.timestamp.hour not in typical_hours:
-                anomaly_factors.append(0.6)
-        
-        # Day-based anomaly
-        if event.timestamp.weekday() not in self.active_days:
-            anomaly_factors.append(0.4)
-        
-        # IP-based anomaly
-        if event.source_ip and event.source_ip not in self.source_ips:
-            anomaly_factors.append(0.8)
-        
-        # Action-based anomaly
-        if event.action and event.action not in self.typical_actions:
-            anomaly_factors.append(0.5)
-        
-        # Calculate weighted average
-        if anomaly_factors:
-            return min(1.0, sum(anomaly_factors) / len(anomaly_factors))
-        
-        return 0.0
+    def __init__(self, signature_id: str, name: str, threat_type: ThreatType,
+                 severity: ThreatSeverity, patterns: List[str], 
+                 mitre_techniques: List[str] = None):
+        self.signature_id = signature_id
+        self.name = name
+        self.threat_type = threat_type
+        self.severity = severity
+        self.patterns = [re.compile(p, re.IGNORECASE) for p in patterns]
+        self.mitre_techniques = mitre_techniques or []
+        self.enabled = True
+        self.hit_count = 0
+        self.last_hit = None
 
 
-class ThreatIntelligence:
-    """Threat intelligence management and lookup"""
+class IPReputation:
+    """IP reputation tracking"""
     
     def __init__(self):
-        self.indicators: Dict[str, ThreatIndicator] = {}
-        self.reputation_cache: Dict[str, Dict[str, Any]] = {}
-        self.cache_ttl = timedelta(hours=24)
+        self.known_bad_ips: Set[str] = set()
+        self.reputation_scores: Dict[str, float] = {}  # 0.0 = bad, 1.0 = good
+        self.lock = threading.RLock()
+        
+        # Load some known bad IP ranges (example)
+        self._load_known_bad_ips()
     
-    def add_indicator(self, indicator: ThreatIndicator):
-        """Add threat indicator"""
-        self.indicators[indicator.value] = indicator
+    def check_ip(self, ip: str) -> Tuple[bool, float]:
+        """Check IP reputation. Returns (is_malicious, confidence)"""
+        with self.lock:
+            if ip in self.known_bad_ips:
+                return True, 1.0
+            
+            reputation = self.reputation_scores.get(ip, 0.5)  # Default neutral
+            is_malicious = reputation < 0.3
+            confidence = abs(reputation - 0.5) * 2  # Convert to 0-1 confidence
+            
+            return is_malicious, confidence
     
-    def lookup_indicator(self, value: str, indicator_type: str = None) -> Optional[ThreatIndicator]:
-        """Lookup threat indicator"""
-        indicator = self.indicators.get(value)
-        if indicator and (not indicator_type or indicator.type == indicator_type):
-            indicator.last_seen = datetime.utcnow()
-            return indicator
-        return None
+    def add_bad_ip(self, ip: str, confidence: float = 1.0):
+        """Add IP to bad reputation list"""
+        with self.lock:
+            self.known_bad_ips.add(ip)
+            self.reputation_scores[ip] = max(0.0, 1.0 - confidence)
     
-    def get_reputation(self, value: str, indicator_type: str) -> Dict[str, Any]:
-        """Get reputation information for indicator"""
-        cache_key = f"{indicator_type}:{value}"
-        
-        # Check cache
-        if cache_key in self.reputation_cache:
-            cached_result = self.reputation_cache[cache_key]
-            if datetime.utcnow() - cached_result['timestamp'] < self.cache_ttl:
-                return cached_result['data']
-        
-        # Mock reputation lookup (in production, integrate with threat intel feeds)
-        reputation = {
-            "malicious": False,
-            "suspicious": False,
-            "reputation_score": 0,  # -100 to 100
-            "categories": [],
-            "last_analysis": datetime.utcnow().isoformat(),
-            "sources": []
-        }
-        
-        # Cache result
-        self.reputation_cache[cache_key] = {
-            "data": reputation,
-            "timestamp": datetime.utcnow()
-        }
-        
-        return reputation
-    
-    def enrich_event(self, event: NormalizedEvent) -> Dict[str, Any]:
-        """Enrich event with threat intelligence"""
-        enrichment = {
-            "threat_indicators": [],
-            "reputation_data": {},
-            "risk_score": 0
-        }
-        
-        # Check various fields for indicators
-        fields_to_check = [
-            (event.source_ip, "ip"),
-            (event.dest_ip, "ip"),
-            (event.file_hash, "hash"),
-            (event.process_name, "process")
+    def _load_known_bad_ips(self):
+        """Load known bad IP addresses"""
+        # In production, this would load from threat intelligence feeds
+        known_bad = [
+            "127.0.0.1",  # Example - don't use localhost in production
+            "0.0.0.0",
+            "255.255.255.255"
         ]
         
-        for value, indicator_type in fields_to_check:
-            if value:
-                indicator = self.lookup_indicator(value, indicator_type)
-                if indicator:
-                    enrichment["threat_indicators"].append({
-                        "value": value,
-                        "type": indicator_type,
-                        "threat_type": indicator.threat_type.value,
-                        "severity": indicator.severity.value,
-                        "confidence": indicator.confidence
-                    })
-                    enrichment["risk_score"] += indicator.confidence * 10
-                
-                # Get reputation data
-                if indicator_type in ["ip", "hash"]:
-                    reputation = self.get_reputation(value, indicator_type)
-                    enrichment["reputation_data"][value] = reputation
-                    
-                    if reputation["malicious"]:
-                        enrichment["risk_score"] += 50
-                    elif reputation["suspicious"]:
-                        enrichment["risk_score"] += 25
-        
-        return enrichment
+        for ip in known_bad:
+            self.known_bad_ips.add(ip)
+            self.reputation_scores[ip] = 0.0
 
 
 class ThreatDetector:
     """Advanced threat detection engine"""
     
     def __init__(self):
-        self.behavioral_profiles: Dict[str, BehavioralProfile] = {}
-        self.threat_intelligence = ThreatIntelligence()
-        self.detection_rules = {}
-        self.recent_detections: deque = deque(maxlen=1000)
+        self.signatures: Dict[str, ThreatSignature] = {}
+        self.ip_reputation = IPReputation()
+        self.user_behavior_baselines: Dict[str, Dict[str, Any]] = {}
+        self.detection_statistics = defaultdict(int)
+        self.lock = threading.RLock()
         
-        # Initialize detection rules
-        self._initialize_detection_rules()
+        # Load detection signatures
+        self._load_threat_signatures()
         
-        # Load threat intelligence
-        self._load_threat_intelligence()
+        # Behavioral analysis parameters
+        self.baseline_learning_period = 7  # days
+        self.anomaly_threshold = 2.0  # standard deviations
     
     def analyze_event(self, event: NormalizedEvent) -> List[ThreatDetection]:
         """Analyze event for threats"""
         detections = []
         
-        # Enrich event with threat intelligence
-        enrichment = self.threat_intelligence.enrich_event(event)
-        event.threat_intel = enrichment
-        
-        # Update behavioral profiles
-        self._update_behavioral_profiles(event)
-        
-        # Apply detection rules
-        for rule_name, rule_func in self.detection_rules.items():
+        with self.lock:
+            self.detection_statistics['events_analyzed'] += 1
+            
             try:
-                detection = rule_func(event)
-                if detection:
-                    detections.append(detection)
+                # Signature-based detection
+                signature_detections = self._signature_detection(event)
+                detections.extend(signature_detections)
+                
+                # IP reputation check
+                ip_detections = self._ip_reputation_check(event)
+                detections.extend(ip_detections)
+                
+                # Behavioral analysis
+                behavioral_detections = self._behavioral_analysis(event)
+                detections.extend(behavioral_detections)
+                
+                # Pattern analysis
+                pattern_detections = self._pattern_analysis(event)
+                detections.extend(pattern_detections)
+                
+                # Update statistics
+                if detections:
+                    self.detection_statistics['threats_detected'] += len(detections)
+                    for detection in detections:
+                        self.detection_statistics[f'threat_type_{detection.threat_type.value}'] += 1
+                
             except Exception as e:
-                print(f"Error in detection rule {rule_name}: {e}")
-        
-        # Store detections
-        self.recent_detections.extend(detections)
+                logger.error(f"Error analyzing event for threats: {e}")
+                self.detection_statistics['analysis_errors'] += 1
         
         return detections
     
-    def _update_behavioral_profiles(self, event: NormalizedEvent):
-        """Update behavioral profiles for users and assets"""
-        entities_to_profile = []
+    def _signature_detection(self, event: NormalizedEvent) -> List[ThreatDetection]:
+        """Signature-based threat detection"""
+        detections = []
         
-        if event.source_user:
-            entities_to_profile.append((event.source_user, "user"))
-        if event.source_host:
-            entities_to_profile.append((event.source_host, "host"))
+        # Check message against all signatures
+        message = event.message.lower() if event.message else ""
         
-        for entity_id, entity_type in entities_to_profile:
-            if entity_id not in self.behavioral_profiles:
-                self.behavioral_profiles[entity_id] = BehavioralProfile(entity_id, entity_type)
+        for signature in self.signatures.values():
+            if not signature.enabled:
+                continue
             
-            self.behavioral_profiles[entity_id].update_profile(event)
-    
-    def _initialize_detection_rules(self):
-        """Initialize built-in detection rules"""
-        self.detection_rules = {
-            "malware_detection": self._detect_malware,
-            "insider_threat": self._detect_insider_threat,
-            "brute_force": self._detect_brute_force,
-            "data_exfiltration": self._detect_data_exfiltration,
-            "lateral_movement": self._detect_lateral_movement,
-            "privilege_escalation": self._detect_privilege_escalation,
-            "reconnaissance": self._detect_reconnaissance,
-            "anomalous_behavior": self._detect_anomalous_behavior
-        }
-    
-    def _detect_malware(self, event: NormalizedEvent) -> Optional[ThreatDetection]:
-        """Detect malware-related activity"""
-        threat_indicators = event.threat_intel.get("threat_indicators", [])
+            for pattern in signature.patterns:
+                if pattern.search(message):
+                    detection = self._create_detection(
+                        signature.threat_type,
+                        signature.severity,
+                        1.0,  # High confidence for signature match
+                        f"Signature match: {signature.name}",
+                        event,
+                        indicators=[f"Pattern: {pattern.pattern}"],
+                        mitre_techniques=signature.mitre_techniques
+                    )
+                    detections.append(detection)
+                    
+                    # Update signature statistics
+                    signature.hit_count += 1
+                    signature.last_hit = datetime.utcnow()
+                    break  # One match per signature is enough
         
-        for indicator in threat_indicators:
-            if indicator["threat_type"] == "malware":
-                return ThreatDetection(
-                    threat_type=ThreatType.MALWARE,
-                    threat_level=ThreatLevel.HIGH,
-                    confidence=indicator["confidence"],
-                    title="Malware Detection",
-                    description=f"Detected malware indicator: {indicator['value']}",
-                    evidence=[event],
-                    attack_vector="malware",
-                    kill_chain_phase="installation",
-                    mitre_tactics=["TA0002"],  # Execution
-                    mitre_techniques=["T1204"],  # User Execution
-                    recommended_actions=[
-                        "Isolate affected system",
-                        "Run full antimalware scan",
-                        "Check for persistence mechanisms",
-                        "Analyze network connections"
-                    ]
+        return detections
+    
+    def _ip_reputation_check(self, event: NormalizedEvent) -> List[ThreatDetection]:
+        """IP reputation-based detection"""
+        detections = []
+        
+        # Check source IP
+        if event.source_ip:
+            is_malicious, confidence = self.ip_reputation.check_ip(event.source_ip)
+            if is_malicious:
+                detection = self._create_detection(
+                    ThreatType.MALWARE,  # Could be more specific
+                    ThreatSeverity.HIGH,
+                    confidence,
+                    f"Malicious IP detected: {event.source_ip}",
+                    event,
+                    indicators=[f"Source IP: {event.source_ip}"],
+                    iocs=[event.source_ip]
                 )
+                detections.append(detection)
         
-        # Check for malware-like process behavior
-        if (event.process_name and 
-            event.category == EventCategory.PROCESS_ACTIVITY and
-            any(suspicious in event.process_name.lower() for suspicious in 
-                ['powershell', 'cmd', 'wscript', 'cscript', 'regsvr32'])):
+        # Check destination IP
+        if event.destination_ip:
+            is_malicious, confidence = self.ip_reputation.check_ip(event.destination_ip)
+            if is_malicious:
+                detection = self._create_detection(
+                    ThreatType.DATA_EXFILTRATION,
+                    ThreatSeverity.MEDIUM,
+                    confidence,
+                    f"Communication with malicious IP: {event.destination_ip}",
+                    event,
+                    indicators=[f"Destination IP: {event.destination_ip}"],
+                    iocs=[event.destination_ip]
+                )
+                detections.append(detection)
+        
+        return detections
+    
+    def _behavioral_analysis(self, event: NormalizedEvent) -> List[ThreatDetection]:
+        """Behavioral anomaly detection"""
+        detections = []
+        
+        if not event.user:
+            return detections
+        
+        # Get user behavior baseline
+        baseline = self.user_behavior_baselines.get(event.user, {})
+        
+        # Check for time-based anomalies
+        if 'login_hours' in baseline:
+            current_hour = event.timestamp.hour
+            normal_hours = baseline['login_hours']
             
-            if event.command_line and any(indicator in event.command_line.lower() for indicator in
-                                        ['downloadstring', 'invoke-expression', 'base64', 'encoded']):
-                return ThreatDetection(
-                    threat_type=ThreatType.MALWARE,
-                    threat_level=ThreatLevel.MEDIUM,
-                    confidence=0.7,
-                    title="Suspicious Process Execution",
-                    description="Detected potentially malicious process execution",
-                    evidence=[event],
-                    attack_vector="process_execution",
-                    kill_chain_phase="execution",
-                    mitre_tactics=["TA0002"],
-                    mitre_techniques=["T1059"]
+            if current_hour not in normal_hours:
+                detection = self._create_detection(
+                    ThreatType.INSIDER_THREAT,
+                    ThreatSeverity.MEDIUM,
+                    0.7,
+                    f"User {event.user} accessing system outside normal hours",
+                    event,
+                    indicators=[f"Login at hour {current_hour}, normal hours: {normal_hours}"],
+                    mitre_techniques=['T1078']
                 )
+                detections.append(detection)
         
-        return None
+        # Check for geographic anomalies (if geolocation data available)
+        if event.source_geolocation and 'normal_locations' in baseline:
+            # Implementation would check if current location is anomalous
+            pass
+        
+        # Update baseline (simplified - in production would be more sophisticated)
+        self._update_user_baseline(event.user, event)
+        
+        return detections
     
-    def _detect_insider_threat(self, event: NormalizedEvent) -> Optional[ThreatDetection]:
-        """Detect insider threat indicators"""
-        if not event.source_user:
-            return None
+    def _pattern_analysis(self, event: NormalizedEvent) -> List[ThreatDetection]:
+        """Pattern-based threat detection"""
+        detections = []
         
-        # Check behavioral anomaly
-        profile = self.behavioral_profiles.get(event.source_user)
-        if profile:
-            anomaly_score = profile.calculate_anomaly_score(event)
+        # SQL Injection detection
+        if event.http_method and event.url:
+            sql_patterns = [
+                r"union\s+select", r"or\s+1\s*=\s*1", r"drop\s+table",
+                r"exec\s*\(", r"script>", r"javascript:"
+            ]
             
-            if anomaly_score > 0.8:
-                return ThreatDetection(
-                    threat_type=ThreatType.INSIDER_THREAT,
-                    threat_level=ThreatLevel.MEDIUM,
-                    confidence=anomaly_score,
-                    title="Insider Threat - Anomalous Behavior",
-                    description=f"User {event.source_user} exhibiting anomalous behavior",
-                    evidence=[event],
-                    attack_vector="insider",
-                    kill_chain_phase="persistence",
-                    mitre_tactics=["TA0003"],  # Persistence
-                    recommended_actions=[
-                        "Review user access permissions",
-                        "Monitor user activity closely",
-                        "Check for data access patterns",
-                        "Validate business justification"
-                    ]
-                )
-        
-        # Check for after-hours access to sensitive data
-        if (event.category == EventCategory.DATA_ACCESS and
-            (event.timestamp.hour < 6 or event.timestamp.hour > 22)):
-            return ThreatDetection(
-                threat_type=ThreatType.INSIDER_THREAT,
-                threat_level=ThreatLevel.LOW,
-                confidence=0.6,
-                title="After-hours Data Access",
-                description="Sensitive data accessed outside normal business hours",
-                evidence=[event]
-            )
-        
-        return None
-    
-    def _detect_brute_force(self, event: NormalizedEvent) -> Optional[ThreatDetection]:
-        """Detect brute force attacks"""
-        if (event.category == EventCategory.AUTHENTICATION and 
-            event.outcome.value == "failure"):
+            combined_text = f"{event.url} {event.message}".lower()
             
-            # This would typically check frequency across events
-            # For now, flag high-severity authentication failures
-            return ThreatDetection(
-                threat_type=ThreatType.BRUTE_FORCE,
-                threat_level=ThreatLevel.MEDIUM,
-                confidence=0.8,
-                title="Potential Brute Force Attack",
-                description=f"Authentication failure from {event.source_ip}",
-                evidence=[event],
-                attack_vector="credential_access",
-                kill_chain_phase="credential_access",
-                mitre_tactics=["TA0006"],  # Credential Access
-                mitre_techniques=["T1110"],  # Brute Force
-                recommended_actions=[
-                    "Block source IP",
-                    "Enable account lockout",
-                    "Implement rate limiting",
-                    "Review authentication logs"
-                ]
-            )
+            for pattern in sql_patterns:
+                if re.search(pattern, combined_text):
+                    threat_type = ThreatType.SQL_INJECTION if "union" in pattern or "drop" in pattern else ThreatType.XSS
+                    
+                    detection = self._create_detection(
+                        threat_type,
+                        ThreatSeverity.HIGH,
+                        0.8,
+                        f"Potential {threat_type.value} attack detected",
+                        event,
+                        indicators=[f"Pattern: {pattern}"],
+                        mitre_techniques=['T1190']
+                    )
+                    detections.append(detection)
+                    break
         
-        return None
-    
-    def _detect_data_exfiltration(self, event: NormalizedEvent) -> Optional[ThreatDetection]:
-        """Detect data exfiltration attempts"""
-        if event.category == EventCategory.DATA_ACCESS:
-            # Check for large data transfers
-            if event.bytes_out and event.bytes_out > 1000000:  # 1MB
-                return ThreatDetection(
-                    threat_type=ThreatType.DATA_EXFILTRATION,
-                    threat_level=ThreatLevel.HIGH,
-                    confidence=0.7,
-                    title="Potential Data Exfiltration",
-                    description=f"Large data transfer detected: {event.bytes_out} bytes",
-                    evidence=[event],
-                    attack_vector="data_transfer",
-                    kill_chain_phase="exfiltration",
-                    mitre_tactics=["TA0010"],  # Exfiltration
-                    mitre_techniques=["T1041"],  # Exfiltration Over C2 Channel
-                    recommended_actions=[
-                        "Monitor network traffic",
-                        "Review data access logs",
-                        "Check for unauthorized transfers",
-                        "Validate business justification"
-                    ]
-                )
-        
-        return None
-    
-    def _detect_lateral_movement(self, event: NormalizedEvent) -> Optional[ThreatDetection]:
-        """Detect lateral movement attempts"""
-        if (event.category == EventCategory.NETWORK_TRAFFIC and
-            event.source_ip != event.dest_ip):
+        # Command injection detection
+        if event.message:
+            command_patterns = [
+                r";\s*(cat|ls|ps|id|whoami|uname)", r"\|\s*(nc|netcat|wget|curl)",
+                r"&&\s*(rm|mv|cp)\s", r"`.*`", r"\$\(.*\)"
+            ]
             
-            # Check for internal-to-internal connections on admin ports
-            admin_ports = [22, 23, 135, 139, 445, 3389, 5985, 5986]
-            if event.dest_port in admin_ports:
-                return ThreatDetection(
-                    threat_type=ThreatType.LATERAL_MOVEMENT,
-                    threat_level=ThreatLevel.MEDIUM,
-                    confidence=0.6,
-                    title="Potential Lateral Movement",
-                    description=f"Connection to admin port {event.dest_port}",
-                    evidence=[event],
-                    attack_vector="network",
-                    kill_chain_phase="lateral_movement",
-                    mitre_tactics=["TA0008"],  # Lateral Movement
-                    mitre_techniques=["T1021"],  # Remote Services
-                    recommended_actions=[
-                        "Monitor network segments",
-                        "Review admin account usage",
-                        "Check for privilege escalation",
-                        "Validate connection necessity"
-                    ]
-                )
+            for pattern in command_patterns:
+                if re.search(pattern, event.message, re.IGNORECASE):
+                    detection = self._create_detection(
+                        ThreatType.COMMAND_INJECTION,
+                        ThreatSeverity.HIGH,
+                        0.9,
+                        "Potential command injection detected",
+                        event,
+                        indicators=[f"Pattern: {pattern}"],
+                        mitre_techniques=['T1059']
+                    )
+                    detections.append(detection)
+                    break
         
-        return None
-    
-    def _detect_privilege_escalation(self, event: NormalizedEvent) -> Optional[ThreatDetection]:
-        """Detect privilege escalation attempts"""
-        if event.category == EventCategory.AUTHORIZATION:
-            if "admin" in event.message.lower() or "root" in event.message.lower():
-                return ThreatDetection(
-                    threat_type=ThreatType.PRIVILEGE_ESCALATION,
-                    threat_level=ThreatLevel.HIGH,
-                    confidence=0.8,
-                    title="Privilege Escalation Detected",
-                    description="Elevated privileges obtained",
-                    evidence=[event],
-                    attack_vector="privilege_escalation",
-                    kill_chain_phase="privilege_escalation",
-                    mitre_tactics=["TA0004"],  # Privilege Escalation
-                    mitre_techniques=["T1078"],  # Valid Accounts
-                    recommended_actions=[
-                        "Review privilege changes",
-                        "Validate authorization",
-                        "Check for persistence",
-                        "Monitor privileged operations"
-                    ]
-                )
-        
-        return None
-    
-    def _detect_reconnaissance(self, event: NormalizedEvent) -> Optional[ThreatDetection]:
-        """Detect reconnaissance activity"""
+        # Reconnaissance detection
         if event.category == EventCategory.NETWORK_TRAFFIC:
             # Check for port scanning patterns
-            common_scan_ports = [21, 22, 23, 25, 53, 80, 110, 135, 139, 143, 443, 993, 995]
-            if event.dest_port in common_scan_ports:
-                return ThreatDetection(
-                    threat_type=ThreatType.RECONNAISSANCE,
-                    threat_level=ThreatLevel.LOW,
-                    confidence=0.5,
-                    title="Potential Reconnaissance",
-                    description=f"Connection to common service port {event.dest_port}",
-                    evidence=[event],
-                    attack_vector="network_scanning",
-                    kill_chain_phase="reconnaissance",
-                    mitre_tactics=["TA0007"],  # Discovery
-                    mitre_techniques=["T1046"],  # Network Service Scanning
-                    recommended_actions=[
-                        "Monitor for scanning patterns",
-                        "Check firewall logs",
-                        "Review network topology",
-                        "Implement network segmentation"
-                    ]
+            if event.destination_port and event.destination_port in [22, 23, 135, 139, 445, 3389]:
+                detection = self._create_detection(
+                    ThreatType.RECONNAISSANCE,
+                    ThreatSeverity.LOW,
+                    0.6,
+                    f"Potential reconnaissance on sensitive port {event.destination_port}",
+                    event,
+                    indicators=[f"Port: {event.destination_port}"],
+                    mitre_techniques=['T1046']
                 )
+                detections.append(detection)
         
-        return None
+        return detections
     
-    def _detect_anomalous_behavior(self, event: NormalizedEvent) -> Optional[ThreatDetection]:
-        """Detect general anomalous behavior"""
-        # Check threat intelligence risk score
-        risk_score = event.threat_intel.get("risk_score", 0)
+    def _create_detection(self, threat_type: ThreatType, severity: ThreatSeverity,
+                         confidence: float, description: str, event: NormalizedEvent,
+                         indicators: List[str], mitre_techniques: List[str] = None,
+                         iocs: List[str] = None) -> ThreatDetection:
+        """Create threat detection object"""
         
-        if risk_score > 75:
-            return ThreatDetection(
-                threat_type=ThreatType.UNKNOWN,
-                threat_level=ThreatLevel.MEDIUM,
-                confidence=min(1.0, risk_score / 100.0),
-                title="High-Risk Activity Detected",
-                description=f"Activity with high threat intelligence risk score: {risk_score}",
-                evidence=[event],
-                recommended_actions=[
-                    "Investigate activity context",
-                    "Review threat intelligence",
-                    "Monitor for related events",
-                    "Consider containment measures"
-                ]
-            )
+        detection_id = hashlib.md5(
+            f"{event.event_id}{threat_type.value}{description}".encode()
+        ).hexdigest()[:16]
         
-        return None
+        recommendations = self._get_recommendations(threat_type)
+        
+        return ThreatDetection(
+            detection_id=detection_id,
+            threat_type=threat_type,
+            severity=severity,
+            confidence=confidence,
+            description=description,
+            event=event,
+            indicators=indicators,
+            mitre_techniques=mitre_techniques or [],
+            iocs=iocs or [],
+            recommendations=recommendations
+        )
     
-    def _load_threat_intelligence(self):
-        """Load threat intelligence indicators"""
-        # Sample threat indicators (in production, load from feeds)
-        sample_indicators = [
-            {
-                "value": "192.168.1.100",
-                "type": "ip",
-                "threat_type": "botnet",
-                "severity": "high",
-                "confidence": 0.9,
-                "source": "internal_honeypot"
-            },
-            {
-                "value": "malware.exe",
-                "type": "process",
-                "threat_type": "malware",
-                "severity": "critical",
-                "confidence": 0.95,
-                "source": "signature_detection"
-            }
-        ]
-        
-        for indicator_data in sample_indicators:
-            indicator = ThreatIndicator(
-                indicator_id=hashlib.md5(indicator_data["value"].encode()).hexdigest(),
-                value=indicator_data["value"],
-                type=indicator_data["type"],
-                threat_type=ThreatType(indicator_data["threat_type"]),
-                severity=ThreatLevel(indicator_data["severity"]),
-                confidence=indicator_data["confidence"],
-                source=indicator_data["source"],
-                first_seen=datetime.utcnow(),
-                last_seen=datetime.utcnow()
-            )
-            self.threat_intelligence.add_indicator(indicator)
-    
-    def get_threat_statistics(self) -> Dict[str, Any]:
-        """Get threat detection statistics"""
-        total_detections = len(self.recent_detections)
-        
-        detections_by_type = defaultdict(int)
-        detections_by_level = defaultdict(int)
-        
-        for detection in self.recent_detections:
-            detections_by_type[detection.threat_type.value] += 1
-            detections_by_level[detection.threat_level.value] += 1
-        
-        return {
-            "total_detections": total_detections,
-            "detections_by_type": dict(detections_by_type),
-            "detections_by_level": dict(detections_by_level),
-            "behavioral_profiles": len(self.behavioral_profiles),
-            "threat_indicators": len(self.threat_intelligence.indicators)
+    def _get_recommendations(self, threat_type: ThreatType) -> List[str]:
+        """Get recommendations based on threat type"""
+        recommendations_map = {
+            ThreatType.MALWARE: [
+                "Isolate affected systems immediately",
+                "Run full antivirus scan",
+                "Check for lateral movement",
+                "Review network traffic for C2 communication"
+            ],
+            ThreatType.BRUTE_FORCE: [
+                "Implement account lockout policies",
+                "Enable multi-factor authentication",
+                "Monitor for credential stuffing attacks",
+                "Block source IP temporarily"
+            ],
+            ThreatType.SQL_INJECTION: [
+                "Validate all user inputs",
+                "Use parameterized queries",
+                "Apply principle of least privilege",
+                "Update web application firewall rules"
+            ],
+            ThreatType.COMMAND_INJECTION: [
+                "Sanitize all user inputs",
+                "Implement input validation",
+                "Use safe API calls instead of system commands",
+                "Apply sandboxing for user inputs"
+            ],
+            ThreatType.RECONNAISSANCE: [
+                "Monitor for additional scanning activity",
+                "Check firewall logs for patterns",
+                "Consider implementing port knocking",
+                "Block suspicious source IPs"
+            ],
+            ThreatType.INSIDER_THREAT: [
+                "Review user access privileges",
+                "Monitor data access patterns",
+                "Implement user activity monitoring",
+                "Conduct security awareness training"
+            ]
         }
+        
+        return recommendations_map.get(threat_type, [
+            "Monitor for additional suspicious activity",
+            "Review security logs",
+            "Consider threat containment measures"
+        ])
+    
+    def _update_user_baseline(self, user: str, event: NormalizedEvent):
+        """Update user behavioral baseline"""
+        if user not in self.user_behavior_baselines:
+            self.user_behavior_baselines[user] = {
+                'login_hours': set(),
+                'source_ips': set(),
+                'first_seen': event.timestamp,
+                'last_seen': event.timestamp,
+                'event_count': 0
+            }
+        
+        baseline = self.user_behavior_baselines[user]
+        baseline['login_hours'].add(event.timestamp.hour)
+        if event.source_ip:
+            baseline['source_ips'].add(event.source_ip)
+        baseline['last_seen'] = event.timestamp
+        baseline['event_count'] += 1
+    
+    def _load_threat_signatures(self):
+        """Load threat detection signatures"""
+        
+        # Malware signatures
+        self.signatures['malware_generic'] = ThreatSignature(
+            "malware_generic",
+            "Generic Malware Detection",
+            ThreatType.MALWARE,
+            ThreatSeverity.HIGH,
+            [
+                r"virus.*detected", r"malware.*found", r"trojan.*identified",
+                r"backdoor.*installed", r"rootkit.*detected"
+            ],
+            ['T1055', 'T1027']
+        )
+        
+        # Brute force signatures
+        self.signatures['brute_force_ssh'] = ThreatSignature(
+            "brute_force_ssh",
+            "SSH Brute Force Attack",
+            ThreatType.BRUTE_FORCE,
+            ThreatSeverity.MEDIUM,
+            [
+                r"failed.*ssh.*login", r"authentication.*failure.*ssh",
+                r"invalid.*user.*ssh", r"failed.*password.*ssh"
+            ],
+            ['T1110', 'T1021.004']
+        )
+        
+        # Web attack signatures
+        self.signatures['web_attack'] = ThreatSignature(
+            "web_attack",
+            "Web Application Attack",
+            ThreatType.SQL_INJECTION,
+            ThreatSeverity.HIGH,
+            [
+                r"union.*select", r"or.*1.*=.*1", r"<script>",
+                r"javascript:", r"eval\(", r"exec\("
+            ],
+            ['T1190']
+        )
+        
+        # Privilege escalation
+        self.signatures['privilege_escalation'] = ThreatSignature(
+            "privilege_escalation",
+            "Privilege Escalation Attempt",
+            ThreatType.PRIVILEGE_ESCALATION,
+            ThreatSeverity.HIGH,
+            [
+                r"sudo.*su", r"privilege.*escalation", r"admin.*access",
+                r"root.*access", r"setuid.*exploit"
+            ],
+            ['T1548', 'T1134']
+        )
+        
+        # Data exfiltration
+        self.signatures['data_exfiltration'] = ThreatSignature(
+            "data_exfiltration",
+            "Data Exfiltration Activity",
+            ThreatType.DATA_EXFILTRATION,
+            ThreatSeverity.CRITICAL,
+            [
+                r"large.*file.*transfer", r"database.*dump", r"export.*data",
+                r"ftp.*upload", r"scp.*transfer"
+            ],
+            ['T1041', 'T1020']
+        )
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get threat detection statistics"""
+        with self.lock:
+            stats = dict(self.detection_statistics)
+            stats.update({
+                'active_signatures': len([s for s in self.signatures.values() if s.enabled]),
+                'total_signatures': len(self.signatures),
+                'known_bad_ips': len(self.ip_reputation.known_bad_ips),
+                'user_baselines': len(self.user_behavior_baselines)
+            })
+            return stats
+    
+    def add_signature(self, signature: ThreatSignature):
+        """Add custom threat signature"""
+        with self.lock:
+            self.signatures[signature.signature_id] = signature
+            logger.info(f"Added threat signature: {signature.name}")
+    
+    def remove_signature(self, signature_id: str):
+        """Remove threat signature"""
+        with self.lock:
+            if signature_id in self.signatures:
+                del self.signatures[signature_id]
+                logger.info(f"Removed threat signature: {signature_id}")
+    
+    def update_ip_reputation(self, ip: str, is_malicious: bool, confidence: float = 1.0):
+        """Update IP reputation"""
+        if is_malicious:
+            self.ip_reputation.add_bad_ip(ip, confidence)
+        else:
+            with self.ip_reputation.lock:
+                # Remove from bad IPs if present
+                self.ip_reputation.known_bad_ips.discard(ip)
+                # Set good reputation
+                self.ip_reputation.reputation_scores[ip] = confidence

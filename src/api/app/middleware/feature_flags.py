@@ -3,7 +3,9 @@ Feature Flag Middleware
 Automatically injects feature flag context into requests
 """
 
+import asyncio
 import logging
+import time
 
 import aiohttp
 from fastapi import Request
@@ -53,7 +55,7 @@ class FeatureFlagMiddleware(BaseHTTPMiddleware):
                 else:
                     logger.warning(f"Feature service returned {response.status}")
 
-        except TimeoutError:
+        except asyncio.TimeoutError:
             logger.warning("Feature service timeout")
         except Exception as e:
             logger.error(f"Feature service error: {e}")

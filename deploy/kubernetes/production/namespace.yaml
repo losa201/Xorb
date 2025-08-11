@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xorb-production
+  labels:
+    app.kubernetes.io/name: xorb
+    app.kubernetes.io/instance: production
+    app.kubernetes.io/component: platform
+    security.policy/tier: production
+    compliance.framework/required: "true"
+  annotations:
+    deployment.strategy: blue-green
+    security.policy/network-isolation: "strict"
+    monitoring.observability/enabled: "true"
+    backup.strategy/enabled: "true"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: xorb-production-quota
+  namespace: xorb-production
+spec:
+  hard:
+    requests.cpu: "20"
+    requests.memory: 40Gi
+    limits.cpu: "40"
+    limits.memory: 80Gi
+    persistentvolumeclaims: "10"
+    services: "20"
+    secrets: "50"
+    configmaps: "50"
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: xorb-production-network-policy
+  namespace: xorb-production
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: ingress-nginx
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+  egress:
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53

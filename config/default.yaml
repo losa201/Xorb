@@ -1,0 +1,96 @@
+# XORB Platform Default Configuration
+# Base configuration that applies to all environments
+
+# Core Service Definitions
+services:
+  api:
+    name: "xorb-api"
+    host: "0.0.0.0"
+    port: 8000
+    workers: 2
+    timeout: 30
+    enabled: true
+  
+  orchestrator:
+    name: "xorb-orchestrator"
+    host: "0.0.0.0"
+    port: 8001
+    workers: 1
+    timeout: 60
+    enabled: true
+  
+  intelligence:
+    name: "xorb-intelligence"
+    host: "0.0.0.0"
+    port: 8002
+    workers: 2
+    timeout: 45
+    enabled: true
+  
+  worker:
+    name: "xorb-worker"
+    host: "0.0.0.0"
+    port: 8003
+    workers: 3
+    timeout: 120
+    enabled: true
+
+# Database Configuration
+database:
+  host: "localhost"
+  port: 5432
+  name: "xorb"
+  username: "xorb"
+  max_connections: 20
+  ssl_mode: "prefer"
+
+# Redis Configuration
+redis:
+  host: "localhost"
+  port: 6379
+  database: 0
+  max_connections: 10
+
+# Security Configuration
+security:
+  jwt_algorithm: "HS256"
+  jwt_expiry_minutes: 30
+  password_min_length: 12
+  max_login_attempts: 5
+  lockout_duration_minutes: 15
+  require_mfa: false
+
+# Monitoring Configuration
+monitoring:
+  prometheus_enabled: true
+  prometheus_port: 9090
+  grafana_enabled: true
+  grafana_port: 3000
+  log_level: "INFO"
+  structured_logging: true
+  audit_logging: true
+
+# External Services
+external:
+  temporal_host: "temporal:7233"
+  vault_url: "http://vault:8200"
+
+# Feature Flags
+features:
+  advanced_analytics: true
+  threat_hunting: true
+  compliance_automation: true
+  multi_tenant: false
+  sso_integration: false
+  ai_enhancement: true
+
+# API Settings
+cors_origins:
+  - "http://localhost:3000"
+  - "http://localhost:8080"
+api_version: "v1"
+max_request_size: 10485760  # 10MB
+
+# Environment
+environment: "development"
+debug: false

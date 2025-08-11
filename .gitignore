@@ -15,6 +15,19 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# CRITICAL: Environment files with secrets
+.env
+.env.*
+!.env.example
+!.env.template
+
+# CRITICAL: SSL private keys and certificates
+ssl/*.key
+ssl/*.pem
+secrets/
+*.key
+*.pem
+
 # Editor directories and files
 .idea/
 .vscode/
@@ -112,3 +125,6 @@ ehthumbs.db
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Separate repositories
+PTaaS/

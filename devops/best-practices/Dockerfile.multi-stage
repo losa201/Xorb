@@ -1,0 +1,113 @@
+# XORB Platform - Multi-stage Production Dockerfile
+# Best practices: Security, optimization, caching
+
+# ============================================================================
+# STAGE 1: Base Python Image with Security Hardening
+# ============================================================================
+FROM python:3.12-slim as base
+
+# Set Python environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH="/app" \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Create non-root user for security
+RUN groupadd --gid 1000 xorb && \
+    useradd --uid 1000 --gid xorb --shell /bin/bash --create-home xorb
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# ============================================================================
+# STAGE 2: Dependencies Installation
+# ============================================================================
+FROM base as dependencies
+
+# Copy requirements files
+COPY requirements-unified.lock /tmp/requirements.txt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# ============================================================================
+# STAGE 3: Development Stage
+# ============================================================================
+FROM dependencies as development
+
+# Install development dependencies
+RUN pip install --no-cache-dir pytest pytest-cov black isort mypy bandit
+
+# Copy source code
+COPY --chown=xorb:xorb . /app
+WORKDIR /app
+
+# Switch to non-root user
+USER xorb
+
+# Expose port
+EXPOSE 8000
+
+# Development command
+CMD ["uvicorn", "src.presentation.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# ============================================================================
+# STAGE 4: Production Stage
+# ============================================================================
+FROM dependencies as production
+
+# Copy only necessary files
+COPY --chown=xorb:xorb src/ /app/src/
+COPY --chown=xorb:xorb config/ /app/config/
+COPY --chown=xorb:xorb pyproject.toml /app/
+
+WORKDIR /app
+
+# Security: Remove unnecessary packages
+RUN apt-get update && apt-get remove -y build-essential && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Switch to non-root user
+USER xorb
+
+# Expose port
+EXPOSE 8000
+
+# Production command
+CMD ["gunicorn", "src.presentation.api.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+
+# ============================================================================
+# STAGE 5: Testing Stage
+# ============================================================================
+FROM development as testing
+
+# Copy test files
+COPY --chown=xorb:xorb tests/ /app/tests/
+
+# Run tests
+RUN python -m pytest tests/ --cov=src --cov-report=term-missing
+
+# ============================================================================
+# STAGE 6: Security Scanning Stage
+# ============================================================================
+FROM production as security
+
+# Install security scanning tools
+USER root
+RUN pip install --no-cache-dir safety bandit semgrep
+
+# Run security scans
+RUN safety check && \
+    bandit -r src/ && \
+    semgrep --config=auto src/
+
+# Switch back to non-root user
+USER xorb

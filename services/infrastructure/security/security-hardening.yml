@@ -1,0 +1,245 @@
+# XORB Platform Security Hardening Configuration
+# Production-grade security for unified cybersecurity platform
+
+version: '3.8'
+
+services:
+  # Security Gateway & WAF
+  security-gateway:
+    image: nginx:alpine
+    container_name: xorb-security-gateway
+    ports:
+      - "443:443"
+      - "80:80"
+    volumes:
+      - ./nginx/security-hardened.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl/certs:/etc/ssl/certs:ro
+      - ./ssl/private:/etc/ssl/private:ro
+    environment:
+      - NGINX_SECURITY_HEADERS=enabled
+      - WAF_MODE=strict
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+    networks:
+      - xorb-secure-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Intrusion Detection System
+  security-ids:
+    image: suricata/suricata:latest
+    container_name: xorb-ids
+    volumes:
+      - ./suricata/suricata.yaml:/etc/suricata/suricata.yaml:ro
+      - ./suricata/rules:/var/lib/suricata/rules:ro
+      - ids-logs:/var/log/suricata
+    environment:
+      - SURICATA_OPTIONS=-i eth0
+    network_mode: host
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "suricata", "--build-info"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+
+  # Security Scanner & Vulnerability Assessment
+  security-scanner:
+    image: owasp/zap2docker-stable:latest
+    container_name: xorb-security-scanner
+    volumes:
+      - scanner-reports:/zap/reports
+      - ./zap/policies:/home/zap/.ZAP/policies:ro
+    environment:
+      - ZAP_BASELINE_SCAN=true
+      - ZAP_FULL_SCAN=false
+      - TARGET_URL=https://localhost
+    networks:
+      - xorb-secure-network
+    restart: "no"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/JSON/core/view/version/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Threat Intelligence Feeds
+  threat-intel:
+    image: misp/misp:latest
+    container_name: xorb-threat-intel
+    ports:
+      - "8443:443"
+    volumes:
+      - misp-data:/var/www/MISP
+      - misp-logs:/var/www/MISP/app/tmp/logs
+    environment:
+      - MISP_ADMIN_EMAIL=admin@xorb.local
+      - MISP_ADMIN_PASSPHRASE=${MISP_ADMIN_PASSWORD:-SecurePassword123!}
+      - MYSQL_HOST=threat-intel-db
+      - MYSQL_DATABASE=misp
+      - MYSQL_USER=misp
+      - MYSQL_PASSWORD=${MISP_DB_PASSWORD:-MispDBPass123!}
+    depends_on:
+      - threat-intel-db
+    networks:
+      - xorb-secure-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "https://localhost/users/login"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+
+  threat-intel-db:
+    image: mysql:8.0
+    container_name: xorb-threat-intel-db
+    volumes:
+      - misp-db-data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MISP_ROOT_PASSWORD:-RootDBPass123!}
+      - MYSQL_DATABASE=misp
+      - MYSQL_USER=misp
+      - MYSQL_PASSWORD=${MISP_DB_PASSWORD:-MispDBPass123!}
+    networks:
+      - xorb-secure-network
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Security Event Aggregation
+  security-siem:
+    image: elasticsearch:8.8.0
+    container_name: xorb-siem-storage
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch-data:/usr/share/elasticsearch/data
+      - ./elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:-ElasticSecure123!}
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - xorb-secure-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  logstash:
+    image: logstash:8.8.0
+    container_name: xorb-siem-processor
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+    environment:
+      - "LS_JAVA_OPTS=-Xmx1g -Xms1g"
+    depends_on:
+      - security-siem
+    networks:
+      - xorb-secure-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9600"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  kibana:
+    image: kibana:8.8.0
+    container_name: xorb-siem-dashboard
+    ports:
+      - "5601:5601"
+    volumes:
+      - ./kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    environment:
+      - ELASTICSEARCH_HOSTS=http://security-siem:9200
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD:-ElasticSecure123!}
+    depends_on:
+      - security-siem
+    networks:
+      - xorb-secure-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5601/app/kibana"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Secure Communication Mesh
+  consul:
+    image: consul:1.16
+    container_name: xorb-service-mesh
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    volumes:
+      - consul-data:/consul/data
+      - ./consul/consul.hcl:/consul/config/consul.hcl:ro
+    environment:
+      - CONSUL_BIND_INTERFACE=eth0
+      - CONSUL_CLIENT_INTERFACE=eth0
+    command: consul agent -config-dir=/consul/config
+    networks:
+      - xorb-secure-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "consul", "members"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  ids-logs:
+    driver: local
+  scanner-reports:
+    driver: local
+  misp-data:
+    driver: local
+  misp-logs:
+    driver: local
+  misp-db-data:
+    driver: local
+  elasticsearch-data:
+    driver: local
+  consul-data:
+    driver: local
+
+networks:
+  xorb-secure-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+    driver_opts:
+      com.docker.network.bridge.name: xorb-secure0
+      com.docker.network.bridge.enable_icc: "false"
+      com.docker.network.bridge.enable_ip_masquerade: "true"

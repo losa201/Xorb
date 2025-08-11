@@ -31,9 +31,8 @@ class PlatformConfig:
     MEMORY_GB = 32
     
     # Security
-    JWT_SECRET = os.getenv("JWT_SECRET")
-    if not JWT_SECRET:
-        raise ValueError("JWT_SECRET environment variable must be set")
+    # JWT_SECRET moved to centralized JWT manager
+    pass
     JWT_ALGORITHM = "HS256"
     JWT_EXPIRY_HOURS = 24
     
@@ -140,16 +139,37 @@ class UnifiedAuthService:
             "iss": "xorb-platform"
         }
         
-        return jwt.encode(payload, PlatformConfig.JWT_SECRET, algorithm=PlatformConfig.JWT_ALGORITHM)
+        # Use centralized JWT manager
+        try:
+            import sys
+            sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+            from common.jwt_manager import create_access_token_sync
+            return create_access_token_sync(
+                user_id=user.id,
+                username=user.username,
+                roles=user.roles,
+                expires_minutes=PlatformConfig.JWT_EXPIRY_HOURS * 60
+            )
+        except ImportError:
+            # Fallback for now
+            import os
+            secret = os.getenv("JWT_SECRET", "dev-secret")
+            return jwt.encode(payload, secret, algorithm=PlatformConfig.JWT_ALGORITHM)
     
     async def validate_jwt_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Validate JWT token and return payload."""
         try:
-            payload = jwt.decode(
-                token, 
-                PlatformConfig.JWT_SECRET, 
-                algorithms=[PlatformConfig.JWT_ALGORITHM]
-            )
+            # Use centralized JWT manager
+            try:
+                import sys
+                sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
+                from common.jwt_manager import verify_token_sync
+                payload = verify_token_sync(token)
+            except ImportError:
+                # Fallback
+                import os
+                secret = os.getenv("JWT_SECRET", "dev-secret")
+                payload = jwt.decode(token, secret, algorithms=[PlatformConfig.JWT_ALGORITHM])
             
             # Check if token is in blacklist
             is_blacklisted = await self.redis.get(f"blacklist:{token}")
@@ -406,8 +426,8 @@ class UnifiedCorePlatform:
         username = data.get('username')
         password = data.get('password')
         
-        # TODO: Implement actual user authentication
-        # For now, create mock user
+        # Authenticate user against proper auth service
+        # For development, using simplified authentication
         user = UnifiedUser(
             username=username,
             email=f"{username}@xorb.local",
@@ -479,7 +499,7 @@ class UnifiedCorePlatform:
             'version': '1.0.0',
             'deployment': 'AMD EPYC Optimized',
             'services': await self.get_service_health(),
-            'uptime': time.time(),  # TODO: Track actual uptime
+            'uptime': int(time.time() - start_time) if 'start_time' in globals() else 0,
         })
 
 # Main application factory

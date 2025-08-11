@@ -1,0 +1,31 @@
+# OWASP ZAP scanning rules for XORB API
+# Format: RULE_ID	THRESHOLD	[IGNORE/WARN/FAIL]
+
+# Ignore these for API endpoints
+10202	OFF	# Absence of Anti-CSRF Tokens (not needed for JWT APIs)
+10105	OFF	# Weak Authentication Method (we use JWT)
+
+# Warn on these issues
+10040	WARN	# Secure Pages Include Mixed Content
+10055	WARN	# X-Frame-Options Header Not Set
+10021	WARN	# X-Content-Type-Options Header Missing
+
+# Fail on these critical security issues
+40014	FAIL	# Cross Site Scripting (Persistent)
+40016	FAIL	# Cross Site Scripting (Persistent) - Prime
+40017	FAIL	# Cross Site Scripting (Persistent) - Spider
+40012	FAIL	# Cross Site Scripting (Reflected)
+90019	FAIL	# Server Side Code Injection
+90020	FAIL	# Remote OS Command Injection
+40018	FAIL	# SQL Injection
+40019	FAIL	# SQL Injection - MySQL
+40020	FAIL	# SQL Injection - Hypersonic SQL
+40021	FAIL	# SQL Injection - Oracle
+40022	FAIL	# SQL Injection - PostgreSQL
+
+# Directory traversal and file inclusion
+10095	FAIL	# Backup File Disclosure
+10096	FAIL	# Timestamp Disclosure - Unix
+10055	WARN	# CSP Header Not Set
+10016	WARN	# Web Browser XSS Protection Not Enabled
+10017	WARN	# Cross-Domain JavaScript Source File Inclusion

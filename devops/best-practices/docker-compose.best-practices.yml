@@ -1,0 +1,406 @@
+# XORB Platform - Best Practices Docker Compose
+# Production-ready configuration with security, monitoring, and scalability
+
+version: '3.8'
+
+# ============================================================================
+# NETWORKS - Segmented network architecture
+# ============================================================================
+networks:
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.1.0/24
+  backend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.2.0/24
+  database:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.3.0/24
+  monitoring:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.4.0/24
+
+# ============================================================================
+# VOLUMES - Named volumes for data persistence
+# ============================================================================
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/postgres
+  redis_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./data/redis
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  vault_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+
+# ============================================================================
+# COMMON CONFIGURATION
+# ============================================================================
+x-common-variables: &common-variables
+  ENVIRONMENT: ${ENVIRONMENT:-production}
+  LOG_LEVEL: ${LOG_LEVEL:-INFO}
+  PROMETHEUS_ENABLED: "true"
+  VAULT_URL: http://vault:8200
+  
+x-restart-policy: &restart-policy
+  restart: unless-stopped
+
+x-logging: &logging
+  logging:
+    driver: "json-file"
+    options:
+      max-size: "10m"
+      max-file: "3"
+
+x-resource-limits: &resource-limits
+  deploy:
+    resources:
+      limits:
+        memory: 512M
+      reservations:
+        memory: 256M
+
+# ============================================================================
+# SERVICES
+# ============================================================================
+services:
+
+  # ==========================================================================
+  # DATABASE LAYER
+  # ==========================================================================
+  
+  postgres:
+    image: postgres:15-alpine
+    <<: *restart-policy
+    <<: *logging
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-xorb}
+      POSTGRES_USER: ${POSTGRES_USER:-xorb}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - database
+    ports:
+      - "127.0.0.1:5432:5432"  # Bind to localhost only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-xorb} -d ${POSTGRES_DB:-xorb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  redis:
+    image: redis:7-alpine
+    <<: *restart-policy
+    <<: *logging
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:?REDIS_PASSWORD is required}
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+      - database
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    <<: *resource-limits
+
+  # ==========================================================================
+  # SECURITY & SECRET MANAGEMENT
+  # ==========================================================================
+  
+  vault:
+    image: vault:1.15
+    <<: *restart-policy
+    <<: *logging
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_DEV_ROOT_TOKEN_ID: ${VAULT_ROOT_TOKEN:?VAULT_ROOT_TOKEN is required}
+      VAULT_DEV_LISTEN_ADDRESS: 0.0.0.0:8200
+    volumes:
+      - vault_data:/vault/data
+      - ./config/vault:/vault/config:ro
+    networks:
+      - backend
+    ports:
+      - "127.0.0.1:8200:8200"
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    <<: *resource-limits
+
+  # ==========================================================================
+  # APPLICATION SERVICES
+  # ==========================================================================
+  
+  api-gateway:
+    build:
+      context: .
+      dockerfile: devops/best-practices/Dockerfile.multi-stage
+      target: production
+    <<: *restart-policy
+    <<: *logging
+    environment:
+      <<: *common-variables
+      SERVICE_NAME: api-gateway
+      DATABASE_URL: postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-xorb}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      vault:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  identity-service:
+    build:
+      context: .
+      dockerfile: devops/best-practices/Dockerfile.multi-stage
+      target: production
+    <<: *restart-policy
+    <<: *logging
+    environment:
+      <<: *common-variables
+      SERVICE_NAME: identity-service
+      DATABASE_URL: postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-xorb}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/1
+    networks:
+      - backend
+      - database
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    <<: *resource-limits
+
+  threat-intelligence:
+    build:
+      context: .
+      dockerfile: devops/best-practices/Dockerfile.multi-stage
+      target: production
+    <<: *restart-policy
+    <<: *logging
+    environment:
+      <<: *common-variables
+      SERVICE_NAME: threat-intelligence
+      DATABASE_URL: postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-xorb}
+      REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/2
+    networks:
+      - backend
+      - database
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+
+  # ==========================================================================
+  # MONITORING & OBSERVABILITY
+  # ==========================================================================
+  
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    <<: *restart-policy
+    <<: *logging
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    volumes:
+      - ./config/prometheus:/etc/prometheus:ro
+      - prometheus_data:/prometheus
+    networks:
+      - monitoring
+      - backend
+    ports:
+      - "127.0.0.1:9090:9090"
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    <<: *resource-limits
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    <<: *restart-policy
+    <<: *logging
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SECURITY_DISABLE_GRAVATAR: true
+      GF_SECURITY_COOKIE_SECURE: true
+      GF_SECURITY_COOKIE_SAMESITE: strict
+      GF_LOG_LEVEL: warn
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana:/etc/grafana/provisioning:ro
+    networks:
+      - monitoring
+      - frontend
+    ports:
+      - "127.0.0.1:3000:3000"
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    <<: *resource-limits
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.9.0
+    <<: *restart-policy
+    <<: *logging
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD is required}
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - monitoring
+    ports:
+      - "127.0.0.1:9200:9200"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/_cluster/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  # ==========================================================================
+  # REVERSE PROXY & LOAD BALANCER
+  # ==========================================================================
+  
+  nginx:
+    image: nginx:1.25-alpine
+    <<: *restart-policy
+    <<: *logging
+    volumes:
+      - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./config/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    networks:
+      - frontend
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api-gateway
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+    <<: *resource-limits
+
+# ============================================================================
+# CONFIGURATIONS
+# ============================================================================
+
+# Production secrets should be managed via external secret management
+# This file should be used with environment-specific .env files

@@ -1,0 +1,205 @@
+# XORB Prometheus Alerting Rules
+groups:
+  - name: xorb_api_alerts
+    rules:
+      - alert: XORBAPIDown
+        expr: up{job="xorb-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: xorb-api
+        annotations:
+          summary: "XORB API service is down"
+          description: "XORB API has been down for more than 1 minute."
+
+      - alert: XORBAPIHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="xorb-api"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: xorb-api
+        annotations:
+          summary: "XORB API high latency"
+          description: "95th percentile latency is above 1 second for 5 minutes."
+
+      - alert: XORBAPIHighErrorRate
+        expr: rate(http_requests_total{job="xorb-api",status=~"5.."}[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          service: xorb-api
+        annotations:
+          summary: "XORB API high error rate"
+          description: "Error rate is above 10% for 3 minutes."
+
+      - alert: XORBAPIMemoryUsage
+        expr: process_resident_memory_bytes{job="xorb-api"} / 1024 / 1024 / 1024 > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: xorb-api
+        annotations:
+          summary: "XORB API high memory usage"
+          description: "Memory usage is above 2GB for 5 minutes."
+
+  - name: xorb_orchestrator_alerts
+    rules:
+      - alert: XORBOrchestratorDown
+        expr: up{job="xorb-orchestrator"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: xorb-orchestrator
+        annotations:
+          summary: "XORB Orchestrator is down"
+          description: "XORB Orchestrator has been down for more than 2 minutes."
+
+      - alert: XORBWorkflowFailures
+        expr: increase(temporal_workflow_failed_total[10m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: xorb-orchestrator
+        annotations:
+          summary: "High workflow failure rate"
+          description: "More than 5 workflow failures in the last 10 minutes."
+
+  - name: xorb_database_alerts
+    rules:
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL has been unreachable for more than 1 minute."
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL high connection usage"
+          description: "Connection usage is above 80% for 5 minutes."
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_database_tup_fetched[5m]) / rate(pg_stat_database_tup_returned[5m]) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Query efficiency is below 10% for 10 minutes."
+
+  - name: xorb_redis_alerts
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis has been unreachable for more than 1 minute."
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is above 90% for 5 minutes."
+
+  - name: xorb_system_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is above 85% for 10 minutes."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is above 85% for 5 minutes."
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 15
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is below 15% for 5 minutes."
+
+  - name: xorb_security_alerts
+    rules:
+      - alert: VaultSealedOrDown
+        expr: up{job="vault"} == 0 or vault_core_unsealed == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: vault
+        annotations:
+          summary: "Vault is sealed or down"
+          description: "Vault is either down or sealed, affecting secret access."
+
+      - alert: HighFailedLoginAttempts
+        expr: increase(auth_failed_total[5m]) > 20
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High failed login attempts"
+          description: "More than 20 failed login attempts in 5 minutes."
+
+      - alert: ThreatDetectionHigh
+        expr: increase(threat_indicators_high_confidence_total[10m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High confidence threat indicators detected"
+          description: "More than 10 high confidence threat indicators in 10 minutes."
+
+  - name: xorb_business_alerts
+    rules:
+      - alert: LowAPIRequestRate
+        expr: rate(http_requests_total{job="xorb-api"}[5m]) < 0.1
+        for: 15m
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "Low API request rate"
+          description: "API request rate is unusually low for 15 minutes."
+
+      - alert: HighTenantActivity
+        expr: rate(tenant_operations_total[5m]) > 100
+        for: 10m
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "High tenant activity"
+          description: "Tenant activity is unusually high, may indicate scaling needs."

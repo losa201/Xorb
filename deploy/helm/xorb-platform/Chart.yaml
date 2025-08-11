@@ -1,0 +1,46 @@
+apiVersion: v2
+name: xorb-platform
+description: XORB Enterprise Cybersecurity Platform - Production-Ready PTaaS
+type: application
+version: 3.0.0
+appVersion: "3.0.0"
+
+keywords:
+  - cybersecurity
+  - penetration-testing
+  - ptaas
+  - security-orchestration
+  - threat-intelligence
+  - enterprise
+
+home: https://xorb-security.com
+sources:
+  - https://github.com/xorb-security/xorb
+
+maintainers:
+  - name: XORB Security Team
+    email: enterprise@xorb-security.com
+    url: https://xorb-security.com
+
+dependencies:
+  - name: postgresql
+    version: 12.12.10
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: 18.1.5
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+  - name: prometheus
+    version: 25.1.0
+    repository: https://prometheus-community.github.io/helm-charts
+    condition: monitoring.prometheus.enabled
+  - name: grafana
+    version: 7.0.3
+    repository: https://grafana.github.io/helm-charts
+    condition: monitoring.grafana.enabled
+
+annotations:
+  category: Security
+  security-scan: enabled
+  compliance: "PCI-DSS,HIPAA,SOX,ISO-27001"

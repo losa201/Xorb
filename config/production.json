@@ -1,0 +1,75 @@
+{
+  "environment": "production",
+  "debug": false,
+  "database": {
+    "host": "xorb-postgres",
+    "port": 5432,
+    "name": "xorb_prod",
+    "username": "xorb_prod",
+    "ssl_mode": "require",
+    "pool_size": 20,
+    "max_overflow": 40,
+    "pool_timeout": 60
+  },
+  "redis": {
+    "host": "xorb-redis",
+    "port": 6379,
+    "db": 0,
+    "ssl": true
+  },
+  "security": {
+    "jwt_expire_hours": 8,
+    "password_min_length": 12,
+    "max_login_attempts": 3,
+    "lockout_duration_minutes": 60
+  },
+  "monitoring": {
+    "enabled": true,
+    "log_level": "INFO",
+    "tracing_enabled": true,
+    "metrics_retention_days": 90,
+    "prometheus_port": 9090,
+    "grafana_port": 3000
+  },
+  "api_service": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 8,
+    "timeout": 60,
+    "max_connections": 2000,
+    "cors_origins": ["https://xorb.security", "https://app.xorb.security"]
+  },
+  "orchestrator_service": {
+    "host": "0.0.0.0",
+    "port": 8001,
+    "workers": 4,
+    "timeout": 120
+  },
+  "intelligence_service": {
+    "host": "0.0.0.0",
+    "port": 8002, 
+    "workers": 6,
+    "timeout": 300
+  },
+  "feature_flags": {
+    "advanced_analytics": true,
+    "threat_hunting": true,
+    "compliance_automation": true,
+    "multi_tenant": true,
+    "sso_integration": true,
+    "debug_mode": false,
+    "performance_profiling": false,
+    "enterprise_features": true
+  },
+  "integrations": {
+    "vault": {
+      "enabled": true,
+      "url": "https://vault.xorb.internal:8200",
+      "token_path": "/var/run/secrets/vault-token"
+    },
+    "temporal": {
+      "host": "temporal.xorb.internal:7233",
+      "namespace": "xorb-prod"
+    }
+  }
+}

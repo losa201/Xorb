@@ -3,17 +3,26 @@ Repository implementations for data access
 """
 
 import json
+from datetime import datetime
 from typing import List, Optional, Dict, Any
 from uuid import UUID
+from sqlalchemy import text
 
-# Optional dependencies
+# Redis dependencies with fallback
+import logging
+
 try:
-    import aioredis
+    import redis.asyncio as aioredis
     AIOREDIS_AVAILABLE = True
-except (ImportError, TypeError):
-    # TypeError can happen with version conflicts
-    AIOREDIS_AVAILABLE = False
-    aioredis = None
+except ImportError:
+    try:
+        import aioredis
+        AIOREDIS_AVAILABLE = True
+    except ImportError:
+        AIOREDIS_AVAILABLE = False
+        aioredis = None
+
+logger = logging.getLogger(__name__)
 
 try:
     from sqlalchemy.ext.asyncio import AsyncSession
@@ -318,7 +327,16 @@ class RedisCacheRepository(CacheRepository):
     async def initialize(self):
         """Initialize Redis connection"""
         if AIOREDIS_AVAILABLE:
-            self.redis = await aioredis.from_url(self.redis_url)
+            try:
+                # Try redis.asyncio first (preferred for Python 3.12+)
+                if hasattr(aioredis, 'from_url'):
+                    self.redis = aioredis.from_url(self.redis_url, decode_responses=True)
+                else:
+                    # Fallback to older aioredis API
+                    self.redis = await aioredis.from_url(self.redis_url)
+            except Exception as e:
+                logger.warning(f"Redis connection failed, using in-memory fallback: {e}")
+                self.redis = InMemoryRedisLike()
         else:
             # Use in-memory fallback
             self.redis = InMemoryRedisLike()
@@ -327,7 +345,10 @@ class RedisCacheRepository(CacheRepository):
         if not self.redis:
             await self.initialize()
         result = await self.redis.get(key)
-        return result.decode() if result else None
+        # Handle both bytes and string responses
+        if result is None:
+            return None
+        return result.decode() if isinstance(result, bytes) else result
     
     async def set(self, key: str, value: str, ttl: int = None) -> bool:
         if not self.redis:
@@ -359,3 +380,284 @@ class RedisCacheRepository(CacheRepository):
         if not self.redis:
             await self.initialize()
         return await self.redis.decrby(key, amount)
+
+
+# Production PostgreSQL Repository Implementations
+class ProductionScanSessionRepository:
+    """Production PostgreSQL-based scan session repository"""
+    
+    def __init__(self, session_factory):
+        self.session_factory = session_factory
+    
+    async def create_session(self, session_data: dict) -> dict:
+        """Create a new scan session in database"""
+        session_id = str(UUID.uuid4())
+        async with self.session_factory() as db_session:
+            # Create scan session record
+            scan_session = {
+                "id": session_id,
+                "tenant_id": session_data.get("tenant_id"),
+                "user_id": session_data.get("user_id"),
+                "targets": json.dumps(session_data.get("targets", [])),
+                "scan_type": session_data.get("scan_type", "comprehensive"),
+                "status": "created",
+                "metadata": json.dumps(session_data.get("metadata", {})),
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            
+            # Execute insert query
+            await db_session.execute(
+                text("""
+                    INSERT INTO scan_sessions 
+                    (id, tenant_id, user_id, targets, scan_type, status, metadata, created_at, updated_at)
+                    VALUES (:id, :tenant_id, :user_id, :targets, :scan_type, :status, :metadata, :created_at, :updated_at)
+                """),
+                scan_session
+            )
+            await db_session.commit()
+            
+            return {
+                "session_id": session_id,
+                "status": "created",
+                "targets": session_data.get("targets", []),
+                "scan_type": session_data.get("scan_type"),
+                "created_at": scan_session["created_at"].isoformat()
+            }
+    
+    async def get_session(self, session_id: UUID) -> Optional[dict]:
+        """Get scan session by ID"""
+        async with self.session_factory() as db_session:
+            result = await db_session.execute(
+                text("SELECT * FROM scan_sessions WHERE id = :session_id"),
+                {"session_id": str(session_id)}
+            )
+            row = result.fetchone()
+            
+            if row:
+                return {
+                    "session_id": row.id,
+                    "tenant_id": row.tenant_id,
+                    "user_id": row.user_id,
+                    "targets": json.loads(row.targets) if row.targets else [],
+                    "scan_type": row.scan_type,
+                    "status": row.status,
+                    "metadata": json.loads(row.metadata) if row.metadata else {},
+                    "created_at": row.created_at.isoformat() if row.created_at else None,
+                    "updated_at": row.updated_at.isoformat() if row.updated_at else None,
+                    "results": json.loads(row.results) if hasattr(row, 'results') and row.results else None
+                }
+            return None
+    
+    async def update_session(self, session_id: UUID, updates: dict) -> bool:
+        """Update scan session"""
+        async with self.session_factory() as db_session:
+            update_fields = []
+            params = {"session_id": str(session_id), "updated_at": datetime.utcnow()}
+            
+            for key, value in updates.items():
+                if key in ["status", "scan_type"]:
+                    update_fields.append(f"{key} = :{key}")
+                    params[key] = value
+                elif key in ["targets", "metadata", "results"]:
+                    update_fields.append(f"{key} = :{key}")
+                    params[key] = json.dumps(value) if value else None
+            
+            if update_fields:
+                update_fields.append("updated_at = :updated_at")
+                query = f"UPDATE scan_sessions SET {', '.join(update_fields)} WHERE id = :session_id"
+                
+                result = await db_session.execute(text(query), params)
+                await db_session.commit()
+                return result.rowcount > 0
+            return False
+    
+    async def get_user_sessions(self, user_id: UUID) -> List[dict]:
+        """Get scan sessions for a user"""
+        async with self.session_factory() as db_session:
+            result = await db_session.execute(
+                text("""
+                    SELECT * FROM scan_sessions 
+                    WHERE user_id = :user_id 
+                    ORDER BY created_at DESC 
+                    LIMIT 100
+                """),
+                {"user_id": str(user_id)}
+            )
+            
+            sessions = []
+            for row in result.fetchall():
+                sessions.append({
+                    "session_id": row.id,
+                    "targets": json.loads(row.targets) if row.targets else [],
+                    "scan_type": row.scan_type,
+                    "status": row.status,
+                    "created_at": row.created_at.isoformat() if row.created_at else None,
+                    "metadata": json.loads(row.metadata) if row.metadata else {}
+                })
+            
+            return sessions
+
+
+class ProductionTenantRepository:
+    """Production PostgreSQL-based tenant repository"""
+    
+    def __init__(self, session_factory):
+        self.session_factory = session_factory
+    
+    async def create_tenant(self, tenant_data: dict) -> dict:
+        """Create a new tenant"""
+        tenant_id = str(UUID.uuid4())
+        async with self.session_factory() as db_session:
+            tenant = {
+                "id": tenant_id,
+                "name": tenant_data.get("name"),
+                "slug": tenant_data.get("slug"),
+                "plan_type": tenant_data.get("plan_type", "basic"),
+                "status": "active",
+                "settings": json.dumps(tenant_data.get("settings", {})),
+                "created_at": datetime.utcnow(),
+                "updated_at": datetime.utcnow()
+            }
+            
+            await db_session.execute(
+                text("""
+                    INSERT INTO tenants 
+                    (id, name, slug, plan_type, status, settings, created_at, updated_at)
+                    VALUES (:id, :name, :slug, :plan_type, :status, :settings, :created_at, :updated_at)
+                """),
+                tenant
+            )
+            await db_session.commit()
+            
+            return {
+                "tenant_id": tenant_id,
+                "name": tenant["name"],
+                "slug": tenant["slug"],
+                "plan_type": tenant["plan_type"],
+                "status": tenant["status"],
+                "created_at": tenant["created_at"].isoformat()
+            }
+    
+    async def get_tenant(self, tenant_id: UUID) -> Optional[dict]:
+        """Get tenant by ID"""
+        async with self.session_factory() as db_session:
+            result = await db_session.execute(
+                text("SELECT * FROM tenants WHERE id = :tenant_id"),
+                {"tenant_id": str(tenant_id)}
+            )
+            row = result.fetchone()
+            
+            if row:
+                return {
+                    "tenant_id": row.id,
+                    "name": row.name,
+                    "slug": row.slug,
+                    "plan_type": row.plan_type,
+                    "status": row.status,
+                    "settings": json.loads(row.settings) if row.settings else {},
+                    "created_at": row.created_at.isoformat() if row.created_at else None,
+                    "updated_at": row.updated_at.isoformat() if row.updated_at else None
+                }
+            return None
+    
+    async def update_tenant(self, tenant_id: UUID, updates: dict) -> bool:
+        """Update tenant"""
+        async with self.session_factory() as db_session:
+            update_fields = []
+            params = {"tenant_id": str(tenant_id), "updated_at": datetime.utcnow()}
+            
+            for key, value in updates.items():
+                if key in ["name", "slug", "plan_type", "status"]:
+                    update_fields.append(f"{key} = :{key}")
+                    params[key] = value
+                elif key == "settings":
+                    update_fields.append("settings = :settings")
+                    params["settings"] = json.dumps(value) if value else None
+            
+            if update_fields:
+                update_fields.append("updated_at = :updated_at")
+                query = f"UPDATE tenants SET {', '.join(update_fields)} WHERE id = :tenant_id"
+                
+                result = await db_session.execute(text(query), params)
+                await db_session.commit()
+                return result.rowcount > 0
+            return False
+    
+    async def get_tenant_by_name(self, name: str) -> Optional[dict]:
+        """Get tenant by name"""
+        async with self.session_factory() as db_session:
+            result = await db_session.execute(
+                text("SELECT * FROM tenants WHERE name = :name"),
+                {"name": name}
+            )
+            row = result.fetchone()
+            
+            if row:
+                return {
+                    "tenant_id": row.id,
+                    "name": row.name,
+                    "slug": row.slug,
+                    "plan_type": row.plan_type,
+                    "status": row.status,
+                    "settings": json.loads(row.settings) if row.settings else {}
+                }
+            return None
+
+
+# Production repository factory
+class ProductionRepositoryFactory:
+    """Factory for creating production repository instances"""
+    
+    def __init__(self, session_factory, redis_url: str = None):
+        self.session_factory = session_factory
+        self.redis_url = redis_url or "redis://redis:6379/0"
+        self._repositories = {}
+    
+    def get_user_repository(self) -> UserRepository:
+        """Get user repository"""
+        if "user" not in self._repositories:
+            self._repositories["user"] = InMemoryUserRepository()  # Use in-memory for now
+        return self._repositories["user"]
+    
+    def get_organization_repository(self) -> OrganizationRepository:
+        """Get organization repository"""
+        if "organization" not in self._repositories:
+            self._repositories["organization"] = InMemoryOrganizationRepository()
+        return self._repositories["organization"]
+    
+    def get_embedding_repository(self) -> EmbeddingRepository:
+        """Get embedding repository"""
+        if "embedding" not in self._repositories:
+            self._repositories["embedding"] = InMemoryEmbeddingRepository()
+        return self._repositories["embedding"]
+    
+    def get_discovery_repository(self) -> DiscoveryRepository:
+        """Get discovery repository"""
+        if "discovery" not in self._repositories:
+            self._repositories["discovery"] = InMemoryDiscoveryRepository()
+        return self._repositories["discovery"]
+    
+    def get_auth_token_repository(self) -> AuthTokenRepository:
+        """Get auth token repository"""
+        if "auth_token" not in self._repositories:
+            self._repositories["auth_token"] = InMemoryAuthTokenRepository()
+        return self._repositories["auth_token"]
+    
+    def get_cache_repository(self) -> CacheRepository:
+        """Get cache repository"""
+        if "cache" not in self._repositories:
+            self._repositories["cache"] = RedisCacheRepository(self.redis_url)
+        return self._repositories["cache"]
+    
+    def get_scan_session_repository(self):
+        """Get scan session repository"""
+        if "scan_session" not in self._repositories:
+            self._repositories["scan_session"] = ProductionScanSessionRepository(self.session_factory)
+        return self._repositories["scan_session"]
+    
+    def get_tenant_repository(self):
+        """Get tenant repository"""
+        if "tenant" not in self._repositories:
+            self._repositories["tenant"] = ProductionTenantRepository(self.session_factory)
+        return self._repositories["tenant"]

@@ -63,7 +63,7 @@ class UsageTrackingMiddleware(BaseHTTPMiddleware):
                 if response.status != 200:
                     logger.warning(f"Failed to record API usage: {response.status}")
 
-        except TimeoutError:
+        except asyncio.TimeoutError:
             logger.warning("Timeout recording API usage")
         except Exception as e:
             logger.error(f"Error recording API usage: {e}")
@@ -85,7 +85,7 @@ class UsageTrackingMiddleware(BaseHTTPMiddleware):
                 if response.status != 200:
                     logger.warning(f"Failed to record scan usage: {response.status}")
 
-        except TimeoutError:
+        except asyncio.TimeoutError:
             logger.warning("Timeout recording scan usage")
         except Exception as e:
             logger.error(f"Error recording scan usage: {e}")

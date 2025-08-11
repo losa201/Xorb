@@ -1,0 +1,63 @@
+{
+  "environment": "development",
+  "debug": true,
+  "database": {
+    "host": "localhost",
+    "port": 5432,
+    "name": "xorb_dev",
+    "username": "xorb_dev",
+    "pool_size": 5
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "db": 0
+  },
+  "security": {
+    "jwt_expire_hours": 24,
+    "password_min_length": 6,
+    "max_login_attempts": 10
+  },
+  "monitoring": {
+    "enabled": true,
+    "log_level": "DEBUG",
+    "tracing_enabled": true,
+    "prometheus_port": 9090,
+    "grafana_port": 3000
+  },
+  "api_service": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 1,
+    "cors_origins": ["*"]
+  },
+  "orchestrator_service": {
+    "host": "0.0.0.0",
+    "port": 8001,
+    "workers": 1
+  },
+  "intelligence_service": {
+    "host": "0.0.0.0", 
+    "port": 8002,
+    "workers": 1
+  },
+  "feature_flags": {
+    "advanced_analytics": true,
+    "threat_hunting": true,
+    "compliance_automation": true,
+    "multi_tenant": false,
+    "sso_integration": false,
+    "debug_mode": true,
+    "performance_profiling": true
+  },
+  "integrations": {
+    "vault": {
+      "enabled": false,
+      "url": "http://localhost:8200"
+    },
+    "temporal": {
+      "host": "localhost:7233",
+      "namespace": "xorb-dev"
+    }
+  }
+}

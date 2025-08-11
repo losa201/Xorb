@@ -1,0 +1,139 @@
+# XORB Production Prometheus Configuration
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'production'
+    platform: 'xorb'
+
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # XORB API Service
+  - job_name: 'xorb-api'
+    static_configs:
+      - targets: ['api:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+
+  # XORB Orchestrator
+  - job_name: 'xorb-orchestrator'
+    static_configs:
+      - targets: ['orchestrator:8001']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # XORB Worker Service
+  - job_name: 'xorb-worker'
+    static_configs:
+      - targets: ['worker:8002']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # PostgreSQL Database
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+
+  # Redis Cache
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+
+  # Temporal Workflow Engine
+  - job_name: 'temporal'
+    static_configs:
+      - targets: ['temporal:7234']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Vault Secret Management
+  - job_name: 'vault'
+    static_configs:
+      - targets: ['vault:8200']
+    metrics_path: '/v1/sys/metrics'
+    scheme: 'http'
+    params:
+      format: ['prometheus']
+    scrape_interval: 30s
+
+  # Node Exporter for system metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+
+  # Docker containers monitoring
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 30s
+
+  # Frontend Application (if metrics enabled)
+  - job_name: 'xorb-frontend'
+    static_configs:
+      - targets: ['frontend:3000']
+    metrics_path: '/api/metrics'
+    scrape_interval: 60s
+    honor_labels: true
+
+  # Grafana monitoring
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # AlertManager monitoring
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Blackbox exporter for endpoint monitoring
+  - job_name: 'blackbox'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - http://api:8000/health
+        - http://api:8000/readiness
+        - http://orchestrator:8001/health
+        - http://frontend:3000
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+# Remote write configuration (optional - for long-term storage)
+# remote_write:
+#   - url: "https://prometheus-remote-write-endpoint"
+#     headers:
+#       Authorization: "Bearer YOUR_TOKEN"
+
+# Storage configuration is managed via command line arguments
+# --storage.tsdb.retention.time=30d
+# --storage.tsdb.retention.size=10GB

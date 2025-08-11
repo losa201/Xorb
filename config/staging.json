@@ -1,0 +1,75 @@
+{
+  "environment": "staging",
+  "debug": false,
+  "database": {
+    "host": "xorb-postgres-staging",
+    "port": 5432,
+    "name": "xorb_staging",
+    "username": "xorb_staging",
+    "ssl_mode": "require",
+    "pool_size": 10,
+    "max_overflow": 20
+  },
+  "redis": {
+    "host": "xorb-redis-staging",
+    "port": 6379,
+    "db": 0,
+    "ssl": true
+  },
+  "security": {
+    "jwt_expire_hours": 12,
+    "password_min_length": 8,
+    "max_login_attempts": 5,
+    "lockout_duration_minutes": 30
+  },
+  "monitoring": {
+    "enabled": true,
+    "log_level": "INFO", 
+    "tracing_enabled": true,
+    "metrics_retention_days": 30,
+    "prometheus_port": 9090,
+    "grafana_port": 3000
+  },
+  "api_service": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "workers": 4,
+    "timeout": 60,
+    "max_connections": 1000,
+    "cors_origins": ["https://staging.xorb.security"]
+  },
+  "orchestrator_service": {
+    "host": "0.0.0.0",
+    "port": 8001,
+    "workers": 2,
+    "timeout": 120
+  },
+  "intelligence_service": {
+    "host": "0.0.0.0",
+    "port": 8002,
+    "workers": 3,
+    "timeout": 300
+  },
+  "feature_flags": {
+    "advanced_analytics": true,
+    "threat_hunting": true,
+    "compliance_automation": true,
+    "multi_tenant": true,
+    "sso_integration": true,
+    "debug_mode": false,
+    "performance_profiling": true,
+    "enterprise_features": true,
+    "beta_features": true
+  },
+  "integrations": {
+    "vault": {
+      "enabled": true,
+      "url": "https://vault-staging.xorb.internal:8200",
+      "token_path": "/var/run/secrets/vault-token"
+    },
+    "temporal": {
+      "host": "temporal-staging.xorb.internal:7233",
+      "namespace": "xorb-staging"
+    }
+  }
+}

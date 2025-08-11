@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xorb-platform
+  labels:
+    name: xorb-platform
+    tier: production
+    version: "3.0.0"
+  annotations:
+    description: "XORB Cybersecurity Platform - Production Namespace"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xorb-monitoring
+  labels:
+    name: xorb-monitoring
+    tier: observability
+  annotations:
+    description: "XORB Platform Monitoring and Observability"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xorb-data
+  labels:
+    name: xorb-data
+    tier: data
+  annotations:
+    description: "XORB Platform Data Layer - Databases and Caches"

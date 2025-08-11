@@ -24,16 +24,47 @@ aioredis = None
 
 try:
     from prometheus_client import Counter, Histogram, Gauge, Summary
+    PROMETHEUS_AVAILABLE = True
 except ImportError:
-    # Mock implementations
+    PROMETHEUS_AVAILABLE = False
+    logger.warning("Prometheus client not available for fault tolerance metrics")
+    
+    # Functional mock implementations for fault tolerance
     class MockMetric:
-        def inc(self, amount=1): pass
-        def observe(self, value): pass
-        def set(self, value): pass
-        def labels(self, **kwargs): return self
-        def time(self): return self
-        def __enter__(self): return self
-        def __exit__(self, *args): pass
+        def __init__(self, name, description, labelnames=None, registry=None):
+            self.name = name
+            self._value = 0
+            self.labelnames = labelnames or []
+            
+        def inc(self, amount=1): 
+            self._value += amount
+            logger.debug(f"Fault tolerance metric {self.name}: {self._value}")
+            
+        def observe(self, value): 
+            logger.debug(f"Fault tolerance metric {self.name}: observed {value}")
+            
+        def set(self, value): 
+            self._value = value
+            logger.debug(f"Fault tolerance metric {self.name}: set to {value}")
+            
+        def labels(self, **kwargs): 
+            return self
+            
+        def time(self): 
+            return MockTimer()
+            
+    class MockTimer:
+        def __init__(self):
+            self.start_time = None
+            
+        def __enter__(self): 
+            self.start_time = time.time()
+            return self
+            
+        def __exit__(self, *args): 
+            if self.start_time:
+                duration = time.time() - self.start_time
+                logger.debug(f"Operation completed in {duration:.3f}s")
     
     Counter = MockMetric
     Histogram = MockMetric

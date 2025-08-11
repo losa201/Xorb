@@ -1,0 +1,588 @@
+name: Production Security Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run security scans daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  PYTHON_VERSION: '3.12'
+  NODE_VERSION: '20'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # ================================================================
+  # SECURITY SCANNING MATRIX
+  # ================================================================
+  
+  secret-scanning:
+    name: Secret & Credential Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Install GitLeaks
+        run: |
+          wget https://github.com/gitleaks/gitleaks/releases/download/v8.18.0/gitleaks_8.18.0_linux_x64.tar.gz
+          tar xzf gitleaks_8.18.0_linux_x64.tar.gz
+          sudo mv gitleaks /usr/local/bin/
+      
+      - name: Run GitLeaks secret scan
+        run: |
+          gitleaks detect --source . --verbose --report-format json --report-path gitleaks-report.json
+        continue-on-error: true
+      
+      - name: Upload GitLeaks results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: gitleaks-results
+          path: gitleaks-report.json
+      
+      - name: Install TruffleHog
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/trufflesecurity/trufflehog/main/scripts/install.sh | sh -s -- -b /usr/local/bin
+      
+      - name: Run TruffleHog scan
+        run: |
+          trufflehog git file://. --json > trufflehog-report.json
+        continue-on-error: true
+      
+      - name: Upload TruffleHog results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: trufflehog-results
+          path: trufflehog-report.json
+
+  static-analysis:
+    name: Static Application Security Testing (SAST)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        tool: [bandit, semgrep, codeql]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install bandit[toml] safety
+      
+      - name: Run Bandit Security Scan
+        if: matrix.tool == 'bandit'
+        run: |
+          bandit -r src/ -f json -o bandit-report.json || true
+          bandit -r src/ -f txt -o bandit-report.txt || true
+        continue-on-error: true
+      
+      - name: Install and run Semgrep
+        if: matrix.tool == 'semgrep'
+        run: |
+          python -m pip install semgrep
+          semgrep --config=auto --json --output=semgrep-report.json src/ || true
+        continue-on-error: true
+      
+      - name: Initialize CodeQL
+        if: matrix.tool == 'codeql'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: python, javascript
+          queries: security-extended,security-and-quality
+      
+      - name: Perform CodeQL Analysis
+        if: matrix.tool == 'codeql'
+        uses: github/codeql-action/analyze@v3
+        continue-on-error: true
+      
+      - name: Upload SAST results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sast-${{ matrix.tool }}-results
+          path: |
+            *-report.json
+            *-report.txt
+
+  dependency-scanning:
+    name: Dependency Vulnerability Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety pip-audit
+          if [ -f requirements.lock ]; then pip install -r requirements.lock; fi
+      
+      - name: Run Safety check (Python)
+        run: |
+          safety check --json --output safety-report.json || true
+          safety check --output safety-report.txt || true
+        continue-on-error: true
+      
+      - name: Run pip-audit (Python)
+        run: |
+          pip-audit --format=json --output=pip-audit-report.json || true
+          pip-audit --format=text --output=pip-audit-report.txt || true
+        continue-on-error: true
+      
+      - name: Install Node.js dependencies
+        if: hashFiles('services/ptaas/web/package.json') != ''
+        working-directory: services/ptaas/web
+        run: npm ci
+      
+      - name: Run npm audit (Node.js)
+        if: hashFiles('services/ptaas/web/package.json') != ''
+        working-directory: services/ptaas/web
+        run: |
+          npm audit --audit-level moderate --json > ../../../npm-audit-report.json || true
+          npm audit --audit-level moderate > ../../../npm-audit-report.txt || true
+        continue-on-error: true
+      
+      - name: Run Snyk vulnerability scan
+        uses: snyk/actions/node@master
+        if: hashFiles('services/ptaas/web/package.json') != ''
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --json-file-output=snyk-report.json
+        continue-on-error: true
+      
+      - name: Upload dependency scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dependency-scan-results
+          path: |
+            *-report.json
+            *-report.txt
+
+  container-security:
+    name: Container Security Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker images
+        run: |
+          docker build -t xorb-api:latest -f src/api/Dockerfile src/api/
+          docker build -t xorb-orchestrator:latest -f src/orchestrator/Dockerfile src/orchestrator/
+      
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install wget apt-transport-https gnupg lsb-release
+          wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | sudo apt-key add -
+          echo "deb https://aquasecurity.github.io/trivy-repo/deb $(lsb_release -sc) main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+          sudo apt-get update
+          sudo apt-get install trivy
+      
+      - name: Run Trivy container scan
+        run: |
+          trivy image --format json --output trivy-api-report.json xorb-api:latest || true
+          trivy image --format json --output trivy-orchestrator-report.json xorb-orchestrator:latest || true
+          trivy image --format table --output trivy-summary.txt xorb-api:latest || true
+        continue-on-error: true
+      
+      - name: Install Grype
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
+      
+      - name: Run Grype vulnerability scan
+        run: |
+          grype xorb-api:latest -o json > grype-api-report.json || true
+          grype xorb-orchestrator:latest -o json > grype-orchestrator-report.json || true
+        continue-on-error: true
+      
+      - name: Install Dockle
+        run: |
+          VERSION=$(curl --silent "https://api.github.com/repos/goodwithtech/dockle/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+          curl -L -o dockle.deb https://github.com/goodwithtech/dockle/releases/download/v${VERSION}/dockle_${VERSION}_Linux-64bit.deb
+          sudo dpkg -i dockle.deb
+      
+      - name: Run Dockle security scan
+        run: |
+          dockle --format json --output dockle-api-report.json xorb-api:latest || true
+          dockle --format json --output dockle-orchestrator-report.json xorb-orchestrator:latest || true
+        continue-on-error: true
+      
+      - name: Upload container security results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: container-security-results
+          path: |
+            trivy-*.json
+            grype-*.json
+            dockle-*.json
+            trivy-summary.txt
+
+  infrastructure-security:
+    name: Infrastructure as Code Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Checkov
+        run: |
+          python -m pip install --upgrade pip
+          pip install checkov
+      
+      - name: Run Checkov scan
+        run: |
+          checkov --framework dockerfile,kubernetes,github_actions --output json --output-file checkov-report.json . || true
+          checkov --framework dockerfile,kubernetes,github_actions --output cli --output-file checkov-summary.txt . || true
+        continue-on-error: true
+      
+      - name: Install Hadolint
+        run: |
+          wget -O hadolint https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64
+          chmod +x hadolint
+          sudo mv hadolint /usr/local/bin/
+      
+      - name: Run Hadolint Dockerfile scan
+        run: |
+          find . -name "Dockerfile*" -exec hadolint --format json {} \; > hadolint-report.json || true
+          find . -name "Dockerfile*" -exec hadolint {} \; > hadolint-summary.txt || true
+        continue-on-error: true
+      
+      - name: Upload infrastructure security results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: infrastructure-security-results
+          path: |
+            checkov-*.json
+            checkov-*.txt
+            hadolint-*.json
+            hadolint-*.txt
+
+  dynamic-security-testing:
+    name: Dynamic Application Security Testing (DAST)
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: xorb
+          POSTGRES_USER: xorb
+          POSTGRES_DB: xorb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock
+      
+      - name: Start XORB API
+        run: |
+          cd src/api
+          export DATABASE_URL="postgresql://xorb:xorb@localhost:5432/xorb"
+          export REDIS_URL="redis://localhost:6379/0"
+          uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+          sleep 30
+          curl -f http://localhost:8000/api/v1/health || exit 1
+        env:
+          SECRET_KEY: test_secret_key_for_dast
+          USE_DATABASE_REPOSITORIES: false
+      
+      - name: Install OWASP ZAP
+        run: |
+          wget https://github.com/zaproxy/zaproxy/releases/download/v2.14.0/ZAP_2_14_0_unix.sh
+          chmod +x ZAP_2_14_0_unix.sh
+          sudo ./ZAP_2_14_0_unix.sh -q
+      
+      - name: Run OWASP ZAP baseline scan
+        run: |
+          /opt/zaproxy/zap.sh -cmd \
+            -quickurl http://localhost:8000 \
+            -quickprogress \
+            -quickout zap-baseline-report.html \
+            -quickout zap-baseline-report.json
+        continue-on-error: true
+      
+      - name: Run OWASP ZAP API scan
+        run: |
+          /opt/zaproxy/zap.sh -cmd \
+            -quickurl http://localhost:8000/docs \
+            -quickprogress \
+            -quickout zap-api-report.html \
+            -quickout zap-api-report.json
+        continue-on-error: true
+      
+      - name: Upload DAST results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: dast-results
+          path: |
+            zap-*.html
+            zap-*.json
+
+  compliance-scanning:
+    name: Compliance & Policy Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Install Open Policy Agent (OPA)
+        run: |
+          curl -L -o opa https://openpolicyagent.org/downloads/v0.58.0/opa_linux_amd64_static
+          chmod 755 ./opa
+          sudo mv opa /usr/local/bin/
+      
+      - name: Install Conftest
+        run: |
+          wget https://github.com/open-policy-agent/conftest/releases/download/v0.46.0/conftest_0.46.0_Linux_x86_64.tar.gz
+          tar xzf conftest_0.46.0_Linux_x86_64.tar.gz
+          sudo mv conftest /usr/local/bin/
+      
+      - name: Run compliance policy checks
+        run: |
+          # Create basic security policies
+          mkdir -p policies
+          cat > policies/security.rego << 'EOF'
+          package docker.security
+          
+          deny[msg] {
+            input.Config.User == ""
+            msg = "Container should not run as root"
+          }
+          
+          deny[msg] {
+            input.Config.User == "root"
+            msg = "Container should not run as root user"
+          }
+          EOF
+          
+          # Scan Docker configurations
+          find . -name "Dockerfile*" -exec conftest test --policy policies/ {} \; > conftest-report.txt || true
+        continue-on-error: true
+      
+      - name: Check GDPR compliance patterns
+        run: |
+          # Look for potential GDPR compliance issues
+          grep -r -i "email\|personal\|pii\|gdpr" src/ > gdpr-scan.txt || true
+          grep -r -i "password\|secret\|token" src/ > credential-patterns.txt || true
+        continue-on-error: true
+      
+      - name: Upload compliance results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: compliance-results
+          path: |
+            conftest-report.txt
+            gdpr-scan.txt
+            credential-patterns.txt
+
+  # ================================================================
+  # SECURITY REPORT AGGREGATION
+  # ================================================================
+  
+  security-report:
+    name: Security Report Aggregation
+    runs-on: ubuntu-latest
+    needs: [secret-scanning, static-analysis, dependency-scanning, container-security, infrastructure-security, dynamic-security-testing, compliance-scanning]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download all security artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: security-reports/
+      
+      - name: Install report tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install jinja2 pyyaml
+      
+      - name: Generate consolidated security report
+        run: |
+          python << 'EOF'
+          import json
+          import os
+          import glob
+          from datetime import datetime
+          
+          # Aggregate all security findings
+          findings = {
+              "scan_timestamp": datetime.now().isoformat(),
+              "repository": os.environ.get("GITHUB_REPOSITORY", "unknown"),
+              "commit": os.environ.get("GITHUB_SHA", "unknown"),
+              "findings": {
+                  "secrets": [],
+                  "vulnerabilities": [],
+                  "container_issues": [],
+                  "compliance_issues": [],
+                  "infrastructure_issues": []
+              },
+              "summary": {
+                  "total_findings": 0,
+                  "critical": 0,
+                  "high": 0,
+                  "medium": 0,
+                  "low": 0
+              }
+          }
+          
+          # Process all JSON reports
+          for json_file in glob.glob("security-reports/**/*.json", recursive=True):
+              try:
+                  with open(json_file, 'r') as f:
+                      data = json.load(f)
+                      # Process based on file type
+                      if 'gitleaks' in json_file:
+                          findings["findings"]["secrets"].extend(data if isinstance(data, list) else [])
+                      elif 'bandit' in json_file or 'semgrep' in json_file:
+                          if isinstance(data, dict) and 'results' in data:
+                              findings["findings"]["vulnerabilities"].extend(data['results'])
+                      elif 'trivy' in json_file or 'grype' in json_file:
+                          if isinstance(data, dict) and 'vulnerabilities' in data:
+                              findings["findings"]["container_issues"].extend(data['vulnerabilities'])
+              except Exception as e:
+                  print(f"Error processing {json_file}: {e}")
+          
+          # Calculate summary
+          all_findings = (
+              len(findings["findings"]["secrets"]) +
+              len(findings["findings"]["vulnerabilities"]) +
+              len(findings["findings"]["container_issues"]) +
+              len(findings["findings"]["compliance_issues"]) +
+              len(findings["findings"]["infrastructure_issues"])
+          )
+          findings["summary"]["total_findings"] = all_findings
+          
+          # Save consolidated report
+          with open("consolidated-security-report.json", "w") as f:
+              json.dump(findings, f, indent=2)
+          
+          # Generate summary text
+          with open("security-summary.txt", "w") as f:
+              f.write(f"XORB Security Scan Summary\n")
+              f.write(f"========================\n\n")
+              f.write(f"Scan Date: {findings['scan_timestamp']}\n")
+              f.write(f"Repository: {findings['repository']}\n")
+              f.write(f"Commit: {findings['commit'][:8]}\n\n")
+              f.write(f"Total Findings: {findings['summary']['total_findings']}\n")
+              f.write(f"- Secrets Found: {len(findings['findings']['secrets'])}\n")
+              f.write(f"- Code Vulnerabilities: {len(findings['findings']['vulnerabilities'])}\n")
+              f.write(f"- Container Issues: {len(findings['findings']['container_issues'])}\n")
+              f.write(f"- Infrastructure Issues: {len(findings['findings']['infrastructure_issues'])}\n")
+              f.write(f"- Compliance Issues: {len(findings['findings']['compliance_issues'])}\n")
+          
+          EOF
+      
+      - name: Upload consolidated security report
+        uses: actions/upload-artifact@v4
+        with:
+          name: consolidated-security-report
+          path: |
+            consolidated-security-report.json
+            security-summary.txt
+            security-reports/
+      
+      - name: Comment PR with security summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('security-summary.txt', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## 🔒 Security Scan Results\n\n\`\`\`\n${summary}\n\`\`\`\n\n📊 Full details available in the workflow artifacts.`
+            });
+      
+      - name: Fail on critical vulnerabilities
+        run: |
+          python << 'EOF'
+          import json
+          
+          # Load consolidated report
+          with open("consolidated-security-report.json", "r") as f:
+              report = json.load(f)
+          
+          # Define failure thresholds
+          max_secrets = int(os.environ.get("MAX_SECRETS", "0"))
+          max_critical_vulns = int(os.environ.get("MAX_CRITICAL_VULNS", "0"))
+          
+          secrets_count = len(report["findings"]["secrets"])
+          critical_count = report["summary"]["critical"]
+          
+          if secrets_count > max_secrets:
+              print(f"❌ FAIL: Found {secrets_count} secrets (max allowed: {max_secrets})")
+              exit(1)
+          
+          if critical_count > max_critical_vulns:
+              print(f"❌ FAIL: Found {critical_count} critical vulnerabilities (max allowed: {max_critical_vulns})")
+              exit(1)
+          
+          print("✅ PASS: Security scan within acceptable thresholds")
+          EOF
+        env:
+          MAX_SECRETS: "0"
+          MAX_CRITICAL_VULNS: "5"

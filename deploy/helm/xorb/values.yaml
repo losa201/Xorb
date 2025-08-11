@@ -1,0 +1,407 @@
+# XORB Enterprise Platform - Production Values
+# Strategic deployment configuration for enterprise environments
+
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: "fast-ssd"
+
+# Image configuration
+image:
+  registry: docker.io
+  repository: xorb
+  tag: "1.0.0"
+  pullPolicy: IfNotPresent
+
+# API Service Configuration
+api:
+  enabled: true
+  replicaCount: 3
+  
+  image:
+    repository: xorb/api
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8000
+    annotations: {}
+  
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1000m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  
+  env:
+    ENVIRONMENT: "production"
+    LOG_LEVEL: "INFO"
+    RATE_LIMIT_PER_MINUTE: "100"
+    RATE_LIMIT_PER_HOUR: "5000"
+    ENABLE_METRICS: "true"
+    ENABLE_AUDIT_LOGGING: "true"
+  
+  probes:
+    liveness:
+      path: /api/v1/health
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readiness:
+      path: /api/v1/readiness
+      initialDelaySeconds: 10
+      periodSeconds: 5
+    startup:
+      path: /api/v1/health
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      failureThreshold: 30
+
+# Orchestrator Service Configuration
+orchestrator:
+  enabled: true
+  replicaCount: 2
+  
+  image:
+    repository: xorb/orchestrator
+    tag: "1.0.0"
+    pullPolicy: IfNotPresent
+  
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 8001
+  
+  resources:
+    requests:
+      memory: "1Gi"
+      cpu: "500m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+  
+  env:
+    ENVIRONMENT: "production"
+    LOG_LEVEL: "INFO"
+    MAX_CONCURRENT_WORKFLOWS: "100"
+    CIRCUIT_BREAKER_THRESHOLD: "5"
+    CIRCUIT_BREAKER_TIMEOUT: "60"
+
+# PostgreSQL Configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: ""  # Set via secret
+    username: "xorb"
+    password: ""  # Set via secret
+    database: "xorb_production"
+  
+  architecture: standalone
+  
+  primary:
+    persistence:
+      enabled: true
+      storageClass: "fast-ssd"
+      size: 100Gi
+    
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+    
+    pgHbaConfiguration: |
+      # TYPE  DATABASE        USER            ADDRESS                 METHOD
+      local   all             all                                     trust
+      host    all             all             127.0.0.1/32            md5
+      host    all             all             ::1/128                 md5
+      host    all             all             0.0.0.0/0               md5
+    
+    initdb:
+      scripts:
+        01-extensions.sql: |
+          CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+          CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+          CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+          CREATE EXTENSION IF NOT EXISTS "btree_gin";
+
+# Redis Configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: ""  # Set via secret
+  
+  architecture: standalone
+  
+  master:
+    persistence:
+      enabled: true
+      storageClass: "fast-ssd"
+      size: 20Gi
+    
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "X-Frame-Options: DENY";
+      more_set_headers "X-Content-Type-Options: nosniff";
+      more_set_headers "X-XSS-Protection: 1; mode=block";
+      more_set_headers "Strict-Transport-Security: max-age=31536000; includeSubDomains";
+  
+  hosts:
+    - host: api.xorb-security.com
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: xorb-api
+            port: 80
+  
+  tls:
+    - secretName: xorb-api-tls
+      hosts:
+        - api.xorb-security.com
+
+# Security Configuration
+security:
+  networkPolicy:
+    enabled: true
+  
+  podSecurityPolicy:
+    enabled: true
+  
+  serviceAccount:
+    create: true
+    annotations: {}
+    name: ""
+  
+  securityContext:
+    runAsUser: 1000
+    runAsNonRoot: true
+    fsGroup: 1000
+  
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop:
+        - ALL
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  
+  serviceMonitor:
+    enabled: true
+    namespace: monitoring
+    labels:
+      app: xorb
+    
+  prometheusRule:
+    enabled: true
+    namespace: monitoring
+    
+  grafana:
+    enabled: true
+    dashboards:
+      enabled: true
+
+# Secrets Configuration
+secrets:
+  create: true
+  
+  database:
+    username: "xorb"
+    password: ""  # Generated or provided
+    url: ""       # Constructed automatically
+  
+  redis:
+    password: ""  # Generated or provided
+    url: ""       # Constructed automatically
+  
+  jwt:
+    secret: ""    # Generated or provided
+  
+  externalApis:
+    nvidia: ""
+    openrouter: ""
+
+# ConfigMaps
+configMaps:
+  api:
+    data:
+      app.yaml: |
+        server:
+          host: "0.0.0.0"
+          port: 8000
+          workers: 4
+        
+        logging:
+          level: INFO
+          format: json
+          handlers:
+            - console
+            - file
+        
+        security:
+          cors_allowed_origins:
+            - https://app.xorb-security.com
+            - https://dashboard.xorb-security.com
+          
+        rate_limiting:
+          enabled: true
+          per_minute: 100
+          per_hour: 5000
+  
+  orchestrator:
+    data:
+      config.yaml: |
+        temporal:
+          namespace: xorb-production
+          task_queue: xorb-orchestrator-queue
+        
+        workflows:
+          max_concurrent: 100
+          timeout_seconds: 3600
+        
+        circuit_breaker:
+          failure_threshold: 5
+          timeout_seconds: 60
+
+# Persistence
+persistence:
+  enabled: true
+  storageClass: "fast-ssd"
+  accessMode: ReadWriteOnce
+  size: 50Gi
+
+# Resource Quotas
+resourceQuota:
+  enabled: true
+  requests:
+    cpu: "20"
+    memory: "40Gi"
+  limits:
+    cpu: "40"
+    memory: "80Gi"
+
+# Network Policies
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+        - namespaceSelector:
+            matchLabels:
+              name: monitoring
+  egress:
+    - to: []
+      ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 53
+        - protocol: UDP
+          port: 53
+
+# Backup Configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  retention: 30          # 30 days
+  
+  s3:
+    bucket: ""
+    region: ""
+    accessKey: ""
+    secretKey: ""
+
+# Disaster Recovery
+disasterRecovery:
+  enabled: true
+  
+  postgresql:
+    backup:
+      enabled: true
+      schedule: "0 1 * * *"
+      retention: 30
+  
+  redis:
+    backup:
+      enabled: true
+      schedule: "0 3 * * *"
+      retention: 7
+
+# Development/Testing Overrides
+development:
+  enabled: false
+  
+  api:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "1Gi"
+        cpu: "500m"
+  
+  orchestrator:
+    replicaCount: 1
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "125m"
+      limits:
+        memory: "512Mi"
+        cpu: "250m"
+
+# Node Affinity and Tolerations
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - xorb-api
+            - xorb-orchestrator
+        topologyKey: kubernetes.io/hostname

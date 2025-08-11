@@ -1,0 +1,65 @@
+# XORB Platform Test Configuration
+# Test environment settings
+
+# Environment
+environment: "test"
+debug: true
+
+# Services (Minimal for testing)
+services:
+  api:
+    workers: 1
+    timeout: 10
+  
+  orchestrator:
+    enabled: false  # Disable orchestrator in tests
+  
+  intelligence:
+    workers: 1
+    timeout: 10
+  
+  worker:
+    enabled: false  # Disable worker in tests
+
+# Database (Test database)
+database:
+  host: "localhost"
+  port: 5432
+  name: "xorb_test"
+  username: "xorb_test"
+  max_connections: 5
+
+# Redis (Test settings)
+redis:
+  host: "localhost"
+  port: 6379
+  database: 1  # Use different database for tests
+  max_connections: 5
+
+# Security (Fast for testing)
+security:
+  jwt_expiry_minutes: 60
+  password_min_length: 6
+  max_login_attempts: 100  # No limits in tests
+  require_mfa: false
+
+# Monitoring (Minimal for tests)
+monitoring:
+  log_level: "WARNING"
+  prometheus_enabled: false
+  grafana_enabled: false
+  structured_logging: false
+  audit_logging: false
+
+# CORS (Open for testing)
+cors_origins:
+  - "*"
+
+# Feature Flags (All enabled for testing)
+features:
+  advanced_analytics: true
+  threat_hunting: true
+  compliance_automation: true
+  multi_tenant: true
+  sso_integration: true
+  ai_enhancement: true
