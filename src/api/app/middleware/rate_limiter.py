@@ -27,9 +27,9 @@ rate_limit_block_total = Counter(
     ['org_id', 'plan_type', 'resource_type']
 )
 
-memory_usage_bytes = Gauge(
-    'memory_usage_bytes',
-    'Memory usage in bytes',
+rate_limiter_rate_limiter_memory_usage_bytes = Gauge(
+    'rate_limiter_rate_limiter_memory_usage_bytes',
+    'Rate limiter memory usage in bytes',
     ['container', 'service']
 )
 

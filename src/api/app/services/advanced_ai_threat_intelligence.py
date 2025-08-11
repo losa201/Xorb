@@ -1295,3 +1295,19 @@ class AdvancedThreatIntelligenceEngine(ThreatIntelligenceService):
     
     # Additional helper methods would be implemented here...
     # This is a comprehensive foundation for the threat intelligence engine
+
+
+# Factory function for dependency injection
+async def get_advanced_threat_intelligence() -> AdvancedThreatIntelligenceEngine:
+    """
+    Factory function to create and return AdvancedThreatIntelligenceEngine instance
+    """
+    from ..infrastructure.production_repositories import RepositoryFactory
+    
+    # Create repository factory (in production this would be injected)
+    repository_factory = RepositoryFactory()
+    
+    # Create and return the threat intelligence engine
+    engine = AdvancedThreatIntelligenceEngine(repository_factory)
+    
+    return engine

@@ -12,13 +12,13 @@ import bcrypt
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any, Union
 from uuid import UUID, uuid4
-import aioredis
+# import aioredis  # Temporarily disabled due to Python 3.12 compatibility issues
 import asyncpg
 from jose import jwt, JWTError
 import aiohttp
 import smtplib
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import re
 from pathlib import Path
 
@@ -849,7 +849,7 @@ class ProductionNotificationService(NotificationService):
             msg['Subject'] = subject
             
             # Add body
-            msg.attach(MimeText(message, 'html' if '<' in message else 'plain'))
+            msg.attach(MIMEText(message, 'html' if '<' in message else 'plain'))
             
             # Add attachments
             if attachments:
@@ -933,6 +933,31 @@ class ProductionNotificationService(NotificationService):
 
 
 # Service Factory Functions
+
+class ServiceFactory:
+    """Factory class for creating production services"""
+    
+    def __init__(self, config: Dict[str, Any] = None):
+        self.config = config or {}
+        self._cache = {}
+    
+    async def create_auth_service(self, jwt_secret: str, redis_client=None, db_pool=None) -> ProductionAuthenticationService:
+        """Create authentication service"""
+        return ProductionAuthenticationService(jwt_secret, redis_client, db_pool)
+    
+    async def create_authz_service(self, db_pool=None, redis_client=None) -> ProductionAuthorizationService:
+        """Create authorization service"""
+        return ProductionAuthorizationService(db_pool, redis_client)
+    
+    async def create_rate_limiting_service(self, redis_client=None) -> ProductionRateLimitingService:
+        """Create rate limiting service"""
+        return ProductionRateLimitingService(redis_client)
+    
+    async def create_notification_service(self, smtp_config: Dict = None) -> ProductionNotificationService:
+        """Create notification service"""
+        return ProductionNotificationService(smtp_config)
+
+
 async def create_production_auth_service(jwt_secret: str, redis_client=None, db_pool=None) -> ProductionAuthenticationService:
     """Factory function for production authentication service"""
     return ProductionAuthenticationService(jwt_secret, redis_client, db_pool)
@@ -948,3 +973,7 @@ async def create_production_rate_limiting_service(redis_client=None) -> Producti
 async def create_production_notification_service(smtp_config: Dict = None) -> ProductionNotificationService:
     """Factory function for production notification service"""
     return ProductionNotificationService(smtp_config)
+
+async def get_service_factory() -> ServiceFactory:
+    """Factory function to create and return ServiceFactory instance"""
+    return ServiceFactory()

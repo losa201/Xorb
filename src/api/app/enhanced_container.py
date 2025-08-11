@@ -20,8 +20,8 @@ from .infrastructure.production_repositories import (
 from .services.production_service_implementations import (
     ServiceFactory,
     ProductionAuthenticationService,
-    ProductionPTaaSService,
-    ProductionHealthService,
+    # ProductionPTaaSService,  # Not implemented
+    # ProductionHealthService,  # Not implemented
     get_service_factory
 )
 from .services.advanced_ai_threat_intelligence import AdvancedThreatIntelligenceEngine
@@ -174,11 +174,11 @@ class EnhancedContainer:
         """Get authentication service"""
         return await self.get('auth_service')
     
-    async def get_ptaas_service(self) -> ProductionPTaaSService:
+    async def get_ptaas_service(self) -> Any:  # ProductionPTaaSService not implemented
         """Get PTaaS service"""
         return await self.get('ptaas_service')
     
-    async def get_health_service(self) -> ProductionHealthService:
+    async def get_health_service(self) -> Any:  # ProductionHealthService not implemented
         """Get health service"""
         return await self.get('health_service')
     
@@ -342,10 +342,10 @@ class ServiceProvider:
     async def get_auth_service(self) -> ProductionAuthenticationService:
         return await self.container.get_auth_service()
     
-    async def get_ptaas_service(self) -> ProductionPTaaSService:
+    async def get_ptaas_service(self) -> Any:  # ProductionPTaaSService not implemented
         return await self.container.get_ptaas_service()
     
-    async def get_health_service(self) -> ProductionHealthService:
+    async def get_health_service(self) -> Any:  # ProductionHealthService not implemented
         return await self.container.get_health_service()
     
     async def get_threat_intelligence(self) -> AdvancedThreatIntelligenceEngine:

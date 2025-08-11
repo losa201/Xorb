@@ -54,9 +54,9 @@ database_query_duration = Histogram(
     ['query_type']
 )
 
-memory_usage = Gauge(
-    'memory_usage_bytes',
-    'Memory usage in bytes'
+performance_performance_memory_usage = Gauge(
+    'performance_performance_memory_usage_bytes',
+    'Performance monitor memory usage in bytes'
 )
 
 app_info = Info(
@@ -194,7 +194,7 @@ class MemoryMonitor:
     """Memory usage monitoring."""
     
     @staticmethod
-    def get_memory_usage() -> Dict[str, Any]:
+    def get_performance_memory_usage() -> Dict[str, Any]:
         """Get current memory usage statistics."""
         import psutil
         import gc
@@ -214,8 +214,8 @@ class MemoryMonitor:
     async def update_memory_metrics():
         """Update memory usage metrics."""
         try:
-            stats = MemoryMonitor.get_memory_usage()
-            memory_usage.set(stats["rss"])
+            stats = MemoryMonitor.get_performance_memory_usage()
+            performance_memory_usage.set(stats["rss"])
         except Exception as e:
             logger.warning(f"Failed to update memory metrics: {e}")
 

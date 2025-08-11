@@ -34,7 +34,7 @@ from .routers import (
     sophisticated_red_team,
     advanced_security_platform,  # Existing advanced security platform router
     advanced_ai_security_platform,  # New AI security platform router
-    production_security_platform  # Production security platform with real implementations
+    # production_security_platform  # Production security platform with real implementations - Temporarily disabled due to aioredis compatibility
 )
 
 # Import middleware
@@ -277,7 +277,7 @@ app.include_router(mitre_attack.router, prefix="/api/v1")
 app.include_router(sophisticated_red_team.router, prefix="/api/v1")
 app.include_router(advanced_security_platform.router)  # Advanced security platform router
 app.include_router(advanced_ai_security_platform.router)  # New AI security platform router
-app.include_router(production_security_platform.router)  # Production security platform with real implementations
+# app.include_router(production_security_platform.router)  # Production security platform with real implementations - Temporarily disabled
 app.include_router(system_status.router)
 # app.include_router(enterprise_platform.router)  # Temporarily disabled
 # app.include_router(enterprise_ai_platform.router)  # Temporarily disabled

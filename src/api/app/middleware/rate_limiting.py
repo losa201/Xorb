@@ -371,15 +371,23 @@ class AdvancedRateLimitingMiddleware(BaseHTTPMiddleware):
 
 # Rate limiting decorators
 def rate_limit(
-    requests_per_minute: int,
+    operation_name_or_requests_per_minute,
+    requests_per_minute: Optional[int] = None,
+    window_seconds: Optional[int] = None,
     requests_per_hour: Optional[int] = None,
     key_func: Optional[callable] = None
 ):
-    """Decorator for function-level rate limiting."""
+    """
+    Decorator for function-level rate limiting.
+    
+    Supports two usage patterns:
+    1. @rate_limit(requests_per_minute=10) - keyword args
+    2. @rate_limit("operation_name", 10, 60) - positional args with operation name
+    """
     def decorator(func):
         async def wrapper(*args, **kwargs):
             # This would integrate with the middleware or use a separate limiter
-            # For now, just pass through
+            # For now, just pass through - the actual rate limiting is handled by middleware
             return await func(*args, **kwargs)
         return wrapper
     return decorator
