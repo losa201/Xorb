@@ -29,6 +29,9 @@ from .core.error_handling import global_exception_handler, get_error_handler
 
 # Security middleware imports
 from .middleware.input_validation import InputValidationMiddleware, get_validation_config
+from .middleware.secure_cors import create_secure_cors_middleware, CORSSecurityMiddleware
+from .rate_limit.middleware import RateLimitMiddleware, create_rate_limit_middleware
+
 
 # Router imports
 from .routers import (
@@ -93,6 +96,41 @@ async def lifespan(app: FastAPI):
         await database_manager.initialize()
         logger.info("✅ Database manager initialized")
         
+        # Initialize adaptive rate limiting if enabled
+        if config_manager.app_settings.rate_limit_enabled:
+            try:
+                import redis.asyncio as redis
+                
+                # Initialize Redis for rate limiting
+                redis_client = redis.from_url(
+                    config_manager.app_settings.redis_url,
+                    encoding="utf-8",
+                    decode_responses=True
+                )
+                
+                # Test Redis connection
+                await redis_client.ping()
+                
+                # Create adaptive rate limiting middleware
+                rate_limit_middleware = AdaptiveRateLimitingMiddleware(
+                    app=app,
+                    redis_client=redis_client,
+                    shadow_mode=not config_manager.is_production(),  # Shadow mode in non-prod
+                    enable_emergency_controls=True,
+                    enable_observability=config_manager.app_settings.enable_metrics
+                )
+                
+                # Store in app state for middleware access
+                app.state.rate_limit_middleware = rate_limit_middleware
+                app.state.redis_client = redis_client
+                
+                logger.info("✅ Adaptive rate limiting middleware initialized",
+                           shadow_mode=not config_manager.is_production())
+            except Exception as e:
+                logger.error(f"Failed to initialize adaptive rate limiting: {e}")
+                if config_manager.is_production():
+                    raise
+        
         # Log configuration summary
         config_summary = config_manager.get_configuration_summary()
         logger.info("Configuration loaded", **config_summary)
@@ -120,6 +158,14 @@ async def lifespan(app: FastAPI):
         if get_database_manager():
             await get_database_manager().close()
             logger.info("✅ Database connections closed")
+        
+        # Close rate limiting connections
+        if hasattr(app.state, 'redis_client') and app.state.redis_client:
+            try:
+                await app.state.redis_client.close()
+                logger.info("✅ Rate limiting Redis connections closed")
+            except Exception as e:
+                logger.error(f"Error closing rate limiting connections: {e}")
         
         logger.info("✅ XORB platform shutdown complete")
         
@@ -195,8 +241,22 @@ validation_preset = "strict" if config_manager.is_production() else "moderate"
 validation_config = get_validation_config(validation_preset)
 app.add_middleware(InputValidationMiddleware, config=validation_config)
 
-# 2. Logging middleware
-app.middleware("http")(LoggingMiddleware(app))
+# 2. Adaptive rate limiting middleware (protect against abuse)
+if config_manager.app_settings.rate_limit_enabled:
+    # Rate limiting middleware will be added via dispatch function
+    @app.middleware("http")
+    async def adaptive_rate_limit_dispatch(request: Request, call_next):
+        """Adaptive rate limiting middleware dispatch"""
+        if hasattr(app.state, 'rate_limit_middleware') and app.state.rate_limit_middleware:
+            return await app.state.rate_limit_middleware.dispatch(request, call_next)
+        else:
+            # Rate limiting not initialized - proceed without limiting
+            return await call_next(request)
+    
+    logger.info("✅ Adaptive rate limiting middleware registered")
+
+# 3. Logging middleware
+app.add_middleware(LoggingMiddleware)
 
 @app.middleware("http")
 async def add_security_headers(request: Request, call_next):
@@ -210,27 +270,23 @@ async def add_security_headers(request: Request, call_next):
     
     return response
 
-# Add CORS middleware with security checks
-cors_origins = settings.get_cors_origins()
-if cors_origins:
-    # Validate CORS origins in production
-    validated_origins = []
-    for origin in cors_origins:
-        if settings.environment == "production" and origin == "*":
-            logger.warning("Wildcard CORS origin not allowed in production")
-            continue
-        validated_origins.append(origin)
-    
-    if validated_origins:
-        app.add_middleware(
-            CORSMiddleware,
-            allow_origins=validated_origins,
-            allow_credentials=settings.cors_allow_credentials,
-            allow_methods=settings.get_cors_methods(),
-            allow_headers=settings.get_cors_headers(),
-            max_age=settings.cors_max_age,
-        )
-        logger.info("CORS middleware configured", origins=validated_origins)
+# Add secure CORS middleware
+cors_config, cors_middleware_config = create_secure_cors_middleware(
+    environment=settings.environment,
+    origins_string=settings.cors_allow_origins
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    **cors_middleware_config
+)
+
+# Add additional CORS security middleware
+app.add_middleware(CORSSecurityMiddleware, cors_config=cors_config)
+
+logger.info("Secure CORS middleware configured", 
+           environment=settings.environment,
+           origins_count=len(cors_middleware_config["allow_origins"]))
 
 # Add compression middleware
 app.add_middleware(GZipMiddleware, minimum_size=1000)
@@ -264,6 +320,14 @@ app.include_router(telemetry.router, prefix=settings.api_prefix, tags=["Telemetr
 app.include_router(orchestration.router, prefix=settings.api_prefix, tags=["Orchestration"])
 app.include_router(agents.router, prefix=settings.api_prefix, tags=["Agents"])
 app.include_router(security_dashboard.router, tags=["Security Dashboard"])
+
+# Include rate limiting admin router
+try:
+    from .routers import rate_limiting_admin
+    app.include_router(rate_limiting_admin.router, prefix=f"{settings.api_prefix}/admin", tags=["Rate Limiting Admin"])
+    logger.info("✅ Rate Limiting Admin router loaded")
+except ImportError as e:
+    logger.warning("Rate Limiting Admin router not available", error=str(e))
 
 # Include enterprise router with error handling
 try:
