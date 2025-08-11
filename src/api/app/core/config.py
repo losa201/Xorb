@@ -39,7 +39,7 @@ class AppSettings(BaseSettings):
     api_workers: int = Field(default=1, env="API_WORKERS")
     
     # Security settings - JWT_SECRET required via environment variable
-    jwt_secret_key: str = Field(env="JWT_SECRET")
+    jwt_secret_key: str = Field(alias="JWT_SECRET")
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
     jwt_expiration_minutes: int = Field(default=30, env="JWT_EXPIRATION_MINUTES")
     jwt_refresh_expiration_days: int = Field(default=7, env="JWT_REFRESH_EXPIRATION_DAYS")

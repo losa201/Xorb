@@ -1,4 +1,15 @@
-#  🚀 XORB Platform TLS/mTLS Quick Start Guide
+---
+title: "XORB Platform TLS/mTLS Quick Start Guide"
+description: "Get the XORB Platform TLS/mTLS security stack up and running in minutes"
+category: "Getting Started"
+tags: ["quickstart", "tls", "mtls", "setup", "deployment"]
+last_updated: "2025-01-11"
+author: "XORB Platform Team"
+difficulty: "Beginner"
+estimated_time: "5-15 minutes"
+---
+
+# 🚀 XORB Platform TLS/mTLS Quick Start Guide
 
 Get the XORB Platform TLS/mTLS security stack up and running in minutes with this comprehensive quick start guide.
 
