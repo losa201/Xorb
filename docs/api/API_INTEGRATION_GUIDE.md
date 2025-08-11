@@ -1,26 +1,26 @@
-# XORB API Integration Guide
+#  XORB API Integration Guide
 
-## Overview
+##  Overview
 
 This guide provides comprehensive documentation for integrating with the XORB Cybersecurity Platform API. The API is designed for autonomous security operations, orchestration, and multi-agent coordination.
 
-## Quick Start
+##  Quick Start
 
-### 1. Authentication Setup
+###  1. Authentication Setup
 
 First, obtain your client credentials and certificate for mTLS authentication:
 
 ```bash
-# Get your client certificate (provided by XORB admin)
+#  Get your client certificate (provided by XORB admin)
 curl -X POST https://api.xorb.security/v1/auth/certificate \
   -H "Content-Type: application/json" \
   -d '{"client_id":"your_client_id","client_secret":"your_secret"}'
 ```
 
-### 2. Obtain Access Token
+###  2. Obtain Access Token
 
 ```bash
-# Get JWT token
+#  Get JWT token
 curl -X POST https://api.xorb.security/v1/auth/token \
   --cert client.crt --key client.key \
   -H "Content-Type: application/json" \
@@ -41,20 +41,20 @@ Response:
 }
 ```
 
-### 3. Make Authenticated Requests
+###  3. Make Authenticated Requests
 
 ```bash
-# List active agents
+#  List active agents
 curl -X GET https://api.xorb.security/v1/agents \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer your_jwt_token"
 ```
 
-## Core API Modules
+##  Core API Modules
 
-### Agent Management
+###  Agent Management
 
-#### Create Agent
+####  Create Agent
 ```bash
 curl -X POST https://api.xorb.security/v1/agents \
   --cert client.crt --key client.key \
@@ -72,15 +72,15 @@ curl -X POST https://api.xorb.security/v1/agents \
   }'
 ```
 
-#### Monitor Agent Status
+####  Monitor Agent Status
 ```bash
-# Get real-time agent status
+#  Get real-time agent status
 curl -X GET https://api.xorb.security/v1/agents/{agent_id}/status \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-#### Send Agent Commands
+####  Send Agent Commands
 ```bash
 curl -X POST https://api.xorb.security/v1/agents/{agent_id}/commands \
   --cert client.crt --key client.key \
@@ -96,9 +96,9 @@ curl -X POST https://api.xorb.security/v1/agents/{agent_id}/commands \
   }'
 ```
 
-### Task Orchestration
+###  Task Orchestration
 
-#### Submit Task
+####  Submit Task
 ```bash
 curl -X POST https://api.xorb.security/v1/orchestration/tasks \
   --cert client.crt --key client.key \
@@ -121,32 +121,32 @@ curl -X POST https://api.xorb.security/v1/orchestration/tasks \
   }'
 ```
 
-#### Monitor Task Progress
+####  Monitor Task Progress
 ```bash
-# Get task details and progress
+#  Get task details and progress
 curl -X GET https://api.xorb.security/v1/orchestration/tasks/{task_id} \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-#### Get Orchestration Metrics
+####  Get Orchestration Metrics
 ```bash
 curl -X GET https://api.xorb.security/v1/orchestration/metrics \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Security Operations
+###  Security Operations
 
-#### List Threats
+####  List Threats
 ```bash
-# Get recent threats
+#  Get recent threats
 curl -X GET "https://api.xorb.security/v1/security/threats?severity=high&hours_back=24" \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-#### Create Threat Alert
+####  Create Threat Alert
 ```bash
 curl -X POST https://api.xorb.security/v1/security/threats \
   --cert client.crt --key client.key \
@@ -173,7 +173,7 @@ curl -X POST https://api.xorb.security/v1/security/threats \
   }'
 ```
 
-#### Respond to Threat
+####  Respond to Threat
 ```bash
 curl -X POST https://api.xorb.security/v1/security/threats/{threat_id}/respond \
   --cert client.crt --key client.key \
@@ -190,9 +190,9 @@ curl -X POST https://api.xorb.security/v1/security/threats/{threat_id}/respond \
   }'
 ```
 
-### Intelligence Integration
+###  Intelligence Integration
 
-#### Request AI Decision
+####  Request AI Decision
 ```bash
 curl -X POST https://api.xorb.security/v1/intelligence/decisions \
   --cert client.crt --key client.key \
@@ -215,7 +215,7 @@ curl -X POST https://api.xorb.security/v1/intelligence/decisions \
   }'
 ```
 
-#### Provide Learning Feedback
+####  Provide Learning Feedback
 ```bash
 curl -X POST https://api.xorb.security/v1/intelligence/feedback \
   --cert client.crt --key client.key \
@@ -237,17 +237,17 @@ curl -X POST https://api.xorb.security/v1/intelligence/feedback \
   }'
 ```
 
-#### Get Orchestration Brain Status
+####  Get Orchestration Brain Status
 ```bash
-# Monitor Qwen3 orchestration brain
+#  Monitor Qwen3 orchestration brain
 curl -X GET https://api.xorb.security/v1/intelligence/models/qwen3_orchestrator/brain-status \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-## SDK Examples
+##  SDK Examples
 
-### Python SDK
+###  Python SDK
 
 ```python
 import requests
@@ -262,7 +262,7 @@ class XORBClient:
         self.session = requests.Session()
         if token:
             self.session.headers.update({'Authorization': f'Bearer {token}'})
-    
+
     def authenticate(self, client_id, client_secret):
         """Get JWT token"""
         response = self.session.post(
@@ -278,7 +278,7 @@ class XORBClient:
         self.token = data['access_token']
         self.session.headers.update({'Authorization': f'Bearer {self.token}'})
         return data
-    
+
     def create_agent(self, name, agent_type, capabilities=None):
         """Create a new agent"""
         payload = {
@@ -293,7 +293,7 @@ class XORBClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def submit_task(self, name, task_type, priority="medium", **kwargs):
         """Submit orchestration task"""
         payload = {
@@ -309,13 +309,13 @@ class XORBClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def get_threats(self, severity=None, hours_back=24):
         """Get security threats"""
         params = {"hours_back": hours_back}
         if severity:
             params["severity"] = severity
-        
+
         response = self.session.get(
             f"{self.base_url}/security/threats",
             cert=self.cert,
@@ -323,7 +323,7 @@ class XORBClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def request_ai_decision(self, decision_type, context):
         """Request AI-driven decision"""
         payload = {
@@ -338,17 +338,17 @@ class XORBClient:
         response.raise_for_status()
         return response.json()
 
-# Usage example
+#  Usage example
 client = XORBClient(
     base_url="https://api.xorb.security/v1",
     cert_path="client.crt",
     key_path="client.key"
 )
 
-# Authenticate
+#  Authenticate
 client.authenticate("your_client_id", "your_client_secret")
 
-# Create threat hunting agent
+#  Create threat hunting agent
 agent = client.create_agent(
     name="Network Threat Hunter",
     agent_type="threat_hunter",
@@ -356,7 +356,7 @@ agent = client.create_agent(
 )
 print(f"Created agent: {agent['id']}")
 
-# Submit vulnerability scan task
+#  Submit vulnerability scan task
 task = client.submit_task(
     name="Weekly Vulnerability Scan",
     task_type="vulnerability_scan",
@@ -368,11 +368,11 @@ task = client.submit_task(
 )
 print(f"Submitted task: {task['id']}")
 
-# Get high-severity threats
+#  Get high-severity threats
 threats = client.get_threats(severity="high")
 print(f"Found {len(threats['threats'])} high-severity threats")
 
-# Request AI decision for threat response
+#  Request AI decision for threat response
 if threats['threats']:
     threat = threats['threats'][0]
     decision = client.request_ai_decision(
@@ -390,7 +390,7 @@ if threats['threats']:
     print(f"AI recommendation: {decision['recommendation']} (confidence: {decision['confidence_score']})")
 ```
 
-### TypeScript SDK
+###  TypeScript SDK
 
 ```typescript
 import axios, { AxiosInstance } from 'axios';
@@ -504,16 +504,16 @@ const client = new XORBClient({
   try {
     // Authenticate
     await client.authenticate('your_client_id', 'your_client_secret');
-    
+
     // Create agent
     const agent = await client.createAgent({
       name: 'Security Analyst Bot',
       agent_type: 'security_analyst',
       capabilities: ['log_analysis', 'threat_intelligence']
     });
-    
+
     console.log('Agent created:', agent.id);
-    
+
     // Submit task
     const task = await client.submitTask({
       name: 'Daily Security Scan',
@@ -524,18 +524,18 @@ const client = new XORBClient({
         include_compliance: true
       }
     });
-    
+
     console.log('Task submitted:', task.id);
-    
+
   } catch (error) {
     console.error('API Error:', error.response?.data || error.message);
   }
 })();
 ```
 
-## Error Handling
+##  Error Handling
 
-### Standard Error Response Format
+###  Standard Error Response Format
 
 ```json
 {
@@ -550,7 +550,7 @@ const client = new XORBClient({
 }
 ```
 
-### Common HTTP Status Codes
+###  Common HTTP Status Codes
 
 - `200` - Success
 - `201` - Created
@@ -562,7 +562,7 @@ const client = new XORBClient({
 - `429` - Rate Limited
 - `500` - Internal Server Error
 
-### Rate Limiting
+###  Rate Limiting
 
 Rate limits are enforced per client and role:
 
@@ -579,57 +579,57 @@ X-RateLimit-Remaining: 4999
 X-RateLimit-Reset: 1642248000
 ```
 
-## Security Best Practices
+##  Security Best Practices
 
-### 1. Certificate Management
+###  1. Certificate Management
 
 - Store certificates securely
 - Use hardware security modules (HSM) when possible
 - Rotate certificates regularly
 - Implement certificate pinning
 
-### 2. Token Security
+###  2. Token Security
 
 - Store JWT tokens securely (not in browser localStorage)
 - Implement automatic token refresh
 - Use short-lived tokens with refresh tokens
 - Revoke tokens on logout
 
-### 3. Request Security
+###  3. Request Security
 
 - Validate all input data
 - Use HTTPS for all communications
 - Implement request signing for critical operations
 - Log all security-related API calls
 
-### 4. Error Handling
+###  4. Error Handling
 
 - Don't expose sensitive information in error messages
 - Implement proper retry logic with exponential backoff
 - Log errors for monitoring and debugging
 - Implement circuit breaker patterns
 
-## Monitoring and Observability
+##  Monitoring and Observability
 
-### Health Checks
+###  Health Checks
 
 ```bash
-# System health check
+#  System health check
 curl -X GET https://api.xorb.security/v1/telemetry/health \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Metrics Collection
+###  Metrics Collection
 
 ```bash
-# Get system metrics
+#  Get system metrics
 curl -X GET https://api.xorb.security/v1/telemetry/metrics \
   --cert client.crt --key client.key \
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Audit Logging
+###  Audit Logging
 
 All API calls are automatically logged with:
 - Request ID for tracing
@@ -638,7 +638,7 @@ All API calls are automatically logged with:
 - Request/response details (excluding sensitive data)
 - Security events and decisions
 
-## Support and Documentation
+##  Support and Documentation
 
 - **API Documentation**: Available at `/docs` endpoint
 - **OpenAPI Spec**: Download from `/openapi.json`

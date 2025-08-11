@@ -1,0 +1,1555 @@
+[
+  {
+    "user_id": "user_acbefc0b",
+    "email": "user_acbefc0b@corp.com",
+    "role": "viewer",
+    "join_date": "2025-06-07T17:31:07.417760",
+    "last_login": "2025-08-06T17:31:07.417781",
+    "login_frequency_daily": 1.78,
+    "avg_session_duration_minutes": 46.9,
+    "total_sessions": 115,
+    "failed_login_attempts": 11,
+    "risk_score": 6.2,
+    "anomaly_count": 7,
+    "locations_accessed": [
+      "London, JP",
+      "London, DE"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 54,
+      "incident_management": 60,
+      "threat_intelligence": 31,
+      "compliance_reports": 23,
+      "analytics": 47
+    },
+    "permissions": [
+      "manage_incidents",
+      "view_dashboard",
+      "admin_users"
+    ]
+  },
+  {
+    "user_id": "user_8e8448ed",
+    "email": "user_8e8448ed@enterprise.com",
+    "role": "viewer",
+    "join_date": "2024-09-01T17:31:07.417823",
+    "last_login": "2025-08-07T17:31:07.417831",
+    "login_frequency_daily": 2.37,
+    "avg_session_duration_minutes": 22.1,
+    "total_sessions": 813,
+    "failed_login_attempts": 13,
+    "risk_score": 9.4,
+    "anomaly_count": 1,
+    "locations_accessed": [
+      "London, US"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 50,
+      "incident_management": 75,
+      "threat_intelligence": 40,
+      "compliance_reports": 8,
+      "analytics": 19
+    },
+    "permissions": [
+      "view_dashboard",
+      "admin_users",
+      "view_reports",
+      "export_data",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_b482617a",
+    "email": "user_b482617a@corp.com",
+    "role": "analyst",
+    "join_date": "2025-01-16T17:31:07.417853",
+    "last_login": "2025-08-09T17:31:07.417858",
+    "login_frequency_daily": 7.15,
+    "avg_session_duration_minutes": 146.5,
+    "total_sessions": 1480,
+    "failed_login_attempts": 4,
+    "risk_score": 4.7,
+    "anomaly_count": 4,
+    "locations_accessed": [
+      "Tokyo, UK"
+    ],
+    "device_count": 3,
+    "feature_usage": {
+      "security_dashboard": 136,
+      "incident_management": 51,
+      "threat_intelligence": 1,
+      "compliance_reports": 11,
+      "analytics": 35
+    },
+    "permissions": [
+      "view_dashboard",
+      "admin_users",
+      "export_data",
+      "configure_alerts"
+    ]
+  },
+  {
+    "user_id": "user_fd04da04",
+    "email": "user_fd04da04@enterprise.com",
+    "role": "analyst",
+    "join_date": "2025-05-21T17:31:07.417876",
+    "last_login": "2025-08-08T17:31:07.417881",
+    "login_frequency_daily": 5.84,
+    "avg_session_duration_minutes": 112.0,
+    "total_sessions": 478,
+    "failed_login_attempts": 6,
+    "risk_score": 6.5,
+    "anomaly_count": 0,
+    "locations_accessed": [
+      "Berlin, UK",
+      "Berlin, DE",
+      "San Francisco, US"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 116,
+      "incident_management": 50,
+      "threat_intelligence": 27,
+      "compliance_reports": 1,
+      "analytics": 37
+    },
+    "permissions": [
+      "admin_users",
+      "export_data",
+      "manage_incidents",
+      "configure_alerts",
+      "view_dashboard"
+    ]
+  },
+  {
+    "user_id": "user_a5560a98",
+    "email": "user_a5560a98@company.com",
+    "role": "user",
+    "join_date": "2024-09-18T17:31:07.417901",
+    "last_login": "2025-08-09T17:31:07.417906",
+    "login_frequency_daily": 2.43,
+    "avg_session_duration_minutes": 51.5,
+    "total_sessions": 796,
+    "failed_login_attempts": 8,
+    "risk_score": 2.1,
+    "anomaly_count": 6,
+    "locations_accessed": [
+      "San Francisco, US"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 138,
+      "incident_management": 47,
+      "threat_intelligence": 6,
+      "compliance_reports": 17,
+      "analytics": 58
+    },
+    "permissions": [
+      "export_data",
+      "view_reports",
+      "view_dashboard"
+    ]
+  },
+  {
+    "user_id": "user_487a7f48",
+    "email": "user_487a7f48@enterprise.com",
+    "role": "viewer",
+    "join_date": "2024-10-17T17:31:07.417941",
+    "last_login": "2025-08-06T17:31:07.417946",
+    "login_frequency_daily": 6.26,
+    "avg_session_duration_minutes": 227.9,
+    "total_sessions": 1865,
+    "failed_login_attempts": 9,
+    "risk_score": 5.4,
+    "anomaly_count": 7,
+    "locations_accessed": [
+      "San Francisco, JP",
+      "Berlin, US"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 108,
+      "incident_management": 12,
+      "threat_intelligence": 3,
+      "compliance_reports": 2,
+      "analytics": 17
+    },
+    "permissions": [
+      "admin_users",
+      "configure_alerts"
+    ]
+  },
+  {
+    "user_id": "user_360e37c2",
+    "email": "user_360e37c2@corp.com",
+    "role": "admin",
+    "join_date": "2024-08-26T17:31:07.417963",
+    "last_login": "2025-08-08T17:31:07.417967",
+    "login_frequency_daily": 0.87,
+    "avg_session_duration_minutes": 158.4,
+    "total_sessions": 305,
+    "failed_login_attempts": 1,
+    "risk_score": 9.6,
+    "anomaly_count": 0,
+    "locations_accessed": [
+      "London, US",
+      "Tokyo, US"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 75,
+      "incident_management": 11,
+      "threat_intelligence": 16,
+      "compliance_reports": 13,
+      "analytics": 40
+    },
+    "permissions": [
+      "export_data",
+      "configure_alerts",
+      "manage_incidents",
+      "admin_users",
+      "view_reports"
+    ]
+  },
+  {
+    "user_id": "user_7151cfe5",
+    "email": "user_7151cfe5@corp.com",
+    "role": "admin",
+    "join_date": "2025-03-27T17:31:07.417985",
+    "last_login": "2025-08-04T17:31:07.417989",
+    "login_frequency_daily": 0.78,
+    "avg_session_duration_minutes": 170.8,
+    "total_sessions": 106,
+    "failed_login_attempts": 13,
+    "risk_score": 1.4,
+    "anomaly_count": 1,
+    "locations_accessed": [
+      "Tokyo, DE",
+      "New York, US"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 125,
+      "incident_management": 4,
+      "threat_intelligence": 34,
+      "compliance_reports": 1,
+      "analytics": 40
+    },
+    "permissions": [
+      "configure_alerts",
+      "view_reports",
+      "export_data",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_0935e536",
+    "email": "user_0935e536@corp.com",
+    "role": "user",
+    "join_date": "2024-11-19T17:31:07.418008",
+    "last_login": "2025-08-07T17:31:07.418012",
+    "login_frequency_daily": 7.18,
+    "avg_session_duration_minutes": 165.6,
+    "total_sessions": 1902,
+    "failed_login_attempts": 14,
+    "risk_score": 5.9,
+    "anomaly_count": 5,
+    "locations_accessed": [
+      "London, DE",
+      "San Francisco, DE",
+      "New York, UK",
+      "New York, DE"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 123,
+      "incident_management": 77,
+      "threat_intelligence": 21,
+      "compliance_reports": 8,
+      "analytics": 40
+    },
+    "permissions": [
+      "admin_users",
+      "export_data",
+      "configure_alerts",
+      "view_dashboard",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_500b78c4",
+    "email": "user_500b78c4@company.com",
+    "role": "viewer",
+    "join_date": "2024-08-14T17:31:07.418032",
+    "last_login": "2025-08-11T17:31:07.418036",
+    "login_frequency_daily": 1.42,
+    "avg_session_duration_minutes": 185.6,
+    "total_sessions": 512,
+    "failed_login_attempts": 3,
+    "risk_score": 1.1,
+    "anomaly_count": 8,
+    "locations_accessed": [
+      "Tokyo, UK",
+      "Tokyo, JP",
+      "Tokyo, UK",
+      "Tokyo, UK"
+    ],
+    "device_count": 3,
+    "feature_usage": {
+      "security_dashboard": 45,
+      "incident_management": 80,
+      "threat_intelligence": 8,
+      "compliance_reports": 2,
+      "analytics": 30
+    },
+    "permissions": [
+      "admin_users",
+      "manage_incidents",
+      "export_data",
+      "configure_alerts",
+      "view_reports"
+    ]
+  },
+  {
+    "user_id": "user_1f94b25a",
+    "email": "user_1f94b25a@enterprise.com",
+    "role": "admin",
+    "join_date": "2024-12-05T17:31:07.418055",
+    "last_login": "2025-08-04T17:31:07.418060",
+    "login_frequency_daily": 6.07,
+    "avg_session_duration_minutes": 167.9,
+    "total_sessions": 1511,
+    "failed_login_attempts": 15,
+    "risk_score": 1.8,
+    "anomaly_count": 3,
+    "locations_accessed": [
+      "San Francisco, DE"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 84,
+      "incident_management": 58,
+      "threat_intelligence": 26,
+      "compliance_reports": 22,
+      "analytics": 4
+    },
+    "permissions": [
+      "admin_users",
+      "view_reports",
+      "view_dashboard",
+      "export_data",
+      "configure_alerts"
+    ]
+  },
+  {
+    "user_id": "user_bff0f9ec",
+    "email": "user_bff0f9ec@corp.com",
+    "role": "user",
+    "join_date": "2025-05-15T17:31:07.418076",
+    "last_login": "2025-08-10T17:31:07.418080",
+    "login_frequency_daily": 2.34,
+    "avg_session_duration_minutes": 43.5,
+    "total_sessions": 206,
+    "failed_login_attempts": 2,
+    "risk_score": 9.4,
+    "anomaly_count": 1,
+    "locations_accessed": [
+      "Tokyo, UK",
+      "Berlin, DE",
+      "Berlin, US",
+      "New York, JP"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 51,
+      "incident_management": 43,
+      "threat_intelligence": 37,
+      "compliance_reports": 12,
+      "analytics": 13
+    },
+    "permissions": [
+      "export_data",
+      "view_reports"
+    ]
+  },
+  {
+    "user_id": "user_135ab98f",
+    "email": "user_135ab98f@company.com",
+    "role": "analyst",
+    "join_date": "2025-07-01T17:31:07.418098",
+    "last_login": "2025-08-11T17:31:07.418102",
+    "login_frequency_daily": 5.19,
+    "avg_session_duration_minutes": 76.6,
+    "total_sessions": 212,
+    "failed_login_attempts": 7,
+    "risk_score": 2.6,
+    "anomaly_count": 0,
+    "locations_accessed": [
+      "Tokyo, UK"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 82,
+      "incident_management": 51,
+      "threat_intelligence": 27,
+      "compliance_reports": 4,
+      "analytics": 39
+    },
+    "permissions": [
+      "admin_users",
+      "view_reports",
+      "view_dashboard",
+      "export_data",
+      "configure_alerts"
+    ]
+  },
+  {
+    "user_id": "user_91ca21d7",
+    "email": "user_91ca21d7@corp.com",
+    "role": "user",
+    "join_date": "2025-01-03T17:31:07.418118",
+    "last_login": "2025-08-04T17:31:07.418122",
+    "login_frequency_daily": 2.98,
+    "avg_session_duration_minutes": 188.8,
+    "total_sessions": 655,
+    "failed_login_attempts": 9,
+    "risk_score": 9.3,
+    "anomaly_count": 2,
+    "locations_accessed": [
+      "New York, UK",
+      "New York, JP"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 48,
+      "incident_management": 51,
+      "threat_intelligence": 18,
+      "compliance_reports": 12,
+      "analytics": 28
+    },
+    "permissions": [
+      "manage_incidents",
+      "admin_users",
+      "export_data"
+    ]
+  },
+  {
+    "user_id": "user_b71b926d",
+    "email": "user_b71b926d@corp.com",
+    "role": "viewer",
+    "join_date": "2024-12-26T17:31:07.418138",
+    "last_login": "2025-08-09T17:31:07.418142",
+    "login_frequency_daily": 5.75,
+    "avg_session_duration_minutes": 197.9,
+    "total_sessions": 1311,
+    "failed_login_attempts": 9,
+    "risk_score": 6.0,
+    "anomaly_count": 2,
+    "locations_accessed": [
+      "San Francisco, US",
+      "New York, UK",
+      "London, DE",
+      "New York, DE"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 31,
+      "incident_management": 73,
+      "threat_intelligence": 16,
+      "compliance_reports": 0,
+      "analytics": 32
+    },
+    "permissions": [
+      "view_dashboard",
+      "admin_users"
+    ]
+  },
+  {
+    "user_id": "user_8faaa02c",
+    "email": "user_8faaa02c@enterprise.com",
+    "role": "admin",
+    "join_date": "2025-06-17T17:31:07.418165",
+    "last_login": "2025-08-05T17:31:07.418171",
+    "login_frequency_daily": 5.99,
+    "avg_session_duration_minutes": 239.0,
+    "total_sessions": 329,
+    "failed_login_attempts": 0,
+    "risk_score": 7.7,
+    "anomaly_count": 5,
+    "locations_accessed": [
+      "Berlin, DE",
+      "New York, DE",
+      "Tokyo, US",
+      "Berlin, UK"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 120,
+      "incident_management": 63,
+      "threat_intelligence": 36,
+      "compliance_reports": 5,
+      "analytics": 44
+    },
+    "permissions": [
+      "admin_users",
+      "view_reports",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_ded237ca",
+    "email": "user_ded237ca@enterprise.com",
+    "role": "admin",
+    "join_date": "2024-11-04T17:31:07.418191",
+    "last_login": "2025-08-10T17:31:07.418195",
+    "login_frequency_daily": 8.09,
+    "avg_session_duration_minutes": 158.0,
+    "total_sessions": 2264,
+    "failed_login_attempts": 11,
+    "risk_score": 3.4,
+    "anomaly_count": 4,
+    "locations_accessed": [
+      "Berlin, DE",
+      "New York, DE",
+      "London, UK"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 102,
+      "incident_management": 63,
+      "threat_intelligence": 27,
+      "compliance_reports": 8,
+      "analytics": 39
+    },
+    "permissions": [
+      "view_reports",
+      "manage_incidents",
+      "export_data",
+      "admin_users"
+    ]
+  },
+  {
+    "user_id": "user_8fd99b3d",
+    "email": "user_8fd99b3d@corp.com",
+    "role": "viewer",
+    "join_date": "2025-05-03T17:31:07.418213",
+    "last_login": "2025-08-04T17:31:07.418217",
+    "login_frequency_daily": 6.51,
+    "avg_session_duration_minutes": 179.3,
+    "total_sessions": 651,
+    "failed_login_attempts": 10,
+    "risk_score": 3.1,
+    "anomaly_count": 3,
+    "locations_accessed": [
+      "New York, UK",
+      "San Francisco, DE"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 125,
+      "incident_management": 16,
+      "threat_intelligence": 34,
+      "compliance_reports": 4,
+      "analytics": 26
+    },
+    "permissions": [
+      "view_dashboard",
+      "admin_users",
+      "export_data",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_5453f45a",
+    "email": "user_5453f45a@company.com",
+    "role": "analyst",
+    "join_date": "2024-11-02T17:31:07.418234",
+    "last_login": "2025-08-10T17:31:07.418240",
+    "login_frequency_daily": 3.78,
+    "avg_session_duration_minutes": 191.9,
+    "total_sessions": 1065,
+    "failed_login_attempts": 4,
+    "risk_score": 3.7,
+    "anomaly_count": 7,
+    "locations_accessed": [
+      "Tokyo, UK"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 24,
+      "incident_management": 59,
+      "threat_intelligence": 9,
+      "compliance_reports": 2,
+      "analytics": 55
+    },
+    "permissions": [
+      "export_data",
+      "admin_users",
+      "view_reports"
+    ]
+  },
+  {
+    "user_id": "user_842d9530",
+    "email": "user_842d9530@corp.com",
+    "role": "user",
+    "join_date": "2025-05-13T17:31:07.418264",
+    "last_login": "2025-08-09T17:31:07.418270",
+    "login_frequency_daily": 2.62,
+    "avg_session_duration_minutes": 81.5,
+    "total_sessions": 235,
+    "failed_login_attempts": 13,
+    "risk_score": 1.2,
+    "anomaly_count": 8,
+    "locations_accessed": [
+      "London, UK",
+      "Berlin, DE",
+      "London, UK",
+      "New York, DE"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 69,
+      "incident_management": 47,
+      "threat_intelligence": 20,
+      "compliance_reports": 8,
+      "analytics": 34
+    },
+    "permissions": [
+      "view_reports",
+      "view_dashboard",
+      "configure_alerts",
+      "manage_incidents",
+      "admin_users"
+    ]
+  },
+  {
+    "user_id": "user_bfc558f8",
+    "email": "user_bfc558f8@company.com",
+    "role": "viewer",
+    "join_date": "2025-05-06T17:31:07.418294",
+    "last_login": "2025-08-04T17:31:07.418298",
+    "login_frequency_daily": 1.35,
+    "avg_session_duration_minutes": 35.3,
+    "total_sessions": 131,
+    "failed_login_attempts": 0,
+    "risk_score": 5.8,
+    "anomaly_count": 8,
+    "locations_accessed": [
+      "Berlin, JP",
+      "Tokyo, JP",
+      "Tokyo, UK"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 141,
+      "incident_management": 15,
+      "threat_intelligence": 14,
+      "compliance_reports": 20,
+      "analytics": 49
+    },
+    "permissions": [
+      "view_reports",
+      "manage_incidents",
+      "admin_users",
+      "export_data",
+      "configure_alerts"
+    ]
+  },
+  {
+    "user_id": "user_e0da546d",
+    "email": "user_e0da546d@company.com",
+    "role": "analyst",
+    "join_date": "2025-03-19T17:31:07.418317",
+    "last_login": "2025-08-09T17:31:07.418322",
+    "login_frequency_daily": 6.71,
+    "avg_session_duration_minutes": 75.3,
+    "total_sessions": 972,
+    "failed_login_attempts": 12,
+    "risk_score": 9.3,
+    "anomaly_count": 0,
+    "locations_accessed": [
+      "Berlin, JP"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 38,
+      "incident_management": 54,
+      "threat_intelligence": 1,
+      "compliance_reports": 15,
+      "analytics": 32
+    },
+    "permissions": [
+      "configure_alerts",
+      "view_dashboard",
+      "export_data",
+      "admin_users"
+    ]
+  },
+  {
+    "user_id": "user_b2023a01",
+    "email": "user_b2023a01@corp.com",
+    "role": "analyst",
+    "join_date": "2025-05-30T17:31:07.418344",
+    "last_login": "2025-08-06T17:31:07.418348",
+    "login_frequency_daily": 1.63,
+    "avg_session_duration_minutes": 187.3,
+    "total_sessions": 119,
+    "failed_login_attempts": 6,
+    "risk_score": 0.5,
+    "anomaly_count": 7,
+    "locations_accessed": [
+      "London, DE",
+      "Tokyo, US"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 43,
+      "incident_management": 52,
+      "threat_intelligence": 4,
+      "compliance_reports": 19,
+      "analytics": 43
+    },
+    "permissions": [
+      "admin_users",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_7bf6af73",
+    "email": "user_7bf6af73@corp.com",
+    "role": "analyst",
+    "join_date": "2024-12-11T17:31:07.418364",
+    "last_login": "2025-08-04T17:31:07.418368",
+    "login_frequency_daily": 1.68,
+    "avg_session_duration_minutes": 58.7,
+    "total_sessions": 409,
+    "failed_login_attempts": 11,
+    "risk_score": 8.6,
+    "anomaly_count": 4,
+    "locations_accessed": [
+      "Tokyo, DE",
+      "Tokyo, UK",
+      "London, DE",
+      "Tokyo, UK"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 42,
+      "incident_management": 13,
+      "threat_intelligence": 17,
+      "compliance_reports": 7,
+      "analytics": 5
+    },
+    "permissions": [
+      "admin_users",
+      "export_data"
+    ]
+  },
+  {
+    "user_id": "user_7034bc26",
+    "email": "user_7034bc26@company.com",
+    "role": "analyst",
+    "join_date": "2024-10-19T17:31:07.418386",
+    "last_login": "2025-08-06T17:31:07.418390",
+    "login_frequency_daily": 1.56,
+    "avg_session_duration_minutes": 157.2,
+    "total_sessions": 462,
+    "failed_login_attempts": 1,
+    "risk_score": 7.0,
+    "anomaly_count": 8,
+    "locations_accessed": [
+      "London, DE",
+      "London, US",
+      "Tokyo, UK",
+      "Tokyo, JP"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 9,
+      "incident_management": 57,
+      "threat_intelligence": 10,
+      "compliance_reports": 22,
+      "analytics": 41
+    },
+    "permissions": [
+      "view_reports",
+      "view_dashboard",
+      "configure_alerts",
+      "export_data"
+    ]
+  },
+  {
+    "user_id": "user_bba8675d",
+    "email": "user_bba8675d@company.com",
+    "role": "viewer",
+    "join_date": "2024-12-24T17:31:07.418423",
+    "last_login": "2025-08-04T17:31:07.418427",
+    "login_frequency_daily": 3.34,
+    "avg_session_duration_minutes": 201.2,
+    "total_sessions": 767,
+    "failed_login_attempts": 8,
+    "risk_score": 3.2,
+    "anomaly_count": 8,
+    "locations_accessed": [
+      "San Francisco, US",
+      "London, UK"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 97,
+      "incident_management": 58,
+      "threat_intelligence": 16,
+      "compliance_reports": 11,
+      "analytics": 5
+    },
+    "permissions": [
+      "manage_incidents",
+      "configure_alerts",
+      "view_dashboard",
+      "view_reports"
+    ]
+  },
+  {
+    "user_id": "user_cb507259",
+    "email": "user_cb507259@company.com",
+    "role": "viewer",
+    "join_date": "2024-11-30T17:31:07.418445",
+    "last_login": "2025-08-07T17:31:07.418450",
+    "login_frequency_daily": 0.73,
+    "avg_session_duration_minutes": 224.1,
+    "total_sessions": 185,
+    "failed_login_attempts": 6,
+    "risk_score": 4.1,
+    "anomaly_count": 1,
+    "locations_accessed": [
+      "London, DE",
+      "Berlin, US",
+      "London, US",
+      "Tokyo, US"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 140,
+      "incident_management": 14,
+      "threat_intelligence": 45,
+      "compliance_reports": 17,
+      "analytics": 30
+    },
+    "permissions": [
+      "manage_incidents",
+      "view_reports",
+      "view_dashboard"
+    ]
+  },
+  {
+    "user_id": "user_06817d3d",
+    "email": "user_06817d3d@company.com",
+    "role": "analyst",
+    "join_date": "2025-03-20T17:31:07.418469",
+    "last_login": "2025-08-10T17:31:07.418473",
+    "login_frequency_daily": 3.32,
+    "avg_session_duration_minutes": 214.8,
+    "total_sessions": 478,
+    "failed_login_attempts": 13,
+    "risk_score": 7.1,
+    "anomaly_count": 8,
+    "locations_accessed": [
+      "San Francisco, DE",
+      "New York, DE",
+      "New York, DE"
+    ],
+    "device_count": 3,
+    "feature_usage": {
+      "security_dashboard": 16,
+      "incident_management": 36,
+      "threat_intelligence": 4,
+      "compliance_reports": 14,
+      "analytics": 38
+    },
+    "permissions": [
+      "configure_alerts",
+      "manage_incidents",
+      "view_dashboard",
+      "admin_users",
+      "view_reports"
+    ]
+  },
+  {
+    "user_id": "user_4c14289b",
+    "email": "user_4c14289b@corp.com",
+    "role": "viewer",
+    "join_date": "2024-11-08T17:31:07.418492",
+    "last_login": "2025-08-10T17:31:07.418496",
+    "login_frequency_daily": 2.11,
+    "avg_session_duration_minutes": 170.3,
+    "total_sessions": 581,
+    "failed_login_attempts": 12,
+    "risk_score": 4.1,
+    "anomaly_count": 8,
+    "locations_accessed": [
+      "New York, DE"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 69,
+      "incident_management": 25,
+      "threat_intelligence": 43,
+      "compliance_reports": 15,
+      "analytics": 29
+    },
+    "permissions": [
+      "view_reports",
+      "configure_alerts"
+    ]
+  },
+  {
+    "user_id": "user_ab85423c",
+    "email": "user_ab85423c@company.com",
+    "role": "viewer",
+    "join_date": "2025-07-10T17:31:07.418512",
+    "last_login": "2025-08-11T17:31:07.418516",
+    "login_frequency_daily": 2.24,
+    "avg_session_duration_minutes": 85.6,
+    "total_sessions": 71,
+    "failed_login_attempts": 5,
+    "risk_score": 3.8,
+    "anomaly_count": 0,
+    "locations_accessed": [
+      "London, UK",
+      "San Francisco, UK",
+      "Berlin, DE"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 36,
+      "incident_management": 37,
+      "threat_intelligence": 19,
+      "compliance_reports": 2,
+      "analytics": 47
+    },
+    "permissions": [
+      "configure_alerts",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_8a1dbfb3",
+    "email": "user_8a1dbfb3@enterprise.com",
+    "role": "admin",
+    "join_date": "2025-06-12T17:31:07.418534",
+    "last_login": "2025-08-06T17:31:07.418538",
+    "login_frequency_daily": 5.81,
+    "avg_session_duration_minutes": 127.2,
+    "total_sessions": 348,
+    "failed_login_attempts": 9,
+    "risk_score": 9.3,
+    "anomaly_count": 6,
+    "locations_accessed": [
+      "Tokyo, JP"
+    ],
+    "device_count": 3,
+    "feature_usage": {
+      "security_dashboard": 111,
+      "incident_management": 48,
+      "threat_intelligence": 9,
+      "compliance_reports": 3,
+      "analytics": 43
+    },
+    "permissions": [
+      "manage_incidents",
+      "admin_users",
+      "configure_alerts",
+      "view_reports"
+    ]
+  },
+  {
+    "user_id": "user_d462685b",
+    "email": "user_d462685b@enterprise.com",
+    "role": "analyst",
+    "join_date": "2025-04-18T17:31:07.418553",
+    "last_login": "2025-08-07T17:31:07.418557",
+    "login_frequency_daily": 5.1,
+    "avg_session_duration_minutes": 43.3,
+    "total_sessions": 586,
+    "failed_login_attempts": 0,
+    "risk_score": 9.6,
+    "anomaly_count": 4,
+    "locations_accessed": [
+      "London, JP",
+      "New York, UK"
+    ],
+    "device_count": 3,
+    "feature_usage": {
+      "security_dashboard": 76,
+      "incident_management": 76,
+      "threat_intelligence": 40,
+      "compliance_reports": 4,
+      "analytics": 26
+    },
+    "permissions": [
+      "manage_incidents",
+      "view_reports",
+      "configure_alerts",
+      "view_dashboard"
+    ]
+  },
+  {
+    "user_id": "user_6b630902",
+    "email": "user_6b630902@enterprise.com",
+    "role": "user",
+    "join_date": "2025-05-17T17:31:07.418573",
+    "last_login": "2025-08-11T17:31:07.418578",
+    "login_frequency_daily": 7.88,
+    "avg_session_duration_minutes": 230.5,
+    "total_sessions": 677,
+    "failed_login_attempts": 11,
+    "risk_score": 4.8,
+    "anomaly_count": 1,
+    "locations_accessed": [
+      "San Francisco, US",
+      "San Francisco, JP",
+      "London, JP"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 91,
+      "incident_management": 54,
+      "threat_intelligence": 27,
+      "compliance_reports": 6,
+      "analytics": 19
+    },
+    "permissions": [
+      "configure_alerts",
+      "export_data",
+      "view_reports",
+      "view_dashboard",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_dbdd9dd8",
+    "email": "user_dbdd9dd8@company.com",
+    "role": "user",
+    "join_date": "2024-08-23T17:31:07.418595",
+    "last_login": "2025-08-09T17:31:07.418599",
+    "login_frequency_daily": 5.42,
+    "avg_session_duration_minutes": 27.1,
+    "total_sessions": 1913,
+    "failed_login_attempts": 6,
+    "risk_score": 3.6,
+    "anomaly_count": 1,
+    "locations_accessed": [
+      "London, UK",
+      "Tokyo, US",
+      "New York, UK"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 106,
+      "incident_management": 7,
+      "threat_intelligence": 30,
+      "compliance_reports": 10,
+      "analytics": 41
+    },
+    "permissions": [
+      "export_data",
+      "view_dashboard"
+    ]
+  },
+  {
+    "user_id": "user_9e017b14",
+    "email": "user_9e017b14@corp.com",
+    "role": "viewer",
+    "join_date": "2025-05-03T17:31:07.418616",
+    "last_login": "2025-08-08T17:31:07.418620",
+    "login_frequency_daily": 2.24,
+    "avg_session_duration_minutes": 86.9,
+    "total_sessions": 224,
+    "failed_login_attempts": 11,
+    "risk_score": 2.9,
+    "anomaly_count": 0,
+    "locations_accessed": [
+      "London, US",
+      "San Francisco, UK"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 99,
+      "incident_management": 6,
+      "threat_intelligence": 35,
+      "compliance_reports": 3,
+      "analytics": 57
+    },
+    "permissions": [
+      "view_dashboard",
+      "configure_alerts",
+      "manage_incidents",
+      "admin_users",
+      "export_data"
+    ]
+  },
+  {
+    "user_id": "user_eda8a8d0",
+    "email": "user_eda8a8d0@enterprise.com",
+    "role": "user",
+    "join_date": "2025-02-17T17:31:07.418637",
+    "last_login": "2025-08-07T17:31:07.418642",
+    "login_frequency_daily": 1.52,
+    "avg_session_duration_minutes": 52.2,
+    "total_sessions": 266,
+    "failed_login_attempts": 0,
+    "risk_score": 6.9,
+    "anomaly_count": 0,
+    "locations_accessed": [
+      "Berlin, US"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 29,
+      "incident_management": 16,
+      "threat_intelligence": 7,
+      "compliance_reports": 17,
+      "analytics": 52
+    },
+    "permissions": [
+      "view_dashboard",
+      "configure_alerts",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_85195a4d",
+    "email": "user_85195a4d@enterprise.com",
+    "role": "user",
+    "join_date": "2024-12-04T17:31:07.418657",
+    "last_login": "2025-08-04T17:31:07.418661",
+    "login_frequency_daily": 0.77,
+    "avg_session_duration_minutes": 79.3,
+    "total_sessions": 192,
+    "failed_login_attempts": 14,
+    "risk_score": 5.2,
+    "anomaly_count": 4,
+    "locations_accessed": [
+      "London, JP",
+      "Tokyo, JP",
+      "Tokyo, US",
+      "San Francisco, JP"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 59,
+      "incident_management": 23,
+      "threat_intelligence": 16,
+      "compliance_reports": 10,
+      "analytics": 38
+    },
+    "permissions": [
+      "configure_alerts",
+      "view_dashboard",
+      "export_data"
+    ]
+  },
+  {
+    "user_id": "user_47e97765",
+    "email": "user_47e97765@enterprise.com",
+    "role": "user",
+    "join_date": "2024-11-07T17:31:07.418680",
+    "last_login": "2025-08-08T17:31:07.418684",
+    "login_frequency_daily": 7.49,
+    "avg_session_duration_minutes": 206.0,
+    "total_sessions": 2074,
+    "failed_login_attempts": 10,
+    "risk_score": 7.1,
+    "anomaly_count": 7,
+    "locations_accessed": [
+      "Tokyo, US",
+      "San Francisco, US"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 84,
+      "incident_management": 62,
+      "threat_intelligence": 24,
+      "compliance_reports": 15,
+      "analytics": 26
+    },
+    "permissions": [
+      "admin_users",
+      "view_dashboard"
+    ]
+  },
+  {
+    "user_id": "user_1e31498e",
+    "email": "user_1e31498e@corp.com",
+    "role": "analyst",
+    "join_date": "2024-09-12T17:31:07.418699",
+    "last_login": "2025-08-11T17:31:07.418704",
+    "login_frequency_daily": 0.83,
+    "avg_session_duration_minutes": 147.5,
+    "total_sessions": 275,
+    "failed_login_attempts": 7,
+    "risk_score": 0.6,
+    "anomaly_count": 1,
+    "locations_accessed": [
+      "London, US",
+      "New York, JP",
+      "Tokyo, DE"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 37,
+      "incident_management": 40,
+      "threat_intelligence": 40,
+      "compliance_reports": 20,
+      "analytics": 4
+    },
+    "permissions": [
+      "configure_alerts",
+      "export_data"
+    ]
+  },
+  {
+    "user_id": "user_6703cd45",
+    "email": "user_6703cd45@company.com",
+    "role": "analyst",
+    "join_date": "2025-02-14T17:31:07.418720",
+    "last_login": "2025-08-07T17:31:07.418724",
+    "login_frequency_daily": 7.15,
+    "avg_session_duration_minutes": 227.2,
+    "total_sessions": 1272,
+    "failed_login_attempts": 4,
+    "risk_score": 8.5,
+    "anomaly_count": 5,
+    "locations_accessed": [
+      "Tokyo, JP"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 87,
+      "incident_management": 49,
+      "threat_intelligence": 16,
+      "compliance_reports": 4,
+      "analytics": 38
+    },
+    "permissions": [
+      "configure_alerts",
+      "export_data",
+      "view_dashboard",
+      "manage_incidents",
+      "view_reports"
+    ]
+  },
+  {
+    "user_id": "user_38778582",
+    "email": "user_38778582@enterprise.com",
+    "role": "analyst",
+    "join_date": "2025-03-12T17:31:07.418741",
+    "last_login": "2025-08-04T17:31:07.418747",
+    "login_frequency_daily": 0.88,
+    "avg_session_duration_minutes": 120.1,
+    "total_sessions": 134,
+    "failed_login_attempts": 4,
+    "risk_score": 5.0,
+    "anomaly_count": 3,
+    "locations_accessed": [
+      "New York, JP"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 49,
+      "incident_management": 10,
+      "threat_intelligence": 20,
+      "compliance_reports": 15,
+      "analytics": 51
+    },
+    "permissions": [
+      "configure_alerts",
+      "export_data",
+      "view_reports"
+    ]
+  },
+  {
+    "user_id": "user_1424f102",
+    "email": "user_1424f102@company.com",
+    "role": "admin",
+    "join_date": "2024-08-29T17:31:07.418768",
+    "last_login": "2025-08-08T17:31:07.418772",
+    "login_frequency_daily": 1.12,
+    "avg_session_duration_minutes": 132.6,
+    "total_sessions": 388,
+    "failed_login_attempts": 13,
+    "risk_score": 4.1,
+    "anomaly_count": 0,
+    "locations_accessed": [
+      "London, DE",
+      "New York, DE",
+      "Berlin, UK",
+      "Berlin, US"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 116,
+      "incident_management": 20,
+      "threat_intelligence": 39,
+      "compliance_reports": 17,
+      "analytics": 43
+    },
+    "permissions": [
+      "view_dashboard",
+      "export_data",
+      "admin_users",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_09fa0cb3",
+    "email": "user_09fa0cb3@corp.com",
+    "role": "user",
+    "join_date": "2025-04-25T17:31:07.418790",
+    "last_login": "2025-08-09T17:31:07.418794",
+    "login_frequency_daily": 3.87,
+    "avg_session_duration_minutes": 148.4,
+    "total_sessions": 418,
+    "failed_login_attempts": 6,
+    "risk_score": 5.1,
+    "anomaly_count": 5,
+    "locations_accessed": [
+      "New York, DE",
+      "Tokyo, DE"
+    ],
+    "device_count": 4,
+    "feature_usage": {
+      "security_dashboard": 16,
+      "incident_management": 53,
+      "threat_intelligence": 38,
+      "compliance_reports": 9,
+      "analytics": 12
+    },
+    "permissions": [
+      "export_data",
+      "view_reports",
+      "view_dashboard",
+      "admin_users",
+      "manage_incidents"
+    ]
+  },
+  {
+    "user_id": "user_5264f5eb",
+    "email": "user_5264f5eb@corp.com",
+    "role": "analyst",
+    "join_date": "2025-03-30T17:31:07.418811",
+    "last_login": "2025-08-07T17:31:07.418815",
+    "login_frequency_daily": 2.62,
+    "avg_session_duration_minutes": 136.3,
+    "total_sessions": 351,
+    "failed_login_attempts": 11,
+    "risk_score": 1.8,
+    "anomaly_count": 8,
+    "locations_accessed": [
+      "Tokyo, US",
+      "Berlin, UK"
+    ],
+    "device_count": 2,
+    "feature_usage": {
+      "security_dashboard": 37,
+      "incident_management": 80,
+      "threat_intelligence": 25,
+      "compliance_reports": 11,
+      "analytics": 24
+    },
+    "permissions": [
+      "manage_incidents",
+      "export_data",
+      "view_dashboard",
+      "configure_alerts",
+      "admin_users"
+    ]
+  },
+  {
+    "user_id": "user_b00fc9b7",
+    "email": "user_b00fc9b7@corp.com",
+    "role": "user",
+    "join_date": "2025-04-21T17:31:07.418831",
+    "last_login": "2025-08-09T17:31:07.418835",
+    "login_frequency_daily": 3.49,
+    "avg_session_duration_minutes": 168.1,
+    "total_sessions": 390,
+    "failed_login_attempts": 15,
+    "risk_score": 5.1,
+    "anomaly_count": 2,
+    "locations_accessed": [
+      "New York, DE",
+      "San Francisco, DE",
+      "New York, UK",
+      "Tokyo, DE"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 125,
+      "incident_management": 11,
+      "threat_intelligence": 12,
+      "compliance_reports": 25,
+      "analytics": 42
+    },
+    "permissions": [
+      "view_dashboard",
+      "admin_users"
+    ]
+  },
+  {
+    "user_id": "user_4b5d1f43",
+    "email": "user_4b5d1f43@company.com",
+    "role": "analyst",
+    "join_date": "2024-12-24T17:31:07.418853",
+    "last_login": "2025-08-09T17:31:07.418856",
+    "login_frequency_daily": 4.83,
+    "avg_session_duration_minutes": 20.7,
+    "total_sessions": 1110,
+    "failed_login_attempts": 8,
+    "risk_score": 2.4,
+    "anomaly_count": 6,
+    "locations_accessed": [
+      "Berlin, UK"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 65,
+      "incident_management": 9,
+      "threat_intelligence": 4,
+      "compliance_reports": 15,
+      "analytics": 20
+    },
+    "permissions": [
+      "manage_incidents",
+      "export_data",
+      "view_dashboard",
+      "admin_users",
+      "configure_alerts"
+    ]
+  },
+  {
+    "user_id": "user_bf85681f",
+    "email": "user_bf85681f@corp.com",
+    "role": "admin",
+    "join_date": "2024-09-14T17:31:07.418872",
+    "last_login": "2025-08-11T17:31:07.418876",
+    "login_frequency_daily": 8.31,
+    "avg_session_duration_minutes": 216.0,
+    "total_sessions": 2751,
+    "failed_login_attempts": 9,
+    "risk_score": 1.9,
+    "anomaly_count": 8,
+    "locations_accessed": [
+      "London, JP"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 64,
+      "incident_management": 76,
+      "threat_intelligence": 31,
+      "compliance_reports": 18,
+      "analytics": 52
+    },
+    "permissions": [
+      "export_data",
+      "view_dashboard",
+      "configure_alerts"
+    ]
+  },
+  {
+    "user_id": "user_b0cfaed3",
+    "email": "user_b0cfaed3@corp.com",
+    "role": "user",
+    "join_date": "2024-11-04T17:31:07.418892",
+    "last_login": "2025-08-09T17:31:07.418895",
+    "login_frequency_daily": 3.21,
+    "avg_session_duration_minutes": 173.7,
+    "total_sessions": 898,
+    "failed_login_attempts": 2,
+    "risk_score": 6.5,
+    "anomaly_count": 5,
+    "locations_accessed": [
+      "San Francisco, UK",
+      "Berlin, UK",
+      "New York, DE"
+    ],
+    "device_count": 1,
+    "feature_usage": {
+      "security_dashboard": 40,
+      "incident_management": 79,
+      "threat_intelligence": 23,
+      "compliance_reports": 16,
+      "analytics": 34
+    },
+    "permissions": [
+      "configure_alerts",
+      "manage_incidents",
+      "view_dashboard"
+    ]
+  },
+  {
+    "user_id": "user_c328bd85",
+    "email": "user_c328bd85@corp.com",
+    "role": "admin",
+    "join_date": "2025-03-07T17:31:07.418912",
+    "last_login": "2025-08-10T17:31:07.418931",
+    "login_frequency_daily": 2.28,
+    "avg_session_duration_minutes": 61.0,
+    "total_sessions": 358,
+    "failed_login_attempts": 8,
+    "risk_score": 9.4,
+    "anomaly_count": 2,
+    "locations_accessed": [
+      "Tokyo, JP"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 74,
+      "incident_management": 75,
+      "threat_intelligence": 33,
+      "compliance_reports": 6,
+      "analytics": 20
+    },
+    "permissions": [
+      "manage_incidents",
+      "admin_users",
+      "export_data",
+      "view_reports",
+      "view_dashboard"
+    ]
+  },
+  {
+    "user_id": "user_3126154a",
+    "email": "user_3126154a@company.com",
+    "role": "analyst",
+    "join_date": "2025-01-16T17:31:07.418948",
+    "last_login": "2025-08-06T17:31:07.418952",
+    "login_frequency_daily": 1.81,
+    "avg_session_duration_minutes": 101.5,
+    "total_sessions": 375,
+    "failed_login_attempts": 9,
+    "risk_score": 4.1,
+    "anomaly_count": 6,
+    "locations_accessed": [
+      "Berlin, DE",
+      "San Francisco, DE"
+    ],
+    "device_count": 5,
+    "feature_usage": {
+      "security_dashboard": 107,
+      "incident_management": 44,
+      "threat_intelligence": 20,
+      "compliance_reports": 0,
+      "analytics": 31
+    },
+    "permissions": [
+      "manage_incidents",
+      "view_reports",
+      "configure_alerts",
+      "view_dashboard",
+      "export_data"
+    ]
+  }
+]

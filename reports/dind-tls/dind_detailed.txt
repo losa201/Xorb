@@ -1,0 +1,11 @@
+Docker-in-Docker TLS Test Results
+Generated: Mon Aug 11 02:07:47 PM UTC 2025
+=================================
+✅ Plaintext Docker connections blocked: PASS
+✅ TLS without client cert blocked: PASS
+❌ TLS with valid client cert: FAIL
+❌ Docker commands over TLS: FAIL
+✅ Invalid client cert rejected: PASS
+❌ Security scan execution: FAIL
+❌ Docker daemon config: FAIL
+❌ TLS connection security: FAIL

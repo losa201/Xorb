@@ -1,0 +1,206 @@
+# Envoy Proxy Configuration for XORB API Service
+# Provides mTLS termination and client certificate verification
+
+admin:
+  address:
+    socket_address:
+      protocol: TCP
+      address: 0.0.0.0
+      port_value: 9901
+
+static_resources:
+  listeners:
+  - name: api_listener
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 8443
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          scheme_header_transformation:
+            scheme_to_overwrite: https
+          stat_prefix: ingress_http
+          access_log:
+          - name: envoy.access_loggers.stdout
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+              log_format:
+                text_format: |
+                  [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%"
+                  %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT%
+                  %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-FORWARDED-FOR)%"
+                  "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%"
+                  "%UPSTREAM_HOST%" client_cert_subject="%DOWNSTREAM_TLS_SUBJECT%"
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: local_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/"
+                route:
+                  cluster: api_cluster
+                  timeout: 30s
+                request_headers_to_add:
+                - header:
+                    key: "x-tls-subject"
+                    value: "%DOWNSTREAM_TLS_SUBJECT%"
+                - header:
+                    key: "x-tls-cert-serial"
+                    value: "%DOWNSTREAM_TLS_SERIAL%"
+                - header:
+                    key: "x-tls-cert-fingerprint"
+                    value: "%DOWNSTREAM_TLS_FINGERPRINT%"
+          http_filters:
+          - name: envoy.filters.http.rbac
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
+              rules:
+                action: ALLOW
+                policies:
+                  "xorb-services":
+                    permissions:
+                    - any: true
+                    principals:
+                    - authenticated:
+                        principal_name:
+                          exact: "CN=orchestrator.xorb.local,OU=Services,O=XORB Platform,L=San Francisco,ST=CA,C=US"
+                    - authenticated:
+                        principal_name:
+                          exact: "CN=agent.xorb.local,OU=Services,O=XORB Platform,L=San Francisco,ST=CA,C=US"
+                    - authenticated:
+                        principal_name:
+                          exact: "CN=scanner.xorb.local,OU=Services,O=XORB Platform,L=San Francisco,ST=CA,C=US"
+                  "xorb-clients":
+                    permissions:
+                    - any: true
+                    principals:
+                    - authenticated:
+                        principal_name:
+                          suffix: "-client.xorb.local,OU=Clients,O=XORB Platform,L=San Francisco,ST=CA,C=US"
+          - name: envoy.filters.http.local_ratelimit
+            typed_config:
+              "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+              type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+              value:
+                stat_prefix: http_local_rate_limiter
+                token_bucket:
+                  max_tokens: 1000
+                  tokens_per_fill: 100
+                  fill_interval: 1s
+                filter_enabled:
+                  runtime_key: test_enabled
+                  default_value:
+                    numerator: 100
+                    denominator: HUNDRED
+                filter_enforced:
+                  runtime_key: test_enforced
+                  default_value:
+                    numerator: 100
+                    denominator: HUNDRED
+                response_headers_to_add:
+                - append: false
+                  header:
+                    key: x-local-rate-limit
+                    value: 'true'
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+            - certificate_chain:
+                filename: "/run/tls/api/fullchain.pem"
+              private_key:
+                filename: "/run/tls/api/key.pem"
+            validation_context:
+              trusted_ca:
+                filename: "/run/tls/ca/ca.pem"
+              verify_certificate_spki: false
+              verify_certificate_hash: false
+          require_client_certificate: true
+          tls_params:
+            tls_minimum_protocol_version: TLSv1_2
+            tls_maximum_protocol_version: TLSv1_3
+            cipher_suites:
+            - "TLS_AES_256_GCM_SHA384"
+            - "TLS_CHACHA20_POLY1305_SHA256"
+            - "TLS_AES_128_GCM_SHA256"
+            - "ECDHE-ECDSA-AES256-GCM-SHA384"
+            - "ECDHE-ECDSA-CHACHA20-POLY1305"
+            - "ECDHE-ECDSA-AES128-GCM-SHA256"
+            - "ECDHE-RSA-AES256-GCM-SHA384"
+            - "ECDHE-RSA-CHACHA20-POLY1305"
+            - "ECDHE-RSA-AES128-GCM-SHA256"
+            ecdh_curves:
+            - "X25519"
+            - "P-256"
+
+  clusters:
+  - name: api_cluster
+    connect_timeout: 5s
+    type: LOGICAL_DNS
+    dns_lookup_family: V4_ONLY
+    load_assignment:
+      cluster_name: api_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 172.20.0.21  # API service IP
+                port_value: 8000
+    health_checks:
+    - timeout: 5s
+      interval: 10s
+      interval_jitter: 1s
+      unhealthy_threshold: 2
+      healthy_threshold: 2
+      http_health_check:
+        path: "/api/v1/health"
+        request_headers_to_add:
+        - header:
+            key: "host"
+            value: "api.xorb.local"
+    circuit_breakers:
+      thresholds:
+      - priority: DEFAULT
+        max_connections: 100
+        max_pending_requests: 50
+        max_requests: 200
+        max_retries: 3
+    outlier_detection:
+      consecutive_5xx: 3
+      consecutive_gateway_failure: 3
+      interval: 10s
+      base_ejection_time: 30s
+      max_ejection_percent: 50
+
+# Security headers
+response_headers_to_add:
+- header:
+    key: "strict-transport-security"
+    value: "max-age=31536000; includeSubDomains; preload"
+- header:
+    key: "x-frame-options"
+    value: "DENY"
+- header:
+    key: "x-content-type-options"
+    value: "nosniff"
+- header:
+    key: "x-xss-protection"
+    value: "1; mode=block"
+- header:
+    key: "referrer-policy"
+    value: "strict-origin-when-cross-origin"
+- header:
+    key: "content-security-policy"
+    value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"

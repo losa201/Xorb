@@ -1,0 +1,579 @@
+---
+# Lightweight Blue Team SOC for Resource-Constrained Environment
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blue-team-config-lite
+  namespace: cyber-range-blue
+data:
+  config.yaml: |
+    blue_team:
+      team_name: "Blue Team Lite"
+      soc_mode: "lightweight"
+      alert_thresholds:
+        critical: 3    # Reduced from 5
+        high: 8        # Reduced from 15
+        medium: 20     # Reduced from 50
+        low: 50        # Reduced from 100
+      
+    monitoring:
+      collection_interval: "30s"  # Increased from 10s
+      retention_days: 3           # Reduced from 30
+      real_time_analysis: false   # Disabled to save resources
+      ml_detection: false         # Disabled to save resources
+      
+    siem:
+      elasticsearch:
+        single_node: true
+        heap_size: "512m"         # Reduced heap
+        hosts: ["elasticsearch-lite:9200"]
+        index_prefix: "cyber-range"
+        max_indices: 3            # Limit indices
+      logstash:
+        disabled: true            # Use Filebeat directly to ES
+      kibana:
+        dashboards_auto_import: false  # Manual import only
+        
+    ids_ips:
+      suricata:
+        enabled: true
+        ruleset: "essential"      # Reduced ruleset
+        custom_rules: false       # Disabled custom rules
+        alert_fast: true
+      zeek:
+        enabled: false            # Disabled to save resources
+        
+    threat_hunting:
+      jupyter:
+        enabled: false            # Disabled to save resources
+      misp:
+        enabled: false            # Disabled to save resources
+        
+    incident_response:
+      automation: false           # Manual response only
+      playbooks: []              # No automated playbooks
+      case_management: false     # Disabled to save resources
+---
+# Lightweight Elasticsearch (Single Node)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch-lite
+  namespace: cyber-range-blue
+  labels:
+    app: elasticsearch-lite
+    component: siem
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch-lite
+  template:
+    metadata:
+      labels:
+        app: elasticsearch-lite
+        component: siem
+    spec:
+      priorityClassName: cyber-range-high
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+        ports:
+        - containerPort: 9200
+          name: http
+        env:
+        - name: cluster.name
+          value: "cyber-range-lite"
+        - name: node.name
+          value: "es-single"
+        - name: discovery.type
+          value: "single-node"
+        - name: ES_JAVA_OPTS
+          value: "-Xms256m -Xmx512m"  # Reduced heap size
+        - name: xpack.security.enabled
+          value: "false"
+        - name: xpack.monitoring.collection.enabled
+          value: "false"
+        - name: xpack.ml.enabled
+          value: "false"              # Disable ML
+        - name: xpack.watcher.enabled
+          value: "false"              # Disable watcher
+        - name: xpack.graph.enabled
+          value: "false"              # Disable graph
+        - name: bootstrap.memory_lock
+          value: "false"              # Disable memory lock
+        - name: indices.memory.index_buffer_size
+          value: "10%"                # Reduce index buffer
+        - name: indices.fielddata.cache.size
+          value: "20%"                # Reduce fielddata cache
+        volumeMounts:
+        - name: elasticsearch-data
+          mountPath: /usr/share/elasticsearch/data
+        resources:
+          requests:
+            cpu: 200m                 # Significantly reduced
+            memory: 768Mi             # Significantly reduced
+          limits:
+            cpu: 800m                 # Significantly reduced
+            memory: 1.5Gi             # Significantly reduced
+        livenessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: 9200
+          initialDelaySeconds: 120
+          periodSeconds: 60
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health?wait_for_status=yellow
+            port: 9200
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 30
+      volumes:
+      - name: elasticsearch-data
+        emptyDir:
+          sizeLimit: 2Gi             # Limited storage
+---
+# Lightweight Kibana
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana-lite
+  namespace: cyber-range-blue
+  labels:
+    app: kibana-lite
+    component: siem
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana-lite
+  template:
+    metadata:
+      labels:
+        app: kibana-lite
+        component: siem
+    spec:
+      priorityClassName: cyber-range-normal
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:8.8.0
+        ports:
+        - containerPort: 5601
+          name: ui
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: "http://elasticsearch-lite:9200"
+        - name: SERVER_NAME
+          value: "cyber-range-kibana-lite"
+        - name: XPACK_MONITORING_ENABLED
+          value: "false"
+        - name: XPACK_SECURITY_ENABLED
+          value: "false"
+        - name: XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY
+          value: "a7a6311933d3503b89bc2dbc36572c01a6e80e8e"
+        - name: NODE_OPTIONS
+          value: "--max-old-space-size=512"  # Limit Node.js memory
+        resources:
+          requests:
+            cpu: 100m                # Significantly reduced
+            memory: 512Mi            # Significantly reduced
+          limits:
+            cpu: 500m                # Significantly reduced
+            memory: 1Gi              # Significantly reduced
+        livenessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 180
+          periodSeconds: 60
+          timeoutSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 30
+---
+# Essential IDS (Suricata Lightweight)
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: suricata-lite
+  namespace: cyber-range-blue
+  labels:
+    app: suricata-lite
+    component: ids
+spec:
+  selector:
+    matchLabels:
+      app: suricata-lite
+  template:
+    metadata:
+      labels:
+        app: suricata-lite
+        component: ids
+      annotations:
+        security.xorb.io/network-monitoring: "enabled"
+    spec:
+      priorityClassName: cyber-range-normal
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: blue-team-sa
+      containers:
+      - name: suricata
+        image: alpine:latest
+        command: ["/bin/sh"]
+        args: ["-c", "apk add --no-cache suricata && suricata -i any --init-errors-fatal -v && tail -f /var/log/suricata/fast.log"]
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+            - SYS_NICE
+        env:
+        - name: SURICATA_OPTIONS
+          value: "-i any --runmode single"  # Single thread mode
+        - name: LIGHTWEIGHT_MODE
+          value: "true"
+        volumeMounts:
+        - name: suricata-config
+          mountPath: /etc/suricata
+        - name: suricata-logs
+          mountPath: /var/log/suricata
+        resources:
+          requests:
+            cpu: 100m                # Reduced from 500m
+            memory: 256Mi            # Reduced from 1Gi
+          limits:
+            cpu: 400m                # Reduced from 2
+            memory: 512Mi            # Reduced from 4Gi
+      volumes:
+      - name: suricata-config
+        configMap:
+          name: suricata-config-lite
+      - name: suricata-logs
+        emptyDir:
+          sizeLimit: 500Mi
+---
+# Lightweight Log Collector (Filebeat)
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: filebeat-lite
+  namespace: cyber-range-blue
+  labels:
+    app: filebeat-lite
+    component: log-collector
+spec:
+  selector:
+    matchLabels:
+      app: filebeat-lite
+  template:
+    metadata:
+      labels:
+        app: filebeat-lite
+        component: log-collector
+    spec:
+      priorityClassName: cyber-range-low
+      serviceAccountName: blue-team-sa
+      containers:
+      - name: filebeat
+        image: docker.elastic.co/beats/filebeat:8.8.0
+        args: [
+          "-c", "/etc/filebeat.yml",
+          "-e",
+        ]
+        env:
+        - name: ELASTICSEARCH_HOST
+          value: "elasticsearch-lite"
+        - name: ELASTICSEARCH_PORT
+          value: "9200"
+        volumeMounts:
+        - name: config
+          mountPath: /etc/filebeat.yml
+          readOnly: true
+          subPath: filebeat.yml
+        - name: data
+          mountPath: /usr/share/filebeat/data
+        - name: varlibdockercontainers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        - name: varlog
+          mountPath: /var/log
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m                 # Minimal CPU
+            memory: 128Mi            # Minimal memory
+          limits:
+            cpu: 200m                # Reduced limits
+            memory: 256Mi            # Reduced limits
+      volumes:
+      - name: config
+        configMap:
+          defaultMode: 0640
+          name: filebeat-config
+      - name: varlibdockercontainers
+        hostPath:
+          path: /var/lib/docker/containers
+      - name: varlog
+        hostPath:
+          path: /var/log
+      - name: data
+        hostPath:
+          path: /var/lib/filebeat-data
+          type: DirectoryOrCreate
+---
+# Essential SIEM Dashboard
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: siem-dashboard-lite
+  namespace: cyber-range-blue
+  labels:
+    app: siem-dashboard-lite
+    component: dashboard
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: siem-dashboard-lite
+  template:
+    metadata:
+      labels:
+        app: siem-dashboard-lite
+        component: dashboard
+    spec:
+      priorityClassName: cyber-range-low
+      containers:
+      - name: dashboard
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+          name: web
+        volumeMounts:
+        - name: dashboard-content
+          mountPath: /usr/share/nginx/html
+        resources:
+          requests:
+            cpu: 25m                 # Minimal CPU
+            memory: 32Mi             # Minimal memory
+          limits:
+            cpu: 100m                # Low limits
+            memory: 128Mi            # Low limits
+      volumes:
+      - name: dashboard-content
+        configMap:
+          name: siem-dashboard-content
+---
+# ConfigMaps
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: suricata-config-lite
+  namespace: cyber-range-blue
+data:
+  suricata.yaml: |
+    vars:
+      address-groups:
+        HOME_NET: "[10.0.0.0/8]"
+        EXTERNAL_NET: "!$HOME_NET"
+      port-groups:
+        HTTP_PORTS: "80"
+        SHELLCODE_PORTS: "!80"
+    
+    default-log-dir: /var/log/suricata/
+    
+    outputs:
+      - fast:
+          enabled: yes
+          filename: fast.log
+      - eve-log:
+          enabled: no  # Disabled to save resources
+    
+    logging:
+      default-log-level: warning  # Reduced logging
+    
+    detect-engine:
+      - profile: low      # Low resource profile
+      - custom-values:
+          toclient-groups: 2
+          toserver-groups: 2
+    
+    threading:
+      set-cpu-affinity: no
+      cpu-affinity:
+        - management-cpu-set:
+            cpu: [ 0 ]
+        - receive-cpu-set:
+            cpu: [ 0 ]
+        - worker-cpu-set:
+            cpu: [ 0 ]
+      detect-thread-ratio: 0.5  # Reduced threads
+    
+    rule-files:
+      - "cyber-range.rules"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: cyber-range-blue
+data:
+  filebeat.yml: |
+    filebeat.inputs:
+    - type: container
+      paths:
+        - '/var/lib/docker/containers/*/*.log'
+      fields:
+        log_type: container
+      fields_under_root: true
+    
+    - type: log
+      paths:
+        - '/var/log/suricata/*.log'
+      fields:
+        log_type: suricata
+      fields_under_root: true
+    
+    processors:
+    - add_kubernetes_metadata:
+        host: ${NODE_NAME}
+        matchers:
+        - logs_path:
+            logs_path: "/var/lib/docker/containers/"
+    
+    output.elasticsearch:
+      hosts: ['${ELASTICSEARCH_HOST}:${ELASTICSEARCH_PORT}']
+      index: "cyber-range-logs-%{+yyyy.MM.dd}"
+    
+    setup.template.name: "cyber-range"
+    setup.template.pattern: "cyber-range-*"
+    
+    logging.level: warning
+    logging.to_files: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: siem-dashboard-content
+  namespace: cyber-range-blue
+data:
+  index.html: |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Cyber Range SIEM Lite</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 40px; }
+            .header { background-color: #2196F3; color: white; padding: 20px; }
+            .content { padding: 20px; }
+            .link-box { border: 1px solid #ddd; padding: 15px; margin: 10px 0; }
+            .status { color: green; font-weight: bold; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h1>🔵 Blue Team SOC Dashboard Lite</h1>
+        </div>
+        <div class="content">
+            <h2>SIEM Components</h2>
+            <div class="link-box">
+                <h3>Kibana (Log Analysis)</h3>
+                <p>Access: <a href="/kibana">http://node-ip:30601</a></p>
+                <p class="status">Status: Lightweight Mode</p>
+            </div>
+            <div class="link-box">
+                <h3>Elasticsearch (Search Engine)</h3>
+                <p>Access: <a href="/elasticsearch">http://node-ip:30920</a></p>
+                <p class="status">Status: Single Node</p>
+            </div>
+            <h2>Monitoring Capabilities</h2>
+            <ul>
+                <li>✅ Container Log Collection</li>
+                <li>✅ Network Intrusion Detection (Suricata)</li>
+                <li>✅ Basic Security Event Correlation</li>
+                <li>❌ Advanced Threat Hunting (Disabled)</li>
+                <li>❌ Machine Learning Detection (Disabled)</li>
+                <li>❌ Automated Response (Disabled)</li>
+            </ul>
+            <h2>Resource Usage</h2>
+            <p>This lightweight SIEM uses approximately:</p>
+            <ul>
+                <li>CPU: ~1.5 vCPU</li>
+                <li>Memory: ~4GB RAM</li>
+                <li>Storage: ~3GB</li>
+            </ul>
+        </div>
+    </body>
+    </html>
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-lite
+  namespace: cyber-range-blue
+  labels:
+    app: elasticsearch-lite
+spec:
+  selector:
+    app: elasticsearch-lite
+  ports:
+  - name: http
+    port: 9200
+    targetPort: 9200
+  type: NodePort
+  ports:
+  - name: http
+    port: 9200
+    targetPort: 9200
+    nodePort: 30920
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana-lite
+  namespace: cyber-range-blue
+  labels:
+    app: kibana-lite
+spec:
+  selector:
+    app: kibana-lite
+  ports:
+  - name: ui
+    port: 5601
+    targetPort: 5601
+  type: NodePort
+  ports:
+  - name: ui
+    port: 5601
+    targetPort: 5601
+    nodePort: 30601
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: siem-dashboard-lite
+  namespace: cyber-range-blue
+  labels:
+    app: siem-dashboard-lite
+spec:
+  selector:
+    app: siem-dashboard-lite
+  ports:
+  - name: web
+    port: 80
+    targetPort: 80
+  type: NodePort
+  ports:
+  - name: web
+    port: 80
+    targetPort: 80
+    nodePort: 30800

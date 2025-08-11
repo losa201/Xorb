@@ -15,7 +15,7 @@
 <a href="https://discord.gg/projectdiscovery"><img src="https://img.shields.io/discord/695645237418131507.svg?logo=discord"></a>
 <a href="https://twitter.com/pdnuclei"><img src="https://img.shields.io/twitter/follow/pdnuclei.svg?logo=twitter"></a>
 </p>
-      
+
 <p align="center">
   <a href="#작동-방식">작동 방식</a> •
   <a href="#설치">설치</a> •
@@ -43,14 +43,14 @@ Nuclei는 템플릿을 기반으로 대상 간에 요청을 보내기 위해 사
 
 
 
-## 작동 방식
+##  작동 방식
 
 <h3 align="center">
   <img src="static/nuclei-flow.jpg" alt="nuclei-flow" width="700px"></a>
 </h3>
 
 
-# 설치
+#  설치
 
 Nuclei를 성공적으로 설치하기 위해서 **go1.22**가 필요합니다. 다음 명령을 실행하여 최신 버전을 설치합니다.
 
@@ -62,9 +62,9 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <table>
 <tr>
-<td>  
+<td>
 
-### Nuclei 템플릿
+###  Nuclei 템플릿
 
 Nuclei는 [v2.5.2](https://github.com/projectdiscovery/nuclei/releases/tag/v2.5.2)부터 자동 템플릿 다운로드/업데이트를 기본으로 지원합니다.
 [**Nuclei-Templates**](https://github.com/projectdiscovery/nuclei-templates) 프로젝트는 지속적으로 업데이트되는 즉시 사용 가능한 템플릿 목록을 제공합니다.
@@ -77,7 +77,7 @@ YAML DSL의 참조 구문은 [여기](SYNTAX-REFERENCE.md)에서 확인할 수 �
 </tr>
 </table>
 
-### 사용 방법
+###  사용 방법
 
 ```sh
 nuclei -h
@@ -290,7 +290,7 @@ JSON 출력으로 nuclei 실행:
 추가 문서는 여기에서 확인할 수 있습니다: https://docs.nuclei.sh/getting-started/running
 ```
 
-### Nuclei 실행
+###  Nuclei 실행
 
 [community-curated](https://github.com/projectdiscovery/nuclei-templates) nuclei 템플릿으로 대상 도메인을 스캔합니다.
 
@@ -315,7 +315,7 @@ http://uat.example.com
 
 **nuclei를 실행하는 자세한 예는 [여기](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)에서 찾을 수 있습니다.**
 
-# 보안 엔지니어를 위한
+#  보안 엔지니어를 위한
 
 Nuclei는 보안 엔지니어가 조직에서 워크플로를 커스텀하는 데 도움이 되는 많은 기능을 제공합니다.
 다양한 스캔 기능(DNS, HTTP, TCP 등)을 통해 보안 엔지니어는 Nuclei를 사용하여 맞춤형 검사 세트를 쉽게 만들 수 있습니다.
@@ -330,7 +330,7 @@ Nuclei는 보안 엔지니어가 조직에서 워크플로를 커스텀하는 �
 
 <table>
 <tr>
-<td>  
+<td>
 
 **Bug Bounty hunter들을 위해:**
 
@@ -350,7 +350,7 @@ Nuclei를 사용하면 자체 검사 모음으로 테스트 접근 방식을 사
 <table>
 <tr>
 <td>
-  
+
 **침투 테스터들을 위해:**
 
 Nuclei는 수동적이고 반복적인 프로세스를 보강하여 보안 평가에 접근하는 방식을 크게 개선합니다.
@@ -367,7 +367,7 @@ Nuclei는 수동적이고 반복적인 프로세스를 보강하여 보안 평�
 </table>
 
 
-# 개발자를 위한
+#  개발자를 위한
 
 Nuclei는 단순성을 염두에 두고 구축되었으며 수백 명의 보안 연구원들이 지원하는 커뮤니티 템플릿을 사용하여 호스트에서 지속적인 Nuclei 스캔을 사용하여 최신 보안 위협에 대한 업데이트를 유지할 수 있습니다.
 
@@ -388,9 +388,9 @@ Nuclei는 단순성을 염두에 두고 구축되었으며 수백 명의 보안 
   <a href="https://github.com/projectdiscovery/nuclei-action"><img src="static/learn-more-button.png" width="170px" alt="Learn More"></a>
 </h1>
 
-### Resources
+###  Resources
 
-- [Finding bugs with Nuclei with PinkDraconian (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) by **[@PinkDraconian](https://twitter.com/PinkDraconian)** 
+- [Finding bugs with Nuclei with PinkDraconian (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) by **[@PinkDraconian](https://twitter.com/PinkDraconian)**
 - [Nuclei: Packing a Punch with Vulnerability Scanning](https://bishopfox.com/blog/nuclei-vulnerability-scan) by **Bishopfox**
 - [The WAF efficacy framework](https://www.fastly.com/blog/the-waf-efficacy-framework-measuring-the-effectiveness-of-your-waf) by **Fastly**
 - [Scanning Live Web Applications with Nuclei in CI/CD Pipeline](https://blog.escape.tech/devsecops-part-iii-scanning-live-web-applications/) by **[@TristanKalos](https://twitter.com/TristanKalos)**
@@ -402,13 +402,13 @@ Nuclei는 단순성을 염두에 두고 구축되었으며 수백 명의 보안 
 - [How to Scan Continuously with Nuclei?](https://medium.com/@dwisiswant0/how-to-scan-continuously-with-nuclei-fcb7e9d8b8b9) by **[@dwisiswant0](https://github.com/dwisiswant0)**
 - [Hack with Automation !!!](https://dhiyaneshgeek.github.io/web/security/2021/07/19/hack-with-automation/) by **[@DhiyaneshGeek](https://github.com/DhiyaneshGeek)**
 
-### Credits
+###  Credits
 
 Thanks to all the amazing community [contributors for sending PRs](https://github.com/projectdiscovery/nuclei/graphs/contributors). Do also check out the below similar open-source projects that may fit in your workflow:
 
 [FFuF](https://github.com/ffuf/ffuf), [Qsfuzz](https://github.com/ameenmaali/qsfuzz), [Inception](https://github.com/proabiral/inception), [Snallygaster](https://github.com/hannob/snallygaster), [Gofingerprint](https://github.com/Static-Flow/gofingerprint), [Sn1per](https://github.com/1N3/Sn1per/tree/master/templates), [Google tsunami](https://github.com/google/tsunami-security-scanner), [Jaeles](https://github.com/jaeles-project/jaeles), [ChopChop](https://github.com/michelin/ChopChop)
 
-### License
+###  License
 
 Nuclei is distributed under [MIT License](https://github.com/projectdiscovery/nuclei/blob/main/LICENSE.md)
 

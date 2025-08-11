@@ -1,0 +1,238 @@
+---
+# Optimized Resource Quotas for 16 vCPU / 32GB RAM System
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range
+  labels:
+    app.kubernetes.io/name: cyber-range
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/isolation: high
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "XORB PTaaS Red vs Blue Cyber Range - Resource Optimized"
+    security.xorb.io/kill-switch: "enabled"
+    security.xorb.io/audit-level: "essential"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range-control
+  labels:
+    app.kubernetes.io/name: cyber-range-control
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/zone: control-plane
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "XORB Control Plane - Lightweight"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range-red
+  labels:
+    app.kubernetes.io/name: cyber-range-red
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/zone: red-team
+    security.xorb.io/isolation: strict
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "Red Team Infrastructure - Essential Tools Only"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range-blue
+  labels:
+    app.kubernetes.io/name: cyber-range-blue
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/zone: blue-team
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "Blue Team SOC - Lightweight SIEM"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range-targets
+  labels:
+    app.kubernetes.io/name: cyber-range-targets
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/zone: target-environment
+    security.xorb.io/vulnerable: "intentional"
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "Target Environment - Minimal Resource Footprint"
+---
+# Optimized Resource Quotas for 16 vCPU / 32GB System
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cyber-range-control-quota
+  namespace: cyber-range-control
+spec:
+  hard:
+    requests.cpu: "1.5"      # Reduced from 4
+    requests.memory: 3Gi     # Reduced from 8Gi
+    limits.cpu: "3"          # Reduced from 8
+    limits.memory: 6Gi       # Reduced from 16Gi
+    persistentvolumeclaims: "3"  # Reduced from 5
+    count/configmaps: "15"   # Reduced from 20
+    count/secrets: "8"       # Reduced from 10
+    count/services: "8"      # Reduced from 10
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cyber-range-red-quota
+  namespace: cyber-range-red
+spec:
+  hard:
+    requests.cpu: "2"        # Reduced from 8
+    requests.memory: 4Gi     # Reduced from 16Gi
+    limits.cpu: "4"          # Reduced from 16
+    limits.memory: 8Gi       # Reduced from 32Gi
+    persistentvolumeclaims: "4"  # Reduced from 10
+    count/configmaps: "15"   # Reduced from 30
+    count/secrets: "8"       # Reduced from 15
+    count/services: "8"      # Reduced from 15
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cyber-range-blue-quota
+  namespace: cyber-range-blue
+spec:
+  hard:
+    requests.cpu: "2"        # Reduced from 6
+    requests.memory: 4Gi     # Reduced from 12Gi
+    limits.cpu: "4"          # Reduced from 12
+    limits.memory: 8Gi       # Reduced from 24Gi
+    persistentvolumeclaims: "4"  # Reduced from 8
+    count/configmaps: "15"   # Reduced from 25
+    count/secrets: "8"       # Reduced from 10
+    count/services: "8"      # Reduced from 12
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cyber-range-targets-quota
+  namespace: cyber-range-targets
+spec:
+  hard:
+    requests.cpu: "1.5"      # Reduced from 10
+    requests.memory: 3Gi     # Reduced from 24Gi
+    limits.cpu: "3"          # Reduced from 20
+    limits.memory: 6Gi       # Reduced from 48Gi
+    persistentvolumeclaims: "3"  # Reduced from 15
+    count/configmaps: "10"   # Reduced from 40
+    count/secrets: "5"       # Reduced from 20
+    count/services: "8"      # Reduced from 25
+---
+# AMD EPYC Optimized Node Selector
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: amd-epyc-optimization
+  namespace: cyber-range-control
+data:
+  cpu-optimization: |
+    # AMD EPYC 7002 Series Optimizations
+    # - CCX-aware scheduling
+    # - NUMA topology optimization
+    # - High-performance CPU governor
+  memory-optimization: |
+    # 32GB RAM Optimization
+    # - Aggressive memory limits
+    # - Swap disabled
+    # - Memory-efficient container selection
+  config.yaml: |
+    amd_epyc_optimizations:
+      enabled: true
+      cpu_governor: "performance"
+      numa_balancing: true
+      transparent_hugepages: "madvise"
+      swappiness: 1
+      
+    resource_limits:
+      total_cpu_allocation: "14"  # Leave 2 vCPUs for system
+      total_memory_allocation: "28Gi"  # Leave 4GB for system
+      
+    container_optimizations:
+      use_alpine_images: true
+      enable_resource_limits: true
+      disable_debug_logging: true
+      optimize_jvm_heap: true
+---
+# Priority Classes for Resource Constrained Environment
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: cyber-range-critical
+value: 1000
+globalDefault: false
+description: "Critical cyber range components"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: cyber-range-high
+value: 500
+globalDefault: false
+description: "High priority cyber range components"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: cyber-range-normal
+value: 100
+globalDefault: false
+description: "Normal priority cyber range components"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: cyber-range-low
+value: 50
+globalDefault: false
+description: "Low priority cyber range components"
+---
+# Horizontal Pod Autoscaler for Dynamic Scaling
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cyber-range-hpa
+  namespace: cyber-range-control
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: xorb-orchestrator
+  minReplicas: 1
+  maxReplicas: 2
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60

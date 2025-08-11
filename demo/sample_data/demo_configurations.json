@@ -1,0 +1,226 @@
+{
+  "demo_environment": {
+    "name": "XORB Enterprise Demo Environment",
+    "version": "3.0.0",
+    "last_updated": "2025-08-11T17:31:07.491005",
+    "description": "Comprehensive cybersecurity platform demonstration environment"
+  },
+  "sample_companies": [
+    {
+      "company_id": "comp_6f161bf9",
+      "name": "Acme Financial Corp",
+      "industry": "technology",
+      "size": "large",
+      "employees": 16919,
+      "security_maturity": "basic"
+    },
+    {
+      "company_id": "comp_9721c761",
+      "name": "SecureBank Holdings",
+      "industry": "technology",
+      "size": "large",
+      "employees": 43414,
+      "security_maturity": "intermediate"
+    },
+    {
+      "company_id": "comp_fb75bcbc",
+      "name": "TechFlow Industries",
+      "industry": "technology",
+      "size": "large",
+      "employees": 33638,
+      "security_maturity": "advanced"
+    },
+    {
+      "company_id": "comp_8e203a05",
+      "name": "Global Manufacturing Inc",
+      "industry": "financial",
+      "size": "small",
+      "employees": 16882,
+      "security_maturity": "basic"
+    },
+    {
+      "company_id": "comp_d184e90a",
+      "name": "HealthCare Solutions",
+      "industry": "financial",
+      "size": "small",
+      "employees": 15656,
+      "security_maturity": "intermediate"
+    },
+    {
+      "company_id": "comp_7d49077b",
+      "name": "RetailMax Chain",
+      "industry": "technology",
+      "size": "small",
+      "employees": 30733,
+      "security_maturity": "intermediate"
+    },
+    {
+      "company_id": "comp_b5ed976f",
+      "name": "DataFlow Systems",
+      "industry": "financial",
+      "size": "startup",
+      "employees": 45505,
+      "security_maturity": "expert"
+    },
+    {
+      "company_id": "comp_3bd35033",
+      "name": "CyberShield Corp",
+      "industry": "financial",
+      "size": "large",
+      "employees": 38696,
+      "security_maturity": "advanced"
+    },
+    {
+      "company_id": "comp_f8b323c6",
+      "name": "InnovTech Labs",
+      "industry": "financial",
+      "size": "large",
+      "employees": 44375,
+      "security_maturity": "expert"
+    },
+    {
+      "company_id": "comp_01dfe1f5",
+      "name": "FutureNet Inc",
+      "industry": "technology",
+      "size": "medium",
+      "employees": 17784,
+      "security_maturity": "intermediate"
+    }
+  ],
+  "demo_users": [
+    {
+      "username": "demo_admin_1",
+      "email": "admin1@xorb-demo.com",
+      "role": "administrator",
+      "permissions": [
+        "all"
+      ]
+    },
+    {
+      "username": "demo_analyst_1",
+      "email": "analyst1@xorb-demo.com",
+      "role": "security_analyst",
+      "permissions": [
+        "view_incidents",
+        "manage_threats",
+        "generate_reports"
+      ]
+    },
+    {
+      "username": "demo_viewer_1",
+      "email": "viewer1@xorb-demo.com",
+      "role": "read_only",
+      "permissions": [
+        "view_dashboard",
+        "view_reports"
+      ]
+    },
+    {
+      "username": "demo_admin_2",
+      "email": "admin2@xorb-demo.com",
+      "role": "administrator",
+      "permissions": [
+        "all"
+      ]
+    },
+    {
+      "username": "demo_analyst_2",
+      "email": "analyst2@xorb-demo.com",
+      "role": "security_analyst",
+      "permissions": [
+        "view_incidents",
+        "manage_threats",
+        "generate_reports"
+      ]
+    },
+    {
+      "username": "demo_viewer_2",
+      "email": "viewer2@xorb-demo.com",
+      "role": "read_only",
+      "permissions": [
+        "view_dashboard",
+        "view_reports"
+      ]
+    },
+    {
+      "username": "demo_admin_3",
+      "email": "admin3@xorb-demo.com",
+      "role": "administrator",
+      "permissions": [
+        "all"
+      ]
+    },
+    {
+      "username": "demo_analyst_3",
+      "email": "analyst3@xorb-demo.com",
+      "role": "security_analyst",
+      "permissions": [
+        "view_incidents",
+        "manage_threats",
+        "generate_reports"
+      ]
+    },
+    {
+      "username": "demo_viewer_3",
+      "email": "viewer3@xorb-demo.com",
+      "role": "read_only",
+      "permissions": [
+        "view_dashboard",
+        "view_reports"
+      ]
+    }
+  ],
+  "demo_scenarios": [
+    {
+      "scenario_name": "Fortune 500 Financial Institution",
+      "description": "Large bank with complex infrastructure and strict compliance requirements",
+      "use_cases": [
+        "SOC2 compliance",
+        "threat intelligence",
+        "incident response",
+        "executive reporting"
+      ],
+      "duration_minutes": 45
+    },
+    {
+      "scenario_name": "Healthcare Provider Network",
+      "description": "Multi-location healthcare network with HIPAA compliance needs",
+      "use_cases": [
+        "HIPAA compliance",
+        "vulnerability management",
+        "user behavior analytics"
+      ],
+      "duration_minutes": 30
+    },
+    {
+      "scenario_name": "Manufacturing Enterprise",
+      "description": "Global manufacturer with OT/IT convergence security challenges",
+      "use_cases": [
+        "industrial security",
+        "supply chain monitoring",
+        "anomaly detection"
+      ],
+      "duration_minutes": 35
+    }
+  ],
+  "dashboard_presets": {
+    "executive": [
+      "key_metrics",
+      "security_overview",
+      "business_intelligence",
+      "compliance_status"
+    ],
+    "security_analyst": [
+      "threat_dashboard",
+      "incident_management",
+      "vulnerability_tracking",
+      "forensics"
+    ],
+    "compliance_officer": [
+      "compliance_dashboards",
+      "audit_reports",
+      "policy_tracking",
+      "risk_assessment"
+    ]
+  }
+}

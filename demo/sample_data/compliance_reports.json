@@ -1,0 +1,72 @@
+{
+  "SOC2": {
+    "framework": "SOC2",
+    "assessment_date": "2025-08-02T17:31:07.401659",
+    "overall_score": 95.6,
+    "control_categories": {
+      "security": 95.6,
+      "availability": 98.1,
+      "processing_integrity": 96.4,
+      "confidentiality": 93.9,
+      "privacy": 94.2
+    },
+    "total_controls": 17,
+    "automated_controls": 12,
+    "manual_controls": 5,
+    "control_deficiencies": 2,
+    "audit_readiness": true,
+    "remediation_timeline_days": 13
+  },
+  "GDPR": {
+    "framework": "GDPR",
+    "assessment_date": "2025-07-16T17:31:07.401679",
+    "overall_score": 91.7,
+    "privacy_impact_assessments": 5,
+    "data_subject_requests": 39,
+    "consent_management_score": 94.7,
+    "data_retention_compliance": 95.9,
+    "breach_notifications": 2,
+    "data_processing_agreements": 10,
+    "right_to_be_forgotten_requests": 11
+  },
+  "HIPAA": {
+    "framework": "HIPAA",
+    "assessment_date": "2025-07-16T17:31:07.401689",
+    "overall_score": 89.0,
+    "controls_implemented": 76,
+    "controls_tested": 85,
+    "findings": 4,
+    "recommendations": 11,
+    "compliance_gaps": 5
+  },
+  "PCI-DSS": {
+    "framework": "PCI-DSS",
+    "assessment_date": "2025-07-25T17:31:07.401696",
+    "overall_score": 87.2,
+    "controls_implemented": 87,
+    "controls_tested": 86,
+    "findings": 3,
+    "recommendations": 9,
+    "compliance_gaps": 3
+  },
+  "ISO27001": {
+    "framework": "ISO27001",
+    "assessment_date": "2025-07-20T17:31:07.401703",
+    "overall_score": 86.2,
+    "controls_implemented": 82,
+    "controls_tested": 73,
+    "findings": 7,
+    "recommendations": 12,
+    "compliance_gaps": 1
+  },
+  "NIST": {
+    "framework": "NIST",
+    "assessment_date": "2025-07-29T17:31:07.401709",
+    "overall_score": 91.3,
+    "controls_implemented": 93,
+    "controls_tested": 71,
+    "findings": 6,
+    "recommendations": 12,
+    "compliance_gaps": 3
+  }
+}

@@ -1,6 +1,6 @@
-# CLAUDE.md
+# 🤖 CLAUDE.md - AI Assistant Guidance
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides comprehensive guidance to Claude Code (claude.ai/code) when working with code in this repository, including essential commands, architecture details, and development workflows.
 
 ## Essential Commands
 
@@ -11,7 +11,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install Python dependencies (from project root)
-pip install -r requirements.lock  # or pip install -e .
+pip install -r requirements.lock  # Unified requirements with 150+ production dependencies
 
 # Install frontend dependencies (React + Vite - PTaaS directory)
 cd services/ptaas/web && npm install
@@ -27,6 +27,9 @@ cd src/orchestrator && source ../../venv/bin/activate && python main.py
 
 # Start worker service (if available)
 cd src/services/worker && source ../../venv/bin/activate && python worker.py
+
+# Quick validation of environment
+python tools/scripts/validate_environment.py
 ```
 
 ### Docker Development
@@ -34,7 +37,7 @@ cd src/services/worker && source ../../venv/bin/activate && python worker.py
 # Enterprise deployment with all services
 docker-compose -f docker-compose.enterprise.yml up -d
 
-# Development environment  
+# Development environment
 docker-compose -f docker-compose.development.yml up -d
 
 # Production deployment
@@ -75,24 +78,27 @@ pytest
 
 # Run specific test directories
 pytest tests/unit/                    # Unit tests
-pytest tests/integration/             # Integration tests  
+pytest tests/integration/             # Integration tests
 pytest tests/e2e/                     # End-to-end tests
 pytest tests/security/                # Security tests
+pytest tests/performance/             # Performance benchmarks
 
 # Run specific test file
 pytest tests/unit/test_auth.py
 
-# Run tests by category using markers  
+# Run tests by category using markers
 pytest -m unit          # Unit tests only
 pytest -m integration   # Integration tests only
 pytest -m e2e           # End-to-end tests only
 pytest -m security      # Security tests only
+pytest -m performance   # Performance tests only
+pytest -m slow          # Slow running tests
+
+# Coverage reporting (enabled with 75% threshold)
+pytest --cov=src/api/app --cov-report=html --cov-report=term-missing
 
 # Environment validation script (checks dependencies, config)
 python tools/scripts/validate_environment.py
-
-# Note: Coverage currently disabled due to configuration issues
-# To re-enable: uncomment coverage lines in pytest.ini
 ```
 
 ### Infrastructure & Deployment
@@ -103,8 +109,16 @@ cd services/infrastructure && python infrastructure_automation.py
 # Deploy microservices
 cd services/infrastructure && python microservices_deployment.py
 
-# Check deployment status
-curl http://localhost:8000/api/v1/health
+# Quick deployment scripts
+./tools/scripts/quick-deploy.sh                    # Fast local deployment
+./tools/scripts/deploy-production.sh               # Production deployment
+./deploy.sh                                        # Main deployment script
+
+# Platform validation and health checks
+curl http://localhost:8000/api/v1/health          # API health check
+curl http://localhost:8000/api/v1/readiness       # Readiness probe
+curl http://localhost:8000/api/v1/info            # Platform info
+python ./validation_test.py                       # Platform validation
 ```
 
 ## Architecture Overview
@@ -114,13 +128,13 @@ The repository follows enterprise microservices architecture with clear service 
 
 - **src/** - Main application source code
   - **api/** - FastAPI REST API with clean architecture (main entry at `app/main.py`)
-  - **orchestrator/** - Temporal workflow orchestration service  
+  - **orchestrator/** - Temporal workflow orchestration service
   - **xorb/** - Core platform modules and services
   - **common/** - Shared utilities, encryption, and configurations
   - **services/worker/** - Background worker service for job execution
 - **services/** - Microservices architecture
   - **ptaas/** - PTaaS Frontend Service (React + TypeScript web interface)
-  - **xorb-core/** - XORB Backend Platform (FastAPI, orchestration, AI services)  
+  - **xorb-core/** - XORB Backend Platform (FastAPI, orchestration, AI services)
   - **infrastructure/** - Shared infrastructure services (monitoring, vault, databases)
 - **packages/** - Shared libraries and configurations
   - **common/** - Shared utilities, encryption, and configurations
@@ -206,7 +220,7 @@ The platform follows clean architecture principles with **PRODUCTION-READY PTaaS
 ### Security Scanner Integration
 The platform now includes **PRODUCTION-READY** real-world security scanner integration:
 
-#### Available Security Tools
+####  Available Security Tools
 - **Nmap**: Network discovery, port scanning, service detection, OS fingerprinting
 - **Nuclei**: Modern vulnerability scanner with 3000+ templates
 - **Nikto**: Web application security scanner
@@ -214,7 +228,7 @@ The platform now includes **PRODUCTION-READY** real-world security scanner integ
 - **Dirb/Gobuster**: Directory and file discovery
 - **Custom Security Checks**: Advanced vulnerability analysis
 
-#### PTaaS API Endpoints
+####  PTaaS API Endpoints
 ```bash
 # Create comprehensive security scan
 curl -X POST "http://localhost:8000/api/v1/ptaas/sessions" \
@@ -238,7 +252,7 @@ curl "http://localhost:8000/api/v1/ptaas/profiles" \
   -H "Authorization: Bearer TOKEN"
 ```
 
-#### Advanced Orchestration
+####  Advanced Orchestration
 ```bash
 # Create automated workflow
 curl -X POST "http://localhost:8000/api/v1/ptaas/orchestration/workflows" \
@@ -342,7 +356,7 @@ XORB includes comprehensive HashiCorp Vault integration for secure secret manage
 
 **Vault Infrastructure** (Located in `infra/vault/`):
 - `vault-config.hcl` - Production Vault configuration with KV, database, transit engines
-- `vault-dev-config.hcl` - Development Vault configuration  
+- `vault-dev-config.hcl` - Development Vault configuration
 - `init-vault.sh` - Production initialization script with policies and roles
 - `setup-vault-dev.sh` - Development setup with auto-generated secrets
 
@@ -405,7 +419,7 @@ XORB includes a comprehensive DevSecOps pipeline with multiple security scanning
 # Main CI workflow
 .github/workflows/ci.yml                    # Basic CI/CD pipeline
 
-# Comprehensive security pipeline  
+# Comprehensive security pipeline
 .github/workflows/security-scan.yml         # Multi-stage security scanning
 .github/workflows/devsecops-pipeline.yml    # Full DevSecOps workflow
 .github/workflows/infrastructure-security.yml # Infrastructure security scanning
@@ -418,7 +432,7 @@ XORB includes a comprehensive DevSecOps pipeline with multiple security scanning
 
 # Run specific security scans
 ./tools/scripts/security-scan.sh secrets      # Secret detection
-./tools/scripts/security-scan.sh sast         # Static analysis  
+./tools/scripts/security-scan.sh sast         # Static analysis
 ./tools/scripts/security-scan.sh dependencies # Dependency vulnerabilities
 ./tools/scripts/security-scan.sh container    # Container security
 ./tools/scripts/security-scan.sh infrastructure # Infrastructure scanning
@@ -515,23 +529,25 @@ docker-compose -f docker-compose.monitoring.yml up -d
 - **Behavioral Analytics**: ML-powered analysis with graceful sklearn fallbacks
 - **Threat Hunting Engine**: Custom query language and real-time analysis
 - **Forensics Engine**: Legal-grade evidence collection with chain of custody
-- **Virtual Environment**: Properly configured with required dependencies
-- **Docker Compose**: Both development and production configs validated
-- **Test Framework**: pytest runs with test discovery working
+- **Enhanced Container**: Production dependency injection with AI-powered services
+- **Redis Manager**: Advanced Redis configuration with connection pooling
+- **Virtual Environment**: Properly configured with 150+ production dependencies
+- **Docker Compose**: Multiple environment configs (development, production, enterprise)
+- **Test Framework**: pytest with 75% coverage threshold and HTML reporting
 - **Environment Validation**: Comprehensive validation script available
 
 ### ⚠️ Known Issues & Limitations
 - **Security Tool Dependencies**: Some scanners may not be installed on all systems
 - **OpenTelemetry**: Partially available - some instrumentation packages missing (optional)
-- **Test Coverage**: HTML reports disabled due to coverage package file issues
+- **Legacy Compatibility**: Some enterprise routers temporarily disabled due to aioredis compatibility
 - **Async Test Fixtures**: Need to use `@pytest_asyncio.fixture` for async fixtures
-- **Missing Dependencies**: `authlib` installed but some router imports still fail (non-critical)
+- **Container Orchestration**: Enhanced container requires specific configuration for AI services
 
 ### 🚀 Quick Start (Validated Commands)
 ```bash
 # 1. Setup environment
 python3 -m venv venv && source venv/bin/activate
-pip install -r requirements.lock  # or pip install -e .
+pip install -r requirements.lock
 
 # 2. Validate setup
 python tools/scripts/validate_environment.py
@@ -539,9 +555,13 @@ python tools/scripts/validate_environment.py
 # 3. Start API server (PRODUCTION-READY)
 cd src/api && uvicorn app.main:app --reload --port 8000
 
-# 4. Test PTaaS API
+# 4. Test PTaaS API endpoints
 curl http://localhost:8000/api/v1/health
 curl http://localhost:8000/api/v1/ptaas/profiles
+curl http://localhost:8000/docs  # Interactive API documentation
+
+# 5. Run comprehensive tests
+pytest --cov=src/api/app --cov-report=html
 ```
 
 ## Development Guidelines
@@ -549,7 +569,7 @@ curl http://localhost:8000/api/v1/ptaas/profiles
 ### Middleware Stack (FastAPI)
 The API service uses a carefully ordered middleware stack in `app/main.py`:
 1. **GlobalErrorHandler** (outermost) - Comprehensive error handling and logging
-2. **APISecurityMiddleware** - Security headers, request validation  
+2. **APISecurityMiddleware** - Security headers, request validation
 3. **AdvancedRateLimitingMiddleware** - Redis-backed rate limiting with tenant support
 4. **TenantContextMiddleware** - Multi-tenant request context
 5. **RequestLoggingMiddleware** - Structured request/response logging
@@ -560,14 +580,14 @@ The API service uses a carefully ordered middleware stack in `app/main.py`:
 
 ### Error Handling Patterns
 
-#### Orchestrator Service (Circuit Breaker)
+####  Orchestrator Service (Circuit Breaker)
 - **Circuit Breaker Pattern** in `src/orchestrator/main.py`
 - **Exponential Backoff** with configurable delays
 - **Error Threshold** monitoring (5 errors in 60 seconds trips breaker)
 - **Automatic Recovery** after error window expires
 - **Workflow Retry Policies** with different priorities (high/medium/low)
 
-#### API Service (Graceful Degradation)
+####  API Service (Graceful Degradation)
 - **Health Checks** with dependency validation (Redis, PostgreSQL, Temporal)
 - **Readiness Probes** for Kubernetes deployment
 - **Graceful Shutdown** handling in lifespan management
@@ -590,10 +610,45 @@ The API service uses a carefully ordered middleware stack in `app/main.py`:
 - **Audit Logging** for all security-sensitive operations
 
 ### Testing Strategy
-- **Unit Tests** - pytest with 80% minimum coverage requirement
+- **Unit Tests** - pytest with 75% minimum coverage requirement (configurable in pytest.ini)
 - **Integration Tests** - API endpoint and service interaction testing
 - **E2E Tests** - Complete workflow testing
 - **Security Tests** - Vulnerability and penetration testing
-- **Performance Tests** - Load testing and scalability validation
-- **Frontend Tests** - Jest with React Testing Library
-- **Test Markers** - Categorized tests (unit, integration, e2e, security, performance)
+- **Performance Tests** - Load testing and scalability validation with benchmarks
+- **Frontend Tests** - Jest with React Testing Library and coverage reporting
+- **Test Markers** - Categorized tests (unit, integration, e2e, security, performance, slow)
+- **HTML Coverage Reports** - Generated in htmlcov/ directory with detailed analysis
+- **CI/CD Integration** - Automated testing with security scanning and compliance checks
+
+## Key Development Insights
+
+### Enhanced Dependency Injection Architecture
+The platform uses a sophisticated enhanced container system:
+- **Production Container Orchestrator** (`src/api/app/services/production_container_orchestrator.py`) - Creates AI-powered service containers
+- **Enhanced Container** (`src/api/app/enhanced_container.py`) - Advanced dependency injection with ML analysis
+- **Service Registration** - Automated service discovery and registration with health monitoring
+- **Configuration Management** - Dynamic configuration with environment-specific overrides
+
+### Advanced Security Implementation
+- **Multi-layered Middleware Stack** - 9-layer security and performance middleware in specific order
+- **Circuit Breaker Pattern** - Implemented in orchestrator with exponential backoff and automatic recovery
+- **Redis-backed Rate Limiting** - Tenant-aware rate limiting with distributed state management
+- **Comprehensive Audit Trail** - All security-sensitive operations logged with correlation IDs
+
+### AI and Machine Learning Integration
+- **Advanced Threat Intelligence Engine** - Real-time threat analysis and correlation
+- **Behavioral Analytics** - ML-powered user behavior analysis with scikit-learn integration
+- **Vulnerability Correlation** - AI-driven vulnerability assessment and risk scoring
+- **Quantum-safe Cryptography** - Future-proofed cryptographic implementations
+
+### Platform Scalability Features
+- **Temporal Workflow Engine** - Complex orchestration with priority handling and retry policies
+- **Microservices Architecture** - Clean service boundaries with well-defined APIs
+- **Database Optimization** - AsyncPG with connection pooling and pgvector for AI operations
+- **Monitoring Integration** - Prometheus metrics with custom dashboards and alerting
+
+### Development Workflow Optimizations
+- **Live Validation** - Multiple validation scripts for different aspects of the platform
+- **Documentation Organization** - Structured documentation with legacy preservation
+- **Migration System** - Comprehensive migration tools and rollback capabilities
+- **Performance Benchmarking** - Automated performance testing and optimization scripts

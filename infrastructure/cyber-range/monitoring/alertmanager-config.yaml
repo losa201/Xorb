@@ -1,0 +1,344 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: cyber-range-control
+  labels:
+    app: alertmanager
+    component: monitoring
+data:
+  alertmanager.yml: |
+    global:
+      smtp_smarthost: 'localhost:587'
+      smtp_from: 'cyber-range@xorb-security.com'
+      smtp_auth_username: 'cyber-range@xorb-security.com'
+      smtp_auth_password: 'alert_password'
+      resolve_timeout: 5m
+
+    # Templates for alert notifications
+    templates:
+      - '/etc/alertmanager/templates/*.tmpl'
+
+    # Routing configuration
+    route:
+      group_by: ['alertname', 'cluster', 'service']
+      group_wait: 10s
+      group_interval: 30s
+      repeat_interval: 12h
+      receiver: 'default-receiver'
+      routes:
+        # Kill Switch - Immediate notification to all teams
+        - match:
+            alertname: KillSwitchActivated
+          receiver: 'kill-switch-alerts'
+          group_wait: 0s
+          group_interval: 0s
+          repeat_interval: 1m
+
+        # Critical security incidents
+        - match_re:
+            severity: critical
+          receiver: 'critical-alerts'
+          group_wait: 0s
+          group_interval: 1m
+          repeat_interval: 5m
+
+        # Red team specific alerts
+        - match_re:
+            team: red
+          receiver: 'red-team-alerts'
+          group_wait: 30s
+          group_interval: 2m
+          repeat_interval: 30m
+
+        # Blue team specific alerts
+        - match_re:
+            team: blue
+          receiver: 'blue-team-alerts'
+          group_wait: 15s
+          group_interval: 1m
+          repeat_interval: 15m
+
+        # White team (facilitator) alerts
+        - match_re:
+            team: white
+          receiver: 'white-team-alerts'
+          group_wait: 10s
+          group_interval: 30s
+          repeat_interval: 10m
+
+        # Infrastructure alerts
+        - match_re:
+            alertname: '(HighPodRestarts|NodeResourceExhaustion|TargetSystemDown)'
+          receiver: 'infrastructure-alerts'
+          group_wait: 1m
+          group_interval: 5m
+          repeat_interval: 1h
+
+    # Inhibition rules to suppress redundant alerts
+    inhibit_rules:
+      # Suppress target alerts when kill switch is active
+      - source_match:
+          alertname: KillSwitchActivated
+        target_match_re:
+          alertname: '(RedTeam.*|BlueTeam.*|Target.*)'
+        equal: ['cluster']
+
+      # Suppress individual component alerts when campaign fails
+      - source_match:
+          alertname: CampaignFailure
+        target_match_re:
+          alertname: '(HighPodRestarts|TargetSystemDown)'
+        equal: ['campaign_id']
+
+    # Receiver configurations
+    receivers:
+      - name: 'default-receiver'
+        webhook_configs:
+          - url: 'http://cyber-range-webhook-receiver:8080/webhook'
+            send_resolved: true
+            http_config:
+              basic_auth:
+                username: 'webhook_user'
+                password: 'webhook_password'
+
+      - name: 'kill-switch-alerts'
+        # Multiple notification channels for kill switch
+        email_configs:
+          - to: 'white-team@xorb-security.com'
+            subject: '🚨 CYBER RANGE KILL SWITCH ACTIVATED'
+            body: |
+              EMERGENCY: The cyber range kill switch has been activated.
+              
+              Alert: {{ .GroupLabels.alertname }}
+              Time: {{ .StartsAt }}
+              Details: {{ range .Alerts }}{{ .Annotations.description }}{{ end }}
+              
+              All attack activities have been immediately terminated.
+              Please investigate the cause and take appropriate action.
+        webhook_configs:
+          - url: 'http://kill-switch-webhook:8080/alert'
+            send_resolved: true
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+            channel: '#cyber-range-emergency'
+            title: '🚨 KILL SWITCH ACTIVATED'
+            text: 'Cyber range kill switch has been activated. All teams notified.'
+            send_resolved: true
+
+      - name: 'critical-alerts'
+        email_configs:
+          - to: 'critical-alerts@xorb-security.com'
+            subject: '🔴 CRITICAL: {{ .GroupLabels.alertname }}'
+            body: |
+              CRITICAL ALERT in Cyber Range Exercise
+              
+              Alert: {{ .GroupLabels.alertname }}
+              Severity: {{ .CommonLabels.severity }}
+              Time: {{ .StartsAt }}
+              
+              {{ range .Alerts }}
+              Description: {{ .Annotations.description }}
+              Summary: {{ .Annotations.summary }}
+              {{ end }}
+              
+              Immediate attention required.
+        webhook_configs:
+          - url: 'http://cyber-range-webhook-receiver:8080/critical'
+            send_resolved: true
+
+      - name: 'red-team-alerts'
+        webhook_configs:
+          - url: 'http://red-team-notifications:8080/alert'
+            send_resolved: true
+            http_config:
+              basic_auth:
+                username: 'red_team'
+                password: 'red_team_password'
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/YOUR/RED/TEAM/WEBHOOK'
+            channel: '#red-team-alerts'
+            title: 'Red Team Alert: {{ .GroupLabels.alertname }}'
+            text: |
+              {{ range .Alerts }}
+              {{ .Annotations.summary }}
+              {{ .Annotations.description }}
+              {{ end }}
+
+      - name: 'blue-team-alerts'
+        webhook_configs:
+          - url: 'http://blue-team-siem:8080/alert'
+            send_resolved: true
+            http_config:
+              basic_auth:
+                username: 'blue_team'
+                password: 'blue_team_password'
+        email_configs:
+          - to: 'blue-team@xorb-security.com'
+            subject: '🔵 Blue Team Alert: {{ .GroupLabels.alertname }}'
+            body: |
+              Blue Team Alert
+              
+              {{ range .Alerts }}
+              Alert: {{ .Labels.alertname }}
+              Severity: {{ .Labels.severity }}
+              Time: {{ .StartsAt }}
+              Description: {{ .Annotations.description }}
+              {{ end }}
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/YOUR/BLUE/TEAM/WEBHOOK'
+            channel: '#blue-team-soc'
+            title: '🔵 SOC Alert: {{ .GroupLabels.alertname }}'
+            text: |
+              {{ range .Alerts }}
+              {{ .Annotations.summary }}
+              {{ .Annotations.description }}
+              {{ end }}
+
+      - name: 'white-team-alerts'
+        email_configs:
+          - to: 'white-team@xorb-security.com'
+            subject: '⚪ White Team: {{ .GroupLabels.alertname }}'
+            body: |
+              White Team Exercise Management Alert
+              
+              {{ range .Alerts }}
+              Alert: {{ .Labels.alertname }}
+              Time: {{ .StartsAt }}
+              Summary: {{ .Annotations.summary }}
+              Description: {{ .Annotations.description }}
+              {{ end }}
+              
+              Exercise management action may be required.
+        webhook_configs:
+          - url: 'http://exercise-management:8080/alert'
+            send_resolved: true
+
+      - name: 'infrastructure-alerts'
+        webhook_configs:
+          - url: 'http://infrastructure-monitoring:8080/alert'
+            send_resolved: true
+        slack_configs:
+          - api_url: 'https://hooks.slack.com/services/YOUR/INFRA/WEBHOOK'
+            channel: '#cyber-range-infrastructure'
+            title: '🔧 Infrastructure Alert: {{ .GroupLabels.alertname }}'
+            text: |
+              {{ range .Alerts }}
+              {{ .Annotations.summary }}
+              Instance: {{ .Labels.instance }}
+              {{ .Annotations.description }}
+              {{ end }}
+
+  # Custom notification templates
+  notification-templates.tmpl: |
+    {{ define "cyber-range.title" }}
+    [CYBER RANGE] {{ .Status | toUpper }}{{ if eq .Status "firing" }}:{{ .Alerts.Firing | len }}{{ end }}
+    {{ end }}
+
+    {{ define "cyber-range.description" }}
+    {{ range .Alerts }}
+    {{ if .Annotations.summary }}Summary: {{ .Annotations.summary }}{{ end }}
+    {{ if .Annotations.description }}Description: {{ .Annotations.description }}{{ end }}
+    {{ if .Labels.team }}Team: {{ .Labels.team }}{{ end }}
+    {{ if .Labels.severity }}Severity: {{ .Labels.severity }}{{ end }}
+    Started: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+    {{ if .EndsAt }}Ended: {{ .EndsAt.Format "2006-01-02 15:04:05" }}{{ end }}
+    ---
+    {{ end }}
+    {{ end }}
+
+    {{ define "kill-switch.notification" }}
+    🚨 CYBER RANGE EMERGENCY 🚨
+    
+    The kill switch has been activated and all attack activities have been immediately terminated.
+    
+    Timestamp: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
+    
+    {{ range .Alerts }}
+    Reason: {{ .Annotations.description }}
+    {{ end }}
+    
+    All teams have been notified. Please await further instructions.
+    {{ end }}
+
+    {{ define "slack.cyber-range.text" }}
+    {{ range .Alerts }}
+    *Alert:* {{ .Labels.alertname }}
+    *Team:* {{ .Labels.team | default "All" }}
+    *Severity:* {{ .Labels.severity }}
+    *Summary:* {{ .Annotations.summary }}
+    *Description:* {{ .Annotations.description }}
+    *Time:* {{ .StartsAt.Format "15:04:05" }}
+    {{ end }}
+    {{ end }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-templates
+  namespace: cyber-range-control
+  labels:
+    app: alertmanager
+    component: templates
+data:
+  cyber-range.tmpl: |
+    {{ define "__subject" }}[XORB Cyber Range] {{ .Status | toUpper }} - {{ .GroupLabels.alertname }}{{ end }}
+
+    {{ define "__text_alert_list" }}{{ range . }}
+    Alert: {{ .Labels.alertname }}
+    Team: {{ .Labels.team | default "All Teams" }}
+    Severity: {{ .Labels.severity }}
+    Summary: {{ .Annotations.summary }}
+    Description: {{ .Annotations.description }}
+    Started: {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}{{ if .EndsAt }}
+    Ended: {{ .EndsAt.Format "2006-01-02 15:04:05 UTC" }}{{ end }}
+    {{ end }}{{ end }}
+
+    {{ define "email.cyber-range.subject" }}{{ template "__subject" . }}{{ end }}
+    {{ define "email.cyber-range.html" }}
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <style>
+            body { font-family: Arial, sans-serif; }
+            .header { background-color: #f44336; color: white; padding: 10px; }
+            .content { padding: 20px; }
+            .alert { border-left: 4px solid #f44336; padding: 10px; margin: 10px 0; }
+            .resolved { border-left-color: #4CAF50; }
+        </style>
+    </head>
+    <body>
+        <div class="header">
+            <h2>XORB Cyber Range Alert</h2>
+        </div>
+        <div class="content">
+            <h3>{{ .Status | title }} Alert{{ if gt (len .Alerts) 1 }}s{{ end }}</h3>
+            {{ range .Alerts }}
+            <div class="alert{{ if eq .Status "resolved" }} resolved{{ end }}">
+                <strong>{{ .Labels.alertname }}</strong><br>
+                <strong>Team:</strong> {{ .Labels.team | default "All Teams" }}<br>
+                <strong>Severity:</strong> {{ .Labels.severity }}<br>
+                <strong>Summary:</strong> {{ .Annotations.summary }}<br>
+                <strong>Description:</strong> {{ .Annotations.description }}<br>
+                <strong>Started:</strong> {{ .StartsAt.Format "2006-01-02 15:04:05 UTC" }}<br>
+                {{ if .EndsAt }}<strong>Resolved:</strong> {{ .EndsAt.Format "2006-01-02 15:04:05 UTC" }}<br>{{ end }}
+            </div>
+            {{ end }}
+        </div>
+    </body>
+    </html>
+    {{ end }}
+
+    {{ define "slack.cyber-range.title" }}
+    {{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }} {{ .GroupLabels.alertname }}
+    {{ end }}
+
+    {{ define "slack.cyber-range.text" }}
+    {{ range .Alerts }}
+    *Team:* {{ .Labels.team | default "All Teams" }}
+    *Severity:* {{ .Labels.severity }}
+    *Summary:* {{ .Annotations.summary }}
+    *Description:* {{ .Annotations.description }}
+    *Time:* {{ .StartsAt.Format "15:04:05" }}
+    {{ end }}
+    {{ end }}

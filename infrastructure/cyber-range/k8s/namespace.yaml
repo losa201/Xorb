@@ -1,0 +1,310 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range
+  labels:
+    app.kubernetes.io/name: cyber-range
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/isolation: high
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "XORB PTaaS Red vs Blue Cyber Range Environment"
+    security.xorb.io/kill-switch: "enabled"
+    security.xorb.io/audit-level: "comprehensive"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range-control
+  labels:
+    app.kubernetes.io/name: cyber-range-control
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/zone: control-plane
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "XORB Control Plane and Management Services"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range-red
+  labels:
+    app.kubernetes.io/name: cyber-range-red
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/zone: red-team
+    security.xorb.io/isolation: strict
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "Red Team Infrastructure and Attack Tools"
+    security.xorb.io/network-policy: "restrictive"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range-blue
+  labels:
+    app.kubernetes.io/name: cyber-range-blue
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/zone: blue-team
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "Blue Team SOC and Defense Infrastructure"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range-targets
+  labels:
+    app.kubernetes.io/name: cyber-range-targets
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/zone: target-environment
+    security.xorb.io/vulnerable: "intentional"
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "Target Environment for Penetration Testing"
+    security.xorb.io/restore-point: "enabled"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cyber-range-simulation
+  labels:
+    app.kubernetes.io/name: cyber-range-simulation
+    app.kubernetes.io/part-of: xorb-ptaas
+    security.xorb.io/zone: simulation
+    security.xorb.io/monitoring: enabled
+  annotations:
+    description: "Traffic Simulation and Scenario Management"
+---
+# Resource Quotas for each namespace
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cyber-range-control-quota
+  namespace: cyber-range-control
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "5"
+    count/configmaps: "20"
+    count/secrets: "10"
+    count/services: "10"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cyber-range-red-quota
+  namespace: cyber-range-red
+spec:
+  hard:
+    requests.cpu: "8"
+    requests.memory: 16Gi
+    limits.cpu: "16"
+    limits.memory: 32Gi
+    persistentvolumeclaims: "10"
+    count/configmaps: "30"
+    count/secrets: "15"
+    count/services: "15"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cyber-range-blue-quota
+  namespace: cyber-range-blue
+spec:
+  hard:
+    requests.cpu: "6"
+    requests.memory: 12Gi
+    limits.cpu: "12"
+    limits.memory: 24Gi
+    persistentvolumeclaims: "8"
+    count/configmaps: "25"
+    count/secrets: "10"
+    count/services: "12"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cyber-range-targets-quota
+  namespace: cyber-range-targets
+spec:
+  hard:
+    requests.cpu: "10"
+    requests.memory: 24Gi
+    limits.cpu: "20"
+    limits.memory: 48Gi
+    persistentvolumeclaims: "15"
+    count/configmaps: "40"
+    count/secrets: "20"
+    count/services: "25"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: cyber-range-simulation-quota
+  namespace: cyber-range-simulation
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "5"
+    count/configmaps: "15"
+    count/secrets: "5"
+    count/services: "8"
+---
+# Network Policies for strict isolation
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: cyber-range-red
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: red-team-isolation
+  namespace: cyber-range-red
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow access to targets only
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-targets
+  # Allow control plane communication
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+    ports:
+    - protocol: TCP
+      port: 8080
+  ingress:
+  # Allow from control plane only
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: blue-team-monitoring
+  namespace: cyber-range-blue
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow monitoring all target environments
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-targets
+  # Allow control plane communication
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+  # Allow external SIEM/monitoring tools
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 9200  # Elasticsearch
+    - protocol: TCP
+      port: 5601  # Kibana
+    - protocol: TCP
+      port: 3000  # Grafana
+  ingress:
+  # Allow from control plane
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+  # Allow from targets for monitoring
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-targets
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: target-environment-access
+  namespace: cyber-range-targets
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  egress:
+  # Allow DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow limited internet access (can be disabled in live mode)
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+  # Allow communication to blue team for monitoring
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-blue
+  ingress:
+  # Allow from red team (controlled by mode)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-red
+  # Allow from blue team for monitoring
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-blue
+  # Allow from control plane
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+  # Allow from simulation namespace
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-simulation

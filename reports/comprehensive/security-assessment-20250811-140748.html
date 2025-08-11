@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XORB Platform - Comprehensive Security Assessment</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; color: #2c3e50; line-height: 1.6; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 10px; margin-bottom: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 2.5em; margin-bottom: 10px; }
+        .header p { font-size: 1.2em; opacity: 0.9; }
+        .metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric-card { background: white; padding: 25px; border-radius: 10px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
+        .metric-card:hover { transform: translateY(-5px); }
+        .metric-value { font-size: 3em; font-weight: bold; margin-bottom: 10px; }
+        .metric-label { font-size: 1.1em; color: #7f8c8d; text-transform: uppercase; letter-spacing: 1px; }
+        .success { color: #27ae60; }
+        .warning { color: #f39c12; }
+        .danger { color: #e74c3c; }
+        .info { color: #3498db; }
+        .test-results { background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); overflow: hidden; }
+        .test-results h2 { background: #34495e; color: white; padding: 20px; margin: 0; }
+        .test-item { padding: 20px; border-bottom: 1px solid #ecf0f1; display: flex; justify-content: space-between; align-items: center; }
+        .test-item:last-child { border-bottom: none; }
+        .test-info h3 { margin-bottom: 5px; }
+        .test-info p { color: #7f8c8d; }
+        .test-status { font-weight: bold; font-size: 1.2em; }
+        .status-pass { color: #27ae60; }
+        .status-fail { color: #e74c3c; }
+        .details { background: #ecf0f1; margin-top: 30px; padding: 20px; border-radius: 10px; }
+        .timestamp { text-align: center; margin-top: 30px; color: #7f8c8d; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 XORB Platform Security Assessment</h1>
+            <p>Comprehensive TLS/mTLS Validation Report</p>
+            <p>Generated: $(date)</p>
+        </div>
+        
+        <div class="metrics">
+            <div class="metric-card">
+                <div class="metric-value info">$total_tests</div>
+                <div class="metric-label">Total Tests</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value success">$passed_tests</div>
+                <div class="metric-label">Passed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value danger">$((total_tests - passed_tests))</div>
+                <div class="metric-label">Failed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value $([ $success_rate -ge 90 ] && echo 'success' || [ $success_rate -ge 70 ] && echo 'warning' || echo 'danger')">$success_rate%</div>
+                <div class="metric-label">Success Rate</div>
+            </div>
+        </div>
+        
+        <div class="test-results">
+            <h2>🧪 Test Results</h2>
+            <div class="test-item">
+                <div class="test-info">
+                    <h3>Docker-in-Docker TLS</h3>
+                    <p>Type: dind | Duration: 0s</p>
+                </div>
+                <div class="test-status status-fail">❌ FAIL</div>
+            </div>
+            <div class="test-item">
+                <div class="test-info">
+                    <h3>Mutual TLS Authentication</h3>
+                    <p>Type: mtls | Duration: 0s</p>
+                </div>
+                <div class="test-status status-fail">❌ FAIL</div>
+            </div>
+            <div class="test-item">
+                <div class="test-info">
+                    <h3>Redis TLS Configuration</h3>
+                    <p>Type: redis | Duration: 0s</p>
+                </div>
+                <div class="test-status status-fail">❌ FAIL</div>
+            </div>
+            <div class="test-item">
+                <div class="test-info">
+                    <h3>TLS Protocol & Cipher Validation</h3>
+                    <p>Type: tls | Duration: 1s</p>
+                </div>
+                <div class="test-status status-fail">❌ FAIL</div>
+            </div>
+        </div>
+        
+        <div class="details">
+            <h3>📋 Security Assessment Summary</h3>
+            <p><strong>Platform:</strong> XORB Platform TLS/mTLS Implementation</p>
+            <p><strong>Scope:</strong> End-to-end transport security validation</p>
+            <p><strong>Standards:</strong> TLS 1.2+, mTLS authentication, certificate management</p>
+            <p><strong>Environment:</strong> ubuntu-32gb-nbg1-5 | User: root</p>
+            
+            <h3 style="margin-top: 20px;">🔍 Test Coverage</h3>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li><strong>TLS Protocol Validation:</strong> Version enforcement, cipher suite security</li>
+                <li><strong>Mutual TLS Authentication:</strong> Client certificate verification</li>
+                <li><strong>Redis TLS Configuration:</strong> Database encryption and authentication</li>
+                <li><strong>Docker-in-Docker TLS:</strong> Container runtime security</li>
+            </ul>
+            
+            <h3 style="margin-top: 20px;">📊 Recommendations</h3>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li style="color: #e74c3c;">⚠️ Review failed tests and implement recommended fixes</li>
+                <li>🔄 Continue automated certificate rotation every 30 days</li>
+                <li>📈 Monitor TLS metrics and certificate expiry dates</li>
+                <li>🛡️ Conduct quarterly security assessments</li>
+            </ul>
+        </div>
+        
+        <div class="timestamp">
+            Report generated on Mon Aug 11 02:07:48 PM UTC 2025 | XORB Platform Security Team
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,403 @@
+# XORB Platform Custom Falco Security Rules
+# Advanced runtime security rules for XORB cybersecurity platform
+
+# === XORB PLATFORM SPECIFIC RULES ===
+
+# Detect unauthorized access to XORB configuration files
+- rule: XORB Configuration File Access
+  desc: Detect unauthorized access to XORB configuration files
+  condition: >
+    open_read and 
+    (fd.name startswith "/app/config/" or 
+     fd.name startswith "/app/secrets/" or
+     fd.name contains ".env" or
+     fd.name contains "vault" or
+     fd.name endswith ".key" or
+     fd.name endswith ".pem" or
+     fd.name endswith ".p12") and
+    not proc.name in (xorb_allowed_processes)
+  output: >
+    Unauthorized access to XORB configuration file 
+    (user=%user.name command=%proc.cmdline file=%fd.name 
+     container=%container.name image=%container.image.repository)
+  priority: HIGH
+  tags: [xorb, configuration, unauthorized_access]
+
+# Define allowed processes for XORB configuration access
+- list: xorb_allowed_processes
+  items: [python, uvicorn, gunicorn, vault, consul]
+
+# Detect potential exploit attempts against XORB API
+- rule: XORB API Exploit Attempt
+  desc: Detect potential exploitation attempts against XORB API endpoints
+  condition: >
+    spawned_process and
+    proc.cmdline contains "/api/" and
+    (proc.cmdline contains "union" or
+     proc.cmdline contains "select" or
+     proc.cmdline contains "drop" or
+     proc.cmdline contains "script" or
+     proc.cmdline contains "eval" or
+     proc.cmdline contains "exec" or
+     proc.cmdline contains "../" or
+     proc.cmdline contains "passwd" or
+     proc.cmdline contains "/etc/")
+  output: >
+    Potential API exploit attempt detected 
+    (user=%user.name command=%proc.cmdline container=%container.name 
+     image=%container.image.repository pid=%proc.pid)
+  priority: CRITICAL
+  tags: [xorb, api, exploit, injection]
+
+# Detect unauthorized database access attempts
+- rule: XORB Database Unauthorized Access
+  desc: Detect unauthorized direct access to XORB databases
+  condition: >
+    spawned_process and
+    (proc.name in (database_tools) or
+     proc.cmdline contains "psql" or
+     proc.cmdline contains "redis-cli" or
+     proc.cmdline contains "mongo" or
+     proc.cmdline contains "mysql") and
+    not container.name in (xorb_database_containers) and
+    not proc.name in (xorb_allowed_db_processes)
+  output: >
+    Unauthorized database access attempt 
+    (user=%user.name tool=%proc.name command=%proc.cmdline 
+     container=%container.name image=%container.image.repository)
+  priority: HIGH
+  tags: [xorb, database, unauthorized_access]
+
+- list: database_tools
+  items: [psql, redis-cli, mongo, mysql, mongosh, redis-server, postgres]
+
+- list: xorb_database_containers
+  items: [xorb-postgres, xorb-redis, xorb-mongodb]
+
+- list: xorb_allowed_db_processes
+  items: [python, uvicorn, asyncpg, redis-py]
+
+# Detect cryptocurrency mining activities
+- rule: XORB Cryptocurrency Mining Detection
+  desc: Detect cryptocurrency mining processes on XORB platform
+  condition: >
+    spawned_process and
+    (proc.name in (crypto_miners) or
+     proc.cmdline contains "mining" or
+     proc.cmdline contains "miner" or
+     proc.cmdline contains "stratum" or
+     proc.cmdline contains "cryptonight" or
+     proc.cmdline contains "xmrig" or
+     proc.cmdline contains "monero" or
+     proc.cmdline contains "bitcoin" or
+     proc.cmdline contains "ethereum")
+  output: >
+    Cryptocurrency mining activity detected 
+    (user=%user.name process=%proc.name command=%proc.cmdline 
+     container=%container.name image=%container.image.repository)
+  priority: CRITICAL
+  tags: [xorb, mining, malware, performance]
+
+- list: crypto_miners
+  items: [xmrig, cpuminer, cgminer, bfgminer, sgminer, minerd]
+
+# === CONTAINER SECURITY RULES ===
+
+# Detect privilege escalation attempts in containers
+- rule: XORB Container Privilege Escalation
+  desc: Detect privilege escalation attempts in XORB containers
+  condition: >
+    spawned_process and container and
+    (proc.name in (privilege_escalation_tools) or
+     proc.cmdline contains "sudo su" or
+     proc.cmdline contains "su -" or
+     proc.cmdline contains "chmod +s" or
+     proc.cmdline contains "setuid" or
+     proc.cmdline contains "capabilities" or
+     proc.cmdline contains "/proc/self/exe")
+  output: >
+    Container privilege escalation attempt 
+    (user=%user.name process=%proc.name command=%proc.cmdline 
+     container=%container.name image=%container.image.repository)
+  priority: HIGH
+  tags: [xorb, container, privilege_escalation]
+
+- list: privilege_escalation_tools
+  items: [sudo, su, newgrp, pkexec, gpasswd]
+
+# Detect container escape attempts
+- rule: XORB Container Escape Attempt
+  desc: Detect attempts to escape from containers
+  condition: >
+    open_read and container and
+    (fd.name startswith "/proc/self/root/" or
+     fd.name startswith "/host/" or
+     fd.name = "/proc/1/cgroup" or
+     fd.name = "/proc/self/cgroup" or
+     fd.name startswith "/sys/fs/cgroup" or
+     fd.name = "/proc/mounts" or
+     fd.name startswith "/dev/kmsg")
+  output: >
+    Container escape attempt detected 
+    (user=%user.name process=%proc.name file=%fd.name 
+     container=%container.name image=%container.image.repository)
+  priority: CRITICAL
+  tags: [xorb, container, escape, breakout]
+
+# Detect unauthorized network tool usage
+- rule: XORB Unauthorized Network Tools
+  desc: Detect unauthorized network reconnaissance tools
+  condition: >
+    spawned_process and
+    proc.name in (network_tools) and
+    not container.name in (xorb_security_containers)
+  output: >
+    Unauthorized network tool usage 
+    (user=%user.name tool=%proc.name command=%proc.cmdline 
+     container=%container.name image=%container.image.repository)
+  priority: MEDIUM
+  tags: [xorb, network, reconnaissance, tools]
+
+- list: network_tools
+  items: [nmap, masscan, zmap, nc, netcat, socat, tcpdump, wireshark, tshark, ngrep]
+
+- list: xorb_security_containers
+  items: [xorb-scanner, xorb-security, xorb-penetration-test]
+
+# === FILE SYSTEM SECURITY RULES ===
+
+# Detect unauthorized file modifications in XORB directories
+- rule: XORB System File Modification
+  desc: Detect unauthorized modifications to critical XORB system files
+  condition: >
+    open_write and
+    (fd.name startswith "/app/" or
+     fd.name startswith "/etc/falco" or
+     fd.name startswith "/etc/ssl" or
+     fd.name startswith "/var/log" or
+     fd.name startswith "/opt/") and
+    not proc.name in (xorb_system_processes) and
+    not fd.name contains "tmp"
+  output: >
+    Unauthorized system file modification 
+    (user=%user.name process=%proc.name file=%fd.name 
+     container=%container.name image=%container.image.repository)
+  priority: HIGH
+  tags: [xorb, filesystem, modification, integrity]
+
+- list: xorb_system_processes
+  items: [python, uvicorn, gunicorn, logrotate, systemd, cron, falco]
+
+# Detect sensitive file access
+- rule: XORB Sensitive File Access
+  desc: Detect access to sensitive files that could contain credentials
+  condition: >
+    open_read and
+    (fd.name contains "password" or
+     fd.name contains "secret" or
+     fd.name contains "private" or
+     fd.name contains "credential" or
+     fd.name contains "token" or
+     fd.name endswith ".pem" or
+     fd.name endswith ".key" or
+     fd.name endswith ".p12" or
+     fd.name = "/etc/shadow" or
+     fd.name = "/etc/gshadow" or
+     fd.name startswith "/home/.*/.ssh" or
+     fd.name startswith "/root/.ssh")
+  output: >
+    Sensitive file access detected 
+    (user=%user.name process=%proc.name file=%fd.name 
+     container=%container.name image=%container.image.repository)
+  priority: MEDIUM
+  tags: [xorb, sensitive, credentials, access]
+
+# === PROCESS SECURITY RULES ===
+
+# Detect shell access in production containers
+- rule: XORB Shell Access in Production
+  desc: Detect shell access in production XORB containers
+  condition: >
+    spawned_process and container and
+    proc.name in (shells) and
+    container.image.repository contains "production"
+  output: >
+    Shell access in production container 
+    (user=%user.name shell=%proc.name command=%proc.cmdline 
+     container=%container.name image=%container.image.repository)
+  priority: HIGH
+  tags: [xorb, shell, production, access]
+
+- list: shells
+  items: [bash, sh, zsh, fish, csh, tcsh, dash, ksh]
+
+# Detect binary execution from tmp directories
+- rule: XORB Binary Execution from Tmp
+  desc: Detect execution of binaries from temporary directories
+  condition: >
+    spawned_process and
+    (proc.exe startswith "/tmp/" or
+     proc.exe startswith "/var/tmp/" or
+     proc.exe startswith "/dev/shm/") and
+    proc.exe != ""
+  output: >
+    Binary execution from temporary directory 
+    (user=%user.name binary=%proc.exe command=%proc.cmdline 
+     container=%container.name image=%container.image.repository)
+  priority: HIGH
+  tags: [xorb, binary, execution, tmp]
+
+# === NETWORK SECURITY RULES ===
+
+# Detect outbound connections to suspicious destinations
+- rule: XORB Suspicious Outbound Connection
+  desc: Detect outbound connections to suspicious destinations
+  condition: >
+    outbound and
+    (fd.sip.name contains "bit.ly" or
+     fd.sip.name contains "tinyurl" or
+     fd.sip.name contains "pastebin" or
+     fd.sip.name contains "hastebin" or
+     fd.sip.name contains "ghostbin" or
+     fd.sip.name contains ".tk" or
+     fd.sip.name contains ".ml" or
+     fd.sip.name contains ".ga")
+  output: >
+    Suspicious outbound connection 
+    (user=%user.name process=%proc.name dest=%fd.sip.name:%fd.sport 
+     container=%container.name image=%container.image.repository)
+  priority: MEDIUM
+  tags: [xorb, network, suspicious, outbound]
+
+# === APPLICATION-SPECIFIC RULES ===
+
+# Detect unauthorized Python package installation
+- rule: XORB Unauthorized Package Installation
+  desc: Detect unauthorized installation of Python packages
+  condition: >
+    spawned_process and
+    (proc.name in (package_managers) or
+     proc.cmdline contains "pip install" or
+     proc.cmdline contains "pip3 install" or
+     proc.cmdline contains "easy_install" or
+     proc.cmdline contains "conda install" or
+     proc.cmdline contains "npm install" or
+     proc.cmdline contains "yarn add") and
+    not container.name in (xorb_build_containers)
+  output: >
+    Unauthorized package installation 
+    (user=%user.name command=%proc.cmdline 
+     container=%container.name image=%container.image.repository)
+  priority: MEDIUM
+  tags: [xorb, package, installation, unauthorized]
+
+- list: package_managers
+  items: [pip, pip3, easy_install, conda, npm, yarn, apt, yum, apk]
+
+- list: xorb_build_containers
+  items: [xorb-build, xorb-ci, xorb-development]
+
+# Detect unauthorized code execution
+- rule: XORB Unauthorized Code Execution
+  desc: Detect unauthorized code execution patterns
+  condition: >
+    spawned_process and
+    (proc.cmdline contains "eval(" or
+     proc.cmdline contains "exec(" or
+     proc.cmdline contains "__import__" or
+     proc.cmdline contains "compile(" or
+     proc.cmdline contains "subprocess" or
+     proc.cmdline contains "os.system" or
+     proc.cmdline contains "os.popen")
+  output: >
+    Unauthorized code execution detected 
+    (user=%user.name command=%proc.cmdline 
+     container=%container.name image=%container.image.repository)
+  priority: HIGH
+  tags: [xorb, code, execution, injection]
+
+# === MONITORING AND LOGGING RULES ===
+
+# Detect log tampering attempts
+- rule: XORB Log Tampering
+  desc: Detect attempts to tamper with XORB log files
+  condition: >
+    (open_write or remove) and
+    (fd.name startswith "/var/log/" or
+     fd.name startswith "/app/logs/" or
+     fd.name contains "audit" or
+     fd.name contains "security" or
+     fd.name contains "falco") and
+    not proc.name in (xorb_log_processes)
+  output: >
+    Log tampering attempt detected 
+    (user=%user.name process=%proc.name file=%fd.name 
+     container=%container.name image=%container.image.repository)
+  priority: HIGH
+  tags: [xorb, logs, tampering, integrity]
+
+- list: xorb_log_processes
+  items: [logrotate, rsyslog, syslog-ng, fluent-bit, filebeat, python, uvicorn]
+
+# === COMPLIANCE AND AUDIT RULES ===
+
+# Detect unauthorized access to compliance data
+- rule: XORB Compliance Data Access
+  desc: Detect unauthorized access to compliance and audit data
+  condition: >
+    open_read and
+    (fd.name contains "compliance" or
+     fd.name contains "audit" or
+     fd.name contains "sox" or
+     fd.name contains "pci" or
+     fd.name contains "hipaa" or
+     fd.name contains "gdpr" or
+     fd.name contains "iso27001")
+  output: >
+    Compliance data access detected 
+    (user=%user.name process=%proc.name file=%fd.name 
+     container=%container.name image=%container.image.repository)
+  priority: MEDIUM
+  tags: [xorb, compliance, audit, access]
+
+# === PERFORMANCE AND RESOURCE RULES ===
+
+# Detect resource exhaustion attempts
+- rule: XORB Resource Exhaustion Attempt
+  desc: Detect potential resource exhaustion attacks
+  condition: >
+    spawned_process and
+    (proc.cmdline contains ":(){ :|:& };:" or  # Fork bomb
+     proc.cmdline contains "while true" or
+     proc.cmdline contains "for((;;))" or
+     proc.cmdline contains "/dev/zero" or
+     proc.cmdline contains "dd if=/dev/zero")
+  output: >
+    Resource exhaustion attempt detected 
+    (user=%user.name command=%proc.cmdline 
+     container=%container.name image=%container.image.repository)
+  priority: HIGH
+  tags: [xorb, resource, exhaustion, dos]
+
+# === ANOMALY DETECTION RULES ===
+
+# Detect unusual process spawning patterns
+- rule: XORB Unusual Process Spawning
+  desc: Detect unusual process spawning patterns that may indicate compromise
+  condition: >
+    spawned_process and
+    proc.ppid exists and
+    proc.pname in (web_servers) and
+    not proc.name in (allowed_child_processes)
+  output: >
+    Unusual process spawning from web server 
+    (parent=%proc.pname child=%proc.name command=%proc.cmdline 
+     user=%user.name container=%container.name)
+  priority: MEDIUM
+  tags: [xorb, anomaly, spawning, webshell]
+
+- list: web_servers
+  items: [apache2, httpd, nginx, uvicorn, gunicorn]
+
+- list: allowed_child_processes
+  items: [python, sh, bash, grep, awk, sed, cat, curl, wget]

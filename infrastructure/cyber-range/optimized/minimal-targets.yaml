@@ -1,0 +1,516 @@
+---
+# Minimal Target Environment for Resource-Constrained Deployment
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: target-config-minimal
+  namespace: cyber-range-targets
+data:
+  config.yaml: |
+    targets:
+      lightweight_mode: true
+      max_targets: 3           # Limited to 3 targets total
+      auto_restore: true
+      snapshot_interval: "60m" # Increased interval
+      backup_retention: "1d"   # Reduced retention
+      
+    scenarios:
+      web_basic:
+        enabled: true
+        targets: 1
+        difficulty: "easy"
+      network_basic:
+        enabled: true
+        targets: 1
+        difficulty: "easy"
+      file_server:
+        enabled: true
+        targets: 1
+        difficulty: "easy"
+        
+    resource_limits:
+      total_cpu: "1.5"
+      total_memory: "3Gi"
+      storage_per_target: "1Gi"
+---
+# Lightweight Web Target (DVWA Simplified)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-target-lite
+  namespace: cyber-range-targets
+  labels:
+    app: web-target-lite
+    cyber-range.xorb.io/target-type: web
+    cyber-range.xorb.io/difficulty: easy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-target-lite
+  template:
+    metadata:
+      labels:
+        app: web-target-lite
+        cyber-range.xorb.io/target-type: web
+        cyber-range.xorb.io/target-id: web-001
+    spec:
+      priorityClassName: cyber-range-normal
+      securityContext:
+        runAsNonRoot: false  # Required for web server
+        fsGroup: 33
+      containers:
+      - name: apache-php
+        image: php:7.4-apache
+        ports:
+        - containerPort: 80
+          name: http
+        env:
+        - name: APACHE_DOCUMENT_ROOT
+          value: "/var/www/html"
+        - name: LIGHTWEIGHT_MODE
+          value: "true"
+        volumeMounts:
+        - name: web-content
+          mountPath: /var/www/html
+        - name: apache-config
+          mountPath: /etc/apache2/sites-available/000-default.conf
+          subPath: default.conf
+        resources:
+          requests:
+            cpu: 50m       # Minimal CPU
+            memory: 128Mi  # Minimal memory
+          limits:
+            cpu: 200m      # Low CPU limit
+            memory: 512Mi  # Low memory limit
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: web-content
+        configMap:
+          name: vulnerable-web-content
+      - name: apache-config
+        configMap:
+          name: apache-config
+---
+# Basic Network Target (SSH Server)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: network-target-lite
+  namespace: cyber-range-targets
+  labels:
+    app: network-target-lite
+    cyber-range.xorb.io/target-type: network
+    cyber-range.xorb.io/difficulty: easy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: network-target-lite
+  template:
+    metadata:
+      labels:
+        app: network-target-lite
+        cyber-range.xorb.io/target-type: network
+        cyber-range.xorb.io/target-id: net-001
+    spec:
+      priorityClassName: cyber-range-normal
+      securityContext:
+        runAsUser: 0  # Required for SSH server
+      containers:
+      - name: ssh-server
+        image: alpine:latest
+        command: ["/bin/sh"]
+        args: ["-c", "apk add --no-cache openssh-server && ssh-keygen -A && echo 'root:password123' | chpasswd && echo 'testuser:test123' | chpasswd && adduser -D testuser && sed -i 's/#PermitRootLogin.*/PermitRootLogin yes/' /etc/ssh/sshd_config && sed -i 's/#PasswordAuthentication.*/PasswordAuthentication yes/' /etc/ssh/sshd_config && /usr/sbin/sshd -D"]
+        ports:
+        - containerPort: 22
+          name: ssh
+        env:
+        - name: SSH_ENABLE_ROOT
+          value: "true"
+        volumeMounts:
+        - name: ssh-keys
+          mountPath: /etc/ssh/keys
+        resources:
+          requests:
+            cpu: 25m       # Minimal CPU
+            memory: 64Mi   # Minimal memory
+          limits:
+            cpu: 100m      # Very low CPU limit
+            memory: 256Mi  # Low memory limit
+        livenessProbe:
+          tcpSocket:
+            port: 22
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          tcpSocket:
+            port: 22
+          initialDelaySeconds: 10
+          periodSeconds: 10
+      volumes:
+      - name: ssh-keys
+        emptyDir: {}
+---
+# Simple File Server Target
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: file-target-lite
+  namespace: cyber-range-targets
+  labels:
+    app: file-target-lite
+    cyber-range.xorb.io/target-type: file-server
+    cyber-range.xorb.io/difficulty: easy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: file-target-lite
+  template:
+    metadata:
+      labels:
+        app: file-target-lite
+        cyber-range.xorb.io/target-type: file-server
+        cyber-range.xorb.io/target-id: file-001
+    spec:
+      priorityClassName: cyber-range-low
+      securityContext:
+        runAsNonRoot: false
+      containers:
+      - name: ftp-server
+        image: alpine:latest
+        command: ["/bin/sh"]
+        args: ["-c", "apk add --no-cache vsftpd && echo 'ftpuser:ftppass123' | chpasswd && adduser -D ftpuser && mkdir -p /home/ftpuser/ftp && chown ftpuser:ftpuser /home/ftpuser/ftp && echo 'anonymous_enable=YES' > /etc/vsftpd/vsftpd.conf && echo 'local_enable=YES' >> /etc/vsftpd/vsftpd.conf && echo 'write_enable=YES' >> /etc/vsftpd/vsftpd.conf && echo 'anon_upload_enable=YES' >> /etc/vsftpd/vsftpd.conf && vsftpd /etc/vsftpd/vsftpd.conf"]
+        ports:
+        - containerPort: 21
+          name: ftp
+        - containerPort: 80
+          name: http
+        env:
+        - name: FTP_ANONYMOUS
+          value: "true"
+        volumeMounts:
+        - name: ftp-data
+          mountPath: /home/ftpuser/ftp
+        - name: file-content
+          mountPath: /var/www/html
+        resources:
+          requests:
+            cpu: 25m       # Minimal CPU
+            memory: 64Mi   # Minimal memory
+          limits:
+            cpu: 100m      # Very low CPU limit
+            memory: 256Mi  # Low memory limit
+      volumes:
+      - name: ftp-data
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: file-content
+        configMap:
+          name: file-server-content
+---
+# ConfigMaps for Target Content
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vulnerable-web-content
+  namespace: cyber-range-targets
+data:
+  index.php: |
+    <?php
+    // Simple vulnerable web application for testing
+    echo "<h1>Cyber Range Web Target</h1>";
+    echo "<p>This is a vulnerable web application for educational purposes.</p>";
+    
+    // SQL Injection vulnerability
+    if(isset($_GET['id'])) {
+        $id = $_GET['id'];
+        // Vulnerable query (educational purpose)
+        echo "<p>User ID: " . $id . "</p>";
+        
+        // Simulate database content
+        if($id == "1" || $id == "1' OR '1'='1") {
+            echo "<p>Welcome Admin!</p>";
+            echo "<p>Secret: FLAG{web_vuln_found}</p>";
+        }
+    }
+    
+    // XSS vulnerability
+    if(isset($_GET['search'])) {
+        $search = $_GET['search'];
+        echo "<p>Search results for: " . $search . "</p>";
+    }
+    
+    echo '<form method="GET">';
+    echo 'User ID: <input type="text" name="id" placeholder="Try: 1 or 1\' OR \'1\'=\'1">';
+    echo '<input type="submit" value="Search">';
+    echo '</form>';
+    
+    echo '<form method="GET">';
+    echo 'Search: <input type="text" name="search" placeholder="Try: <script>alert(1)</script>">';
+    echo '<input type="submit" value="Search">';
+    echo '</form>';
+    ?>
+    
+  info.php: |
+    <?php
+    // Information disclosure
+    phpinfo();
+    ?>
+    
+  upload.php: |
+    <?php
+    // File upload vulnerability
+    if(isset($_FILES['file'])) {
+        $target = "/tmp/" . basename($_FILES['file']['name']);
+        if(move_uploaded_file($_FILES['file']['tmp_name'], $target)) {
+            echo "File uploaded successfully!";
+        }
+    }
+    ?>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="file">
+        <input type="submit" value="Upload">
+    </form>
+    
+  config.php: |
+    <?php
+    // Exposed configuration file
+    $db_host = "localhost";
+    $db_user = "admin";
+    $db_pass = "admin123";
+    $db_name = "webapp";
+    
+    $secret_key = "super_secret_key_123";
+    ?>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: apache-config
+  namespace: cyber-range-targets
+data:
+  default.conf: |
+    <VirtualHost *:80>
+        DocumentRoot /var/www/html
+        ServerName localhost
+        
+        <Directory /var/www/html>
+            Options Indexes FollowSymLinks
+            AllowOverride All
+            Require all granted
+        </Directory>
+        
+        # Enable PHP
+        <FilesMatch \.php$>
+            SetHandler application/x-httpd-php
+        </FilesMatch>
+        
+        ErrorLog /var/log/apache2/error.log
+        CustomLog /var/log/apache2/access.log combined
+    </VirtualHost>
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: file-server-content
+  namespace: cyber-range-targets
+data:
+  readme.txt: |
+    File Server Target
+    ==================
+    
+    This FTP server contains various files for testing.
+    
+    Credentials:
+    - Username: ftpuser
+    - Password: ftppass123
+    - Anonymous: enabled
+    
+    Vulnerabilities:
+    - Weak credentials
+    - Anonymous access
+    - Directory traversal
+    
+  secrets.txt: |
+    Secret Information
+    ==================
+    
+    Database Password: db_secret_123
+    API Key: api_key_xyz789
+    Admin Password: admin_password_456
+    
+    FLAG{file_server_compromised}
+    
+  users.csv: |
+    username,password,role
+    admin,admin123,administrator
+    user1,password1,user
+    guest,guest,guest
+    test,test123,user
+    service,service_account_pass,service
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-target-service
+  namespace: cyber-range-targets
+  labels:
+    app: web-target-lite
+spec:
+  selector:
+    app: web-target-lite
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: network-target-service
+  namespace: cyber-range-targets
+  labels:
+    app: network-target-lite
+spec:
+  selector:
+    app: network-target-lite
+  ports:
+  - name: ssh
+    port: 22
+    targetPort: 22
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: file-target-service
+  namespace: cyber-range-targets
+  labels:
+    app: file-target-lite
+spec:
+  selector:
+    app: file-target-lite
+  ports:
+  - name: ftp
+    port: 21
+    targetPort: 21
+  - name: http
+    port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+# Target Discovery Service (for red team)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: target-discovery
+  namespace: cyber-range-targets
+data:
+  targets.json: |
+    {
+      "targets": [
+        {
+          "name": "Web Application",
+          "type": "web",
+          "ip": "web-target-service.cyber-range-targets.svc.cluster.local",
+          "ports": [80],
+          "services": ["apache", "php"],
+          "vulnerabilities": ["sql_injection", "xss", "file_upload"],
+          "difficulty": "easy",
+          "flags": ["FLAG{web_vuln_found}"]
+        },
+        {
+          "name": "SSH Server",
+          "type": "network",
+          "ip": "network-target-service.cyber-range-targets.svc.cluster.local",
+          "ports": [22],
+          "services": ["ssh"],
+          "vulnerabilities": ["weak_credentials", "brute_force"],
+          "difficulty": "easy",
+          "credentials": ["root:password123", "testuser:test123"],
+          "flags": ["FLAG{ssh_compromised}"]
+        },
+        {
+          "name": "File Server",
+          "type": "file-server",
+          "ip": "file-target-service.cyber-range-targets.svc.cluster.local",
+          "ports": [21, 80],
+          "services": ["ftp", "http"],
+          "vulnerabilities": ["anonymous_ftp", "weak_credentials", "directory_traversal"],
+          "difficulty": "easy",
+          "credentials": ["ftpuser:ftppass123", "anonymous:"],
+          "flags": ["FLAG{file_server_compromised}"]
+        }
+      ],
+      "total_flags": 3,
+      "estimated_time": "30-60 minutes",
+      "skill_level": "beginner"
+    }
+---
+# Target Status Monitoring
+apiVersion: v1
+kind: Service
+metadata:
+  name: target-discovery-service
+  namespace: cyber-range-targets
+spec:
+  selector:
+    app: target-monitor
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: target-monitor
+  namespace: cyber-range-targets
+  labels:
+    app: target-monitor
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: target-monitor
+  template:
+    metadata:
+      labels:
+        app: target-monitor
+    spec:
+      priorityClassName: cyber-range-low
+      containers:
+      - name: monitor
+        image: nginx:alpine
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: target-info
+          mountPath: /usr/share/nginx/html
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+      volumes:
+      - name: target-info
+        configMap:
+          name: target-discovery

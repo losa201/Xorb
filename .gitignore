@@ -128,3 +128,46 @@ dmypy.json
 
 # Separate repositories
 PTaaS/
+# =============================================================================
+# SECURITY: Environment and Secret Files - NEVER COMMIT THESE
+# =============================================================================
+.env*
+!.env.template
+!.env.example
+
+# Secret management
+/secrets/
+*.key
+*.pem
+*.p12
+*.keystore
+*.jks
+
+# Vault files
+.vault-token
+.vault-addr
+
+# AWS credentials
+.aws/credentials
+.aws/config
+
+# SSH keys
+id_rsa*
+id_ed25519*
+id_ecdsa*
+
+# Database dumps
+*.sql
+*.dump
+*.backup
+
+# Log files
+*.log
+logs/
+/var/log/
+
+# Temporary files
+.tmp/
+temp/
+*.tmp
+*.temp

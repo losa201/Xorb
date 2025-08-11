@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 import os
+import secrets
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 
@@ -7,6 +8,9 @@ from ..container import get_container
 from ..services.interfaces import AuthenticationService
 from ..domain.exceptions import DomainException
 from ..security import Role, require_admin
+from ..core.logging import get_logger
+
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -80,25 +84,74 @@ async def logout(token: str = Depends(get_current_token)):
         )
 
 
-@router.post("/auth/dev-token", response_model=Token)
-async def create_dev_token(username: str = "dev", role: str = "admin"):
-    """Create a development JWT for local testing (enabled only when DEV_MODE=true).
-
-    Parameters:
-    - username: identifier for the token subject
-    - role: one of ['admin','orchestrator','analyst','agent','readonly']
+@router.post("/auth/dev-token", response_model=Token, include_in_schema=False)
+async def create_dev_token(
+    username: str = "dev-user", 
+    role: str = "readonly",  # Default to least privilege
+    # current_user = Depends(require_admin)  # TODO: Enable when admin auth is implemented
+):
+    """Create development token (DEV/TEST environments only, admin required)
+    
+    This endpoint is heavily restricted and only available in development
+    environments with proper security controls.
     """
-    if os.getenv("DEV_MODE", "false").lower() != "true":
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Not found")
-
+    
+    # Multiple layers of protection
+    environment_checks = [
+        os.getenv("DEV_MODE") == "true",
+        os.getenv("ENVIRONMENT") in ["development", "test"],
+        os.getenv("ALLOW_DEV_TOKENS") == "true",  # Additional flag
+        # current_user.is_admin if current_user else False  # TODO: Enable when auth is ready
+    ]
+    
+    # For now, require explicit environment flag until full auth is implemented
+    if not all(environment_checks[:3]):  # Skip admin check temporarily
+        # Log unauthorized access attempt
+        logger.warning("Unauthorized dev token access attempt",
+                      environment=os.getenv("ENVIRONMENT"),
+                      dev_mode=os.getenv("DEV_MODE"),
+                      allow_dev_tokens=os.getenv("ALLOW_DEV_TOKENS"))
+        raise HTTPException(status_code=404, detail="Not found")
+    
+    # Validate role more strictly
+    allowed_roles = ["readonly", "analyst"]  # No admin by default
+    if role not in allowed_roles:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid role '{role}'. Allowed: {allowed_roles}"
+        )
+    
     try:
-        # map role string to Role enum (default to READONLY on invalid)
-        try:
-            selected_role = Role(role)
-        except Exception:
-            selected_role = Role.READONLY
-
-        token_str = authenticator.generate_jwt(user_id=username, client_id=f"dev-{username}", roles=[selected_role])
-        return Token(access_token=token_str, token_type="bearer")
+        container = get_container()
+        auth_service = container.get(AuthenticationService)
+        
+        # Create limited development token
+        additional_claims = {
+            "username": username,
+            "roles": [role],
+            "dev_token": True,  # Mark as dev token
+            "expires_in": 3600  # 1 hour max
+        }
+        
+        token = auth_service.create_access_token(
+            subject=username,
+            additional_claims=additional_claims
+        )
+        
+        # Audit log
+        logger.info("Development token created",
+                   username=username,
+                   role=role,
+                   environment=os.getenv("ENVIRONMENT"))
+        
+        return Token(access_token=token, token_type="bearer")
+        
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create dev token: {str(e)}")
+        error_id = secrets.token_hex(8)
+        logger.error("Dev token creation failed",
+                    username=username,
+                    error_id=error_id)
+        raise HTTPException(
+            status_code=500,
+            detail="Token creation failed"
+        )

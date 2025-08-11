@@ -1,8 +1,8 @@
-# XORB Architecture & Security Assessment Report
+#  XORB Architecture & Security Assessment Report
 
-## 1. Executive Summary
+##  1. Executive Summary
 
-### Top 10 Risks/Bottlenecks (Ranked by Blast Radius)
+###  Top 10 Risks/Bottlenecks (Ranked by Blast Radius)
 
 | Rank | Risk | Blast Radius | Impact | Mitigation Priority |
 |------|------|--------------|--------|---------------------|
@@ -17,7 +17,7 @@
 | 9 | **No observability in production** | Low | Blind operations → slow incident response | Medium |
 | 10 | **Temporal workflow vulnerabilities** | Low | Workflow manipulation → business logic bypass | Low |
 
-### Top 10 Moves to Unlock Enterprise Deals (Ranked by Business Impact)
+###  Top 10 Moves to Unlock Enterprise Deals (Ranked by Business Impact)
 
 | Rank | Move | Business Impact | Technical Effort | Revenue Potential |
 |------|------|------------------|-------------------|-------------------|
@@ -34,41 +34,41 @@
 
 ---
 
-## 2. Repository Inventory (Auto-Generated)
+##  2. Repository Inventory (Auto-Generated)
 
-### Language Breakdown
+###  Language Breakdown
 - **Python**: 417 files (92.4%) - Backend services, AI/ML components
-- **TypeScript**: 30 files (6.6%) - Frontend services, type definitions  
+- **TypeScript**: 30 files (6.6%) - Frontend services, type definitions
 - **JavaScript**: 2 files (0.4%) - Legacy scripts, utilities
 - **Shell/Docker**: 15 files (3.3%) - Deployment, infrastructure
 
-### Service Architecture
+###  Service Architecture
 ```mermaid
 graph TB
     subgraph "Frontend Layer"
         FE[Next.js Frontend]
         PTaaS[PTaaS Dashboard]
     end
-    
+
     subgraph "API Gateway"
         API[FastAPI Gateway :8000]
         AUTH[Auth Service]
         RATE[Rate Limiter]
     end
-    
+
     subgraph "Core Services"
         ORCH[Orchestrator :8001]
         INTEL[Intelligence Engine :8002]
         EXEC[Execution Engine :8003]
         SIEM[SIEM Platform :8004]
     end
-    
+
     subgraph "Data Layer"
         PG[(PostgreSQL + pgvector)]
         REDIS[(Redis Cache)]
         TEMPORAL[(Temporal)]
     end
-    
+
     FE --> API
     PTaaS --> API
     API --> AUTH
@@ -83,7 +83,7 @@ graph TB
     API --> REDIS
 ```
 
-### Service Responsibilities
+###  Service Responsibilities
 
 | Service | Port | Responsibility | Entry Points |
 |---------|------|----------------|--------------|
@@ -94,7 +94,7 @@ graph TB
 | **SIEM Platform** | 8004 | Log ingestion, correlation, alerting | `/siem/*`, `/events/*` |
 | **Frontend** | 3000 | React UI, dashboard, reporting | Web interface |
 
-### Dependency Hotspots
+###  Dependency Hotspots
 - **Critical**: Redis (caching, sessions, rate limiting)
 - **Critical**: PostgreSQL (primary data store)
 - **Critical**: Temporal (workflow orchestration)
@@ -102,38 +102,38 @@ graph TB
 - **High**: PyTorch (AI/ML inference)
 - **Medium**: pgvector (vector embeddings)
 
-### Data Stores & Queues
+###  Data Stores & Queues
 - **PostgreSQL**: Primary database with pgvector extension
 - **Redis**: Cache, sessions, rate limiting, pub/sub
 - **Temporal**: Workflow state and task queues
 - **File System**: Logs, temporary files
 
-### Network Edges
+###  Network Edges
 - **External**: Port 8000 (API), Port 3000 (Frontend)
 - **Internal**: Redis 6379, PostgreSQL 5432, Temporal 7233
 - **Container**: Docker bridge networks
 
-### Secrets/Keys (⚠️ SECURITY RISK)
+###  Secrets/Keys (⚠️ SECURITY RISK)
 - **Environment files**: Multiple `.env` files with hardcoded secrets
 - **JWT secrets**: Stored in plain text configurations
 - **Database credentials**: Exposed in docker-compose files
 - **API keys**: External service keys in configuration
 
-### Docker Images
+###  Docker Images
 - **Base images**: Python 3.12, Node 20, Redis 7, PostgreSQL + pgvector
 - **Custom builds**: API service, Orchestrator, Worker services
 - **Security**: ❌ No vulnerability scanning configured
 
-### CI/CD Workflows
+###  CI/CD Workflows
 - **GitHub Actions**: Basic Python testing, no security scanning
 - **Missing**: Container scanning, SBOM generation, security checks
 - **Basic**: Lint and test execution only
 
 ---
 
-## 3. Full Audits
+##  3. Full Audits
 
-### 3.1 Security Audit
+###  3.1 Security Audit
 
 | Component | Status | Notes | Fixes Required |
 |-----------|--------|-------|----------------|
@@ -157,7 +157,7 @@ graph TB
 4. Add container security scanning
 5. Enable rate limiting enforcement
 
-### 3.2 API Design Audit
+###  3.2 API Design Audit
 
 | Component | Status | Notes | Fixes Required |
 |-----------|--------|-------|----------------|
@@ -175,7 +175,7 @@ graph TB
 3. Add comprehensive timeout and retry policies
 4. Implement circuit breakers for external services
 
-### 3.3 Data Model Audit
+###  3.3 Data Model Audit
 
 | Component | Status | Notes | Fixes Required |
 |-----------|--------|-------|----------------|
@@ -189,7 +189,7 @@ graph TB
 - **Benefits**: Simpler operations, better performance
 - **Implementation**: Add tenant_id to all tables, RLS policies
 
-### 3.4 Job/Scan Orchestration Audit
+###  3.4 Job/Scan Orchestration Audit
 
 | Component | Status | Notes | Fixes Required |
 |-----------|--------|-------|----------------|
@@ -200,7 +200,7 @@ graph TB
 | **Idempotent Workers** | ⚠️ | Workers designed for idempotency | Validate implementation |
 | **Result Ingestion** | ✅ | Redis-based results | Consider persistent storage |
 
-### 3.5 Performance Audit
+###  3.5 Performance Audit
 
 | Component | Status | Notes | Fixes Required |
 |-----------|--------|-------|----------------|
@@ -211,10 +211,10 @@ graph TB
 
 **Performance Targets:**
 - API p50 < 50ms: ❌ Not measured
-- API p95 < 300ms: ❌ Not measured  
+- API p95 < 300ms: ❌ Not measured
 - Concurrent requests: ❌ Not tested
 
-### 3.6 Observability Audit
+###  3.6 Observability Audit
 
 | Component | Status | Notes | Fixes Required |
 |-----------|--------|-------|----------------|
@@ -224,7 +224,7 @@ graph TB
 | **SLOs** | ❌ | No SLO definitions | Define and implement |
 | **Multi-burn-rate Alerts** | ❌ | No alerting configured | Implement alert rules |
 
-### 3.7 Infrastructure/IaC Audit
+###  3.7 Infrastructure/IaC Audit
 
 | Component | Status | Notes | Fixes Required |
 |-----------|--------|-------|----------------|
@@ -238,7 +238,7 @@ graph TB
 | **Network Boundaries** | ❌ | No network policies | Implement network segmentation |
 | **K8s Posture** | ❌ | No Kubernetes deployment | Design K8s architecture |
 
-### 3.8 CI/CD Audit
+###  3.8 CI/CD Audit
 
 | Component | Status | Notes | Fixes Required |
 |-----------|--------|-------|----------------|
@@ -251,7 +251,7 @@ graph TB
 | **Rollout/Rollback** | ❌ | Manual deployment | Implement blue/green |
 | **Ephemeral Environments** | ❌ | No preview environments | Add PR environments |
 
-### 3.9 Compliance Audit
+###  3.9 Compliance Audit
 
 | Framework | Coverage | Evidence Generation | Gaps |
 |-----------|----------|-------------------|------|
@@ -268,9 +268,9 @@ graph TB
 
 ---
 
-## 4. Target Architecture Blueprint
+##  4. Target Architecture Blueprint
 
-### 4.1 Service Decomposition
+###  4.1 Service Decomposition
 
 ```mermaid
 graph TB
@@ -278,31 +278,31 @@ graph TB
         WAF[WAF/Rate Limiter]
         LB[Load Balancer]
     end
-    
+
     subgraph "API Gateway"
         GW[API Gateway]
         AUTH[Auth Service]
         AUTHZ[Authorization Service]
     end
-    
+
     subgraph "Core Services"
         SCAN[Scan Orchestrator]
         WORK[Worker Pool]
         INTEL[Intelligence Service]
         REPORT[Reporting Service]
     end
-    
+
     subgraph "Data Layer"
         PG[(PostgreSQL)]
         REDIS[(Redis)]
         S3[(S3 Storage)]
     end
-    
+
     subgraph "Infrastructure"
         VAULT[HashiCorp Vault]
         MONITOR[Monitoring Stack]
     end
-    
+
     WAF --> LB
     LB --> GW
     GW --> AUTH
@@ -319,7 +319,7 @@ graph TB
     REPORT --> PG
 ```
 
-### 4.2 Authentication & Authorization
+###  4.2 Authentication & Authorization
 
 **OIDC Integration:**
 - **Primary**: Okta/Auth0 for enterprise SSO
@@ -332,7 +332,7 @@ graph TB
 - **ABAC**: Attribute-based for fine-grained permissions
 - **Tenant Isolation**: Enforced at application and database level
 
-### 4.3 Multi-Tenancy Strategy
+###  4.3 Multi-Tenancy Strategy
 
 **Recommended**: Row-Level Security (RLS) with shared database
 
@@ -355,7 +355,7 @@ CREATE POLICY tenant_isolation ON users
     USING (tenant_id = current_setting('app.current_tenant')::UUID);
 ```
 
-### 4.4 Data Architecture
+###  4.4 Data Architecture
 
 **PostgreSQL Schema Design:**
 - **Tenancy**: tenant_id column + RLS policies
@@ -375,7 +375,7 @@ CREATE POLICY tenant_isolation ON users
 - **Session Data**: 24 hours
 - **Cache Data**: 1 hour default
 
-### 4.5 Message Queues & Jobs
+###  4.5 Message Queues & Jobs
 
 **Technology Choice**: **NATS JetStream**
 - **Benefits**: Cloud-native, high performance, k8s native
@@ -383,20 +383,20 @@ CREATE POLICY tenant_isolation ON users
 
 **Job Architecture:**
 ```yaml
-# Scan Job Flow
+#  Scan Job Flow
 scan_requests → validation → scheduling → execution → reporting
 
-# Retry Policy
+#  Retry Policy
 max_retries: 3
 backoff: exponential
 dead_letter: enabled
 
-# Deduplication
+#  Deduplication
 key: sha256(tenant_id + target + scan_type)
 window: 5 minutes
 ```
 
-### 4.6 Observability Stack
+###  4.6 Observability Stack
 
 **OpenTelemetry Integration:**
 - **Traces**: Jaeger backend
@@ -408,11 +408,11 @@ window: 5 minutes
 api_availability:
   target: 99.9%
   window: 30d
-  
+
 api_latency_p95:
   target: 300ms
   window: 5m
-  
+
 scan_success_rate:
   target: 95%
   window: 1h
@@ -422,13 +422,13 @@ scan_success_rate:
 - Fast burn: 2% budget in 1 hour
 - Slow burn: 10% budget in 6 hours
 
-### 4.7 Security Implementation
+###  4.7 Security Implementation
 
 **Upload Validation:**
 ```python
-# Multi-layer validation
+#  Multi-layer validation
 1. File type whitelist
-2. Content type verification  
+2. Content type verification
 3. Antivirus scanning (ClamAV)
 4. Sandbox execution
 5. Size limits per tenant plan
@@ -442,21 +442,21 @@ scan_success_rate:
 
 **Secrets Management:**
 ```yaml
-# HashiCorp Vault Integration
+#  HashiCorp Vault Integration
 database:
   engine: postgresql
   path: secret/db/credentials
-  
+
 jwt_signing:
   engine: transit
   key: jwt-signing-key
-  
+
 external_apis:
   engine: kv
   path: secret/external/
 ```
 
-### 4.8 Infrastructure Blueprint
+###  4.8 Infrastructure Blueprint
 
 **Terraform Module Structure:**
 ```
@@ -479,17 +479,17 @@ infrastructure/
 
 **Kubernetes Baseline:**
 ```yaml
-# Resource Management
+#  Resource Management
 HPA: enabled (CPU/memory)
 PDB: max_unavailable 25%
 VPA: enabled for right-sizing
 
-# Security
+#  Security
 PSS: restricted
 NetworkPolicies: default-deny
 PodSecurityPolicy: deprecated, use PSS
 
-# Monitoring
+#  Monitoring
 ServiceMonitor: enabled
 PrometheusRule: SLO alerts
 ```
@@ -502,30 +502,30 @@ PrometheusRule: SLO alerts
 
 ---
 
-## Implementation Roadmap
+##  Implementation Roadmap
 
-### Phase 1: Security Foundation (4-6 weeks)
+###  Phase 1: Security Foundation (4-6 weeks)
 1. Remove hardcoded secrets, implement Vault
 2. Add multi-tenant data isolation
 3. Implement comprehensive input validation
 4. Enable rate limiting enforcement
 5. Add container security scanning
 
-### Phase 2: Compliance Readiness (6-8 weeks)
+###  Phase 2: Compliance Readiness (6-8 weeks)
 1. SOC2 Type II preparation
 2. Advanced audit logging
 3. Encryption at rest/transit
 4. Data retention automation
 5. Access control hardening
 
-### Phase 3: Production Readiness (8-10 weeks)
+###  Phase 3: Production Readiness (8-10 weeks)
 1. High availability setup
 2. Monitoring and alerting
 3. Performance optimization
 4. Disaster recovery
 5. Load testing and tuning
 
-### Phase 4: Enterprise Features (10-12 weeks)
+###  Phase 4: Enterprise Features (10-12 weeks)
 1. Enterprise SSO integration
 2. Advanced compliance automation
 3. Multi-region deployment

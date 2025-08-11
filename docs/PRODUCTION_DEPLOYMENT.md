@@ -1,26 +1,26 @@
-# XORB Production Deployment Guide
+#  XORB Production Deployment Guide
 
-## Overview
+##  Overview
 
 This document provides comprehensive instructions for deploying XORB to production following security best practices and performance optimizations based on the pre-flight analysis.
 
-## ⚠️ Critical Security Requirements
+##  ⚠️ Critical Security Requirements
 
 **BEFORE DEPLOYMENT** - Ensure these security requirements are met:
 
-### 1. Environment Variables (MANDATORY)
+###  1. Environment Variables (MANDATORY)
 
 Create `/root/Xorb/.env` with strong, unique values:
 
 ```bash
-# Generate strong secrets:
+#  Generate strong secrets:
 JWT_SECRET=$(openssl rand -base64 64)
 XORB_API_KEY=$(openssl rand -hex 32)
 POSTGRES_PASSWORD=$(openssl rand -base64 32)
 REDIS_PASSWORD=$(openssl rand -base64 32)
 GRAFANA_PASSWORD=$(openssl rand -base64 16)
 
-# Required configuration:
+#  Required configuration:
 ENVIRONMENT=production
 DATABASE_URL=postgresql://xorb:${POSTGRES_PASSWORD}@postgres:5432/xorb_db
 REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0
@@ -31,115 +31,115 @@ ENABLE_MFA=true
 LOG_LEVEL=INFO
 ```
 
-### 2. SSL Certificates
+###  2. SSL Certificates
 
 Ensure SSL certificates are properly configured:
 - Private keys: `/root/Xorb/ssl/*.key` (permissions: 600)
 - Certificates: `/root/Xorb/ssl/*.crt` (permissions: 644)
 
-## 🚀 Deployment Process
+##  🚀 Deployment Process
 
-### Phase 1: Pre-Deployment Validation
+###  Phase 1: Pre-Deployment Validation
 
 ```bash
-# 1. Set secure environment variables
+#  1. Set secure environment variables
 cp /root/Xorb/.env.example /root/Xorb/.env
-# Edit .env with strong values (see above)
+#  Edit .env with strong values (see above)
 
-# 2. Set file permissions
+#  2. Set file permissions
 chmod 600 /root/Xorb/.env
 find /root/Xorb/ssl -name "*.key" -exec chmod 600 {} \;
 find /root/Xorb/ssl -name "*.crt" -exec chmod 644 {} \;
 
-# 3. Validate environment
+#  3. Validate environment
 source /root/Xorb/.env
 if [[ ${#JWT_SECRET} -lt 32 ]]; then echo "ERROR: JWT_SECRET too weak"; exit 1; fi
 if [[ -z "$XORB_API_KEY" ]]; then echo "ERROR: XORB_API_KEY not set"; exit 1; fi
 ```
 
-### Phase 2: Automated Deployment
+###  Phase 2: Automated Deployment
 
 ```bash
-# Run the production deployment script
+#  Run the production deployment script
 cd /root/Xorb
 sudo ./deploy-production.sh
 
-# This script will:
-# ✓ Validate environment and system resources
-# ✓ Create backup of current deployment
-# ✓ Apply security hardening
-# ✓ Set up database with migrations
-# ✓ Deploy all services with production configuration
-# ✓ Configure performance optimizations
-# ✓ Set up monitoring and alerting
-# ✓ Run comprehensive health checks
-# ✓ Generate deployment report
+#  This script will:
+#  ✓ Validate environment and system resources
+#  ✓ Create backup of current deployment
+#  ✓ Apply security hardening
+#  ✓ Set up database with migrations
+#  ✓ Deploy all services with production configuration
+#  ✓ Configure performance optimizations
+#  ✓ Set up monitoring and alerting
+#  ✓ Run comprehensive health checks
+#  ✓ Generate deployment report
 ```
 
-### Phase 3: Post-Deployment Validation
+###  Phase 3: Post-Deployment Validation
 
 ```bash
-# Run comprehensive validation tests
+#  Run comprehensive validation tests
 ./validate-production.sh
 
-# Expected output:
-# ✓ Environment validation (JWT secrets, system resources)
-# ✓ Security validation (file permissions, container security)
-# ✓ Service validation (all containers healthy)
-# ✓ API validation (endpoints responding correctly)
-# ✓ Performance validation (response times, resource usage)
-# ✓ Integration validation (database, Redis, service communication)
-# ✓ SSL/TLS validation (certificate validity)
-# ✓ Monitoring validation (Prometheus, Grafana)
-# ✓ Load testing (concurrent request handling)
+#  Expected output:
+#  ✓ Environment validation (JWT secrets, system resources)
+#  ✓ Security validation (file permissions, container security)
+#  ✓ Service validation (all containers healthy)
+#  ✓ API validation (endpoints responding correctly)
+#  ✓ Performance validation (response times, resource usage)
+#  ✓ Integration validation (database, Redis, service communication)
+#  ✓ SSL/TLS validation (certificate validity)
+#  ✓ Monitoring validation (Prometheus, Grafana)
+#  ✓ Load testing (concurrent request handling)
 ```
 
-## 🔧 Manual Deployment (Alternative)
+##  🔧 Manual Deployment (Alternative)
 
 If you prefer manual control, follow these steps:
 
-### 1. Database Setup
+###  1. Database Setup
 
 ```bash
-# Start PostgreSQL
+#  Start PostgreSQL
 docker-compose -f infra/docker-compose.production.yml up -d postgres
 
-# Wait for database readiness
+#  Wait for database readiness
 until docker exec xorb-postgres pg_isready -U xorb; do sleep 2; done
 
-# Run migrations
+#  Run migrations
 cd src/api
 python -m alembic upgrade head
 ```
 
-### 2. Service Deployment
+###  2. Service Deployment
 
 ```bash
-# Build and start all services
+#  Build and start all services
 cd /root/Xorb
 ENVIRONMENT=production docker-compose -f infra/docker-compose.production.yml up -d
 
-# Verify all services are running
+#  Verify all services are running
 docker-compose -f infra/docker-compose.production.yml ps
 ```
 
-### 3. Health Verification
+###  3. Health Verification
 
 ```bash
-# Check API health
+#  Check API health
 curl -f http://localhost:8080/api/health
 curl -f http://localhost:8000/health
 
-# Check Orchestrator health
+#  Check Orchestrator health
 curl -f http://localhost:8080/health
 
-# Verify rate limiting
+#  Verify rate limiting
 curl -I http://localhost:8080/api/health | grep X-RateLimit
 ```
 
-## 📊 Service Architecture
+##  📊 Service Architecture
 
-### Production Services
+###  Production Services
 
 | Service | Port | Purpose | Resources |
 |---------|------|---------|-----------|
@@ -152,7 +152,7 @@ curl -I http://localhost:8080/api/health | grep X-RateLimit
 | **Prometheus** | 9090 | Metrics collection | 1 CPU, 1GB RAM |
 | **Grafana** | 3000 | Monitoring dashboards | 0.5 CPU, 512MB RAM |
 
-### Security Features
+###  Security Features
 
 - ✅ **JWT Authentication** with strong secrets (>64 chars)
 - ✅ **API Key Protection** with brute force prevention
@@ -164,190 +164,190 @@ curl -I http://localhost:8080/api/health | grep X-RateLimit
 - ✅ **Audit Logging** for all security events
 - ✅ **Resource Limits** to prevent DoS attacks
 
-## 🔒 Security Configuration
+##  🔒 Security Configuration
 
-### Rate Limiting Rules (Production)
+###  Rate Limiting Rules (Production)
 
 ```yaml
-# Global limits
+#  Global limits
 - 1000 requests/second (sliding window)
 - 100 requests/minute per IP (token bucket)
 
-# Authentication endpoints  
+#  Authentication endpoints
 - 5 requests/minute per IP (leaky bucket)
 - 15-minute penalty on violations
 
-# API key protection
+#  API key protection
 - 50 requests/hour per IP without valid key
 - 30-minute penalty on violations
 
-# Heavy computation endpoints
+#  Heavy computation endpoints
 - 50 requests/hour per user (token bucket)
 - 5 burst requests allowed
 ```
 
-### Environment-Based Security
+###  Environment-Based Security
 
 ```bash
-# Production-only security features
+#  Production-only security features
 ENABLE_RATE_LIMITING=true      # Strict rate limiting
-ENABLE_AUDIT_LOGGING=true      # Full audit trail  
+ENABLE_AUDIT_LOGGING=true      # Full audit trail
 ENABLE_MFA=true               # Multi-factor authentication
 ALLOWED_ORIGINS=https://...   # Restrictive CORS
 LOG_LEVEL=INFO                # Minimal logging
 ```
 
-## 📈 Performance Optimizations
+##  📈 Performance Optimizations
 
-### Database Configuration
+###  Database Configuration
 
 ```sql
 -- PostgreSQL optimizations applied automatically
 shared_buffers = '256MB'
-effective_cache_size = '1GB'  
+effective_cache_size = '1GB'
 maintenance_work_mem = '64MB'
 checkpoint_completion_target = 0.9
 wal_buffers = '16MB'
 max_connections = 200
 ```
 
-### Container Resource Limits
+###  Container Resource Limits
 
 ```yaml
 api:
   resources:
     limits: { cpus: '2.0', memory: '4G' }
     reservations: { cpus: '1.0', memory: '2G' }
-    
+
 orchestrator:
   resources:
     limits: { cpus: '1.0', memory: '2G' }
     reservations: { cpus: '0.5', memory: '1G' }
 ```
 
-### Kernel Optimizations
+###  Kernel Optimizations
 
 ```bash
-# Applied automatically by deployment script
+#  Applied automatically by deployment script
 net.core.somaxconn = 65535
 net.core.netdev_max_backlog = 5000
 ```
 
-## 🔍 Monitoring & Alerting
+##  🔍 Monitoring & Alerting
 
-### Prometheus Metrics
+###  Prometheus Metrics
 
 - **Service Health**: `/api/health`, `/health` endpoints
-- **Response Time**: Request duration histograms  
+- **Response Time**: Request duration histograms
 - **Rate Limiting**: Violation counts and success rates
 - **Resource Usage**: CPU, memory, disk per container
 - **Database**: Connection pool, query performance
 - **Security**: Failed authentication attempts, suspicious activity
 
-### Grafana Dashboards
+###  Grafana Dashboards
 
 Access dashboards at `http://localhost:3000`:
 
 1. **Service Overview**: All service health and performance
-2. **Security Monitor**: Rate limiting, auth failures, violations  
+2. **Security Monitor**: Rate limiting, auth failures, violations
 3. **Database Performance**: Query times, connection pools
 4. **System Resources**: CPU, memory, disk, network
 5. **API Analytics**: Endpoint usage, response times, errors
 
-### Log Monitoring
+###  Log Monitoring
 
 ```bash
-# View real-time logs
+#  View real-time logs
 docker-compose -f infra/docker-compose.production.yml logs -f
 
-# Security events
+#  Security events
 docker-compose logs api | grep -E "(ERROR|SECURITY|VIOLATION)"
 
-# Performance issues  
+#  Performance issues
 docker-compose logs api | grep -E "(SLOW|TIMEOUT|HIGH_LOAD)"
 ```
 
-## 🔄 Maintenance & Updates
+##  🔄 Maintenance & Updates
 
-### Regular Maintenance Tasks
+###  Regular Maintenance Tasks
 
 ```bash
-# Weekly: Rotate logs
+#  Weekly: Rotate logs
 docker-compose exec api logrotate /etc/logrotate.d/xorb
 
-# Weekly: Database maintenance
+#  Weekly: Database maintenance
 docker exec xorb-postgres psql -U xorb -c "VACUUM ANALYZE;"
 
-# Monthly: Update container images
+#  Monthly: Update container images
 docker-compose -f infra/docker-compose.production.yml pull
 docker-compose -f infra/docker-compose.production.yml up -d
 
-# Monthly: Security scan
+#  Monthly: Security scan
 docker run --rm -v /root/Xorb:/scan clair-scanner scan /scan
 ```
 
-### Backup Strategy
+###  Backup Strategy
 
 ```bash
-# Automated daily backups (configured by deployment script)
-# Database backups: /root/Xorb/backups/db/
-# Application backups: /root/Xorb/backups/
-# SSL certificates: Backed up with application
+#  Automated daily backups (configured by deployment script)
+#  Database backups: /root/Xorb/backups/db/
+#  Application backups: /root/Xorb/backups/
+#  SSL certificates: Backed up with application
 
-# Manual backup
+#  Manual backup
 tar -czf xorb-backup-$(date +%Y%m%d).tar.gz \
   --exclude="logs" --exclude="__pycache__" /root/Xorb
 ```
 
-## ⚠️ Troubleshooting
+##  ⚠️ Troubleshooting
 
-### Common Issues
+###  Common Issues
 
 **1. Services Won't Start**
 ```bash
-# Check environment variables
+#  Check environment variables
 source /root/Xorb/.env && env | grep -E "(JWT|API_KEY|PASSWORD)"
 
-# Check logs
+#  Check logs
 docker-compose -f infra/docker-compose.production.yml logs api
 ```
 
 **2. Authentication Failures**
 ```bash
-# Verify JWT secret is set and strong  
+#  Verify JWT secret is set and strong
 echo "JWT length: ${#JWT_SECRET}"
 [[ ${#JWT_SECRET} -gt 32 ]] && echo "Strong" || echo "Weak"
 
-# Check API key configuration
+#  Check API key configuration
 curl -H "X-API-Key: $XORB_API_KEY" http://localhost:8080/api/health
 ```
 
 **3. Rate Limiting Issues**
 ```bash
-# Check Redis connection
+#  Check Redis connection
 docker exec redis redis-cli ping
 
-# View rate limit violations
+#  View rate limit violations
 curl -s http://localhost:9090/api/v1/query?query=rate_limit_violations_total
 ```
 
 **4. Database Connection Issues**
 ```bash
-# Test database connectivity
+#  Test database connectivity
 docker exec xorb-postgres pg_isready -U xorb -d xorb_db
 
-# Check connection string
+#  Check connection string
 echo $DATABASE_URL | grep -v password
 ```
 
-### Emergency Procedures
+###  Emergency Procedures
 
 **Rollback Deployment**
 ```bash
-# Automatic rollback (if enabled during deployment)
-# The deployment script creates backups and can auto-rollback on failure
+#  Automatic rollback (if enabled during deployment)
+#  The deployment script creates backups and can auto-rollback on failure
 
-# Manual rollback
+#  Manual rollback
 cd /root/Xorb/backups
 tar -xzf $(ls -t xorb-backup-*.tar.gz | head -1) -C /
 docker-compose -f infra/docker-compose.production.yml restart
@@ -355,19 +355,19 @@ docker-compose -f infra/docker-compose.production.yml restart
 
 **Security Incident Response**
 ```bash
-# Enable global circuit breaker (stops all requests)
+#  Enable global circuit breaker (stops all requests)
 curl -X POST http://localhost:8080/api/admin/circuit-breaker/enable
 
-# Check security violations
+#  Check security violations
 docker-compose logs api | grep -i "security\|violation\|attack"
 
-# Temporary IP blocking (if supported by infrastructure)
+#  Temporary IP blocking (if supported by infrastructure)
 iptables -A INPUT -s <suspicious-ip> -j DROP
 ```
 
-## ✅ Go-Live Checklist
+##  ✅ Go-Live Checklist
 
-### Pre-Go-Live (Required)
+###  Pre-Go-Live (Required)
 
 - [ ] **Environment variables configured** with strong secrets
 - [ ] **SSL certificates installed** and valid for >30 days
@@ -380,7 +380,7 @@ iptables -A INPUT -s <suspicious-ip> -j DROP
 - [ ] **Backup strategy confirmed** (automated backups configured)
 - [ ] **Security scan passed** (no critical vulnerabilities)
 
-### Post-Go-Live (First 24 Hours)
+###  Post-Go-Live (First 24 Hours)
 
 - [ ] **Monitor service logs** for errors or warnings
 - [ ] **Track performance metrics** (response times, resource usage)
@@ -390,9 +390,9 @@ iptables -A INPUT -s <suspicious-ip> -j DROP
 - [ ] **Test failover procedures** (database, Redis connectivity)
 - [ ] **Monitor SSL certificate** status and expiration alerts
 
-## 📞 Support & Maintenance
+##  📞 Support & Maintenance
 
-### Key Files & Locations
+###  Key Files & Locations
 
 ```
 /root/Xorb/
@@ -406,39 +406,39 @@ iptables -A INPUT -s <suspicious-ip> -j DROP
 └── deployment-report-*.json      # Deployment reports
 ```
 
-### Important Commands
+###  Important Commands
 
 ```bash
-# Full deployment
+#  Full deployment
 ./deploy-production.sh
 
-# Validation testing
+#  Validation testing
 ./validate-production.sh
 
-# Service status
+#  Service status
 docker-compose -f infra/docker-compose.production.yml ps
 
-# View logs
+#  View logs
 docker-compose -f infra/docker-compose.production.yml logs -f [service]
 
-# Restart services
+#  Restart services
 docker-compose -f infra/docker-compose.production.yml restart [service]
 
-# Emergency stop
+#  Emergency stop
 docker-compose -f infra/docker-compose.production.yml down
 ```
 
 ---
 
-## 🎯 Production Deployment Summary
+##  🎯 Production Deployment Summary
 
 **XORB is now production-ready with:**
 
-✅ **Security Hardened** - Strong secrets, rate limiting, input validation  
-✅ **Performance Optimized** - Resource limits, database tuning, async operations  
-✅ **Monitoring Enabled** - Prometheus metrics, Grafana dashboards, health checks  
-✅ **Backup Strategy** - Automated daily backups with retention policy  
-✅ **Documentation Complete** - Deployment, validation, and troubleshooting guides  
+✅ **Security Hardened** - Strong secrets, rate limiting, input validation
+✅ **Performance Optimized** - Resource limits, database tuning, async operations
+✅ **Monitoring Enabled** - Prometheus metrics, Grafana dashboards, health checks
+✅ **Backup Strategy** - Automated daily backups with retention policy
+✅ **Documentation Complete** - Deployment, validation, and troubleshooting guides
 
 **Next Steps:**
 1. Run `./deploy-production.sh` for automated deployment

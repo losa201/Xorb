@@ -220,3 +220,121 @@ class AuthToken:
     def revoke(self) -> None:
         """Revoke the token"""
         self.is_revoked = True
+
+
+@dataclass
+class ScanSession:
+    """PTaaS scan session entity"""
+    id: UUID
+    organization_id: UUID
+    user_id: UUID
+    targets: List[str]
+    scan_type: str
+    status: str  # "pending", "running", "completed", "failed", "cancelled"
+    created_at: datetime
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    results: Optional[dict] = None
+    metadata: Optional[dict] = None
+    
+    @classmethod
+    def create(
+        cls,
+        organization_id: UUID,
+        user_id: UUID,
+        targets: List[str],
+        scan_type: str,
+        metadata: Optional[dict] = None
+    ) -> "ScanSession":
+        """Factory method to create a new scan session"""
+        return cls(
+            id=uuid4(),
+            organization_id=organization_id,
+            user_id=user_id,
+            targets=targets,
+            scan_type=scan_type,
+            status="pending",
+            created_at=datetime.utcnow(),
+            metadata=metadata or {}
+        )
+    
+    def start(self) -> None:
+        """Mark scan as started"""
+        self.status = "running"
+        self.started_at = datetime.utcnow()
+    
+    def complete(self, results: dict) -> None:
+        """Mark scan as completed with results"""
+        self.status = "completed"
+        self.completed_at = datetime.utcnow()
+        self.results = results
+    
+    def fail(self, error: str) -> None:
+        """Mark scan as failed"""
+        self.status = "failed"
+        self.completed_at = datetime.utcnow()
+        self.results = {"error": error}
+    
+    def cancel(self) -> None:
+        """Cancel the scan"""
+        self.status = "cancelled"
+        self.completed_at = datetime.utcnow()
+
+
+@dataclass
+class ThreatAlert:
+    """Security threat alert entity"""
+    id: UUID
+    organization_id: UUID
+    scan_session_id: Optional[UUID]
+    alert_type: str
+    severity: str  # "low", "medium", "high", "critical"
+    title: str
+    description: str
+    source: str
+    indicators: List[str]
+    created_at: datetime
+    updated_at: datetime
+    status: str = "active"  # "active", "investigating", "resolved", "false_positive"
+    assigned_to: Optional[UUID] = None
+    metadata: Optional[dict] = None
+    
+    @classmethod
+    def create(
+        cls,
+        organization_id: UUID,
+        alert_type: str,
+        severity: str,
+        title: str,
+        description: str,
+        source: str,
+        indicators: List[str],
+        scan_session_id: Optional[UUID] = None,
+        metadata: Optional[dict] = None
+    ) -> "ThreatAlert":
+        """Factory method to create a new threat alert"""
+        return cls(
+            id=uuid4(),
+            organization_id=organization_id,
+            scan_session_id=scan_session_id,
+            alert_type=alert_type,
+            severity=severity,
+            title=title,
+            description=description,
+            source=source,
+            indicators=indicators,
+            created_at=datetime.utcnow(),
+            updated_at=datetime.utcnow(),
+            metadata=metadata or {}
+        )
+    
+    def update_status(self, status: str, assigned_to: Optional[UUID] = None) -> None:
+        """Update alert status"""
+        self.status = status
+        self.updated_at = datetime.utcnow()
+        if assigned_to:
+            self.assigned_to = assigned_to
+    
+    def is_critical(self) -> bool:
+        """Check if alert is critical severity"""
+        return self.severity == "critical"

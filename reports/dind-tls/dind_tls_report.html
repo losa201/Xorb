@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Docker-in-Docker TLS Security Report - XORB Platform</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #2980b9; color: white; padding: 20px; border-radius: 5px; }
+        .test-section { background: #ecf0f1; margin: 20px 0; padding: 15px; border-radius: 5px; }
+        .pass { color: #27ae60; font-weight: bold; }
+        .fail { color: #e74c3c; font-weight: bold; }
+        .warn { color: #f39c12; font-weight: bold; }
+        .details { margin-top: 10px; font-family: monospace; background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 3px; }
+        .metric { display: inline-block; margin: 10px; padding: 10px; background: #bdc3c7; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🐳 Docker-in-Docker TLS Security Report</h1>
+        <p>Generated: $(date)</p>
+        <p>Docker Host: ${DOCKER_HOST_URL}</p>
+    </div>
+    <div class="test-section">
+        <h2>📊 Test Summary</h2>
+        <div class="metric">Total Tests: 8</div>
+        <div class="metric">Passed: <span class="pass">3</span></div>
+        <div class="metric">Failed: <span class="fail">5</span></div>
+        <div class="metric">Success Rate: 37%</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔍 Detailed Results</h2>
+        <div class="details">
+Docker-in-Docker TLS Test Results
+Generated: Mon Aug 11 02:07:47 PM UTC 2025
+=================================
+✅ Plaintext Docker connections blocked: PASS
+✅ TLS without client cert blocked: PASS
+❌ TLS with valid client cert: FAIL
+❌ Docker commands over TLS: FAIL
+✅ Invalid client cert rejected: PASS
+❌ Security scan execution: FAIL
+❌ Docker daemon config: FAIL
+❌ TLS connection security: FAIL
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔒 Security Recommendations</h2>
+        <ul>
+            <li><strong>TLS Only:</strong> Ensure Docker daemon only accepts TLS connections</li>
+            <li><strong>Client Certificates:</strong> All clients must use valid mTLS certificates</li>
+            <li><strong>Container Security:</strong> Use security options like AppArmor and seccomp</li>
+            <li><strong>Network Isolation:</strong> Restrict Docker daemon access to authorized networks</li>
+            <li><strong>Resource Limits:</strong> Apply CPU and memory limits to containers</li>
+            <li><strong>Image Security:</strong> Scan container images for vulnerabilities</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -7,8 +7,20 @@ from fastapi import HTTPException, Request, Response, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ..auth.models import UserClaims
-from ..infrastructure.database import get_async_session
+try:
+    from ..auth.models import UserClaims
+except ImportError:
+    # Fallback UserClaims
+    class UserClaims:
+        def __init__(self, user_id: str = "anonymous", tenant_id: str = None):
+            self.user_id = user_id
+            self.tenant_id = tenant_id
+
+try:
+    from ..infrastructure.database import get_async_session
+except ImportError:
+    def get_async_session():
+        return None
 
 
 logger = logging.getLogger(__name__)

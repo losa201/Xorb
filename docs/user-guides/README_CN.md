@@ -45,7 +45,7 @@ Nuclei使用零误报的定制模板向目标发送请求，同时可以对主�
 
 
 
-## 工作流程
+##  工作流程
 
 
 <h3 align="center">
@@ -57,7 +57,7 @@ Nuclei使用零误报的定制模板向目标发送请求，同时可以对主�
 | **这个项目正在积极开发中**。预计发布会带来突破性的更改。更新前请查看版本更改日志。 |
 | 这个项目主要是为了作为一个独立的命令行工具而构建的。 **将Nuclei作为服务运行可能存在安全风险。** 强烈建议谨慎使用，并采取额外的安全措施。 |
 
-# 安装Nuclei
+#  安装Nuclei
 
 Nuclei需要 **go1.22** 才能安装成功。执行下列命令安装最新版本的Nuclei
 
@@ -67,28 +67,28 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <details>
   <summary>Brew</summary>
-  
+
   ```sh
   brew install nuclei
   ```
-  
+
 </details>
 <details>
   <summary>Docker</summary>
-  
+
   ```sh
   docker pull projectdiscovery/nuclei:latest
   ```
-  
+
 </details>
 
 **更多的安装方式 [请点击此处](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
 
 <table>
 <tr>
-<td>  
+<td>
 
-### Nuclei模板
+###  Nuclei模板
 
 自从[v2.5.2]((https://github.com/projectdiscovery/nuclei/releases/tag/v2.5.2))起，Nuclei就内置了自动下载和更新模板的功能。[**Nuclei模板**](https://github.com/projectdiscovery/nuclei-templates)仓库随时更新社区中可用的模板列表。
 
@@ -100,7 +100,7 @@ YAML的语法规范在[这里](SYNTAX-REFERENCE.md)。
 </tr>
 </table>
 
-### 用法
+###  用法
 
 ```sh
 nuclei -h
@@ -148,12 +148,12 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -it, -include-templates string[]      执行指定模板，即使是被默认或配置排除的模板
    -et, -exclude-templates string[]      排除指定模板或者模板目录（逗号分隔，文件）
    -em, -exclude-matchers string[]       排除指定模板matcher
-   -s, -severity value[]                 根据严重程度运行模板，可选值有：info,low,medium,high,critical   
+   -s, -severity value[]                 根据严重程度运行模板，可选值有：info,low,medium,high,critical
    -es, -exclude-severity value[]        根据严重程度排除模板，可选值有：info,low,medium,high,critical
    -pt, -type value[]                    根据类型运行模板，可选值有：dns, file, http, headless, network, workflow, ssl, websocket, whois
    -ept, -exclude-type value[]           根据类型排除模板，可选值有：dns, file, http, headless, network, workflow, ssl, websocket, whois
    -tc, -template-condition string[]     根据表达式运行模板
-   
+
 
 输出：
    -o, -output string                    输出发现的问题到文件
@@ -321,7 +321,7 @@ UNCOVER引擎:
 更多信息请参考文档: https://docs.nuclei.sh/getting-started/running
 
 
-### 运行Nuclei
+###  运行Nuclei
 
 使用[社区提供的模板](https://github.com/projectdiscovery/nuclei-templates)扫描单个目标
 
@@ -346,7 +346,7 @@ http://uat.example.com
 
 **更多关于Nuclei的详细实例可以在[这里](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)找到**
 
-# 对于安全工程师
+#  对于安全工程师
 
 Nuclei提供了大量有助于安全工程师在工作流定制相关的功能。通过各种扫描功能（如DNS、HTTP、TCP），安全工程师可以更轻松的使用Nuclei创建一套自定义的检查方式。
 
@@ -360,7 +360,7 @@ Nuclei提供了大量有助于安全工程师在工作流定制相关的功能�
 
 <table>
 <tr>
-<td>  
+<td>
 
 **对于赏金猎人：**
 
@@ -394,7 +394,7 @@ Nuclei通过增加手动、自动的过程，极大地改变了安全评估的�
 </tr>
 </table>
 
-# 对于开发和组织
+#  对于开发和组织
 
 Nuclei构建很简单，通过数百名安全研究员的社区模板，Nuclei可以随时扫描来了解安全威胁。Nuclei通常用来用于复测，以确定漏洞是否被修复。
 
@@ -411,11 +411,11 @@ Nuclei构建很简单，通过数百名安全研究员的社区模板，Nuclei�
   <a href="https://github.com/projectdiscovery/nuclei-action"><img src="static/learn-more-button.png" width="170px" alt="Learn More"></a>
 </h1>
 
-### 将nuclei加入您的代码
+###  将nuclei加入您的代码
 
 有关使用Nuclei作为Library/SDK的完整指南，请访问[godoc](https://pkg.go.dev/github.com/projectdiscovery/nuclei/v3/lib#section-readme)
 
-### 资源
+###  资源
 
 - [使用PinkDraconian发现Nuclei的BUG (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) 作者：[@PinkDraconian](https://twitter.com/PinkDraconian)
 - [Nuclei: 强而有力的扫描器](https://bishopfox.com/blog/nuclei-vulnerability-scan) 作者：Bishopfox
@@ -429,7 +429,7 @@ Nuclei构建很简单，通过数百名安全研究员的社区模板，Nuclei�
 - [如何使用Nuclei连续扫描？](https://medium.com/@dwisiswant0/how-to-scan-continuously-with-nuclei-fcb7e9d8b8b9) 作者：[@dwisiswant0](https://github.com/dwisiswant0)
 - [自动化攻击](https://dhiyaneshgeek.github.io/web/security/2021/07/19/hack-with-automation/) 作者：[@DhiyaneshGeek](https://github.com/DhiyaneshGeek)
 
-### 致谢
+###  致谢
 
 感谢所有[社区贡献者提供的PR](https://github.com/projectdiscovery/nuclei/graphs/contributors)，并不断更新此项目:heart:
 
@@ -445,7 +445,7 @@ Nuclei构建很简单，通过数百名安全研究员的社区模板，Nuclei�
 
 [FFuF](https://github.com/ffuf/ffuf), [Qsfuzz](https://github.com/ameenmaali/qsfuzz), [Inception](https://github.com/proabiral/inception), [Snallygaster](https://github.com/hannob/snallygaster), [Gofingerprint](https://github.com/Static-Flow/gofingerprint), [Sn1per](https://github.com/1N3/Sn1per/tree/master/templates), [Google tsunami](https://github.com/google/tsunami-security-scanner), [Jaeles](https://github.com/jaeles-project/jaeles), [ChopChop](https://github.com/michelin/ChopChop)
 
-### 许可证
+###  许可证
 
 Nuclei使用[MIT许可证](https://github.com/projectdiscovery/nuclei/blob/main/LICENSE.md)
 

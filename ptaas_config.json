@@ -1,0 +1,207 @@
+{
+  "agent_configuration": {
+    "version": "2.0",
+    "description": "Enhanced PTaaS Agent Configuration",
+    "enable_ai_analysis": true,
+    "enable_compliance_scanning": true,
+    "enable_orchestration": true,
+    "autonomous_mode": false,
+    "max_concurrent_scans": 3,
+    "scan_timeout_minutes": 60
+  },
+  "scanning_preferences": {
+    "default_scan_profile": "comprehensive",
+    "stealth_mode_default": false,
+    "include_web_scanning": true,
+    "include_ssl_analysis": true,
+    "include_database_scanning": true,
+    "max_vulnerability_age_days": 30
+  },
+  "compliance_settings": {
+    "supported_frameworks": [
+      "PCI-DSS",
+      "HIPAA", 
+      "SOX",
+      "ISO-27001",
+      "GDPR",
+      "NIST",
+      "CIS"
+    ],
+    "default_assessment_type": "full",
+    "compliance_score_threshold": 80,
+    "auto_generate_compliance_reports": true,
+    "compliance_report_formats": ["json", "html"]
+  },
+  "ai_analysis_settings": {
+    "enable_threat_level_assessment": true,
+    "enable_attack_pattern_recognition": true,
+    "enable_mitre_attack_mapping": true,
+    "enable_vulnerability_prioritization": true,
+    "confidence_threshold": 0.6,
+    "risk_score_weights": {
+      "critical_vulnerabilities": 0.4,
+      "high_vulnerabilities": 0.3,
+      "compliance_gaps": 0.2,
+      "attack_surface": 0.1
+    }
+  },
+  "reporting_configuration": {
+    "include_executive_summary": true,
+    "include_technical_details": true,
+    "include_compliance_section": true,
+    "include_ai_analysis": true,
+    "include_remediation_guide": true,
+    "output_formats": ["json"],
+    "report_branding": {
+      "organization": "XORB Security Platform",
+      "logo_url": "",
+      "contact_info": "security@xorb.ai"
+    }
+  },
+  "notification_settings": {
+    "enable_notifications": false,
+    "notification_endpoints": [],
+    "notification_triggers": [
+      "critical_vulnerability_found",
+      "compliance_failure",
+      "scan_completion",
+      "high_risk_assessment"
+    ]
+  },
+  "security_settings": {
+    "rate_limiting": {
+      "max_requests_per_minute": 30,
+      "max_concurrent_sessions": 5
+    },
+    "data_retention": {
+      "scan_results_days": 90,
+      "compliance_reports_days": 365,
+      "ai_analysis_days": 180
+    },
+    "encryption": {
+      "encrypt_sensitive_data": true,
+      "encryption_algorithm": "AES-256"
+    }
+  },
+  "integration_settings": {
+    "xorb_api": {
+      "base_url": "http://localhost:8000/api/v1",
+      "timeout_seconds": 60,
+      "retry_attempts": 3,
+      "fallback_mode": true
+    },
+    "external_scanners": {
+      "nmap_path": "/usr/bin/nmap",
+      "nuclei_path": "/usr/bin/nuclei", 
+      "nikto_path": "/usr/bin/nikto",
+      "sslscan_path": "/usr/bin/sslscan"
+    },
+    "intelligence_engines": {
+      "enable_mitre_integration": true,
+      "enable_threat_feeds": true,
+      "threat_feed_sources": [
+        "MISP",
+        "VirusTotal",
+        "OTX",
+        "ThreatCrowd"
+      ]
+    }
+  },
+  "advanced_features": {
+    "behavioral_analytics": {
+      "enable_ml_analysis": true,
+      "anomaly_detection_threshold": 0.7,
+      "pattern_recognition": true
+    },
+    "threat_hunting": {
+      "enable_proactive_hunting": false,
+      "hunting_queries": [],
+      "custom_indicators": []
+    },
+    "forensics": {
+      "enable_evidence_collection": false,
+      "chain_of_custody": false,
+      "forensic_imaging": false
+    }
+  },
+  "compliance_frameworks": {
+    "PCI-DSS": {
+      "version": "4.0",
+      "scope": "Level 1 Merchant",
+      "critical_controls": [
+        "1.1.6", "2.2.4", "6.5.1", "8.2.3", "11.2.1"
+      ],
+      "assessment_frequency": "quarterly"
+    },
+    "HIPAA": {
+      "version": "2013 Omnibus Rule",
+      "scope": "Covered Entity",
+      "critical_controls": [
+        "164.312(a)(1)", "164.312(e)(1)", "164.308(a)(1)", "164.310(a)(1)"
+      ],
+      "assessment_frequency": "annual"
+    },
+    "SOX": {
+      "version": "2002",
+      "scope": "IT General Controls",
+      "critical_controls": [
+        "Change Management", "Access Controls", "Backup Procedures"
+      ],
+      "assessment_frequency": "annual"
+    }
+  },
+  "scan_profiles": {
+    "quick": {
+      "description": "Fast network scan with basic service detection",
+      "estimated_duration_minutes": 5,
+      "scanners": ["nmap_basic"],
+      "compliance_checks": false,
+      "ai_analysis": "basic"
+    },
+    "comprehensive": {
+      "description": "Full security assessment with vulnerability scanning",
+      "estimated_duration_minutes": 30,
+      "scanners": ["nmap_comprehensive", "nuclei", "nikto", "sslscan"],
+      "compliance_checks": true,
+      "ai_analysis": "full"
+    },
+    "stealth": {
+      "description": "Low-profile scanning to avoid detection",
+      "estimated_duration_minutes": 60,
+      "scanners": ["nmap_stealth", "nuclei_stealth"],
+      "compliance_checks": false,
+      "ai_analysis": "enhanced"
+    },
+    "compliance_focused": {
+      "description": "Compliance-specific assessment",
+      "estimated_duration_minutes": 45,
+      "scanners": ["nmap_comprehensive", "custom_compliance"],
+      "compliance_checks": true,
+      "ai_analysis": "compliance"
+    }
+  },
+  "vulnerability_classifications": {
+    "severity_mapping": {
+      "critical": {
+        "cvss_range": "9.0-10.0",
+        "priority": 1,
+        "sla_hours": 4
+      },
+      "high": {
+        "cvss_range": "7.0-8.9", 
+        "priority": 2,
+        "sla_hours": 24
+      },
+      "medium": {
+        "cvss_range": "4.0-6.9",
+        "priority": 3,
+        "sla_hours": 72
+      },
+      "low": {
+        "cvss_range": "0.1-3.9",
+        "priority": 4,
+        "sla_hours": 168
+      }
+    }
+  }
+}

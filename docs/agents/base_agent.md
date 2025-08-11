@@ -1,15 +1,15 @@
-# BaseAgent
+#  BaseAgent
 
-## Overview
+##  Overview
 Core foundation for all specialized agent implementations
 
-## Responsibilities
+##  Responsibilities
 - Basic message handling
 - State persistence
 - Resource management
 - Error recovery
 
-## Interaction Patterns
+##  Interaction Patterns
 - Standardized communication protocols
 - Basic trust verification
 - Minimal telemetry reporting

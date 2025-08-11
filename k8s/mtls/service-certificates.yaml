@@ -1,0 +1,207 @@
+# API Service Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: xorb-api-tls
+  namespace: xorb-platform
+spec:
+  secretName: xorb-api-tls-secret
+  commonName: api.xorb.local
+  dnsNames:
+    - api.xorb.local
+    - api
+    - api.xorb-platform.svc.cluster.local
+    - localhost
+  ipAddresses:
+    - 127.0.0.1
+  duration: 720h # 30 days
+  renewBefore: 240h # 10 days
+  subject:
+    countries: ["US"]
+    provinces: ["CA"]
+    localities: ["San Francisco"]
+    organizations: ["XORB Platform"]
+    organizationalUnits: ["Services"]
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+    - client auth
+  issuerRef:
+    name: xorb-intermediate-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# Orchestrator Service Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: xorb-orchestrator-tls
+  namespace: xorb-platform
+spec:
+  secretName: xorb-orchestrator-tls-secret
+  commonName: orchestrator.xorb.local
+  dnsNames:
+    - orchestrator.xorb.local
+    - orchestrator
+    - orchestrator.xorb-platform.svc.cluster.local
+  duration: 720h # 30 days
+  renewBefore: 240h # 10 days
+  subject:
+    countries: ["US"]
+    provinces: ["CA"]
+    localities: ["San Francisco"]
+    organizations: ["XORB Platform"]
+    organizationalUnits: ["Services"]
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - key encipherment
+    - client auth
+  issuerRef:
+    name: xorb-intermediate-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# Agent Service Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: xorb-agent-tls
+  namespace: xorb-platform
+spec:
+  secretName: xorb-agent-tls-secret
+  commonName: agent.xorb.local
+  dnsNames:
+    - agent.xorb.local
+    - agent
+    - "*.agent.xorb-platform.svc.cluster.local"
+  duration: 720h # 30 days
+  renewBefore: 240h # 10 days
+  subject:
+    countries: ["US"]
+    provinces: ["CA"]
+    localities: ["San Francisco"]
+    organizations: ["XORB Platform"]
+    organizationalUnits: ["Services"]
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+    - client auth
+  issuerRef:
+    name: xorb-intermediate-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# Redis Service Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: xorb-redis-tls
+  namespace: xorb-platform
+spec:
+  secretName: xorb-redis-tls-secret
+  commonName: redis.xorb.local
+  dnsNames:
+    - redis.xorb.local
+    - redis
+    - redis.xorb-platform.svc.cluster.local
+  duration: 720h # 30 days
+  renewBefore: 240h # 10 days
+  subject:
+    countries: ["US"]
+    provinces: ["CA"]
+    localities: ["San Francisco"]
+    organizations: ["XORB Platform"]
+    organizationalUnits: ["Services"]
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+  issuerRef:
+    name: xorb-intermediate-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# PostgreSQL Service Certificate
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: xorb-postgres-tls
+  namespace: xorb-platform
+spec:
+  secretName: xorb-postgres-tls-secret
+  commonName: postgres.xorb.local
+  dnsNames:
+    - postgres.xorb.local
+    - postgres
+    - postgres.xorb-platform.svc.cluster.local
+  duration: 720h # 30 days
+  renewBefore: 240h # 10 days
+  subject:
+    countries: ["US"]
+    provinces: ["CA"]
+    localities: ["San Francisco"]
+    organizations: ["XORB Platform"]
+    organizationalUnits: ["Services"]
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - key encipherment
+    - server auth
+  issuerRef:
+    name: xorb-intermediate-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io
+---
+# Client Certificate for Inter-Service Communication
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: xorb-client-tls
+  namespace: xorb-platform
+spec:
+  secretName: xorb-client-tls-secret
+  commonName: client.xorb.local
+  dnsNames:
+    - client.xorb.local
+    - "*.client.xorb.local"
+  duration: 720h # 30 days
+  renewBefore: 240h # 10 days
+  subject:
+    countries: ["US"]
+    provinces: ["CA"]
+    localities: ["San Francisco"]
+    organizations: ["XORB Platform"]
+    organizationalUnits: ["Clients"]
+  privateKey:
+    algorithm: RSA
+    size: 2048
+    rotationPolicy: Always
+  usages:
+    - digital signature
+    - key encipherment
+    - client auth
+  issuerRef:
+    name: xorb-intermediate-ca-issuer
+    kind: ClusterIssuer
+    group: cert-manager.io

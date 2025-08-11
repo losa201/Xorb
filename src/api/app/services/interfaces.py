@@ -3,7 +3,7 @@ Service interfaces - Define contracts for business operations.
 """
 
 from abc import ABC, abstractmethod
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Protocol
 from uuid import UUID
 
 from ..domain.entities import (
@@ -256,21 +256,28 @@ class NotificationService(ABC):
     @abstractmethod
     async def send_notification(
         self,
-        user: User,
+        recipient: str,
+        channel: str,
         message: str,
-        notification_type: str
-    ) -> bool:
-        """Send notification to user"""
+        subject: Optional[str] = None,
+        priority: str = "normal",
+        variables: Optional[Dict[str, Any]] = None,
+        attachments: Optional[List[Dict[str, Any]]] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """Send a notification"""
         raise NotImplementedError("send_notification must be implemented by subclass")
     
     @abstractmethod
     async def send_webhook(
         self,
-        org: Organization,
-        event: str,
-        data: Dict[str, Any]
+        url: str,
+        payload: Dict[str, Any],
+        headers: Optional[Dict[str, str]] = None,
+        secret: Optional[str] = None,
+        retry_count: int = 3
     ) -> bool:
-        """Send webhook to organization"""
+        """Send webhook notification"""
         raise NotImplementedError("send_webhook must be implemented by subclass")
 
 
@@ -589,37 +596,6 @@ class RateLimitingService(ABC):
         raise NotImplementedError("get_usage_stats must be implemented by subclass")
 
 
-class NotificationService(ABC):
-    """Interface for notification operations"""
-    
-    @abstractmethod
-    async def send_notification(
-        self,
-        recipient: str,
-        channel: str,
-        message: str,
-        subject: Optional[str] = None,
-        priority: str = "normal",
-        variables: Optional[Dict[str, Any]] = None,
-        attachments: Optional[List[Dict[str, Any]]] = None,
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> str:
-        """Send a notification"""
-        raise NotImplementedError("send_notification must be implemented by subclass")
-    
-    @abstractmethod
-    async def send_webhook(
-        self,
-        url: str,
-        payload: Dict[str, Any],
-        headers: Optional[Dict[str, str]] = None,
-        secret: Optional[str] = None,
-        retry_count: int = 3
-    ) -> bool:
-        """Send webhook notification"""
-        raise NotImplementedError("send_webhook must be implemented by subclass")
-
-
 class IntelligenceService(ABC):
     """Interface for intelligence and analytics operations"""
     
@@ -632,3 +608,91 @@ class IntelligenceService(ABC):
     async def get_intelligence_report(self, query: Dict[str, Any]) -> Dict[str, Any]:
         """Generate intelligence report based on query"""
         raise NotImplementedError("get_intelligence_report must be implemented by subclass")
+
+
+class SecurityAnalysisService(ABC):
+    """Interface for security analysis operations"""
+    
+    @abstractmethod
+    async def analyze_security_posture(
+        self,
+        target: str,
+        analysis_type: str,
+        user: User,
+        org: Organization
+    ) -> Dict[str, Any]:
+        """Analyze security posture of a target"""
+        raise NotImplementedError("analyze_security_posture must be implemented by subclass")
+    
+    @abstractmethod
+    async def perform_vulnerability_assessment(
+        self,
+        targets: List[str],
+        assessment_config: Dict[str, Any],
+        user: User
+    ) -> Dict[str, Any]:
+        """Perform comprehensive vulnerability assessment"""
+        raise NotImplementedError("perform_vulnerability_assessment must be implemented by subclass")
+    
+    @abstractmethod
+    async def generate_security_report(
+        self,
+        analysis_id: str,
+        report_format: str,
+        user: User
+    ) -> Dict[str, Any]:
+        """Generate security analysis report"""
+        raise NotImplementedError("generate_security_report must be implemented by subclass")
+
+
+# Protocol-based interfaces for enhanced services
+class MLAnalysisService(Protocol):
+    """Protocol for machine learning analysis services"""
+    
+    async def analyze_threat_indicators(self, indicators: List[Any]) -> Dict[str, Any]:
+        """Analyze threat indicators using ML"""
+        ...
+
+
+class IncidentResponseService(Protocol):
+    """Protocol for incident response services"""
+    
+    async def create_incident(self, title: str, description: str, severity: Any, **kwargs) -> str:
+        """Create a new incident"""
+        ...
+    
+    async def get_incident_status(self, incident_id: str) -> Optional[Dict[str, Any]]:
+        """Get incident status"""
+        ...
+
+
+class RemediationService(Protocol):
+    """Protocol for remediation services"""
+    
+    async def apply_remediation(self, action_type: str, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Apply remediation action"""
+        ...
+
+
+class PerformanceService(Protocol):
+    """Protocol for performance services"""
+    
+    async def get_performance_summary(self) -> Dict[str, Any]:
+        """Get performance summary"""
+        ...
+
+
+class MonitoringService(Protocol):
+    """Protocol for monitoring services"""
+    
+    async def collect_metrics(self) -> Dict[str, Any]:
+        """Collect metrics"""
+        ...
+
+
+class OptimizationService(Protocol):
+    """Protocol for optimization services"""
+    
+    async def get_optimization_recommendations(self) -> List[Dict[str, Any]]:
+        """Get optimization recommendations"""
+        ...

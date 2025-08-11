@@ -1,6 +1,6 @@
-# XORB Cybersecurity Platform - GEMINI Context
+#  XORB Cybersecurity Platform - GEMINI Context
 
-## 📌 Project Overview
+##  📌 Project Overview
 XORB is an enterprise-grade cybersecurity operations platform designed for penetration testing as a service (PTaaS), compliance validation, and advanced attack simulation. The system integrates security orchestration, compliance frameworks (NIST, CIS, ISO27001, SOC2), and real-time attack simulation capabilities with enhanced AI-powered intelligence.
 
 **Key Components:**
@@ -10,42 +10,42 @@ XORB is an enterprise-grade cybersecurity operations platform designed for penet
 - **Orchestration**: Automated security testing workflows with AI optimization
 - **Security Middleware**: Enhanced security layer with OWASP-compliant HTTP headers
 
-## 🛠️ Building and Running
-### Dependencies
+##  🛠️ Building and Running
+###  Dependencies
 - Python 3.10+
 - Docker (for containerized services)
 - SIEM integration components
 - Environment configuration (.env files)
 
-### Deployment
+###  Deployment
 ```bash
-# Initial setup
+#  Initial setup
 chmod +x deploy.sh
 ./deploy.sh
 ```
 
-### Service Activation
+###  Service Activation
 ```bash
-# Start core services
+#  Start core services
 python3 activate_xorb_services.py
 
-# Run compliance validation
+#  Run compliance validation
 python3 compliance_validation.py
 
-# Launch attack simulation
+#  Launch attack simulation
 python3 activate_attack_simulation.py
 
-# Start security monitoring
+#  Start security monitoring
 python3 activate_siem_engine.py
 ```
 
-## 🧪 Testing & Validation
+##  🧪 Testing & Validation
 - **Compliance Tests**: Run `compliance_validation.py` with specific framework parameters
 - **Attack Simulation**: Execute `demonstrate_enhanced_capabilities.py` for scenario testing
 - **Security Validation**: Use `security_validation_report.md` for audit findings
 - **Audit Reports**: Review output in `AUDIT_REPORT.md` and `COMPREHENSIVE_SYSTEM_AUDIT.md`
 
-## 📂 Directory Structure
+##  📂 Directory Structure
 ```
 /root/Xorb/
 ├── Security Frameworks
@@ -77,7 +77,7 @@ python3 activate_siem_engine.py
     └── .env.template  # Environment configuration
 ```
 
-## 🧱 Development Conventions
+##  🧱 Development Conventions
 - **Python Style**: PEP8-compliant with type hints
 - **Compliance Implementation**: Class-based framework inheritance
 - **Attack Simulation**: Scenario-driven with JSON output
@@ -86,7 +86,7 @@ python3 activate_siem_engine.py
 - **Security**: OWASP Top 10 compliant security headers
 - **AI Integration**: Machine learning threat analysis with PyTorch
 
-## 📚 Key Documentation
+##  📚 Key Documentation
 1. `AUDIT_REPORT.md` - Security audit findings
 2. `COMPREHENSIVE_SYSTEM_AUDIT.md` - Detailed system architecture review
 3. `security_validation_report.md` - Security testing results
@@ -94,7 +94,7 @@ python3 activate_siem_engine.py
 5. `docs/api/` - Complete API documentation
 6. `docs/architecture/` - Technical architecture details
 
-## ⚠️ Security Considerations
+##  ⚠️ Security Considerations
 - All components require strict access controls
 - Attack simulation should only be run in isolated environments
 - Compliance validation requires up-to-date framework definitions
@@ -102,7 +102,7 @@ python3 activate_siem_engine.py
 - Security middleware enforces OWASP-recommended HTTP headers
 - Multi-tenant architecture with complete data isolation
 
-## 🔄 Workflow Integration
+##  🔄 Workflow Integration
 1. Deploy infrastructure with `deploy.sh`
 2. Start core services via `activate_xorb_services.py`
 3. Run compliance checks against target systems
@@ -110,14 +110,14 @@ python3 activate_siem_engine.py
 5. Analyze results in JSON output and audit reports
 6. Monitor security events through SIEM integration
 
-## 🧠 AI-Powered Capabilities
+##  🧠 AI-Powered Capabilities
 - Machine learning threat intelligence with 87%+ accuracy
 - Behavioral analytics with multi-algorithm approach
 - Threat hunting with natural language query translation
 - Predictive analytics for risk forecasting
 - ML-powered vulnerability correlation
 
-## 🏢 Enterprise Features
+##  🏢 Enterprise Features
 - Multi-tenant architecture with row-level security
 - Advanced authentication (JWT, RBAC, MFA)
 - Rate limiting and audit logging

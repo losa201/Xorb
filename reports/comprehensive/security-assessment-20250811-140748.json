@@ -1,0 +1,63 @@
+{
+  "assessment_type": "TLS/mTLS Security Validation",
+  "platform": "XORB Platform",
+  "timestamp": "2025-08-11T14:07:48+00:00",
+  "summary": {
+    "total_tests": 4,
+    "passed_tests": 0,
+    "failed_tests": 4,
+    "success_rate": 0
+  },
+  "test_results": [{
+  "test_type": "dind",
+  "test_name": "Docker-in-Docker TLS", 
+  "test_script": "test_dind_tls.sh",
+  "start_time": "1754921267",
+  "end_time": "1754921267",
+  "duration_seconds": 0,
+  "exit_code": 1,
+  "status": "FAIL",
+  "log_file": "/root/Xorb/scripts/validate/../../logs/validation/dind-20250811-140747.log",
+  "timestamp": "2025-08-11T14:07:47+00:00"
+},{
+  "test_type": "mtls",
+  "test_name": "Mutual TLS Authentication", 
+  "test_script": "test_mtls.sh",
+  "start_time": "1754921267",
+  "end_time": "1754921267",
+  "duration_seconds": 0,
+  "exit_code": 1,
+  "status": "FAIL",
+  "log_file": "/root/Xorb/scripts/validate/../../logs/validation/mtls-20250811-140747.log",
+  "timestamp": "2025-08-11T14:07:47+00:00"
+},{
+  "test_type": "redis",
+  "test_name": "Redis TLS Configuration", 
+  "test_script": "test_redis_tls.sh",
+  "start_time": "1754921267",
+  "end_time": "1754921267",
+  "duration_seconds": 0,
+  "exit_code": 1,
+  "status": "FAIL",
+  "log_file": "/root/Xorb/scripts/validate/../../logs/validation/redis-20250811-140747.log",
+  "timestamp": "2025-08-11T14:07:47+00:00"
+},{
+  "test_type": "tls",
+  "test_name": "TLS Protocol & Cipher Validation", 
+  "test_script": "test_tls.sh",
+  "start_time": "1754921267",
+  "end_time": "1754921268",
+  "duration_seconds": 1,
+  "exit_code": 1,
+  "status": "FAIL",
+  "log_file": "/root/Xorb/scripts/validate/../../logs/validation/tls-20250811-140747.log",
+  "timestamp": "2025-08-11T14:07:48+00:00"
+}],
+  "environment": {
+    "hostname": "ubuntu-32gb-nbg1-5",
+    "user": "root",
+    "working_directory": "/root/Xorb",
+    "docker_compose_version": "docker-compose version 1.29.2, build unknown",
+    "openssl_version": "OpenSSL 3.0.13 30 Jan 2024 (Library: OpenSSL 3.0.13 30 Jan 2024)"
+  }
+}

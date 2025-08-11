@@ -42,6 +42,25 @@ from ..domain.entities import Organization
 
 logger = logging.getLogger(__name__)
 
+# Global orchestrator instance for dependency injection
+_orchestrator_instance = None
+
+
+def get_ptaas_orchestrator() -> 'PTaaSOrchestrator':
+    """Get the PTaaS orchestrator instance"""
+    global _orchestrator_instance
+    if _orchestrator_instance is None:
+        from ..container import get_container
+        container = get_container()
+        _orchestrator_instance = container.get(PTaaSOrchestrator)
+    return _orchestrator_instance
+
+
+def set_ptaas_orchestrator(orchestrator: 'PTaaSOrchestrator'):
+    """Set the PTaaS orchestrator instance (for testing)"""
+    global _orchestrator_instance
+    _orchestrator_instance = orchestrator
+
 
 class WorkflowType(Enum):
     VULNERABILITY_ASSESSMENT = "vulnerability_assessment"

@@ -1,69 +1,69 @@
-# PTaaS Frontend Network Configuration
+#  PTaaS Frontend Network Configuration
 
-## Overview
+##  Overview
 
 Successfully configured network access for the PTaaS frontend to communicate with `ptaas.verteidiq.com` on ports 80 and 443.
 
-## Configuration Summary
+##  Configuration Summary
 
-### ✅ External Domain Access
+###  ✅ External Domain Access
 - **Domain**: ptaas.verteidiq.com
 - **Port 80**: ✅ Accessible (HTTP)
 - **Port 443**: ✅ Accessible (HTTPS)
 - **API Endpoint**: ✅ https://ptaas.verteidiq.com/api
 
-### 🔧 Network Configuration Changes
+###  🔧 Network Configuration Changes
 
-#### 1. PTaaS Frontend Configuration
+####  1. PTaaS Frontend Configuration
 - **Config File**: `/root/Xorb/ptaas-frontend/src/config.ts`
 - **API URL**: https://ptaas.verteidiq.com/api
 - **CORS**: Configured for cross-origin requests
 
-#### 2. Docker Compose Updates
+####  2. Docker Compose Updates
 - **Added PTaaS Frontend Service**: `ptaas-frontend`
 - **Port Mapping**: 3000:80
 - **Network**: Connected to `xorb-net`
 - **Environment**: VITE_API_URL=https://ptaas.verteidiq.com/api
 
-#### 3. Nginx Proxy Configuration
+####  3. Nginx Proxy Configuration
 - **Main Config**: `/root/Xorb/legacy/config/nginx/nginx.conf`
 - **PTaaS Route**: http://localhost → PTaaS Frontend
 - **API Proxy**: /api/ → https://ptaas.verteidiq.com/api/
 - **CORS Headers**: Configured for external API access
 
-#### 4. Frontend Nginx Configuration
+####  4. Frontend Nginx Configuration
 - **File**: `/root/Xorb/ptaas-frontend/nginx.conf`
 - **API Proxy**: Configured to forward /api/ requests to ptaas.verteidiq.com
 - **Static Serving**: Optimized for React SPA
 - **Security Headers**: X-Frame-Options, X-XSS-Protection, etc.
 
-### 🚀 Deployment Commands
+###  🚀 Deployment Commands
 
 ```bash
-# Start all services
+#  Start all services
 docker-compose up -d
 
-# Start only PTaaS frontend
+#  Start only PTaaS frontend
 docker-compose up -d ptaas-frontend
 
-# Test connectivity
+#  Test connectivity
 ./scripts/test-ptaas-connectivity.sh
 ```
 
-### 🌐 Access Points
+###  🌐 Access Points
 
 - **PTaaS Frontend**: http://localhost:3000
 - **Main Proxy**: http://localhost (routes to PTaaS)
 - **Direct API Access**: http://localhost/api/ (proxies to ptaas.verteidiq.com)
 
-### 🔒 Firewall Configuration
+###  🔒 Firewall Configuration
 
 - **UFW Status**: Active
 - **Port 80**: ✅ Allowed
 - **Port 443**: ✅ Allowed
 - **Rate Limiting**: Configured via nginx
 
-### 📋 Service Architecture
+###  📋 Service Architecture
 
 ```
 Internet → Nginx (ports 80/443) → PTaaS Frontend (port 3000)
@@ -71,7 +71,7 @@ Internet → Nginx (ports 80/443) → PTaaS Frontend (port 3000)
         API Requests → https://ptaas.verteidiq.com
 ```
 
-### 🔧 Configuration Files Modified
+###  🔧 Configuration Files Modified
 
 1. **`/root/Xorb/ptaas-frontend/src/config.ts`** - Created API configuration
 2. **`/root/Xorb/ptaas-frontend/vite.config.ts`** - Updated proxy settings
@@ -80,7 +80,7 @@ Internet → Nginx (ports 80/443) → PTaaS Frontend (port 3000)
 5. **`/root/Xorb/legacy/config/nginx/nginx.conf`** - Updated main proxy
 6. **`/root/Xorb/scripts/test-ptaas-connectivity.sh`** - Created test script
 
-### ✅ Verification Results
+###  ✅ Verification Results
 
 **External Connectivity**:
 - ✅ DNS Resolution: ptaas.verteidiq.com
@@ -93,7 +93,7 @@ Internet → Nginx (ports 80/443) → PTaaS Frontend (port 3000)
 - ✅ Docker Network: xorb-net configured
 - ✅ Nginx Config: Valid syntax
 
-### 🚨 Important Notes
+###  🚨 Important Notes
 
 1. **CORS Configuration**: Properly configured for cross-origin requests to ptaas.verteidiq.com
 2. **SSL/TLS**: External HTTPS connections use SSL verification disabled for development
@@ -101,7 +101,7 @@ Internet → Nginx (ports 80/443) → PTaaS Frontend (port 3000)
 4. **Health Checks**: PTaaS frontend includes health check endpoint
 5. **Resource Limits**: Container limited to 512MB RAM and 0.5 CPU
 
-### 🔄 Next Steps
+###  🔄 Next Steps
 
 To start using the PTaaS frontend with external API access:
 

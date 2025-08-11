@@ -1,0 +1,207 @@
+# Envoy Proxy Configuration for XORB Agent Services
+# Provides mTLS termination for PTaaS agents
+
+admin:
+  address:
+    socket_address:
+      protocol: TCP
+      address: 0.0.0.0
+      port_value: 9901
+
+static_resources:
+  listeners:
+  - name: agent_listener
+    address:
+      socket_address:
+        protocol: TCP
+        address: 0.0.0.0
+        port_value: 8443
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          scheme_header_transformation:
+            scheme_to_overwrite: https
+          stat_prefix: agent_http
+          access_log:
+          - name: envoy.access_loggers.stdout
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+              log_format:
+                text_format: |
+                  [%START_TIME%] "%REQ(:METHOD)% %REQ(X-ENVOY-ORIGINAL-PATH?:PATH)% %PROTOCOL%"
+                  %RESPONSE_CODE% %RESPONSE_FLAGS% %BYTES_RECEIVED% %BYTES_SENT%
+                  %DURATION% %RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)% "%REQ(X-FORWARDED-FOR)%"
+                  "%REQ(USER-AGENT)%" "%REQ(X-REQUEST-ID)%" "%REQ(:AUTHORITY)%"
+                  "%UPSTREAM_HOST%" agent_client_cert="%DOWNSTREAM_TLS_SUBJECT%"
+          route_config:
+            name: agent_route
+            virtual_hosts:
+            - name: agent_service
+              domains: ["*"]
+              routes:
+              - match:
+                  prefix: "/agent/"
+                route:
+                  cluster: agent_cluster
+                  timeout: 60s
+                  prefix_rewrite: "/"
+                request_headers_to_add:
+                - header:
+                    key: "x-agent-tls-subject"
+                    value: "%DOWNSTREAM_TLS_SUBJECT%"
+                - header:
+                    key: "x-agent-id"
+                    value: "%DOWNSTREAM_TLS_URI_SAN%"
+                - header:
+                    key: "x-forwarded-proto"
+                    value: "https"
+              - match:
+                  prefix: "/health"
+                route:
+                  cluster: agent_cluster
+                  timeout: 5s
+          http_filters:
+          - name: envoy.filters.http.rbac
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.rbac.v3.RBAC
+              rules:
+                action: ALLOW
+                policies:
+                  "xorb-api-service":
+                    permissions:
+                    - any: true
+                    principals:
+                    - authenticated:
+                        principal_name:
+                          exact: "CN=api.xorb.local,OU=Services,O=XORB Platform,L=San Francisco,ST=CA,C=US"
+                  "xorb-orchestrator":
+                    permissions:
+                    - any: true
+                    principals:
+                    - authenticated:
+                        principal_name:
+                          exact: "CN=orchestrator.xorb.local,OU=Services,O=XORB Platform,L=San Francisco,ST=CA,C=US"
+                  "xorb-agent-clients":
+                    permissions:
+                    - any: true
+                    principals:
+                    - authenticated:
+                        principal_name:
+                          suffix: "-client.xorb.local,OU=Clients,O=XORB Platform,L=San Francisco,ST=CA,C=US"
+          - name: envoy.filters.http.local_ratelimit
+            typed_config:
+              "@type": type.googleapis.com/udpa.type.v1.TypedStruct
+              type_url: type.googleapis.com/envoy.extensions.filters.http.local_ratelimit.v3.LocalRateLimit
+              value:
+                stat_prefix: agent_rate_limiter
+                token_bucket:
+                  max_tokens: 500
+                  tokens_per_fill: 50
+                  fill_interval: 1s
+                filter_enabled:
+                  runtime_key: agent_rate_limit_enabled
+                  default_value:
+                    numerator: 100
+                    denominator: HUNDRED
+                filter_enforced:
+                  runtime_key: agent_rate_limit_enforced
+                  default_value:
+                    numerator: 100
+                    denominator: HUNDRED
+          - name: envoy.filters.http.cors
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.cors.v3.Cors
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+      transport_socket:
+        name: envoy.transport_sockets.tls
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.DownstreamTlsContext
+          common_tls_context:
+            tls_certificates:
+            - certificate_chain:
+                filename: "/run/tls/agent/fullchain.pem"
+              private_key:
+                filename: "/run/tls/agent/key.pem"
+            validation_context:
+              trusted_ca:
+                filename: "/run/tls/ca/ca.pem"
+              verify_certificate_spki: false
+              verify_certificate_hash: false
+              match_subject_alt_names:
+              - exact: "agent.xorb.local"
+              - exact: "api.xorb.local"
+              - exact: "orchestrator.xorb.local"
+              - suffix: "-client.xorb.local"
+          require_client_certificate: true
+          tls_params:
+            tls_minimum_protocol_version: TLSv1_2
+            tls_maximum_protocol_version: TLSv1_3
+            cipher_suites:
+            - "TLS_AES_256_GCM_SHA384"
+            - "TLS_CHACHA20_POLY1305_SHA256"
+            - "TLS_AES_128_GCM_SHA256"
+            - "ECDHE-ECDSA-AES256-GCM-SHA384"
+            - "ECDHE-ECDSA-CHACHA20-POLY1305"
+            - "ECDHE-ECDSA-AES128-GCM-SHA256"
+            ecdh_curves:
+            - "X25519"
+            - "P-256"
+
+  clusters:
+  - name: agent_cluster
+    connect_timeout: 5s
+    type: LOGICAL_DNS
+    dns_lookup_family: V4_ONLY
+    load_assignment:
+      cluster_name: agent_cluster
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: 172.20.0.31  # PTaaS agent IP
+                port_value: 8080
+    health_checks:
+    - timeout: 5s
+      interval: 15s
+      interval_jitter: 2s
+      unhealthy_threshold: 3
+      healthy_threshold: 2
+      http_health_check:
+        path: "/health"
+        request_headers_to_add:
+        - header:
+            key: "host"
+            value: "agent.xorb.local"
+    circuit_breakers:
+      thresholds:
+      - priority: DEFAULT
+        max_connections: 50
+        max_pending_requests: 25
+        max_requests: 100
+        max_retries: 2
+    outlier_detection:
+      consecutive_5xx: 5
+      consecutive_gateway_failure: 5
+      interval: 15s
+      base_ejection_time: 60s
+      max_ejection_percent: 25
+
+# Agent-specific response headers
+response_headers_to_add:
+- header:
+    key: "strict-transport-security"
+    value: "max-age=31536000; includeSubDomains"
+- header:
+    key: "x-frame-options"
+    value: "DENY"
+- header:
+    key: "x-content-type-options"
+    value: "nosniff"
+- header:
+    key: "x-agent-proxy"
+    value: "envoy-mtls"

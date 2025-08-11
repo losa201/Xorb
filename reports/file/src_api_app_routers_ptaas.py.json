@@ -1,0 +1,229 @@
+{
+  "file_path": "/root/Xorb/src/api/app/routers/ptaas.py",
+  "file_type": "ptaas_api_router",
+  "lines_of_code": 350,
+  "security_risk_level": "CRITICAL",
+  "audit_timestamp": "2025-08-11T19:50:00Z",
+  "findings": [
+    {
+      "id": "XORB-PTAAS-001",
+      "severity": "CRITICAL",
+      "category": "Authorization Bypass",
+      "cwe": "CWE-285",
+      "title": "Insufficient Authorization for Network Scanning",
+      "description": "Missing authorization checks for external target scanning could allow unauthorized network reconnaissance",
+      "location": {
+        "line_start": 72,
+        "line_end": 140,
+        "function": "create_scan_session"
+      },
+      "code_snippet": "@router.post(\"/sessions\")\nasync def create_scan_session(\n    request: ScanSessionRequest,\n    tenant_id: UUID = Depends(get_current_tenant_id),\n    # Missing: authorization validation",
+      "impact": "Legal liability, compliance violations, platform abuse for malicious scanning",
+      "remediation": "Implement comprehensive authorization framework with target validation",
+      "cvss_score": 9.8,
+      "remediation_effort": "HIGH"
+    },
+    {
+      "id": "XORB-PTAAS-002",
+      "severity": "CRITICAL",
+      "category": "Input Validation",
+      "cwe": "CWE-20",
+      "title": "Inadequate Target Validation",
+      "description": "Insufficient validation of scan targets allows potential scanning of critical infrastructure",
+      "location": {
+        "line_start": 283,
+        "line_end": 339,
+        "function": "validate_scan_target"
+      },
+      "code_snippet": "validation_results = {\n    \"reachable\": True,  # Stub implementation\n}\nrestricted_ports = [22, 23, 3389]  # Incomplete list",
+      "impact": "Unauthorized scanning of critical systems, network security bypass",
+      "remediation": "Implement comprehensive target validation with IP range restrictions",
+      "cvss_score": 9.5,
+      "remediation_effort": "HIGH"
+    },
+    {
+      "id": "XORB-PTAAS-003",
+      "severity": "HIGH",
+      "category": "Information Disclosure",
+      "cwe": "CWE-200",
+      "title": "Sensitive Information Exposure in Session Data",
+      "description": "Session responses may contain sensitive scan results and network topology information",
+      "location": {
+        "line_start": 141,
+        "line_end": 168,
+        "function": "get_scan_session_status"
+      },
+      "code_snippet": "return ScanSessionResponse(**session_status)",
+      "impact": "Exposure of vulnerability data, network topology, and scan results",
+      "remediation": "Implement data filtering based on user roles and permissions",
+      "cvss_score": 7.5,
+      "remediation_effort": "MEDIUM"
+    },
+    {
+      "id": "XORB-PTAAS-004",
+      "severity": "HIGH",
+      "category": "Missing Protection",
+      "cwe": "CWE-352",
+      "title": "Missing CSRF Protection",
+      "description": "State-changing operations lack CSRF protection",
+      "location": {
+        "line_start": 72,
+        "line_end": 199,
+        "function": "create_scan_session, cancel_scan_session"
+      },
+      "impact": "Cross-site request forgery attacks on authenticated users",
+      "remediation": "Add CSRF protection middleware for POST operations",
+      "cvss_score": 7.2,
+      "remediation_effort": "MEDIUM"
+    },
+    {
+      "id": "XORB-PTAAS-005",
+      "severity": "MEDIUM",
+      "category": "Information Exposure",
+      "cwe": "CWE-209",
+      "title": "Detailed Error Logging",
+      "description": "Detailed error information in logs may contain sensitive data",
+      "location": {
+        "line_start": 134,
+        "line_end": 139,
+        "function": "error_handling"
+      },
+      "code_snippet": "logger.error(f\"Failed to create PTaaS session: {e}\")",
+      "impact": "Potential information disclosure through log analysis",
+      "remediation": "Sanitize error messages and implement structured logging",
+      "cvss_score": 5.8,
+      "remediation_effort": "LOW"
+    },
+    {
+      "id": "XORB-PTAAS-006",
+      "severity": "MEDIUM",
+      "category": "Incomplete Implementation",
+      "cwe": "CWE-749",
+      "title": "Unimplemented Session Listing",
+      "description": "Session listing endpoint returns empty data indicating incomplete implementation",
+      "location": {
+        "line_start": 220,
+        "line_end": 245,
+        "function": "list_scan_sessions"
+      },
+      "code_snippet": "# For now, return a basic response structure\nsessions = []",
+      "impact": "Incomplete functionality may lead to security gaps",
+      "remediation": "Complete session listing implementation with proper security controls",
+      "cvss_score": 5.0,
+      "remediation_effort": "HIGH"
+    },
+    {
+      "id": "XORB-PTAAS-007",
+      "severity": "MEDIUM",
+      "category": "Hard-coded Values",
+      "cwe": "CWE-547",
+      "title": "Hardcoded Port Restrictions",
+      "description": "Limited hardcoded port restrictions may not cover all sensitive services",
+      "location": {
+        "line_start": 316,
+        "line_end": 324,
+        "function": "validate_scan_target"
+      },
+      "code_snippet": "restricted_ports = [22, 23, 3389]\ndangerous_ports = [1433, 3306, 5432]",
+      "impact": "Incomplete protection against scanning sensitive services",
+      "remediation": "Implement comprehensive configurable port restriction system",
+      "cvss_score": 4.8,
+      "remediation_effort": "MEDIUM"
+    }
+  ],
+  "threat_scenarios": [
+    {
+      "scenario": "Unauthorized Network Scanning",
+      "description": "Attacker creates tenant account and scans external targets",
+      "impact": "Legal liability, CFAA violations, platform abuse",
+      "likelihood": "HIGH",
+      "severity": "CRITICAL"
+    },
+    {
+      "scenario": "Data Exfiltration",
+      "description": "Access to other tenants' scan results and sensitive data",
+      "impact": "Privacy violations, competitive intelligence theft",
+      "likelihood": "MEDIUM",
+      "severity": "HIGH"
+    },
+    {
+      "scenario": "Service Abuse",
+      "description": "Platform used for DDoS-style attacks or overwhelming targets",
+      "impact": "Service disruption, reputation damage, legal issues",
+      "likelihood": "MEDIUM",
+      "severity": "HIGH"
+    }
+  ],
+  "compliance_impact": {
+    "legal_risks": [
+      "Computer Fraud and Abuse Act (CFAA) violations",
+      "Unauthorized network scanning liability",
+      "Data protection regulation violations"
+    ],
+    "industry_standards": {
+      "nist_csf": "FAIL - Insufficient access controls (PR.AC)",
+      "iso_27001": "FAIL - Missing authorization and validation controls",
+      "soc2": "FAIL - Inadequate security controls"
+    }
+  },
+  "recommendations": [
+    {
+      "priority": "CRITICAL",
+      "action": "Implement comprehensive authorization framework",
+      "timeline": "24 hours",
+      "effort": "HIGH",
+      "code_example": "async def validate_scan_authorization(target, tenant_id, user)"
+    },
+    {
+      "priority": "CRITICAL", 
+      "action": "Enhanced target validation with IP restrictions",
+      "timeline": "24 hours",
+      "effort": "HIGH",
+      "code_example": "Validate against RFC 1918, critical infrastructure lists"
+    },
+    {
+      "priority": "HIGH",
+      "action": "Implement data sanitization and filtering",
+      "timeline": "48 hours", 
+      "effort": "MEDIUM",
+      "code_example": "def sanitize_session_response(session_data, user_role)"
+    },
+    {
+      "priority": "HIGH",
+      "action": "Add CSRF protection middleware",
+      "timeline": "72 hours",
+      "effort": "MEDIUM",
+      "code_example": "Add CSRF tokens to state-changing operations"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Complete session management implementation", 
+      "timeline": "1 week",
+      "effort": "HIGH",
+      "code_example": "Implement database queries for session listing"
+    }
+  ],
+  "architecture_assessment": {
+    "strengths": [
+      "Multi-tenant architecture with UUID tenant IDs",
+      "Comprehensive metrics and observability",
+      "Structured Pydantic models for API contracts",
+      "Async background task processing",
+      "Clean dependency injection pattern"
+    ],
+    "critical_weaknesses": [
+      "Missing authorization checks for external scanning",
+      "Insufficient input validation and sanitization",
+      "Information disclosure in session responses",
+      "Incomplete endpoint implementations"
+    ]
+  },
+  "risk_score": 9.1,
+  "test_requirements": [
+    "Authorization bypass testing",
+    "Input validation with malicious payloads",
+    "Cross-tenant data access attempts",
+    "CSRF attack simulations",
+    "Network scanning permission tests"
+  ]
+}

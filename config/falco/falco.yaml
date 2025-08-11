@@ -1,0 +1,252 @@
+# XORB Platform Falco Configuration
+# Advanced runtime security monitoring with custom rules
+
+# File(s) or Directories containing Falco rules, loaded at startup.
+rules_file:
+  - /etc/falco/falco_rules.yaml
+  - /etc/falco/falco_rules.local.yaml
+  - /etc/falco/rules/xorb_custom_rules.yaml
+  - /etc/falco/rules/container_security_rules.yaml
+  - /etc/falco/rules/application_security_rules.yaml
+
+# File(s) or directories containing exceptions
+exceptions:
+  - /etc/falco/exceptions/xorb_exceptions.yaml
+
+# Whether to output events in json or text
+json_output: true
+
+# Whether to include the "output_fields" and "time" keys in the JSON output
+json_include_output_property: true
+json_include_tags_property: true
+
+# Send information logs to stderr and/or syslog Note these are *not* security
+# notification logs! These are just Falco lifecycle (and possibly error) logs.
+log_stderr: true
+log_syslog: false
+
+# Minimum log level to include in logs. Note: these levels are
+# separate from the priority field of rules. This refers only to
+# falco's internal logging. Can be one of "emergency", "alert",
+# "critical", "error", "warning", "notice", "info", "debug".
+log_level: info
+
+# Minimum rule priority level to load and run
+priority: debug
+
+# Whether or not output to any of the output channels below is
+# buffered. Defaults to false
+buffered_outputs: true
+
+# Falco uses a shared buffer between the kernel and userspace to pass
+# system call information. When this buffer is full, system calls will
+# drop. The larger the buffer size, the more unlikely it is that system
+# calls will drop but the larger the CPU/memory usage.
+syscall_event_drops:
+  # Threshold of dropped events to alert on
+  threshold: 0.01
+  # Rate to apply to threshold for alert messages
+  rate: 0.03333
+  # Maximum number of samples to consider
+  max_burst: 1000
+
+# Falco is capable of managing the kernel module, if an action is one
+# of the following:
+#
+# - "load-module" (default, auto-load the kernel module, if unloaded/missing)
+# - "probe"  (similar to 'load-module' but favors the modern eBPF probe)
+# - "ebpf" (force use of the eBPF probe)
+# - "modern_ebpf" (force use of the modern eBPF probe)
+# - "nodriver" (don't use the kernel module or eBPF probe, only userspace events)
+engine:
+  kind: modern_ebpf
+  modern_ebpf:
+    probe_path: ""
+    # Maximum number of events per second allowed
+    buf_size_preset: 4
+
+# === OUTPUT CONFIGURATION ===
+
+# If keep_alive is set to true, the file will be opened once and
+# continuously written to, with each output message on its own
+# line. If keep_alive is set to false, the file will be re-opened
+# for each output message.
+file_output:
+  enabled: true
+  keep_alive: true
+  filename: /var/log/falco/falco_events.log
+
+# A stdout output is enabled by default
+stdout_output:
+  enabled: true
+
+# Syslog output
+syslog_output:
+  enabled: false
+
+# Falco contains an embedded webserver that can be used to accept K8s
+# Audit Log events sent directly to falco.
+http_output:
+  enabled: true
+  url: "http://falco-sidekick:2801"
+  user_agent: "falcosecurity/falco"
+  ca_file: ""
+  ca_cert: ""
+  ca_bundle: ""
+  insecure: true
+
+# gRPC server configuration.
+grpc:
+  enabled: true
+  bind_address: "0.0.0.0:5060"
+  threadiness: 0
+
+# gRPC output configuration.
+grpc_output:
+  enabled: true
+
+# Container orchestrator metadata fetching params
+metadata_download:
+  max_mb: 100
+  chunk_wait_us: 1000
+  watch_freq_sec: 1
+
+# === METRICS CONFIGURATION ===
+
+# Falco supports exposing Prometheus metrics via an HTTP endpoint
+metrics:
+  enabled: true
+  interval: 1h
+  output_rule: true
+  rules_counters_enabled: true
+  resource_utilization_enabled: true
+  state_counters_enabled: true
+  kernel_event_counters_enabled: true
+  libbpf_stats_enabled: true
+  plugins_metrics_enabled: true
+  convert_memory_to_mb: true
+  include_empty_values: false
+
+# === PLUGINS CONFIGURATION ===
+
+# Plugins that are available for use. These plugins are not loaded by
+# default, as they require explicit configuration.
+plugins:
+  - name: k8saudit
+    library_path: libk8saudit.so
+    init_config:
+      # maxEventSize: ""
+      # sslCertificate: /etc/ssl/falco/falco.pem
+      # sslCertificateKey: /etc/ssl/falco/falco-key.pem
+    open_params: 'http://:9765/k8s-audit'
+
+  - name: cloudtrail
+    library_path: libcloudtrail.so
+    init_config: ""
+    open_params: ""
+
+  - name: json
+    library_path: libjson.so
+    init_config: ""
+
+# === WEB SERVER CONFIGURATION ===
+
+# Falco exposes a web server for K8s audit endpoint and metrics
+webserver:
+  enabled: true
+  listen_port: 8765
+  k8s_audit_endpoint: /k8s-audit
+  ssl_enabled: false
+  ssl_certificate: /etc/ssl/falco/falco.pem
+  ssl_certificate_key: /etc/ssl/falco/falco-key.pem
+  threadiness: 0
+
+# === OUTPUT FIELDS CONFIGURATION ===
+
+# Define additional output fields for specific rule types
+output_fields:
+  - container.id
+  - container.image.repository
+  - container.image.tag
+  - container.name
+  - fd.name
+  - fs.path.name
+  - k8s.ns.name
+  - k8s.pod.name
+  - proc.cmdline
+  - proc.cwd
+  - proc.name
+  - proc.pid
+  - proc.ppid
+  - user.name
+  - user.uid
+
+# === RULE MATCHING CONFIGURATION ===
+
+# Controls after how many seconds an event is considered
+# "old" by the rule matching engine. Set this to a higher
+# value if you want to match events farther in the past.
+rule_matching:
+  # How long to wait in seconds before an event is considered old
+  buffered_outputs_timeout: 5
+  # Maximum number of recent events to search when evaluating rule conditions
+  max_num_recent_events: 100
+
+# === SYSCALLS DROPS HANDLING ===
+
+# Configure how Falco handles system call drops
+syscalls:
+  # Repair the broken syscall table at startup
+  repair: true
+  # Ignore syscall failures
+  ignore_errors: false
+
+# === LOAD BALANCING ===
+
+# Load balancing is enabled when there are multiple consumers for the event stream.
+load_plugins:
+  - rules_file: /etc/falco/falco_rules.yaml
+    required_engine_version: 7
+
+# === SELECTIVE SYSCALLS ===
+
+# You can specify the set of syscalls that you'd like Falco to monitor.
+# Note that if you provide any syscalls, only those syscalls will be monitored.
+# syscalls:
+#   - open
+#   - openat
+#   - close
+#   - read
+#   - write
+#   - exec
+
+# === BASE FIELDS ===
+
+# Falco's rule engine supports a flexible set of base fields that can
+# be extended with additional fields provided by Falco libraries
+base_fields:
+  fd:
+    - fd.name
+    - fd.type
+  fs:
+    - fs.path.name
+  proc:
+    - proc.name
+    - proc.pid
+    - proc.ppid
+    - proc.cmdline
+    - proc.cwd
+  user:
+    - user.name
+    - user.uid
+  container:
+    - container.id
+    - container.name
+    - container.image.repository
+    - container.image.tag
+
+# === MODERN PROBE CONFIGURATION ===
+
+modern_bpf:
+  # CPU per category configuration
+  cpus_for_each_syscall_buffer: 2

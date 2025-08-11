@@ -1,0 +1,170 @@
+{
+  "file_metadata": {
+    "path": "src/api/app/core/config.py",
+    "type": "configuration",
+    "size_lines": 250,
+    "security_classification": "HIGH_RISK",
+    "last_modified": "2025-01-11",
+    "purpose": "Application configuration management"
+  },
+  "security_findings": [
+    {
+      "id": "SEC-001",
+      "type": "hardcoded_secret",
+      "severity": "CRITICAL",
+      "cwe": "CWE-798",
+      "cvss_score": 9.8,
+      "title": "Hardcoded JWT Secret in Source Code",
+      "description": "Default JWT secret key is exposed in source code",
+      "location": {
+        "line": 42,
+        "code": "jwt_secret_key: str = Field(default=\"dev-jwt-secret-key-change-in-production-12345678901234567890\", env=\"JWT_SECRET\")"
+      },
+      "impact": "Complete authentication bypass if default used in production",
+      "remediation": "Remove default value, require environment variable only",
+      "confidence": "HIGH"
+    },
+    {
+      "id": "SEC-002", 
+      "type": "weak_rate_limiting",
+      "severity": "HIGH",
+      "cwe": "CWE-799",
+      "cvss_score": 7.5,
+      "title": "Permissive Rate Limiting Defaults",
+      "description": "Rate limiting defaults allow too many requests",
+      "location": {
+        "line": 72,
+        "code": "rate_limit_per_minute: int = Field(default=60, env=\"RATE_LIMIT_PER_MINUTE\")"
+      },
+      "impact": "DoS attacks, resource exhaustion",
+      "remediation": "Reduce default limits to 10-20 per minute",
+      "confidence": "HIGH"
+    },
+    {
+      "id": "SEC-003",
+      "type": "permissive_cors",
+      "severity": "HIGH", 
+      "cwe": "CWE-942",
+      "cvss_score": 7.5,
+      "title": "Wildcard CORS Policy",
+      "description": "CORS allows all origins by default",
+      "location": {
+        "line": 77,
+        "code": "cors_allow_origins: str = Field(default=\"*\", env=\"CORS_ALLOW_ORIGINS\")"
+      },
+      "impact": "Cross-origin attacks, data exfiltration",
+      "remediation": "Require explicit origin whitelist, no wildcard default",
+      "confidence": "HIGH"
+    },
+    {
+      "id": "SEC-004",
+      "type": "insecure_defaults",
+      "severity": "HIGH",
+      "cwe": "CWE-798",
+      "cvss_score": 7.0,
+      "title": "Insecure Database Defaults",
+      "description": "Default database URL contains weak credentials",
+      "location": {
+        "line": 54,
+        "code": "database_url: str = Field(default=\"postgresql://user:pass@localhost/xorb\", env=\"DATABASE_URL\")"
+      },
+      "impact": "Database compromise if defaults used",
+      "remediation": "Remove default credentials, require environment variable",
+      "confidence": "MEDIUM"
+    },
+    {
+      "id": "SEC-005",
+      "type": "path_injection",
+      "severity": "MEDIUM",
+      "cwe": "CWE-22", 
+      "cvss_score": 6.0,
+      "title": "Potential Path Injection in Tool Paths",
+      "description": "External tool paths configurable without validation",
+      "location": {
+        "line": 109,
+        "code": "nmap_path: str = Field(default=\"/usr/bin/nmap\", env=\"NMAP_PATH\")"
+      },
+      "impact": "Command injection if path validation missing",
+      "remediation": "Add path validation and sanitization",
+      "confidence": "MEDIUM"
+    }
+  ],
+  "compliance_findings": [
+    {
+      "framework": "GDPR",
+      "requirement": "Article 17 - Right to erasure",
+      "status": "NON_COMPLIANT",
+      "description": "90-day retention default may violate right to erasure",
+      "remediation": "Implement configurable retention with user consent"
+    },
+    {
+      "framework": "SOC2",
+      "control": "CC6.1",
+      "status": "PARTIAL",
+      "description": "Access controls not configured by default",
+      "remediation": "Add default security configurations"
+    },
+    {
+      "framework": "ISO27001",
+      "control": "A.10.1.1",
+      "status": "NON_COMPLIANT", 
+      "description": "Cryptographic policy not defined in configuration",
+      "remediation": "Add cryptographic configuration parameters"
+    }
+  ],
+  "performance_findings": [
+    {
+      "type": "resource_management",
+      "severity": "LOW",
+      "description": "Database pool configuration appropriate for expected load",
+      "recommendation": "Monitor and adjust pool sizes based on actual usage"
+    },
+    {
+      "type": "cache_configuration",
+      "severity": "MEDIUM",
+      "description": "3600s cache TTL may be too long for dynamic data",
+      "recommendation": "Implement tiered TTL based on data volatility"
+    }
+  ],
+  "maintainability_findings": [
+    {
+      "type": "code_complexity",
+      "severity": "LOW",
+      "description": "Parsing methods could be extracted to utility functions",
+      "recommendation": "Refactor CORS and file extension parsing to separate module"
+    },
+    {
+      "type": "magic_numbers",
+      "severity": "LOW", 
+      "description": "Several numeric constants should be in enums",
+      "recommendation": "Create constants module for default values"
+    }
+  ],
+  "recommendations": {
+    "immediate": [
+      "Remove hardcoded JWT secret",
+      "Implement strict CORS policy", 
+      "Strengthen rate limiting defaults",
+      "Secure database defaults"
+    ],
+    "short_term": [
+      "Enhance validation with regex patterns",
+      "Implement configuration audit logging",
+      "Add security headers configuration",
+      "Strengthen password policy requirements"
+    ],
+    "long_term": [
+      "Configuration encryption at rest",
+      "Dynamic configuration support",
+      "Compliance templates",
+      "Configuration drift detection"
+    ]
+  },
+  "risk_assessment": {
+    "overall_risk": "HIGH",
+    "security_risk": "CRITICAL",
+    "compliance_risk": "HIGH", 
+    "operational_risk": "MEDIUM",
+    "business_impact": "HIGH"
+  }
+}

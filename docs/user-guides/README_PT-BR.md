@@ -41,7 +41,7 @@ O Nuclei é utilizado para enviar solicitações para vários alvos baseados em 
 
 Temos um [repositório dedicado](https://github.com/projectdiscovery/nuclei-templates) que abriga vários tipos de modelos de vulnerabilidades, contribuídos por **mais de 300** pesquisadores e engenheiros de segurança.
 
-## Como funciona
+##  Como funciona
 
 
 <h3 align="center">
@@ -54,7 +54,7 @@ Temos um [repositório dedicado](https://github.com/projectdiscovery/nuclei-temp
 | **Este projeto está em desenvolvimento ativo**. Alterações significativas são esperadas em versões futuras. Consulte o changelog antes de atualizar. |
 | Este projeto foi desenvolvido principalmente para ser usado como uma ferramenta CLI independente. **Executar o Nuclei como um serviço pode implicar riscos de segurança.** É recomendável utilizá-lo com precaução e medidas de segurança adicionais. |
 
-# Instalação do Nuclei
+#  Instalação do Nuclei
 
 O Nuclei requer **go1.22** para ser instalado corretamente. Execute o seguinte comando para instalar a versão mais recente:
 
@@ -64,28 +64,28 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <details>
   <summary>Brew</summary>
-  
+
   ```sh
   brew install nuclei
   ```
-  
+
 </details>
 <details>
   <summary>Docker</summary>
-  
+
   ```sh
   docker pull projectdiscovery/nuclei:latest
   ```
-  
+
 </details>
 
 **Mais métodos de instalação [podem ser encontrados aqui](https://docs.projectdiscovery.io/tools/nuclei/install).**
 
 <table>
 <tr>
-<td>  
+<td>
 
-### Modelos do Nuclei
+###  Modelos do Nuclei
 
 O Nuclei possui suporte integrado para download/atualização automática de modelos a partir da versão [v2.5.2](https://github.com/projectdiscovery/nuclei/releases/tag/v2.5.2). O projeto [**Nuclei-Templates**](https://github.com/projectdiscovery/nuclei-templates) fornece uma lista de modelos prontos para uso, atualizados constantemente pela comunidade.
 
@@ -97,7 +97,7 @@ A referência de sintaxe YAML DSL está disponível [aqui](SYNTAX-REFERENCE.md).
 </tr>
 </table>
 
-### Uso
+###  Uso
 
 ```sh
 nuclei -h
@@ -107,7 +107,7 @@ Isso mostrará ajuda sobre a ferramenta. Aqui estão todas as opções que ela s
 
 
 ```console
-Nuclei é um scanner de vulnerabilidades rápido e baseado em templates  
+Nuclei é um scanner de vulnerabilidades rápido e baseado em templates
 que se concentra em sua ampla configurabilidade, extensibilidade e facilidade de uso.
 
 Usage:
@@ -329,22 +329,22 @@ Executar nuclei com saídas Markdown organizadas (com variáveis de ambiente):
 Documentação adicional disponível em: https://docs.nuclei.sh/getting-started/running
 ```
 
-### Executando Nuclei
+###  Executando Nuclei
 
 Consulte https://docs.projectdiscovery.io/tools/nuclei/running para obter detalhes sobre como executar o Nuclei.
 
-### Uso de Nuclei com código Go
+###  Uso de Nuclei com código Go
 
 O guia completo sobre como usar o Nuclei como biblioteca/SDK está disponível em [godoc](https://pkg.go.dev/github.com/projectdiscovery/nuclei/v3/lib#section-readme).
 
 
-### Recursos
+###  Recursos
 
 Você pode acessar a documentação principal do Nuclei em https://docs.projectdiscovery.io/tools/nuclei/ e obter mais informações sobre o Nuclei na nuvem com a [ProjectDiscovery Cloud Platform](https://cloud.projectdiscovery.io).
 
 Consulte https://docs.projectdiscovery.io/tools/nuclei/resources para acessaar mais recursos e vídeos sobre o Nuclei!
 
-### Créditos
+###  Créditos
 
 Obrigado a todos os incríveis [contribuidores da comunidade que enviaram em PRs](https://github.com/projectdiscovery/nuclei/graphs/contributors) e mantêm este projeto atualizado. :heart:
 
@@ -361,7 +361,7 @@ Confira também os seguintes projetos de código aberto que podem se adequar ao 
 
 [FFuF](https://github.com/ffuf/ffuf), [Qsfuzz](https://github.com/ameenmaali/qsfuzz), [Inception](https://github.com/proabiral/inception), [Snallygaster](https://github.com/hannob/snallygaster), [Gofingerprint](https://github.com/Static-Flow/gofingerprint), [Sn1per](https://github.com/1N3/Sn1per/tree/master/templates), [Google tsunami](https://github.com/google/tsunami-security-scanner), [Jaeles](https://github.com/jaeles-project/jaeles), [ChopChop](https://github.com/michelin/ChopChop)
 
-### Licença
+###  Licença
 
 O Nuclei é distribuído sob a [Licença MIT](https://github.com/projectdiscovery/nuclei/blob/main/LICENSE.md)
 

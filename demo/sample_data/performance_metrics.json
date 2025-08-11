@@ -1,0 +1,3530 @@
+[
+  {
+    "timestamp": "2025-08-11T17:31:07.401936",
+    "api_response_time_ms": 64.47,
+    "throughput_rps": 1390,
+    "error_rate_percent": 0.624,
+    "cpu_utilization_percent": 93.2,
+    "memory_utilization_percent": 61.4,
+    "disk_utilization_percent": 37.6,
+    "network_latency_ms": 12.87,
+    "active_connections": 1208,
+    "database_performance": {
+      "avg_query_time_ms": 56.78,
+      "connection_pool_usage_percent": 84.6,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 86.2,
+      "memory_usage_percent": 47.0,
+      "operations_per_second": 8551
+    }
+  },
+  {
+    "timestamp": "2025-08-11T16:31:07.401961",
+    "api_response_time_ms": 103.44,
+    "throughput_rps": 2205,
+    "error_rate_percent": 0.209,
+    "cpu_utilization_percent": 87.7,
+    "memory_utilization_percent": 70.3,
+    "disk_utilization_percent": 45.4,
+    "network_latency_ms": 12.31,
+    "active_connections": 977,
+    "database_performance": {
+      "avg_query_time_ms": 40.1,
+      "connection_pool_usage_percent": 56.2,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.01,
+      "memory_usage_percent": 44.1,
+      "operations_per_second": 27330
+    }
+  },
+  {
+    "timestamp": "2025-08-11T15:31:07.401979",
+    "api_response_time_ms": 65.32,
+    "throughput_rps": 2249,
+    "error_rate_percent": 0.492,
+    "cpu_utilization_percent": 72.6,
+    "memory_utilization_percent": 62.2,
+    "disk_utilization_percent": 23.8,
+    "network_latency_ms": 15.95,
+    "active_connections": 413,
+    "database_performance": {
+      "avg_query_time_ms": 45.96,
+      "connection_pool_usage_percent": 40.1,
+      "slow_queries_count": 10
+    },
+    "cache_performance": {
+      "hit_rate_percent": 86.63,
+      "memory_usage_percent": 34.6,
+      "operations_per_second": 18317
+    }
+  },
+  {
+    "timestamp": "2025-08-11T14:31:07.401994",
+    "api_response_time_ms": 68.69,
+    "throughput_rps": 1771,
+    "error_rate_percent": 0.418,
+    "cpu_utilization_percent": 44.3,
+    "memory_utilization_percent": 79.1,
+    "disk_utilization_percent": 35.0,
+    "network_latency_ms": 10.04,
+    "active_connections": 639,
+    "database_performance": {
+      "avg_query_time_ms": 68.03,
+      "connection_pool_usage_percent": 79.1,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.48,
+      "memory_usage_percent": 30.8,
+      "operations_per_second": 16914
+    }
+  },
+  {
+    "timestamp": "2025-08-11T13:31:07.402007",
+    "api_response_time_ms": 35.34,
+    "throughput_rps": 2060,
+    "error_rate_percent": 1.997,
+    "cpu_utilization_percent": 40.8,
+    "memory_utilization_percent": 82.2,
+    "disk_utilization_percent": 53.9,
+    "network_latency_ms": 4.15,
+    "active_connections": 704,
+    "database_performance": {
+      "avg_query_time_ms": 49.64,
+      "connection_pool_usage_percent": 89.1,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.62,
+      "memory_usage_percent": 60.8,
+      "operations_per_second": 26627
+    }
+  },
+  {
+    "timestamp": "2025-08-11T12:31:07.402020",
+    "api_response_time_ms": 56.12,
+    "throughput_rps": 1860,
+    "error_rate_percent": 1.671,
+    "cpu_utilization_percent": 85.9,
+    "memory_utilization_percent": 107.5,
+    "disk_utilization_percent": 57.6,
+    "network_latency_ms": 15.67,
+    "active_connections": 1212,
+    "database_performance": {
+      "avg_query_time_ms": 54.82,
+      "connection_pool_usage_percent": 27.4,
+      "slow_queries_count": 17
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.3,
+      "memory_usage_percent": 56.2,
+      "operations_per_second": 39405
+    }
+  },
+  {
+    "timestamp": "2025-08-11T11:31:07.402033",
+    "api_response_time_ms": 40.22,
+    "throughput_rps": 1476,
+    "error_rate_percent": 1.799,
+    "cpu_utilization_percent": 66.9,
+    "memory_utilization_percent": 80.1,
+    "disk_utilization_percent": 51.7,
+    "network_latency_ms": 16.69,
+    "active_connections": 1036,
+    "database_performance": {
+      "avg_query_time_ms": 57.78,
+      "connection_pool_usage_percent": 85.5,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.25,
+      "memory_usage_percent": 29.3,
+      "operations_per_second": 36767
+    }
+  },
+  {
+    "timestamp": "2025-08-11T10:31:07.402046",
+    "api_response_time_ms": 61.4,
+    "throughput_rps": 1332,
+    "error_rate_percent": 1.123,
+    "cpu_utilization_percent": 56.1,
+    "memory_utilization_percent": 56.2,
+    "disk_utilization_percent": 40.5,
+    "network_latency_ms": 18.35,
+    "active_connections": 379,
+    "database_performance": {
+      "avg_query_time_ms": 60.99,
+      "connection_pool_usage_percent": 36.7,
+      "slow_queries_count": 8
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.78,
+      "memory_usage_percent": 42.3,
+      "operations_per_second": 6660
+    }
+  },
+  {
+    "timestamp": "2025-08-11T09:31:07.402058",
+    "api_response_time_ms": 57.98,
+    "throughput_rps": 2066,
+    "error_rate_percent": 2.217,
+    "cpu_utilization_percent": 71.3,
+    "memory_utilization_percent": 112.8,
+    "disk_utilization_percent": 21.5,
+    "network_latency_ms": 7.66,
+    "active_connections": 827,
+    "database_performance": {
+      "avg_query_time_ms": 82.53,
+      "connection_pool_usage_percent": 85.4,
+      "slow_queries_count": 13
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.18,
+      "memory_usage_percent": 61.8,
+      "operations_per_second": 15802
+    }
+  },
+  {
+    "timestamp": "2025-08-11T08:31:07.402071",
+    "api_response_time_ms": 33.21,
+    "throughput_rps": 1123,
+    "error_rate_percent": 0.941,
+    "cpu_utilization_percent": 66.0,
+    "memory_utilization_percent": 69.2,
+    "disk_utilization_percent": 56.6,
+    "network_latency_ms": 8.48,
+    "active_connections": 816,
+    "database_performance": {
+      "avg_query_time_ms": 26.87,
+      "connection_pool_usage_percent": 16.5,
+      "slow_queries_count": 9
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.59,
+      "memory_usage_percent": 74.4,
+      "operations_per_second": 10261
+    }
+  },
+  {
+    "timestamp": "2025-08-11T07:31:07.402085",
+    "api_response_time_ms": 84.73,
+    "throughput_rps": 1228,
+    "error_rate_percent": 3.168,
+    "cpu_utilization_percent": 81.7,
+    "memory_utilization_percent": 83.1,
+    "disk_utilization_percent": 22.5,
+    "network_latency_ms": 8.77,
+    "active_connections": 770,
+    "database_performance": {
+      "avg_query_time_ms": 18.51,
+      "connection_pool_usage_percent": 48.0,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 98.49,
+      "memory_usage_percent": 48.1,
+      "operations_per_second": 18563
+    }
+  },
+  {
+    "timestamp": "2025-08-11T06:31:07.402098",
+    "api_response_time_ms": 68.54,
+    "throughput_rps": 829,
+    "error_rate_percent": 1.169,
+    "cpu_utilization_percent": 53.2,
+    "memory_utilization_percent": 45.9,
+    "disk_utilization_percent": 43.4,
+    "network_latency_ms": 7.9,
+    "active_connections": 205,
+    "database_performance": {
+      "avg_query_time_ms": 41.2,
+      "connection_pool_usage_percent": 53.6,
+      "slow_queries_count": 10
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.11,
+      "memory_usage_percent": 32.6,
+      "operations_per_second": 9486
+    }
+  },
+  {
+    "timestamp": "2025-08-11T05:31:07.402112",
+    "api_response_time_ms": 22.87,
+    "throughput_rps": 591,
+    "error_rate_percent": 2.238,
+    "cpu_utilization_percent": 21.3,
+    "memory_utilization_percent": 21.1,
+    "disk_utilization_percent": 28.0,
+    "network_latency_ms": 12.68,
+    "active_connections": 106,
+    "database_performance": {
+      "avg_query_time_ms": 5.23,
+      "connection_pool_usage_percent": 14.8,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 93.52,
+      "memory_usage_percent": 57.0,
+      "operations_per_second": 7746
+    }
+  },
+  {
+    "timestamp": "2025-08-11T04:31:07.402125",
+    "api_response_time_ms": 20.19,
+    "throughput_rps": 574,
+    "error_rate_percent": 4.426,
+    "cpu_utilization_percent": 45.9,
+    "memory_utilization_percent": 43.6,
+    "disk_utilization_percent": 55.9,
+    "network_latency_ms": 15.38,
+    "active_connections": 343,
+    "database_performance": {
+      "avg_query_time_ms": 23.28,
+      "connection_pool_usage_percent": 27.7,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 98.39,
+      "memory_usage_percent": 71.8,
+      "operations_per_second": 13999
+    }
+  },
+  {
+    "timestamp": "2025-08-11T03:31:07.402144",
+    "api_response_time_ms": 19.51,
+    "throughput_rps": 492,
+    "error_rate_percent": 3.938,
+    "cpu_utilization_percent": 27.1,
+    "memory_utilization_percent": 32.0,
+    "disk_utilization_percent": 25.3,
+    "network_latency_ms": 4.73,
+    "active_connections": 142,
+    "database_performance": {
+      "avg_query_time_ms": 23.48,
+      "connection_pool_usage_percent": 23.3,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.49,
+      "memory_usage_percent": 36.1,
+      "operations_per_second": 5001
+    }
+  },
+  {
+    "timestamp": "2025-08-11T02:31:07.402157",
+    "api_response_time_ms": 14.74,
+    "throughput_rps": 510,
+    "error_rate_percent": 4.391,
+    "cpu_utilization_percent": 22.1,
+    "memory_utilization_percent": 32.7,
+    "disk_utilization_percent": 43.9,
+    "network_latency_ms": 10.94,
+    "active_connections": 375,
+    "database_performance": {
+      "avg_query_time_ms": 9.27,
+      "connection_pool_usage_percent": 38.0,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 93.64,
+      "memory_usage_percent": 36.3,
+      "operations_per_second": 9951
+    }
+  },
+  {
+    "timestamp": "2025-08-11T01:31:07.402169",
+    "api_response_time_ms": 33.23,
+    "throughput_rps": 570,
+    "error_rate_percent": 5.659,
+    "cpu_utilization_percent": 14.3,
+    "memory_utilization_percent": 26.3,
+    "disk_utilization_percent": 40.3,
+    "network_latency_ms": 14.84,
+    "active_connections": 339,
+    "database_performance": {
+      "avg_query_time_ms": 14.89,
+      "connection_pool_usage_percent": 26.8,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.63,
+      "memory_usage_percent": 31.9,
+      "operations_per_second": 9368
+    }
+  },
+  {
+    "timestamp": "2025-08-11T00:31:07.402182",
+    "api_response_time_ms": 10.72,
+    "throughput_rps": 320,
+    "error_rate_percent": 2.698,
+    "cpu_utilization_percent": 10.6,
+    "memory_utilization_percent": 20.9,
+    "disk_utilization_percent": 49.7,
+    "network_latency_ms": 8.01,
+    "active_connections": 129,
+    "database_performance": {
+      "avg_query_time_ms": 12.54,
+      "connection_pool_usage_percent": 6.0,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 86.53,
+      "memory_usage_percent": 55.9,
+      "operations_per_second": 4303
+    }
+  },
+  {
+    "timestamp": "2025-08-10T23:31:07.402195",
+    "api_response_time_ms": 16.55,
+    "throughput_rps": 724,
+    "error_rate_percent": 0.582,
+    "cpu_utilization_percent": 36.1,
+    "memory_utilization_percent": 46.5,
+    "disk_utilization_percent": 51.1,
+    "network_latency_ms": 10.22,
+    "active_connections": 219,
+    "database_performance": {
+      "avg_query_time_ms": 16.61,
+      "connection_pool_usage_percent": 25.0,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.22,
+      "memory_usage_percent": 67.4,
+      "operations_per_second": 3541
+    }
+  },
+  {
+    "timestamp": "2025-08-10T22:31:07.402208",
+    "api_response_time_ms": 20.04,
+    "throughput_rps": 795,
+    "error_rate_percent": 0.969,
+    "cpu_utilization_percent": 44.3,
+    "memory_utilization_percent": 56.1,
+    "disk_utilization_percent": 25.9,
+    "network_latency_ms": 12.79,
+    "active_connections": 482,
+    "database_performance": {
+      "avg_query_time_ms": 31.28,
+      "connection_pool_usage_percent": 55.4,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 93.39,
+      "memory_usage_percent": 56.7,
+      "operations_per_second": 18596
+    }
+  },
+  {
+    "timestamp": "2025-08-10T21:31:07.402222",
+    "api_response_time_ms": 91.7,
+    "throughput_rps": 1252,
+    "error_rate_percent": 0.805,
+    "cpu_utilization_percent": 77.8,
+    "memory_utilization_percent": 43.8,
+    "disk_utilization_percent": 25.5,
+    "network_latency_ms": 12.51,
+    "active_connections": 835,
+    "database_performance": {
+      "avg_query_time_ms": 41.61,
+      "connection_pool_usage_percent": 28.5,
+      "slow_queries_count": 13
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.73,
+      "memory_usage_percent": 31.7,
+      "operations_per_second": 11074
+    }
+  },
+  {
+    "timestamp": "2025-08-10T20:31:07.402235",
+    "api_response_time_ms": 74.53,
+    "throughput_rps": 1431,
+    "error_rate_percent": 3.376,
+    "cpu_utilization_percent": 66.9,
+    "memory_utilization_percent": 42.5,
+    "disk_utilization_percent": 55.0,
+    "network_latency_ms": 12.78,
+    "active_connections": 469,
+    "database_performance": {
+      "avg_query_time_ms": 16.2,
+      "connection_pool_usage_percent": 39.9,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.0,
+      "memory_usage_percent": 61.0,
+      "operations_per_second": 16953
+    }
+  },
+  {
+    "timestamp": "2025-08-10T19:31:07.402247",
+    "api_response_time_ms": 47.12,
+    "throughput_rps": 949,
+    "error_rate_percent": 3.032,
+    "cpu_utilization_percent": 42.0,
+    "memory_utilization_percent": 32.5,
+    "disk_utilization_percent": 28.7,
+    "network_latency_ms": 12.32,
+    "active_connections": 644,
+    "database_performance": {
+      "avg_query_time_ms": 38.84,
+      "connection_pool_usage_percent": 13.5,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.48,
+      "memory_usage_percent": 32.3,
+      "operations_per_second": 10411
+    }
+  },
+  {
+    "timestamp": "2025-08-10T18:31:07.402259",
+    "api_response_time_ms": 61.11,
+    "throughput_rps": 1200,
+    "error_rate_percent": 3.9,
+    "cpu_utilization_percent": 35.2,
+    "memory_utilization_percent": 45.8,
+    "disk_utilization_percent": 21.7,
+    "network_latency_ms": 5.54,
+    "active_connections": 657,
+    "database_performance": {
+      "avg_query_time_ms": 13.78,
+      "connection_pool_usage_percent": 24.4,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.38,
+      "memory_usage_percent": 74.0,
+      "operations_per_second": 18178
+    }
+  },
+  {
+    "timestamp": "2025-08-10T17:31:07.402272",
+    "api_response_time_ms": 65.95,
+    "throughput_rps": 1974,
+    "error_rate_percent": 0.065,
+    "cpu_utilization_percent": 94.9,
+    "memory_utilization_percent": 78.3,
+    "disk_utilization_percent": 36.0,
+    "network_latency_ms": 8.3,
+    "active_connections": 931,
+    "database_performance": {
+      "avg_query_time_ms": 69.24,
+      "connection_pool_usage_percent": 104.2,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 86.06,
+      "memory_usage_percent": 50.0,
+      "operations_per_second": 27712
+    }
+  },
+  {
+    "timestamp": "2025-08-10T16:31:07.402284",
+    "api_response_time_ms": 90.8,
+    "throughput_rps": 1693,
+    "error_rate_percent": 0.419,
+    "cpu_utilization_percent": 101.7,
+    "memory_utilization_percent": 71.4,
+    "disk_utilization_percent": 21.0,
+    "network_latency_ms": 17.71,
+    "active_connections": 365,
+    "database_performance": {
+      "avg_query_time_ms": 24.23,
+      "connection_pool_usage_percent": 19.0,
+      "slow_queries_count": 16
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.3,
+      "memory_usage_percent": 48.5,
+      "operations_per_second": 18063
+    }
+  },
+  {
+    "timestamp": "2025-08-10T15:31:07.402297",
+    "api_response_time_ms": 55.57,
+    "throughput_rps": 2038,
+    "error_rate_percent": 1.111,
+    "cpu_utilization_percent": 77.4,
+    "memory_utilization_percent": 97.3,
+    "disk_utilization_percent": 47.7,
+    "network_latency_ms": 8.11,
+    "active_connections": 732,
+    "database_performance": {
+      "avg_query_time_ms": 24.91,
+      "connection_pool_usage_percent": 77.5,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.48,
+      "memory_usage_percent": 44.6,
+      "operations_per_second": 9990
+    }
+  },
+  {
+    "timestamp": "2025-08-10T14:31:07.402310",
+    "api_response_time_ms": 64.53,
+    "throughput_rps": 1411,
+    "error_rate_percent": 1.277,
+    "cpu_utilization_percent": 52.6,
+    "memory_utilization_percent": 75.1,
+    "disk_utilization_percent": 26.6,
+    "network_latency_ms": 12.44,
+    "active_connections": 1293,
+    "database_performance": {
+      "avg_query_time_ms": 49.4,
+      "connection_pool_usage_percent": 109.6,
+      "slow_queries_count": 14
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.92,
+      "memory_usage_percent": 57.8,
+      "operations_per_second": 12263
+    }
+  },
+  {
+    "timestamp": "2025-08-10T13:31:07.402324",
+    "api_response_time_ms": 25.01,
+    "throughput_rps": 1847,
+    "error_rate_percent": 0.586,
+    "cpu_utilization_percent": 80.6,
+    "memory_utilization_percent": 104.2,
+    "disk_utilization_percent": 22.1,
+    "network_latency_ms": 12.16,
+    "active_connections": 910,
+    "database_performance": {
+      "avg_query_time_ms": 25.64,
+      "connection_pool_usage_percent": 75.5,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 86.45,
+      "memory_usage_percent": 35.1,
+      "operations_per_second": 29868
+    }
+  },
+  {
+    "timestamp": "2025-08-10T12:31:07.402337",
+    "api_response_time_ms": 94.7,
+    "throughput_rps": 1906,
+    "error_rate_percent": 0.388,
+    "cpu_utilization_percent": 53.0,
+    "memory_utilization_percent": 131.8,
+    "disk_utilization_percent": 37.6,
+    "network_latency_ms": 6.78,
+    "active_connections": 585,
+    "database_performance": {
+      "avg_query_time_ms": 42.05,
+      "connection_pool_usage_percent": 65.9,
+      "slow_queries_count": 19
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.93,
+      "memory_usage_percent": 42.9,
+      "operations_per_second": 14312
+    }
+  },
+  {
+    "timestamp": "2025-08-10T11:31:07.402350",
+    "api_response_time_ms": 88.52,
+    "throughput_rps": 1342,
+    "error_rate_percent": 1.707,
+    "cpu_utilization_percent": 122.7,
+    "memory_utilization_percent": 122.0,
+    "disk_utilization_percent": 31.4,
+    "network_latency_ms": 11.08,
+    "active_connections": 1088,
+    "database_performance": {
+      "avg_query_time_ms": 67.41,
+      "connection_pool_usage_percent": 59.9,
+      "slow_queries_count": 20
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.38,
+      "memory_usage_percent": 47.3,
+      "operations_per_second": 10373
+    }
+  },
+  {
+    "timestamp": "2025-08-10T10:31:07.402362",
+    "api_response_time_ms": 81.47,
+    "throughput_rps": 1356,
+    "error_rate_percent": 1.424,
+    "cpu_utilization_percent": 73.6,
+    "memory_utilization_percent": 63.8,
+    "disk_utilization_percent": 34.5,
+    "network_latency_ms": 3.49,
+    "active_connections": 945,
+    "database_performance": {
+      "avg_query_time_ms": 55.22,
+      "connection_pool_usage_percent": 53.7,
+      "slow_queries_count": 16
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.53,
+      "memory_usage_percent": 36.1,
+      "operations_per_second": 9694
+    }
+  },
+  {
+    "timestamp": "2025-08-10T09:31:07.402375",
+    "api_response_time_ms": 130.73,
+    "throughput_rps": 1929,
+    "error_rate_percent": 1.667,
+    "cpu_utilization_percent": 110.0,
+    "memory_utilization_percent": 107.1,
+    "disk_utilization_percent": 46.0,
+    "network_latency_ms": 12.51,
+    "active_connections": 890,
+    "database_performance": {
+      "avg_query_time_ms": 29.63,
+      "connection_pool_usage_percent": 89.0,
+      "slow_queries_count": 12
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.61,
+      "memory_usage_percent": 64.1,
+      "operations_per_second": 22880
+    }
+  },
+  {
+    "timestamp": "2025-08-10T08:31:07.402388",
+    "api_response_time_ms": 30.78,
+    "throughput_rps": 1294,
+    "error_rate_percent": 2.58,
+    "cpu_utilization_percent": 70.8,
+    "memory_utilization_percent": 61.9,
+    "disk_utilization_percent": 54.7,
+    "network_latency_ms": 17.94,
+    "active_connections": 494,
+    "database_performance": {
+      "avg_query_time_ms": 11.64,
+      "connection_pool_usage_percent": 58.5,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.32,
+      "memory_usage_percent": 54.4,
+      "operations_per_second": 7397
+    }
+  },
+  {
+    "timestamp": "2025-08-10T07:31:07.402411",
+    "api_response_time_ms": 81.28,
+    "throughput_rps": 1710,
+    "error_rate_percent": 2.122,
+    "cpu_utilization_percent": 58.7,
+    "memory_utilization_percent": 82.4,
+    "disk_utilization_percent": 36.1,
+    "network_latency_ms": 9.8,
+    "active_connections": 1024,
+    "database_performance": {
+      "avg_query_time_ms": 11.57,
+      "connection_pool_usage_percent": 59.9,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.07,
+      "memory_usage_percent": 56.5,
+      "operations_per_second": 28302
+    }
+  },
+  {
+    "timestamp": "2025-08-10T06:31:07.402424",
+    "api_response_time_ms": 81.54,
+    "throughput_rps": 1609,
+    "error_rate_percent": 0.565,
+    "cpu_utilization_percent": 87.1,
+    "memory_utilization_percent": 70.2,
+    "disk_utilization_percent": 55.5,
+    "network_latency_ms": 16.13,
+    "active_connections": 862,
+    "database_performance": {
+      "avg_query_time_ms": 34.81,
+      "connection_pool_usage_percent": 65.9,
+      "slow_queries_count": 9
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.88,
+      "memory_usage_percent": 66.6,
+      "operations_per_second": 21686
+    }
+  },
+  {
+    "timestamp": "2025-08-10T05:31:07.402436",
+    "api_response_time_ms": 16.88,
+    "throughput_rps": 340,
+    "error_rate_percent": 4.654,
+    "cpu_utilization_percent": 17.2,
+    "memory_utilization_percent": 18.3,
+    "disk_utilization_percent": 35.6,
+    "network_latency_ms": 14.7,
+    "active_connections": 157,
+    "database_performance": {
+      "avg_query_time_ms": 7.09,
+      "connection_pool_usage_percent": 15.6,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.73,
+      "memory_usage_percent": 58.5,
+      "operations_per_second": 3101
+    }
+  },
+  {
+    "timestamp": "2025-08-10T04:31:07.402449",
+    "api_response_time_ms": 19.83,
+    "throughput_rps": 499,
+    "error_rate_percent": 4.121,
+    "cpu_utilization_percent": 23.4,
+    "memory_utilization_percent": 18.8,
+    "disk_utilization_percent": 35.2,
+    "network_latency_ms": 14.47,
+    "active_connections": 315,
+    "database_performance": {
+      "avg_query_time_ms": 23.12,
+      "connection_pool_usage_percent": 17.1,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 98.27,
+      "memory_usage_percent": 49.6,
+      "operations_per_second": 4489
+    }
+  },
+  {
+    "timestamp": "2025-08-10T03:31:07.402464",
+    "api_response_time_ms": 20.73,
+    "throughput_rps": 459,
+    "error_rate_percent": 1.629,
+    "cpu_utilization_percent": 35.8,
+    "memory_utilization_percent": 39.2,
+    "disk_utilization_percent": 34.4,
+    "network_latency_ms": 13.56,
+    "active_connections": 270,
+    "database_performance": {
+      "avg_query_time_ms": 22.99,
+      "connection_pool_usage_percent": 30.0,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.16,
+      "memory_usage_percent": 67.3,
+      "operations_per_second": 10135
+    }
+  },
+  {
+    "timestamp": "2025-08-10T02:31:07.402477",
+    "api_response_time_ms": 7.5,
+    "throughput_rps": 408,
+    "error_rate_percent": 4.754,
+    "cpu_utilization_percent": 9.6,
+    "memory_utilization_percent": 14.2,
+    "disk_utilization_percent": 39.3,
+    "network_latency_ms": 18.18,
+    "active_connections": 115,
+    "database_performance": {
+      "avg_query_time_ms": 11.57,
+      "connection_pool_usage_percent": 15.5,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.6,
+      "memory_usage_percent": 55.3,
+      "operations_per_second": 4105
+    }
+  },
+  {
+    "timestamp": "2025-08-10T01:31:07.402489",
+    "api_response_time_ms": 14.54,
+    "throughput_rps": 655,
+    "error_rate_percent": 4.846,
+    "cpu_utilization_percent": 32.1,
+    "memory_utilization_percent": 28.5,
+    "disk_utilization_percent": 58.6,
+    "network_latency_ms": 5.72,
+    "active_connections": 443,
+    "database_performance": {
+      "avg_query_time_ms": 9.6,
+      "connection_pool_usage_percent": 11.3,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.53,
+      "memory_usage_percent": 66.4,
+      "operations_per_second": 6282
+    }
+  },
+  {
+    "timestamp": "2025-08-10T00:31:07.402502",
+    "api_response_time_ms": 39.04,
+    "throughput_rps": 856,
+    "error_rate_percent": 0.599,
+    "cpu_utilization_percent": 34.4,
+    "memory_utilization_percent": 37.2,
+    "disk_utilization_percent": 23.8,
+    "network_latency_ms": 17.24,
+    "active_connections": 167,
+    "database_performance": {
+      "avg_query_time_ms": 23.03,
+      "connection_pool_usage_percent": 11.9,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.62,
+      "memory_usage_percent": 48.4,
+      "operations_per_second": 12649
+    }
+  },
+  {
+    "timestamp": "2025-08-09T23:31:07.402516",
+    "api_response_time_ms": 31.58,
+    "throughput_rps": 610,
+    "error_rate_percent": 7.156,
+    "cpu_utilization_percent": 23.6,
+    "memory_utilization_percent": 28.3,
+    "disk_utilization_percent": 31.0,
+    "network_latency_ms": 13.93,
+    "active_connections": 112,
+    "database_performance": {
+      "avg_query_time_ms": 11.18,
+      "connection_pool_usage_percent": 29.7,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.44,
+      "memory_usage_percent": 47.0,
+      "operations_per_second": 3394
+    }
+  },
+  {
+    "timestamp": "2025-08-09T22:31:07.402528",
+    "api_response_time_ms": 74.72,
+    "throughput_rps": 975,
+    "error_rate_percent": 0.639,
+    "cpu_utilization_percent": 24.3,
+    "memory_utilization_percent": 46.6,
+    "disk_utilization_percent": 44.7,
+    "network_latency_ms": 15.22,
+    "active_connections": 485,
+    "database_performance": {
+      "avg_query_time_ms": 40.44,
+      "connection_pool_usage_percent": 44.1,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.52,
+      "memory_usage_percent": 72.0,
+      "operations_per_second": 6270
+    }
+  },
+  {
+    "timestamp": "2025-08-09T21:31:07.402541",
+    "api_response_time_ms": 42.4,
+    "throughput_rps": 1052,
+    "error_rate_percent": 1.319,
+    "cpu_utilization_percent": 36.6,
+    "memory_utilization_percent": 45.2,
+    "disk_utilization_percent": 22.0,
+    "network_latency_ms": 4.68,
+    "active_connections": 313,
+    "database_performance": {
+      "avg_query_time_ms": 53.19,
+      "connection_pool_usage_percent": 81.4,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.96,
+      "memory_usage_percent": 30.5,
+      "operations_per_second": 10439
+    }
+  },
+  {
+    "timestamp": "2025-08-09T20:31:07.402554",
+    "api_response_time_ms": 59.9,
+    "throughput_rps": 1219,
+    "error_rate_percent": 2.221,
+    "cpu_utilization_percent": 51.8,
+    "memory_utilization_percent": 30.3,
+    "disk_utilization_percent": 52.2,
+    "network_latency_ms": 5.76,
+    "active_connections": 263,
+    "database_performance": {
+      "avg_query_time_ms": 41.07,
+      "connection_pool_usage_percent": 11.7,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.61,
+      "memory_usage_percent": 42.5,
+      "operations_per_second": 20859
+    }
+  },
+  {
+    "timestamp": "2025-08-09T19:31:07.402566",
+    "api_response_time_ms": 36.13,
+    "throughput_rps": 1188,
+    "error_rate_percent": 2.651,
+    "cpu_utilization_percent": 70.3,
+    "memory_utilization_percent": 68.4,
+    "disk_utilization_percent": 39.9,
+    "network_latency_ms": 16.5,
+    "active_connections": 518,
+    "database_performance": {
+      "avg_query_time_ms": 14.92,
+      "connection_pool_usage_percent": 24.6,
+      "slow_queries_count": 11
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.74,
+      "memory_usage_percent": 71.4,
+      "operations_per_second": 6102
+    }
+  },
+  {
+    "timestamp": "2025-08-09T18:31:07.402579",
+    "api_response_time_ms": 42.36,
+    "throughput_rps": 1306,
+    "error_rate_percent": 0.477,
+    "cpu_utilization_percent": 30.4,
+    "memory_utilization_percent": 82.1,
+    "disk_utilization_percent": 31.8,
+    "network_latency_ms": 17.33,
+    "active_connections": 626,
+    "database_performance": {
+      "avg_query_time_ms": 40.94,
+      "connection_pool_usage_percent": 23.6,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.64,
+      "memory_usage_percent": 60.7,
+      "operations_per_second": 11976
+    }
+  },
+  {
+    "timestamp": "2025-08-09T17:31:07.402593",
+    "api_response_time_ms": 35.35,
+    "throughput_rps": 1612,
+    "error_rate_percent": 0.723,
+    "cpu_utilization_percent": 48.5,
+    "memory_utilization_percent": 92.9,
+    "disk_utilization_percent": 27.7,
+    "network_latency_ms": 11.46,
+    "active_connections": 425,
+    "database_performance": {
+      "avg_query_time_ms": 30.63,
+      "connection_pool_usage_percent": 46.4,
+      "slow_queries_count": 11
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.56,
+      "memory_usage_percent": 52.5,
+      "operations_per_second": 30219
+    }
+  },
+  {
+    "timestamp": "2025-08-09T16:31:07.402606",
+    "api_response_time_ms": 41.25,
+    "throughput_rps": 1485,
+    "error_rate_percent": 2.601,
+    "cpu_utilization_percent": 88.4,
+    "memory_utilization_percent": 75.8,
+    "disk_utilization_percent": 30.5,
+    "network_latency_ms": 5.52,
+    "active_connections": 382,
+    "database_performance": {
+      "avg_query_time_ms": 66.29,
+      "connection_pool_usage_percent": 43.0,
+      "slow_queries_count": 14
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.43,
+      "memory_usage_percent": 73.4,
+      "operations_per_second": 25799
+    }
+  },
+  {
+    "timestamp": "2025-08-09T15:31:07.402618",
+    "api_response_time_ms": 71.04,
+    "throughput_rps": 1446,
+    "error_rate_percent": 0.304,
+    "cpu_utilization_percent": 62.8,
+    "memory_utilization_percent": 108.2,
+    "disk_utilization_percent": 58.8,
+    "network_latency_ms": 8.58,
+    "active_connections": 562,
+    "database_performance": {
+      "avg_query_time_ms": 66.24,
+      "connection_pool_usage_percent": 29.5,
+      "slow_queries_count": 15
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.35,
+      "memory_usage_percent": 58.6,
+      "operations_per_second": 34881
+    }
+  },
+  {
+    "timestamp": "2025-08-09T14:31:07.402631",
+    "api_response_time_ms": 77.94,
+    "throughput_rps": 1735,
+    "error_rate_percent": 0.977,
+    "cpu_utilization_percent": 104.5,
+    "memory_utilization_percent": 88.3,
+    "disk_utilization_percent": 57.9,
+    "network_latency_ms": 10.14,
+    "active_connections": 1251,
+    "database_performance": {
+      "avg_query_time_ms": 75.73,
+      "connection_pool_usage_percent": 64.0,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.44,
+      "memory_usage_percent": 27.4,
+      "operations_per_second": 10821
+    }
+  },
+  {
+    "timestamp": "2025-08-09T13:31:07.402643",
+    "api_response_time_ms": 107.68,
+    "throughput_rps": 1135,
+    "error_rate_percent": 0.902,
+    "cpu_utilization_percent": 85.7,
+    "memory_utilization_percent": 68.2,
+    "disk_utilization_percent": 42.1,
+    "network_latency_ms": 4.26,
+    "active_connections": 634,
+    "database_performance": {
+      "avg_query_time_ms": 28.06,
+      "connection_pool_usage_percent": 21.8,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.11,
+      "memory_usage_percent": 62.5,
+      "operations_per_second": 22005
+    }
+  },
+  {
+    "timestamp": "2025-08-09T12:31:07.402656",
+    "api_response_time_ms": 60.08,
+    "throughput_rps": 1327,
+    "error_rate_percent": 0.114,
+    "cpu_utilization_percent": 83.7,
+    "memory_utilization_percent": 51.9,
+    "disk_utilization_percent": 29.4,
+    "network_latency_ms": 16.36,
+    "active_connections": 744,
+    "database_performance": {
+      "avg_query_time_ms": 69.22,
+      "connection_pool_usage_percent": 29.1,
+      "slow_queries_count": 13
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.07,
+      "memory_usage_percent": 43.9,
+      "operations_per_second": 32266
+    }
+  },
+  {
+    "timestamp": "2025-08-09T11:31:07.402669",
+    "api_response_time_ms": 83.7,
+    "throughput_rps": 1338,
+    "error_rate_percent": 0.262,
+    "cpu_utilization_percent": 62.7,
+    "memory_utilization_percent": 64.4,
+    "disk_utilization_percent": 43.3,
+    "network_latency_ms": 17.74,
+    "active_connections": 790,
+    "database_performance": {
+      "avg_query_time_ms": 16.79,
+      "connection_pool_usage_percent": 25.6,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.83,
+      "memory_usage_percent": 59.2,
+      "operations_per_second": 29229
+    }
+  },
+  {
+    "timestamp": "2025-08-09T10:31:07.402681",
+    "api_response_time_ms": 22.57,
+    "throughput_rps": 1564,
+    "error_rate_percent": 1.188,
+    "cpu_utilization_percent": 74.6,
+    "memory_utilization_percent": 85.6,
+    "disk_utilization_percent": 42.8,
+    "network_latency_ms": 17.64,
+    "active_connections": 656,
+    "database_performance": {
+      "avg_query_time_ms": 46.82,
+      "connection_pool_usage_percent": 29.2,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.61,
+      "memory_usage_percent": 65.3,
+      "operations_per_second": 21190
+    }
+  },
+  {
+    "timestamp": "2025-08-09T09:31:07.402696",
+    "api_response_time_ms": 76.53,
+    "throughput_rps": 1634,
+    "error_rate_percent": 1.358,
+    "cpu_utilization_percent": 88.7,
+    "memory_utilization_percent": 74.9,
+    "disk_utilization_percent": 55.2,
+    "network_latency_ms": 5.44,
+    "active_connections": 527,
+    "database_performance": {
+      "avg_query_time_ms": 81.91,
+      "connection_pool_usage_percent": 23.9,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.65,
+      "memory_usage_percent": 60.4,
+      "operations_per_second": 36061
+    }
+  },
+  {
+    "timestamp": "2025-08-09T08:31:07.402709",
+    "api_response_time_ms": 26.21,
+    "throughput_rps": 1762,
+    "error_rate_percent": 1.384,
+    "cpu_utilization_percent": 83.2,
+    "memory_utilization_percent": 75.3,
+    "disk_utilization_percent": 54.6,
+    "network_latency_ms": 4.21,
+    "active_connections": 541,
+    "database_performance": {
+      "avg_query_time_ms": 35.92,
+      "connection_pool_usage_percent": 58.5,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.71,
+      "memory_usage_percent": 56.0,
+      "operations_per_second": 22108
+    }
+  },
+  {
+    "timestamp": "2025-08-09T07:31:07.402722",
+    "api_response_time_ms": 64.04,
+    "throughput_rps": 902,
+    "error_rate_percent": 0.267,
+    "cpu_utilization_percent": 47.9,
+    "memory_utilization_percent": 71.6,
+    "disk_utilization_percent": 49.5,
+    "network_latency_ms": 4.77,
+    "active_connections": 192,
+    "database_performance": {
+      "avg_query_time_ms": 35.35,
+      "connection_pool_usage_percent": 37.0,
+      "slow_queries_count": 11
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.57,
+      "memory_usage_percent": 30.7,
+      "operations_per_second": 18376
+    }
+  },
+  {
+    "timestamp": "2025-08-09T06:31:07.402735",
+    "api_response_time_ms": 25.77,
+    "throughput_rps": 942,
+    "error_rate_percent": 1.952,
+    "cpu_utilization_percent": 58.4,
+    "memory_utilization_percent": 54.0,
+    "disk_utilization_percent": 47.6,
+    "network_latency_ms": 10.73,
+    "active_connections": 326,
+    "database_performance": {
+      "avg_query_time_ms": 11.03,
+      "connection_pool_usage_percent": 43.2,
+      "slow_queries_count": 9
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.33,
+      "memory_usage_percent": 51.7,
+      "operations_per_second": 17905
+    }
+  },
+  {
+    "timestamp": "2025-08-09T05:31:07.402748",
+    "api_response_time_ms": 26.8,
+    "throughput_rps": 1003,
+    "error_rate_percent": 3.377,
+    "cpu_utilization_percent": 31.8,
+    "memory_utilization_percent": 49.5,
+    "disk_utilization_percent": 50.4,
+    "network_latency_ms": 17.96,
+    "active_connections": 271,
+    "database_performance": {
+      "avg_query_time_ms": 25.59,
+      "connection_pool_usage_percent": 34.3,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.01,
+      "memory_usage_percent": 43.0,
+      "operations_per_second": 10590
+    }
+  },
+  {
+    "timestamp": "2025-08-09T04:31:07.402760",
+    "api_response_time_ms": 32.53,
+    "throughput_rps": 340,
+    "error_rate_percent": 3.291,
+    "cpu_utilization_percent": 12.2,
+    "memory_utilization_percent": 30.3,
+    "disk_utilization_percent": 26.8,
+    "network_latency_ms": 5.15,
+    "active_connections": 308,
+    "database_performance": {
+      "avg_query_time_ms": 3.49,
+      "connection_pool_usage_percent": 6.8,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.03,
+      "memory_usage_percent": 56.8,
+      "operations_per_second": 8528
+    }
+  },
+  {
+    "timestamp": "2025-08-09T03:31:07.402773",
+    "api_response_time_ms": 16.92,
+    "throughput_rps": 513,
+    "error_rate_percent": 6.789,
+    "cpu_utilization_percent": 23.6,
+    "memory_utilization_percent": 17.7,
+    "disk_utilization_percent": 38.2,
+    "network_latency_ms": 14.05,
+    "active_connections": 241,
+    "database_performance": {
+      "avg_query_time_ms": 9.9,
+      "connection_pool_usage_percent": 11.0,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.41,
+      "memory_usage_percent": 63.5,
+      "operations_per_second": 4783
+    }
+  },
+  {
+    "timestamp": "2025-08-09T02:31:07.402786",
+    "api_response_time_ms": 27.62,
+    "throughput_rps": 401,
+    "error_rate_percent": 2.291,
+    "cpu_utilization_percent": 11.7,
+    "memory_utilization_percent": 26.5,
+    "disk_utilization_percent": 40.5,
+    "network_latency_ms": 3.36,
+    "active_connections": 243,
+    "database_performance": {
+      "avg_query_time_ms": 11.72,
+      "connection_pool_usage_percent": 24.9,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.88,
+      "memory_usage_percent": 64.6,
+      "operations_per_second": 5890
+    }
+  },
+  {
+    "timestamp": "2025-08-09T01:31:07.402799",
+    "api_response_time_ms": 42.57,
+    "throughput_rps": 561,
+    "error_rate_percent": 1.285,
+    "cpu_utilization_percent": 25.3,
+    "memory_utilization_percent": 41.9,
+    "disk_utilization_percent": 40.7,
+    "network_latency_ms": 15.79,
+    "active_connections": 121,
+    "database_performance": {
+      "avg_query_time_ms": 9.65,
+      "connection_pool_usage_percent": 36.8,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.26,
+      "memory_usage_percent": 65.6,
+      "operations_per_second": 8488
+    }
+  },
+  {
+    "timestamp": "2025-08-09T00:31:07.402812",
+    "api_response_time_ms": 37.54,
+    "throughput_rps": 612,
+    "error_rate_percent": 0.189,
+    "cpu_utilization_percent": 42.5,
+    "memory_utilization_percent": 46.0,
+    "disk_utilization_percent": 36.1,
+    "network_latency_ms": 13.68,
+    "active_connections": 458,
+    "database_performance": {
+      "avg_query_time_ms": 11.25,
+      "connection_pool_usage_percent": 46.1,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.66,
+      "memory_usage_percent": 29.0,
+      "operations_per_second": 14449
+    }
+  },
+  {
+    "timestamp": "2025-08-08T23:31:07.402826",
+    "api_response_time_ms": 18.3,
+    "throughput_rps": 963,
+    "error_rate_percent": 2.985,
+    "cpu_utilization_percent": 25.8,
+    "memory_utilization_percent": 38.6,
+    "disk_utilization_percent": 46.3,
+    "network_latency_ms": 3.24,
+    "active_connections": 449,
+    "database_performance": {
+      "avg_query_time_ms": 19.03,
+      "connection_pool_usage_percent": 30.1,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 98.12,
+      "memory_usage_percent": 72.4,
+      "operations_per_second": 3859
+    }
+  },
+  {
+    "timestamp": "2025-08-08T22:31:07.402839",
+    "api_response_time_ms": 18.95,
+    "throughput_rps": 829,
+    "error_rate_percent": 0.179,
+    "cpu_utilization_percent": 22.7,
+    "memory_utilization_percent": 33.9,
+    "disk_utilization_percent": 53.5,
+    "network_latency_ms": 3.95,
+    "active_connections": 159,
+    "database_performance": {
+      "avg_query_time_ms": 10.85,
+      "connection_pool_usage_percent": 51.0,
+      "slow_queries_count": 9
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.02,
+      "memory_usage_percent": 65.0,
+      "operations_per_second": 19678
+    }
+  },
+  {
+    "timestamp": "2025-08-08T21:31:07.402852",
+    "api_response_time_ms": 75.03,
+    "throughput_rps": 1690,
+    "error_rate_percent": 1.481,
+    "cpu_utilization_percent": 67.4,
+    "memory_utilization_percent": 78.6,
+    "disk_utilization_percent": 33.3,
+    "network_latency_ms": 13.48,
+    "active_connections": 821,
+    "database_performance": {
+      "avg_query_time_ms": 38.86,
+      "connection_pool_usage_percent": 50.1,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.51,
+      "memory_usage_percent": 64.7,
+      "operations_per_second": 10082
+    }
+  },
+  {
+    "timestamp": "2025-08-08T20:31:07.402864",
+    "api_response_time_ms": 32.57,
+    "throughput_rps": 821,
+    "error_rate_percent": 2.56,
+    "cpu_utilization_percent": 20.9,
+    "memory_utilization_percent": 39.9,
+    "disk_utilization_percent": 30.8,
+    "network_latency_ms": 9.41,
+    "active_connections": 471,
+    "database_performance": {
+      "avg_query_time_ms": 22.25,
+      "connection_pool_usage_percent": 20.5,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.61,
+      "memory_usage_percent": 67.3,
+      "operations_per_second": 5578
+    }
+  },
+  {
+    "timestamp": "2025-08-08T19:31:07.402877",
+    "api_response_time_ms": 16.11,
+    "throughput_rps": 745,
+    "error_rate_percent": 0.437,
+    "cpu_utilization_percent": 46.0,
+    "memory_utilization_percent": 61.1,
+    "disk_utilization_percent": 27.9,
+    "network_latency_ms": 13.03,
+    "active_connections": 470,
+    "database_performance": {
+      "avg_query_time_ms": 44.0,
+      "connection_pool_usage_percent": 39.1,
+      "slow_queries_count": 10
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.0,
+      "memory_usage_percent": 71.0,
+      "operations_per_second": 19203
+    }
+  },
+  {
+    "timestamp": "2025-08-08T18:31:07.402890",
+    "api_response_time_ms": 22.15,
+    "throughput_rps": 1234,
+    "error_rate_percent": 1.168,
+    "cpu_utilization_percent": 58.2,
+    "memory_utilization_percent": 47.1,
+    "disk_utilization_percent": 28.5,
+    "network_latency_ms": 8.24,
+    "active_connections": 191,
+    "database_performance": {
+      "avg_query_time_ms": 8.36,
+      "connection_pool_usage_percent": 61.2,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.31,
+      "memory_usage_percent": 60.7,
+      "operations_per_second": 7891
+    }
+  },
+  {
+    "timestamp": "2025-08-08T17:31:07.402903",
+    "api_response_time_ms": 53.66,
+    "throughput_rps": 1619,
+    "error_rate_percent": 1.97,
+    "cpu_utilization_percent": 100.9,
+    "memory_utilization_percent": 86.6,
+    "disk_utilization_percent": 20.3,
+    "network_latency_ms": 12.25,
+    "active_connections": 293,
+    "database_performance": {
+      "avg_query_time_ms": 24.63,
+      "connection_pool_usage_percent": 21.7,
+      "slow_queries_count": 17
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.01,
+      "memory_usage_percent": 55.0,
+      "operations_per_second": 20297
+    }
+  },
+  {
+    "timestamp": "2025-08-08T16:31:07.402927",
+    "api_response_time_ms": 86.68,
+    "throughput_rps": 1926,
+    "error_rate_percent": 0.629,
+    "cpu_utilization_percent": 111.9,
+    "memory_utilization_percent": 95.7,
+    "disk_utilization_percent": 53.2,
+    "network_latency_ms": 16.22,
+    "active_connections": 402,
+    "database_performance": {
+      "avg_query_time_ms": 56.71,
+      "connection_pool_usage_percent": 46.0,
+      "slow_queries_count": 16
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.76,
+      "memory_usage_percent": 36.7,
+      "operations_per_second": 11562
+    }
+  },
+  {
+    "timestamp": "2025-08-08T15:31:07.402940",
+    "api_response_time_ms": 80.15,
+    "throughput_rps": 1471,
+    "error_rate_percent": 1.781,
+    "cpu_utilization_percent": 59.3,
+    "memory_utilization_percent": 50.9,
+    "disk_utilization_percent": 54.4,
+    "network_latency_ms": 9.77,
+    "active_connections": 1001,
+    "database_performance": {
+      "avg_query_time_ms": 68.78,
+      "connection_pool_usage_percent": 21.8,
+      "slow_queries_count": 17
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.28,
+      "memory_usage_percent": 43.7,
+      "operations_per_second": 10480
+    }
+  },
+  {
+    "timestamp": "2025-08-08T14:31:07.402952",
+    "api_response_time_ms": 77.32,
+    "throughput_rps": 1955,
+    "error_rate_percent": 0.791,
+    "cpu_utilization_percent": 94.0,
+    "memory_utilization_percent": 83.3,
+    "disk_utilization_percent": 34.2,
+    "network_latency_ms": 8.73,
+    "active_connections": 840,
+    "database_performance": {
+      "avg_query_time_ms": 69.53,
+      "connection_pool_usage_percent": 34.5,
+      "slow_queries_count": 9
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.8,
+      "memory_usage_percent": 60.1,
+      "operations_per_second": 23928
+    }
+  },
+  {
+    "timestamp": "2025-08-08T13:31:07.402965",
+    "api_response_time_ms": 86.71,
+    "throughput_rps": 2151,
+    "error_rate_percent": 1.493,
+    "cpu_utilization_percent": 101.5,
+    "memory_utilization_percent": 101.2,
+    "disk_utilization_percent": 50.6,
+    "network_latency_ms": 8.41,
+    "active_connections": 988,
+    "database_performance": {
+      "avg_query_time_ms": 74.22,
+      "connection_pool_usage_percent": 24.9,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.54,
+      "memory_usage_percent": 58.7,
+      "operations_per_second": 20787
+    }
+  },
+  {
+    "timestamp": "2025-08-08T12:31:07.402978",
+    "api_response_time_ms": 48.01,
+    "throughput_rps": 1539,
+    "error_rate_percent": 0.728,
+    "cpu_utilization_percent": 90.1,
+    "memory_utilization_percent": 97.9,
+    "disk_utilization_percent": 33.1,
+    "network_latency_ms": 15.05,
+    "active_connections": 536,
+    "database_performance": {
+      "avg_query_time_ms": 71.13,
+      "connection_pool_usage_percent": 97.4,
+      "slow_queries_count": 11
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.43,
+      "memory_usage_percent": 58.9,
+      "operations_per_second": 19482
+    }
+  },
+  {
+    "timestamp": "2025-08-08T11:31:07.402990",
+    "api_response_time_ms": 143.54,
+    "throughput_rps": 2062,
+    "error_rate_percent": 1.612,
+    "cpu_utilization_percent": 78.8,
+    "memory_utilization_percent": 105.2,
+    "disk_utilization_percent": 53.2,
+    "network_latency_ms": 6.88,
+    "active_connections": 884,
+    "database_performance": {
+      "avg_query_time_ms": 46.18,
+      "connection_pool_usage_percent": 39.7,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.04,
+      "memory_usage_percent": 36.5,
+      "operations_per_second": 20000
+    }
+  },
+  {
+    "timestamp": "2025-08-08T10:31:07.403002",
+    "api_response_time_ms": 25.79,
+    "throughput_rps": 2270,
+    "error_rate_percent": 0.123,
+    "cpu_utilization_percent": 62.6,
+    "memory_utilization_percent": 73.1,
+    "disk_utilization_percent": 21.9,
+    "network_latency_ms": 14.63,
+    "active_connections": 384,
+    "database_performance": {
+      "avg_query_time_ms": 64.57,
+      "connection_pool_usage_percent": 49.7,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.8,
+      "memory_usage_percent": 30.1,
+      "operations_per_second": 38550
+    }
+  },
+  {
+    "timestamp": "2025-08-08T09:31:07.403015",
+    "api_response_time_ms": 123.44,
+    "throughput_rps": 2165,
+    "error_rate_percent": 0.522,
+    "cpu_utilization_percent": 122.6,
+    "memory_utilization_percent": 65.4,
+    "disk_utilization_percent": 46.1,
+    "network_latency_ms": 5.99,
+    "active_connections": 772,
+    "database_performance": {
+      "avg_query_time_ms": 78.56,
+      "connection_pool_usage_percent": 118.5,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.14,
+      "memory_usage_percent": 32.7,
+      "operations_per_second": 34710
+    }
+  },
+  {
+    "timestamp": "2025-08-08T08:31:07.403027",
+    "api_response_time_ms": 34.21,
+    "throughput_rps": 909,
+    "error_rate_percent": 4.329,
+    "cpu_utilization_percent": 35.5,
+    "memory_utilization_percent": 29.4,
+    "disk_utilization_percent": 46.9,
+    "network_latency_ms": 11.7,
+    "active_connections": 134,
+    "database_performance": {
+      "avg_query_time_ms": 6.94,
+      "connection_pool_usage_percent": 51.4,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.59,
+      "memory_usage_percent": 37.1,
+      "operations_per_second": 6938
+    }
+  },
+  {
+    "timestamp": "2025-08-08T07:31:07.403039",
+    "api_response_time_ms": 70.38,
+    "throughput_rps": 1147,
+    "error_rate_percent": 2.225,
+    "cpu_utilization_percent": 80.7,
+    "memory_utilization_percent": 44.8,
+    "disk_utilization_percent": 55.3,
+    "network_latency_ms": 10.14,
+    "active_connections": 492,
+    "database_performance": {
+      "avg_query_time_ms": 16.5,
+      "connection_pool_usage_percent": 58.8,
+      "slow_queries_count": 11
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.5,
+      "memory_usage_percent": 25.4,
+      "operations_per_second": 7582
+    }
+  },
+  {
+    "timestamp": "2025-08-08T06:31:07.403052",
+    "api_response_time_ms": 52.11,
+    "throughput_rps": 1367,
+    "error_rate_percent": 0.896,
+    "cpu_utilization_percent": 35.9,
+    "memory_utilization_percent": 69.3,
+    "disk_utilization_percent": 42.7,
+    "network_latency_ms": 15.87,
+    "active_connections": 311,
+    "database_performance": {
+      "avg_query_time_ms": 50.14,
+      "connection_pool_usage_percent": 24.5,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.54,
+      "memory_usage_percent": 65.5,
+      "operations_per_second": 6283
+    }
+  },
+  {
+    "timestamp": "2025-08-08T05:31:07.403064",
+    "api_response_time_ms": 21.59,
+    "throughput_rps": 512,
+    "error_rate_percent": 4.336,
+    "cpu_utilization_percent": 18.4,
+    "memory_utilization_percent": 29.3,
+    "disk_utilization_percent": 42.5,
+    "network_latency_ms": 5.87,
+    "active_connections": 307,
+    "database_performance": {
+      "avg_query_time_ms": 23.86,
+      "connection_pool_usage_percent": 5.9,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.99,
+      "memory_usage_percent": 32.4,
+      "operations_per_second": 2328
+    }
+  },
+  {
+    "timestamp": "2025-08-08T04:31:07.403076",
+    "api_response_time_ms": 8.61,
+    "throughput_rps": 487,
+    "error_rate_percent": 4.168,
+    "cpu_utilization_percent": 17.4,
+    "memory_utilization_percent": 17.4,
+    "disk_utilization_percent": 43.4,
+    "network_latency_ms": 13.2,
+    "active_connections": 253,
+    "database_performance": {
+      "avg_query_time_ms": 10.85,
+      "connection_pool_usage_percent": 11.6,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 93.81,
+      "memory_usage_percent": 56.3,
+      "operations_per_second": 9230
+    }
+  },
+  {
+    "timestamp": "2025-08-08T03:31:07.403089",
+    "api_response_time_ms": 32.69,
+    "throughput_rps": 554,
+    "error_rate_percent": 4.878,
+    "cpu_utilization_percent": 38.7,
+    "memory_utilization_percent": 45.9,
+    "disk_utilization_percent": 22.7,
+    "network_latency_ms": 5.84,
+    "active_connections": 255,
+    "database_performance": {
+      "avg_query_time_ms": 33.54,
+      "connection_pool_usage_percent": 18.0,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 98.19,
+      "memory_usage_percent": 71.0,
+      "operations_per_second": 9795
+    }
+  },
+  {
+    "timestamp": "2025-08-08T02:31:07.403102",
+    "api_response_time_ms": 46.61,
+    "throughput_rps": 503,
+    "error_rate_percent": 5.662,
+    "cpu_utilization_percent": 39.9,
+    "memory_utilization_percent": 34.9,
+    "disk_utilization_percent": 47.3,
+    "network_latency_ms": 10.08,
+    "active_connections": 148,
+    "database_performance": {
+      "avg_query_time_ms": 29.2,
+      "connection_pool_usage_percent": 11.6,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.51,
+      "memory_usage_percent": 49.4,
+      "operations_per_second": 11245
+    }
+  },
+  {
+    "timestamp": "2025-08-08T01:31:07.403115",
+    "api_response_time_ms": 41.79,
+    "throughput_rps": 865,
+    "error_rate_percent": 5.513,
+    "cpu_utilization_percent": 41.3,
+    "memory_utilization_percent": 24.9,
+    "disk_utilization_percent": 45.2,
+    "network_latency_ms": 4.45,
+    "active_connections": 296,
+    "database_performance": {
+      "avg_query_time_ms": 5.62,
+      "connection_pool_usage_percent": 20.7,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.5,
+      "memory_usage_percent": 51.7,
+      "operations_per_second": 11130
+    }
+  },
+  {
+    "timestamp": "2025-08-08T00:31:07.403128",
+    "api_response_time_ms": 25.26,
+    "throughput_rps": 746,
+    "error_rate_percent": 1.191,
+    "cpu_utilization_percent": 25.8,
+    "memory_utilization_percent": 49.9,
+    "disk_utilization_percent": 41.8,
+    "network_latency_ms": 7.72,
+    "active_connections": 219,
+    "database_performance": {
+      "avg_query_time_ms": 9.47,
+      "connection_pool_usage_percent": 27.6,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 92.95,
+      "memory_usage_percent": 73.0,
+      "operations_per_second": 7293
+    }
+  },
+  {
+    "timestamp": "2025-08-07T23:31:07.403140",
+    "api_response_time_ms": 25.48,
+    "throughput_rps": 327,
+    "error_rate_percent": 3.839,
+    "cpu_utilization_percent": 13.1,
+    "memory_utilization_percent": 14.0,
+    "disk_utilization_percent": 42.9,
+    "network_latency_ms": 16.56,
+    "active_connections": 230,
+    "database_performance": {
+      "avg_query_time_ms": 4.36,
+      "connection_pool_usage_percent": 10.5,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.44,
+      "memory_usage_percent": 37.7,
+      "operations_per_second": 5693
+    }
+  },
+  {
+    "timestamp": "2025-08-07T22:31:07.403153",
+    "api_response_time_ms": 32.31,
+    "throughput_rps": 928,
+    "error_rate_percent": 1.077,
+    "cpu_utilization_percent": 64.0,
+    "memory_utilization_percent": 60.2,
+    "disk_utilization_percent": 52.3,
+    "network_latency_ms": 18.34,
+    "active_connections": 706,
+    "database_performance": {
+      "avg_query_time_ms": 48.34,
+      "connection_pool_usage_percent": 33.9,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.28,
+      "memory_usage_percent": 41.0,
+      "operations_per_second": 20114
+    }
+  },
+  {
+    "timestamp": "2025-08-07T21:31:07.403166",
+    "api_response_time_ms": 76.07,
+    "throughput_rps": 1684,
+    "error_rate_percent": 1.953,
+    "cpu_utilization_percent": 75.3,
+    "memory_utilization_percent": 92.9,
+    "disk_utilization_percent": 31.4,
+    "network_latency_ms": 14.79,
+    "active_connections": 575,
+    "database_performance": {
+      "avg_query_time_ms": 25.43,
+      "connection_pool_usage_percent": 39.8,
+      "slow_queries_count": 11
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.8,
+      "memory_usage_percent": 55.6,
+      "operations_per_second": 8928
+    }
+  },
+  {
+    "timestamp": "2025-08-07T20:31:07.403178",
+    "api_response_time_ms": 55.34,
+    "throughput_rps": 1041,
+    "error_rate_percent": 2.193,
+    "cpu_utilization_percent": 51.8,
+    "memory_utilization_percent": 64.5,
+    "disk_utilization_percent": 49.6,
+    "network_latency_ms": 10.81,
+    "active_connections": 695,
+    "database_performance": {
+      "avg_query_time_ms": 38.49,
+      "connection_pool_usage_percent": 51.2,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.05,
+      "memory_usage_percent": 42.1,
+      "operations_per_second": 11892
+    }
+  },
+  {
+    "timestamp": "2025-08-07T19:31:07.403191",
+    "api_response_time_ms": 72.86,
+    "throughput_rps": 901,
+    "error_rate_percent": 1.416,
+    "cpu_utilization_percent": 63.3,
+    "memory_utilization_percent": 48.7,
+    "disk_utilization_percent": 25.5,
+    "network_latency_ms": 9.42,
+    "active_connections": 302,
+    "database_performance": {
+      "avg_query_time_ms": 49.31,
+      "connection_pool_usage_percent": 69.2,
+      "slow_queries_count": 10
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.46,
+      "memory_usage_percent": 45.0,
+      "operations_per_second": 24941
+    }
+  },
+  {
+    "timestamp": "2025-08-07T18:31:07.403203",
+    "api_response_time_ms": 53.2,
+    "throughput_rps": 794,
+    "error_rate_percent": 1.691,
+    "cpu_utilization_percent": 50.8,
+    "memory_utilization_percent": 55.5,
+    "disk_utilization_percent": 56.2,
+    "network_latency_ms": 8.09,
+    "active_connections": 607,
+    "database_performance": {
+      "avg_query_time_ms": 32.55,
+      "connection_pool_usage_percent": 14.6,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.95,
+      "memory_usage_percent": 66.6,
+      "operations_per_second": 8528
+    }
+  },
+  {
+    "timestamp": "2025-08-07T17:31:07.403216",
+    "api_response_time_ms": 117.86,
+    "throughput_rps": 1371,
+    "error_rate_percent": 1.29,
+    "cpu_utilization_percent": 41.5,
+    "memory_utilization_percent": 65.6,
+    "disk_utilization_percent": 35.5,
+    "network_latency_ms": 5.32,
+    "active_connections": 568,
+    "database_performance": {
+      "avg_query_time_ms": 67.61,
+      "connection_pool_usage_percent": 93.6,
+      "slow_queries_count": 12
+    },
+    "cache_performance": {
+      "hit_rate_percent": 93.4,
+      "memory_usage_percent": 60.9,
+      "operations_per_second": 23982
+    }
+  },
+  {
+    "timestamp": "2025-08-07T16:31:07.403228",
+    "api_response_time_ms": 109.77,
+    "throughput_rps": 1636,
+    "error_rate_percent": 0.103,
+    "cpu_utilization_percent": 74.6,
+    "memory_utilization_percent": 102.8,
+    "disk_utilization_percent": 46.8,
+    "network_latency_ms": 17.23,
+    "active_connections": 873,
+    "database_performance": {
+      "avg_query_time_ms": 30.42,
+      "connection_pool_usage_percent": 92.2,
+      "slow_queries_count": 14
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.18,
+      "memory_usage_percent": 52.9,
+      "operations_per_second": 13164
+    }
+  },
+  {
+    "timestamp": "2025-08-07T15:31:07.403241",
+    "api_response_time_ms": 64.93,
+    "throughput_rps": 1059,
+    "error_rate_percent": 1.54,
+    "cpu_utilization_percent": 90.5,
+    "memory_utilization_percent": 89.8,
+    "disk_utilization_percent": 48.8,
+    "network_latency_ms": 5.73,
+    "active_connections": 745,
+    "database_performance": {
+      "avg_query_time_ms": 38.74,
+      "connection_pool_usage_percent": 69.7,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.8,
+      "memory_usage_percent": 74.8,
+      "operations_per_second": 6540
+    }
+  },
+  {
+    "timestamp": "2025-08-07T14:31:07.403254",
+    "api_response_time_ms": 47.69,
+    "throughput_rps": 1371,
+    "error_rate_percent": 1.08,
+    "cpu_utilization_percent": 50.0,
+    "memory_utilization_percent": 96.6,
+    "disk_utilization_percent": 35.8,
+    "network_latency_ms": 3.36,
+    "active_connections": 464,
+    "database_performance": {
+      "avg_query_time_ms": 30.07,
+      "connection_pool_usage_percent": 20.5,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.34,
+      "memory_usage_percent": 44.9,
+      "operations_per_second": 19580
+    }
+  },
+  {
+    "timestamp": "2025-08-07T13:31:07.403272",
+    "api_response_time_ms": 80.1,
+    "throughput_rps": 1773,
+    "error_rate_percent": 0.392,
+    "cpu_utilization_percent": 129.4,
+    "memory_utilization_percent": 140.5,
+    "disk_utilization_percent": 27.5,
+    "network_latency_ms": 15.14,
+    "active_connections": 1336,
+    "database_performance": {
+      "avg_query_time_ms": 35.82,
+      "connection_pool_usage_percent": 31.3,
+      "slow_queries_count": 21
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.61,
+      "memory_usage_percent": 55.1,
+      "operations_per_second": 18266
+    }
+  },
+  {
+    "timestamp": "2025-08-07T12:31:07.403289",
+    "api_response_time_ms": 80.92,
+    "throughput_rps": 1612,
+    "error_rate_percent": 2.069,
+    "cpu_utilization_percent": 50.6,
+    "memory_utilization_percent": 89.8,
+    "disk_utilization_percent": 45.8,
+    "network_latency_ms": 9.75,
+    "active_connections": 890,
+    "database_performance": {
+      "avg_query_time_ms": 20.98,
+      "connection_pool_usage_percent": 67.2,
+      "slow_queries_count": 10
+    },
+    "cache_performance": {
+      "hit_rate_percent": 93.18,
+      "memory_usage_percent": 55.6,
+      "operations_per_second": 23574
+    }
+  },
+  {
+    "timestamp": "2025-08-07T11:31:07.403303",
+    "api_response_time_ms": 58.4,
+    "throughput_rps": 1947,
+    "error_rate_percent": 1.825,
+    "cpu_utilization_percent": 86.4,
+    "memory_utilization_percent": 71.4,
+    "disk_utilization_percent": 27.1,
+    "network_latency_ms": 3.65,
+    "active_connections": 329,
+    "database_performance": {
+      "avg_query_time_ms": 56.25,
+      "connection_pool_usage_percent": 87.3,
+      "slow_queries_count": 13
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.34,
+      "memory_usage_percent": 34.2,
+      "operations_per_second": 34024
+    }
+  },
+  {
+    "timestamp": "2025-08-07T10:31:07.403316",
+    "api_response_time_ms": 106.42,
+    "throughput_rps": 1031,
+    "error_rate_percent": 2.709,
+    "cpu_utilization_percent": 61.7,
+    "memory_utilization_percent": 90.4,
+    "disk_utilization_percent": 26.1,
+    "network_latency_ms": 13.71,
+    "active_connections": 878,
+    "database_performance": {
+      "avg_query_time_ms": 19.37,
+      "connection_pool_usage_percent": 77.1,
+      "slow_queries_count": 10
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.21,
+      "memory_usage_percent": 54.8,
+      "operations_per_second": 16674
+    }
+  },
+  {
+    "timestamp": "2025-08-07T09:31:07.403328",
+    "api_response_time_ms": 58.78,
+    "throughput_rps": 2367,
+    "error_rate_percent": 1.5,
+    "cpu_utilization_percent": 51.5,
+    "memory_utilization_percent": 135.1,
+    "disk_utilization_percent": 50.3,
+    "network_latency_ms": 12.57,
+    "active_connections": 1072,
+    "database_performance": {
+      "avg_query_time_ms": 20.48,
+      "connection_pool_usage_percent": 108.6,
+      "slow_queries_count": 8
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.78,
+      "memory_usage_percent": 41.7,
+      "operations_per_second": 12224
+    }
+  },
+  {
+    "timestamp": "2025-08-07T08:31:07.403340",
+    "api_response_time_ms": 16.6,
+    "throughput_rps": 822,
+    "error_rate_percent": 1.033,
+    "cpu_utilization_percent": 50.4,
+    "memory_utilization_percent": 46.8,
+    "disk_utilization_percent": 29.7,
+    "network_latency_ms": 18.01,
+    "active_connections": 562,
+    "database_performance": {
+      "avg_query_time_ms": 42.79,
+      "connection_pool_usage_percent": 16.5,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.49,
+      "memory_usage_percent": 71.1,
+      "operations_per_second": 12484
+    }
+  },
+  {
+    "timestamp": "2025-08-07T07:31:07.403353",
+    "api_response_time_ms": 56.68,
+    "throughput_rps": 1386,
+    "error_rate_percent": 0.585,
+    "cpu_utilization_percent": 53.2,
+    "memory_utilization_percent": 40.3,
+    "disk_utilization_percent": 51.1,
+    "network_latency_ms": 5.52,
+    "active_connections": 510,
+    "database_performance": {
+      "avg_query_time_ms": 44.13,
+      "connection_pool_usage_percent": 55.3,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.18,
+      "memory_usage_percent": 60.3,
+      "operations_per_second": 7754
+    }
+  },
+  {
+    "timestamp": "2025-08-07T06:31:07.403365",
+    "api_response_time_ms": 64.77,
+    "throughput_rps": 1349,
+    "error_rate_percent": 1.883,
+    "cpu_utilization_percent": 35.2,
+    "memory_utilization_percent": 42.1,
+    "disk_utilization_percent": 46.3,
+    "network_latency_ms": 16.68,
+    "active_connections": 663,
+    "database_performance": {
+      "avg_query_time_ms": 51.47,
+      "connection_pool_usage_percent": 62.9,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.93,
+      "memory_usage_percent": 59.0,
+      "operations_per_second": 27505
+    }
+  },
+  {
+    "timestamp": "2025-08-07T05:31:07.403381",
+    "api_response_time_ms": 45.49,
+    "throughput_rps": 499,
+    "error_rate_percent": 2.603,
+    "cpu_utilization_percent": 20.6,
+    "memory_utilization_percent": 42.4,
+    "disk_utilization_percent": 39.8,
+    "network_latency_ms": 18.22,
+    "active_connections": 415,
+    "database_performance": {
+      "avg_query_time_ms": 26.05,
+      "connection_pool_usage_percent": 23.6,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.84,
+      "memory_usage_percent": 54.7,
+      "operations_per_second": 11540
+    }
+  },
+  {
+    "timestamp": "2025-08-07T04:31:07.403403",
+    "api_response_time_ms": 24.92,
+    "throughput_rps": 750,
+    "error_rate_percent": 5.432,
+    "cpu_utilization_percent": 24.9,
+    "memory_utilization_percent": 25.4,
+    "disk_utilization_percent": 42.5,
+    "network_latency_ms": 13.22,
+    "active_connections": 180,
+    "database_performance": {
+      "avg_query_time_ms": 7.75,
+      "connection_pool_usage_percent": 9.5,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.37,
+      "memory_usage_percent": 70.8,
+      "operations_per_second": 13453
+    }
+  },
+  {
+    "timestamp": "2025-08-07T03:31:07.403416",
+    "api_response_time_ms": 20.62,
+    "throughput_rps": 379,
+    "error_rate_percent": 6.032,
+    "cpu_utilization_percent": 23.1,
+    "memory_utilization_percent": 20.6,
+    "disk_utilization_percent": 25.1,
+    "network_latency_ms": 4.64,
+    "active_connections": 95,
+    "database_performance": {
+      "avg_query_time_ms": 14.68,
+      "connection_pool_usage_percent": 22.4,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.84,
+      "memory_usage_percent": 65.1,
+      "operations_per_second": 6995
+    }
+  },
+  {
+    "timestamp": "2025-08-07T02:31:07.403429",
+    "api_response_time_ms": 14.78,
+    "throughput_rps": 272,
+    "error_rate_percent": 2.274,
+    "cpu_utilization_percent": 21.7,
+    "memory_utilization_percent": 18.2,
+    "disk_utilization_percent": 36.8,
+    "network_latency_ms": 16.17,
+    "active_connections": 192,
+    "database_performance": {
+      "avg_query_time_ms": 4.27,
+      "connection_pool_usage_percent": 7.9,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.8,
+      "memory_usage_percent": 66.7,
+      "operations_per_second": 7481
+    }
+  },
+  {
+    "timestamp": "2025-08-07T01:31:07.403443",
+    "api_response_time_ms": 20.63,
+    "throughput_rps": 572,
+    "error_rate_percent": 5.527,
+    "cpu_utilization_percent": 26.6,
+    "memory_utilization_percent": 24.1,
+    "disk_utilization_percent": 58.7,
+    "network_latency_ms": 9.53,
+    "active_connections": 227,
+    "database_performance": {
+      "avg_query_time_ms": 4.95,
+      "connection_pool_usage_percent": 17.8,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.11,
+      "memory_usage_percent": 60.5,
+      "operations_per_second": 6714
+    }
+  },
+  {
+    "timestamp": "2025-08-07T00:31:07.403455",
+    "api_response_time_ms": 16.23,
+    "throughput_rps": 505,
+    "error_rate_percent": 1.777,
+    "cpu_utilization_percent": 27.2,
+    "memory_utilization_percent": 24.8,
+    "disk_utilization_percent": 50.7,
+    "network_latency_ms": 11.73,
+    "active_connections": 235,
+    "database_performance": {
+      "avg_query_time_ms": 7.5,
+      "connection_pool_usage_percent": 24.9,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.55,
+      "memory_usage_percent": 29.1,
+      "operations_per_second": 2200
+    }
+  },
+  {
+    "timestamp": "2025-08-06T23:31:07.403468",
+    "api_response_time_ms": 6.71,
+    "throughput_rps": 569,
+    "error_rate_percent": 1.734,
+    "cpu_utilization_percent": 14.7,
+    "memory_utilization_percent": 27.1,
+    "disk_utilization_percent": 43.4,
+    "network_latency_ms": 4.52,
+    "active_connections": 120,
+    "database_performance": {
+      "avg_query_time_ms": 8.87,
+      "connection_pool_usage_percent": 15.5,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.5,
+      "memory_usage_percent": 63.7,
+      "operations_per_second": 6342
+    }
+  },
+  {
+    "timestamp": "2025-08-06T22:31:07.403481",
+    "api_response_time_ms": 92.46,
+    "throughput_rps": 909,
+    "error_rate_percent": 1.666,
+    "cpu_utilization_percent": 52.9,
+    "memory_utilization_percent": 47.1,
+    "disk_utilization_percent": 40.8,
+    "network_latency_ms": 12.09,
+    "active_connections": 466,
+    "database_performance": {
+      "avg_query_time_ms": 60.25,
+      "connection_pool_usage_percent": 39.7,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.57,
+      "memory_usage_percent": 73.8,
+      "operations_per_second": 13450
+    }
+  },
+  {
+    "timestamp": "2025-08-06T21:31:07.403496",
+    "api_response_time_ms": 83.46,
+    "throughput_rps": 1481,
+    "error_rate_percent": 0.668,
+    "cpu_utilization_percent": 55.5,
+    "memory_utilization_percent": 92.3,
+    "disk_utilization_percent": 42.4,
+    "network_latency_ms": 5.33,
+    "active_connections": 865,
+    "database_performance": {
+      "avg_query_time_ms": 47.26,
+      "connection_pool_usage_percent": 37.7,
+      "slow_queries_count": 14
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.62,
+      "memory_usage_percent": 64.7,
+      "operations_per_second": 6895
+    }
+  },
+  {
+    "timestamp": "2025-08-06T20:31:07.403508",
+    "api_response_time_ms": 20.48,
+    "throughput_rps": 1228,
+    "error_rate_percent": 0.425,
+    "cpu_utilization_percent": 31.1,
+    "memory_utilization_percent": 62.1,
+    "disk_utilization_percent": 54.1,
+    "network_latency_ms": 14.26,
+    "active_connections": 291,
+    "database_performance": {
+      "avg_query_time_ms": 27.42,
+      "connection_pool_usage_percent": 52.8,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.15,
+      "memory_usage_percent": 73.5,
+      "operations_per_second": 4387
+    }
+  },
+  {
+    "timestamp": "2025-08-06T19:31:07.403522",
+    "api_response_time_ms": 78.67,
+    "throughput_rps": 1667,
+    "error_rate_percent": 0.536,
+    "cpu_utilization_percent": 81.0,
+    "memory_utilization_percent": 85.1,
+    "disk_utilization_percent": 30.7,
+    "network_latency_ms": 13.69,
+    "active_connections": 187,
+    "database_performance": {
+      "avg_query_time_ms": 48.68,
+      "connection_pool_usage_percent": 16.7,
+      "slow_queries_count": 10
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.17,
+      "memory_usage_percent": 66.5,
+      "operations_per_second": 16472
+    }
+  },
+  {
+    "timestamp": "2025-08-06T18:31:07.403535",
+    "api_response_time_ms": 94.49,
+    "throughput_rps": 1233,
+    "error_rate_percent": 2.627,
+    "cpu_utilization_percent": 76.6,
+    "memory_utilization_percent": 92.2,
+    "disk_utilization_percent": 41.9,
+    "network_latency_ms": 5.62,
+    "active_connections": 422,
+    "database_performance": {
+      "avg_query_time_ms": 33.39,
+      "connection_pool_usage_percent": 64.7,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.58,
+      "memory_usage_percent": 54.0,
+      "operations_per_second": 11095
+    }
+  },
+  {
+    "timestamp": "2025-08-06T17:31:07.403547",
+    "api_response_time_ms": 98.15,
+    "throughput_rps": 1911,
+    "error_rate_percent": 1.644,
+    "cpu_utilization_percent": 112.5,
+    "memory_utilization_percent": 100.6,
+    "disk_utilization_percent": 49.3,
+    "network_latency_ms": 18.36,
+    "active_connections": 1265,
+    "database_performance": {
+      "avg_query_time_ms": 40.43,
+      "connection_pool_usage_percent": 84.5,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.86,
+      "memory_usage_percent": 64.7,
+      "operations_per_second": 33823
+    }
+  },
+  {
+    "timestamp": "2025-08-06T16:31:07.403560",
+    "api_response_time_ms": 134.13,
+    "throughput_rps": 2278,
+    "error_rate_percent": 1.236,
+    "cpu_utilization_percent": 88.8,
+    "memory_utilization_percent": 125.9,
+    "disk_utilization_percent": 40.5,
+    "network_latency_ms": 17.37,
+    "active_connections": 480,
+    "database_performance": {
+      "avg_query_time_ms": 70.56,
+      "connection_pool_usage_percent": 99.8,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.72,
+      "memory_usage_percent": 45.8,
+      "operations_per_second": 18244
+    }
+  },
+  {
+    "timestamp": "2025-08-06T15:31:07.403572",
+    "api_response_time_ms": 103.98,
+    "throughput_rps": 1826,
+    "error_rate_percent": 0.963,
+    "cpu_utilization_percent": 88.3,
+    "memory_utilization_percent": 88.3,
+    "disk_utilization_percent": 50.1,
+    "network_latency_ms": 10.92,
+    "active_connections": 296,
+    "database_performance": {
+      "avg_query_time_ms": 32.29,
+      "connection_pool_usage_percent": 83.8,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.44,
+      "memory_usage_percent": 27.1,
+      "operations_per_second": 24771
+    }
+  },
+  {
+    "timestamp": "2025-08-06T14:31:07.403584",
+    "api_response_time_ms": 71.96,
+    "throughput_rps": 1198,
+    "error_rate_percent": 0.543,
+    "cpu_utilization_percent": 82.0,
+    "memory_utilization_percent": 48.9,
+    "disk_utilization_percent": 57.6,
+    "network_latency_ms": 17.13,
+    "active_connections": 619,
+    "database_performance": {
+      "avg_query_time_ms": 40.74,
+      "connection_pool_usage_percent": 16.5,
+      "slow_queries_count": 13
+    },
+    "cache_performance": {
+      "hit_rate_percent": 98.35,
+      "memory_usage_percent": 66.2,
+      "operations_per_second": 28906
+    }
+  },
+  {
+    "timestamp": "2025-08-06T13:31:07.403597",
+    "api_response_time_ms": 26.24,
+    "throughput_rps": 1565,
+    "error_rate_percent": 0.143,
+    "cpu_utilization_percent": 58.2,
+    "memory_utilization_percent": 79.6,
+    "disk_utilization_percent": 55.1,
+    "network_latency_ms": 8.82,
+    "active_connections": 785,
+    "database_performance": {
+      "avg_query_time_ms": 70.73,
+      "connection_pool_usage_percent": 42.1,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.87,
+      "memory_usage_percent": 47.7,
+      "operations_per_second": 21768
+    }
+  },
+  {
+    "timestamp": "2025-08-06T12:31:07.403610",
+    "api_response_time_ms": 70.42,
+    "throughput_rps": 1306,
+    "error_rate_percent": 1.5,
+    "cpu_utilization_percent": 63.9,
+    "memory_utilization_percent": 52.5,
+    "disk_utilization_percent": 53.1,
+    "network_latency_ms": 8.86,
+    "active_connections": 616,
+    "database_performance": {
+      "avg_query_time_ms": 21.27,
+      "connection_pool_usage_percent": 22.4,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.64,
+      "memory_usage_percent": 44.2,
+      "operations_per_second": 16834
+    }
+  },
+  {
+    "timestamp": "2025-08-06T11:31:07.403634",
+    "api_response_time_ms": 42.32,
+    "throughput_rps": 1670,
+    "error_rate_percent": 1.518,
+    "cpu_utilization_percent": 98.1,
+    "memory_utilization_percent": 56.6,
+    "disk_utilization_percent": 41.0,
+    "network_latency_ms": 11.29,
+    "active_connections": 696,
+    "database_performance": {
+      "avg_query_time_ms": 57.99,
+      "connection_pool_usage_percent": 38.3,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.2,
+      "memory_usage_percent": 46.7,
+      "operations_per_second": 11440
+    }
+  },
+  {
+    "timestamp": "2025-08-06T10:31:07.403653",
+    "api_response_time_ms": 75.41,
+    "throughput_rps": 1953,
+    "error_rate_percent": 0.494,
+    "cpu_utilization_percent": 57.6,
+    "memory_utilization_percent": 109.4,
+    "disk_utilization_percent": 25.4,
+    "network_latency_ms": 12.77,
+    "active_connections": 1166,
+    "database_performance": {
+      "avg_query_time_ms": 21.78,
+      "connection_pool_usage_percent": 66.8,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.4,
+      "memory_usage_percent": 42.6,
+      "operations_per_second": 29438
+    }
+  },
+  {
+    "timestamp": "2025-08-06T09:31:07.403668",
+    "api_response_time_ms": 24.28,
+    "throughput_rps": 1124,
+    "error_rate_percent": 2.388,
+    "cpu_utilization_percent": 38.5,
+    "memory_utilization_percent": 88.6,
+    "disk_utilization_percent": 42.6,
+    "network_latency_ms": 15.78,
+    "active_connections": 734,
+    "database_performance": {
+      "avg_query_time_ms": 33.73,
+      "connection_pool_usage_percent": 39.2,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.02,
+      "memory_usage_percent": 27.9,
+      "operations_per_second": 7527
+    }
+  },
+  {
+    "timestamp": "2025-08-06T08:31:07.403680",
+    "api_response_time_ms": 32.42,
+    "throughput_rps": 874,
+    "error_rate_percent": 1.426,
+    "cpu_utilization_percent": 38.4,
+    "memory_utilization_percent": 47.9,
+    "disk_utilization_percent": 48.4,
+    "network_latency_ms": 17.7,
+    "active_connections": 346,
+    "database_performance": {
+      "avg_query_time_ms": 39.36,
+      "connection_pool_usage_percent": 15.9,
+      "slow_queries_count": 11
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.28,
+      "memory_usage_percent": 36.9,
+      "operations_per_second": 22894
+    }
+  },
+  {
+    "timestamp": "2025-08-06T07:31:07.403693",
+    "api_response_time_ms": 66.45,
+    "throughput_rps": 1244,
+    "error_rate_percent": 1.874,
+    "cpu_utilization_percent": 50.4,
+    "memory_utilization_percent": 37.1,
+    "disk_utilization_percent": 26.8,
+    "network_latency_ms": 11.12,
+    "active_connections": 438,
+    "database_performance": {
+      "avg_query_time_ms": 14.02,
+      "connection_pool_usage_percent": 48.6,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 93.87,
+      "memory_usage_percent": 32.6,
+      "operations_per_second": 13159
+    }
+  },
+  {
+    "timestamp": "2025-08-06T06:31:07.403706",
+    "api_response_time_ms": 46.16,
+    "throughput_rps": 1085,
+    "error_rate_percent": 0.446,
+    "cpu_utilization_percent": 44.5,
+    "memory_utilization_percent": 42.3,
+    "disk_utilization_percent": 59.0,
+    "network_latency_ms": 18.02,
+    "active_connections": 781,
+    "database_performance": {
+      "avg_query_time_ms": 14.69,
+      "connection_pool_usage_percent": 70.7,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.65,
+      "memory_usage_percent": 60.7,
+      "operations_per_second": 14277
+    }
+  },
+  {
+    "timestamp": "2025-08-06T05:31:07.403719",
+    "api_response_time_ms": 12.77,
+    "throughput_rps": 477,
+    "error_rate_percent": 1.198,
+    "cpu_utilization_percent": 27.4,
+    "memory_utilization_percent": 35.5,
+    "disk_utilization_percent": 56.3,
+    "network_latency_ms": 9.97,
+    "active_connections": 130,
+    "database_performance": {
+      "avg_query_time_ms": 25.88,
+      "connection_pool_usage_percent": 27.6,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.18,
+      "memory_usage_percent": 44.5,
+      "operations_per_second": 7360
+    }
+  },
+  {
+    "timestamp": "2025-08-06T04:31:07.403731",
+    "api_response_time_ms": 28.34,
+    "throughput_rps": 499,
+    "error_rate_percent": 5.234,
+    "cpu_utilization_percent": 18.4,
+    "memory_utilization_percent": 25.6,
+    "disk_utilization_percent": 57.0,
+    "network_latency_ms": 17.85,
+    "active_connections": 229,
+    "database_performance": {
+      "avg_query_time_ms": 9.26,
+      "connection_pool_usage_percent": 4.8,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.68,
+      "memory_usage_percent": 66.1,
+      "operations_per_second": 4820
+    }
+  },
+  {
+    "timestamp": "2025-08-06T03:31:07.403744",
+    "api_response_time_ms": 19.6,
+    "throughput_rps": 579,
+    "error_rate_percent": 1.447,
+    "cpu_utilization_percent": 18.7,
+    "memory_utilization_percent": 43.2,
+    "disk_utilization_percent": 31.5,
+    "network_latency_ms": 5.32,
+    "active_connections": 97,
+    "database_performance": {
+      "avg_query_time_ms": 15.99,
+      "connection_pool_usage_percent": 30.4,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.54,
+      "memory_usage_percent": 45.0,
+      "operations_per_second": 7555
+    }
+  },
+  {
+    "timestamp": "2025-08-06T02:31:07.403757",
+    "api_response_time_ms": 29.55,
+    "throughput_rps": 779,
+    "error_rate_percent": 2.517,
+    "cpu_utilization_percent": 13.3,
+    "memory_utilization_percent": 41.7,
+    "disk_utilization_percent": 43.4,
+    "network_latency_ms": 17.29,
+    "active_connections": 383,
+    "database_performance": {
+      "avg_query_time_ms": 4.8,
+      "connection_pool_usage_percent": 11.4,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.62,
+      "memory_usage_percent": 59.9,
+      "operations_per_second": 8289
+    }
+  },
+  {
+    "timestamp": "2025-08-06T01:31:07.403776",
+    "api_response_time_ms": 49.37,
+    "throughput_rps": 919,
+    "error_rate_percent": 4.163,
+    "cpu_utilization_percent": 23.7,
+    "memory_utilization_percent": 30.2,
+    "disk_utilization_percent": 50.2,
+    "network_latency_ms": 10.39,
+    "active_connections": 187,
+    "database_performance": {
+      "avg_query_time_ms": 17.85,
+      "connection_pool_usage_percent": 9.2,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 97.38,
+      "memory_usage_percent": 65.9,
+      "operations_per_second": 10117
+    }
+  },
+  {
+    "timestamp": "2025-08-06T00:31:07.403793",
+    "api_response_time_ms": 44.29,
+    "throughput_rps": 708,
+    "error_rate_percent": 4.954,
+    "cpu_utilization_percent": 34.5,
+    "memory_utilization_percent": 43.4,
+    "disk_utilization_percent": 42.4,
+    "network_latency_ms": 15.07,
+    "active_connections": 478,
+    "database_performance": {
+      "avg_query_time_ms": 7.48,
+      "connection_pool_usage_percent": 10.3,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.09,
+      "memory_usage_percent": 53.8,
+      "operations_per_second": 14089
+    }
+  },
+  {
+    "timestamp": "2025-08-05T23:31:07.403813",
+    "api_response_time_ms": 20.5,
+    "throughput_rps": 397,
+    "error_rate_percent": 6.881,
+    "cpu_utilization_percent": 13.1,
+    "memory_utilization_percent": 18.4,
+    "disk_utilization_percent": 33.5,
+    "network_latency_ms": 7.6,
+    "active_connections": 134,
+    "database_performance": {
+      "avg_query_time_ms": 2.74,
+      "connection_pool_usage_percent": 19.4,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.88,
+      "memory_usage_percent": 71.8,
+      "operations_per_second": 4831
+    }
+  },
+  {
+    "timestamp": "2025-08-05T22:31:07.403827",
+    "api_response_time_ms": 59.5,
+    "throughput_rps": 1578,
+    "error_rate_percent": 1.669,
+    "cpu_utilization_percent": 47.9,
+    "memory_utilization_percent": 75.3,
+    "disk_utilization_percent": 58.5,
+    "network_latency_ms": 16.02,
+    "active_connections": 371,
+    "database_performance": {
+      "avg_query_time_ms": 60.33,
+      "connection_pool_usage_percent": 59.9,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.28,
+      "memory_usage_percent": 28.0,
+      "operations_per_second": 18224
+    }
+  },
+  {
+    "timestamp": "2025-08-05T21:31:07.403840",
+    "api_response_time_ms": 98.13,
+    "throughput_rps": 1579,
+    "error_rate_percent": 2.401,
+    "cpu_utilization_percent": 52.1,
+    "memory_utilization_percent": 94.7,
+    "disk_utilization_percent": 51.5,
+    "network_latency_ms": 18.51,
+    "active_connections": 540,
+    "database_performance": {
+      "avg_query_time_ms": 37.43,
+      "connection_pool_usage_percent": 48.5,
+      "slow_queries_count": 15
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.5,
+      "memory_usage_percent": 53.8,
+      "operations_per_second": 16512
+    }
+  },
+  {
+    "timestamp": "2025-08-05T20:31:07.403852",
+    "api_response_time_ms": 47.68,
+    "throughput_rps": 808,
+    "error_rate_percent": 0.65,
+    "cpu_utilization_percent": 37.3,
+    "memory_utilization_percent": 63.7,
+    "disk_utilization_percent": 27.8,
+    "network_latency_ms": 9.97,
+    "active_connections": 394,
+    "database_performance": {
+      "avg_query_time_ms": 44.96,
+      "connection_pool_usage_percent": 51.9,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 86.37,
+      "memory_usage_percent": 59.8,
+      "operations_per_second": 6711
+    }
+  },
+  {
+    "timestamp": "2025-08-05T19:31:07.403865",
+    "api_response_time_ms": 53.3,
+    "throughput_rps": 1194,
+    "error_rate_percent": 1.143,
+    "cpu_utilization_percent": 34.7,
+    "memory_utilization_percent": 76.8,
+    "disk_utilization_percent": 29.2,
+    "network_latency_ms": 15.88,
+    "active_connections": 694,
+    "database_performance": {
+      "avg_query_time_ms": 50.18,
+      "connection_pool_usage_percent": 13.8,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.89,
+      "memory_usage_percent": 28.4,
+      "operations_per_second": 8233
+    }
+  },
+  {
+    "timestamp": "2025-08-05T18:31:07.403878",
+    "api_response_time_ms": 16.96,
+    "throughput_rps": 1243,
+    "error_rate_percent": 1.78,
+    "cpu_utilization_percent": 34.1,
+    "memory_utilization_percent": 75.1,
+    "disk_utilization_percent": 23.3,
+    "network_latency_ms": 10.23,
+    "active_connections": 810,
+    "database_performance": {
+      "avg_query_time_ms": 58.23,
+      "connection_pool_usage_percent": 30.2,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.18,
+      "memory_usage_percent": 56.9,
+      "operations_per_second": 12738
+    }
+  },
+  {
+    "timestamp": "2025-08-05T17:31:07.403895",
+    "api_response_time_ms": 54.89,
+    "throughput_rps": 1823,
+    "error_rate_percent": 0.584,
+    "cpu_utilization_percent": 31.7,
+    "memory_utilization_percent": 77.0,
+    "disk_utilization_percent": 30.0,
+    "network_latency_ms": 6.33,
+    "active_connections": 974,
+    "database_performance": {
+      "avg_query_time_ms": 66.63,
+      "connection_pool_usage_percent": 37.6,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.46,
+      "memory_usage_percent": 47.5,
+      "operations_per_second": 25427
+    }
+  },
+  {
+    "timestamp": "2025-08-05T16:31:07.403912",
+    "api_response_time_ms": 74.06,
+    "throughput_rps": 1754,
+    "error_rate_percent": 2.328,
+    "cpu_utilization_percent": 61.2,
+    "memory_utilization_percent": 43.6,
+    "disk_utilization_percent": 54.6,
+    "network_latency_ms": 16.61,
+    "active_connections": 277,
+    "database_performance": {
+      "avg_query_time_ms": 11.02,
+      "connection_pool_usage_percent": 38.4,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 88.55,
+      "memory_usage_percent": 65.3,
+      "operations_per_second": 19595
+    }
+  },
+  {
+    "timestamp": "2025-08-05T15:31:07.403943",
+    "api_response_time_ms": 129.38,
+    "throughput_rps": 2141,
+    "error_rate_percent": 0.323,
+    "cpu_utilization_percent": 112.2,
+    "memory_utilization_percent": 79.0,
+    "disk_utilization_percent": 41.9,
+    "network_latency_ms": 6.44,
+    "active_connections": 643,
+    "database_performance": {
+      "avg_query_time_ms": 82.97,
+      "connection_pool_usage_percent": 83.3,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.37,
+      "memory_usage_percent": 28.1,
+      "operations_per_second": 13120
+    }
+  },
+  {
+    "timestamp": "2025-08-05T14:31:07.403960",
+    "api_response_time_ms": 99.45,
+    "throughput_rps": 2231,
+    "error_rate_percent": 2.178,
+    "cpu_utilization_percent": 76.3,
+    "memory_utilization_percent": 105.6,
+    "disk_utilization_percent": 38.6,
+    "network_latency_ms": 6.55,
+    "active_connections": 696,
+    "database_performance": {
+      "avg_query_time_ms": 55.11,
+      "connection_pool_usage_percent": 102.6,
+      "slow_queries_count": 18
+    },
+    "cache_performance": {
+      "hit_rate_percent": 89.88,
+      "memory_usage_percent": 36.2,
+      "operations_per_second": 31727
+    }
+  },
+  {
+    "timestamp": "2025-08-05T13:31:07.403993",
+    "api_response_time_ms": 53.33,
+    "throughput_rps": 1391,
+    "error_rate_percent": 0.427,
+    "cpu_utilization_percent": 72.0,
+    "memory_utilization_percent": 89.1,
+    "disk_utilization_percent": 34.6,
+    "network_latency_ms": 5.33,
+    "active_connections": 533,
+    "database_performance": {
+      "avg_query_time_ms": 19.98,
+      "connection_pool_usage_percent": 88.4,
+      "slow_queries_count": 15
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.98,
+      "memory_usage_percent": 38.7,
+      "operations_per_second": 20960
+    }
+  },
+  {
+    "timestamp": "2025-08-05T12:31:07.404007",
+    "api_response_time_ms": 81.4,
+    "throughput_rps": 1247,
+    "error_rate_percent": 0.226,
+    "cpu_utilization_percent": 54.3,
+    "memory_utilization_percent": 104.6,
+    "disk_utilization_percent": 42.0,
+    "network_latency_ms": 7.79,
+    "active_connections": 972,
+    "database_performance": {
+      "avg_query_time_ms": 54.58,
+      "connection_pool_usage_percent": 80.8,
+      "slow_queries_count": 18
+    },
+    "cache_performance": {
+      "hit_rate_percent": 95.41,
+      "memory_usage_percent": 52.4,
+      "operations_per_second": 21271
+    }
+  },
+  {
+    "timestamp": "2025-08-05T11:31:07.404019",
+    "api_response_time_ms": 92.9,
+    "throughput_rps": 1425,
+    "error_rate_percent": 0.376,
+    "cpu_utilization_percent": 80.6,
+    "memory_utilization_percent": 88.6,
+    "disk_utilization_percent": 55.6,
+    "network_latency_ms": 12.71,
+    "active_connections": 1114,
+    "database_performance": {
+      "avg_query_time_ms": 42.53,
+      "connection_pool_usage_percent": 54.7,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.47,
+      "memory_usage_percent": 35.2,
+      "operations_per_second": 33496
+    }
+  },
+  {
+    "timestamp": "2025-08-05T10:31:07.404034",
+    "api_response_time_ms": 21.63,
+    "throughput_rps": 1979,
+    "error_rate_percent": 2.147,
+    "cpu_utilization_percent": 64.0,
+    "memory_utilization_percent": 74.8,
+    "disk_utilization_percent": 33.3,
+    "network_latency_ms": 3.32,
+    "active_connections": 389,
+    "database_performance": {
+      "avg_query_time_ms": 23.91,
+      "connection_pool_usage_percent": 15.6,
+      "slow_queries_count": 1
+    },
+    "cache_performance": {
+      "hit_rate_percent": 93.82,
+      "memory_usage_percent": 25.9,
+      "operations_per_second": 18823
+    }
+  },
+  {
+    "timestamp": "2025-08-05T09:31:07.404051",
+    "api_response_time_ms": 98.6,
+    "throughput_rps": 2129,
+    "error_rate_percent": 1.106,
+    "cpu_utilization_percent": 49.4,
+    "memory_utilization_percent": 75.0,
+    "disk_utilization_percent": 48.7,
+    "network_latency_ms": 9.33,
+    "active_connections": 441,
+    "database_performance": {
+      "avg_query_time_ms": 78.5,
+      "connection_pool_usage_percent": 50.4,
+      "slow_queries_count": 5
+    },
+    "cache_performance": {
+      "hit_rate_percent": 85.26,
+      "memory_usage_percent": 28.7,
+      "operations_per_second": 17062
+    }
+  },
+  {
+    "timestamp": "2025-08-05T08:31:07.404069",
+    "api_response_time_ms": 82.08,
+    "throughput_rps": 1191,
+    "error_rate_percent": 1.452,
+    "cpu_utilization_percent": 35.8,
+    "memory_utilization_percent": 59.3,
+    "disk_utilization_percent": 22.8,
+    "network_latency_ms": 7.0,
+    "active_connections": 589,
+    "database_performance": {
+      "avg_query_time_ms": 12.57,
+      "connection_pool_usage_percent": 19.1,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 98.17,
+      "memory_usage_percent": 47.6,
+      "operations_per_second": 15534
+    }
+  },
+  {
+    "timestamp": "2025-08-05T07:31:07.404087",
+    "api_response_time_ms": 66.41,
+    "throughput_rps": 842,
+    "error_rate_percent": 3.235,
+    "cpu_utilization_percent": 39.2,
+    "memory_utilization_percent": 49.6,
+    "disk_utilization_percent": 42.6,
+    "network_latency_ms": 4.7,
+    "active_connections": 483,
+    "database_performance": {
+      "avg_query_time_ms": 33.15,
+      "connection_pool_usage_percent": 39.9,
+      "slow_queries_count": 8
+    },
+    "cache_performance": {
+      "hit_rate_percent": 98.09,
+      "memory_usage_percent": 70.6,
+      "operations_per_second": 6901
+    }
+  },
+  {
+    "timestamp": "2025-08-05T06:31:07.404101",
+    "api_response_time_ms": 66.85,
+    "throughput_rps": 680,
+    "error_rate_percent": 3.316,
+    "cpu_utilization_percent": 53.2,
+    "memory_utilization_percent": 53.6,
+    "disk_utilization_percent": 40.2,
+    "network_latency_ms": 15.52,
+    "active_connections": 406,
+    "database_performance": {
+      "avg_query_time_ms": 17.27,
+      "connection_pool_usage_percent": 38.9,
+      "slow_queries_count": 9
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.45,
+      "memory_usage_percent": 49.0,
+      "operations_per_second": 7884
+    }
+  },
+  {
+    "timestamp": "2025-08-05T05:31:07.404118",
+    "api_response_time_ms": 47.93,
+    "throughput_rps": 700,
+    "error_rate_percent": 4.255,
+    "cpu_utilization_percent": 46.1,
+    "memory_utilization_percent": 32.9,
+    "disk_utilization_percent": 57.0,
+    "network_latency_ms": 3.5,
+    "active_connections": 478,
+    "database_performance": {
+      "avg_query_time_ms": 31.58,
+      "connection_pool_usage_percent": 19.4,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.46,
+      "memory_usage_percent": 68.4,
+      "operations_per_second": 13519
+    }
+  },
+  {
+    "timestamp": "2025-08-05T04:31:07.404131",
+    "api_response_time_ms": 16.38,
+    "throughput_rps": 587,
+    "error_rate_percent": 2.488,
+    "cpu_utilization_percent": 12.0,
+    "memory_utilization_percent": 23.2,
+    "disk_utilization_percent": 35.5,
+    "network_latency_ms": 5.89,
+    "active_connections": 168,
+    "database_performance": {
+      "avg_query_time_ms": 15.09,
+      "connection_pool_usage_percent": 8.4,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.81,
+      "memory_usage_percent": 61.5,
+      "operations_per_second": 5656
+    }
+  },
+  {
+    "timestamp": "2025-08-05T03:31:07.404149",
+    "api_response_time_ms": 40.51,
+    "throughput_rps": 836,
+    "error_rate_percent": 4.527,
+    "cpu_utilization_percent": 22.8,
+    "memory_utilization_percent": 49.2,
+    "disk_utilization_percent": 52.5,
+    "network_latency_ms": 5.88,
+    "active_connections": 214,
+    "database_performance": {
+      "avg_query_time_ms": 28.05,
+      "connection_pool_usage_percent": 41.5,
+      "slow_queries_count": 3
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.96,
+      "memory_usage_percent": 46.4,
+      "operations_per_second": 9654
+    }
+  },
+  {
+    "timestamp": "2025-08-05T02:31:07.404161",
+    "api_response_time_ms": 44.2,
+    "throughput_rps": 567,
+    "error_rate_percent": 5.452,
+    "cpu_utilization_percent": 17.5,
+    "memory_utilization_percent": 40.3,
+    "disk_utilization_percent": 38.7,
+    "network_latency_ms": 4.74,
+    "active_connections": 102,
+    "database_performance": {
+      "avg_query_time_ms": 29.23,
+      "connection_pool_usage_percent": 36.6,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.7,
+      "memory_usage_percent": 64.5,
+      "operations_per_second": 5286
+    }
+  },
+  {
+    "timestamp": "2025-08-05T01:31:07.404173",
+    "api_response_time_ms": 8.24,
+    "throughput_rps": 564,
+    "error_rate_percent": 4.973,
+    "cpu_utilization_percent": 22.7,
+    "memory_utilization_percent": 30.4,
+    "disk_utilization_percent": 56.7,
+    "network_latency_ms": 3.49,
+    "active_connections": 240,
+    "database_performance": {
+      "avg_query_time_ms": 15.05,
+      "connection_pool_usage_percent": 5.9,
+      "slow_queries_count": 4
+    },
+    "cache_performance": {
+      "hit_rate_percent": 96.34,
+      "memory_usage_percent": 27.5,
+      "operations_per_second": 7693
+    }
+  },
+  {
+    "timestamp": "2025-08-05T00:31:07.404186",
+    "api_response_time_ms": 22.75,
+    "throughput_rps": 439,
+    "error_rate_percent": 8.581,
+    "cpu_utilization_percent": 26.4,
+    "memory_utilization_percent": 26.9,
+    "disk_utilization_percent": 28.2,
+    "network_latency_ms": 10.09,
+    "active_connections": 107,
+    "database_performance": {
+      "avg_query_time_ms": 16.88,
+      "connection_pool_usage_percent": 11.5,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.39,
+      "memory_usage_percent": 48.2,
+      "operations_per_second": 3692
+    }
+  },
+  {
+    "timestamp": "2025-08-04T23:31:07.404198",
+    "api_response_time_ms": 14.42,
+    "throughput_rps": 270,
+    "error_rate_percent": 9.392,
+    "cpu_utilization_percent": 8.5,
+    "memory_utilization_percent": 22.2,
+    "disk_utilization_percent": 50.2,
+    "network_latency_ms": 6.99,
+    "active_connections": 246,
+    "database_performance": {
+      "avg_query_time_ms": 16.11,
+      "connection_pool_usage_percent": 10.8,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 90.18,
+      "memory_usage_percent": 39.8,
+      "operations_per_second": 4285
+    }
+  },
+  {
+    "timestamp": "2025-08-04T22:31:07.404211",
+    "api_response_time_ms": 76.29,
+    "throughput_rps": 1305,
+    "error_rate_percent": 0.936,
+    "cpu_utilization_percent": 52.9,
+    "memory_utilization_percent": 51.2,
+    "disk_utilization_percent": 30.3,
+    "network_latency_ms": 6.63,
+    "active_connections": 617,
+    "database_performance": {
+      "avg_query_time_ms": 39.67,
+      "connection_pool_usage_percent": 25.7,
+      "slow_queries_count": 2
+    },
+    "cache_performance": {
+      "hit_rate_percent": 98.04,
+      "memory_usage_percent": 28.0,
+      "operations_per_second": 7818
+    }
+  },
+  {
+    "timestamp": "2025-08-04T21:31:07.404224",
+    "api_response_time_ms": 73.98,
+    "throughput_rps": 1383,
+    "error_rate_percent": 1.109,
+    "cpu_utilization_percent": 51.5,
+    "memory_utilization_percent": 70.1,
+    "disk_utilization_percent": 39.9,
+    "network_latency_ms": 17.76,
+    "active_connections": 604,
+    "database_performance": {
+      "avg_query_time_ms": 25.74,
+      "connection_pool_usage_percent": 18.2,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 93.61,
+      "memory_usage_percent": 37.4,
+      "operations_per_second": 8918
+    }
+  },
+  {
+    "timestamp": "2025-08-04T20:31:07.404237",
+    "api_response_time_ms": 90.86,
+    "throughput_rps": 1438,
+    "error_rate_percent": 0.637,
+    "cpu_utilization_percent": 50.8,
+    "memory_utilization_percent": 77.7,
+    "disk_utilization_percent": 41.3,
+    "network_latency_ms": 10.44,
+    "active_connections": 557,
+    "database_performance": {
+      "avg_query_time_ms": 40.45,
+      "connection_pool_usage_percent": 75.8,
+      "slow_queries_count": 7
+    },
+    "cache_performance": {
+      "hit_rate_percent": 87.49,
+      "memory_usage_percent": 38.6,
+      "operations_per_second": 25524
+    }
+  },
+  {
+    "timestamp": "2025-08-04T19:31:07.404251",
+    "api_response_time_ms": 34.65,
+    "throughput_rps": 1182,
+    "error_rate_percent": 1.698,
+    "cpu_utilization_percent": 51.4,
+    "memory_utilization_percent": 48.0,
+    "disk_utilization_percent": 24.2,
+    "network_latency_ms": 17.84,
+    "active_connections": 137,
+    "database_performance": {
+      "avg_query_time_ms": 20.43,
+      "connection_pool_usage_percent": 43.6,
+      "slow_queries_count": 0
+    },
+    "cache_performance": {
+      "hit_rate_percent": 94.05,
+      "memory_usage_percent": 31.3,
+      "operations_per_second": 7655
+    }
+  },
+  {
+    "timestamp": "2025-08-04T18:31:07.404264",
+    "api_response_time_ms": 73.24,
+    "throughput_rps": 1267,
+    "error_rate_percent": 0.38,
+    "cpu_utilization_percent": 75.7,
+    "memory_utilization_percent": 53.6,
+    "disk_utilization_percent": 43.9,
+    "network_latency_ms": 7.95,
+    "active_connections": 537,
+    "database_performance": {
+      "avg_query_time_ms": 46.76,
+      "connection_pool_usage_percent": 64.2,
+      "slow_queries_count": 6
+    },
+    "cache_performance": {
+      "hit_rate_percent": 91.3,
+      "memory_usage_percent": 30.6,
+      "operations_per_second": 17327
+    }
+  }
+]

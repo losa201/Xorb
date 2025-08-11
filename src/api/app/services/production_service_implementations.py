@@ -29,9 +29,9 @@ from .interfaces import (
     AuthenticationService, AuthorizationService, EmbeddingService,
     DiscoveryService, RateLimitingService, UserService, OrganizationService,
     SecurityAnalysisService, NotificationService, TenantService,
-    HealthCheckService, PTaaSService, ThreatIntelligenceService,
-    WorkflowOrchestrationService, ComplianceService, MonitoringService,
-    VectorSearchService, TelemetryService, IntelligenceAnalysisService
+    HealthService, PTaaSService, ThreatIntelligenceService,
+    SecurityOrchestrationService, ComplianceService, SecurityMonitoringService,
+    IntelligenceService
 )
 from ..domain.entities import User, Organization, ScanSession, ThreatAlert
 
@@ -213,6 +213,36 @@ class ProductionPTaaSService(PTaaSService):
         self.config = config
         self.active_scans: Dict[str, Dict[str, Any]] = {}
         self.scan_results: Dict[str, Dict[str, Any]] = {}
+        self.scan_profiles = {
+            "quick": {
+                "name": "Quick Scan",
+                "description": "Fast network discovery with basic service detection",
+                "duration_minutes": 5,
+                "tools": ["nmap"],
+                "nmap_args": "-sS -T4 -F"
+            },
+            "comprehensive": {
+                "name": "Comprehensive Security Assessment",
+                "description": "Full security assessment with vulnerability scanning",
+                "duration_minutes": 45,
+                "tools": ["nmap", "nuclei", "nikto", "sslscan"],
+                "nmap_args": "-sS -sV -sC -O -T4 -p-"
+            },
+            "stealth": {
+                "name": "Stealth Reconnaissance",
+                "description": "Low-profile scanning to avoid detection",
+                "duration_minutes": 90,
+                "tools": ["nmap", "nuclei"],
+                "nmap_args": "-sS -T2 -f --randomize-hosts"
+            },
+            "web_focused": {
+                "name": "Web Application Security Scan",
+                "description": "Specialized web application security testing",
+                "duration_minutes": 30,
+                "tools": ["nikto", "nuclei", "gobuster"],
+                "nikto_args": "-h {target} -Format json"
+            }
+        }
         
     async def create_scan_session(
         self, 
@@ -370,6 +400,57 @@ class ProductionPTaaSService(PTaaSService):
                 {"port": 22, "service": "ssh", "version": "OpenSSH 8.2"}
             ]
         }
+    
+    async def create_compliance_scan(self, compliance_framework: str, targets: List[str]) -> str:
+        """Create compliance-focused scan session"""
+        scan_id = str(uuid.uuid4())
+        
+        # Create compliance scan session
+        scan_session = {
+            "session_id": scan_id,
+            "compliance_framework": compliance_framework,
+            "targets": targets,
+            "status": "queued",
+            "created_at": datetime.utcnow().isoformat(),
+            "scan_type": "compliance"
+        }
+        
+        self.active_scans[scan_id] = scan_session
+        
+        # Start compliance scan in background
+        asyncio.create_task(self._execute_compliance_scan(scan_id))
+        
+        return scan_id
+    
+    async def _execute_compliance_scan(self, session_id: str):
+        """Execute compliance scan"""
+        try:
+            scan_session = self.active_scans[session_id]
+            scan_session["status"] = "running"
+            
+            # Simulate compliance scan execution
+            await asyncio.sleep(5)  # Simulated scan time
+            
+            # Generate compliance results
+            results = {
+                "compliance_framework": scan_session["compliance_framework"],
+                "compliance_score": 85,
+                "passed_controls": 17,
+                "failed_controls": 3,
+                "recommendations": [
+                    "Enable multi-factor authentication",
+                    "Update encryption standards",
+                    "Implement audit logging"
+                ]
+            }
+            
+            scan_session["status"] = "completed"
+            scan_session["results"] = results
+            
+        except Exception as e:
+            if session_id in self.active_scans:
+                self.active_scans[session_id]["status"] = "failed"
+                self.active_scans[session_id]["error"] = str(e)
 
 class ProductionThreatIntelligenceService(ThreatIntelligenceService):
     """Production threat intelligence service"""
@@ -647,10 +728,11 @@ class ProductionNotificationService(NotificationService):
             logger.error(f"SMS send failed: {e}")
             return False
 
+
 # Additional service implementations would continue here...
 # This provides a comprehensive foundation for replacing all NotImplementedError stubs
 
-class ProductionHealthCheckService(HealthCheckService):
+class ProductionHealthCheckService(HealthService):
     """Production health check service"""
     
     def __init__(self, config: Dict[str, Any]):
@@ -743,3 +825,25 @@ class ProductionHealthCheckService(HealthCheckService):
                 "status": "unhealthy",
                 "error": str(e)
             }
+
+
+class ServiceFactory:
+    """Factory for creating production service instances"""
+    
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+    
+    def create_auth_service(self) -> ProductionAuthenticationService:
+        """Create authentication service"""
+        return ProductionAuthenticationService(self.config.get("auth", {}))
+    
+    def create_health_service(self) -> ProductionHealthCheckService:
+        """Create health check service"""
+        return ProductionHealthCheckService(self.config.get("health", {}))
+
+
+def get_service_factory(config: Dict[str, Any] = None) -> ServiceFactory:
+    """Get service factory instance"""
+    if config is None:
+        config = {}
+    return ServiceFactory(config)

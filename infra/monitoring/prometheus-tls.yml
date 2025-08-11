@@ -1,0 +1,101 @@
+# Prometheus Configuration with TLS Support
+# XORB Platform Monitoring Configuration
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  scrape_timeout: 10s
+
+rule_files:
+  - "prometheus-rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+      scheme: https
+      tls_config:
+        ca_file: /run/tls/ca/ca.pem
+        cert_file: /run/tls/prometheus/cert.pem
+        key_file: /run/tls/prometheus/key.pem
+        insecure_skip_verify: false
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scheme: https
+    tls_config:
+      ca_file: /run/tls/ca/ca.pem
+      cert_file: /run/tls/prometheus/cert.pem
+      key_file: /run/tls/prometheus/key.pem
+
+  # XORB API Service
+  - job_name: 'xorb-api'
+    static_configs:
+      - targets: ['envoy-api:8443']
+    scheme: https
+    tls_config:
+      ca_file: /run/tls/ca/ca.pem
+      cert_file: /run/tls/prometheus/cert.pem
+      key_file: /run/tls/prometheus/key.pem
+    metrics_path: '/api/v1/metrics'
+    scrape_interval: 30s
+
+  # Redis TLS monitoring
+  - job_name: 'redis-tls'
+    static_configs:
+      - targets: ['redis:6379']
+    scheme: https
+    tls_config:
+      ca_file: /run/tls/ca/ca.pem
+      cert_file: /run/tls/redis-client/cert.pem
+      key_file: /run/tls/redis-client/key.pem
+    scrape_interval: 30s
+
+  # Temporal Service
+  - job_name: 'temporal'
+    static_configs:
+      - targets: ['temporal:7234']
+    scheme: https
+    tls_config:
+      ca_file: /run/tls/ca/ca.pem
+      cert_file: /run/tls/temporal-client/cert.pem
+      key_file: /run/tls/temporal-client/key.pem
+    scrape_interval: 30s
+
+  # Orchestrator Service
+  - job_name: 'orchestrator'
+    static_configs:
+      - targets: ['orchestrator:8000']
+    scheme: https
+    tls_config:
+      ca_file: /run/tls/ca/ca.pem
+      cert_file: /run/tls/orchestrator/cert.pem
+      key_file: /run/tls/orchestrator/key.pem
+    scrape_interval: 30s
+
+  # PTaaS Agent Service
+  - job_name: 'ptaas-agent'
+    static_configs:
+      - targets: ['envoy-agent:8444']
+    scheme: https
+    tls_config:
+      ca_file: /run/tls/ca/ca.pem
+      cert_file: /run/tls/agent/cert.pem
+      key_file: /run/tls/agent/key.pem
+    scrape_interval: 30s
+
+  # Docker-in-Docker TLS
+  - job_name: 'docker-dind'
+    static_configs:
+      - targets: ['dind:2376']
+    scheme: https
+    tls_config:
+      ca_file: /run/tls/ca/ca.pem
+      cert_file: /run/tls/dind-client/cert.pem
+      key_file: /run/tls/dind-client/key.pem
+    scrape_interval: 30s
+

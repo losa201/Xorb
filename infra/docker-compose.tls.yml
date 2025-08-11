@@ -1,0 +1,366 @@
+version: '3.8'
+
+# XORB Platform with End-to-End TLS/mTLS
+# All services communicate over encrypted channels with mutual authentication
+
+x-tls-volume: &tls-volume
+  type: bind
+  read_only: true
+
+x-common-environment: &common-env
+  REDIS_URL: "rediss://redis:6379"
+  REDIS_TLS_CERT_FILE: "/run/tls/redis-client/cert.pem"
+  REDIS_TLS_KEY_FILE: "/run/tls/redis-client/key.pem"
+  REDIS_TLS_CA_FILE: "/run/tls/ca/ca.pem"
+  TLS_ENABLED: "true"
+  TLS_VERIFY_MODE: "strict"
+
+networks:
+  xorb-secure:
+    driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: xorb-secure
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  redis-data:
+  postgres-data:
+  temporal-data:
+
+services:
+  # Redis with TLS-only configuration
+  redis:
+    image: redis:7.2-alpine
+    container_name: xorb-redis
+    command: sh -c "mkdir -p /var/log/redis && redis-server /etc/redis/redis.conf"
+    volumes:
+      - redis-data:/data
+      - ./redis/redis-tls.conf:/etc/redis/redis.conf:ro
+      - ../secrets/tls/redis:/run/tls/redis:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.10
+    ports:
+      - "6380:6379"  # TLS port only
+    environment:
+      REDIS_TLS_ENABLED: "yes"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--tls", "--cert", "/run/tls/redis/cert.pem", "--key", "/run/tls/redis/key.pem", "--cacert", "/run/tls/ca/ca.pem", "-h", "localhost", "-p", "6379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL with TLS
+  postgres:
+    image: ankane/pgvector:v0.5.1
+    container_name: xorb-postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../secrets/tls/postgres:/run/tls/postgres:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+      - ./infra/postgres/init-tls.sql:/docker-entrypoint-initdb.d/init-tls.sql:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.11
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: xorb
+      POSTGRES_USER: xorb
+      POSTGRES_PASSWORD: xorb_secure_pass
+      POSTGRES_TLS_CERT: /run/tls/postgres/cert.pem
+      POSTGRES_TLS_KEY: /run/tls/postgres/key.pem
+      POSTGRES_TLS_CA: /run/tls/ca/ca.pem
+    command: >
+      postgres
+      -c log_statement=all
+      -c log_destination=stderr
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U xorb -d xorb -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Temporal Server with TLS
+  temporal:
+    image: temporalio/auto-setup:1.22
+    container_name: xorb-temporal
+    volumes:
+      - temporal-data:/tmp/temporal
+      - ../secrets/tls/temporal:/run/tls/temporal:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+      - ./temporal/config-tls.yaml:/etc/temporal/config/docker.yaml:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.12
+    ports:
+      - "7234:7233"  # gRPC with TLS
+      - "8234:8233"  # Web UI with TLS
+    environment:
+      DB: postgresql
+      DB_PORT: 5432
+      POSTGRES_USER: xorb
+      POSTGRES_PWD: xorb_secure_pass
+      POSTGRES_SEEDS: postgres
+      TEMPORAL_TLS_ENABLED: "true"
+      TEMPORAL_TLS_CERT: /run/tls/temporal/cert.pem
+      TEMPORAL_TLS_KEY: /run/tls/temporal/key.pem
+      TEMPORAL_TLS_CA: /run/tls/ca/ca.pem
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Envoy Proxy for API service (mTLS termination)
+  envoy-api:
+    image: envoyproxy/envoy:v1.28-latest
+    container_name: xorb-envoy-api
+    volumes:
+      - ./envoy/api.envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ../secrets/tls/api:/run/tls/api:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.20
+    ports:
+      - "8443:8443"  # HTTPS with mTLS
+      - "9901:9901"  # Admin interface
+    environment:
+      ENVOY_UID: 0
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-check-certificate", "-qO-", "http://localhost:9901/ready"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # API Service (FastAPI behind Envoy)
+  api:
+    build:
+      context: .
+      dockerfile: src/api/Dockerfile
+      target: production
+    container_name: xorb-api
+    volumes:
+      - ../secrets/tls/api:/run/tls/api:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+      - ../secrets/tls/redis-client:/run/tls/redis-client:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.21
+    expose:
+      - "8000"
+    environment:
+      <<: *common-env
+      DATABASE_URL: "postgresql://xorb:xorb_secure_pass@postgres:5432/xorb?sslmode=require&sslcert=/run/tls/postgres-client/cert.pem&sslkey=/run/tls/postgres-client/key.pem&sslrootcert=/run/tls/ca/ca.pem"
+      TEMPORAL_HOST: "temporal:7233"
+      TEMPORAL_TLS_ENABLED: "true"
+      TEMPORAL_TLS_CERT: "/run/tls/temporal-client/cert.pem"
+      TEMPORAL_TLS_KEY: "/run/tls/temporal-client/key.pem"
+      TEMPORAL_TLS_CA: "/run/tls/ca/ca.pem"
+      API_TLS_CERT: "/run/tls/api/cert.pem"
+      API_TLS_KEY: "/run/tls/api/key.pem"
+      API_TLS_CA: "/run/tls/ca/ca.pem"
+      LOG_LEVEL: "INFO"
+      ENVIRONMENT: "production"
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      temporal:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--cacert", "/run/tls/ca/ca.pem", "--cert", "/run/tls/api/cert.pem", "--key", "/run/tls/api/key.pem", "https://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Orchestrator Service
+  orchestrator:
+    build:
+      context: .
+      dockerfile: src/orchestrator/Dockerfile
+    container_name: xorb-orchestrator
+    volumes:
+      - ../secrets/tls/orchestrator:/run/tls/orchestrator:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+      - ../secrets/tls/redis-client:/run/tls/redis-client:ro
+      - ../secrets/tls/temporal-client:/run/tls/temporal-client:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.22
+    environment:
+      <<: *common-env
+      TEMPORAL_HOST: "temporal:7233"
+      TEMPORAL_TLS_ENABLED: "true"
+      TEMPORAL_TLS_CERT: "/run/tls/temporal-client/cert.pem"
+      TEMPORAL_TLS_KEY: "/run/tls/temporal-client/key.pem"
+      TEMPORAL_TLS_CA: "/run/tls/ca/ca.pem"
+      API_BASE_URL: "https://envoy-api:8443"
+      API_TLS_CA: "/run/tls/ca/ca.pem"
+      API_CLIENT_CERT: "/run/tls/orchestrator/client-cert.pem"
+      API_CLIENT_KEY: "/run/tls/orchestrator/client-key.pem"
+    depends_on:
+      temporal:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      envoy-api:
+        condition: service_healthy
+
+  # PTaaS Agent with Envoy sidecar
+  envoy-agent:
+    image: envoyproxy/envoy:v1.28-latest
+    container_name: xorb-envoy-agent
+    volumes:
+      - ./envoy/agent.envoy.yaml:/etc/envoy/envoy.yaml:ro
+      - ../secrets/tls/agent:/run/tls/agent:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.30
+    ports:
+      - "8444:8443"  # Agent HTTPS with mTLS
+    environment:
+      ENVOY_UID: 0
+    depends_on:
+      ptaas-agent:
+        condition: service_healthy
+
+  ptaas-agent:
+    build:
+      context: .
+      dockerfile: agents/Dockerfile
+    container_name: xorb-ptaas-agent
+    volumes:
+      - ../secrets/tls/agent:/run/tls/agent:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+      - ../secrets/tls/redis-client:/run/tls/redis-client:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.31
+    expose:
+      - "8080"
+    environment:
+      <<: *common-env
+      AGENT_TLS_CERT: "/run/tls/agent/cert.pem"
+      AGENT_TLS_KEY: "/run/tls/agent/key.pem"
+      AGENT_TLS_CA: "/run/tls/ca/ca.pem"
+      API_BASE_URL: "https://envoy-api:8443"
+      API_CLIENT_CERT: "/run/tls/agent/client-cert.pem"
+      API_CLIENT_KEY: "/run/tls/agent/client-key.pem"
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "--cacert", "/run/tls/ca/ca.pem", "--cert", "/run/tls/agent/cert.pem", "--key", "/run/tls/agent/key.pem", "https://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Docker-in-Docker with TLS
+  dind:
+    image: docker:24-dind
+    container_name: xorb-dind
+    privileged: true
+    volumes:
+      - ../secrets/tls/dind:/certs/server:ro
+      - ../secrets/tls/dind-client:/certs/client:ro
+      - ../secrets/tls/ca:/certs/ca:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.40
+    ports:
+      - "2376:2376"  # Docker daemon TLS
+    environment:
+      DOCKER_TLS_CERTDIR: /certs
+      DOCKER_TLS_VERIFY: 1
+      DOCKERD_ROOTLESS_ROOTLESSKIT_NET: host
+    command: >
+      dockerd
+      --host=0.0.0.0:2376
+      --tls=true
+      --tlscert=/certs/server/cert.pem
+      --tlskey=/certs/server/key.pem
+      --tlsverify=true
+      --tlscacert=/certs/ca/ca.pem
+    healthcheck:
+      test: ["CMD", "docker", "--tlsverify", "--tlscacert=/certs/ca/ca.pem", "--tlscert=/certs/client/cert.pem", "--tlskey=/certs/client/key.pem", "-H=tcp://localhost:2376", "version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Scanner Executor Service
+  scanner-executor:
+    build:
+      context: .
+      dockerfile: src/services/scanner/Dockerfile
+    container_name: xorb-scanner-executor
+    volumes:
+      - ../secrets/tls/scanner:/run/tls/scanner:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+      - ../secrets/tls/dind-client:/certs/client:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.41
+    environment:
+      <<: *common-env
+      DOCKER_HOST: "tcp://dind:2376"
+      DOCKER_TLS_VERIFY: 1
+      DOCKER_CERT_PATH: "/certs/client"
+      SCANNER_TLS_CERT: "/run/tls/scanner/cert.pem"
+      SCANNER_TLS_KEY: "/run/tls/scanner/key.pem"
+      SCANNER_TLS_CA: "/run/tls/ca/ca.pem"
+    depends_on:
+      dind:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # Monitoring: Prometheus with TLS
+  prometheus:
+    image: prom/prometheus:v2.47.0
+    container_name: xorb-prometheus
+    volumes:
+      - ./monitoring/prometheus-tls.yml:/etc/prometheus/prometheus.yml:ro
+      - ../secrets/tls/prometheus:/run/tls/prometheus:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.50
+    ports:
+      - "9093:9090"  # Prometheus HTTPS
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+      - '--web.config.file=/etc/prometheus/web-config.yml'
+
+  # Grafana with TLS
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: xorb-grafana
+    volumes:
+      - ./monitoring/grafana-tls.ini:/etc/grafana/grafana.ini:ro
+      - ../secrets/tls/grafana:/run/tls/grafana:ro
+      - ../secrets/tls/ca:/run/tls/ca:ro
+    networks:
+      xorb-secure:
+        ipv4_address: 172.20.0.51
+    ports:
+      - "3001:3000"  # Grafana HTTPS
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: SecureAdminPass123!
+      GF_SERVER_PROTOCOL: https
+      GF_SERVER_CERT_FILE: /run/tls/grafana/cert.pem
+      GF_SERVER_CERT_KEY: /run/tls/grafana/key.pem
+    depends_on:
+      prometheus:
+        condition: service_started

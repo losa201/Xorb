@@ -1,8 +1,8 @@
-# Requirements Configuration
+#  Requirements Configuration
 
 This directory contains multiple requirements files for different components of the XORB system:
 
-## requirements.txt
+##  requirements.txt
 Core dependencies for the base XORB system:
 - Python 3.10+
 - asyncio
@@ -12,7 +12,7 @@ Core dependencies for the base XORB system:
 - json
 - typing
 
-## requirements-execution.txt
+##  requirements-execution.txt
 Dependencies for execution components:
 - docker
 - kubernetes
@@ -21,7 +21,7 @@ Dependencies for execution components:
 - pydantic
 - fastapi
 
-## requirements-ml.txt
+##  requirements-ml.txt
 Machine learning dependencies for analytical components:
 - numpy
 - pandas

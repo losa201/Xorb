@@ -1,0 +1,156 @@
+{
+  "file_path": "/root/Xorb/src/api/app/main.py",
+  "file_type": "core_application",
+  "lines_of_code": 454,
+  "security_risk_level": "HIGH",
+  "audit_timestamp": "2025-08-11T19:45:00Z",
+  "findings": [
+    {
+      "id": "XORB-API-001",
+      "severity": "MEDIUM-HIGH",
+      "category": "Information Disclosure",
+      "cwe": "CWE-200",
+      "title": "Sensitive Information Disclosure in Root Endpoint",
+      "description": "Root endpoint exposes application version, environment, and feature flags",
+      "location": {
+        "line_start": 429,
+        "line_end": 440,
+        "function": "root"
+      },
+      "code_snippet": "return {\n    \"version\": settings.app_version,\n    \"environment\": settings.environment,\n    \"features\": config_manager.get_feature_flags()\n}",
+      "impact": "Attackers can enumerate application details for targeted attacks",
+      "remediation": "Remove sensitive information from public endpoint response",
+      "cvss_score": 6.5,
+      "remediation_effort": "LOW"
+    },
+    {
+      "id": "XORB-API-002",
+      "severity": "HIGH",
+      "category": "Missing Protection",
+      "cwe": "CWE-352",
+      "title": "Missing CSRF Protection",
+      "description": "No CSRF protection middleware implemented for state-changing operations",
+      "location": {
+        "line_start": 190,
+        "line_end": 256,
+        "function": "middleware_setup"
+      },
+      "impact": "Cross-site request forgery attacks on authenticated users",
+      "remediation": "Implement CSRF protection middleware",
+      "cvss_score": 7.1,
+      "remediation_effort": "MEDIUM"
+    },
+    {
+      "id": "XORB-API-003",
+      "severity": "MEDIUM",
+      "category": "Input Validation",
+      "cwe": "CWE-346",
+      "title": "Insufficient CORS Validation",
+      "description": "CORS origin validation logic may be bypassed",
+      "location": {
+        "line_start": 214,
+        "line_end": 233,
+        "function": "cors_setup"
+      },
+      "impact": "Unauthorized cross-origin requests",
+      "remediation": "Strengthen CORS validation logic",
+      "cvss_score": 5.8,
+      "remediation_effort": "LOW"
+    },
+    {
+      "id": "XORB-API-004",
+      "severity": "MEDIUM",
+      "category": "Configuration",
+      "cwe": "CWE-20",
+      "title": "Hardcoded Trusted Host Fallback",
+      "description": "Fallback to hardcoded trusted hosts may not match deployment",
+      "location": {
+        "line_start": 245,
+        "line_end": 246,
+        "function": "trusted_host_setup"
+      },
+      "impact": "Host header injection attacks",
+      "remediation": "Validate trusted hosts configuration dynamically",
+      "cvss_score": 5.2,
+      "remediation_effort": "LOW"
+    },
+    {
+      "id": "XORB-API-005",
+      "severity": "MEDIUM",
+      "category": "Code Injection",
+      "cwe": "CWE-94",
+      "title": "Dynamic Router Import Risk",
+      "description": "Dynamic module imports could be exploited if router names are externally controlled",
+      "location": {
+        "line_start": 292,
+        "line_end": 293,
+        "function": "strategic_router_loading"
+      },
+      "impact": "Potential code injection via malicious router names",
+      "remediation": "Whitelist allowed router names and validate inputs",
+      "cvss_score": 6.0,
+      "remediation_effort": "MEDIUM"
+    }
+  ],
+  "architecture_assessment": {
+    "strengths": [
+      "Comprehensive middleware stack implementation",
+      "Proper application lifespan management",
+      "Environment-specific configuration validation",
+      "Security headers middleware integration",
+      "Structured input validation with presets",
+      "Comprehensive audit logging"
+    ],
+    "weaknesses": [
+      "Information leakage in error responses",
+      "Missing CSRF protection",
+      "Insufficient input validation for configuration",
+      "Verbose error messages"
+    ]
+  },
+  "compliance_impact": {
+    "gdpr": {
+      "data_processing": "COMPLIANT",
+      "privacy_by_design": "PARTIAL",
+      "issues": ["Information disclosure in public endpoints"]
+    },
+    "soc2": {
+      "security": "PARTIAL",
+      "confidentiality": "PARTIAL",
+      "issues": ["Missing CSRF protection", "Information disclosure"]
+    }
+  },
+  "recommendations": [
+    {
+      "priority": "CRITICAL",
+      "action": "Remove sensitive information from root endpoint",
+      "timeline": "24 hours",
+      "effort": "LOW"
+    },
+    {
+      "priority": "HIGH",
+      "action": "Implement CSRF protection middleware",
+      "timeline": "1 week",
+      "effort": "MEDIUM"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Enhance CORS validation logic",
+      "timeline": "3 days",
+      "effort": "LOW"
+    },
+    {
+      "priority": "MEDIUM",
+      "action": "Validate trusted hosts configuration",
+      "timeline": "3 days",
+      "effort": "LOW"
+    }
+  ],
+  "risk_score": 7.2,
+  "test_requirements": [
+    "CSRF protection validation",
+    "Information disclosure testing",
+    "CORS bypass attempts",
+    "Router loading security tests"
+  ]
+}

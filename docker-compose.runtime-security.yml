@@ -1,0 +1,349 @@
+version: '3.8'
+
+services:
+  # Falco - Runtime Security Monitoring
+  falco:
+    image: falcosecurity/falco:0.36.2
+    container_name: xorb-falco
+    restart: unless-stopped
+    privileged: true
+    pid: host
+    environment:
+      - FALCO_GRPC_ENABLED=true
+      - FALCO_GRPC_BIND_ADDRESS=0.0.0.0:5060
+      - FALCO_K8S_AUDIT_ENDPOINT=/k8s-audit
+      - FALCO_BUFFERED_OUTPUTS=true
+      - FALCO_OUTPUTS_RATE=200
+      - FALCO_OUTPUTS_MAX_BURST=1000
+    ports:
+      - "127.0.0.1:5060:5060"  # gRPC API
+      - "127.0.0.1:8765:8765"  # Health endpoint
+    volumes:
+      - /var/run/docker.sock:/host/var/run/docker.sock:ro
+      - /dev:/host/dev:ro
+      - /proc:/host/proc:ro
+      - /boot:/host/boot:ro
+      - /lib/modules:/host/lib/modules:ro
+      - /usr:/host/usr:ro
+      - /etc:/host/etc:ro
+      - ./config/falco/falco.yaml:/etc/falco/falco.yaml:ro
+      - ./config/falco/rules:/etc/falco/rules:ro
+      - ./logs/falco:/var/log/falco
+    networks:
+      - xorb-runtime-security
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - apparmor:unconfined
+    labels:
+      - "security.runtime.monitor=true"
+      - "falco.enable=false"  # Don't monitor Falco itself
+
+  # Falco Sidekick - Event Processing
+  falco-sidekick:
+    image: falcosecurity/falco-sidekick:2.28.0
+    container_name: xorb-falco-sidekick
+    restart: unless-stopped
+    environment:
+      - WEBUI_URL=http://falco-sidekick-ui:2802
+      - ELASTICSEARCH_HOSTPORT=elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=falco_writer
+      - ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}
+      - ELASTICSEARCH_INDEX=falco-security
+      - ELASTICSEARCH_TYPE=_doc
+      - ELASTICSEARCH_MINIMUMPRIORITY=notice
+      - ELASTICSEARCH_SUFFIX=daily
+      - SLACK_WEBHOOKURL=${SLACK_WEBHOOK_URL}
+      - SLACK_CHANNEL=#security-alerts
+      - SLACK_USERNAME=Falco
+      - SLACK_ICONURL=https://falco.org/img/falco.png
+      - SLACK_MINIMUMPRIORITY=warning
+      - WEBHOOK_ADDRESS=http://xorb-api:8000/api/v1/security/falco-webhook
+      - WEBHOOK_MINIMUMPRIORITY=notice
+      - PAGERDUTY_ROUTINGKEY=${PAGERDUTY_ROUTING_KEY}
+      - PAGERDUTY_MINIMUMPRIORITY=critical
+      - ALERTMANAGER_HOSTPORT=prometheus-alertmanager:9093
+      - ALERTMANAGER_MINIMUMPRIORITY=warning
+    ports:
+      - "127.0.0.1:2801:2801"
+    volumes:
+      - ./config/falco-sidekick:/config:ro
+    networks:
+      - xorb-runtime-security
+      - xorb-siem
+      - xorb-backend
+    depends_on:
+      - falco
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2801/ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.3'
+    security_opt:
+      - no-new-privileges:true
+
+  # Falco Sidekick UI - Security Dashboard
+  falco-sidekick-ui:
+    image: falcosecurity/falco-sidekick-ui:v2.2.0
+    container_name: xorb-falco-ui
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379/2
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - PORT=2802
+      - LOGLEVEL=info
+      - CREDENTIALS=${FALCO_UI_CREDENTIALS}
+    ports:
+      - "127.0.0.1:2802:2802"
+    networks:
+      - xorb-runtime-security
+      - xorb-data
+    depends_on:
+      - falco-sidekick
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:2802/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.2'
+    security_opt:
+      - no-new-privileges:true
+
+  # Falco Exporter - Prometheus Metrics
+  falco-exporter:
+    image: falcosecurity/falco-exporter:0.8.3
+    container_name: xorb-falco-exporter
+    restart: unless-stopped
+    environment:
+      - FALCO_ENDPOINT=falco:5060
+      - PORT=9376
+      - TIMEOUT=2s
+      - LOGLEVEL=info
+    ports:
+      - "127.0.0.1:9376:9376"
+    networks:
+      - xorb-runtime-security
+      - xorb-siem
+    depends_on:
+      - falco
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:9376/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+          cpus: '0.1'
+    security_opt:
+      - no-new-privileges:true
+
+  # File Integrity Monitoring
+  fim-agent:
+    image: wazuh/wazuh-agent:4.7.0
+    container_name: xorb-fim-agent
+    restart: unless-stopped
+    environment:
+      - WAZUH_MANAGER=wazuh-manager
+      - WAZUH_AGENT_GROUP=docker
+      - WAZUH_REGISTRATION_SERVER=wazuh-manager
+      - WAZUH_REGISTRATION_PASSWORD=${WAZUH_PASSWORD}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /:/rootfs:ro
+      - ./config/wazuh/ossec.conf:/var/ossec/etc/ossec.conf:ro
+      - ./logs/wazuh:/var/ossec/logs
+    networks:
+      - xorb-runtime-security
+    depends_on:
+      - wazuh-manager
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: '0.3'
+    security_opt:
+      - no-new-privileges:true
+
+  # Wazuh Manager - Security Management
+  wazuh-manager:
+    image: wazuh/wazuh-manager:4.7.0
+    container_name: xorb-wazuh-manager
+    restart: unless-stopped
+    environment:
+      - WAZUH_CLUSTER_NODE_TYPE=master
+      - WAZUH_CLUSTER_NODE_NAME=master-node
+      - WAZUH_CLUSTER_DISABLED=true
+      - WAZUH_API_GENERATED_CERTS=false
+    ports:
+      - "127.0.0.1:1514:1514"  # Agent communication
+      - "127.0.0.1:1515:1515"  # Agent enrollment
+      - "127.0.0.1:55000:55000"  # API
+    volumes:
+      - wazuh_api_configuration:/var/ossec/api/configuration
+      - wazuh_etc:/var/ossec/etc
+      - wazuh_logs:/var/ossec/logs
+      - wazuh_queue:/var/ossec/queue
+      - wazuh_var_multigroups:/var/ossec/var/multigroups
+      - wazuh_integrations:/var/ossec/integrations
+      - wazuh_active_response:/var/ossec/active-response/bin
+      - wazuh_agentless:/var/ossec/agentless
+      - wazuh_wodles:/var/ossec/wodles
+      - ./config/wazuh/etc:/wazuh-config-mount/etc:ro
+    networks:
+      - xorb-runtime-security
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f https://localhost:55000/security/user/authenticate || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.8'
+    security_opt:
+      - no-new-privileges:true
+
+  # Container Image Scanner
+  trivy-scanner:
+    image: aquasec/trivy:0.48.3
+    container_name: xorb-trivy-scanner
+    restart: unless-stopped
+    command: ["server", "--listen", "0.0.0.0:8080"]
+    environment:
+      - TRIVY_DEBUG=false
+      - TRIVY_CACHE_DIR=/tmp/trivy/.cache
+      - TRIVY_DB_REPOSITORY=ghcr.io/aquasecurity/trivy-db
+      - TRIVY_JAVA_DB_REPOSITORY=ghcr.io/aquasecurity/trivy-java-db
+    ports:
+      - "127.0.0.1:8084:8080"
+    volumes:
+      - trivy_cache:/tmp/trivy/.cache
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - xorb-runtime-security
+    healthcheck:
+      test: ["CMD", "trivy", "--help"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+
+  # YARA Rule Engine
+  yara-scanner:
+    image: blacktop/yara:4.4
+    container_name: xorb-yara-scanner
+    restart: unless-stopped
+    volumes:
+      - ./config/yara/rules:/rules:ro
+      - ./logs/yara:/var/log/yara
+      - /var/lib/docker:/var/lib/docker:ro
+    networks:
+      - xorb-runtime-security
+    command: ["tail", "-f", "/dev/null"]  # Keep container running
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+          cpus: '0.2'
+    security_opt:
+      - no-new-privileges:true
+
+  # Runtime Security Dashboard
+  runtime-dashboard:
+    image: grafana/grafana:10.2.2
+    container_name: xorb-runtime-dashboard
+    restart: unless-stopped
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=false
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel,marcusolsson-json-datasource
+      - GF_FEATURE_TOGGLES_ENABLE=ngalert
+    ports:
+      - "127.0.0.1:3011:3000"
+    volumes:
+      - runtime_dashboard_data:/var/lib/grafana
+      - ./config/grafana/runtime-security:/etc/grafana/provisioning:ro
+    networks:
+      - xorb-runtime-security
+      - xorb-siem
+    depends_on:
+      - falco-exporter
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  wazuh_api_configuration:
+    driver: local
+  wazuh_etc:
+    driver: local
+  wazuh_logs:
+    driver: local
+  wazuh_queue:
+    driver: local
+  wazuh_var_multigroups:
+    driver: local
+  wazuh_integrations:
+    driver: local
+  wazuh_active_response:
+    driver: local
+  wazuh_agentless:
+    driver: local
+  wazuh_wodles:
+    driver: local
+  trivy_cache:
+    driver: local
+  runtime_dashboard_data:
+    driver: local
+
+networks:
+  xorb-runtime-security:
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24
+    labels:
+      - "network.security.zone=runtime"
+  xorb-siem:
+    external: true
+  xorb-backend:
+    external: true
+  xorb-data:
+    external: true

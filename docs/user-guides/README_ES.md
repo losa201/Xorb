@@ -16,7 +16,7 @@
 <a href="https://discord.gg/projectdiscovery"><img src="https://img.shields.io/discord/695645237418131507.svg?logo=discord"></a>
 <a href="https://twitter.com/pdnuclei"><img src="https://img.shields.io/twitter/follow/pdnuclei.svg?logo=twitter"></a>
 </p>
-      
+
 <p align="center">
   <a href="#how-it-works">Cómo funciona</a> •
   <a href="#install-nuclei">Instalación</a> •
@@ -41,7 +41,7 @@ Nuclei se utiliza para enviar peticiones a múltiples objetivos basándose en un
 
 Tenemos un [repositorio dedicado](https://github.com/projectdiscovery/nuclei-templates) que alberga varios tipos de plantillas de vulnerabilidades, contribuidas por **más de 300** investigadores y ingenieros de seguridad.
 
-## Cómo funciona
+##  Cómo funciona
 
 
 <h3 align="center">
@@ -54,7 +54,7 @@ Tenemos un [repositorio dedicado](https://github.com/projectdiscovery/nuclei-tem
 | **Este proyecto está en desarrollo activo**. Es de esperar que se produzcan cambios importantes con las nuevas versiones. Consulte el registro de cambios de la versión antes de actualizar. |
 | Este proyecto fue principalmente desarrollado para ser utilizado como una herramienta CLI independiente. **Ejecutar nuclei como un servicio puede suponer riesgos de seguridad.** Se recomienda utilizarlo con precaución y tomar medidas de seguridad adicionales. |
 
-# Instalación de Nuclei
+#  Instalación de Nuclei
 
 Nuclei requiere **go1.22** para instalarse correctamente. Ejecute el siguiente comando para instalar la última versión -
 
@@ -64,28 +64,28 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <details>
   <summary>Brew</summary>
-  
+
   ```sh
   brew install nuclei
   ```
-  
+
 </details>
 <details>
   <summary>Docker</summary>
-  
+
   ```sh
   docker pull projectdiscovery/nuclei:latest
   ```
-  
+
 </details>
 
 **Más métodos de instalación [pueden encontrarse aquí](https://docs.projectdiscovery.io/tools/nuclei/install).**
 
 <table>
 <tr>
-<td>  
+<td>
 
-### Plantillas de Nuclei
+###  Plantillas de Nuclei
 
 Nuclei cuenta con soporte incorporado para la descarga/actualización automática de plantillas desde la versión [v2.5.2](https://github.com/projectdiscovery/nuclei/releases/tag/v2.5.2) en adelante. El proyecto [**Nuclei-Templates**](https://github.com/projectdiscovery/nuclei-templates) proporciona una lista de plantillas listas para usar, aportadas por la comunidad, y que se actualizan constantemente.
 
@@ -97,7 +97,7 @@ La sintaxis de referencia YAML DSL está disponible [aquí](SYNTAX-REFERENCE.md)
 </tr>
 </table>
 
-### Uso
+###  Uso
 
 ```sh
 nuclei -h
@@ -329,22 +329,22 @@ Ejecutar nuclei con salidas Markdown ordenadas (con variables de entorno):
 Documentación adicional disponible en: https://docs.nuclei.sh/getting-started/running
 ```
 
-### Ejecutando Nuclei
+###  Ejecutando Nuclei
 
 Consulta https://docs.projectdiscovery.io/tools/nuclei/running para obtener detalles sobre cómo ejecutar Nuclei.
 
-### Uso de Nuclei desde código Go
+###  Uso de Nuclei desde código Go
 
 La guía completa sobre cómo usar Nuclei como biblioteca/SDK está disponible en [godoc](https://pkg.go.dev/github.com/projectdiscovery/nuclei/v3/lib#section-readme).
 
 
-### Recursos
+###  Recursos
 
 Puedes acceder a la documentación principal de Nuclei en https://docs.projectdiscovery.io/tools/nuclei/, y obtener más información sobre Nuclei en la nube con [ProjectDiscovery Cloud Platform](https://cloud.projectdiscovery.io).
 
 ¡Consulta https://docs.projectdiscovery.io/tools/nuclei/resources para obtener más recursos y videos sobre Nuclei!
 
-### Créditos
+###  Créditos
 
 Gracias a todos los increíbles [contribuyentes de la comunidad que enviaron PRs](https://github.com/projectdiscovery/nuclei/graphs/contributors) y mantienen este proyecto actualizado. :heart:
 
@@ -361,7 +361,7 @@ También echa un vistazo a los siguientes proyectos de código abierto similares
 
 [FFuF](https://github.com/ffuf/ffuf), [Qsfuzz](https://github.com/ameenmaali/qsfuzz), [Inception](https://github.com/proabiral/inception), [Snallygaster](https://github.com/hannob/snallygaster), [Gofingerprint](https://github.com/Static-Flow/gofingerprint), [Sn1per](https://github.com/1N3/Sn1per/tree/master/templates), [Google tsunami](https://github.com/google/tsunami-security-scanner), [Jaeles](https://github.com/jaeles-project/jaeles), [ChopChop](https://github.com/michelin/ChopChop)
 
-### Licencia
+###  Licencia
 
 Nuclei se distribuye bajo la [Licencia MIT](https://github.com/projectdiscovery/nuclei/blob/main/LICENSE.md)
 

@@ -1,8 +1,8 @@
-# Targets Configuration
+#  Targets Configuration
 
 The `targets.json` file defines the target assets to be analyzed and processed by the XORB system. This configuration is used across multiple modules including security analysis, service fusion, and monitoring.
 
-## Configuration Structure
+##  Configuration Structure
 
 ```json
 [
@@ -18,7 +18,7 @@ The `targets.json` file defines the target assets to be analyzed and processed b
 ]
 ```
 
-## Field Definitions
+##  Field Definitions
 
 | Field | Type | Description | Example Values |
 |-------|------|-------------|----------------|
@@ -28,13 +28,13 @@ The `targets.json` file defines the target assets to be analyzed and processed b
 | `metadata.priority` | string | Operational priority | `high`, `medium`, `low` |
 | `metadata.scan_type` | string | Type of analysis required | `discovery`, `deep`, `compliance` |
 
-## Usage Notes
+##  Usage Notes
 - This configuration drives the scope of all security and optimization operations
 - Targets should be reviewed and updated regularly to reflect current assets
 - Priority and scan type metadata informs resource allocation decisions
 - For large-scale deployments, consider splitting into multiple configuration files
 
-## Best Practices
+##  Best Practices
 1. Maintain version control for target configurations
 2. Use consistent naming conventions for target values
 3. Regularly audit scope classifications
