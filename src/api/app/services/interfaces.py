@@ -739,3 +739,27 @@ class SecurityIntegrationService(ABC):
     async def get_integration_status(self) -> Dict[str, Any]:
         """Get status of all integrations"""
         raise NotImplementedError("get_integration_status must be implemented by subclass")
+
+
+class CacheService(ABC):
+    """Interface for caching operations"""
+    
+    @abstractmethod
+    async def get(self, key: str) -> Optional[Any]:
+        """Get value from cache"""
+        raise NotImplementedError("get must be implemented by subclass")
+    
+    @abstractmethod
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+        """Set value in cache"""
+        raise NotImplementedError("set must be implemented by subclass")
+    
+    @abstractmethod
+    async def delete(self, key: str) -> bool:
+        """Delete value from cache"""
+        raise NotImplementedError("delete must be implemented by subclass")
+    
+    @abstractmethod
+    async def exists(self, key: str) -> bool:
+        """Check if key exists in cache"""
+        raise NotImplementedError("exists must be implemented by subclass")

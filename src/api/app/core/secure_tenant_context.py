@@ -5,7 +5,7 @@ Production-grade tenant isolation enforcement for XORB platform
 
 import asyncio
 import logging
-from typing import Optional, Dict, Any, Set
+from typing import Optional, Dict, Any, Set, List
 from uuid import UUID
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field

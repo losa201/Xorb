@@ -34,7 +34,7 @@ class RBACRole(Base):
     parent_role_id = Column(UUID(as_uuid=True), ForeignKey('rbac_roles.id'), nullable=True)
     
     # Metadata and timestamps
-    metadata = Column(JSONB, default={})
+    role_metadata = Column(JSONB, default={})
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
@@ -79,7 +79,7 @@ class RBACPermission(Base):
     is_active = Column(Boolean, default=True, nullable=False)
     
     # Metadata and timestamps
-    metadata = Column(JSONB, default={})
+    role_metadata = Column(JSONB, default={})
     created_at = Column(DateTime, default=func.now(), nullable=False)
     updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
     created_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
@@ -107,7 +107,7 @@ class RBACRolePermission(Base):
     # Metadata
     granted_at = Column(DateTime, default=func.now(), nullable=False)
     granted_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
-    metadata = Column(JSONB, default={})
+    role_metadata = Column(JSONB, default={})
     
     # Relationships
     role = relationship("RBACRole")
@@ -130,7 +130,7 @@ class RBACUserRole(Base):
     expires_at = Column(DateTime, nullable=True)
     granted_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
-    metadata = Column(JSONB, default={})
+    role_metadata = Column(JSONB, default={})
     
     # Relationships
     user = relationship("UserModel", foreign_keys=[user_id])
@@ -171,7 +171,7 @@ class RBACUserPermission(Base):
     expires_at = Column(DateTime, nullable=True)
     granted_by = Column(UUID(as_uuid=True), ForeignKey('users.id'), nullable=True)
     is_active = Column(Boolean, default=True, nullable=False)
-    metadata = Column(JSONB, default={})
+    role_metadata = Column(JSONB, default={})
     
     # Relationships
     user = relationship("UserModel", foreign_keys=[user_id])
