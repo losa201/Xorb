@@ -1,0 +1,19 @@
+# .gitleaks.toml
+
+[allowlist]
+  description = "Approved test secrets and examples"
+  paths = [
+    '''^\.github/workflows/.*$''',
+    '''^docs/.*$''',
+    '''^.*\.env\.example$'''
+  ]
+  regexes = [
+    '''dast-test-secret''',
+    '''test_password''',
+    '''your_jwt_secret_32_chars_min''',
+    '''Bearer invalid_token'''
+  ]
+
+# Base rules are included by default from the gitleaks binary.
+# See https://github.com/gitleaks/gitleaks for default configurations.
+# You can add custom rules here if needed.
