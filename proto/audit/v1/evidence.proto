@@ -1,0 +1,284 @@
+syntax = "proto3";
+
+package xorb.audit.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/xorb/proto/audit/v1;auditv1";
+
+// ChainOfCustody represents the immutable chain of custody for evidence
+message ChainOfCustody {
+  string chain_id = 1;
+  repeated CustodyRecord records = 2;
+  DigitalSignature signature = 3;
+  bool tamper_evident = 4;
+  google.protobuf.Timestamp collection_time = 5;
+  string collector_id = 6;
+  string tenant_id = 7;
+}
+
+// CustodyRecord represents a single custody transfer or modification
+message CustodyRecord {
+  string record_id = 1;
+  CustodyAction action = 2;
+  string actor_id = 3;
+  string actor_name = 4;
+  google.protobuf.Timestamp timestamp = 5;
+  string description = 6;
+  string location = 7;
+  DigitalSignature signature = 8;
+  google.protobuf.Struct metadata = 9;
+}
+
+// DigitalSignature for evidence integrity
+message DigitalSignature {
+  SignatureAlgorithm algorithm = 1;
+  string signature_value = 2;
+  string public_key_id = 3;
+  repeated string certificate_chain = 4;
+  google.protobuf.Timestamp signed_at = 5;
+  string signer_identity = 6;
+  bool verified = 7;
+}
+
+// AuditEvidence represents a complete audit evidence package
+message AuditEvidence {
+  string evidence_id = 1;
+  string tenant_id = 2;
+  EvidenceType type = 3;
+  string title = 4;
+  string description = 5;
+  
+  // Chain of custody
+  ChainOfCustody chain_of_custody = 6;
+  
+  // Evidence content
+  google.protobuf.Any payload = 7;
+  
+  // Legal requirements
+  LegalContext legal_context = 8;
+  
+  // Technical metadata
+  TechnicalMetadata technical_metadata = 9;
+  
+  // Evidence integrity
+  repeated DigitalSignature signatures = 10;
+  string hash_chain = 11;
+  bool immutable = 12;
+}
+
+// Legal context for evidence admissibility
+message LegalContext {
+  string jurisdiction = 1;
+  repeated string applicable_laws = 2;
+  RetentionRequirements retention = 3;
+  AccessControls access_controls = 4;
+  bool litigation_hold = 5;
+  string legal_counsel = 6;
+  repeated string compliance_frameworks = 7;
+}
+
+// Technical metadata for evidence
+message TechnicalMetadata {
+  string collection_tool = 1;
+  string tool_version = 2;
+  string collection_method = 3;
+  google.protobuf.Timestamp collection_start = 4;
+  google.protobuf.Timestamp collection_end = 5;
+  string checksum_algorithm = 6;
+  string checksum_value = 7;
+  int64 file_size_bytes = 8;
+  string mime_type = 9;
+  string encoding = 10;
+  google.protobuf.Struct environment = 11;
+}
+
+// Evidence retention requirements
+message RetentionRequirements {
+  RetentionPeriod period = 1;
+  int32 years = 2;
+  string reason = 3;
+  repeated string regulatory_requirements = 4;
+  google.protobuf.Timestamp expires_at = 5;
+  DispositionAction disposition = 6;
+}
+
+// Access controls for evidence
+message AccessControls {
+  repeated string authorized_users = 1;
+  repeated string authorized_roles = 2;
+  AccessLevel minimum_clearance = 3;
+  bool requires_approval = 4;
+  repeated string approval_authorities = 5;
+  AuditLevel audit_level = 6;
+}
+
+// Enumerations
+enum EvidenceType {
+  EVIDENCE_TYPE_UNSPECIFIED = 0;
+  EVIDENCE_TYPE_DISCOVERY = 1;
+  EVIDENCE_TYPE_VULNERABILITY = 2;
+  EVIDENCE_TYPE_THREAT = 3;
+  EVIDENCE_TYPE_COMPLIANCE = 4;
+  EVIDENCE_TYPE_FORENSIC = 5;
+  EVIDENCE_TYPE_INCIDENT = 6;
+  EVIDENCE_TYPE_AUDIT = 7;
+}
+
+enum CustodyAction {
+  CUSTODY_ACTION_UNSPECIFIED = 0;
+  CUSTODY_ACTION_CREATED = 1;
+  CUSTODY_ACTION_ACCESSED = 2;
+  CUSTODY_ACTION_MODIFIED = 3;
+  CUSTODY_ACTION_TRANSFERRED = 4;
+  CUSTODY_ACTION_COPIED = 5;
+  CUSTODY_ACTION_ARCHIVED = 6;
+  CUSTODY_ACTION_EXPORTED = 7;
+  CUSTODY_ACTION_DESTROYED = 8;
+}
+
+enum SignatureAlgorithm {
+  SIGNATURE_ALGORITHM_UNSPECIFIED = 0;
+  SIGNATURE_ALGORITHM_RSA_PSS_SHA256 = 1;
+  SIGNATURE_ALGORITHM_ECDSA_P256_SHA256 = 2;
+  SIGNATURE_ALGORITHM_ECDSA_P384_SHA384 = 3;
+  SIGNATURE_ALGORITHM_ED25519 = 4;
+}
+
+enum RetentionPeriod {
+  RETENTION_PERIOD_UNSPECIFIED = 0;
+  RETENTION_PERIOD_1_YEAR = 1;
+  RETENTION_PERIOD_3_YEARS = 2;
+  RETENTION_PERIOD_7_YEARS = 3;
+  RETENTION_PERIOD_INDEFINITE = 4;
+  RETENTION_PERIOD_LITIGATION_HOLD = 5;
+}
+
+enum DispositionAction {
+  DISPOSITION_ACTION_UNSPECIFIED = 0;
+  DISPOSITION_ACTION_SECURE_DELETE = 1;
+  DISPOSITION_ACTION_ARCHIVE = 2;
+  DISPOSITION_ACTION_TRANSFER = 3;
+  DISPOSITION_ACTION_RETAIN = 4;
+}
+
+enum AccessLevel {
+  ACCESS_LEVEL_UNSPECIFIED = 0;
+  ACCESS_LEVEL_PUBLIC = 1;
+  ACCESS_LEVEL_INTERNAL = 2;
+  ACCESS_LEVEL_CONFIDENTIAL = 3;
+  ACCESS_LEVEL_RESTRICTED = 4;
+  ACCESS_LEVEL_TOP_SECRET = 5;
+}
+
+enum AuditLevel {
+  AUDIT_LEVEL_UNSPECIFIED = 0;
+  AUDIT_LEVEL_NONE = 1;
+  AUDIT_LEVEL_BASIC = 2;
+  AUDIT_LEVEL_DETAILED = 3;
+  AUDIT_LEVEL_COMPREHENSIVE = 4;
+  AUDIT_LEVEL_FORENSIC = 5;
+}
+
+// Service definitions
+service AuditEvidenceService {
+  rpc CreateEvidence(CreateEvidenceRequest) returns (CreateEvidenceResponse);
+  rpc GetEvidence(GetEvidenceRequest) returns (GetEvidenceResponse);
+  rpc ListEvidence(ListEvidenceRequest) returns (ListEvidenceResponse);
+  rpc AddCustodyRecord(AddCustodyRecordRequest) returns (AddCustodyRecordResponse);
+  rpc ValidateChainOfCustody(ValidateChainOfCustodyRequest) returns (ValidateChainOfCustodyResponse);
+  rpc SearchEvidence(SearchEvidenceRequest) returns (SearchEvidenceResponse);
+  rpc ExportEvidence(ExportEvidenceRequest) returns (ExportEvidenceResponse);
+}
+
+// Request/Response messages
+message CreateEvidenceRequest {
+  AuditEvidence evidence = 1;
+  string collector_id = 2;
+  string reason = 3;
+}
+
+message CreateEvidenceResponse {
+  string evidence_id = 1;
+  string chain_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message GetEvidenceRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+}
+
+message GetEvidenceResponse {
+  AuditEvidence evidence = 1;
+}
+
+message ListEvidenceRequest {
+  string tenant_id = 1;
+  EvidenceType filter_type = 2;
+  int32 page_size = 3;
+  string page_token = 4;
+}
+
+message ListEvidenceResponse {
+  repeated AuditEvidence evidence_list = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message AddCustodyRecordRequest {
+  string evidence_id = 1;
+  CustodyRecord record = 2;
+  string actor_id = 3;
+}
+
+message AddCustodyRecordResponse {
+  string record_id = 1;
+  string updated_chain_id = 2;
+  google.protobuf.Timestamp added_at = 3;
+}
+
+message ValidateChainOfCustodyRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+}
+
+message ValidateChainOfCustodyResponse {
+  bool is_valid = 1;
+  string validation_result = 2;
+  repeated string violations = 3;
+}
+
+message SearchEvidenceRequest {
+  string tenant_id = 1;
+  string query = 2;
+  repeated EvidenceType types = 3;
+  int32 limit = 4;
+}
+
+message SearchEvidenceResponse {
+  repeated AuditEvidence matches = 1;
+  int32 total_matches = 2;
+}
+
+message ExportEvidenceRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+  ExportFormat format = 3;
+  bool include_signatures = 4;
+}
+
+message ExportEvidenceResponse {
+  bytes evidence_data = 1;
+  string export_signature = 2;
+  google.protobuf.Timestamp exported_at = 3;
+}
+
+enum ExportFormat {
+  EXPORT_FORMAT_UNSPECIFIED = 0;
+  EXPORT_FORMAT_JSON = 1;
+  EXPORT_FORMAT_PDF = 2;
+  EXPORT_FORMAT_XML = 3;
+  EXPORT_FORMAT_LEGAL = 4;
+}

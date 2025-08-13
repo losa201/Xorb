@@ -1,0 +1,266 @@
+syntax = "proto3";
+
+package xorb.threat.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+import "audit/v1/evidence.proto";
+
+option go_package = "github.com/xorb/proto/threat/v1;threatv1";
+
+// ThreatEvidence represents a threat intelligence finding with chain of custody
+message ThreatEvidence {
+  // Core evidence metadata
+  xorb.audit.v1.ChainOfCustody chain_of_custody = 1;
+  string evidence_id = 2;
+  string tenant_id = 3;
+  google.protobuf.Timestamp created_at = 4;
+  
+  // Threat intelligence data
+  ThreatIntelligence threat_intel = 5;
+  ThreatContext context = 6;
+  repeated ThreatIndicator indicators = 7;
+  ThreatAssessment assessment = 8;
+  
+  // Evidence integrity
+  string digital_signature = 9;
+  string hash_chain = 10;
+  repeated string witness_signatures = 11;
+}
+
+// Core threat intelligence information
+message ThreatIntelligence {
+  string threat_id = 1;
+  string threat_name = 2;
+  ThreatType threat_type = 3;
+  ThreatSeverity severity = 4;
+  repeated string mitre_tactics = 5;
+  repeated string mitre_techniques = 6;
+  ThreatActor actor = 7;
+  google.protobuf.Timestamp first_seen = 8;
+  google.protobuf.Timestamp last_seen = 9;
+  repeated string aliases = 10;
+  google.protobuf.Struct metadata = 11;
+}
+
+// Threat context and attribution
+message ThreatContext {
+  string campaign_id = 1;
+  string campaign_name = 2;
+  repeated string target_industries = 3;
+  repeated string target_regions = 4;
+  ThreatMotivation motivation = 5;
+  ThreatSophistication sophistication = 6;
+  repeated string infrastructure_domains = 7;
+  repeated string infrastructure_ips = 8;
+  google.protobuf.Struct attribution_data = 9;
+}
+
+// Threat indicators (IOCs, TTPs, etc.)
+message ThreatIndicator {
+  string indicator_id = 1;
+  IndicatorType type = 2;
+  string value = 3;
+  ConfidenceLevel confidence = 4;
+  google.protobuf.Timestamp valid_from = 5;
+  google.protobuf.Timestamp valid_until = 6;
+  repeated string sources = 7;
+  string description = 8;
+  google.protobuf.Struct context = 9;
+}
+
+// Threat assessment and risk scoring
+message ThreatAssessment {
+  float risk_score = 1; // 0.0 - 10.0
+  RiskLevel risk_level = 2;
+  float likelihood = 3; // 0.0 - 1.0
+  float impact = 4; // 0.0 - 1.0
+  string assessment_rationale = 5;
+  repeated string mitigations = 6;
+  repeated string recommendations = 7;
+  string analyst_id = 8;
+  google.protobuf.Timestamp assessed_at = 9;
+}
+
+// Threat actor information
+message ThreatActor {
+  string actor_id = 1;
+  string actor_name = 2;
+  ActorType actor_type = 3;
+  repeated string aliases = 4;
+  repeated string associated_groups = 5;
+  repeated string known_tools = 6;
+  repeated string target_sectors = 7;
+  string motivation = 8;
+  string sophistication_level = 9;
+  google.protobuf.Struct attribution = 10;
+}
+
+// Enumerations
+enum ThreatType {
+  THREAT_TYPE_UNSPECIFIED = 0;
+  THREAT_TYPE_MALWARE = 1;
+  THREAT_TYPE_RANSOMWARE = 2;
+  THREAT_TYPE_APT = 3;
+  THREAT_TYPE_PHISHING = 4;
+  THREAT_TYPE_INSIDER = 5;
+  THREAT_TYPE_SUPPLY_CHAIN = 6;
+  THREAT_TYPE_ZERO_DAY = 7;
+  THREAT_TYPE_BOTNET = 8;
+  THREAT_TYPE_CRYPTOJACKING = 9;
+}
+
+enum ThreatSeverity {
+  THREAT_SEVERITY_UNSPECIFIED = 0;
+  THREAT_SEVERITY_INFORMATIONAL = 1;
+  THREAT_SEVERITY_LOW = 2;
+  THREAT_SEVERITY_MEDIUM = 3;
+  THREAT_SEVERITY_HIGH = 4;
+  THREAT_SEVERITY_CRITICAL = 5;
+}
+
+enum ThreatMotivation {
+  THREAT_MOTIVATION_UNSPECIFIED = 0;
+  THREAT_MOTIVATION_FINANCIAL = 1;
+  THREAT_MOTIVATION_ESPIONAGE = 2;
+  THREAT_MOTIVATION_SABOTAGE = 3;
+  THREAT_MOTIVATION_HACKTIVISM = 4;
+  THREAT_MOTIVATION_NATION_STATE = 5;
+  THREAT_MOTIVATION_CRIMINAL = 6;
+  THREAT_MOTIVATION_INSIDER = 7;
+}
+
+enum ThreatSophistication {
+  THREAT_SOPHISTICATION_UNSPECIFIED = 0;
+  THREAT_SOPHISTICATION_NOVICE = 1;
+  THREAT_SOPHISTICATION_INTERMEDIATE = 2;
+  THREAT_SOPHISTICATION_ADVANCED = 3;
+  THREAT_SOPHISTICATION_EXPERT = 4;
+  THREAT_SOPHISTICATION_INNOVATOR = 5;
+}
+
+enum IndicatorType {
+  INDICATOR_TYPE_UNSPECIFIED = 0;
+  INDICATOR_TYPE_DOMAIN = 1;
+  INDICATOR_TYPE_IP_ADDRESS = 2;
+  INDICATOR_TYPE_URL = 3;
+  INDICATOR_TYPE_FILE_HASH = 4;
+  INDICATOR_TYPE_EMAIL = 5;
+  INDICATOR_TYPE_REGISTRY_KEY = 6;
+  INDICATOR_TYPE_MUTEX = 7;
+  INDICATOR_TYPE_CERTIFICATE = 8;
+  INDICATOR_TYPE_USER_AGENT = 9;
+  INDICATOR_TYPE_YARA_RULE = 10;
+}
+
+enum ConfidenceLevel {
+  CONFIDENCE_LEVEL_UNSPECIFIED = 0;
+  CONFIDENCE_LEVEL_UNKNOWN = 1;
+  CONFIDENCE_LEVEL_LOW = 2;
+  CONFIDENCE_LEVEL_MEDIUM = 3;
+  CONFIDENCE_LEVEL_HIGH = 4;
+  CONFIDENCE_LEVEL_CONFIRMED = 5;
+}
+
+enum RiskLevel {
+  RISK_LEVEL_UNSPECIFIED = 0;
+  RISK_LEVEL_INFORMATIONAL = 1;
+  RISK_LEVEL_LOW = 2;
+  RISK_LEVEL_MEDIUM = 3;
+  RISK_LEVEL_HIGH = 4;
+  RISK_LEVEL_CRITICAL = 5;
+}
+
+enum ActorType {
+  ACTOR_TYPE_UNSPECIFIED = 0;
+  ACTOR_TYPE_INDIVIDUAL = 1;
+  ACTOR_TYPE_GROUP = 2;
+  ACTOR_TYPE_ORGANIZATION = 3;
+  ACTOR_TYPE_NATION_STATE = 4;
+  ACTOR_TYPE_CRIMINAL_GROUP = 5;
+  ACTOR_TYPE_HACKTIVIST = 6;
+  ACTOR_TYPE_INSIDER = 7;
+}
+
+// Service definitions
+service ThreatIntelligenceService {
+  rpc CreateThreatEvidence(CreateThreatEvidenceRequest) returns (CreateThreatEvidenceResponse);
+  rpc GetThreatEvidence(GetThreatEvidenceRequest) returns (GetThreatEvidenceResponse);
+  rpc ListThreatEvidence(ListThreatEvidenceRequest) returns (ListThreatEvidenceResponse);
+  rpc UpdateThreatAssessment(UpdateThreatAssessmentRequest) returns (UpdateThreatAssessmentResponse);
+  rpc SearchThreatIntelligence(SearchThreatIntelligenceRequest) returns (SearchThreatIntelligenceResponse);
+  rpc ValidateEvidenceChain(ValidateEvidenceChainRequest) returns (ValidateEvidenceChainResponse);
+}
+
+// Request/Response messages
+message CreateThreatEvidenceRequest {
+  ThreatEvidence evidence = 1;
+  string analyst_id = 2;
+  string source_system = 3;
+}
+
+message CreateThreatEvidenceResponse {
+  string evidence_id = 1;
+  string hash_chain = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message GetThreatEvidenceRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+}
+
+message GetThreatEvidenceResponse {
+  ThreatEvidence evidence = 1;
+}
+
+message ListThreatEvidenceRequest {
+  string tenant_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+  ThreatType filter_type = 4;
+  ThreatSeverity filter_severity = 5;
+}
+
+message ListThreatEvidenceResponse {
+  repeated ThreatEvidence evidence_list = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message UpdateThreatAssessmentRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+  ThreatAssessment assessment = 3;
+  string analyst_id = 4;
+}
+
+message UpdateThreatAssessmentResponse {
+  string updated_evidence_id = 1;
+  string new_hash_chain = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+message SearchThreatIntelligenceRequest {
+  string tenant_id = 1;
+  string query = 2;
+  repeated IndicatorType indicator_types = 3;
+  ThreatSeverity min_severity = 4;
+  int32 limit = 5;
+}
+
+message SearchThreatIntelligenceResponse {
+  repeated ThreatEvidence matches = 1;
+  int32 total_matches = 2;
+}
+
+message ValidateEvidenceChainRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+}
+
+message ValidateEvidenceChainResponse {
+  bool is_valid = 1;
+  string validation_result = 2;
+  repeated string chain_violations = 3;
+}

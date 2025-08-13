@@ -1,0 +1,16 @@
+{
+  "name": "xorb-adr-portal",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "docusaurus build",
+    "start": "docusaurus start",
+    "swizzle": "docusaurus swizzle"
+  },
+  "dependencies": {
+    "docusaurus": "^2.4.0",
+    "@docusaurus/core": "^2.4.0",
+    "@docusaurus/preset-classic": "^2.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

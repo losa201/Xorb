@@ -1,0 +1,471 @@
+syntax = "proto3";
+
+package xorb.discovery.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+import "audit/v1/evidence.proto";
+
+option go_package = "github.com/xorb/proto/discovery/v1;discoveryv1";
+
+// DiscoveryEvidence represents network discovery findings with chain of custody
+message DiscoveryEvidence {
+  // Core evidence metadata
+  xorb.audit.v1.ChainOfCustody chain_of_custody = 1;
+  string evidence_id = 2;
+  string tenant_id = 3;
+  google.protobuf.Timestamp created_at = 4;
+  
+  // Discovery data
+  DiscoveryJob job = 5;
+  DiscoveryResults results = 6;
+  repeated AssetFingerprint assets = 7;
+  ScanMetadata metadata = 8;
+  
+  // Evidence integrity
+  string digital_signature = 9;
+  string hash_chain = 10;
+  repeated string witness_signatures = 11;
+}
+
+// Discovery job configuration and parameters
+message DiscoveryJob {
+  string job_id = 1;
+  string job_name = 2;
+  JobType job_type = 3;
+  JobPriority priority = 4;
+  repeated string targets = 5;
+  ScanProfile profile = 6;
+  repeated string enabled_tools = 7;
+  ScanConfiguration config = 8;
+  string initiated_by = 9;
+  google.protobuf.Timestamp scheduled_at = 10;
+  google.protobuf.Timestamp started_at = 11;
+  google.protobuf.Timestamp completed_at = 12;
+  JobStatus status = 13;
+  google.protobuf.Struct parameters = 14;
+}
+
+// Discovery scan results
+message DiscoveryResults {
+  string scan_id = 1;
+  repeated HostDiscovery hosts = 2;
+  repeated ServiceDiscovery services = 3;
+  repeated NetworkSegment networks = 4;
+  ScanStatistics statistics = 5;
+  repeated ScanIssue issues = 6;
+  google.protobuf.Struct raw_results = 7;
+}
+
+// Individual host discovery
+message HostDiscovery {
+  string host_id = 1;
+  string ip_address = 2;
+  repeated string hostnames = 3;
+  string mac_address = 4;
+  HostStatus status = 5;
+  OperatingSystem os = 6;
+  repeated Port open_ports = 7;
+  repeated string technologies = 8;
+  float confidence_score = 9;
+  google.protobuf.Timestamp last_seen = 10;
+  google.protobuf.Struct metadata = 11;
+}
+
+// Service discovery information
+message ServiceDiscovery {
+  string service_id = 1;
+  string host_ip = 2;
+  int32 port = 3;
+  Protocol protocol = 4;
+  string service_name = 5;
+  string version = 6;
+  ServiceState state = 7;
+  repeated string banners = 8;
+  repeated Certificate certificates = 9;
+  repeated ServiceVulnerability vulnerabilities = 10;
+  float risk_score = 11;
+  google.protobuf.Struct service_details = 12;
+}
+
+// Network segment information
+message NetworkSegment {
+  string segment_id = 1;
+  string network_range = 2;
+  string gateway = 3;
+  repeated string dns_servers = 4;
+  int32 active_hosts = 5;
+  SegmentType segment_type = 6;
+  repeated string vlans = 7;
+  SecurityPosture security_posture = 8;
+  google.protobuf.Struct routing_info = 9;
+}
+
+// Asset fingerprinting results
+message AssetFingerprint {
+  string asset_id = 1;
+  string ip_address = 2;
+  AssetType asset_type = 3;
+  string vendor = 4;
+  string product = 5;
+  string version = 6;
+  repeated string cpe_identifiers = 7;
+  FingerprintMethod method = 8;
+  float confidence = 9;
+  repeated string evidence_sources = 10;
+  repeated TechnologyStack technologies = 11;
+  SecurityCharacteristics security = 12;
+  google.protobuf.Timestamp fingerprinted_at = 13;
+}
+
+// Operating system information
+message OperatingSystem {
+  string family = 1;
+  string name = 2;
+  string version = 3;
+  string kernel = 4;
+  string architecture = 5;
+  repeated string cpe_ids = 6;
+  float detection_confidence = 7;
+  string detection_method = 8;
+  google.protobuf.Struct os_details = 9;
+}
+
+// Port information
+message Port {
+  int32 number = 1;
+  Protocol protocol = 2;
+  PortState state = 3;
+  string service = 4;
+  string version = 5;
+  string banner = 6;
+  repeated string scripts = 7;
+  float confidence = 8;
+}
+
+// TLS/SSL certificate information
+message Certificate {
+  string subject = 1;
+  string issuer = 2;
+  string serial_number = 3;
+  google.protobuf.Timestamp not_before = 4;
+  google.protobuf.Timestamp not_after = 5;
+  string signature_algorithm = 6;
+  string public_key_algorithm = 7;
+  int32 key_size = 8;
+  repeated string san_dns = 9;
+  repeated string san_ip = 10;
+  string fingerprint_sha1 = 11;
+  string fingerprint_sha256 = 12;
+  bool self_signed = 13;
+  bool expired = 14;
+  repeated string certificate_chain = 15;
+}
+
+// Service-specific vulnerability
+message ServiceVulnerability {
+  string vuln_id = 1;
+  string cve_id = 2;
+  string title = 3;
+  VulnerabilitySeverity severity = 4;
+  float cvss_score = 5;
+  string description = 6;
+  string affected_component = 7;
+  string proof_of_concept = 8;
+  repeated string references = 9;
+}
+
+// Technology stack identification
+message TechnologyStack {
+  string category = 1; // web_server, database, framework, etc.
+  string technology = 2;
+  string version = 3;
+  repeated string components = 4;
+  float confidence = 5;
+  string detection_source = 6;
+}
+
+// Security characteristics
+message SecurityCharacteristics {
+  repeated string security_headers = 1;
+  repeated string authentication_methods = 2;
+  repeated string encryption_protocols = 3;
+  repeated string security_controls = 4;
+  SecurityPosture posture = 5;
+  repeated string hardening_indicators = 6;
+  repeated string security_weaknesses = 7;
+}
+
+// Scan configuration
+message ScanConfiguration {
+  int32 max_concurrency = 1;
+  int32 timeout_seconds = 2;
+  int32 retry_attempts = 3;
+  bool aggressive_scan = 4;
+  bool stealth_mode = 5;
+  repeated string custom_ports = 6;
+  repeated string excluded_hosts = 7;
+  google.protobuf.Struct tool_options = 8;
+}
+
+// Scan metadata and statistics
+message ScanMetadata {
+  string scan_engine = 1;
+  string engine_version = 2;
+  google.protobuf.Timestamp scan_start = 3;
+  google.protobuf.Timestamp scan_end = 4;
+  int64 duration_seconds = 5;
+  string operator_id = 6;
+  repeated string scan_tools_used = 7;
+  google.protobuf.Struct environment = 8;
+}
+
+// Scan statistics
+message ScanStatistics {
+  int32 targets_scanned = 1;
+  int32 hosts_discovered = 2;
+  int32 services_identified = 3;
+  int32 vulnerabilities_found = 4;
+  int32 ports_scanned = 5;
+  int32 tcp_ports_open = 6;
+  int32 udp_ports_open = 7;
+  float scan_coverage_percent = 8;
+  int32 errors_encountered = 9;
+  int32 timeouts_occurred = 10;
+}
+
+// Scan issues and errors
+message ScanIssue {
+  IssueType type = 1;
+  IssueSeverity severity = 2;
+  string message = 3;
+  string affected_target = 4;
+  google.protobuf.Timestamp occurred_at = 5;
+  string resolution_suggestion = 6;
+}
+
+// Enumerations
+enum JobType {
+  JOB_TYPE_UNSPECIFIED = 0;
+  JOB_TYPE_NETWORK_DISCOVERY = 1;
+  JOB_TYPE_PORT_SCAN = 2;
+  JOB_TYPE_SERVICE_ENUMERATION = 3;
+  JOB_TYPE_VULNERABILITY_SCAN = 4;
+  JOB_TYPE_COMPREHENSIVE = 5;
+  JOB_TYPE_BASELINE = 6;
+  JOB_TYPE_CHANGE_DETECTION = 7;
+}
+
+enum JobPriority {
+  JOB_PRIORITY_UNSPECIFIED = 0;
+  JOB_PRIORITY_LOW = 1;
+  JOB_PRIORITY_MEDIUM = 2;
+  JOB_PRIORITY_HIGH = 3;
+  JOB_PRIORITY_CRITICAL = 4;
+}
+
+enum ScanProfile {
+  SCAN_PROFILE_UNSPECIFIED = 0;
+  SCAN_PROFILE_QUICK = 1;
+  SCAN_PROFILE_COMPREHENSIVE = 2;
+  SCAN_PROFILE_STEALTH = 3;
+  SCAN_PROFILE_WEB_FOCUSED = 4;
+  SCAN_PROFILE_COMPLIANCE = 5;
+}
+
+enum JobStatus {
+  JOB_STATUS_UNSPECIFIED = 0;
+  JOB_STATUS_QUEUED = 1;
+  JOB_STATUS_RUNNING = 2;
+  JOB_STATUS_COMPLETED = 3;
+  JOB_STATUS_FAILED = 4;
+  JOB_STATUS_CANCELLED = 5;
+  JOB_STATUS_PAUSED = 6;
+}
+
+enum HostStatus {
+  HOST_STATUS_UNSPECIFIED = 0;
+  HOST_STATUS_UP = 1;
+  HOST_STATUS_DOWN = 2;
+  HOST_STATUS_FILTERED = 3;
+  HOST_STATUS_UNKNOWN = 4;
+}
+
+enum Protocol {
+  PROTOCOL_UNSPECIFIED = 0;
+  PROTOCOL_TCP = 1;
+  PROTOCOL_UDP = 2;
+  PROTOCOL_ICMP = 3;
+  PROTOCOL_SCTP = 4;
+}
+
+enum ServiceState {
+  SERVICE_STATE_UNSPECIFIED = 0;
+  SERVICE_STATE_OPEN = 1;
+  SERVICE_STATE_CLOSED = 2;
+  SERVICE_STATE_FILTERED = 3;
+  SERVICE_STATE_OPEN_FILTERED = 4;
+  SERVICE_STATE_CLOSED_FILTERED = 5;
+}
+
+enum PortState {
+  PORT_STATE_UNSPECIFIED = 0;
+  PORT_STATE_OPEN = 1;
+  PORT_STATE_CLOSED = 2;
+  PORT_STATE_FILTERED = 3;
+  PORT_STATE_OPEN_FILTERED = 4;
+  PORT_STATE_CLOSED_FILTERED = 5;
+}
+
+enum AssetType {
+  ASSET_TYPE_UNSPECIFIED = 0;
+  ASSET_TYPE_SERVER = 1;
+  ASSET_TYPE_WORKSTATION = 2;
+  ASSET_TYPE_NETWORK_DEVICE = 3;
+  ASSET_TYPE_IOT_DEVICE = 4;
+  ASSET_TYPE_MOBILE_DEVICE = 5;
+  ASSET_TYPE_CONTAINER = 6;
+  ASSET_TYPE_VIRTUAL_MACHINE = 7;
+  ASSET_TYPE_CLOUD_RESOURCE = 8;
+}
+
+enum FingerprintMethod {
+  FINGERPRINT_METHOD_UNSPECIFIED = 0;
+  FINGERPRINT_METHOD_OS_DETECTION = 1;
+  FINGERPRINT_METHOD_SERVICE_BANNER = 2;
+  FINGERPRINT_METHOD_HTTP_HEADERS = 3;
+  FINGERPRINT_METHOD_TLS_FINGERPRINT = 4;
+  FINGERPRINT_METHOD_TCP_FINGERPRINT = 5;
+  FINGERPRINT_METHOD_APPLICATION_PROBE = 6;
+}
+
+enum SegmentType {
+  SEGMENT_TYPE_UNSPECIFIED = 0;
+  SEGMENT_TYPE_CORPORATE = 1;
+  SEGMENT_TYPE_DMZ = 2;
+  SEGMENT_TYPE_GUEST = 3;
+  SEGMENT_TYPE_IOT = 4;
+  SEGMENT_TYPE_MANAGEMENT = 5;
+  SEGMENT_TYPE_PRODUCTION = 6;
+  SEGMENT_TYPE_DEVELOPMENT = 7;
+}
+
+enum SecurityPosture {
+  SECURITY_POSTURE_UNSPECIFIED = 0;
+  SECURITY_POSTURE_EXCELLENT = 1;
+  SECURITY_POSTURE_GOOD = 2;
+  SECURITY_POSTURE_FAIR = 3;
+  SECURITY_POSTURE_POOR = 4;
+  SECURITY_POSTURE_CRITICAL = 5;
+}
+
+enum VulnerabilitySeverity {
+  VULNERABILITY_SEVERITY_UNSPECIFIED = 0;
+  VULNERABILITY_SEVERITY_INFORMATIONAL = 1;
+  VULNERABILITY_SEVERITY_LOW = 2;
+  VULNERABILITY_SEVERITY_MEDIUM = 3;
+  VULNERABILITY_SEVERITY_HIGH = 4;
+  VULNERABILITY_SEVERITY_CRITICAL = 5;
+}
+
+enum IssueType {
+  ISSUE_TYPE_UNSPECIFIED = 0;
+  ISSUE_TYPE_NETWORK_ERROR = 1;
+  ISSUE_TYPE_TIMEOUT = 2;
+  ISSUE_TYPE_PERMISSION_DENIED = 3;
+  ISSUE_TYPE_TOOL_ERROR = 4;
+  ISSUE_TYPE_CONFIGURATION_ERROR = 5;
+  ISSUE_TYPE_RESOURCE_EXHAUSTION = 6;
+}
+
+enum IssueSeverity {
+  ISSUE_SEVERITY_UNSPECIFIED = 0;
+  ISSUE_SEVERITY_INFO = 1;
+  ISSUE_SEVERITY_WARNING = 2;
+  ISSUE_SEVERITY_ERROR = 3;
+  ISSUE_SEVERITY_CRITICAL = 4;
+}
+
+// Service definitions
+service DiscoveryService {
+  rpc CreateDiscoveryJob(CreateDiscoveryJobRequest) returns (CreateDiscoveryJobResponse);
+  rpc GetDiscoveryEvidence(GetDiscoveryEvidenceRequest) returns (GetDiscoveryEvidenceResponse);
+  rpc ListDiscoveryEvidence(ListDiscoveryEvidenceRequest) returns (ListDiscoveryEvidenceResponse);
+  rpc StreamDiscoveryResults(StreamDiscoveryResultsRequest) returns (stream DiscoveryEvidence);
+  rpc SearchAssets(SearchAssetsRequest) returns (SearchAssetsResponse);
+  rpc GetAssetFingerprint(GetAssetFingerprintRequest) returns (GetAssetFingerprintResponse);
+  rpc ValidateEvidenceChain(ValidateEvidenceChainRequest) returns (ValidateEvidenceChainResponse);
+}
+
+// Request/Response messages
+message CreateDiscoveryJobRequest {
+  DiscoveryJob job = 1;
+  string initiated_by = 2;
+  string reason = 3;
+}
+
+message CreateDiscoveryJobResponse {
+  string job_id = 1;
+  string evidence_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message GetDiscoveryEvidenceRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+}
+
+message GetDiscoveryEvidenceResponse {
+  DiscoveryEvidence evidence = 1;
+}
+
+message ListDiscoveryEvidenceRequest {
+  string tenant_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+  JobType filter_type = 4;
+  JobStatus filter_status = 5;
+}
+
+message ListDiscoveryEvidenceResponse {
+  repeated DiscoveryEvidence evidence_list = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message StreamDiscoveryResultsRequest {
+  string tenant_id = 1;
+  repeated string job_ids = 2;
+}
+
+message SearchAssetsRequest {
+  string tenant_id = 1;
+  string query = 2;
+  repeated AssetType asset_types = 3;
+  int32 limit = 4;
+}
+
+message SearchAssetsResponse {
+  repeated AssetFingerprint assets = 1;
+  int32 total_matches = 2;
+}
+
+message GetAssetFingerprintRequest {
+  string asset_id = 1;
+  string tenant_id = 2;
+}
+
+message GetAssetFingerprintResponse {
+  AssetFingerprint fingerprint = 1;
+}
+
+message ValidateEvidenceChainRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+}
+
+message ValidateEvidenceChainResponse {
+  bool is_valid = 1;
+  string validation_result = 2;
+  repeated string chain_violations = 3;
+}
