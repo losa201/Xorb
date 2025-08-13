@@ -1,0 +1,24 @@
+[package]
+name = "scanner-fp"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+# Workspace dependencies
+tokio.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+chrono.workspace = true
+regex.workspace = true
+
+# Local dependencies
+scanner-tools = { path = "../scanner-tools" }
+
+# Fingerprinting specific
+trust-dns-resolver.workspace = true

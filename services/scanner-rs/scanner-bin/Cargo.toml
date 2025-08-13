@@ -1,0 +1,28 @@
+[package]
+name = "scanner-bin"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "scanner-bin"
+path = "src/main.rs"
+
+[dependencies]
+# Workspace dependencies
+tokio.workspace = true
+anyhow.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+clap.workspace = true
+config.workspace = true
+log.workspace = true
+env_logger.workspace = true
+hyper.workspace = true
+
+# Local dependencies
+scanner-core = { path = "../scanner-core" }
+scanner-tools = { path = "../scanner-tools" }
+scanner-fp = { path = "../scanner-fp" }
