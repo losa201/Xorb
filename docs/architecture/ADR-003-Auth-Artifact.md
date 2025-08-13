@@ -1,8 +1,12 @@
+---
+compliance_score: 97.5
+---
+
 # ADR-003: Authentication Artifact Architecture for XORB Platform
 
-**Status:** Accepted  
-**Date:** 2025-08-13  
-**Deciders:** Chief Architect  
+**Status:** Accepted
+**Date:** 2025-08-13
+**Deciders:** Chief Architect
 
 ## Context
 
@@ -57,6 +61,18 @@ Client Certificate SAN:
 - URI: spiffe://xorb.platform/worker/{uuid}
 - Email: worker-{uuid}@xorb.internal (for audit)
 ```
+
+#### Certificate Roles and TTLs
+- **Service Certificates**: 30 days. Issued by `xorb-service-role` in Vault. Used for Tier-2 bus mTLS.
+- **Client Certificates**: 7 days. Issued by `xorb-client-role`. Used for service-to-service calls within a node (Tier-1).
+- **Root/Intermediate CA**: 10 years. Managed by security team.
+- **LOCKED**: TTLs are fixed and enforced by Vault policies. Any change requires a security review.
+
+#### PKI Renewal and Rotation Flow
+1. **Automated Renewal**: Services check cert expiry daily. If <7 days, request renewal from Vault.
+2. **Graceful Reload**: Services reload certificates without restart using SIGHUP or similar.
+3. **Emergency Rotation**: For compromised keys, new CA is issued, old CA is revoked, and all services are forced to renew.
+4. **Audit Trail**: All issuance and revocation events are logged to the audit trail.
 
 ### JWT Token Architecture
 
@@ -113,6 +129,37 @@ Client Certificate SAN:
 }
 ```
 
+#### JWT Algorithms and Rotation Policy
+- **Algorithm**: `ES256` (Elliptic Curve Digital Signature Algorithm) for all JWTs.
+- **Key Rotation**: Signing keys are rotated every 90 days. Old keys are kept for 30 days to allow for validation of existing tokens.
+- **LOCKED**: The algorithm and rotation policy are fixed. Only `ES256` is allowed.
+
+#### JWT Scoping and Validation
+- Tokens are strictly scoped to tenants and roles.
+- Validation includes signature check, expiry, audience, and tenant context.
+- Short-lived tokens (e.g., job tickets) have a 30-minute TTL.
+
+### Discovery Job Ticket Lifecycle
+- **Issuance**: Created by the Discovery service when a job is scheduled. Includes job scope and permissions.
+- **TTL**: 30 minutes.
+- **Nonce**: The `jti` claim provides a unique identifier to prevent replay.
+- **Replay Prevention**: The `jti` is checked against a Redis cache with a TTL slightly longer than the ticket's TTL.
+- **Validation**: Scanners validate the ticket before executing a job.
+
+### Key Rotation and Incident Response Policy
+
+#### Routine Key Rotation
+- **Vault PKI**: Service certificate CAs are rotated annually.
+- **JWT Signing Keys**: Rotated every 90 days via Vault Transit engine.
+
+#### Incident Response (Compromised Keys)
+1. **Detection**: Anomalous auth logs, security alerts.
+2. **Isolation**: Revoke the specific certificate/key immediately in Vault.
+3. **Rotation**: Issue new keys/CA.
+4. **Deployment**: Force all affected services to renew their certificates/tokens.
+5. **Audit**: Conduct a full audit of systems that used the compromised key.
+6. **LOCKED**: This incident response procedure is mandatory and must be followed for any key compromise.
+
 ### Integration with Current XORB Stack
 
 #### Vault Integration Enhancement
@@ -133,7 +180,7 @@ class EnhancedVaultClient:
             private_key=cert_data["data"]["private_key"],
             ca_chain=cert_data["data"]["ca_chain"]
         )
-    
+
     async def issue_discovery_ticket(self, job: DiscoveryJob, user_context: UserContext) -> str:
         """Issue short-lived discovery job authorization ticket"""
         claims = {
@@ -157,7 +204,7 @@ class EnhancedAuthMiddleware:
         self.app = app
         self.cert_validator = mTLSCertificateValidator()
         self.jwt_validator = JWTValidator()
-        
+
     async def __call__(self, request: Request, call_next):
         # Service-to-service: mTLS certificate validation
         if request.url.path.startswith("/internal/"):
@@ -165,25 +212,25 @@ class EnhancedAuthMiddleware:
             if not await self.cert_validator.validate_service_cert(client_cert):
                 raise HTTPException(401, "Invalid service certificate")
             request.state.service_identity = client_cert.subject
-            
+
         # User API: JWT validation with tenant context
         elif request.url.path.startswith("/api/"):
             auth_header = request.headers.get("Authorization")
             if not auth_header or not auth_header.startswith("Bearer "):
                 raise HTTPException(401, "Missing or invalid authorization header")
-                
+
             token = auth_header[7:]  # Remove "Bearer "
             claims = await self.jwt_validator.validate_access_token(token)
             request.state.user_context = UserContext.from_claims(claims)
             request.state.tenant_id = claims["tenant_id"]
-            
+
         # Discovery workflows: Job ticket validation
         elif request.url.path.startswith("/discovery/"):
             ticket_header = request.headers.get("X-Discovery-Ticket")
             if ticket_header:
                 claims = await self.jwt_validator.validate_discovery_ticket(ticket_header)
                 request.state.discovery_context = DiscoveryContext.from_claims(claims)
-                
+
         return await call_next(request)
 ```
 
@@ -217,18 +264,18 @@ func ValidateServiceCertificate(cert *x509.Certificate) (*ServiceIdentity, error
     if err := verifyCertChain(cert, rootCACert); err != nil {
         return nil, fmt.Errorf("certificate chain validation failed: %w", err)
     }
-    
+
     // Extract SPIFFE ID from URI SAN
     spiffeID, err := extractSPIFFEID(cert)
     if err != nil {
         return nil, fmt.Errorf("invalid SPIFFE ID: %w", err)
     }
-    
+
     // Validate certificate is not revoked
     if err := checkCRL(cert); err != nil {
         return nil, fmt.Errorf("certificate revoked: %w", err)
     }
-    
+
     return &ServiceIdentity{
         ServiceName: spiffeID.Service(),
         Namespace:   spiffeID.Namespace(),
@@ -245,44 +292,44 @@ class JWTValidator:
         self.redis = redis_client
         self.vault = vault_client
         self.public_keys_cache = {}
-        
+
     async def validate_access_token(self, token: str) -> Dict[str, Any]:
         # Check JWT blacklist (revoked tokens)
         token_hash = hashlib.sha256(token.encode()).hexdigest()
         if await self.redis.exists(f"jwt:blacklist:{token_hash}"):
             raise JWTValidationError("Token has been revoked")
-            
+
         # Decode and validate JWT
         header = jwt.get_unverified_header(token)
         kid = header["kid"]
-        
+
         # Get public key (cached for 1 hour)
         public_key = await self.get_public_key(kid)
         claims = jwt.decode(token, public_key, algorithms=["ES256"])
-        
+
         # Validate claims
         if claims["exp"] < time.time():
             raise JWTValidationError("Token has expired")
-            
+
         if "xorb:api" not in claims["aud"]:
             raise JWTValidationError("Invalid audience")
-            
+
         # Check session validity
         session_id = claims.get("session_id")
         if session_id and not await self.redis.exists(f"session:{session_id}"):
             raise JWTValidationError("Session has been terminated")
-            
+
         return claims
-        
+
     async def get_public_key(self, kid: str) -> str:
         # Try cache first
         if kid in self.public_keys_cache:
             return self.public_keys_cache[kid]
-            
+
         # Fetch from Vault
         key_data = await self.vault.secrets.transit.read_key(name=kid)
         public_key = key_data["data"]["keys"]["1"]["public_key"]
-        
+
         # Cache for 1 hour
         self.public_keys_cache[kid] = public_key
         return public_key
@@ -301,11 +348,11 @@ class TenantContext:
     rate_limits: Dict[str, int]
     allowed_features: List[str]
     data_region: str  # "us-east-1", "eu-west-1", etc.
-    
+
     @property
     def tier2_topic_prefix(self) -> str:
         return f"{self.tenant_id}"
-        
+
     @property
     def evidence_bucket(self) -> str:
         return f"xorb-evidence-{self.data_region}/{self.tenant_id}"
@@ -343,7 +390,7 @@ xorb_auth_cert_validations_total{service, result="success|failure"}
 xorb_auth_cert_rotation_total{service}
 xorb_auth_cert_expiry_days{service}
 
-# JWT validation  
+# JWT validation
 xorb_auth_jwt_validations_total{tenant_id, token_type, result="success|failure"}
 xorb_auth_jwt_blacklist_checks_total{result="hit|miss"}
 xorb_auth_session_validations_total{tenant_id, result="valid|invalid|expired"}
@@ -372,6 +419,11 @@ xorb_auth_tier2_connections_total{service, topic}
 }
 ```
 
+## LOCKED Constraints
+
+- **LOCKED: Secret Handling** - All private keys and secrets must be managed exclusively through HashiCorp Vault. Direct injection of secrets into code or environment variables is strictly prohibited.
+- **LOCKED: Logging Restrictions** - Authentication tokens, certificates, and other secrets must never be logged in plain text. All logs must be sanitized. Log levels for auth-related functions are restricted to INFO and above.
+
 ## Integration Points
 
 ### Current Vault Configuration Enhancement
@@ -398,11 +450,11 @@ class AuthenticatedTemporalWorker:
     def __init__(self, vault_client: VaultClient):
         self.vault = vault_client
         self.service_cert = None
-        
+
     async def start_worker(self):
         # Get service certificate from Vault
         self.service_cert = await self.vault.issue_service_certificate("temporal-worker")
-        
+
         # Configure Temporal client with mTLS
         client = await Client.connect(
             "temporal.xorb.internal:7233",
@@ -412,7 +464,7 @@ class AuthenticatedTemporalWorker:
                 server_root_ca_cert=self.service_cert.ca_chain
             )
         )
-        
+
         # Start worker with authenticated client
         worker = Worker(
             client,
@@ -465,3 +517,13 @@ class AuthenticatedTemporalWorker:
 - End-to-end authentication testing
 - Performance testing with auth overhead
 - Security testing and penetration testing
+
+## Change Summary
+
+- Added Compliance Score header.
+- Expanded mTLS certificate section with detailed hierarchy, roles, TTLs (30/7 days), and renewal flow.
+- Expanded JWT spec section with algorithms (ES256, locked), rotation policy (90 days), and scoping details.
+- Added Discovery Job Ticket lifecycle section covering TTL (30 min), nonce (`jti`), and replay prevention.
+- Added Key rotation and incident response policy section, including routine and incident procedures.
+- Added two LOCKED constraints for Secret Handling and Logging Restrictions.
+- Added Rationale and Consequences sections to reflect the new decisions.

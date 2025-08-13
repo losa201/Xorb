@@ -1,0 +1,7 @@
+# Generated, secrets, and local env
+gen/
+.env
+.env.dev
+secrets/
+reports/security/
+*.bundle

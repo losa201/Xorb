@@ -1,0 +1,17 @@
+ADR_COMPLIANCE_FINAL_REPORT.json
+docs/architecture/ADR-001-Languages-Repos.md
+docs/architecture/ADR-002-Two-Tier-Bus.md
+docs/architecture/ADR-003-Auth-Artifact.md
+docs/architecture/ADR-004-Evidence-Schema.md
+docs/portal/adr/003-auth-artifact.mdx
+docs/portal/adr/index.md
+docs/portal/package.json
+docs/portal/sidebars.js
+platform/bus/localring/uds_transport.py
+platform/bus/pubsub/nats_client.py
+proto/audit/v1/evidence.proto
+proto/compliance/v1/compliance.proto
+proto/discovery/v1/discovery.proto
+proto/threat/v1/threat.proto
+proto/vuln/v1/vulnerability.proto
+tools/adr/final_adr_validation.py

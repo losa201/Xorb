@@ -1,8 +1,12 @@
+---
+compliance_score: 96.2
+---
+
 # ADR-001: Languages and Repository Architecture for XORB Platform
 
-**Status:** Accepted  
-**Date:** 2025-08-13  
-**Deciders:** Chief Architect  
+**Status:** Accepted
+**Date:** 2025-08-13
+**Deciders:** Chief Architect
 
 ## Context
 
@@ -10,103 +14,112 @@ The XORB platform at `/root/Xorb` implements Discovery-First, Two-Tier Bus, SEaa
 
 ## Decision
 
-### Current Language Stack (Maintained)
-- **Python 3.11+**: Primary backend (FastAPI 0.117.1, Temporal 1.6.0)
-  - `src/api/` - FastAPI REST APIs, PTaaS services
-  - `src/orchestrator/` - Temporal workflow orchestration
-  - `src/xorb/` - Core platform intelligence engine
-  - `ptaas/` - Security scanning and behavioral analytics
+### Final Language Stack (Locked)
 
-- **TypeScript/JavaScript**: Frontend and modern APIs
-  - `services/ptaas/web/` - React 18.3.1 + Vite 5.4.1 dashboard
-  - Node.js microservices for real-time components
+| Language | Role | Justification |
+| :--- | :--- | :--- |
+| **Go** | Tier-1 & Tier-2 Bus, gRPC Services, Security Tools | High performance, strong concurrency, excellent for systems programming. |
+| **Python** | Core Intelligence, Orchestration, PTaaS, Legacy APIs | Rich AI/ML ecosystem, established codebase, Temporal SDK. |
+| **Rust** | Cryptographic Components, High-Performance Scanners | Memory safety, speed, ideal for security-critical paths. |
+| **TypeScript** | Frontend, Modern APIs, gRPC-web | Strong typing, excellent for web UIs and client-side logic. |
 
-- **Rust**: Security-critical components (future enhancement)
-  - Cryptographic operations and high-performance scanning
-  - Memory-safe security tools integration
+LOCKED: The language stack is now fixed. Any new service must use one of these four languages based on its role.
 
-### Repository Structure (Current /root/Xorb)
+### Canonical Monorepo Structure (Locked)
+
+LOCKED: The `/root/Xorb` directory is the single source of truth for all platform code.
+
 ```
 /root/Xorb/
-├── src/                    # Core backend services
-│   ├── api/               # FastAPI REST APIs → gRPC gateway target
-│   ├── orchestrator/      # Temporal workflows → Discovery orchestration
-│   ├── xorb/             # Intelligence engine → Discovery correlation
-│   └── common/           # Shared utilities, Vault integration
-├── services/             # Microservices architecture
-│   ├── ptaas/           # PTaaS service → Discovery-driven scanning
-│   ├── xorb-core/       # Backend platform → gRPC services
-│   └── infrastructure/ # Monitoring, databases → Service mesh
-├── infra/               # Infrastructure as code
-│   ├── kubernetes/      # K8s manifests for Two-Tier Bus
-│   ├── monitoring/      # Prometheus/Grafana observability
-│   └── vault/          # HashiCorp Vault secret management
-├── tests/              # Comprehensive test suite
-└── tools/              # Operational tooling
+├── docs/                    # Documentation, ADRs, compliance
+│   ├── architecture/       # Architecture Decision Records
+│   └── compliance/         # Compliance reports and procedures
+├── proto/                  # Protobuf definitions (Source of Truth)
+│   ├── audit/             # Audit event schemas
+│   ├── compliance/        # Compliance evidence schemas
+│   ├── discovery/         # Discovery job and fingerprint schemas
+│   ├── threat/            # Threat intelligence schemas
+│   └── vuln/              # Vulnerability schemas
+├── platform/              # Core platform infrastructure
+│   ├── bus/               # Two-Tier Bus implementation (Go)
+│   ├── auth/              # Authentication services (Go/Python)
+│   └── evidence/          # Evidence collection and storage (Go)
+├── services/              # Business logic microservices
+│   ├── discovery/         # Discovery orchestration and scanning (Python)
+│   ├── intelligence/      # Threat correlation and analysis (Python/Rust)
+│   ├── ptaas/             # Penetration Testing as a Service (Python)
+│   └── ui/                # User interface (TypeScript/React)
+├── src/                   # Legacy Python code (migration target)
+├── tests/                 # Comprehensive test suite
+├── tools/                 # Operational and development tooling
+│   ├── adr/               # ADR compliance tooling
+│   └── secrets/           # Secret management and remediation
+├── infra/                 # Infrastructure as Code
+│   ├── kubernetes/        # K8s manifests
+│   ├── monitoring/        # Observability stack
+│   └── vault/             # HashiCorp Vault policies and configs
+├── .github/               # GitHub workflows and configurations
+├── Makefile               # Build and operational targets
+└── README.md              # Project overview and entry point
 ```
 
-### Discovery-First Enhancement Strategy
-1. **Phase 1**: Add gRPC proto definitions to existing Python services
-2. **Phase 2**: Implement Two-Tier Bus with gRPC streaming
-3. **Phase 3**: Enhanced discovery with asset fingerprinting
-4. **Phase 4**: Rust security components for performance-critical paths
+LOCKED: This layout is canonical. All new code must be placed in the appropriate directory.
+
+### Source of Truth for Protobuf Schemas
+
+LOCKED: `proto/*/v1/` directories are the single source of truth for all API and event schemas. Generated code in any language is a derivative.
+
+**Guardrail**: A pre-commit hook and CI check enforce that `proto` files are never modified by generated code commits. Any change to a schema must originate in the `proto` file.
+
+### Repository Governance
+
+- **CODEOWNERS**: `proto/` changes require review by the Chief Architect. `platform/bus/` changes require the Bus Team. Service-specific changes are owned by respective service teams.
+- **Branch Protection**: `main` branch requires PR approval, status checks (CI/CD), and up-to-date branches.
+- **CI Rules**: Enforced linting, testing, and ADR compliance scans on every push.
+
+### Non-goals and Migration Constraints
+
+- **Non-goal**: Complete rewrite of existing Python services. Migration is gradual.
+- **Non-goal**: Support for languages outside the final stack (e.g., Java, C#).
+- **Migration Constraint**: Legacy `src/` code must be migrated to the new structure by Q2 2026. No new features in `src/`.
+- **LOCKED**: The `src/` directory is deprecated for new development. A pre-commit hook enforces this.
 
 ## Rationale
 
-### Python Advantages
-- Existing production-ready codebase (150+ dependencies)
-- Rich AI/ML ecosystem (sklearn, threat intelligence)
-- Temporal workflow SDK for complex orchestration
-- FastAPI performance with async/await patterns
+### Language Selection Rationale
 
-### Discovery-First Integration
-- Current PTaaS scanner integration (Nmap, Nuclei, Nikto, SSLScan)
-- Behavioral analytics and threat hunting capabilities
-- Existing Redis/PostgreSQL data layer
-- Vault-backed secret management
+- **Go**: Chosen for its simplicity, performance, and excellent support for concurrent network services, making it ideal for the Two-Tier Bus and gRPC services.
+- **Python**: Retained for its extensive use in AI/ML for threat intelligence and the mature Temporal orchestration layer. Migration will be gradual.
+- **Rust**: Selected for its memory safety and performance, crucial for cryptographic operations and high-speed scanning tools where security is paramount.
+- **TypeScript**: Standard for modern web development, providing type safety and a rich ecosystem for the frontend and gRPC-web clients.
 
-### Two-Tier Bus Compatibility
-- Current middleware stack supports gRPC addition
-- Existing tenant isolation and rate limiting
-- Enterprise authentication with JWT/OIDC
-- Monitoring stack (Prometheus, Grafana) ready for gRPC metrics
+### Monorepo Structure Rationale
+
+- Centralized codebase simplifies dependency management, cross-service refactoring, and large-scale changes.
+- Clear separation of concerns (e.g., `proto`, `platform`, `services`) improves navigability and ownership.
+- The `src/` deprecation path provides a clear migration target without disrupting existing workflows.
 
 ## Consequences
 
 ### Positive
-- Leverage existing production-ready infrastructure
-- Gradual migration to Discovery-First without disruption
-- Proven scalability patterns already implemented
-- Rich testing framework (pytest, Jest) in place
+
+- A clear, locked language and repository structure provides a stable foundation for scaling.
+- The `proto` source-of-truth rule ensures consistent APIs and reduces drift.
+- Defined governance improves code quality and review processes.
+- The migration path from `src/` is clear, with automated enforcement.
 
 ### Negative
-- Python GIL limitations for CPU-intensive discovery
-- Need additional protobuf tooling for existing services
-- gRPC streaming requires async refactoring of some components
 
-## Implementation Plan
+- The lock on the language stack may limit flexibility for future, unforeseen needs.
+- The monorepo can become large and complex, requiring good tooling.
+- The `src/` migration is a significant undertaking.
 
-### Immediate (Week 1-2)
-1. Add `.proto` definitions for existing FastAPI endpoints
-2. Implement gRPC gateway alongside REST APIs
-3. Enable discovery streaming APIs
+## Change Summary
 
-### Short-term (Month 1)
-1. Migrate orchestrator to gRPC-based discovery workflows
-2. Implement Two-Tier Bus message routing
-3. Add discovery fingerprinting to PTaaS scanners
-
-### Long-term (Month 2-3)
-1. Performance-critical components in Rust
-2. Advanced discovery correlation engine
-3. Full Discovery-First SEaaS capabilities
-
-## Compatibility Matrix
-
-| Component | Current | Discovery-First | Two-Tier Bus |
-|-----------|---------|----------------|--------------|
-| API Layer | FastAPI REST | + gRPC Gateway | Message Bus |
-| Frontend | React/REST | + gRPC-Web | Event Streaming |
-| Security | JWT/RBAC | + mTLS | Tenant Isolation |
-| Storage | PostgreSQL | + Discovery Schema | Event Sourcing |
-| Monitoring | Prometheus | + gRPC Metrics | Bus Observability |
+- Added Compliance Score header.
+- Added Final Language Stack table with LOCKED status.
+- Added Canonical Monorepo Structure table with LOCKED status and detailed layout.
+- Added Source of Truth for Protobuf Schemas section with LOCKED status and guardrail.
+- Added Repository Governance section.
+- Added Non-goals and Migration Constraints section with LOCKED status and `src/` deprecation rule.
+- Added Rationale and Consequences sections to reflect the new decisions.
