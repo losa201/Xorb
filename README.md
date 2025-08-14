@@ -57,7 +57,8 @@ cd src/api
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Alternative: Full Docker deployment
-docker-compose -f docker-compose.enterprise.yml up -d
+docker compose -f compose/dev.yml up
+docker compose -f compose/prod.yml up
 ```
 
 ### **3. Access the Platform**
@@ -425,14 +426,17 @@ pytest tests/e2e/ -v
 
 ### **Docker Deployment**
 ```bash
-# Production deployment
-docker-compose -f docker-compose.enterprise.yml up -d
-
 # Development environment
-docker-compose -f docker-compose.development.yml up -d
+docker compose -f compose/dev.yml up
+
+# Production deployment
+docker compose -f compose/prod.yml up
 
 # Monitoring stack
-docker-compose -f docker-compose.monitoring.yml up -d
+docker compose -f compose/monitoring.yml up
+
+# Hardened security deployment
+docker compose -f compose/hardened.yml up
 ```
 
 ### **Kubernetes Deployment**

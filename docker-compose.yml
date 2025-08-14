@@ -1,4 +1,11 @@
 version: "3.9"
 services: {}
+
 profiles: [dev, prod, monitoring, hardened]
-# See ./compose/*.yml
+
+# Dispatcher for XORB Platform Docker Compose configurations
+# Usage:
+#   Development:     docker compose -f compose/dev.yml up
+#   Production:      docker compose -f compose/prod.yml up
+#   Monitoring:      docker compose -f compose/monitoring.yml up
+#   Hardened:        docker compose -f compose/hardened.yml up
