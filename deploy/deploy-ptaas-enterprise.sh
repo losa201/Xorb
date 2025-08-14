@@ -57,7 +57,7 @@ wait_for_rollout() {
     local resource=$1
     local namespace=$2
     local timeout=${3:-300}
-    
+
     log "Waiting for rollout of $resource in namespace $namespace..."
     if kubectl rollout status "$resource" -n "$namespace" --timeout="${timeout}s"; then
         success "Rollout completed for $resource"
@@ -73,20 +73,20 @@ health_check() {
     local expected_status=${2:-200}
     local max_attempts=30
     local attempt=1
-    
+
     log "Performing health check on $url"
-    
+
     while [ $attempt -le $max_attempts ]; do
         if curl -sSf -o /dev/null -w "%{http_code}" "$url" | grep -q "$expected_status"; then
             success "Health check passed for $url"
             return 0
         fi
-        
+
         log "Health check attempt $attempt/$max_attempts failed, retrying in 10s..."
         sleep 10
         ((attempt++))
     done
-    
+
     error "Health check failed after $max_attempts attempts"
     return 1
 }
@@ -102,7 +102,7 @@ cleanup_on_failure() {
 # Pre-flight checks
 preflight_checks() {
     step "Running pre-flight checks..."
-    
+
     # Check required commands
     local required_commands=("docker" "kubectl" "helm" "git" "curl" "jq")
     for cmd in "${required_commands[@]}"; do
@@ -111,32 +111,32 @@ preflight_checks() {
             exit 1
         fi
     done
-    
+
     # Check Kubernetes connectivity
     if ! kubectl cluster-info >/dev/null 2>&1; then
         error "Cannot connect to Kubernetes cluster"
         exit 1
     fi
-    
+
     # Check Docker registry access
     if ! docker info >/dev/null 2>&1; then
         error "Cannot connect to Docker daemon"
         exit 1
     fi
-    
+
     # Validate environment variables
     if [[ -z "${DOMAIN}" ]]; then
         error "DOMAIN environment variable must be set"
         exit 1
     fi
-    
+
     success "Pre-flight checks completed successfully"
 }
 
 # Security validation
 security_checks() {
     step "Running security validation..."
-    
+
     # Check for secrets in code
     if command_exists gitleaks; then
         log "Scanning for secrets with gitleaks..."
@@ -145,13 +145,13 @@ security_checks() {
             exit 1
         fi
     fi
-    
+
     # Validate Kubernetes RBAC
     if ! kubectl auth can-i create deployments -n "$NAMESPACE"; then
         error "Insufficient Kubernetes permissions for deployment"
         exit 1
     fi
-    
+
     # Check SSL certificate validity (if provided)
     if [ -f "$SCRIPT_DIR/ssl/tls.crt" ]; then
         log "Validating SSL certificate..."
@@ -160,16 +160,16 @@ security_checks() {
             exit 1
         fi
     fi
-    
+
     success "Security validation completed"
 }
 
 # Build and push container images
 build_images() {
     step "Building and pushing container images..."
-    
+
     cd "$PROJECT_ROOT/PTaaS"
-    
+
     # Build production optimized image
     log "Building PTaaS frontend image..."
     docker build \
@@ -179,32 +179,32 @@ build_images() {
         --tag "${REGISTRY}/frontend:${TAG}" \
         --tag "${REGISTRY}/frontend:latest" \
         -f Dockerfile .
-    
+
     # Security scan with Trivy (if available)
     if command_exists trivy; then
         log "Scanning image for vulnerabilities..."
         trivy image --severity HIGH,CRITICAL "${REGISTRY}/frontend:${TAG}"
     fi
-    
+
     # Push images
     log "Pushing images to registry..."
     docker push "${REGISTRY}/frontend:${TAG}"
     docker push "${REGISTRY}/frontend:latest"
-    
+
     success "Images built and pushed successfully"
 }
 
 # Deploy infrastructure components
 deploy_infrastructure() {
     step "Deploying infrastructure components..."
-    
+
     # Create namespace if it doesn't exist
     if ! kubectl get namespace "$NAMESPACE" >/dev/null 2>&1; then
         log "Creating namespace $NAMESPACE..."
         kubectl create namespace "$NAMESPACE"
         kubectl label namespace "$NAMESPACE" environment="$DEPLOYMENT_ENV"
     fi
-    
+
     # Deploy NGINX Ingress Controller (if not present)
     if ! kubectl get deployment ingress-nginx-controller -n ingress-nginx >/dev/null 2>&1; then
         log "Installing NGINX Ingress Controller..."
@@ -218,7 +218,7 @@ deploy_infrastructure() {
             --set defaultBackend.nodeSelector."kubernetes\.io/os"=linux \
             --set controller.admissionWebhooks.patch.nodeSelector."kubernetes\.io/os"=linux
     fi
-    
+
     # Deploy cert-manager for SSL automation
     if ! kubectl get deployment cert-manager -n cert-manager >/dev/null 2>&1; then
         log "Installing cert-manager..."
@@ -230,7 +230,7 @@ deploy_infrastructure() {
             --version v1.12.0 \
             --set installCRDs=true
     fi
-    
+
     # Deploy Prometheus monitoring (if enabled)
     if [ "${ENABLE_MONITORING:-false}" = "true" ]; then
         log "Installing Prometheus monitoring stack..."
@@ -242,27 +242,27 @@ deploy_infrastructure() {
             --set grafana.persistence.enabled=true \
             --set prometheus.prometheusSpec.retention=30d
     fi
-    
+
     success "Infrastructure components deployed successfully"
 }
 
 # Deploy PTaaS application
 deploy_application() {
     step "Deploying PTaaS application..."
-    
+
     # Update image references in deployment manifest
     sed -e "s|ptaas/frontend:latest|${REGISTRY}/frontend:${TAG}|g" \
         -e "s|ptaas.example.com|${DOMAIN}|g" \
         -e "s|ptaas-production|${NAMESPACE}|g" \
         "$SCRIPT_DIR/kubernetes/ptaas-deployment.yaml" > "/tmp/ptaas-deployment-${TAG}.yaml"
-    
+
     # Apply the deployment
     log "Applying Kubernetes manifests..."
     kubectl apply -f "/tmp/ptaas-deployment-${TAG}.yaml"
-    
+
     # Wait for deployments to be ready
     wait_for_rollout "deployment/ptaas-frontend" "$NAMESPACE" "$HEALTH_CHECK_TIMEOUT"
-    
+
     # Configure SSL certificate issuer
     log "Configuring SSL certificate issuer..."
     cat <<EOF | kubectl apply -f -
@@ -281,14 +281,14 @@ spec:
         ingress:
           class: nginx
 EOF
-    
+
     success "PTaaS application deployed successfully"
 }
 
 # Comprehensive health checks
 comprehensive_health_check() {
     step "Running comprehensive health checks..."
-    
+
     # Wait for external IP assignment
     log "Waiting for external IP assignment..."
     local max_wait=300
@@ -296,35 +296,35 @@ comprehensive_health_check() {
     while [ $elapsed -lt $max_wait ]; do
         external_ip=$(kubectl get service ptaas-frontend-service -n "$NAMESPACE" \
             -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null || echo "")
-        
+
         if [[ -n "$external_ip" && "$external_ip" != "null" ]]; then
             log "External IP assigned: $external_ip"
             break
         fi
-        
+
         sleep 10
         elapsed=$((elapsed + 10))
     done
-    
+
     # Health check endpoints
     local base_url="https://${DOMAIN}"
     if [[ -n "$external_ip" && "$external_ip" != "null" ]]; then
         base_url="http://${external_ip}"
     fi
-    
+
     # Check main application
     health_check "${base_url}/health" 200
-    
+
     # Check API connectivity
     if health_check "${base_url}/api/health" 200; then
         log "API health check passed"
     else
         warn "API health check failed - this may be expected if backend is not deployed"
     fi
-    
+
     # Check static assets
     health_check "${base_url}/favicon.ico" 200
-    
+
     # Performance test
     log "Running performance test..."
     local response_time=$(curl -o /dev/null -s -w '%{time_total}' "${base_url}/health")
@@ -333,7 +333,7 @@ comprehensive_health_check() {
     else
         warn "Performance test shows slow response time: ${response_time}s"
     fi
-    
+
     success "Health checks completed successfully"
 }
 
@@ -343,9 +343,9 @@ database_migration() {
         log "Skipping database migration"
         return 0
     fi
-    
+
     step "Running database migration..."
-    
+
     # Run database initialization job
     cat <<EOF | kubectl apply -f -
 apiVersion: batch/v1
@@ -369,29 +369,29 @@ spec:
               key: DATABASE_URL
       backoffLimit: 3
 EOF
-    
+
     # Wait for migration job to complete
     kubectl wait --for=condition=complete job/ptaas-db-migration-"${TAG}" -n "$NAMESPACE" --timeout=300s
-    
+
     success "Database migration completed"
 }
 
 # Smoke tests
 smoke_tests() {
     step "Running smoke tests..."
-    
+
     local base_url="https://${DOMAIN}"
-    
+
     # Test critical user journeys
     log "Testing user registration flow..."
     # Add specific smoke tests here
-    
+
     log "Testing vulnerability scanning workflow..."
     # Add scanning workflow tests here
-    
+
     log "Testing dashboard functionality..."
     # Add dashboard tests here
-    
+
     success "Smoke tests completed successfully"
 }
 
@@ -401,15 +401,15 @@ performance_benchmark() {
         log "Skipping performance benchmark"
         return 0
     fi
-    
+
     step "Running performance benchmark..."
-    
+
     # Load testing with Apache Bench (if available)
     if command_exists ab; then
         log "Running load test with Apache Bench..."
         ab -n 1000 -c 10 "https://${DOMAIN}/health"
     fi
-    
+
     # Lighthouse performance test (if available)
     if command_exists lighthouse; then
         log "Running Lighthouse performance audit..."
@@ -418,7 +418,7 @@ performance_benchmark() {
             --output-path "/tmp/lighthouse-report-${TAG}.json" \
             --chrome-flags="--headless --no-sandbox"
     fi
-    
+
     success "Performance benchmark completed"
 }
 
@@ -428,9 +428,9 @@ setup_monitoring() {
         log "Monitoring setup skipped"
         return 0
     fi
-    
+
     step "Setting up monitoring and alerting..."
-    
+
     # Deploy ServiceMonitor for Prometheus
     cat <<EOF | kubectl apply -f -
 apiVersion: monitoring.coreos.com/v1
@@ -447,7 +447,7 @@ spec:
     interval: 30s
     path: /metrics
 EOF
-    
+
     # Deploy alert rules
     cat <<EOF | kubectl apply -f -
 apiVersion: monitoring.coreos.com/v1
@@ -467,7 +467,7 @@ spec:
       annotations:
         summary: "High error rate detected"
         description: "PTaaS is experiencing high error rates"
-    
+
     - alert: PTaaSHighResponseTime
       expr: histogram_quantile(0.95, rate(nginx_http_request_duration_seconds_bucket[5m])) > 2
       for: 5m
@@ -477,7 +477,7 @@ spec:
         summary: "High response time detected"
         description: "PTaaS response times are above 2 seconds"
 EOF
-    
+
     success "Monitoring and alerting configured"
 }
 
@@ -487,9 +487,9 @@ setup_backup() {
         log "Backup setup skipped"
         return 0
     fi
-    
+
     step "Setting up backup and disaster recovery..."
-    
+
     # Setup automated backup job
     cat <<EOF | kubectl apply -f -
 apiVersion: batch/v1
@@ -527,20 +527,20 @@ spec:
             persistentVolumeClaim:
               claimName: ptaas-backup-pvc
 EOF
-    
+
     success "Backup and disaster recovery configured"
 }
 
 # Security hardening
 security_hardening() {
     step "Applying security hardening..."
-    
+
     # Apply Pod Security Standards
     kubectl label namespace "$NAMESPACE" \
         pod-security.kubernetes.io/enforce=restricted \
         pod-security.kubernetes.io/audit=restricted \
         pod-security.kubernetes.io/warn=restricted
-    
+
     # Deploy security policies
     if command_exists falco; then
         log "Deploying Falco security monitoring..."
@@ -549,7 +549,7 @@ security_hardening() {
             --namespace falco \
             --create-namespace
     fi
-    
+
     success "Security hardening applied"
 }
 
@@ -569,11 +569,11 @@ main() {
     log "Domain: $DOMAIN"
     log "Registry: $REGISTRY"
     log "Tag: $TAG"
-    
+
     # Set up error handling
     trap cleanup_on_failure ERR
     trap cleanup EXIT
-    
+
     # Execute deployment steps
     preflight_checks
     security_checks
@@ -587,25 +587,25 @@ main() {
     comprehensive_health_check
     smoke_tests
     performance_benchmark
-    
+
     success "🎉 PTaaS Enterprise deployment completed successfully!"
     success "🌐 Application is available at: https://${DOMAIN}"
     success "📊 Monitoring dashboard: https://grafana.${DOMAIN}"
     success "🔒 Security scanning: Complete"
     success "📈 Performance benchmark: Complete"
-    
+
     # Display deployment summary
     cat <<EOF
 
 ╔══════════════════════════════════════════════════════╗
 ║                 DEPLOYMENT SUMMARY                   ║
 ╠══════════════════════════════════════════════════════╣
-║ Environment: ${DEPLOYMENT_ENV}                       
-║ Namespace: ${NAMESPACE}                              
-║ Domain: ${DOMAIN}                                    
-║ Image Tag: ${TAG}                                    
-║ Deployment Time: $(date)                            
-║ Status: ✅ SUCCESS                                  
+║ Environment: ${DEPLOYMENT_ENV}
+║ Namespace: ${NAMESPACE}
+║ Domain: ${DOMAIN}
+║ Image Tag: ${TAG}
+║ Deployment Time: $(date)
+║ Status: ✅ SUCCESS
 ╚══════════════════════════════════════════════════════╝
 
 Next Steps:

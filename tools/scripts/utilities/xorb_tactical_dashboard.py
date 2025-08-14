@@ -28,15 +28,15 @@ logger = logging.getLogger(__name__)
 
 class XORBTacticalDashboard:
     """XORB Tactical Operations Dashboard"""
-    
+
     def __init__(self):
         self.app = FastAPI(title="XORB PRKMT 12.9 Tactical Dashboard", version="12.9-enhanced")
         self.dashboard_id = f"TACTICAL-DASH-{uuid.uuid4().hex[:8]}"
         self.start_time = datetime.now()
-        
+
         # WebSocket connections for real-time updates
         self.websocket_connections: List[WebSocket] = []
-        
+
         # System metrics cache
         self.metrics_cache = {
             "system_health": {},
@@ -46,15 +46,15 @@ class XORBTacticalDashboard:
             "threat_indicators": {},
             "performance_stats": {}
         }
-        
+
         # Setup FastAPI app
         self.setup_app()
-        
+
         logger.info(f"🛡️ XORB Tactical Dashboard initialized - ID: {self.dashboard_id}")
-    
+
     def setup_app(self):
         """Setup FastAPI application with all routes and middleware"""
-        
+
         # Add CORS middleware
         self.app.add_middleware(
             CORSMiddleware,
@@ -63,81 +63,81 @@ class XORBTacticalDashboard:
             allow_methods=["*"],
             allow_headers=["*"],
         )
-        
+
         # Setup routes
         self.setup_routes()
-        
+
         # Setup WebSocket endpoint
         @self.app.websocket("/ws")
         async def websocket_endpoint(websocket: WebSocket):
             await self.handle_websocket(websocket)
-    
+
     def setup_routes(self):
         """Setup all API routes"""
-        
+
         @self.app.get("/", response_class=HTMLResponse)
         async def dashboard_home():
             return self.get_dashboard_html()
-        
+
         @self.app.get("/api/health")
         async def health_check():
             return {"status": "operational", "dashboard_id": self.dashboard_id, "uptime": str(datetime.now() - self.start_time)}
-        
+
         @self.app.get("/api/system/status")
         async def get_system_status():
             return await self.get_system_metrics()
-        
+
         @self.app.get("/api/campaigns/active")
         async def get_active_campaigns():
             return await self.get_active_attack_campaigns()
-        
+
         @self.app.get("/api/detections/recent")
         async def get_recent_detections():
             return await self.get_recent_detection_events()
-        
+
         @self.app.get("/api/mutations/applied")
         async def get_applied_mutations():
             return await self.get_defensive_mutations()
-        
+
         @self.app.get("/api/threats/indicators")
         async def get_threat_indicators():
             return await self.get_threat_intelligence()
-        
+
         @self.app.post("/api/system/emergency-stop")
         async def emergency_stop():
             return await self.trigger_emergency_stop()
-        
+
         @self.app.post("/api/system/reset-mutations")
         async def reset_mutations():
             return await self.reset_defensive_mutations()
-        
+
         @self.app.get("/api/logs/{service}")
         async def get_service_logs(service: str, lines: int = 100):
             return await self.get_service_logs(service, lines)
-    
+
     async def handle_websocket(self, websocket: WebSocket):
         """Handle WebSocket connections for real-time updates"""
         await websocket.accept()
         self.websocket_connections.append(websocket)
-        
+
         try:
             while True:
                 # Send real-time updates every 5 seconds
                 await asyncio.sleep(5)
-                
+
                 # Get latest metrics
                 metrics = await self.get_realtime_metrics()
-                
+
                 # Send to all connected clients
                 await websocket.send_json(metrics)
-                
+
         except WebSocketDisconnect:
             self.websocket_connections.remove(websocket)
         except Exception as e:
             logger.error(f"WebSocket error: {e}")
             if websocket in self.websocket_connections:
                 self.websocket_connections.remove(websocket)
-    
+
     async def broadcast_update(self, data: Dict[str, Any]):
         """Broadcast update to all connected WebSocket clients"""
         if self.websocket_connections:
@@ -146,20 +146,20 @@ class XORBTacticalDashboard:
                     await websocket.send_json(data)
                 except:
                     self.websocket_connections.remove(websocket)
-    
+
     async def get_system_metrics(self) -> Dict[str, Any]:
         """Get comprehensive system metrics"""
         # CPU and memory usage
         cpu_percent = psutil.cpu_percent(interval=1)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
-        
+
         # Network stats
         network = psutil.net_io_counters()
-        
+
         # XORB service status
         services_status = await self.check_xorb_services()
-        
+
         metrics = {
             "timestamp": datetime.now().isoformat(),
             "system": {
@@ -176,20 +176,20 @@ class XORBTacticalDashboard:
             "services": services_status,
             "uptime": str(datetime.now() - self.start_time)
         }
-        
+
         self.metrics_cache["system_health"] = metrics
         return metrics
-    
+
     async def check_xorb_services(self) -> Dict[str, Any]:
         """Check status of XORB services"""
         services = {
             "xorb-orchestrator": "unknown",
-            "xorb-apt-engine": "unknown", 
+            "xorb-apt-engine": "unknown",
             "xorb-drift-detector": "unknown",
             "nginx": "unknown",
             "docker": "unknown"
         }
-        
+
         for service in services.keys():
             try:
                 result = subprocess.run(
@@ -201,7 +201,7 @@ class XORBTacticalDashboard:
                 services[service] = result.stdout.strip()
             except:
                 services[service] = "error"
-        
+
         # Check Docker containers
         docker_status = {}
         try:
@@ -217,12 +217,12 @@ class XORBTacticalDashboard:
                     docker_status[name] = status
         except:
             docker_status = {"error": "Could not get Docker status"}
-        
+
         return {
             "systemd": services,
             "docker": docker_status
         }
-    
+
     async def get_active_attack_campaigns(self) -> Dict[str, Any]:
         """Get active attack campaigns"""
         # Simulate getting active campaigns from XORB engines
@@ -248,13 +248,13 @@ class XORBTacticalDashboard:
                 "status": "active"
             }
         ]
-        
+
         return {
             "timestamp": datetime.now().isoformat(),
             "active_campaigns": active_campaigns,
             "total_active": len(active_campaigns)
         }
-    
+
     async def get_recent_detection_events(self) -> Dict[str, Any]:
         """Get recent detection events"""
         detection_events = [
@@ -286,13 +286,13 @@ class XORBTacticalDashboard:
                 "details": "Synthetic malware sample bypassed initial detection"
             }
         ]
-        
+
         return {
             "timestamp": datetime.now().isoformat(),
             "recent_events": detection_events,
             "total_events": len(detection_events)
         }
-    
+
     async def get_defensive_mutations(self) -> Dict[str, Any]:
         """Get applied defensive mutations"""
         mutations = [
@@ -315,14 +315,14 @@ class XORBTacticalDashboard:
                 "status": "deployed"
             }
         ]
-        
+
         return {
             "timestamp": datetime.now().isoformat(),
             "applied_mutations": mutations,
             "total_mutations": len(mutations),
             "system_hardening_level": 94.2
         }
-    
+
     async def get_threat_intelligence(self) -> Dict[str, Any]:
         """Get current threat intelligence indicators"""
         indicators = {
@@ -339,12 +339,12 @@ class XORBTacticalDashboard:
                 "supply_chain": "low"
             }
         }
-        
+
         return {
             "timestamp": datetime.now().isoformat(),
             "indicators": indicators
         }
-    
+
     async def get_realtime_metrics(self) -> Dict[str, Any]:
         """Get real-time metrics for WebSocket updates"""
         return {
@@ -356,24 +356,24 @@ class XORBTacticalDashboard:
             "mutations": await self.get_defensive_mutations(),
             "threats": await self.get_threat_intelligence()
         }
-    
+
     async def trigger_emergency_stop(self) -> Dict[str, Any]:
         """Trigger emergency stop of all XORB operations"""
         logger.warning("🚨 EMERGENCY STOP TRIGGERED")
-        
+
         try:
             # Stop XORB services
             services = ["xorb-orchestrator", "xorb-apt-engine", "xorb-drift-detector"]
             for service in services:
                 subprocess.run(["systemctl", "stop", service], check=False)
-            
+
             # Broadcast emergency stop to all clients
             await self.broadcast_update({
                 "type": "emergency_stop",
                 "timestamp": datetime.now().isoformat(),
                 "message": "Emergency stop activated - All XORB operations halted"
             })
-            
+
             return {
                 "status": "emergency_stop_activated",
                 "timestamp": datetime.now().isoformat(),
@@ -382,18 +382,18 @@ class XORBTacticalDashboard:
         except Exception as e:
             logger.error(f"Emergency stop failed: {e}")
             return {"status": "error", "message": str(e)}
-    
+
     async def reset_defensive_mutations(self) -> Dict[str, Any]:
         """Reset defensive mutations to baseline"""
         logger.info("🔄 Resetting defensive mutations to baseline")
-        
+
         return {
             "status": "mutations_reset",
             "timestamp": datetime.now().isoformat(),
             "baseline_restored": True,
             "hardening_level": 85.0
         }
-    
+
     async def get_service_logs(self, service: str, lines: int = 100) -> Dict[str, Any]:
         """Get logs for specified service"""
         try:
@@ -403,7 +403,7 @@ class XORBTacticalDashboard:
                 text=True,
                 timeout=10
             )
-            
+
             return {
                 "service": service,
                 "lines": lines,
@@ -416,7 +416,7 @@ class XORBTacticalDashboard:
                 "error": str(e),
                 "timestamp": datetime.now().isoformat()
             }
-    
+
     def get_dashboard_html(self) -> str:
         """Get HTML for the tactical dashboard"""
         return """
@@ -428,7 +428,7 @@ class XORBTacticalDashboard:
     <title>XORB PRKMT 12.9 Tactical Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
             font-family: 'Courier New', monospace;
             background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
@@ -436,7 +436,7 @@ class XORBTacticalDashboard:
             min-height: 100vh;
             overflow-x: auto;
         }
-        
+
         .header {
             background: rgba(0, 0, 0, 0.8);
             padding: 20px;
@@ -444,27 +444,27 @@ class XORBTacticalDashboard:
             border-bottom: 2px solid #00ff41;
             box-shadow: 0 2px 10px rgba(0, 255, 65, 0.3);
         }
-        
+
         .header h1 {
             font-size: 2.5em;
             color: #ff0040;
             text-shadow: 0 0 10px #ff0040;
             margin-bottom: 10px;
         }
-        
+
         .header .subtitle {
             color: #00ff41;
             font-size: 1.2em;
             text-shadow: 0 0 5px #00ff41;
         }
-        
+
         .dashboard {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
             gap: 20px;
             padding: 20px;
         }
-        
+
         .card {
             background: rgba(0, 0, 0, 0.7);
             border: 1px solid #00ff41;
@@ -473,19 +473,19 @@ class XORBTacticalDashboard:
             box-shadow: 0 4px 15px rgba(0, 255, 65, 0.2);
             transition: all 0.3s ease;
         }
-        
+
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 8px 25px rgba(0, 255, 65, 0.4);
         }
-        
+
         .card h2 {
             color: #ff0040;
             margin-bottom: 15px;
             border-bottom: 1px solid #ff0040;
             padding-bottom: 5px;
         }
-        
+
         .metric {
             display: flex;
             justify-content: space-between;
@@ -494,20 +494,20 @@ class XORBTacticalDashboard:
             background: rgba(0, 255, 65, 0.1);
             border-radius: 5px;
         }
-        
+
         .metric-label {
             color: #00ff41;
         }
-        
+
         .metric-value {
             color: #ffffff;
             font-weight: bold;
         }
-        
+
         .status-active { color: #00ff41; }
         .status-inactive { color: #ff6b6b; }
         .status-warning { color: #ffd93d; }
-        
+
         .progress-bar {
             width: 100%;
             height: 20px;
@@ -516,18 +516,18 @@ class XORBTacticalDashboard:
             overflow: hidden;
             margin: 10px 0;
         }
-        
+
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #00ff41, #ff0040);
             transition: width 0.3s ease;
         }
-        
+
         .controls {
             grid-column: 1 / -1;
             text-align: center;
         }
-        
+
         .btn {
             background: linear-gradient(45deg, #ff0040, #ff6b6b);
             color: white;
@@ -541,23 +541,23 @@ class XORBTacticalDashboard:
             transition: all 0.3s ease;
             text-transform: uppercase;
         }
-        
+
         .btn:hover {
             transform: scale(1.05);
             box-shadow: 0 5px 15px rgba(255, 0, 64, 0.4);
         }
-        
+
         .btn-emergency {
             background: linear-gradient(45deg, #ff0000, #cc0000);
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.7); }
             70% { box-shadow: 0 0 0 10px rgba(255, 0, 0, 0); }
             100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
         }
-        
+
         .alert {
             background: rgba(255, 0, 64, 0.2);
             border: 1px solid #ff0040;
@@ -566,12 +566,12 @@ class XORBTacticalDashboard:
             margin: 10px 0;
             animation: blink 1s infinite;
         }
-        
+
         @keyframes blink {
             0%, 50% { opacity: 1; }
             51%, 100% { opacity: 0.5; }
         }
-        
+
         .log-output {
             background: rgba(0, 0, 0, 0.9);
             color: #00ff41;
@@ -583,7 +583,7 @@ class XORBTacticalDashboard:
             border-radius: 5px;
             border: 1px solid #00ff41;
         }
-        
+
         #connection-status {
             position: fixed;
             top: 10px;
@@ -592,19 +592,19 @@ class XORBTacticalDashboard:
             border-radius: 5px;
             font-weight: bold;
         }
-        
+
         .connected { background: rgba(0, 255, 65, 0.8); color: black; }
         .disconnected { background: rgba(255, 0, 64, 0.8); color: white; }
     </style>
 </head>
 <body>
     <div id="connection-status" class="disconnected">DISCONNECTED</div>
-    
+
     <div class="header">
         <h1>🛡️ XORB PRKMT 12.9 TACTICAL DASHBOARD ⚔️</h1>
         <div class="subtitle">Autonomous Adversarial Testing & Defensive Mutation Platform</div>
     </div>
-    
+
     <div class="dashboard">
         <div class="card">
             <h2>🖥️ System Health</h2>
@@ -627,7 +627,7 @@ class XORBTacticalDashboard:
                 </div>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>⚔️ Active Campaigns</h2>
             <div id="active-campaigns">
@@ -645,7 +645,7 @@ class XORBTacticalDashboard:
                 </div>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>🔍 Detection Events</h2>
             <div id="detection-events">
@@ -659,7 +659,7 @@ class XORBTacticalDashboard:
                 </div>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>🛡️ Defensive Mutations</h2>
             <div id="defensive-mutations">
@@ -676,7 +676,7 @@ class XORBTacticalDashboard:
                 </div>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>🎯 Threat Intelligence</h2>
             <div id="threat-intel">
@@ -694,7 +694,7 @@ class XORBTacticalDashboard:
                 </div>
             </div>
         </div>
-        
+
         <div class="card">
             <h2>🔧 Service Status</h2>
             <div id="service-status">
@@ -712,7 +712,7 @@ class XORBTacticalDashboard:
                 </div>
             </div>
         </div>
-        
+
         <div class="card controls">
             <h2>🚨 Emergency Controls</h2>
             <button class="btn btn-emergency" onclick="emergencyStop()">🛑 EMERGENCY STOP</button>
@@ -720,17 +720,17 @@ class XORBTacticalDashboard:
             <button class="btn" onclick="refreshData()">📊 Refresh Data</button>
         </div>
     </div>
-    
+
     <script>
         let ws = null;
         let reconnectInterval = null;
-        
+
         function connectWebSocket() {
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const wsUrl = `${protocol}//${window.location.host}/ws`;
-            
+
             ws = new WebSocket(wsUrl);
-            
+
             ws.onopen = function() {
                 document.getElementById('connection-status').textContent = 'CONNECTED';
                 document.getElementById('connection-status').className = 'connected';
@@ -739,26 +739,26 @@ class XORBTacticalDashboard:
                     reconnectInterval = null;
                 }
             };
-            
+
             ws.onmessage = function(event) {
                 const data = JSON.parse(event.data);
                 updateDashboard(data);
             };
-            
+
             ws.onclose = function() {
                 document.getElementById('connection-status').textContent = 'DISCONNECTED';
                 document.getElementById('connection-status').className = 'disconnected';
-                
+
                 if (!reconnectInterval) {
                     reconnectInterval = setInterval(connectWebSocket, 5000);
                 }
             };
-            
+
             ws.onerror = function(error) {
                 console.error('WebSocket error:', error);
             };
         }
-        
+
         function updateDashboard(data) {
             if (data.type === 'realtime_update') {
                 // Update system metrics
@@ -769,12 +769,12 @@ class XORBTacticalDashboard:
                     document.getElementById('disk-usage').textContent = sys.disk_percent.toFixed(1) + '%';
                     document.getElementById('uptime').textContent = data.system.uptime;
                 }
-                
+
                 // Update campaigns
                 if (data.campaigns && data.campaigns.active_campaigns) {
                     const campaigns = data.campaigns.active_campaigns;
                     document.getElementById('apt-campaigns').textContent = campaigns.length;
-                    
+
                     if (campaigns.length > 0) {
                         const avgSuccess = campaigns.reduce((sum, c) => sum + c.success_rate, 0) / campaigns.length;
                         const avgDetection = campaigns.reduce((sum, c) => sum + c.detection_rate, 0) / campaigns.length;
@@ -782,26 +782,26 @@ class XORBTacticalDashboard:
                         document.getElementById('detection-rate').textContent = (avgDetection * 100).toFixed(1) + '%';
                     }
                 }
-                
+
                 // Update detections
                 if (data.detections && data.detections.recent_events) {
                     const events = data.detections.recent_events;
                     document.getElementById('recent-alerts').textContent = events.length;
-                    
+
                     const criticalEvents = events.filter(e => e.severity === 'critical').length;
                     document.getElementById('critical-events').textContent = criticalEvents;
                 }
-                
+
                 // Update mutations
                 if (data.mutations) {
                     const mutations = data.mutations.applied_mutations || [];
                     document.getElementById('applied-mutations').textContent = mutations.length;
-                    
+
                     const hardeningLevel = data.mutations.system_hardening_level || 0;
                     document.getElementById('hardening-level').textContent = hardeningLevel.toFixed(1) + '%';
                     document.getElementById('hardening-progress').style.width = hardeningLevel + '%';
                 }
-                
+
                 // Update threat intel
                 if (data.threats && data.threats.indicators) {
                     const indicators = data.threats.indicators;
@@ -810,7 +810,7 @@ class XORBTacticalDashboard:
                 }
             }
         }
-        
+
         async function emergencyStop() {
             if (confirm('⚠️ This will stop all XORB operations immediately. Continue?')) {
                 try {
@@ -822,7 +822,7 @@ class XORBTacticalDashboard:
                 }
             }
         }
-        
+
         async function resetMutations() {
             if (confirm('Reset all defensive mutations to baseline?')) {
                 try {
@@ -834,7 +834,7 @@ class XORBTacticalDashboard:
                 }
             }
         }
-        
+
         async function refreshData() {
             try {
                 const response = await fetch('/api/system/status');
@@ -845,10 +845,10 @@ class XORBTacticalDashboard:
                 alert('Error refreshing data: ' + error.message);
             }
         }
-        
+
         // Initialize dashboard
         connectWebSocket();
-        
+
         // Initial data load
         refreshData();
     </script>
@@ -859,7 +859,7 @@ class XORBTacticalDashboard:
 def main():
     """Run the XORB Tactical Dashboard"""
     dashboard = XORBTacticalDashboard()
-    
+
     # Start background task for metrics collection
     async def metrics_collector():
         while True:
@@ -869,13 +869,13 @@ def main():
             except Exception as e:
                 logger.error(f"Metrics collection error: {e}")
                 await asyncio.sleep(10)
-    
+
     # Add startup event
     @dashboard.app.on_event("startup")
     async def startup_event():
         asyncio.create_task(metrics_collector())
         logger.info("🛡️ XORB Tactical Dashboard started")
-    
+
     logger.info("🚀 Starting XORB Tactical Dashboard on port 8080")
     uvicorn.run(
         dashboard.app,

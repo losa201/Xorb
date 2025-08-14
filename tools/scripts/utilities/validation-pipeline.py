@@ -97,16 +97,16 @@ class XORBValidationPipeline:
         self.xorb_root = Path("/root/Xorb")
         self.validation_rules: List[ValidationRule] = []
         self.pipeline_config = {}
-        
+
         # Results storage
         self.results_dir = self.xorb_root / "validation_results"
         self.results_dir.mkdir(exist_ok=True)
-        
+
         # Components
         self.test_framework = None
         self.performance_benchmark = None
         self.security_scanner = None
-        
+
         # Pipeline state
         self.current_run: Optional[PipelineRun] = None
         self.validation_cache: Dict[str, ValidationResult] = {}
@@ -114,16 +114,16 @@ class XORBValidationPipeline:
     async def initialize(self):
         """Initialize the validation pipeline."""
         logger.info("Initializing XORB Validation Pipeline")
-        
+
         # Load configuration
         await self._load_configuration()
-        
+
         # Initialize validation rules
         await self._initialize_validation_rules()
-        
+
         # Initialize components
         await self._initialize_components()
-        
+
         logger.info("Validation pipeline initialization complete")
 
     async def _load_configuration(self):
@@ -181,7 +181,7 @@ class XORBValidationPipeline:
                     "notify_on_success": False
                 }
             }
-            
+
             # Save default configuration
             self.config_path.parent.mkdir(exist_ok=True)
             with open(self.config_path, 'w') as f:
@@ -215,7 +215,7 @@ class XORBValidationPipeline:
                 requirements=["config_files"],
                 metadata={"type": "config_validation"}
             ),
-            
+
             # Unit test rules
             ValidationRule(
                 rule_id="unit_001",
@@ -229,7 +229,7 @@ class XORBValidationPipeline:
                 requirements=["test_framework"],
                 metadata={"type": "unit_tests", "min_coverage": 80}
             ),
-            
+
             # Integration test rules
             ValidationRule(
                 rule_id="integration_001",
@@ -243,7 +243,7 @@ class XORBValidationPipeline:
                 requirements=["running_services"],
                 metadata={"type": "integration_tests"}
             ),
-            
+
             # Security scan rules
             ValidationRule(
                 rule_id="security_001",
@@ -269,7 +269,7 @@ class XORBValidationPipeline:
                 requirements=["bandit", "source_code"],
                 metadata={"type": "static_analysis"}
             ),
-            
+
             # Performance benchmark rules
             ValidationRule(
                 rule_id="perf_001",
@@ -295,7 +295,7 @@ class XORBValidationPipeline:
                 requirements=["api_endpoints"],
                 metadata={"type": "api_performance"}
             ),
-            
+
             # Compliance check rules
             ValidationRule(
                 rule_id="compliance_001",
@@ -309,7 +309,7 @@ class XORBValidationPipeline:
                 requirements=["policy_definitions"],
                 metadata={"type": "security_compliance"}
             ),
-            
+
             # Deployment validation rules
             ValidationRule(
                 rule_id="deploy_001",
@@ -323,7 +323,7 @@ class XORBValidationPipeline:
                 requirements=["deployed_services"],
                 metadata={"type": "health_check"}
             ),
-            
+
             # Post-validation rules
             ValidationRule(
                 rule_id="post_001",
@@ -338,7 +338,7 @@ class XORBValidationPipeline:
                 metadata={"type": "e2e_validation"}
             )
         ]
-        
+
         self.validation_rules = rules
         logger.info(f"Initialized {len(self.validation_rules)} validation rules")
 
@@ -349,18 +349,18 @@ class XORBValidationPipeline:
             from tests.test_framework import XORBTestFramework
             self.test_framework = XORBTestFramework()
             await self.test_framework.initialize()
-            
+
             # Initialize performance benchmark
             from scripts.performance_benchmarking import XORBPerformanceBenchmark
             self.performance_benchmark = XORBPerformanceBenchmark()
             await self.performance_benchmark.initialize()
-            
+
             # Initialize security scanner
             self.security_scanner = SecurityScanner()
             await self.security_scanner.initialize()
-            
+
             logger.info("Validation components initialized successfully")
-            
+
         except Exception as e:
             logger.warning(f"Some validation components failed to initialize: {e}")
 
@@ -373,9 +373,9 @@ class XORBValidationPipeline:
         """Run the complete validation pipeline."""
         run_id = f"validation-{int(time.time())}"
         logger.info(f"Starting validation pipeline run: {run_id}")
-        
+
         start_time = datetime.utcnow()
-        
+
         # Initialize pipeline run
         self.current_run = PipelineRun(
             run_id=run_id,
@@ -389,73 +389,73 @@ class XORBValidationPipeline:
             environment=environment,
             version=self.pipeline_config.get("pipeline", {}).get("version", "1.0.0")
         )
-        
+
         try:
             # Determine stages to run
             stages_to_run = stages or list(ValidationStage)
             if skip_stages:
                 stages_to_run = [s for s in stages_to_run if s not in skip_stages]
-            
+
             # Apply environment-specific filters
             stages_to_run = self._filter_stages_by_environment(stages_to_run, environment)
-            
+
             # Run validation stages
             for stage in stages_to_run:
                 logger.info(f"Running validation stage: {stage.value}")
-                
+
                 stage_results = await self._run_validation_stage(stage, environment)
                 self.current_run.results.extend(stage_results)
                 self.current_run.stages_completed.append(stage)
-                
+
                 # Check for critical failures
                 critical_failures = [
-                    r for r in stage_results 
-                    if r.status == ValidationStatus.FAILED and 
+                    r for r in stage_results
+                    if r.status == ValidationStatus.FAILED and
                     self._get_rule_by_id(r.rule_id).severity == ValidationSeverity.CRITICAL
                 ]
-                
+
                 if critical_failures and self.pipeline_config.get("pipeline", {}).get("fail_fast", False):
                     logger.error(f"Critical failure in stage {stage.value}, stopping pipeline")
                     self.current_run.overall_status = ValidationStatus.FAILED
                     break
-            
+
             # Calculate final status
             self.current_run.overall_status = self._calculate_overall_status()
-            
+
         except Exception as e:
             logger.error(f"Pipeline execution failed: {e}")
             self.current_run.overall_status = ValidationStatus.FAILED
-        
+
         finally:
             # Finalize pipeline run
             end_time = datetime.utcnow()
             self.current_run.end_time = end_time
             self.current_run.total_duration = (end_time - start_time).total_seconds()
             self.current_run.summary = await self._generate_pipeline_summary()
-            
+
             # Save results
             await self._save_pipeline_results()
-            
+
             # Send notifications
             await self._send_notifications()
-        
+
         logger.info(f"Validation pipeline completed: {run_id} - {self.current_run.overall_status.value}")
         return self.current_run
 
     def _filter_stages_by_environment(self, stages: List[ValidationStage], environment: str) -> List[ValidationStage]:
         """Filter stages based on environment configuration."""
         env_config = self.pipeline_config.get("environments", {}).get(environment, {})
-        
+
         filtered_stages = stages.copy()
-        
+
         # Skip performance tests in development
         if env_config.get("skip_performance", False):
             filtered_stages = [s for s in filtered_stages if s != ValidationStage.PERFORMANCE_BENCHMARK]
-        
+
         # Skip security scans if configured
         if env_config.get("skip_security", False):
             filtered_stages = [s for s in filtered_stages if s != ValidationStage.SECURITY_SCAN]
-        
+
         # Quick tests only mode
         if env_config.get("quick_tests_only", False):
             quick_stages = [
@@ -464,26 +464,26 @@ class XORBValidationPipeline:
                 ValidationStage.POST_VALIDATION
             ]
             filtered_stages = [s for s in filtered_stages if s in quick_stages]
-        
+
         return filtered_stages
 
     async def _run_validation_stage(self, stage: ValidationStage, environment: str) -> List[ValidationResult]:
         """Run all validation rules for a specific stage."""
         stage_rules = [rule for rule in self.validation_rules if rule.stage == stage and rule.enabled]
         results = []
-        
+
         if not stage_rules:
             logger.info(f"No enabled rules found for stage: {stage.value}")
             return results
-        
+
         # Check if parallel execution is enabled
         parallel_execution = self.pipeline_config.get("pipeline", {}).get("parallel_execution", True)
-        
+
         if parallel_execution and len(stage_rules) > 1:
             # Run rules in parallel
             tasks = [self._run_validation_rule(rule, environment) for rule in stage_rules]
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             # Handle exceptions
             results = [r for r in results if isinstance(r, ValidationResult)]
         else:
@@ -491,15 +491,15 @@ class XORBValidationPipeline:
             for rule in stage_rules:
                 result = await self._run_validation_rule(rule, environment)
                 results.append(result)
-        
+
         return results
 
     async def _run_validation_rule(self, rule: ValidationRule, environment: str) -> ValidationResult:
         """Run a single validation rule."""
         logger.info(f"Running validation rule: {rule.name}")
-        
+
         start_time = datetime.utcnow()
-        
+
         # Check cache first
         cache_key = f"{rule.rule_id}_{environment}"
         if cache_key in self.validation_cache:
@@ -508,7 +508,7 @@ class XORBValidationPipeline:
             if (start_time - cached_result.start_time).total_seconds() < 3600:
                 logger.info(f"Using cached result for rule: {rule.name}")
                 return cached_result
-        
+
         # Check prerequisites
         prereq_check = await self._check_rule_prerequisites(rule)
         if not prereq_check["satisfied"]:
@@ -524,36 +524,36 @@ class XORBValidationPipeline:
                 artifacts=[],
                 recommendations=[]
             )
-        
+
         # Execute rule with retry logic
         last_exception = None
         for attempt in range(rule.retry_count + 1):
             try:
                 if attempt > 0:
                     logger.info(f"Retrying rule {rule.name} (attempt {attempt + 1})")
-                
+
                 result = await asyncio.wait_for(
                     self._execute_validation_rule(rule, environment),
                     timeout=rule.timeout_seconds
                 )
-                
+
                 # Cache successful results
                 if result.status in [ValidationStatus.PASSED, ValidationStatus.WARNING]:
                     self.validation_cache[cache_key] = result
-                
+
                 return result
-                
+
             except asyncio.TimeoutError:
                 last_exception = f"Rule execution timed out after {rule.timeout_seconds} seconds"
                 logger.warning(f"Rule {rule.name} timed out on attempt {attempt + 1}")
-                
+
             except Exception as e:
                 last_exception = str(e)
                 logger.warning(f"Rule {rule.name} failed on attempt {attempt + 1}: {e}")
-                
+
                 if attempt < rule.retry_count:
                     await asyncio.sleep(2 ** attempt)  # Exponential backoff
-        
+
         # All attempts failed
         end_time = datetime.utcnow()
         return ValidationResult(
@@ -573,33 +573,33 @@ class XORBValidationPipeline:
         """Check if rule prerequisites are satisfied."""
         missing_requirements = []
         satisfied = True
-        
+
         for requirement in rule.requirements:
             if requirement == "kubectl":
                 if not await self._check_command_available("kubectl"):
                     missing_requirements.append("kubectl command not available")
                     satisfied = False
-            
+
             elif requirement == "python3":
                 if not await self._check_command_available("python3"):
                     missing_requirements.append("python3 command not available")
                     satisfied = False
-            
+
             elif requirement == "docker":
                 if not await self._check_command_available("docker"):
                     missing_requirements.append("docker command not available")
                     satisfied = False
-            
+
             elif requirement == "test_framework":
                 if not self.test_framework:
                     missing_requirements.append("test framework not initialized")
                     satisfied = False
-            
+
             elif requirement == "performance_tools":
                 if not self.performance_benchmark:
                     missing_requirements.append("performance benchmark tools not available")
                     satisfied = False
-            
+
             elif requirement == "config_files":
                 config_files = [
                     self.xorb_root / "config" / "deployment.yaml",
@@ -609,7 +609,7 @@ class XORBValidationPipeline:
                     if not config_file.exists():
                         missing_requirements.append(f"Config file missing: {config_file}")
                         satisfied = False
-        
+
         return {
             "satisfied": satisfied,
             "missing": missing_requirements,
@@ -632,41 +632,41 @@ class XORBValidationPipeline:
     async def _execute_validation_rule(self, rule: ValidationRule, environment: str) -> ValidationResult:
         """Execute a specific validation rule."""
         start_time = datetime.utcnow()
-        
+
         try:
             if rule.stage == ValidationStage.PRE_VALIDATION:
                 result = await self._execute_pre_validation_rule(rule, environment)
-            
+
             elif rule.stage == ValidationStage.UNIT_TESTS:
                 result = await self._execute_unit_test_rule(rule, environment)
-            
+
             elif rule.stage == ValidationStage.INTEGRATION_TESTS:
                 result = await self._execute_integration_test_rule(rule, environment)
-            
+
             elif rule.stage == ValidationStage.SECURITY_SCAN:
                 result = await self._execute_security_scan_rule(rule, environment)
-            
+
             elif rule.stage == ValidationStage.PERFORMANCE_BENCHMARK:
                 result = await self._execute_performance_rule(rule, environment)
-            
+
             elif rule.stage == ValidationStage.COMPLIANCE_CHECK:
                 result = await self._execute_compliance_rule(rule, environment)
-            
+
             elif rule.stage == ValidationStage.DEPLOYMENT_VALIDATION:
                 result = await self._execute_deployment_validation_rule(rule, environment)
-            
+
             elif rule.stage == ValidationStage.POST_VALIDATION:
                 result = await self._execute_post_validation_rule(rule, environment)
-            
+
             else:
                 raise ValueError(f"Unknown validation stage: {rule.stage}")
-            
+
             end_time = datetime.utcnow()
             result.end_time = end_time
             result.duration = (end_time - start_time).total_seconds()
-            
+
             return result
-            
+
         except Exception as e:
             end_time = datetime.utcnow()
             return ValidationResult(
@@ -690,9 +690,9 @@ class XORBValidationPipeline:
             for req in rule.requirements:
                 available = await self._check_command_available(req)
                 checks.append({"requirement": req, "available": available})
-            
+
             failed_checks = [c for c in checks if not c["available"]]
-            
+
             if failed_checks:
                 return ValidationResult(
                     rule_id=rule.rule_id,
@@ -719,7 +719,7 @@ class XORBValidationPipeline:
                     artifacts=[],
                     recommendations=[]
                 )
-        
+
         elif rule.metadata.get("type") == "config_validation":
             # Validate configuration files
             if self.test_framework:
@@ -733,7 +733,7 @@ class XORBValidationPipeline:
                             stderr=asyncio.subprocess.PIPE
                         )
                         stdout, stderr = await result.communicate()
-                        
+
                         if result.returncode == 0:
                             return ValidationResult(
                                 rule_id=rule.rule_id,
@@ -762,7 +762,7 @@ class XORBValidationPipeline:
                             )
                 except Exception as e:
                     raise Exception(f"Configuration validation failed: {e}")
-        
+
         # Default success for unknown pre-validation types
         return ValidationResult(
             rule_id=rule.rule_id,
@@ -782,9 +782,9 @@ class XORBValidationPipeline:
         if self.test_framework:
             try:
                 suite = await self.test_framework.run_unit_tests()
-                
+
                 coverage_threshold = rule.metadata.get("min_coverage", 80)
-                
+
                 if suite.pass_rate >= 100.0 and suite.coverage >= coverage_threshold:
                     status = ValidationStatus.PASSED
                     message = f"Unit tests passed: {suite.pass_rate:.1f}% pass rate, {suite.coverage:.1f}% coverage"
@@ -794,7 +794,7 @@ class XORBValidationPipeline:
                 else:
                     status = ValidationStatus.FAILED
                     message = f"Unit tests failed: {suite.pass_rate:.1f}% pass rate, {suite.coverage:.1f}% coverage"
-                
+
                 return ValidationResult(
                     rule_id=rule.rule_id,
                     stage=rule.stage,
@@ -822,7 +822,7 @@ class XORBValidationPipeline:
         if self.test_framework:
             try:
                 suite = await self.test_framework.run_integration_tests()
-                
+
                 if suite.pass_rate >= 100.0:
                     status = ValidationStatus.PASSED
                     message = f"Integration tests passed: {suite.pass_rate:.1f}% pass rate"
@@ -832,7 +832,7 @@ class XORBValidationPipeline:
                 else:
                     status = ValidationStatus.FAILED
                     message = f"Integration tests failed: {suite.pass_rate:.1f}% pass rate"
-                
+
                 return ValidationResult(
                     rule_id=rule.rule_id,
                     stage=rule.stage,
@@ -870,7 +870,7 @@ class XORBValidationPipeline:
                 artifacts=[],
                 recommendations=["Review and fix medium priority vulnerabilities"]
             )
-        
+
         elif rule.metadata.get("type") == "static_analysis":
             # Mock static analysis scan
             return ValidationResult(
@@ -885,7 +885,7 @@ class XORBValidationPipeline:
                 artifacts=[],
                 recommendations=["Address security issues in code"]
             )
-        
+
         # Default security validation
         return ValidationResult(
             rule_id=rule.rule_id,
@@ -915,7 +915,7 @@ class XORBValidationPipeline:
                         'passed': report['summary']['failed_benchmarks'] == 0,
                         'summary': report['summary']
                     })()
-                
+
                 return ValidationResult(
                     rule_id=rule.rule_id,
                     stage=rule.stage,
@@ -1004,60 +1004,60 @@ class XORBValidationPipeline:
         """Calculate overall pipeline status."""
         if not self.current_run or not self.current_run.results:
             return ValidationStatus.FAILED
-        
+
         # Check for critical failures
         critical_failures = [
-            r for r in self.current_run.results 
-            if r.status == ValidationStatus.FAILED and 
+            r for r in self.current_run.results
+            if r.status == ValidationStatus.FAILED and
             self._get_rule_by_id(r.rule_id).severity == ValidationSeverity.CRITICAL
         ]
-        
+
         if critical_failures:
             return ValidationStatus.FAILED
-        
+
         # Check for any failures
         failures = [r for r in self.current_run.results if r.status == ValidationStatus.FAILED]
         if failures:
             return ValidationStatus.FAILED
-        
+
         # Check for warnings
         warnings = [r for r in self.current_run.results if r.status == ValidationStatus.WARNING]
         if warnings:
             return ValidationStatus.WARNING
-        
+
         return ValidationStatus.PASSED
 
     async def _generate_pipeline_summary(self) -> Dict[str, Any]:
         """Generate comprehensive pipeline summary."""
         if not self.current_run:
             return {}
-        
+
         results = self.current_run.results
-        
+
         # Count results by status
         status_counts = {status.value: 0 for status in ValidationStatus}
         for result in results:
             status_counts[result.status.value] += 1
-        
+
         # Count results by stage
         stage_counts = {stage.value: 0 for stage in ValidationStage}
         for result in results:
             stage_counts[result.stage.value] += 1
-        
+
         # Count results by severity
         severity_counts = {severity.value: 0 for severity in ValidationSeverity}
         for result in results:
             rule = self._get_rule_by_id(result.rule_id)
             if rule:
                 severity_counts[rule.severity.value] += 1
-        
+
         # Calculate metrics
         total_rules = len(results)
         passed_rules = status_counts.get("passed", 0)
         failed_rules = status_counts.get("failed", 0)
-        
+
         pass_rate = (passed_rules / total_rules) * 100 if total_rules > 0 else 0
-        
+
         return {
             "total_rules": total_rules,
             "passed_rules": passed_rules,
@@ -1077,36 +1077,36 @@ class XORBValidationPipeline:
         """Save pipeline results to disk."""
         if not self.current_run:
             return
-        
+
         # Save detailed results
         results_file = self.results_dir / f"pipeline_run_{self.current_run.run_id}.json"
         with open(results_file, 'w') as f:
             json.dump(asdict(self.current_run), f, indent=2, default=str)
-        
+
         # Save summary report
         summary_file = self.results_dir / f"pipeline_summary_{self.current_run.run_id}.json"
         with open(summary_file, 'w') as f:
             json.dump(self.current_run.summary, f, indent=2, default=str)
-        
+
         logger.info(f"Pipeline results saved: {results_file}")
 
     async def _send_notifications(self):
         """Send pipeline completion notifications."""
         if not self.current_run:
             return
-        
+
         notification_config = self.pipeline_config.get("notifications", {})
-        
+
         # Determine if notifications should be sent
         should_notify = False
         if self.current_run.overall_status == ValidationStatus.FAILED:
             should_notify = notification_config.get("notify_on_failure", True)
         elif self.current_run.overall_status == ValidationStatus.PASSED:
             should_notify = notification_config.get("notify_on_success", False)
-        
+
         if not should_notify:
             return
-        
+
         # Prepare notification message
         message = f"""
 XORB Validation Pipeline Completed
@@ -1124,18 +1124,18 @@ Summary:
 
 Stages Completed: {len(self.current_run.stages_completed)}
         """.strip()
-        
+
         # Log notification (placeholder for actual notification implementation)
         logger.info(f"Pipeline notification: {message}")
 
 
 class SecurityScanner:
     """Mock security scanner for validation pipeline."""
-    
+
     async def initialize(self):
         """Initialize security scanner."""
         logger.info("Initializing security scanner")
-    
+
     async def scan_containers(self) -> Dict[str, Any]:
         """Scan container images for vulnerabilities."""
         # Mock implementation
@@ -1143,7 +1143,7 @@ class SecurityScanner:
             "images_scanned": 5,
             "vulnerabilities": {"critical": 0, "high": 2, "medium": 5, "low": 10}
         }
-    
+
     async def analyze_code(self) -> Dict[str, Any]:
         """Perform static code analysis."""
         # Mock implementation
@@ -1156,9 +1156,9 @@ class SecurityScanner:
 async def main():
     """Main function for running validation pipeline."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="XORB Validation Pipeline")
-    parser.add_argument("--environment", 
+    parser.add_argument("--environment",
                        choices=["development", "staging", "production"],
                        default="development",
                        help="Target environment")
@@ -1168,39 +1168,39 @@ async def main():
     parser.add_argument("--skip-stages", nargs="+",
                        choices=[s.value for s in ValidationStage],
                        help="Stages to skip")
-    parser.add_argument("--config", 
+    parser.add_argument("--config",
                        default="/root/Xorb/config/validation-config.yaml",
                        help="Validation configuration file")
-    
+
     args = parser.parse_args()
-    
+
     # Convert stage strings to enums
     stages = None
     if args.stages:
         stages = [ValidationStage(s) for s in args.stages]
-    
+
     skip_stages = None
     if args.skip_stages:
         skip_stages = [ValidationStage(s) for s in args.skip_stages]
-    
+
     pipeline = XORBValidationPipeline(args.config)
-    
+
     try:
         await pipeline.initialize()
-        
+
         pipeline_run = await pipeline.run_validation_pipeline(
             environment=args.environment,
             stages=stages,
             skip_stages=skip_stages
         )
-        
+
         print(f"Validation Pipeline Completed")
         print(f"Run ID: {pipeline_run.run_id}")
         print(f"Status: {pipeline_run.overall_status.value.upper()}")
         print(f"Duration: {pipeline_run.total_duration:.1f} seconds")
         print(f"Pass Rate: {pipeline_run.summary.get('pass_rate', 0):.1f}%")
         print(f"Results: {pipeline_run.summary.get('passed_rules', 0)} passed, {pipeline_run.summary.get('failed_rules', 0)} failed")
-        
+
         # Exit with appropriate code
         if pipeline_run.overall_status == ValidationStatus.FAILED:
             exit(1)
@@ -1208,7 +1208,7 @@ async def main():
             exit(2)
         else:
             exit(0)
-    
+
     except Exception as e:
         logger.error(f"Pipeline execution failed: {e}")
         exit(1)

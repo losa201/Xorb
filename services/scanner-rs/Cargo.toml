@@ -1,7 +1,7 @@
 [workspace]
 members = [
     "scanner-core",
-    "scanner-tools", 
+    "scanner-tools",
     "scanner-fp",
     "scanner-bin"
 ]

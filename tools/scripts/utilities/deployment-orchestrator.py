@@ -55,7 +55,7 @@ class DeploymentConfig:
     monitoring_enabled: bool = True
     backup_enabled: bool = True
     security_scanning: bool = True
-    
+
 @dataclass
 class ServiceHealth:
     name: str
@@ -83,20 +83,20 @@ class XORBDeploymentOrchestrator:
         self.config: Optional[DeploymentConfig] = None
         self.scripts_dir = Path("/root/Xorb/scripts")
         self.monitoring_session: Optional[aiohttp.ClientSession] = None
-        
+
     async def initialize(self):
         """Initialize the orchestrator with configuration and monitoring."""
         logger.info("Initializing XORB Deployment Orchestrator")
-        
+
         # Load configuration
         await self._load_config()
-        
+
         # Initialize monitoring
         self.monitoring_session = aiohttp.ClientSession()
-        
+
         # Validate environment
         await self._validate_environment()
-        
+
         logger.info("Orchestrator initialization complete")
 
     async def _load_config(self):
@@ -144,19 +144,19 @@ class XORBDeploymentOrchestrator:
     async def _validate_environment(self):
         """Validate deployment environment prerequisites."""
         logger.info("Validating deployment environment")
-        
+
         # Check Kubernetes connectivity
         result = await self._run_command("kubectl cluster-info")
         if result.returncode != 0:
             raise RuntimeError("Kubernetes cluster not accessible")
-        
+
         # Check required tools
         tools = ["helm", "docker", "jq"]
         for tool in tools:
             result = await self._run_command(f"which {tool}")
             if result.returncode != 0:
                 raise RuntimeError(f"Required tool not found: {tool}")
-        
+
         # Check namespace
         result = await self._run_command(f"kubectl get namespace {self.config.namespace}")
         if result.returncode != 0:
@@ -167,9 +167,9 @@ class XORBDeploymentOrchestrator:
         """Execute complete deployment with monitoring and rollback capability."""
         if not deployment_id:
             deployment_id = f"xorb-deploy-{int(time.time())}"
-        
+
         logger.info(f"Starting deployment {deployment_id}")
-        
+
         # Initialize deployment state
         self.deployment_state = DeploymentState(
             deployment_id=deployment_id,
@@ -179,26 +179,26 @@ class XORBDeploymentOrchestrator:
             metrics={},
             logs=[]
         )
-        
+
         try:
             # Phase 1: Preparation
             await self._execute_phase(DeploymentPhase.PREPARATION, self._prepare_deployment)
-            
+
             # Phase 2: Validation
             await self._execute_phase(DeploymentPhase.VALIDATION, self._validate_deployment)
-            
+
             # Phase 3: Deployment
             await self._execute_phase(DeploymentPhase.DEPLOYMENT, self._execute_deployment)
-            
+
             # Phase 4: Monitoring
             await self._execute_phase(DeploymentPhase.MONITORING, self._monitor_deployment)
-            
+
             # Phase 5: Completion
             await self._execute_phase(DeploymentPhase.COMPLETION, self._complete_deployment)
-            
+
             logger.info(f"Deployment {deployment_id} completed successfully")
             return deployment_id
-            
+
         except Exception as e:
             logger.error(f"Deployment {deployment_id} failed: {e}")
             await self._execute_rollback()
@@ -209,18 +209,18 @@ class XORBDeploymentOrchestrator:
         logger.info(f"Executing phase: {phase.value}")
         self.deployment_state.phase = phase
         self.deployment_state.logs.append(f"Phase {phase.value} started at {datetime.utcnow()}")
-        
+
         start_time = time.time()
         await phase_func()
         duration = time.time() - start_time
-        
+
         self.deployment_state.metrics[f"{phase.value}_duration"] = duration
         self.deployment_state.logs.append(f"Phase {phase.value} completed in {duration:.2f}s")
 
     async def _prepare_deployment(self):
         """Prepare deployment environment and create rollback point."""
         logger.info("Preparing deployment environment")
-        
+
         # Create rollback point
         rollback_id = f"rollback-{int(time.time())}"
         result = await self._run_command(
@@ -229,26 +229,26 @@ class XORBDeploymentOrchestrator:
         if result.returncode == 0:
             self.deployment_state.rollback_point = rollback_id
             logger.info(f"Rollback point created: {rollback_id}")
-        
+
         # Pre-deployment health check
         await self._check_system_health()
-        
+
         # Validate resources
         await self._validate_resources()
 
     async def _validate_deployment(self):
         """Validate deployment configuration and prerequisites."""
         logger.info("Validating deployment configuration")
-        
+
         # Validate Kubernetes resources
         result = await self._run_command("kubectl auth can-i '*' '*' --all-namespaces")
         if result.returncode != 0:
             raise RuntimeError("Insufficient Kubernetes permissions")
-        
+
         # Validate configuration
         if not self.config.features:
             raise ValueError("No features specified for deployment")
-        
+
         # Check resource availability
         node_info = await self._get_node_resources()
         required_cpu = sum(
@@ -260,7 +260,7 @@ class XORBDeploymentOrchestrator:
     async def _execute_deployment(self):
         """Execute the main deployment process."""
         logger.info("Executing deployment")
-        
+
         # Run production deployment script
         env = os.environ.copy()
         env.update({
@@ -268,57 +268,57 @@ class XORBDeploymentOrchestrator:
             "ENVIRONMENT": self.config.environment,
             "FEATURES": ",".join(self.config.features)
         })
-        
+
         result = await self._run_command(
             f"{self.scripts_dir}/deploy-production.sh",
             env=env
         )
-        
+
         if result.returncode != 0:
             raise RuntimeError(f"Deployment script failed: {result.stderr}")
-        
+
         # Wait for initial deployment stabilization
         await asyncio.sleep(30)
-        
+
         # Verify core services
         await self._verify_core_services()
 
     async def _monitor_deployment(self):
         """Monitor deployment health and stability."""
         logger.info("Monitoring deployment stability")
-        
+
         monitoring_duration = 300  # 5 minutes
         check_interval = 30  # 30 seconds
-        
+
         for i in range(0, monitoring_duration, check_interval):
             await self._update_service_health()
-            
+
             # Check for any unhealthy services
             unhealthy_services = [
                 name for name, health in self.deployment_state.services.items()
                 if health.status == ServiceStatus.UNHEALTHY
             ]
-            
+
             if unhealthy_services:
                 logger.warning(f"Unhealthy services detected: {unhealthy_services}")
                 # Allow some time for self-healing
                 if i > 120:  # After 2 minutes, consider rollback
                     raise RuntimeError(f"Services remain unhealthy: {unhealthy_services}")
-            
+
             await asyncio.sleep(check_interval)
 
     async def _complete_deployment(self):
         """Complete deployment with post-deployment setup."""
         logger.info("Completing deployment")
-        
+
         # Run post-deployment setup
         result = await self._run_command(f"{self.scripts_dir}/post-deployment-setup.sh")
         if result.returncode != 0:
             logger.warning("Post-deployment setup had issues")
-        
+
         # Final health check
         await self._update_service_health()
-        
+
         # Generate deployment report
         await self._generate_deployment_report()
 
@@ -327,14 +327,14 @@ class XORBDeploymentOrchestrator:
         if not self.deployment_state.rollback_point:
             logger.error("No rollback point available")
             return
-        
+
         logger.info(f"Executing rollback to {self.deployment_state.rollback_point}")
         self.deployment_state.phase = DeploymentPhase.ROLLBACK
-        
+
         result = await self._run_command(
             f"{self.scripts_dir}/disaster-recovery.sh restore_backup {self.deployment_state.rollback_point}"
         )
-        
+
         if result.returncode == 0:
             logger.info("Rollback completed successfully")
         else:
@@ -343,7 +343,7 @@ class XORBDeploymentOrchestrator:
     async def _update_service_health(self):
         """Update health status for all services."""
         services = ["orchestrator", "redis", "postgres", "monitoring"]
-        
+
         for service in services:
             try:
                 health = await self._check_service_health(service)
@@ -366,16 +366,16 @@ class XORBDeploymentOrchestrator:
         result = await self._run_command(
             f"kubectl get pods -n {self.config.namespace} -l app={service} -o json"
         )
-        
+
         if result.returncode != 0:
             raise RuntimeError(f"Failed to get pod status for {service}")
-        
+
         pod_data = json.loads(result.stdout)
         pods = pod_data.get("items", [])
-        
+
         ready_pods = sum(1 for pod in pods if self._is_pod_ready(pod))
         total_pods = len(pods)
-        
+
         # Determine status
         if ready_pods == 0:
             status = ServiceStatus.UNHEALTHY
@@ -383,11 +383,11 @@ class XORBDeploymentOrchestrator:
             status = ServiceStatus.DEGRADED
         else:
             status = ServiceStatus.HEALTHY
-        
+
         # Get resource usage (simplified)
         cpu_usage = await self._get_service_cpu_usage(service)
         memory_usage = await self._get_service_memory_usage(service)
-        
+
         return ServiceHealth(
             name=service,
             status=status,
@@ -452,7 +452,7 @@ class XORBDeploymentOrchestrator:
     async def _verify_core_services(self):
         """Verify that core services are running."""
         core_services = ["orchestrator", "redis", "postgres"]
-        
+
         for service in core_services:
             result = await self._run_command(
                 f"kubectl rollout status deployment/{service} -n {self.config.namespace} --timeout=300s"
@@ -466,7 +466,7 @@ class XORBDeploymentOrchestrator:
         disk_usage = psutil.disk_usage('/')
         if disk_usage.percent > 90:
             raise RuntimeError(f"Insufficient disk space: {disk_usage.percent}% used")
-        
+
         # Check memory
         memory = psutil.virtual_memory()
         if memory.percent > 90:
@@ -475,7 +475,7 @@ class XORBDeploymentOrchestrator:
     async def _validate_resources(self):
         """Validate available resources."""
         node_info = await self._get_node_resources()
-        
+
         # Calculate required resources
         total_cpu = sum(
             int(res["cpu"].replace("m", "")) for res in self.config.resources.values()
@@ -483,10 +483,10 @@ class XORBDeploymentOrchestrator:
         total_memory = sum(
             self._parse_memory(res["memory"]) for res in self.config.resources.values()
         )
-        
+
         if node_info["available_cpu"] < total_cpu * 1.2:  # 20% buffer
             raise RuntimeError(f"Insufficient CPU: need {total_cpu}m, have {node_info['available_cpu']}m")
-        
+
         if node_info["available_memory"] < total_memory * 1.2:  # 20% buffer
             raise RuntimeError(f"Insufficient memory: need {total_memory}Mi, have {node_info['available_memory']}Mi")
 
@@ -504,7 +504,7 @@ class XORBDeploymentOrchestrator:
         result = await self._run_command("kubectl top nodes --no-headers")
         if result.returncode != 0:
             return {"available_cpu": 8000, "available_memory": 16384}  # Default values
-        
+
         # Simplified parsing - in production, use proper resource queries
         return {"available_cpu": 8000, "available_memory": 16384}
 
@@ -530,12 +530,12 @@ class XORBDeploymentOrchestrator:
             "rollback_point": self.deployment_state.rollback_point,
             "configuration": asdict(self.config)
         }
-        
+
         # Save report
         report_path = f"/var/log/xorb-deployment-{self.deployment_state.deployment_id}.json"
         with open(report_path, 'w') as f:
             json.dump(report, f, indent=2, default=str)
-        
+
         logger.info(f"Deployment report saved to {report_path}")
 
     async def _run_command(self, command: str, env: Dict[str, str] = None) -> subprocess.CompletedProcess:
@@ -546,9 +546,9 @@ class XORBDeploymentOrchestrator:
             stderr=asyncio.subprocess.PIPE,
             env=env
         )
-        
+
         stdout, stderr = await process.communicate()
-        
+
         return subprocess.CompletedProcess(
             args=command,
             returncode=process.returncode,
@@ -560,10 +560,10 @@ class XORBDeploymentOrchestrator:
         """Get current deployment status."""
         if not self.deployment_state:
             return {"status": "no_active_deployment"}
-        
+
         if deployment_id and self.deployment_state.deployment_id != deployment_id:
             return {"status": "deployment_not_found"}
-        
+
         return {
             "deployment_id": self.deployment_state.deployment_id,
             "phase": self.deployment_state.phase.value,
@@ -586,36 +586,36 @@ class XORBDeploymentOrchestrator:
             await self.monitoring_session.close()
 
 async def main():
-    """Main orchestrator function.""" 
+    """Main orchestrator function."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="XORB Deployment Orchestrator")
     parser.add_argument("action", choices=["deploy", "status", "rollback"], help="Action to perform")
     parser.add_argument("--deployment-id", help="Deployment ID for status/rollback operations")
     parser.add_argument("--config", default="/root/Xorb/config/deployment-config.yaml", help="Configuration file path")
-    
+
     args = parser.parse_args()
-    
+
     orchestrator = XORBDeploymentOrchestrator(args.config)
-    
+
     try:
         await orchestrator.initialize()
-        
+
         if args.action == "deploy":
             deployment_id = await orchestrator.deploy(args.deployment_id)
             print(f"Deployment started: {deployment_id}")
-            
+
         elif args.action == "status":
             status = await orchestrator.get_deployment_status(args.deployment_id)
             print(json.dumps(status, indent=2, default=str))
-            
+
         elif args.action == "rollback":
             if orchestrator.deployment_state and orchestrator.deployment_state.rollback_point:
                 await orchestrator._execute_rollback()
                 print("Rollback initiated")
             else:
                 print("No rollback point available")
-                
+
     except Exception as e:
         logger.error(f"Orchestrator error: {e}")
         raise

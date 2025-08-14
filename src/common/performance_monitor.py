@@ -79,21 +79,21 @@ class SystemMetrics:
 
 class PerformanceTimer:
     """Context manager for timing operations"""
-    
+
     def __init__(self, name: str, monitor: 'PerformanceMonitor' = None):
         self.name = name
         self.monitor = monitor
         self.start_time = None
         self.end_time = None
-    
+
     def __enter__(self):
         self.start_time = time.perf_counter()
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.end_time = time.perf_counter()
         duration = self.end_time - self.start_time
-        
+
         if self.monitor:
             self.monitor.record_metric(
                 self.name,
@@ -101,9 +101,9 @@ class PerformanceTimer:
                 duration * 1000,  # Convert to milliseconds
                 unit="ms"
             )
-        
+
         return False  # Don't suppress exceptions
-    
+
     @property
     def duration(self) -> float:
         """Get duration in seconds"""
@@ -114,27 +114,27 @@ class PerformanceTimer:
 
 class PerformanceMonitor:
     """Comprehensive performance monitoring system"""
-    
+
     def __init__(self, redis_client: Optional[redis.Redis] = None):
         self.redis_client = redis_client
         self.metrics: List[PerformanceMetric] = []
         self.benchmarks: Dict[str, List[BenchmarkResult]] = {}
         self.logger = logging.getLogger(__name__)
-        
+
         # Prometheus metrics
         self.registry = CollectorRegistry()
         self._setup_prometheus_metrics()
-        
+
         # Performance tracking
         self.operation_counters: Dict[str, int] = {}
         self.response_times: Dict[str, List[float]] = {}
         self.error_counts: Dict[str, int] = {}
-        
+
         # System monitoring
         self.system_metrics_history: List[SystemMetrics] = []
         self.monitoring_active = False
         self.monitor_task: Optional[asyncio.Task] = None
-    
+
     def _setup_prometheus_metrics(self):
         """Setup Prometheus metrics"""
         self.request_count = Counter(
@@ -143,32 +143,32 @@ class PerformanceMonitor:
             ['method', 'endpoint', 'status'],
             registry=self.registry
         )
-        
+
         self.request_duration = Histogram(
             'xorb_request_duration_seconds',
             'Request duration',
             ['method', 'endpoint'],
             registry=self.registry
         )
-        
+
         self.memory_usage = Gauge(
             'xorb_memory_usage_bytes',
             'Memory usage in bytes',
             registry=self.registry
         )
-        
+
         self.cpu_usage = Gauge(
             'xorb_cpu_usage_percent',
             'CPU usage percentage',
             registry=self.registry
         )
-        
+
         self.active_connections = Gauge(
             'xorb_active_connections',
             'Number of active connections',
             registry=self.registry
         )
-    
+
     def record_metric(
         self,
         name: str,
@@ -186,19 +186,19 @@ class PerformanceMonitor:
             tags=tags or {},
             unit=unit
         )
-        
+
         self.metrics.append(metric)
-        
+
         # Update Prometheus metrics
         if metric_type == MetricType.MEMORY_USAGE:
             self.memory_usage.set(value)
         elif metric_type == MetricType.CPU_USAGE:
             self.cpu_usage.set(value)
-        
+
         # Store in Redis if available
         if self.redis_client:
             asyncio.create_task(self._store_metric_async(metric))
-    
+
     async def _store_metric_async(self, metric: PerformanceMetric):
         """Store metric in Redis asynchronously"""
         try:
@@ -213,11 +213,11 @@ class PerformanceMonitor:
             await self.redis_client.ltrim(key, 0, 999)  # Keep last 1000 metrics
         except Exception as e:
             self.logger.warning(f"Failed to store metric in Redis: {e}")
-    
+
     def timer(self, name: str) -> PerformanceTimer:
         """Create a performance timer"""
         return PerformanceTimer(name, self)
-    
+
     def track_operation(self, operation_name: str):
         """Decorator to track operation performance"""
         def decorator(func):
@@ -246,15 +246,15 @@ class PerformanceMonitor:
                             raise
                 return sync_wrapper
         return decorator
-    
+
     def _increment_success(self, operation_name: str):
         """Increment success counter"""
         self.operation_counters[operation_name] = self.operation_counters.get(operation_name, 0) + 1
-    
+
     def _increment_error(self, operation_name: str):
         """Increment error counter"""
         self.error_counts[operation_name] = self.error_counts.get(operation_name, 0) + 1
-    
+
     async def benchmark_function(
         self,
         func: Callable,
@@ -265,18 +265,18 @@ class PerformanceMonitor:
     ) -> BenchmarkResult:
         """Benchmark a function's performance"""
         self.logger.info(f"Starting benchmark: {name} ({iterations} iterations)")
-        
+
         times = []
         errors = 0
         start_memory = psutil.Process().memory_info().rss / 1024 / 1024
         start_cpu = psutil.cpu_percent()
-        
+
         start_time = time.perf_counter()
-        
+
         if concurrent:
             # Concurrent execution
             semaphore = asyncio.Semaphore(concurrency_level)
-            
+
             async def run_with_semaphore():
                 async with semaphore:
                     try:
@@ -290,10 +290,10 @@ class PerformanceMonitor:
                     except Exception as e:
                         self.logger.warning(f"Benchmark error: {e}")
                         return None
-            
+
             tasks = [run_with_semaphore() for _ in range(iterations)]
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             for result in results:
                 if isinstance(result, Exception):
                     errors += 1
@@ -315,17 +315,17 @@ class PerformanceMonitor:
                 except Exception as e:
                     errors += 1
                     self.logger.warning(f"Benchmark error: {e}")
-        
+
         end_time = time.perf_counter()
         end_memory = psutil.Process().memory_info().rss / 1024 / 1024
         end_cpu = psutil.cpu_percent()
-        
+
         total_duration = end_time - start_time
         successful_operations = len(times)
-        
+
         if not times:
             raise ValueError("No successful operations in benchmark")
-        
+
         result = BenchmarkResult(
             name=name,
             duration=total_duration,
@@ -342,22 +342,22 @@ class PerformanceMonitor:
             memory_usage_mb=end_memory - start_memory,
             cpu_usage_percent=end_cpu - start_cpu
         )
-        
+
         # Store benchmark result
         if name not in self.benchmarks:
             self.benchmarks[name] = []
         self.benchmarks[name].append(result)
-        
+
         self.logger.info(f"Benchmark completed: {name} - {result.operations_per_second:.2f} ops/sec")
         return result
-    
+
     def get_system_metrics(self) -> SystemMetrics:
         """Get current system metrics"""
         process = psutil.Process()
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
         network = psutil.net_io_counters()
-        
+
         return SystemMetrics(
             cpu_percent=psutil.cpu_percent(),
             memory_percent=memory.percent,
@@ -370,16 +370,16 @@ class PerformanceMonitor:
             active_connections=len(process.connections()),
             timestamp=datetime.utcnow()
         )
-    
+
     async def start_monitoring(self, interval: int = 30):
         """Start continuous system monitoring"""
         if self.monitoring_active:
             return
-        
+
         self.monitoring_active = True
         self.monitor_task = asyncio.create_task(self._monitor_loop(interval))
         self.logger.info(f"Started performance monitoring (interval: {interval}s)")
-    
+
     async def stop_monitoring(self):
         """Stop continuous monitoring"""
         self.monitoring_active = False
@@ -390,34 +390,34 @@ class PerformanceMonitor:
             except asyncio.CancelledError:
                 pass
         self.logger.info("Stopped performance monitoring")
-    
+
     async def _monitor_loop(self, interval: int):
         """Continuous monitoring loop"""
         while self.monitoring_active:
             try:
                 metrics = self.get_system_metrics()
                 self.system_metrics_history.append(metrics)
-                
+
                 # Keep only last 24 hours of metrics (assuming 30s interval)
                 max_metrics = (24 * 60 * 60) // interval
                 if len(self.system_metrics_history) > max_metrics:
                     self.system_metrics_history = self.system_metrics_history[-max_metrics:]
-                
+
                 # Record individual metrics
                 self.record_metric("system_cpu", MetricType.CPU_USAGE, metrics.cpu_percent, unit="%")
                 self.record_metric("system_memory", MetricType.MEMORY_USAGE, metrics.memory_used_mb, unit="MB")
-                
+
                 await asyncio.sleep(interval)
-                
+
             except Exception as e:
                 self.logger.error(f"Monitoring error: {e}")
                 await asyncio.sleep(interval)
-    
+
     def get_performance_summary(self, window_minutes: int = 60) -> Dict[str, Any]:
         """Get performance summary for the specified time window"""
         cutoff_time = datetime.utcnow() - timedelta(minutes=window_minutes)
         recent_metrics = [m for m in self.metrics if m.timestamp >= cutoff_time]
-        
+
         summary = {
             "window_minutes": window_minutes,
             "total_metrics": len(recent_metrics),
@@ -425,14 +425,14 @@ class PerformanceMonitor:
             "operations": {},
             "system": {}
         }
-        
+
         # Group metrics by type
         by_type = {}
         for metric in recent_metrics:
             if metric.type not in by_type:
                 by_type[metric.type] = []
             by_type[metric.type].append(metric.value)
-        
+
         # Calculate statistics for each type
         for metric_type, values in by_type.items():
             if values:
@@ -443,7 +443,7 @@ class PerformanceMonitor:
                     "max": max(values),
                     "median": statistics.median(values)
                 }
-        
+
         # Operation statistics
         for operation, count in self.operation_counters.items():
             error_count = self.error_counts.get(operation, 0)
@@ -452,7 +452,7 @@ class PerformanceMonitor:
                 "errors": error_count,
                 "success_rate": ((count - error_count) / count * 100) if count > 0 else 0
             }
-        
+
         # Recent system metrics
         recent_system = [m for m in self.system_metrics_history if m.timestamp >= cutoff_time]
         if recent_system:
@@ -462,35 +462,35 @@ class PerformanceMonitor:
                 "avg_memory_percent": statistics.mean([m.memory_percent for m in recent_system]),
                 "samples": len(recent_system)
             }
-        
+
         return summary
-    
+
     def get_benchmark_history(self, name: Optional[str] = None) -> Dict[str, List[BenchmarkResult]]:
         """Get benchmark history"""
         if name:
             return {name: self.benchmarks.get(name, [])}
         return self.benchmarks.copy()
-    
+
     def export_prometheus_metrics(self) -> str:
         """Export metrics in Prometheus format"""
         return generate_latest(self.registry).decode('utf-8')
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Perform system health check"""
         metrics = self.get_system_metrics()
-        
+
         health_status = {
             "status": "healthy",
             "timestamp": metrics.timestamp.isoformat(),
             "checks": {}
         }
-        
+
         # CPU check
         if metrics.cpu_percent > 90:
             health_status["checks"]["cpu"] = {"status": "warning", "value": metrics.cpu_percent}
         else:
             health_status["checks"]["cpu"] = {"status": "ok", "value": metrics.cpu_percent}
-        
+
         # Memory check
         if metrics.memory_percent > 90:
             health_status["checks"]["memory"] = {"status": "critical", "value": metrics.memory_percent}
@@ -498,7 +498,7 @@ class PerformanceMonitor:
             health_status["checks"]["memory"] = {"status": "warning", "value": metrics.memory_percent}
         else:
             health_status["checks"]["memory"] = {"status": "ok", "value": metrics.memory_percent}
-        
+
         # Disk check
         if metrics.disk_usage_percent > 95:
             health_status["checks"]["disk"] = {"status": "critical", "value": metrics.disk_usage_percent}
@@ -506,16 +506,16 @@ class PerformanceMonitor:
             health_status["checks"]["disk"] = {"status": "warning", "value": metrics.disk_usage_percent}
         else:
             health_status["checks"]["disk"] = {"status": "ok", "value": metrics.disk_usage_percent}
-        
+
         # Overall status
         critical_checks = [c for c in health_status["checks"].values() if c["status"] == "critical"]
         warning_checks = [c for c in health_status["checks"].values() if c["status"] == "warning"]
-        
+
         if critical_checks:
             health_status["status"] = "critical"
         elif warning_checks:
             health_status["status"] = "warning"
-        
+
         return health_status
 
 
@@ -550,6 +550,6 @@ async def benchmark_context(name: str):
     """Async context manager for benchmarking"""
     monitor = get_performance_monitor()
     timer = monitor.timer(name)
-    
+
     with timer:
         yield timer

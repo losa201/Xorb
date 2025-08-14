@@ -41,43 +41,43 @@ log_error() {
 # Check prerequisites
 check_prerequisites() {
     log_info "Checking prerequisites..."
-    
+
     if ! command -v docker &> /dev/null; then
         log_error "Docker is not installed. Please install Docker first."
         exit 1
     fi
-    
+
     if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
         log_error "Docker Compose is not installed. Please install Docker Compose first."
         exit 1
     fi
-    
+
     # Check if ports are available
     for port in $FRONTEND_PORT $API_PORT $AUTH_PORT $GRAFANA_PORT; do
         if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null ; then
             log_warning "Port $port is already in use. This may cause conflicts."
         fi
     done
-    
+
     log_success "Prerequisites check completed"
 }
 
 # Build frontend
 build_frontend() {
     log_info "Building XORB PTaaS frontend..."
-    
+
     cd frontend
-    
+
     # Install dependencies
     if [ -f "package-lock.json" ]; then
         npm ci --silent
     else
         npm install --silent
     fi
-    
+
     # Build the application
     npm run build
-    
+
     cd ..
     log_success "Frontend build completed"
 }
@@ -85,55 +85,55 @@ build_frontend() {
 # Deploy services
 deploy_services() {
     log_info "Deploying XORB PTaaS services..."
-    
+
     # Create necessary directories
     mkdir -p logs/nginx logs/nginx-lb
-    
+
     # Set environment variables
     export QWEN_API_KEY=${QWEN_API_KEY:-""}
     export OPENROUTER_API_KEY=${OPENROUTER_API_KEY:-""}
     export CEREBRAS_API_KEY=${CEREBRAS_API_KEY:-""}
-    
+
     # Deploy with docker-compose
     if command -v docker-compose &> /dev/null; then
         docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME up -d --build
     else
         docker compose -f $COMPOSE_FILE -p $PROJECT_NAME up -d --build
     fi
-    
+
     log_success "Services deployment initiated"
 }
 
 # Wait for services to be healthy
 wait_for_services() {
     log_info "Waiting for services to be healthy..."
-    
+
     local max_attempts=60
     local attempt=0
-    
+
     local services=("xorb-ptaas-frontend:3000" "xorb-ptaas-core:8080" "xorb-ptaas-company-api:8001")
-    
+
     for service in "${services[@]}"; do
         local container_name=${service%:*}
         local port=${service#*:}
-        
+
         attempt=0
         while [ $attempt -lt $max_attempts ]; do
             if curl -f http://localhost:$port/health >/dev/null 2>&1; then
                 log_success "$container_name is healthy"
                 break
             fi
-            
+
             attempt=$((attempt + 1))
             if [ $attempt -eq $max_attempts ]; then
                 log_error "$container_name failed to become healthy after $max_attempts attempts"
                 return 1
             fi
-            
+
             sleep 5
         done
     done
-    
+
     log_success "All services are healthy"
 }
 
@@ -178,13 +178,13 @@ show_deployment_info() {
 # Cleanup function
 cleanup() {
     log_info "Cleaning up deployment artifacts..."
-    
+
     if command -v docker-compose &> /dev/null; then
         docker-compose -f $COMPOSE_FILE -p $PROJECT_NAME down --remove-orphans
     else
         docker compose -f $COMPOSE_FILE -p $PROJECT_NAME down --remove-orphans
     fi
-    
+
     log_success "Cleanup completed"
 }
 
@@ -192,7 +192,7 @@ cleanup() {
 main() {
     echo "🛡️ XORB PTaaS Frontend Deployment Script"
     echo "=========================================="
-    
+
     case "${1:-deploy}" in
         "deploy")
             check_prerequisites

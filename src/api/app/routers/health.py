@@ -44,7 +44,7 @@ async def readiness_check():
         "timestamp": datetime.utcnow().isoformat(),
         "checks": {}
     }
-    
+
     # Database connectivity check
     try:
         db_healthy = await check_database_connection()
@@ -60,7 +60,7 @@ async def readiness_check():
             "message": f"Database check failed: {str(e)}"
         }
         health_details["status"] = "not_ready"
-    
+
     # Redis connectivity check
     try:
         pong = await redis_client.ping()
@@ -76,7 +76,7 @@ async def readiness_check():
             "message": f"Redis check failed: {str(e)}"
         }
         health_details["status"] = "not_ready"
-    
+
     # Vector store check (pgvector extension)
     try:
         from ..infrastructure.vector_store import get_vector_store
@@ -92,13 +92,13 @@ async def readiness_check():
             "message": f"Vector store check failed: {str(e)}"
         }
         health_details["status"] = "not_ready"
-    
+
     # Check duration
     health_details["check_duration_ms"] = round((time.time() - start_time) * 1000, 2)
-    
+
     # Return appropriate status code
     status_code = status.HTTP_200_OK if health_details["status"] == "ready" else status.HTTP_503_SERVICE_UNAVAILABLE
-    
+
     return JSONResponse(content=health_details, status_code=status_code)
 
 
@@ -107,13 +107,13 @@ async def system_status(
     current_user: UserClaims = Depends(require_super_admin)
 ):
     """Detailed system status for administrators."""
-    
+
     status_info = {
         "timestamp": datetime.utcnow().isoformat(),
         "uptime_seconds": time.time(),  # Would need to track actual uptime
         "components": {}
     }
-    
+
     # Database statistics
     try:
         db_stats = await get_database_stats()
@@ -127,7 +127,7 @@ async def system_status(
             "status": "error",
             "error": str(e)
         }
-    
+
     # Redis statistics
     try:
         redis_info = await redis_client.info()
@@ -142,13 +142,13 @@ async def system_status(
             "status": "error",
             "error": str(e)
         }
-    
+
     # Job queue statistics
     try:
         job_service = JobService(redis_client)
         queue_stats = await job_service.get_queue_stats("default")
         worker_stats = await job_service.get_worker_stats()
-        
+
         status_info["components"]["job_system"] = {
             "status": "healthy",
             "queue_stats": queue_stats,
@@ -160,7 +160,7 @@ async def system_status(
             "status": "error",
             "error": str(e)
         }
-    
+
     # Application cache statistics
     try:
         cache_manager = get_cache_manager()
@@ -173,7 +173,7 @@ async def system_status(
             "status": "error",
             "error": str(e)
         }
-    
+
     # Memory and performance metrics
     try:
         from ..infrastructure.performance import MemoryMonitor
@@ -187,7 +187,7 @@ async def system_status(
             "status": "error",
             "error": str(e)
         }
-    
+
     return status_info
 
 
@@ -197,7 +197,7 @@ async def prometheus_metrics():
     try:
         from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
         from fastapi.responses import Response
-        
+
         metrics_data = generate_latest()
         return Response(content=metrics_data, media_type=CONTENT_TYPE_LATEST)
     except ImportError:
@@ -236,7 +236,7 @@ async def warm_up_services(
         "timestamp": datetime.utcnow().isoformat(),
         "operations": []
     }
-    
+
     # Warm up database connections
     try:
         await get_database_stats()
@@ -247,12 +247,12 @@ async def warm_up_services(
         })
     except Exception as e:
         warm_up_results["operations"].append({
-            "service": "database", 
+            "service": "database",
             "operation": "connection_pool_warmup",
             "status": "error",
             "error": str(e)
         })
-    
+
     # Warm up Redis connections
     try:
         await redis_client.ping()
@@ -264,11 +264,11 @@ async def warm_up_services(
     except Exception as e:
         warm_up_results["operations"].append({
             "service": "redis",
-            "operation": "connection_test", 
+            "operation": "connection_test",
             "status": "error",
             "error": str(e)
         })
-    
+
     # Initialize vector store
     try:
         from ..infrastructure.vector_store import get_vector_store
@@ -282,16 +282,16 @@ async def warm_up_services(
         warm_up_results["operations"].append({
             "service": "vector_store",
             "operation": "initialization",
-            "status": "error", 
+            "status": "error",
             "error": str(e)
         })
-    
+
     logger.info(
         "Service warm-up completed",
         operations_count=len(warm_up_results["operations"]),
         user_id=current_user.sub
     )
-    
+
     return warm_up_results
 
 
@@ -302,7 +302,7 @@ async def dependency_health():
         "timestamp": datetime.utcnow().isoformat(),
         "dependencies": {}
     }
-    
+
     # Database dependency
     try:
         is_healthy = await check_database_connection()
@@ -314,11 +314,11 @@ async def dependency_health():
     except Exception as e:
         dependencies["dependencies"]["postgresql"] = {
             "status": "error",
-            "type": "database", 
+            "type": "database",
             "critical": True,
             "error": str(e)
         }
-    
+
     # Redis dependency
     try:
         pong = await redis_client.ping()
@@ -334,7 +334,7 @@ async def dependency_health():
             "critical": True,
             "error": str(e)
         }
-    
+
     # OIDC Provider (would check if configured)
     oidc_endpoint = os.getenv("OIDC_ISSUER")
     if oidc_endpoint:
@@ -355,5 +355,5 @@ async def dependency_health():
                 "critical": False,
                 "error": str(e)
             }
-    
+
     return dependencies

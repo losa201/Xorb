@@ -323,41 +323,41 @@ install-contract-deps: ## Install contract checking dependencies (buf, protoc, e
 	@echo "📦 Installing contract checking dependencies..."
 	@echo ""
 	@echo "🔍 Checking for buf (protobuf linter/breaking change detector)..."
-	@if command -v buf >/dev/null 2>&1; then 
-		echo "✅ buf already installed"; 
-	else 
-		echo "📥 Installing buf..."; 
-		curl -sSL 
-			"https://github.com/bufbuild/buf/releases/download/v1.27.0/buf-$(shell uname -s)-$(shell uname -m)" 
-			-o "$(mktemp)" && 
-			chmod +x "$(mktemp)" && 
-			sudo mv "$(mktemp)" /usr/local/bin/buf && 
-			echo "✅ buf installed successfully"; 
+	@if command -v buf >/dev/null 2>&1; then
+		echo "✅ buf already installed";
+	else
+		echo "📥 Installing buf...";
+		curl -sSL
+			"https://github.com/bufbuild/buf/releases/download/v1.27.0/buf-$(shell uname -s)-$(shell uname -m)"
+			-o "$(mktemp)" &&
+			chmod +x "$(mktemp)" &&
+			sudo mv "$(mktemp)" /usr/local/bin/buf &&
+			echo "✅ buf installed successfully";
 	fi
 	@echo ""
 	@echo "🔍 Checking for protoc (protobuf compiler)..."
-	@if command -v protoc >/dev/null 2>&1; then 
-		echo "✅ protoc already installed"; 
-	else 
-		echo "📥 Installing protoc..."; 
-		PROTOC_VERSION=21.12 && 
-		PROTOC_ZIP="protoc-$${PROTOC_VERSION}-linux-x86_64.zip" && 
-		curl -sSL "https://github.com/protocolbuffers/protobuf/releases/download/v$${PROTOC_VERSION}/$${PROTOC_ZIP}" 
-			-o "$(mktemp)" && 
-			unzip -o "$(mktemp)" -d "$(mktemp -d)" && 
-			sudo cp -r "$(mktemp -d)/bin/." /usr/local/bin/ && 
-			sudo cp -r "$(mktemp -d)/include/." /usr/local/include/ && 
-			rm -rf "$(mktemp -d)" "$(mktemp)" && 
-			echo "✅ protoc installed successfully"; 
+	@if command -v protoc >/dev/null 2>&1; then
+		echo "✅ protoc already installed";
+	else
+		echo "📥 Installing protoc...";
+		PROTOC_VERSION=21.12 &&
+		PROTOC_ZIP="protoc-$${PROTOC_VERSION}-linux-x86_64.zip" &&
+		curl -sSL "https://github.com/protocolbuffers/protobuf/releases/download/v$${PROTOC_VERSION}/$${PROTOC_ZIP}"
+			-o "$(mktemp)" &&
+			unzip -o "$(mktemp)" -d "$(mktemp -d)" &&
+			sudo cp -r "$(mktemp -d)/bin/." /usr/local/bin/ &&
+			sudo cp -r "$(mktemp -d)/include/." /usr/local/include/ &&
+			rm -rf "$(mktemp -d)" "$(mktemp)" &&
+			echo "✅ protoc installed successfully";
 	fi
 	@echo ""
 	@echo "🔍 Checking for pyyaml..."
-	@if python3 -c "import yaml" >/dev/null 2>&1; then 
-		echo "✅ pyyaml already installed"; 
-	else 
-		echo "📥 Installing pyyaml..."; 
-		pip install pyyaml && 
-			echo "✅ pyyaml installed successfully"; 
+	@if python3 -c "import yaml" >/dev/null 2>&1; then
+		echo "✅ pyyaml already installed";
+	else
+		echo "📥 Installing pyyaml...";
+		pip install pyyaml &&
+			echo "✅ pyyaml installed successfully";
 	fi
 	@echo ""
 	@echo "✅ All contract checking dependencies installed"

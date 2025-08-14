@@ -156,14 +156,14 @@ async def list_agents(
     per_page: int = Query(100, ge=1, le=1000, description="Items per page"),
 ) -> AgentsListResponse:
     """List all agents with filtering and pagination"""
-    
+
     # Filter agents based on permissions and filters
     filtered_agents = []
     for agent in agents_store.values():
         # Check if user can view this agent
         if Permission.AGENT_READ not in context.permissions:
             continue
-            
+
         # Apply filters
         if status and agent.status != status:
             continue
@@ -171,15 +171,15 @@ async def list_agents(
             continue
         if owner_id and agent.owner_id != owner_id:
             continue
-            
+
         filtered_agents.append(agent)
-    
+
     # Apply pagination
     total = len(filtered_agents)
     start_idx = (page - 1) * per_page
     end_idx = start_idx + per_page
     page_agents = filtered_agents[start_idx:end_idx]
-    
+
     return AgentsListResponse(
         agents=page_agents,
         total=total,
@@ -195,10 +195,10 @@ async def create_agent(
     context: SecurityContext = Depends(require_agent_management)
 ) -> Agent:
     """Create a new autonomous agent"""
-    
+
     agent_id = str(uuid.uuid4())
     current_time = datetime.utcnow()
-    
+
     # Create agent with initial metrics
     agent = Agent(
         id=agent_id,
@@ -215,14 +215,14 @@ async def create_agent(
             last_heartbeat=current_time
         )
     )
-    
+
     # Store agent
     agents_store[agent_id] = agent
-    
+
     # Simulate agent initialization
     if request.auto_start:
         asyncio.create_task(_initialize_agent(agent_id))
-    
+
     return agent
 
 
@@ -232,14 +232,14 @@ async def get_agent(
     context: SecurityContext = Depends(get_security_context)
 ) -> Agent:
     """Get detailed agent information"""
-    
+
     if Permission.AGENT_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: agent:read")
-    
+
     agent = agents_store.get(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     return agent
 
 
@@ -250,15 +250,15 @@ async def update_agent(
     context: SecurityContext = Depends(require_permission(Permission.AGENT_UPDATE))
 ) -> Agent:
     """Update agent configuration"""
-    
+
     agent = agents_store.get(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     # Check ownership or admin permissions
     if agent.owner_id != context.user_id and Permission.SYSTEM_ADMIN not in context.permissions:
         raise HTTPException(status_code=403, detail="Not authorized to modify this agent")
-    
+
     # Update fields
     if request.name is not None:
         agent.name = request.name
@@ -270,9 +270,9 @@ async def update_agent(
         agent.description = request.description
     if request.status is not None:
         agent.status = request.status
-    
+
     agent.updated_at = datetime.utcnow()
-    
+
     return agent
 
 
@@ -282,29 +282,29 @@ async def terminate_agent(
     context: SecurityContext = Depends(require_permission(Permission.AGENT_DELETE))
 ) -> Dict[str, str]:
     """Safely terminate an agent"""
-    
+
     agent = agents_store.get(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     # Check ownership or admin permissions
     if agent.owner_id != context.user_id and Permission.SYSTEM_ADMIN not in context.permissions:
         raise HTTPException(status_code=403, detail="Not authorized to terminate this agent")
-    
+
     # Prevent termination if agent is busy with critical tasks
     if agent.status == AgentStatus.BUSY and agent.current_task_id:
         raise HTTPException(
-            status_code=409, 
+            status_code=409,
             detail="Cannot terminate agent while processing critical task"
         )
-    
+
     # Mark agent as terminated
     agent.status = AgentStatus.TERMINATED
     agent.updated_at = datetime.utcnow()
-    
+
     # Schedule cleanup
     asyncio.create_task(_cleanup_agent(agent_id))
-    
+
     return {"message": "Agent termination initiated", "agent_id": agent_id}
 
 
@@ -314,14 +314,14 @@ async def get_agent_status(
     context: SecurityContext = Depends(get_security_context)
 ) -> AgentStatusResponse:
     """Get real-time agent status"""
-    
+
     if Permission.AGENT_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: agent:read")
-    
+
     agent = agents_store.get(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     # Simulate health check
     health_check = {
         "connectivity": "healthy",
@@ -329,7 +329,7 @@ async def get_agent_status(
         "capabilities": "operational",
         "last_check": datetime.utcnow().isoformat()
     }
-    
+
     return AgentStatusResponse(
         id=agent.id,
         status=agent.status,
@@ -347,46 +347,46 @@ async def send_agent_command(
     context: SecurityContext = Depends(require_permission(Permission.AGENT_UPDATE))
 ) -> AgentCommandResponse:
     """Send command to agent"""
-    
+
     agent = agents_store.get(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     if agent.status not in [AgentStatus.ACTIVE, AgentStatus.IDLE]:
         raise HTTPException(
-            status_code=409, 
+            status_code=409,
             detail=f"Agent not available for commands (status: {agent.status})"
         )
-    
+
     command_id = str(uuid.uuid4())
     start_time = datetime.utcnow()
-    
+
     try:
         # Simulate command execution
         result = await _execute_agent_command(agent, request.command, request.parameters)
-        
+
         execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
-        
+
         response = AgentCommandResponse(
             command_id=command_id,
             status="completed",
             result=result,
             execution_time_ms=int(execution_time)
         )
-        
+
     except Exception as e:
         execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
-        
+
         response = AgentCommandResponse(
             command_id=command_id,
             status="failed",
             error=str(e),
             execution_time_ms=int(execution_time)
         )
-    
+
     # Store command result
     agent_commands[command_id] = response
-    
+
     return response
 
 
@@ -398,14 +398,14 @@ async def get_agent_logs(
     context: SecurityContext = Depends(get_security_context)
 ) -> Dict[str, Any]:
     """Get agent logs"""
-    
+
     if Permission.AGENT_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: agent:read")
-    
+
     agent = agents_store.get(agent_id)
     if not agent:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     # Simulate log retrieval
     logs = []
     for i in range(min(lines, 50)):  # Simulate limited logs
@@ -415,7 +415,7 @@ async def get_agent_logs(
             "message": f"Agent {agent.name} operational check {i+1}",
             "component": agent.agent_type.value
         })
-    
+
     return {
         "agent_id": agent_id,
         "logs": logs,
@@ -428,7 +428,7 @@ async def get_agent_logs(
 async def _initialize_agent(agent_id: str):
     """Initialize agent asynchronously"""
     await asyncio.sleep(2)  # Simulate initialization time
-    
+
     if agent_id in agents_store:
         agent = agents_store[agent_id]
         agent.status = AgentStatus.ACTIVE
@@ -439,21 +439,21 @@ async def _initialize_agent(agent_id: str):
 async def _cleanup_agent(agent_id: str):
     """Cleanup terminated agent"""
     await asyncio.sleep(5)  # Give time for graceful shutdown
-    
+
     if agent_id in agents_store:
         del agents_store[agent_id]
 
 
 async def _execute_agent_command(
-    agent: Agent, 
-    command: str, 
+    agent: Agent,
+    command: str,
     parameters: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Execute command on agent"""
-    
+
     # Simulate command execution based on agent type and capabilities
     await asyncio.sleep(1)  # Simulate processing time
-    
+
     if command == "status_check":
         return {
             "status": "healthy",
@@ -503,11 +503,11 @@ async def _initialize_sample_agents():
                 description="Advanced threat hunting agent"
             )
         ]
-        
+
         for agent_req in sample_agents:
             agent_id = str(uuid.uuid4())
             current_time = datetime.utcnow()
-            
+
             agent = Agent(
                 id=agent_id,
                 name=agent_req.name,
@@ -530,7 +530,7 @@ async def _initialize_sample_agents():
                     last_heartbeat=current_time
                 )
             )
-            
+
             agents_store[agent_id] = agent
 
 

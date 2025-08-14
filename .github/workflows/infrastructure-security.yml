@@ -22,11 +22,11 @@ jobs:
     permissions:
       security-events: write
       contents: read
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       # Terraform/HCL security scanning
       - name: Run Checkov IaC scanner
         uses: bridgecrewio/checkov-action@master
@@ -36,25 +36,25 @@ jobs:
           output_format: sarif
           output_file_path: checkov-results.sarif
           soft_fail: true
-      
+
       - name: Upload Checkov scan results to GitHub
         uses: github/codeql-action/upload-sarif@v2
         if: always()
         with:
           sarif_file: checkov-results.sarif
-      
+
       # Docker Compose security scanning
       - name: Run Docker Compose security scan
         run: |
           # Install docker-compose-security-scan
           pip install docker-compose-security-scan
-          
+
           # Scan all docker-compose files
           find . -name "docker-compose*.yml" -exec echo "Scanning {}" \; -exec \
             docker run --rm -v "$(pwd):/workspace" \
             bridgecrew/checkov -f {} --framework docker_compose \; || true
         continue-on-error: true
-      
+
       # Dockerfile linting and security
       - name: Run Hadolint Dockerfile linter
         uses: hadolint/hadolint-action@v3.1.0
@@ -63,13 +63,13 @@ jobs:
           format: sarif
           output-file: hadolint-results.sarif
         continue-on-error: true
-      
+
       - name: Upload Hadolint results
         uses: github/codeql-action/upload-sarif@v2
         if: always()
         with:
           sarif_file: hadolint-results.sarif
-      
+
       # Kubernetes manifest security (if any)
       - name: Kubernetes security scan with Polaris
         if: hashFiles('infra/k8s/**/*.yaml') != ''
@@ -78,21 +78,21 @@ jobs:
           curl -L https://github.com/FairwindsOps/polaris/releases/latest/download/polaris_linux_amd64.tar.gz | tar xz
           ./polaris audit --audit-path infra/k8s/ --format=pretty || true
         continue-on-error: true
-      
+
       # Network security analysis
       - name: Network configuration security check
         run: |
           # Check for insecure network configurations
           echo "Checking Docker network configurations..."
-          
+
           # Check for privileged containers
           grep -r "privileged.*true" . --include="*.yml" --include="*.yaml" && \
             echo "⚠️ Privileged containers found" || echo "✅ No privileged containers"
-          
+
           # Check for host network mode
           grep -r "network_mode.*host" . --include="*.yml" --include="*.yaml" && \
             echo "⚠️ Host network mode found" || echo "✅ No host network mode"
-          
+
           # Check for exposed ports
           echo "Exposed ports analysis:"
           grep -r "ports:" . --include="*.yml" --include="*.yaml" -A 3 || true
@@ -102,11 +102,11 @@ jobs:
   secrets-scan:
     name: Secrets and Configuration Scan
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       # Deep secrets scanning with multiple tools
       - name: Run TruffleHog secrets scan
         uses: trufflesecurity/trufflehog@main
@@ -115,7 +115,7 @@ jobs:
           base: main
           head: HEAD
           extra_args: --debug --only-verified
-      
+
       # Configuration file validation
       - name: Validate configuration files
         run: |
@@ -134,7 +134,7 @@ except Exception as e:
     sys.exit(1)
             " || echo "⚠️ YAML validation failed for $file"
           done
-          
+
           # Validate JSON files
           echo "Validating JSON files..."
           find . -name "*.json" | while read -r file; do
@@ -149,12 +149,12 @@ except Exception as e:
     print(f'❌ $file has JSON errors: {e}')
             " || echo "⚠️ JSON validation failed for $file"
           done
-      
+
       # Check for default/weak passwords
       - name: Check for default credentials
         run: |
           echo "Checking for default/weak credentials..."
-          
+
           # Common weak passwords
           weak_patterns=(
             "password.*=.*password"
@@ -165,7 +165,7 @@ except Exception as e:
             "changeme"
             "default"
           )
-          
+
           for pattern in "${weak_patterns[@]}"; do
             if grep -ri "$pattern" . --exclude-dir=.git --exclude-dir=node_modules; then
               echo "⚠️ Potential weak credential found: $pattern"
@@ -177,28 +177,28 @@ except Exception as e:
   supply-chain-security:
     name: Supply Chain Security
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       # SBOM generation for infrastructure
       - name: Generate infrastructure SBOM
         run: |
           echo "Generating Software Bill of Materials (SBOM)..."
-          
+
           # Create SBOM for Python dependencies
           if [ -f "requirements.txt" ]; then
             pip install cyclonedx-bom
             cyclonedx-py -r requirements.txt -o infrastructure-sbom.json
           fi
-          
+
           # Create SBOM for container images
           echo "Container images used:" > container-sbom.txt
           grep -r "image:" . --include="*.yml" --include="*.yaml" | \
             sed 's/.*image: //' | sort | uniq >> container-sbom.txt
         continue-on-error: true
-      
+
       - name: Upload SBOM artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -206,24 +206,24 @@ except Exception as e:
           path: |
             infrastructure-sbom.json
             container-sbom.txt
-      
+
       # Container image vulnerability scanning
       - name: Scan container images for vulnerabilities
         run: |
           echo "Scanning container images for vulnerabilities..."
-          
+
           # Extract unique container images
           grep -r "image:" . --include="*.yml" --include="*.yaml" | \
             sed 's/.*image: //' | sort | uniq | while read -r image; do
-            
+
             echo "Scanning image: $image"
-            
+
             # Use Grype for vulnerability scanning
             curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b .
             ./grype "$image" -o json > "scan-$(echo $image | tr '/:' '-').json" || true
           done
         continue-on-error: true
-      
+
       - name: Upload vulnerability scan results
         uses: actions/upload-artifact@v3
         if: always()
@@ -235,64 +235,64 @@ except Exception as e:
   compliance-check:
     name: Compliance and Policy Check
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       # Security policy compliance
       - name: Check security policy compliance
         run: |
           echo "Checking security policy compliance..."
-          
+
           compliance_score=100
-          
+
           # Check for security headers in web configs
           if ! grep -r "X-Frame-Options\|Content-Security-Policy\|X-Content-Type-Options" infra/; then
             echo "⚠️ Missing security headers configuration (-10 points)"
             compliance_score=$((compliance_score - 10))
           fi
-          
+
           # Check for HTTPS enforcement
           if ! grep -r "ssl\|tls\|https" infra/ | grep -v "#"; then
             echo "⚠️ No HTTPS/TLS configuration found (-15 points)"
             compliance_score=$((compliance_score - 15))
           fi
-          
+
           # Check for logging configuration
           if ! grep -r "log\|audit" infra/; then
             echo "⚠️ No logging configuration found (-10 points)"
             compliance_score=$((compliance_score - 10))
           fi
-          
+
           # Check for monitoring configuration
           if ! grep -r "monitor\|metric\|prometheus" infra/; then
             echo "⚠️ No monitoring configuration found (-10 points)"
             compliance_score=$((compliance_score - 10))
           fi
-          
+
           # Check for backup configuration
           if ! grep -r "backup\|snapshot" infra/; then
             echo "⚠️ No backup configuration found (-5 points)"
             compliance_score=$((compliance_score - 5))
           fi
-          
+
           echo "Security compliance score: $compliance_score/100"
-          
+
           if [ $compliance_score -lt 80 ]; then
             echo "❌ Security compliance below threshold (80/100)"
             exit 1
           else
             echo "✅ Security compliance check passed"
           fi
-      
+
       # Generate compliance report
       - name: Generate compliance report
         run: |
           echo "# Infrastructure Security Compliance Report" > compliance-report.md
           echo "Generated on: $(date)" >> compliance-report.md
           echo "" >> compliance-report.md
-          
+
           echo "## Security Scans Performed" >> compliance-report.md
           echo "- ✅ Infrastructure as Code security scan (Checkov)" >> compliance-report.md
           echo "- ✅ Docker Compose security analysis" >> compliance-report.md
@@ -303,14 +303,14 @@ except Exception as e:
           echo "- ✅ Supply chain security analysis" >> compliance-report.md
           echo "- ✅ Security policy compliance check" >> compliance-report.md
           echo "" >> compliance-report.md
-          
+
           echo "## Security Recommendations" >> compliance-report.md
           echo "- Keep all container images updated to latest security patches" >> compliance-report.md
           echo "- Regular security scanning of infrastructure changes" >> compliance-report.md
           echo "- Implement infrastructure policy as code with OPA/Gatekeeper" >> compliance-report.md
           echo "- Enable runtime security monitoring with Falco or similar" >> compliance-report.md
           echo "- Regular penetration testing and security assessments" >> compliance-report.md
-      
+
       - name: Upload compliance report
         uses: actions/upload-artifact@v3
         with:

@@ -24,7 +24,7 @@
   },
   "monitoring": {
     "enabled": true,
-    "log_level": "INFO", 
+    "log_level": "INFO",
     "tracing_enabled": true,
     "metrics_retention_days": 30,
     "prometheus_port": 9090,

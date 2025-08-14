@@ -11,7 +11,7 @@ The XORB platform has been completely containerized with multi-stage Docker buil
 Each service uses a multi-stage Dockerfile with the following stages:
 
 1. **Builder Stage** - Compiles dependencies and build artifacts
-2. **Runtime Base** - Minimal runtime environment with security hardening  
+2. **Runtime Base** - Minimal runtime environment with security hardening
 3. **Development Stage** - Full development environment with debugging tools
 4. **Production Stage** - Optimized production runtime with minimal attack surface
 5. **Testing Stage** - Specialized environment for running tests
@@ -40,7 +40,7 @@ All containers implement security best practices:
 
 **Build Targets:**
 - `development`: Hot-reload, debugging tools, verbose logging
-- `production`: Optimized runtime, multiple workers, security hardening  
+- `production`: Optimized runtime, multiple workers, security hardening
 - `testing`: Test execution environment with coverage tools
 
 **Key Environment Variables:**
@@ -258,7 +258,7 @@ secrets:
     file: ./secrets/postgres_password
   jwt_secret:
     file: ./secrets/jwt_secret
-    
+
 # Service configuration
 api-prod:
   secrets:
@@ -272,7 +272,7 @@ api-prod:
 
 **Before Optimization:**
 - API Service: ~1.2GB
-- Orchestrator: ~1.1GB  
+- Orchestrator: ~1.1GB
 - Worker: ~1.0GB
 - **Total: ~3.3GB**
 

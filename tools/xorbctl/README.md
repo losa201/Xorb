@@ -30,9 +30,9 @@ xorbctl tail --tenant t-qa --domain evidence --since 5m
 ### 3. Verify Evidence
 ```bash
 # Validate object signature and timestamp
-xorbctl verify 
-  --object s3://bucket/object 
-  --sig $(cat signature.b64) 
+xorbctl verify
+  --object s3://bucket/object
+  --sig $(cat signature.b64)
   --tsr $(cat timestamp.tsr)
 ```
 

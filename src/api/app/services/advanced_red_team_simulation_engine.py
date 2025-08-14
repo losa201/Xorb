@@ -103,7 +103,7 @@ class AttackStep:
     timestamp: datetime = field(default_factory=datetime.utcnow)
     evidence: Dict[str, Any] = field(default_factory=dict)
     duration_seconds: float = 0.0
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "step_id": self.step_id,
@@ -154,7 +154,7 @@ class RedTeamSimulation:
     overall_success_rate: float = 0.0
     findings: List[Dict[str, Any]] = field(default_factory=list)
     recommendations: List[str] = field(default_factory=list)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "simulation_id": self.simulation_id,
@@ -178,11 +178,11 @@ class RedTeamSimulation:
 
 class MitreAttackDatabase:
     """MITRE ATT&CK framework database with real techniques"""
-    
+
     def __init__(self):
         self.techniques = self._initialize_techniques()
         self.tactics_map = self._build_tactics_map()
-    
+
     def _initialize_techniques(self) -> Dict[str, MitreAttackTechnique]:
         """Initialize MITRE ATT&CK techniques database"""
         techniques = {
@@ -211,8 +211,8 @@ class MitreAttackDatabase:
                 difficulty="easy",
                 success_probability=0.8
             ),
-            
-            # Initial Access Techniques  
+
+            # Initial Access Techniques
             "T1566": MitreAttackTechnique(
                 technique_id="T1566",
                 name="Phishing",
@@ -250,7 +250,7 @@ class MitreAttackDatabase:
                 difficulty="hard",
                 success_probability=0.4
             ),
-            
+
             # Execution Techniques
             "T1059": MitreAttackTechnique(
                 technique_id="T1059",
@@ -265,7 +265,7 @@ class MitreAttackDatabase:
                 difficulty="easy",
                 success_probability=0.8
             ),
-            
+
             # Persistence Techniques
             "T1053": MitreAttackTechnique(
                 technique_id="T1053",
@@ -279,7 +279,7 @@ class MitreAttackDatabase:
                 difficulty="medium",
                 success_probability=0.7
             ),
-            
+
             # Privilege Escalation Techniques
             "T1068": MitreAttackTechnique(
                 technique_id="T1068",
@@ -293,7 +293,7 @@ class MitreAttackDatabase:
                 difficulty="hard",
                 success_probability=0.5
             ),
-            
+
             # Defense Evasion Techniques
             "T1027": MitreAttackTechnique(
                 technique_id="T1027",
@@ -307,7 +307,7 @@ class MitreAttackDatabase:
                 difficulty="medium",
                 success_probability=0.6
             ),
-            
+
             # Credential Access Techniques
             "T1110": MitreAttackTechnique(
                 technique_id="T1110",
@@ -322,7 +322,7 @@ class MitreAttackDatabase:
                 difficulty="medium",
                 success_probability=0.4
             ),
-            
+
             # Discovery Techniques
             "T1046": MitreAttackTechnique(
                 technique_id="T1046",
@@ -336,7 +336,7 @@ class MitreAttackDatabase:
                 difficulty="easy",
                 success_probability=0.9
             ),
-            
+
             # Lateral Movement Techniques
             "T1021": MitreAttackTechnique(
                 technique_id="T1021",
@@ -351,7 +351,7 @@ class MitreAttackDatabase:
                 difficulty="medium",
                 success_probability=0.6
             ),
-            
+
             # Collection Techniques
             "T1005": MitreAttackTechnique(
                 technique_id="T1005",
@@ -365,7 +365,7 @@ class MitreAttackDatabase:
                 difficulty="easy",
                 success_probability=0.8
             ),
-            
+
             # Command and Control Techniques
             "T1071": MitreAttackTechnique(
                 technique_id="T1071",
@@ -380,7 +380,7 @@ class MitreAttackDatabase:
                 difficulty="medium",
                 success_probability=0.7
             ),
-            
+
             # Exfiltration Techniques
             "T1041": MitreAttackTechnique(
                 technique_id="T1041",
@@ -394,7 +394,7 @@ class MitreAttackDatabase:
                 difficulty="medium",
                 success_probability=0.6
             ),
-            
+
             # Impact Techniques
             "T1486": MitreAttackTechnique(
                 technique_id="T1486",
@@ -409,26 +409,26 @@ class MitreAttackDatabase:
                 success_probability=0.8
             )
         }
-        
+
         return techniques
-    
+
     def _build_tactics_map(self) -> Dict[str, List[str]]:
         """Build mapping of tactics to techniques"""
         tactics_map = {}
-        
+
         for technique_id, technique in self.techniques.items():
             for tactic in technique.tactics:
                 if tactic not in tactics_map:
                     tactics_map[tactic] = []
                 tactics_map[tactic].append(technique_id)
-        
+
         return tactics_map
-    
+
     def get_techniques_by_tactic(self, tactic: str) -> List[MitreAttackTechnique]:
         """Get techniques for a specific tactic"""
         technique_ids = self.tactics_map.get(tactic, [])
         return [self.techniques[tid] for tid in technique_ids]
-    
+
     def get_technique(self, technique_id: str) -> Optional[MitreAttackTechnique]:
         """Get specific technique by ID"""
         return self.techniques.get(technique_id)
@@ -436,16 +436,16 @@ class MitreAttackDatabase:
 
 class AttackSimulationEngine:
     """Core engine for executing attack simulations"""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.mitre_db = MitreAttackDatabase()
         self.simulation_history: Dict[str, RedTeamSimulation] = {}
-        
+
         # Attack payloads and tools
         self.payloads = self._initialize_payloads()
         self.stealth_techniques = self._initialize_stealth_techniques()
-    
+
     def _initialize_payloads(self) -> Dict[str, Dict[str, Any]]:
         """Initialize attack payloads for different techniques"""
         return {
@@ -484,7 +484,7 @@ class AttackSimulationEngine:
                 "web_brute": "hydra -L {userlist} -P {passlist} {target} http-post-form"
             }
         }
-    
+
     def _initialize_stealth_techniques(self) -> Dict[str, str]:
         """Initialize stealth and evasion techniques"""
         return {
@@ -497,7 +497,7 @@ class AttackSimulationEngine:
             "legitimate_services": "Abuse legitimate services for malicious purposes",
             "fileless_techniques": "Use memory-only techniques to avoid file-based detection"
         }
-    
+
     async def plan_attack_chain(
         self,
         objectives: List[str],
@@ -507,10 +507,10 @@ class AttackSimulationEngine:
         """Plan attack chain based on objectives and target profile"""
         try:
             chain_id = str(uuid.uuid4())
-            
+
             # Determine attack vector based on target profile
             attack_vector = self._select_attack_vector(target_profile, severity)
-            
+
             # Build attack chain
             attack_chain = AttackChain(
                 chain_id=chain_id,
@@ -519,25 +519,25 @@ class AttackSimulationEngine:
                 attack_vector=attack_vector,
                 target_profile=target_profile
             )
-            
+
             # Plan attack phases
             phases = self._plan_attack_phases(objectives, target_profile, severity)
-            
+
             for phase in phases:
                 # Select techniques for each phase
                 techniques = self._select_techniques_for_phase(phase, target_profile, severity)
-                
+
                 for technique in techniques:
                     step = await self._create_attack_step(technique, phase, target_profile)
                     attack_chain.steps.append(step)
-            
+
             self.logger.info(f"Planned attack chain {chain_id} with {len(attack_chain.steps)} steps")
             return attack_chain
-            
+
         except Exception as e:
             self.logger.error(f"Error planning attack chain: {str(e)}")
             raise
-    
+
     def _select_attack_vector(self, target_profile: Dict[str, Any], severity: AttackSeverity) -> str:
         """Select appropriate attack vector based on target profile"""
         try:
@@ -545,7 +545,7 @@ class AttackSimulationEngine:
             services = target_profile.get("services", [])
             platforms = target_profile.get("platforms", [])
             network_exposure = target_profile.get("network_exposure", "unknown")
-            
+
             # Prioritize attack vectors based on target characteristics
             if "web" in services or "http" in str(services).lower():
                 return "web_application_attack"
@@ -557,10 +557,10 @@ class AttackSimulationEngine:
                 return "network_based_attack"
             else:
                 return "reconnaissance_and_discovery"
-                
+
         except Exception:
             return "general_penetration_testing"
-    
+
     def _plan_attack_phases(
         self,
         objectives: List[str],
@@ -570,47 +570,47 @@ class AttackSimulationEngine:
         """Plan attack phases based on objectives and severity"""
         try:
             phases = [AttackPhase.RECONNAISSANCE]  # Always start with recon
-            
+
             # Add phases based on objectives
             if any("access" in obj.lower() for obj in objectives):
                 phases.extend([AttackPhase.INITIAL_ACCESS, AttackPhase.EXECUTION])
-            
+
             if any("persist" in obj.lower() for obj in objectives):
                 phases.append(AttackPhase.PERSISTENCE)
-            
+
             if any("privilege" in obj.lower() or "escalat" in obj.lower() for obj in objectives):
                 phases.append(AttackPhase.PRIVILEGE_ESCALATION)
-            
+
             if any("credential" in obj.lower() for obj in objectives):
                 phases.append(AttackPhase.CREDENTIAL_ACCESS)
-            
+
             if any("discover" in obj.lower() or "enumerate" in obj.lower() for obj in objectives):
                 phases.append(AttackPhase.DISCOVERY)
-            
+
             if any("lateral" in obj.lower() or "movement" in obj.lower() for obj in objectives):
                 phases.append(AttackPhase.LATERAL_MOVEMENT)
-            
+
             if any("data" in obj.lower() or "collect" in obj.lower() for obj in objectives):
                 phases.append(AttackPhase.COLLECTION)
-            
+
             if any("exfiltrat" in obj.lower() for obj in objectives):
                 phases.append(AttackPhase.EXFILTRATION)
-            
+
             # Add impact phase only for aggressive+ testing
             if severity in [AttackSeverity.AGGRESSIVE, AttackSeverity.DESTRUCTIVE]:
                 if any("impact" in obj.lower() or "disrupt" in obj.lower() for obj in objectives):
                     phases.append(AttackPhase.IMPACT)
-            
+
             # Always add C2 if we're doing active testing
             if severity not in [AttackSeverity.PASSIVE]:
                 phases.append(AttackPhase.COMMAND_AND_CONTROL)
-            
+
             return list(dict.fromkeys(phases))  # Remove duplicates while preserving order
-            
+
         except Exception as e:
             self.logger.error(f"Error planning attack phases: {str(e)}")
             return [AttackPhase.RECONNAISSANCE]
-    
+
     def _select_techniques_for_phase(
         self,
         phase: AttackPhase,
@@ -621,19 +621,19 @@ class AttackSimulationEngine:
         try:
             # Get all techniques for the phase
             available_techniques = self.mitre_db.get_techniques_by_tactic(phase.value)
-            
+
             # Filter techniques based on target profile and severity
             selected_techniques = []
-            
+
             for technique in available_techniques:
                 # Check if technique is applicable to target platforms
                 target_platforms = target_profile.get("platforms", ["unknown"])
                 if any(platform.lower() in [p.lower() for p in technique.platforms] for platform in target_platforms):
-                    
+
                     # Check severity restrictions
                     if self._is_technique_allowed(technique, severity):
                         selected_techniques.append(technique)
-            
+
             # Limit number of techniques based on severity
             max_techniques = {
                 AttackSeverity.PASSIVE: 1,
@@ -642,15 +642,15 @@ class AttackSimulationEngine:
                 AttackSeverity.AGGRESSIVE: 5,
                 AttackSeverity.DESTRUCTIVE: 7
             }.get(severity, 2)
-            
+
             # Sort by success probability and select top techniques
             selected_techniques.sort(key=lambda x: x.success_probability, reverse=True)
             return selected_techniques[:max_techniques]
-            
+
         except Exception as e:
             self.logger.error(f"Error selecting techniques for phase {phase}: {str(e)}")
             return []
-    
+
     def _is_technique_allowed(self, technique: MitreAttackTechnique, severity: AttackSeverity) -> bool:
         """Check if technique is allowed based on severity level"""
         try:
@@ -662,13 +662,13 @@ class AttackSimulationEngine:
                 AttackSeverity.AGGRESSIVE: ["T1486"],  # Some destructive techniques allowed
                 AttackSeverity.DESTRUCTIVE: []  # All techniques allowed
             }
-            
+
             restricted = restrictions.get(severity, [])
             return technique.technique_id not in restricted
-            
+
         except Exception:
             return True
-    
+
     async def _create_attack_step(
         self,
         technique: MitreAttackTechnique,
@@ -678,17 +678,17 @@ class AttackSimulationEngine:
         """Create attack step from technique and target"""
         try:
             step_id = str(uuid.uuid4())
-            
+
             # Select target from profile
             targets = target_profile.get("hosts", ["unknown"])
             target = random.choice(targets) if targets else "unknown"
-            
+
             # Generate payload for technique
             payload = self._generate_payload(technique, target_profile)
-            
+
             # Generate expected result
             expected_result = f"Execute {technique.name} against {target}"
-            
+
             step = AttackStep(
                 step_id=step_id,
                 technique=technique,
@@ -697,27 +697,27 @@ class AttackSimulationEngine:
                 payload=payload,
                 expected_result=expected_result
             )
-            
+
             return step
-            
+
         except Exception as e:
             self.logger.error(f"Error creating attack step: {str(e)}")
             raise
-    
+
     def _generate_payload(self, technique: MitreAttackTechnique, target_profile: Dict[str, Any]) -> str:
         """Generate appropriate payload for technique"""
         try:
             technique_payloads = self.payloads.get(technique.technique_id, {})
-            
+
             if technique_payloads:
                 # Select appropriate payload based on target profile
                 payload_name = list(technique_payloads.keys())[0]  # Default to first payload
                 payload_template = technique_payloads[payload_name]
-                
+
                 # Substitute variables in payload
                 hosts = target_profile.get("hosts", ["target"])
                 target = hosts[0] if hosts else "target"
-                
+
                 return payload_template.format(
                     target=target,
                     domain=target_profile.get("domain", "example.com"),
@@ -726,11 +726,11 @@ class AttackSimulationEngine:
                 )
             else:
                 return f"Execute technique {technique.technique_id} - {technique.name}"
-                
+
         except Exception as e:
             self.logger.error(f"Error generating payload: {str(e)}")
             return f"Generic payload for {technique.name}"
-    
+
     async def execute_attack_step(
         self,
         step: AttackStep,
@@ -739,7 +739,7 @@ class AttackSimulationEngine:
         """Execute individual attack step"""
         try:
             start_time = time.time()
-            
+
             # Simulate technique execution
             success, result, evidence = await self._simulate_technique_execution(
                 step.technique,
@@ -747,24 +747,24 @@ class AttackSimulationEngine:
                 step.payload,
                 simulation_config
             )
-            
+
             # Update step with results
             step.success = success
             step.actual_result = result
             step.evidence = evidence
             step.duration_seconds = time.time() - start_time
-            
+
             self.logger.info(f"Executed step {step.step_id}: {step.technique.name} - {'SUCCESS' if success else 'FAILED'}")
-            
+
             return step
-            
+
         except Exception as e:
             self.logger.error(f"Error executing attack step {step.step_id}: {str(e)}")
             step.success = False
             step.actual_result = f"Execution failed: {str(e)}"
             step.duration_seconds = time.time() - start_time if 'start_time' in locals() else 0.0
             return step
-    
+
     async def _simulate_technique_execution(
         self,
         technique: MitreAttackTechnique,
@@ -776,19 +776,19 @@ class AttackSimulationEngine:
         try:
             # Simulate execution delay
             await asyncio.sleep(random.uniform(0.5, 2.0))
-            
+
             # Determine success based on technique probability and simulation config
             base_probability = technique.success_probability
-            
+
             # Adjust probability based on configuration
             detection_strength = config.get("detection_strength", 0.5)
             defense_strength = config.get("defense_strength", 0.5)
-            
+
             # Reduce success probability based on defenses
             adjusted_probability = base_probability * (1.0 - detection_strength * 0.3) * (1.0 - defense_strength * 0.2)
-            
+
             success = random.random() < adjusted_probability
-            
+
             # Generate realistic results
             if success:
                 result = self._generate_success_result(technique, target)
@@ -796,13 +796,13 @@ class AttackSimulationEngine:
             else:
                 result = self._generate_failure_result(technique, target)
                 evidence = self._generate_failure_evidence(technique, target)
-            
+
             return success, result, evidence
-            
+
         except Exception as e:
             self.logger.error(f"Error simulating technique execution: {str(e)}")
             return False, f"Simulation error: {str(e)}", {}
-    
+
     def _generate_success_result(self, technique: MitreAttackTechnique, target: str) -> str:
         """Generate realistic success result for technique"""
         result_templates = {
@@ -817,12 +817,12 @@ class AttackSimulationEngine:
             "T1005": f"Local data collection successful, gathered {random.randint(100, 1000)} files",
             "T1041": f"Data exfiltration successful, {random.randint(10, 100)}MB transferred"
         }
-        
+
         return result_templates.get(
             technique.technique_id,
             f"Technique {technique.name} executed successfully against {target}"
         )
-    
+
     def _generate_failure_result(self, technique: MitreAttackTechnique, target: str) -> str:
         """Generate realistic failure result for technique"""
         failure_reasons = [
@@ -833,10 +833,10 @@ class AttackSimulationEngine:
             "Target configuration prevented execution",
             "Network restrictions in place"
         ]
-        
+
         reason = random.choice(failure_reasons)
         return f"Technique {technique.name} failed against {target}: {reason}"
-    
+
     def _generate_success_evidence(self, technique: MitreAttackTechnique, target: str, payload: str) -> Dict[str, Any]:
         """Generate evidence for successful technique execution"""
         evidence = {
@@ -847,7 +847,7 @@ class AttackSimulationEngine:
             "detection_likelihood": random.uniform(0.1, 0.8),
             "stealth_score": random.uniform(0.3, 0.9)
         }
-        
+
         # Add technique-specific evidence
         if technique.technique_id == "T1595":  # Active Scanning
             evidence.update({
@@ -867,9 +867,9 @@ class AttackSimulationEngine:
                 "output_size": random.randint(500, 5000),
                 "persistence_achieved": random.choice([True, False])
             })
-        
+
         return evidence
-    
+
     def _generate_failure_evidence(self, technique: MitreAttackTechnique, target: str) -> Dict[str, Any]:
         """Generate evidence for failed technique execution"""
         return {
@@ -887,25 +887,25 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
     Advanced Red Team Simulation Engine implementing sophisticated attack scenarios
     based on real-world tactics, techniques, and procedures (TTPs)
     """
-    
+
     def __init__(self):
         super().__init__(
             service_id="advanced_red_team_simulation",
             service_type=ServiceType.SECURITY_TESTING
         )
         self.logger = logging.getLogger(__name__)
-        
+
         # Initialize attack simulation engine
         self.attack_engine = AttackSimulationEngine()
-        
+
         # Active simulations
         self.active_simulations: Dict[str, RedTeamSimulation] = {}
-        
+
         # Simulation templates
         self.simulation_templates = self._initialize_simulation_templates()
-        
+
         self.logger.info("✅ Advanced Red Team Simulation Engine initialized")
-    
+
     def _initialize_simulation_templates(self) -> Dict[str, Dict[str, Any]]:
         """Initialize pre-defined simulation templates"""
         return {
@@ -998,7 +998,7 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 ]
             }
         }
-    
+
     async def create_workflow(
         self,
         workflow_definition: Dict[str, Any],
@@ -1008,19 +1008,19 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
         """Create red team simulation workflow"""
         try:
             simulation_id = str(uuid.uuid4())
-            
+
             # Extract simulation parameters
             simulation_type = workflow_definition.get("simulation_type", "custom")
             targets = workflow_definition.get("targets", [])
             objectives = workflow_definition.get("objectives", ["security_assessment"])
             severity = AttackSeverity(workflow_definition.get("severity", "moderate"))
-            
+
             # Use template if specified
             if simulation_type in self.simulation_templates:
                 template = self.simulation_templates[simulation_type]
                 objectives = template["objectives"]
                 severity = template["severity"]
-            
+
             # Create simulation
             simulation = RedTeamSimulation(
                 simulation_id=simulation_id,
@@ -1030,12 +1030,12 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 severity=severity,
                 status=SimulationStatus.PLANNING
             )
-            
+
             # Store simulation
             self.active_simulations[simulation_id] = simulation
-            
+
             self.logger.info(f"Created red team simulation {simulation_id} for user {user.username}")
-            
+
             return {
                 "simulation_id": simulation_id,
                 "status": "created",
@@ -1045,11 +1045,11 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "severity": simulation.severity.value,
                 "message": "Red team simulation created and ready for execution"
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error creating red team simulation workflow: {str(e)}")
             return {"error": str(e)}
-    
+
     async def execute_workflow(
         self,
         workflow_id: str,
@@ -1060,19 +1060,19 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
         try:
             if workflow_id not in self.active_simulations:
                 return {"error": "Simulation not found"}
-            
+
             simulation = self.active_simulations[workflow_id]
-            
+
             if simulation.status != SimulationStatus.PLANNING:
                 return {"error": f"Simulation in invalid state: {simulation.status.value}"}
-            
+
             # Update simulation status
             simulation.status = SimulationStatus.EXECUTING
             simulation.start_time = datetime.utcnow()
-            
+
             # Build target profile
             target_profile = self._build_target_profile(simulation.targets, parameters)
-            
+
             # Plan attack chains
             attack_chains = []
             for objective in simulation.objectives:
@@ -1082,14 +1082,14 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                     simulation.severity
                 )
                 attack_chains.append(chain)
-            
+
             simulation.attack_chains = attack_chains
-            
+
             # Execute attack chains asynchronously
             asyncio.create_task(self._execute_simulation(simulation, parameters))
-            
+
             self.logger.info(f"Started execution of red team simulation {workflow_id}")
-            
+
             return {
                 "simulation_id": workflow_id,
                 "status": "executing",
@@ -1097,11 +1097,11 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "total_steps": sum(len(chain.steps) for chain in attack_chains),
                 "message": "Red team simulation execution started"
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error executing red team simulation: {str(e)}")
             return {"error": str(e)}
-    
+
     async def get_workflow_status(
         self,
         execution_id: str,
@@ -1111,18 +1111,18 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
         try:
             if execution_id not in self.active_simulations:
                 return {"error": "Simulation not found"}
-            
+
             simulation = self.active_simulations[execution_id]
-            
+
             # Calculate progress
             total_steps = sum(len(chain.steps) for chain in simulation.attack_chains)
             completed_steps = sum(
                 len([step for step in chain.steps if step.actual_result])
                 for chain in simulation.attack_chains
             )
-            
+
             progress = (completed_steps / total_steps * 100) if total_steps > 0 else 0
-            
+
             return {
                 "simulation_id": execution_id,
                 "status": simulation.status.value,
@@ -1137,11 +1137,11 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "attack_chains": len(simulation.attack_chains),
                 "findings": len(simulation.findings)
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error getting simulation status: {str(e)}")
             return {"error": str(e)}
-    
+
     async def schedule_recurring_scan(
         self,
         targets: List[str],
@@ -1152,10 +1152,10 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
         """Schedule recurring red team simulations"""
         try:
             schedule_id = str(uuid.uuid4())
-            
+
             # Parse schedule (simplified cron-like format)
             schedule_config = self._parse_schedule(schedule)
-            
+
             # Create recurring simulation configuration
             recurring_config = {
                 "schedule_id": schedule_id,
@@ -1167,9 +1167,9 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "next_execution": self._calculate_next_execution(schedule_config),
                 "active": True
             }
-            
+
             self.logger.info(f"Scheduled recurring red team simulation {schedule_id}")
-            
+
             return {
                 "schedule_id": schedule_id,
                 "status": "scheduled",
@@ -1178,11 +1178,11 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "next_execution": recurring_config["next_execution"],
                 "message": "Recurring red team simulation scheduled successfully"
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error scheduling recurring simulation: {str(e)}")
             return {"error": str(e)}
-    
+
     async def _execute_simulation(
         self,
         simulation: RedTeamSimulation,
@@ -1191,7 +1191,7 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
         """Execute complete red team simulation"""
         try:
             start_time = time.time()
-            
+
             # Simulation configuration
             simulation_config = {
                 "detection_strength": parameters.get("detection_strength", 0.5),
@@ -1199,69 +1199,69 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "stealth_mode": parameters.get("stealth_mode", True),
                 "max_concurrent_steps": parameters.get("max_concurrent_steps", 3)
             }
-            
+
             total_steps = 0
             successful_steps = 0
             detected_activities = 0
             stealth_scores = []
-            
+
             # Execute each attack chain
             for chain in simulation.attack_chains:
                 self.logger.info(f"Executing attack chain: {chain.name}")
-                
+
                 chain_start_time = time.time()
                 chain_successful_steps = 0
-                
+
                 # Execute steps in attack chain
                 for step in chain.steps:
                     # Execute step
                     executed_step = await self.attack_engine.execute_attack_step(step, simulation_config)
-                    
+
                     total_steps += 1
                     if executed_step.success:
                         successful_steps += 1
                         chain_successful_steps += 1
-                    
+
                     # Check if step was detected
                     if executed_step.evidence.get("detection_triggered", False):
                         detected_activities += 1
-                    
+
                     # Collect stealth score
                     stealth_score = executed_step.evidence.get("stealth_score", 0.5)
                     stealth_scores.append(stealth_score)
-                    
+
                     # Add delay between steps for stealth
                     if simulation_config.get("stealth_mode", True):
                         await asyncio.sleep(random.uniform(1.0, 5.0))
-                
+
                 # Calculate chain success rate and duration
                 chain.success_rate = chain_successful_steps / len(chain.steps) if chain.steps else 0.0
                 chain.total_duration = time.time() - chain_start_time
-            
+
             # Update simulation results
             simulation.total_techniques_attempted = total_steps
             simulation.successful_techniques = successful_steps
             simulation.detected_activities = detected_activities
             simulation.stealth_score = sum(stealth_scores) / len(stealth_scores) if stealth_scores else 0.0
             simulation.overall_success_rate = successful_steps / total_steps if total_steps > 0 else 0.0
-            
+
             # Generate findings and recommendations
             simulation.findings = self._generate_simulation_findings(simulation)
             simulation.recommendations = self._generate_simulation_recommendations(simulation)
-            
+
             # Complete simulation
             simulation.status = SimulationStatus.COMPLETED
             simulation.end_time = datetime.utcnow()
-            
+
             execution_time = time.time() - start_time
             self.logger.info(f"Completed red team simulation {simulation.simulation_id} in {execution_time:.2f} seconds")
             self.logger.info(f"Success rate: {simulation.overall_success_rate:.2%}, Stealth score: {simulation.stealth_score:.2f}")
-            
+
         except Exception as e:
             self.logger.error(f"Error executing simulation: {str(e)}")
             simulation.status = SimulationStatus.FAILED
             simulation.end_time = datetime.utcnow()
-    
+
     def _build_target_profile(self, targets: List[str], parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Build target profile for attack planning"""
         try:
@@ -1275,17 +1275,17 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "organization": parameters.get("organization", "target_org"),
                 "domain": parameters.get("domain", targets[0] if targets else "example.com")
             }
-            
+
             return profile
-            
+
         except Exception as e:
             self.logger.error(f"Error building target profile: {str(e)}")
             return {"hosts": targets, "platforms": ["unknown"]}
-    
+
     def _generate_simulation_findings(self, simulation: RedTeamSimulation) -> List[Dict[str, Any]]:
         """Generate security findings from simulation results"""
         findings = []
-        
+
         try:
             # Analyze successful attack techniques
             for chain in simulation.attack_chains:
@@ -1306,7 +1306,7 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                             "detection_difficulty": step.evidence.get("detection_likelihood", 0.5)
                         }
                         findings.append(finding)
-            
+
             # Generate summary finding
             if simulation.overall_success_rate > 0.7:
                 findings.append({
@@ -1323,16 +1323,16 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                     "mitre_techniques": [],
                     "detection_difficulty": 1.0 - simulation.stealth_score
                 })
-            
+
         except Exception as e:
             self.logger.error(f"Error generating findings: {str(e)}")
-        
+
         return findings
-    
+
     def _generate_simulation_recommendations(self, simulation: RedTeamSimulation) -> List[str]:
         """Generate security recommendations based on simulation results"""
         recommendations = []
-        
+
         try:
             # High-level recommendations based on success rate
             if simulation.overall_success_rate > 0.8:
@@ -1344,36 +1344,36 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
             else:
                 recommendations.append("GOOD: Security controls performed well against most attack techniques")
                 recommendations.append("Continue regular security assessments and minor improvements")
-            
+
             # Stealth-based recommendations
             if simulation.stealth_score > 0.7:
                 recommendations.append("WARNING: Attack activities had high stealth - improve detection capabilities")
                 recommendations.append("Deploy advanced threat detection and behavioral analysis tools")
-            
+
             # Detection-based recommendations
             if simulation.detected_activities < simulation.successful_techniques * 0.3:
                 recommendations.append("URGENT: Low detection rate - enhance security monitoring")
                 recommendations.append("Implement SIEM and endpoint detection and response (EDR) solutions")
-            
+
             # Phase-specific recommendations
             successful_phases = set()
             for chain in simulation.attack_chains:
                 for step in chain.steps:
                     if step.success:
                         successful_phases.add(step.phase)
-            
+
             if AttackPhase.INITIAL_ACCESS in successful_phases:
                 recommendations.append("Strengthen perimeter defenses and access controls")
-            
+
             if AttackPhase.PRIVILEGE_ESCALATION in successful_phases:
                 recommendations.append("Implement principle of least privilege and privilege access management")
-            
+
             if AttackPhase.LATERAL_MOVEMENT in successful_phases:
                 recommendations.append("Deploy network segmentation and zero-trust architecture")
-            
+
             if AttackPhase.EXFILTRATION in successful_phases:
                 recommendations.append("Implement data loss prevention (DLP) and network monitoring")
-            
+
             # General recommendations
             recommendations.extend([
                 "Conduct regular red team exercises and penetration testing",
@@ -1381,13 +1381,13 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "Establish comprehensive incident response procedures",
                 "Deploy threat intelligence and threat hunting capabilities"
             ])
-            
+
         except Exception as e:
             self.logger.error(f"Error generating recommendations: {str(e)}")
             recommendations.append("Manual security assessment required due to analysis error")
-        
+
         return recommendations
-    
+
     def _calculate_finding_severity(self, step: AttackStep) -> str:
         """Calculate severity of security finding"""
         try:
@@ -1403,19 +1403,19 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 AttackPhase.EXFILTRATION: "critical",
                 AttackPhase.IMPACT: "critical"
             }
-            
+
             base_severity = phase_severity.get(step.phase, "medium")
-            
+
             # Adjust based on stealth score (harder to detect = higher severity)
             stealth_score = step.evidence.get("stealth_score", 0.5)
             if stealth_score > 0.8 and base_severity in ["medium", "high"]:
                 return "high" if base_severity == "medium" else "critical"
-            
+
             return base_severity
-            
+
         except Exception:
             return "medium"
-    
+
     def _assess_finding_impact(self, step: AttackStep) -> str:
         """Assess business impact of security finding"""
         impact_map = {
@@ -1430,9 +1430,9 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
             AttackPhase.EXFILTRATION: "Data breach - confidential data compromised",
             AttackPhase.IMPACT: "Business disruption - operational systems affected"
         }
-        
+
         return impact_map.get(step.phase, "Security control bypass")
-    
+
     def _generate_finding_remediation(self, step: AttackStep) -> str:
         """Generate remediation advice for security finding"""
         remediation_map = {
@@ -1447,16 +1447,16 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
             AttackPhase.EXFILTRATION: "Deploy data loss prevention and network monitoring",
             AttackPhase.IMPACT: "Implement backup and recovery procedures, system hardening"
         }
-        
+
         base_remediation = remediation_map.get(step.phase, "Review and strengthen security controls")
-        
+
         # Add technique-specific remediation
         technique_remediations = step.technique.mitigations
         if technique_remediations:
             base_remediation += f" Apply MITRE mitigations: {', '.join(technique_remediations)}"
-        
+
         return base_remediation
-    
+
     def _parse_schedule(self, schedule: str) -> Dict[str, Any]:
         """Parse schedule string into configuration"""
         # Simplified schedule parsing - could be enhanced with full cron support
@@ -1465,14 +1465,14 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
             "weekly": {"interval": "weekly", "day": "monday", "time": "02:00"},
             "monthly": {"interval": "monthly", "day": 1, "time": "02:00"}
         }
-        
+
         return schedule_map.get(schedule.lower(), {"interval": "weekly", "day": "monday", "time": "02:00"})
-    
+
     def _calculate_next_execution(self, schedule_config: Dict[str, Any]) -> str:
         """Calculate next execution time for scheduled simulation"""
         try:
             now = datetime.utcnow()
-            
+
             if schedule_config["interval"] == "daily":
                 next_exec = now + timedelta(days=1)
             elif schedule_config["interval"] == "weekly":
@@ -1481,23 +1481,23 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 next_exec = now + timedelta(days=30)
             else:
                 next_exec = now + timedelta(days=7)  # Default to weekly
-            
+
             return next_exec.isoformat()
-            
+
         except Exception:
             return (datetime.utcnow() + timedelta(days=7)).isoformat()
-    
+
     async def get_simulation_results(self, simulation_id: str) -> Dict[str, Any]:
         """Get comprehensive results from completed simulation"""
         try:
             if simulation_id not in self.active_simulations:
                 return {"error": "Simulation not found"}
-            
+
             simulation = self.active_simulations[simulation_id]
-            
+
             if simulation.status != SimulationStatus.COMPLETED:
                 return {"error": "Simulation not completed yet"}
-            
+
             # Return complete simulation data
             return {
                 "simulation": simulation.to_dict(),
@@ -1505,11 +1505,11 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "technical_details": self._generate_technical_details(simulation),
                 "mitigation_roadmap": self._generate_mitigation_roadmap(simulation)
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error getting simulation results: {str(e)}")
             return {"error": str(e)}
-    
+
     def _generate_executive_summary(self, simulation: RedTeamSimulation) -> Dict[str, Any]:
         """Generate executive summary of simulation results"""
         return {
@@ -1521,7 +1521,7 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
             "detection_effectiveness": f"{simulation.detected_activities}/{simulation.successful_techniques} attacks detected",
             "business_risk": "High" if simulation.overall_success_rate > 0.7 else "Medium" if simulation.overall_success_rate > 0.4 else "Low"
         }
-    
+
     def _generate_technical_details(self, simulation: RedTeamSimulation) -> Dict[str, Any]:
         """Generate technical details of simulation"""
         return {
@@ -1538,15 +1538,15 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
             ])),
             "attack_duration": str(simulation.end_time - simulation.start_time) if simulation.end_time else "N/A"
         }
-    
+
     def _generate_mitigation_roadmap(self, simulation: RedTeamSimulation) -> List[Dict[str, Any]]:
         """Generate prioritized mitigation roadmap"""
         roadmap = []
-        
+
         # Group findings by severity
         critical_findings = [f for f in simulation.findings if f.get("severity") == "critical"]
         high_findings = [f for f in simulation.findings if f.get("severity") == "high"]
-        
+
         if critical_findings:
             roadmap.append({
                 "priority": "immediate",
@@ -1554,7 +1554,7 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "actions": [f["remediation"] for f in critical_findings[:3]],
                 "rationale": "Address critical security gaps that allow complete system compromise"
             })
-        
+
         if high_findings:
             roadmap.append({
                 "priority": "high",
@@ -1562,7 +1562,7 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
                 "actions": [f["remediation"] for f in high_findings[:5]],
                 "rationale": "Strengthen security controls to prevent advanced attack techniques"
             })
-        
+
         roadmap.append({
             "priority": "medium",
             "timeframe": "90-180 days",
@@ -1573,5 +1573,5 @@ class AdvancedRedTeamSimulationEngine(SecurityOrchestrationService, XORBService)
             ],
             "rationale": "Build long-term security resilience and detection capabilities"
         })
-        
+
         return roadmap

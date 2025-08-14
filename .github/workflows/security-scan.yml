@@ -21,26 +21,26 @@ jobs:
     permissions:
       security-events: write
       contents: read
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Full history for better analysis
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.lock
           cd src/api && pip install -e .
           pip install bandit[toml] safety semgrep pytest-cov
-      
+
       # Secret scanning
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@v2
@@ -48,35 +48,35 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           config-path: .gitleaks.toml
-      
+
       # Python security scanning
       - name: Run Bandit security scan
         run: |
           bandit -r src/api/app -f json -o bandit-report.json || true
           bandit -r src/api/app -f txt
         continue-on-error: true
-      
+
       - name: Upload Bandit results
         uses: actions/upload-artifact@v3
         if: always()
         with:
           name: bandit-results
           path: bandit-report.json
-      
+
       # Dependency vulnerability scanning
       - name: Run Safety check
         run: |
           safety check --json --output safety-report.json || true
           safety check
         continue-on-error: true
-      
+
       - name: Upload Safety results
         uses: actions/upload-artifact@v3
         if: always()
         with:
           name: safety-results
           path: safety-report.json
-      
+
       # Semgrep SAST scanning
       - name: Run Semgrep
         uses: semgrep/semgrep-action@v1
@@ -90,7 +90,7 @@ jobs:
             p/xss
         env:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
-      
+
       # License compliance
       - name: Check license compliance
         run: |
@@ -98,7 +98,7 @@ jobs:
           pip-licenses --format=json --output-file=licenses.json
           pip-licenses --allow-only="MIT;BSD;Apache;ISC;PSF"
         continue-on-error: true
-      
+
       - name: Upload license results
         uses: actions/upload-artifact@v3
         if: always()
@@ -110,7 +110,7 @@ jobs:
   code-quality:
     name: Code Quality & Testing
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: pgvector/pgvector:pg14
@@ -124,7 +124,7 @@ jobs:
           --health-retries 5
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7-alpine
         options: >-
@@ -134,29 +134,29 @@ jobs:
           --health-retries 5
         ports:
           - 6379:6379
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y libmagic1 postgresql-client
-      
+
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.lock
           cd src/api && pip install -e .
           pip install pytest pytest-cov pytest-asyncio mypy ruff black
-      
+
       - name: Set up database
         run: |
           cd src/api
@@ -166,21 +166,21 @@ jobs:
         env:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/xorb_test
           REDIS_URL: redis://localhost:6379/1
-      
+
       # Code formatting
       - name: Check code formatting
         run: |
           cd src/api
           black --check --diff .
           ruff check .
-      
+
       # Type checking
       - name: Run type checking
         run: |
           cd src/api
           mypy app --ignore-missing-imports
         continue-on-error: true
-      
+
       # Testing
       - name: Run tests with coverage
         run: |
@@ -190,14 +190,14 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/xorb_test
           REDIS_URL: redis://localhost:6379/1
           ENVIRONMENT: test
-      
+
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
         with:
           file: src/api/coverage.xml
           flags: unittests
           name: codecov-umbrella
-      
+
       - name: Upload coverage artifacts
         uses: actions/upload-artifact@v3
         if: always()
@@ -211,21 +211,21 @@ jobs:
     runs-on: ubuntu-latest
     needs: [security-analysis, code-quality]
     if: github.event_name == 'push' || github.event_name == 'schedule'
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-      
+
       - name: Log in to Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -236,7 +236,7 @@ jobs:
             type=ref,event=pr
             type=sha,prefix={{branch}}-
             type=raw,value=latest,enable={{is_default_branch}}
-      
+
       - name: Build container image
         uses: docker/build-push-action@v5
         with:
@@ -248,10 +248,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           outputs: type=docker,dest=/tmp/image.tar
-      
+
       - name: Load image for scanning
         run: docker load --input /tmp/image.tar
-      
+
       # Generate SBOM
       - name: Generate SBOM with Syft
         uses: anchore/sbom-action@v0.15.1
@@ -259,13 +259,13 @@ jobs:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: spdx-json
           output-file: sbom.spdx.json
-      
+
       - name: Upload SBOM
         uses: actions/upload-artifact@v3
         with:
           name: sbom
           path: sbom.spdx.json
-      
+
       # Container vulnerability scanning
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
@@ -273,20 +273,20 @@ jobs:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
           format: 'sarif'
           output: 'trivy-results.sarif'
-      
+
       - name: Upload Trivy scan results
         uses: github/codeql-action/upload-sarif@v2
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
-      
+
       - name: Run Trivy config scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'config'
           scan-ref: 'src/api/Dockerfile.secure'
           format: 'table'
-      
+
       # Container compliance scanning
       - name: Run container best practices check
         run: |
@@ -294,25 +294,25 @@ jobs:
             goodwithtech/dockle:latest -f json /tmp/image.tar > dockle-report.json || true
           cat dockle-report.json
         continue-on-error: true
-      
+
       - name: Upload Dockle results
         uses: actions/upload-artifact@v3
         if: always()
         with:
           name: dockle-results
           path: dockle-report.json
-      
+
       # Sign container image (if pushing)
       - name: Install Cosign
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: sigstore/cosign-installer@v3
-      
+
       - name: Push and sign image
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         run: |
           # Push image
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
-          
+
           # Sign with keyless signing
           cosign sign --yes ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
         env:
@@ -324,7 +324,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [code-quality]
     if: github.event_name == 'push'
-    
+
     services:
       postgres:
         image: pgvector/pgvector:pg14
@@ -333,28 +333,28 @@ jobs:
           POSTGRES_DB: xorb_perf
         ports:
           - 5432:5432
-      
+
       redis:
         image: redis:7-alpine
         ports:
           - 6379:6379
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.11'
           cache: 'pip'
-      
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           cd src/api && pip install -e .
           sudo apt-get update && sudo apt-get install -y bombardier
-      
+
       - name: Start application
         run: |
           cd src/api
@@ -367,16 +367,16 @@ jobs:
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/xorb_perf
           REDIS_URL: redis://localhost:6379/0
           ENVIRONMENT: test
-      
+
       - name: Wait for service
         run: |
           timeout 30 bash -c 'until curl -f http://localhost:8000/health; do sleep 1; done'
-      
+
       - name: Run performance tests
         run: |
           # Health endpoint test
           bombardier -c 64 -n 10000 -l http://localhost:8000/health
-          
+
           # API endpoint test (if authentication is available)
           # bombardier -c 32 -n 5000 -H "Authorization: Bearer $TOKEN" http://localhost:8000/api/evidence
         continue-on-error: true
@@ -387,20 +387,20 @@ jobs:
     runs-on: ubuntu-latest
     needs: [security-analysis, container-security]
     if: always()
-    
+
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v3
-      
+
       - name: Generate compliance report
         run: |
           echo "# Security Compliance Report" > compliance-report.md
           echo "Generated on: $(date)" >> compliance-report.md
           echo "" >> compliance-report.md
-          
+
           echo "## Artifacts Generated" >> compliance-report.md
           ls -la */ >> compliance-report.md
-          
+
           echo "## Security Scans Status" >> compliance-report.md
           echo "- ✅ Secret scanning (gitleaks)" >> compliance-report.md
           echo "- ✅ SAST scanning (bandit, semgrep)" >> compliance-report.md
@@ -408,7 +408,7 @@ jobs:
           echo "- ✅ Container scanning (trivy)" >> compliance-report.md
           echo "- ✅ SBOM generation (syft)" >> compliance-report.md
           echo "- ✅ License compliance" >> compliance-report.md
-      
+
       - name: Upload compliance report
         uses: actions/upload-artifact@v3
         with:

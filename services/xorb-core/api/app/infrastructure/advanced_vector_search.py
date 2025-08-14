@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class SearchStrategy(Enum):
     EXACT_MATCH = "exact_match"
-    SEMANTIC_SEARCH = "semantic_search" 
+    SEMANTIC_SEARCH = "semantic_search"
     HYBRID_SEARCH = "hybrid_search"
     GRAPH_SEARCH = "graph_search"
     CONTEXTUAL_SEARCH = "contextual_search"
@@ -46,7 +46,7 @@ class SearchQuery:
     boost_recent: bool = True
     include_metadata: bool = True
     tenant_id: Optional[UUID] = None
-    
+
 
 @dataclass
 class SearchResult:
@@ -75,35 +75,35 @@ class EnhancedSearchResponse:
 
 class AdvancedVectorSearchEngine:
     """Enhanced vector search with AI-powered query optimization"""
-    
+
     def __init__(self, vector_store: VectorStore):
         self.vector_store = vector_store
         self.query_cache = {}  # LRU cache for frequent queries
         self.search_analytics = {}
         self.concept_graphs = {}  # For graph-based search
-        
+
     async def search(self, query: SearchQuery) -> EnhancedSearchResponse:
         """Execute advanced search with strategy optimization"""
         start_time = datetime.utcnow()
-        
+
         try:
             # Analyze query to select optimal strategy
             optimized_query = await self._optimize_query(query)
-            
+
             # Execute search based on strategy
             results = await self._execute_search_strategy(optimized_query)
-            
+
             # Post-process results
             enhanced_results = await self._enhance_results(results, optimized_query)
-            
+
             # Generate search analytics
             search_time = (datetime.utcnow() - start_time).total_seconds() * 1000
             query_analysis = await self._analyze_query_performance(optimized_query, enhanced_results)
-            
+
             # Generate suggestions and related concepts
             suggestions = await self._generate_suggestions(optimized_query, enhanced_results)
             related_concepts = await self._find_related_concepts(optimized_query)
-            
+
             return EnhancedSearchResponse(
                 query=optimized_query,
                 results=enhanced_results,
@@ -114,20 +114,20 @@ class AdvancedVectorSearchEngine:
                 suggestions=suggestions,
                 related_concepts=related_concepts
             )
-            
+
         except Exception as e:
             logger.error(f"Advanced search failed: {e}")
             # Fallback to basic search
             return await self._fallback_search(query)
-    
+
     async def _optimize_query(self, query: SearchQuery) -> SearchQuery:
         """Optimize query based on content analysis and historical performance"""
         optimized = SearchQuery(**asdict(query))
-        
+
         if query.text:
             # Analyze query text for optimal strategy selection
             query_features = await self._analyze_query_text(query.text)
-            
+
             # Select strategy based on query characteristics
             if query_features.get('has_technical_terms', False):
                 optimized.strategy = SearchStrategy.EXACT_MATCH
@@ -137,13 +137,13 @@ class AdvancedVectorSearchEngine:
                 optimized.strategy = SearchStrategy.GRAPH_SEARCH
             else:
                 optimized.strategy = SearchStrategy.HYBRID_SEARCH
-                
+
             # Adjust similarity threshold based on query complexity
             if query_features.get('complexity_score', 0.5) > 0.8:
                 optimized.similarity_threshold = max(0.6, query.similarity_threshold - 0.1)
-                
+
         return optimized
-    
+
     async def _execute_search_strategy(self, query: SearchQuery) -> List[Dict[str, Any]]:
         """Execute search based on selected strategy"""
         if query.strategy == SearchStrategy.EXACT_MATCH:
@@ -158,40 +158,40 @@ class AdvancedVectorSearchEngine:
             return await self._contextual_search(query)
         else:
             return await self._semantic_search(query)  # Default fallback
-    
+
     async def _exact_match_search(self, query: SearchQuery) -> List[Dict[str, Any]]:
         """Exact keyword matching with advanced scoring"""
         if not query.text:
             return []
-        
+
         # Use full-text search with ranking
         search_sql = """
-        SELECT 
+        SELECT
             v.id, v.source_type, v.source_id, v.content_hash,
             v.embedding_model, v.metadata, v.created_at,
-            ts_rank_cd(to_tsvector('english', coalesce(v.metadata->>'content', '')), 
+            ts_rank_cd(to_tsvector('english', coalesce(v.metadata->>'content', '')),
                       plainto_tsquery('english', :search_text)) as rank_score,
             1.0 as similarity
         FROM embedding_vectors v
         WHERE v.tenant_id = :tenant_id
-        AND to_tsvector('english', coalesce(v.metadata->>'content', '')) @@ 
+        AND to_tsvector('english', coalesce(v.metadata->>'content', '')) @@
             plainto_tsquery('english', :search_text)
         ORDER BY rank_score DESC, v.created_at DESC
         LIMIT :limit
         """
-        
+
         params = {
             "search_text": query.text,
             "tenant_id": query.tenant_id,
             "limit": query.limit
         }
-        
+
         results = []
         try:
             async with get_database_connection() as conn:
                 await conn.execute("SELECT set_config('app.tenant_id', $1, false)", str(query.tenant_id))
                 rows = await conn.fetch(search_sql, **params)
-                
+
                 for row in rows:
                     results.append({
                         "id": row["id"],
@@ -203,12 +203,12 @@ class AdvancedVectorSearchEngine:
                         "similarity": float(row["similarity"]),
                         "created_at": row["created_at"]
                     })
-                    
+
         except Exception as e:
             logger.error(f"Exact match search failed: {e}")
-        
+
         return results
-    
+
     async def _semantic_search(self, query: SearchQuery) -> List[Dict[str, Any]]:
         """Enhanced semantic search with query expansion"""
         if query.vector:
@@ -218,7 +218,7 @@ class AdvancedVectorSearchEngine:
             query_vector = await self._generate_query_embedding(query.text)
         else:
             return []
-        
+
         # Enhanced vector search with additional scoring factors
         enhanced_params = {
             "query_vector": query_vector,
@@ -226,28 +226,28 @@ class AdvancedVectorSearchEngine:
             "similarity_threshold": query.similarity_threshold,
             "limit": query.limit * 2  # Get more results for re-ranking
         }
-        
+
         # Add temporal boost if requested
         time_boost_sql = ""
         if query.boost_recent:
             time_boost_sql = """
             * (1 + GREATEST(0, 1 - EXTRACT(EPOCH FROM (NOW() - v.created_at)) / 2592000)) -- 30 days boost
             """
-        
+
         search_sql = f"""
         WITH vector_search AS (
-            SELECT 
+            SELECT
                 v.id, v.source_type, v.source_id, v.content_hash,
                 v.embedding_model, v.metadata, v.created_at,
                 1 - (v.embedding <=> :query_vector::vector) as base_similarity,
                 -- Metadata boost based on source type and quality
-                CASE 
+                CASE
                     WHEN v.source_type = 'threat_intelligence' THEN 1.2
                     WHEN v.source_type = 'evidence' THEN 1.1
                     ELSE 1.0
                 END as source_boost,
                 -- Content length normalization
-                CASE 
+                CASE
                     WHEN length(coalesce(v.metadata->>'content', '')) > 1000 THEN 1.1
                     WHEN length(coalesce(v.metadata->>'content', '')) < 100 THEN 0.9
                     ELSE 1.0
@@ -262,17 +262,17 @@ class AdvancedVectorSearchEngine:
         ORDER BY final_similarity DESC
         LIMIT :limit
         """
-        
+
         results = []
         try:
             async with get_database_connection() as conn:
                 await conn.execute("SELECT set_config('app.tenant_id', $1, false)", str(query.tenant_id))
                 rows = await conn.fetch(search_sql, **enhanced_params)
-                
+
                 for row in rows:
                     results.append({
                         "id": row["id"],
-                        "source_type": row["source_type"], 
+                        "source_type": row["source_type"],
                         "source_id": row["source_id"],
                         "content_hash": row["content_hash"],
                         "embedding_model": row["embedding_model"],
@@ -280,31 +280,31 @@ class AdvancedVectorSearchEngine:
                         "similarity": float(row["final_similarity"]),
                         "created_at": row["created_at"]
                     })
-                    
+
         except Exception as e:
             logger.error(f"Semantic search failed: {e}")
-        
+
         return results[:query.limit]  # Return only requested limit after re-ranking
-    
+
     async def _hybrid_search(self, query: SearchQuery) -> List[Dict[str, Any]]:
         """Combine exact match and semantic search with intelligent weighting"""
         if not query.text:
             return await self._semantic_search(query)
-        
+
         # Execute both search strategies
         exact_results = await self._exact_match_search(query)
         semantic_results = await self._semantic_search(query)
-        
+
         # Merge and re-rank results
         combined_results = {}
-        
+
         # Add exact match results with keyword boost
         for result in exact_results:
             result_id = result["id"]
             combined_results[result_id] = result.copy()
             combined_results[result_id]["keyword_score"] = result.get("similarity", 0.0)
             combined_results[result_id]["semantic_score"] = 0.0
-            
+
         # Add semantic results
         for result in semantic_results:
             result_id = result["id"]
@@ -314,65 +314,65 @@ class AdvancedVectorSearchEngine:
                 combined_results[result_id] = result.copy()
                 combined_results[result_id]["keyword_score"] = 0.0
                 combined_results[result_id]["semantic_score"] = result["similarity"]
-        
+
         # Calculate hybrid score (weighted combination)
         for result in combined_results.values():
             keyword_weight = 0.4
             semantic_weight = 0.6
-            
+
             result["similarity"] = (
-                keyword_weight * result["keyword_score"] + 
+                keyword_weight * result["keyword_score"] +
                 semantic_weight * result["semantic_score"]
             )
-        
+
         # Sort by hybrid score and return top results
         sorted_results = sorted(
-            combined_results.values(), 
-            key=lambda x: x["similarity"], 
+            combined_results.values(),
+            key=lambda x: x["similarity"],
             reverse=True
         )
-        
+
         return sorted_results[:query.limit]
-    
+
     async def _graph_search(self, query: SearchQuery) -> List[Dict[str, Any]]:
         """Graph-based search using concept relationships"""
         # Start with semantic search as base
         base_results = await self._semantic_search(query)
-        
+
         if not base_results:
             return base_results
-            
+
         # Expand search using concept graphs
         expanded_results = base_results.copy()
-        
+
         # Find related concepts for top results
         for result in base_results[:3]:  # Expand top 3 results
             related_vectors = await self._find_related_vectors(
-                result["id"], 
+                result["id"],
                 query.tenant_id,
                 max_depth=2
             )
-            
+
             for related in related_vectors:
                 if related["id"] not in [r["id"] for r in expanded_results]:
                     # Add relationship score
                     related["similarity"] = related["similarity"] * 0.8  # Discount for indirect match
                     expanded_results.append(related)
-        
+
         # Re-sort and limit
         sorted_results = sorted(
             expanded_results,
             key=lambda x: x["similarity"],
             reverse=True
         )
-        
+
         return sorted_results[:query.limit]
-    
+
     async def _contextual_search(self, query: SearchQuery) -> List[Dict[str, Any]]:
         """Context-aware search using query history and user patterns"""
         # Get user's recent search context if available
         user_context = await self._get_user_search_context(query.tenant_id)
-        
+
         # Enhance query with contextual information
         enhanced_query = query
         if user_context and query.text:
@@ -381,30 +381,30 @@ class AdvancedVectorSearchEngine:
             if context_terms:
                 enhanced_text = f"{query.text} {' '.join(context_terms[:3])}"
                 enhanced_query.text = enhanced_text
-        
+
         # Execute semantic search with enhanced query
         results = await self._semantic_search(enhanced_query)
-        
+
         # Re-rank based on user's interaction history
         if user_context:
             preferred_types = user_context.get("preferred_source_types", [])
             for result in results:
                 if result["source_type"] in preferred_types:
                     result["similarity"] *= 1.2  # Boost preferred types
-        
+
         return results
-    
+
     async def _enhance_results(self, results: List[Dict[str, Any]], query: SearchQuery) -> List[SearchResult]:
         """Convert raw results to enhanced SearchResult objects"""
         enhanced_results = []
-        
+
         for result in results:
             # Extract content from metadata
             content = result.get("metadata", {}).get("content", "")
-            
+
             # Generate relevance explanation
             explanation = await self._generate_relevance_explanation(result, query)
-            
+
             search_result = SearchResult(
                 id=result["id"],
                 content=content,
@@ -416,11 +416,11 @@ class AdvancedVectorSearchEngine:
                 created_at=result["created_at"],
                 relevance_explanation=explanation
             )
-            
+
             enhanced_results.append(search_result)
-        
+
         return enhanced_results
-    
+
     async def _analyze_query_text(self, text: str) -> Dict[str, Any]:
         """Analyze query text to determine characteristics"""
         features = {
@@ -430,26 +430,26 @@ class AdvancedVectorSearchEngine:
             "complexity_score": 0.5,
             "intent": "general"
         }
-        
+
         text_lower = text.lower()
-        
+
         # Technical terms detection
         technical_terms = ['ip', 'hash', 'malware', 'vulnerability', 'exploit', 'cve', 'ioc']
         features["has_technical_terms"] = any(term in text_lower for term in technical_terms)
-        
+
         # Conceptual query detection
         conceptual_words = ['how', 'what', 'why', 'explain', 'understand', 'analysis']
         features["is_conceptual"] = any(word in text_lower for word in conceptual_words)
-        
+
         # Relationship detection
         relationship_words = ['related', 'connected', 'similar', 'like', 'associated']
         features["has_relationships"] = any(word in text_lower for word in relationship_words)
-        
+
         # Complexity scoring
         word_count = len(text.split())
         unique_words = len(set(text.lower().split()))
         features["complexity_score"] = min(1.0, (word_count + unique_words) / 20)
-        
+
         # Intent detection
         if features["has_technical_terms"]:
             features["intent"] = "technical_lookup"
@@ -457,24 +457,24 @@ class AdvancedVectorSearchEngine:
             features["intent"] = "conceptual_understanding"
         elif features["has_relationships"]:
             features["intent"] = "relationship_discovery"
-        
+
         return features
-    
+
     async def _generate_query_embedding(self, text: str) -> List[float]:
         """Generate embedding for query text"""
         # This would integrate with the embedding service
         # For now, return a mock embedding
         import random
         return [random.random() for _ in range(1536)]  # OpenAI embedding dimension
-    
+
     async def _find_related_vectors(self, vector_id: UUID, tenant_id: UUID, max_depth: int = 2) -> List[Dict]:
         """Find vectors related to a given vector through graph relationships"""
         related = []
-        
+
         # This would implement graph traversal through vector relationships
         # For now, return empty list as placeholder
         return related
-    
+
     async def _get_user_search_context(self, tenant_id: UUID) -> Dict[str, Any]:
         """Get user's search context and preferences"""
         # This would analyze user's search history and preferences
@@ -483,12 +483,12 @@ class AdvancedVectorSearchEngine:
             "preferred_source_types": ["threat_intelligence", "evidence"],
             "typical_search_patterns": []
         }
-    
+
     async def _generate_relevance_explanation(self, result: Dict[str, Any], query: SearchQuery) -> str:
         """Generate explanation for why this result is relevant"""
         similarity = result.get("similarity", 0.0)
         source_type = result.get("source_type", "unknown")
-        
+
         if similarity > 0.9:
             return f"Highly relevant {source_type} with {similarity:.1%} similarity"
         elif similarity > 0.8:
@@ -497,7 +497,7 @@ class AdvancedVectorSearchEngine:
             return f"Relevant {source_type} with {similarity:.1%} similarity"
         else:
             return f"Potentially relevant {source_type} with {similarity:.1%} similarity"
-    
+
     async def _analyze_query_performance(self, query: SearchQuery, results: List[SearchResult]) -> Dict[str, Any]:
         """Analyze query performance for optimization"""
         return {
@@ -506,35 +506,35 @@ class AdvancedVectorSearchEngine:
             "result_diversity": len(set(r.source_type for r in results)),
             "query_complexity": len(query.text.split()) if query.text else 0
         }
-    
+
     async def _generate_suggestions(self, query: SearchQuery, results: List[SearchResult]) -> List[str]:
         """Generate search suggestions based on results"""
         suggestions = []
-        
+
         if not results:
             suggestions.append("Try broader search terms")
             suggestions.append("Check spelling and try synonyms")
         elif len(results) < query.limit // 2:
             suggestions.append("Try using fewer specific terms")
             suggestions.append("Consider related concepts")
-        
+
         # Add suggestions based on successful result patterns
         if results:
             common_types = {}
             for result in results:
                 source_type = result.source_type
                 common_types[source_type] = common_types.get(source_type, 0) + 1
-            
+
             most_common = max(common_types, key=common_types.get)
             suggestions.append(f"Explore more {most_common} sources")
-        
+
         return suggestions[:3]  # Limit to top 3 suggestions
-    
+
     async def _find_related_concepts(self, query: SearchQuery) -> List[str]:
         """Find concepts related to the query"""
         if not query.text:
             return []
-        
+
         # This would use NLP to find related concepts
         # For now, return mock related concepts
         mock_concepts = {
@@ -542,25 +542,25 @@ class AdvancedVectorSearchEngine:
             "vulnerability": ["exploit", "cve", "patch", "security flaw"],
             "threat": ["attack", "compromise", "breach", "incident"]
         }
-        
+
         related = []
         for term, concepts in mock_concepts.items():
             if term in query.text.lower():
                 related.extend(concepts)
-        
+
         return related[:5]  # Return top 5 related concepts
-    
+
     async def _fallback_search(self, query: SearchQuery) -> EnhancedSearchResponse:
         """Fallback to basic search when advanced search fails"""
         try:
             if query.vector:
                 basic_results = await self.vector_store.search_similar(
-                    query.vector, query.tenant_id, query.limit, 
+                    query.vector, query.tenant_id, query.limit,
                     similarity_threshold=query.similarity_threshold
                 )
             else:
                 basic_results = []
-            
+
             enhanced_results = []
             for result in basic_results:
                 enhanced_results.append(SearchResult(
@@ -574,7 +574,7 @@ class AdvancedVectorSearchEngine:
                     created_at=datetime.utcnow(),  # Fallback timestamp
                     relevance_explanation="Basic similarity match"
                 ))
-            
+
             return EnhancedSearchResponse(
                 query=query,
                 results=enhanced_results,
@@ -585,7 +585,7 @@ class AdvancedVectorSearchEngine:
                 suggestions=["Try a different search approach"],
                 related_concepts=[]
             )
-            
+
         except Exception as e:
             logger.error(f"Fallback search also failed: {e}")
             return EnhancedSearchResponse(
@@ -607,10 +607,10 @@ _search_engine: Optional[AdvancedVectorSearchEngine] = None
 async def get_advanced_search_engine() -> AdvancedVectorSearchEngine:
     """Get global advanced search engine instance"""
     global _search_engine
-    
+
     if _search_engine is None:
         from .vector_store import get_vector_store
         vector_store = get_vector_store()
         _search_engine = AdvancedVectorSearchEngine(vector_store)
-    
+
     return _search_engine

@@ -51,7 +51,7 @@ DASHBOARD_HTML = """
         <p>Enterprise Deployment Dashboard</p>
         <button class="refresh-btn" onclick="location.reload()">🔄 Refresh</button>
     </div>
-    
+
     <div class="status-grid">
         <div class="status-card status-healthy">
             <h3>🚀 Platform Status</h3>
@@ -69,21 +69,21 @@ DASHBOARD_HTML = """
             </div>
             <div class="timestamp" id="last-update">Loading...</div>
         </div>
-        
+
         <div class="status-card">
             <h3>🤖 AI Services</h3>
             <ul class="service-list" id="ai-services">
                 <li>Loading...</li>
             </ul>
         </div>
-        
+
         <div class="status-card">
             <h3>🏗️ Infrastructure</h3>
             <ul class="service-list" id="infrastructure-services">
                 <li>Loading...</li>
             </ul>
         </div>
-        
+
         <div class="status-card">
             <h3>📊 Performance</h3>
             <div id="performance-metrics">
@@ -98,23 +98,23 @@ DASHBOARD_HTML = """
             </div>
         </div>
     </div>
-    
+
     <script>
         async function updateDashboard() {
             try {
                 // Get API Gateway status
                 const gatewayResponse = await fetch('/api/gateway/status');
                 const gatewayData = await gatewayResponse.json();
-                
+
                 // Get services status
                 const servicesResponse = await fetch('/api/services/status');
                 const servicesData = await servicesResponse.json();
-                
+
                 // Update overall status
                 document.getElementById('overall-status').textContent = servicesData.overall_status || 'Unknown';
-                document.getElementById('services-count').textContent = 
+                document.getElementById('services-count').textContent =
                     `${servicesData.healthy_services || 0}/${servicesData.total_services || 0}`;
-                
+
                 // Update AI services
                 const aiServicesList = document.getElementById('ai-services');
                 aiServicesList.innerHTML = '';
@@ -125,7 +125,7 @@ DASHBOARD_HTML = """
                     li.textContent = `✅ ${service}`;
                     aiServicesList.appendChild(li);
                 });
-                
+
                 // Update infrastructure
                 const infraList = document.getElementById('infrastructure-services');
                 infraList.innerHTML = '';
@@ -136,23 +136,23 @@ DASHBOARD_HTML = """
                     li.textContent = `✅ ${service}`;
                     infraList.appendChild(li);
                 });
-                
+
                 // Update performance
                 document.getElementById('api-gateway-status').textContent = '✅ Healthy';
                 document.getElementById('avg-response-time').textContent = '< 5ms';
-                
+
                 // Update timestamp
-                document.getElementById('last-update').textContent = 
+                document.getElementById('last-update').textContent =
                     `Last updated: ${new Date().toLocaleString()}`;
-                    
+
             } catch (error) {
                 console.error('Failed to update dashboard:', error);
             }
         }
-        
+
         // Update dashboard on load
         updateDashboard();
-        
+
         // Auto-refresh every 30 seconds
         setInterval(updateDashboard, 30000);
     </script>
@@ -186,7 +186,7 @@ async def services_status():
     """Get comprehensive services status"""
     services_healthy = 0
     total_services = 10  # Approximate total
-    
+
     # Check key services
     services_to_check = [
         ("http://localhost:8003/health", "Neural Orchestrator"),
@@ -194,7 +194,7 @@ async def services_status():
         ("http://localhost:8005/health", "Threat Detection"),
         ("http://localhost:8008/health", "Evolution Accelerator")
     ]
-    
+
     async with aiohttp.ClientSession() as session:
         for url, name in services_to_check:
             try:
@@ -203,12 +203,12 @@ async def services_status():
                         services_healthy += 1
             except Exception:
                 pass
-    
+
     # Assume infrastructure services are healthy (we validated them)
     services_healthy += 5  # PostgreSQL, Redis, Neo4j, Prometheus, Grafana
-    
+
     overall_status = "healthy" if services_healthy >= 8 else "degraded" if services_healthy >= 6 else "critical"
-    
+
     return {
         "overall_status": overall_status,
         "healthy_services": services_healthy,

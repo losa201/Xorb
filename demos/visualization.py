@@ -28,18 +28,18 @@ class ThreatHuntingVisualizer:
     def plot_anomaly_timeline(self, events: List[Dict], anomalies: List[Dict]) -> None:
         """Plot anomaly detection results over time"""
         plt.figure(figsize=(15, 8))
-        
+
         # Convert timestamps to datetime objects
         timestamps = [event['timestamp'] for event in events]
-        
+
         # Plot all events
         plt.scatter(timestamps, [1]*len(events), alpha=0.3, color='blue', label='Normal Activity')
-        
+
         # Highlight anomalies
         anomaly_timestamps = [a['timestamp'] for a in anomalies]
-        plt.scatter(anomaly_timestamps, [1]*len(anomaly_timestamps), 
+        plt.scatter(anomaly_timestamps, [1]*len(anomaly_timestamps),
                    color='red', label='Anomalies', s=100, edgecolor='black')
-        
+
         plt.yticks([])
         plt.title('Threat Activity Timeline with Anomaly Detection')
         plt.xlabel('Time')
@@ -56,7 +56,7 @@ class ThreatHuntingVisualizer:
         titles = [f.get('title', 'Unknown')[:30] + '...' for f in findings]
         severities = [f.get('severity', 'Unknown') for f in findings]
         confidence = [f.get('confidence', 0) * 100 for f in findings]
-        
+
         # Map severities to colors
         severity_colors = {
             'Critical': 'red',
@@ -65,18 +65,18 @@ class ThreatHuntingVisualizer:
             'Low': 'green'
         }
         colors = [severity_colors.get(s, 'gray') for s in severities]
-        
+
         plt.figure(figsize=(12, max(6, len(findings)*0.5)))
         bars = plt.barh(titles, confidence, color=colors)
         plt.xlabel('Confidence Score (%)')
         plt.title('Threat Findings Risk Assessment')
         plt.xlim(0, 100)
-        
+
         # Add value labels
         for bar in bars:
             width = bar.get_width()
             plt.text(width + 2, bar.get_y() + 0.2, f'{width:.1f}%', va='center')
-        
+
         plt.tight_layout()
         plt.show()
 
@@ -87,7 +87,7 @@ class ThreatHuntingVisualizer:
         for event in network_data:
             proto = event['protocol']
             protocols[proto] = protocols.get(proto, 0) + 1
-        
+
         # Create pie chart
         plt.figure(figsize=(8, 8))
         plt.pie(protocols.values(), labels=protocols.keys(), autopct='%1.1f%%')
@@ -102,15 +102,15 @@ class ThreatHuntingVisualizer:
             return
 
         plt.figure(figsize=(15, 6))
-        
+
         # Create timeline for each finding
         for i, finding in enumerate(findings):
             # Get timestamps from affected assets
             timestamps = [event['timestamp'] for event in finding.get('affected_assets', [])]
             if timestamps:
-                plt.scatter(timestamps, [i]*len(timestamps), 
+                plt.scatter(timestamps, [i]*len(timestamps),
                           label=finding.get('title', f'Finding {i+1}')[:30] + '...')
-        
+
         plt.yticks(range(len(findings)), [f'Finding {i+1}' for i in range(len(findings))])
         plt.title('Attack Timeline Analysis')
         plt.xlabel('Time')

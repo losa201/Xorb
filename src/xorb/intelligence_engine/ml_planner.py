@@ -18,7 +18,7 @@ class MLCampaignPlanner:
         self.tokenizer = None
         self.model = None
         self.logger = logging.getLogger(__name__)
-        
+
     async def initialize(self):
         """Initialize ML models for campaign planning."""
         try:
@@ -28,14 +28,14 @@ class MLCampaignPlanner:
             self.model = AutoModel.from_pretrained(model_name)
             self.model.to(self.device)
             self.model.eval()
-            
+
             # Set EPYC optimization
             torch.set_num_threads(EPYCConfig.TORCH_NUM_THREADS)
-            
+
             self.logger.info("ML Campaign Planner initialized")
         except Exception as e:
             self.logger.error(f"Failed to initialize ML models: {e}")
-    
+
     async def generate_campaign_plan(self, targets: List[UnifiedTarget], requirements: Dict[str, Any]) -> Dict[str, Any]:
         """Generate intelligent campaign plan using ML."""
         try:
@@ -49,10 +49,10 @@ class MLCampaignPlanner:
                     'confidence': target.confidence
                 }
                 target_features.append(features)
-            
+
             # Generate plan phases
             phases = []
-            
+
             # Phase 1: Reconnaissance
             recon_phase = {
                 'phase': 'reconnaissance',
@@ -61,7 +61,7 @@ class MLCampaignPlanner:
                 'priority': 'high'
             }
             phases.append(recon_phase)
-            
+
             # Phase 2: Scanning (based on target complexity)
             scan_duration = min(600, len(targets) * 120)  # Max 10 min
             scan_phase = {
@@ -71,7 +71,7 @@ class MLCampaignPlanner:
                 'priority': 'medium'
             }
             phases.append(scan_phase)
-            
+
             # Phase 3: Exploitation (if authorized)
             if requirements.get('allow_exploitation', False):
                 exploit_phase = {
@@ -81,7 +81,7 @@ class MLCampaignPlanner:
                     'priority': 'high'
                 }
                 phases.append(exploit_phase)
-            
+
             return {
                 'phases': phases,
                 'total_duration_estimate': sum(p['duration_estimate'] for p in phases),
@@ -89,11 +89,11 @@ class MLCampaignPlanner:
                 'risk_level': self._calculate_risk_level(targets),
                 'success_probability': self._estimate_success_probability(target_features)
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error generating campaign plan: {e}")
             return {'error': str(e)}
-    
+
     def _calculate_risk_level(self, targets: List[UnifiedTarget]) -> str:
         """Calculate campaign risk level."""
         total_vulns = sum(len(t.vulnerabilities) for t in targets)
@@ -103,17 +103,17 @@ class MLCampaignPlanner:
             return 'medium'
         else:
             return 'low'
-    
+
     def _estimate_success_probability(self, target_features: List[Dict]) -> float:
         """Estimate campaign success probability."""
         if not target_features:
             return 0.5
-        
+
         # Simple heuristic based on target complexity
         avg_complexity = np.mean([
-            f['ports_count'] + f['services_count'] + f['vuln_count'] 
+            f['ports_count'] + f['services_count'] + f['vuln_count']
             for f in target_features
         ])
-        
+
         # Higher complexity = higher success probability (more attack surface)
         return min(0.95, 0.3 + (avg_complexity * 0.05))

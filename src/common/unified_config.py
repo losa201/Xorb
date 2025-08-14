@@ -59,23 +59,23 @@ class SecurityConfig:
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = field(default_factory=lambda: int(os.getenv("JWT_EXPIRE_MINUTES", "30")))
     refresh_token_expire_days: int = field(default_factory=lambda: int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "7")))
-    
+
     # Password security
     password_min_length: int = field(default_factory=lambda: int(os.getenv("PASSWORD_MIN_LENGTH", "12")))
     password_require_special_chars: bool = field(default_factory=lambda: os.getenv("PASSWORD_REQUIRE_SPECIAL", "true").lower() == "true")
     max_login_attempts: int = field(default_factory=lambda: int(os.getenv("MAX_LOGIN_ATTEMPTS", "5")))
     lockout_duration_minutes: int = field(default_factory=lambda: int(os.getenv("LOCKOUT_DURATION_MINUTES", "30")))
-    
+
     # Argon2 configuration
     argon2_time_cost: int = field(default_factory=lambda: int(os.getenv("ARGON2_TIME_COST", "3")))
     argon2_memory_cost: int = field(default_factory=lambda: int(os.getenv("ARGON2_MEMORY_COST", "65536")))
     argon2_parallelism: int = field(default_factory=lambda: int(os.getenv("ARGON2_PARALLELISM", "2")))
-    
+
     # Zero trust features
     device_fingerprint_required: bool = field(default_factory=lambda: os.getenv("DEVICE_FINGERPRINT_REQUIRED", "true").lower() == "true")
     geolocation_monitoring: bool = field(default_factory=lambda: os.getenv("GEOLOCATION_MONITORING", "true").lower() == "true")
     behavioral_analysis_required: bool = field(default_factory=lambda: os.getenv("BEHAVIORAL_ANALYSIS_REQUIRED", "true").lower() == "true")
-    
+
     # MFA configuration
     mfa_required: bool = field(default_factory=lambda: os.getenv("MFA_REQUIRED", "true").lower() == "true")
     mfa_methods: List[str] = field(default_factory=lambda: os.getenv("MFA_METHODS", "totp,webauthn,sms").split(","))
@@ -111,18 +111,18 @@ class SSOConfig:
     azure_client_id: str = field(default_factory=lambda: get_secret("AZURE_CLIENT_ID", ""))
     azure_client_secret: str = field(default_factory=lambda: get_secret("AZURE_CLIENT_SECRET", ""))
     azure_tenant: str = field(default_factory=lambda: get_secret("AZURE_TENANT", "common"))
-    
+
     # Google
     google_enabled: bool = field(default_factory=lambda: get_secret("GOOGLE_SSO_ENABLED", "false").lower() == "true")
     google_client_id: str = field(default_factory=lambda: get_secret("GOOGLE_CLIENT_ID", ""))
     google_client_secret: str = field(default_factory=lambda: get_secret("GOOGLE_CLIENT_SECRET", ""))
-    
+
     # Okta
     okta_enabled: bool = field(default_factory=lambda: get_secret("OKTA_SSO_ENABLED", "false").lower() == "true")
     okta_client_id: str = field(default_factory=lambda: get_secret("OKTA_CLIENT_ID", ""))
     okta_client_secret: str = field(default_factory=lambda: get_secret("OKTA_CLIENT_SECRET", ""))
     okta_domain: str = field(default_factory=lambda: get_secret("OKTA_DOMAIN", ""))
-    
+
     # GitHub
     github_enabled: bool = field(default_factory=lambda: get_secret("GITHUB_SSO_ENABLED", "false").lower() == "true")
     github_client_id: str = field(default_factory=lambda: get_secret("GITHUB_CLIENT_ID", ""))
@@ -156,7 +156,7 @@ class StorageConfig:
     allowed_extensions: List[str] = field(default_factory=lambda: [
         ext.strip() for ext in os.getenv("ALLOWED_FILE_EXTENSIONS", ".txt,.pdf,.doc,.docx,.json,.csv").split(",")
     ])
-    
+
     # S3 configuration (optional)
     s3_enabled: bool = field(default_factory=lambda: os.getenv("S3_ENABLED", "false").lower() == "true")
     s3_bucket: str = field(default_factory=lambda: os.getenv("S3_BUCKET", ""))
@@ -181,17 +181,17 @@ class UnifiedConfig:
     Unified Configuration System
     Consolidates all configuration classes into a single, comprehensive system
     """
-    
+
     # Environment
     environment: Environment = field(default_factory=lambda: Environment(os.getenv("ENVIRONMENT", "development")))
     debug: bool = field(default_factory=lambda: os.getenv("DEBUG", "false").lower() == "true")
     log_level: LogLevel = field(default_factory=lambda: LogLevel(os.getenv("LOG_LEVEL", "INFO")))
-    
+
     # Application info
     app_name: str = "XORB PTaaS Platform"
     app_version: str = "1.0.0"
     app_description: str = "Penetration Testing as a Service Platform"
-    
+
     # Configuration sections
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     redis: RedisConfig = field(default_factory=RedisConfig)
@@ -203,19 +203,19 @@ class UnifiedConfig:
     services: ServiceConfig = field(default_factory=ServiceConfig)
     storage: StorageConfig = field(default_factory=StorageConfig)
     epyc: EPYCConfig = field(default_factory=EPYCConfig)
-    
+
     def is_production(self) -> bool:
         """Check if running in production"""
         return self.environment == Environment.PRODUCTION
-    
+
     def is_development(self) -> bool:
         """Check if running in development"""
         return self.environment == Environment.DEVELOPMENT
-    
+
     def is_testing(self) -> bool:
         """Check if running in testing"""
         return self.environment == Environment.TESTING
-    
+
     def get_sso_providers(self) -> List[str]:
         """Get list of enabled SSO providers"""
         providers = []
@@ -228,41 +228,41 @@ class UnifiedConfig:
         if self.sso.github_enabled and self.sso.github_client_id:
             providers.append("github")
         return providers
-    
+
     def validate(self) -> List[str]:
         """Validate configuration and return list of errors"""
         errors = []
-        
+
         # Production validation
         if self.is_production():
             if not self.security.jwt_secret or self.security.jwt_secret == "dev-secret-change-in-production":
                 errors.append("JWT_SECRET must be set in production")
-            
+
             if "localhost" in self.database.url:
                 errors.append("Production should not use localhost database")
-            
+
             if self.debug:
                 errors.append("Debug mode should be disabled in production")
-        
+
         # SSO validation
         if self.sso.azure_enabled and (not self.sso.azure_client_id or not self.sso.azure_client_secret):
             errors.append("Azure SSO enabled but missing client credentials")
-        
+
         if self.sso.google_enabled and (not self.sso.google_client_id or not self.sso.google_client_secret):
             errors.append("Google SSO enabled but missing client credentials")
-        
+
         if self.sso.okta_enabled and (not self.sso.okta_client_id or not self.sso.okta_client_secret or not self.sso.okta_domain):
             errors.append("Okta SSO enabled but missing client credentials or domain")
-        
+
         if self.sso.github_enabled and (not self.sso.github_client_id or not self.sso.github_client_secret):
             errors.append("GitHub SSO enabled but missing client credentials")
-        
+
         # Storage validation
         if self.storage.s3_enabled and (not self.storage.s3_bucket or not self.storage.s3_access_key):
             errors.append("S3 storage enabled but missing configuration")
-        
+
         return errors
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert configuration to dictionary (for serialization)"""
         result = {}
@@ -284,26 +284,26 @@ def validate_config() -> bool:
     """Validate configuration and print results"""
     config = get_config()
     errors = config.validate()
-    
+
     if errors:
         print("❌ Configuration validation failed:")
         for error in errors:
             print(f"   • {error}")
         return False
-    
+
     print("✅ Configuration validation passed")
-    
+
     # Print configuration summary
     print(f"   Environment: {config.environment.value}")
     print(f"   Debug Mode: {config.debug}")
     print(f"   Database: {config.database.url.split('@')[-1] if '@' in config.database.url else 'localhost'}")
-    
+
     sso_providers = config.get_sso_providers()
     if sso_providers:
         print(f"   SSO Providers: {', '.join(sso_providers)}")
     else:
         print("   SSO Providers: None (local auth only)")
-    
+
     return True
 
 

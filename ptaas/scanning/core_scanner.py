@@ -30,7 +30,7 @@ class ScanResult:
     findings: List[Dict]
     metadata: Dict
     timestamp: datetime
-    
+
     def to_dict(self):
         return {
             "scan_id": self.scan_id,
@@ -54,11 +54,11 @@ class VulnerabilityScanner:
         """Execute a scan of the specified type against the target"""
         scan_id = self._generate_scan_id(target)
         self.logger.info(f"Starting {scan_type} scan with ID: {scan_id}")
-        
+
         try:
             scan_func = self.supported_scans[scan_type]
             findings = await scan_func(target)
-            
+
             result = ScanResult(
                 scan_id=scan_id,
                 target=target,
@@ -71,10 +71,10 @@ class VulnerabilityScanner:
                 },
                 timestamp=datetime.utcnow()
             )
-            
+
             self.logger.info(f"Scan completed with {len(findings)} findings")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Scan failed: {str(e)}")
             raise

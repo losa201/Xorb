@@ -115,7 +115,7 @@ class CampaignROIAnalysis:
 class XorbBusinessIntelligenceSystem:
     """
     XORB Comprehensive Business Intelligence System
-    
+
     Provides advanced analytics, reporting, and business intelligence
     across all XORB operations and campaigns.
     """

@@ -67,26 +67,26 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <details>
   <summary>Brew</summary>
-  
+
   ```sh
   brew install nuclei
   ```
-  
+
 </details>
 <details>
   <summary>Docker</summary>
-  
+
   ```sh
   docker pull projectdiscovery/nuclei:latest
   ```
-  
+
 </details>
 
 **更多的安装方式 [请点击此处](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
 
 <table>
 <tr>
-<td>  
+<td>
 
 ### Nuclei模板
 
@@ -148,12 +148,12 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -it, -include-templates string[]      执行指定模板，即使是被默认或配置排除的模板
    -et, -exclude-templates string[]      排除指定模板或者模板目录（逗号分隔，文件）
    -em, -exclude-matchers string[]       排除指定模板matcher
-   -s, -severity value[]                 根据严重程度运行模板，可选值有：info,low,medium,high,critical   
+   -s, -severity value[]                 根据严重程度运行模板，可选值有：info,low,medium,high,critical
    -es, -exclude-severity value[]        根据严重程度排除模板，可选值有：info,low,medium,high,critical
    -pt, -type value[]                    根据类型运行模板，可选值有：dns, file, http, headless, network, workflow, ssl, websocket, whois
    -ept, -exclude-type value[]           根据类型排除模板，可选值有：dns, file, http, headless, network, workflow, ssl, websocket, whois
    -tc, -template-condition string[]     根据表达式运行模板
-   
+
 
 输出：
    -o, -output string                    输出发现的问题到文件
@@ -360,7 +360,7 @@ Nuclei提供了大量有助于安全工程师在工作流定制相关的功能�
 
 <table>
 <tr>
-<td>  
+<td>
 
 **对于赏金猎人：**
 

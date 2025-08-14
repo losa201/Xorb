@@ -47,7 +47,7 @@ def require_permission(permission: Permission):
 
 __all__ = [
     "APISecurityMiddleware",
-    "SecurityConfig", 
+    "SecurityConfig",
     "BaseValidator",
     "SecurityValidator",
     "SecurityPolicy",

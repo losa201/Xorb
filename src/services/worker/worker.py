@@ -90,7 +90,7 @@ class TaskHandler:
         try:
             # In real implementation, this would interface with threat intel platforms
             intel_data = task.data.get("intel", {})
-            
+
             # Simulate processing
             result = {
                 "task_id": task.metadata.task_id,
@@ -100,7 +100,7 @@ class TaskHandler:
                 },
                 "processed_at": datetime.utcnow().isoformat()
             }
-            
+
             logger.info(f"Threat intel processed: {task.metadata.task_id}")
             return result
         except Exception as e:
@@ -114,7 +114,7 @@ class TaskHandler:
         try:
             # In real implementation, this would manage deception grid nodes
             decoy_data = task.data.get("decoy", {})
-            
+
             # Simulate processing
             result = {
                 "task_id": task.metadata.task_id,
@@ -125,7 +125,7 @@ class TaskHandler:
                 "services": decoy_data.get("services", ["ssh", "http"]),
                 "status": "active"
             }
-            
+
             logger.info(f"Deception grid processed: {task.metadata.task_id}")
             return result
         except Exception as e:
@@ -139,7 +139,7 @@ class TaskHandler:
         try:
             # In real implementation, this would interface with quantum-safe crypto libraries
             crypto_data = task.data.get("crypto", {})
-            
+
             # Simulate processing
             result = {
                 "task_id": task.metadata.task_id,
@@ -150,7 +150,7 @@ class TaskHandler:
                 "key_size": 32,
                 "expires_in": "3600s"
             }
-            
+
             logger.info(f"Quantum crypto processed: {task.metadata.task_id}")
             return result
         except Exception as e:
@@ -164,7 +164,7 @@ class TaskHandler:
         try:
             # In real implementation, this would interface with compliance frameworks
             compliance_data = task.data.get("compliance", {})
-            
+
             # Simulate processing
             result = {
                 "task_id": task.metadata.task_id,
@@ -185,7 +185,7 @@ class TaskHandler:
                 "score": 85.5,
                 "recommendations": ["update_password_policy", "enable_mfa"]
             }
-            
+
             logger.info(f"Compliance processed: {task.metadata.task_id}")
             return result
         except Exception as e:
@@ -203,17 +203,17 @@ class WorkerService:
         self.redis_client = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB)
         self.running = True
         self.setup_signal_handlers()
-        
+
     def setup_signal_handlers(self):
         """Set up signal handlers for graceful shutdown"""
         signal.signal(signal.SIGINT, self.shutdown)
         signal.signal(signal.SIGTERM, self.shutdown)
-        
+
     def shutdown(self, signum, frame):
         """Handle shutdown signals"""
         logger.info(f"Shutting down worker {WORKER_ID}...")
         self.running = False
-        
+
     def process_task(self, task_data: str) -> None:
         """Process a single task"""
         try:
@@ -221,39 +221,39 @@ class WorkerService:
             task_json = json.loads(task_data)
             metadata = TaskMetadata(**task_json["metadata"])
             token = task_json["token"]
-            
+
             # Verify token
             token_data = WorkerSecurity.verify_token(token)
             if not token_data:
                 logger.error("Invalid token")
                 return
-            
+
             # Decrypt data
             encrypted_data = task_json["data"]
             decrypted_data = WorkerSecurity.decrypt_data(encrypted_data)
             data = json.loads(decrypted_data)
-            
+
             # Create task object
             task = Task(metadata=metadata, data=data, token=token)
-            
+
             # Get handler
             handler = task_handlers.get(metadata.module)
             if not handler:
                 logger.error(f"No handler found for module: {metadata.module}")
                 return
-            
+
             # Process task
             result = handler(task)
-            
+
             # Store result
             self.redis_client.setex(
-                f"result:{metadata.task_id}", 
+                f"result:{metadata.task_id}",
                 3600,  # 1 hour expiration
                 json.dumps(result)
             )
-            
+
             logger.info(f"Task completed: {metadata.task_id}")
-            
+
         except Exception as e:
             logger.error(f"Error processing task: {str(e)}")
             # Increment retry counter
@@ -264,7 +264,7 @@ class WorkerService:
                 logger.info(f"Task requeued: {metadata.task_id} (retry {metadata.retries})")
             else:
                 logger.error(f"Task failed after {metadata.max_retries} retries: {metadata.task_id}")
-    
+
     def run(self):
         """Run the worker service"""
         logger.info(f"Starting XORB worker {WORKER_ID}")

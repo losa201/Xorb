@@ -39,50 +39,50 @@ try:
     from prometheus_fastapi_instrumentator import Instrumentator
     from prometheus_client import Counter, Histogram, Gauge
     PROMETHEUS_AVAILABLE = True
-    
+
     # Custom metrics
     ERROR_COUNTER = Counter('xorb_api_errors_total', 'Total API errors', ['service', 'category', 'severity'])
     RESPONSE_TIME = Histogram('xorb_api_response_time_seconds', 'API response time')
     ACTIVE_REQUESTS = Gauge('xorb_api_active_requests', 'Active API requests')
     CIRCUIT_BREAKER_STATE = Gauge('xorb_circuit_breaker_state', 'Circuit breaker state', ['service'])
-    
+
 except ImportError:
     PROMETHEUS_AVAILABLE = False
     print("Warning: Prometheus instrumentation not available")
 
 class ErrorHandlingMiddleware(BaseHTTPMiddleware):
     """Middleware for comprehensive error handling"""
-    
+
     def __init__(self, app, error_handler: XORBErrorHandler):
         super().__init__(app)
         self.error_handler = error_handler
-        
+
     async def dispatch(self, request: Request, call_next):
         request_id = str(uuid.uuid4())
         start_time = time.time()
-        
+
         # Add request context
         request.state.request_id = request_id
         request.state.start_time = start_time
-        
+
         if PROMETHEUS_AVAILABLE:
             ACTIVE_REQUESTS.inc()
-        
+
         try:
             response = await call_next(request)
-            
+
             # Log successful requests
             duration = time.time() - start_time
-            
+
             if PROMETHEUS_AVAILABLE:
                 RESPONSE_TIME.observe(duration)
-            
+
             # Add error handling headers
             response.headers["X-Request-ID"] = request_id
             response.headers["X-Response-Time"] = f"{duration:.3f}s"
-            
+
             return response
-            
+
         except Exception as e:
             # Handle unexpected errors
             error_context = self.error_handler.handle_error(
@@ -97,14 +97,14 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
                     "duration": time.time() - start_time
                 }
             )
-            
+
             if PROMETHEUS_AVAILABLE:
                 ERROR_COUNTER.labels(
                     service="neural_orchestrator",
                     category=error_context.category.value,
                     severity=error_context.severity.value
                 ).inc()
-            
+
             # Return user-friendly error response
             return JSONResponse(
                 status_code=500,
@@ -123,7 +123,7 @@ class ErrorHandlingMiddleware(BaseHTTPMiddleware):
 
 class HealthChecker:
     """Health checking with circuit breaker patterns"""
-    
+
     def __init__(self, error_handler: XORBErrorHandler):
         self.error_handler = error_handler
         self.dependencies = {
@@ -133,13 +133,13 @@ class HealthChecker:
             "external_apis": self._check_external_apis
         }
         self.health_status = {}
-        
+
         # Register recovery actions
         self._register_recovery_actions()
-    
+
     def _register_recovery_actions(self):
         """Register health check recovery actions"""
-        
+
         # Database connection recovery
         db_recovery = RecoveryAction(
             action_id="db_reconnect",
@@ -150,7 +150,7 @@ class HealthChecker:
             conditions={"categories": ["database"]}
         )
         self.error_handler.register_recovery_action(db_recovery)
-        
+
         # Redis connection recovery
         redis_recovery = RecoveryAction(
             action_id="redis_reconnect",
@@ -161,7 +161,7 @@ class HealthChecker:
             conditions={"categories": ["external_service"]}
         )
         self.error_handler.register_recovery_action(redis_recovery)
-        
+
         # Neural model fallback
         model_fallback = RecoveryAction(
             action_id="model_fallback",
@@ -171,7 +171,7 @@ class HealthChecker:
             conditions={"categories": ["business_logic"]}
         )
         self.error_handler.register_recovery_action(model_fallback)
-    
+
     async def _recover_database_connection(self, error_context) -> bool:
         """Attempt to recover database connection"""
         try:
@@ -180,7 +180,7 @@ class HealthChecker:
             return True
         except Exception:
             return False
-    
+
     async def _recover_redis_connection(self, error_context) -> bool:
         """Attempt to recover Redis connection"""
         try:
@@ -189,7 +189,7 @@ class HealthChecker:
             return True
         except Exception:
             return False
-    
+
     async def _fallback_neural_model(self, error_context) -> bool:
         """Fallback to basic neural model"""
         try:
@@ -197,7 +197,7 @@ class HealthChecker:
             return True
         except Exception:
             return False
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.DATABASE,
         severity=ErrorSeverity.HIGH,
@@ -211,7 +211,7 @@ class HealthChecker:
             return {"status": "healthy", "response_time": 0.01}
         except Exception as e:
             raise ConnectionError(f"Database connection failed: {e}")
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.EXTERNAL_SERVICE,
         severity=ErrorSeverity.MEDIUM,
@@ -225,7 +225,7 @@ class HealthChecker:
             return {"status": "healthy", "response_time": 0.005}
         except Exception as e:
             raise ConnectionError(f"Redis connection failed: {e}")
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.BUSINESS_LOGIC,
         severity=ErrorSeverity.MEDIUM,
@@ -242,7 +242,7 @@ class HealthChecker:
             }
         except Exception as e:
             raise RuntimeError(f"Neural model check failed: {e}")
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.EXTERNAL_SERVICE,
         severity=ErrorSeverity.LOW,
@@ -255,12 +255,12 @@ class HealthChecker:
             return {"status": "healthy", "external_services": 2}
         except Exception as e:
             raise ConnectionError(f"External API check failed: {e}")
-    
+
     async def get_health_status(self) -> Dict[str, Any]:
         """Get comprehensive health status"""
         overall_status = "healthy"
         checks = {}
-        
+
         for name, check_func in self.dependencies.items():
             try:
                 result = await check_func()
@@ -272,7 +272,7 @@ class HealthChecker:
                     "error": str(e),
                     "degraded": self.error_handler.is_service_degraded(check_func.__name__)
                 }
-        
+
         return {
             "status": overall_status,
             "timestamp": datetime.now().isoformat(),
@@ -284,7 +284,7 @@ class HealthChecker:
 
 class NeuralOrchestrator:
     """Enhanced Neural Orchestrator with error handling"""
-    
+
     def __init__(self, error_handler: XORBErrorHandler):
         self.error_handler = error_handler
         self.active_agents = 0
@@ -294,13 +294,13 @@ class NeuralOrchestrator:
             "errors_handled": 0,
             "average_response_time": 0.0
         }
-        
+
         # Register recovery actions for orchestration
         self._register_orchestration_recovery_actions()
-    
+
     def _register_orchestration_recovery_actions(self):
         """Register orchestration-specific recovery actions"""
-        
+
         # Agent scaling recovery
         agent_scaling = RecoveryAction(
             action_id="scale_agents",
@@ -310,7 +310,7 @@ class NeuralOrchestrator:
             conditions={"categories": ["system_resource"]}
         )
         self.error_handler.register_recovery_action(agent_scaling)
-        
+
         # Model reload recovery
         model_reload = RecoveryAction(
             action_id="reload_models",
@@ -321,7 +321,7 @@ class NeuralOrchestrator:
             conditions={"categories": ["business_logic"]}
         )
         self.error_handler.register_recovery_action(model_reload)
-    
+
     async def _scale_agents_recovery(self, error_context) -> bool:
         """Recovery action to scale neural agents"""
         try:
@@ -331,7 +331,7 @@ class NeuralOrchestrator:
             return False
         except Exception:
             return False
-    
+
     async def _reload_models_recovery(self, error_context) -> bool:
         """Recovery action to reload neural models"""
         try:
@@ -340,7 +340,7 @@ class NeuralOrchestrator:
             return True
         except Exception:
             return False
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.BUSINESS_LOGIC,
         severity=ErrorSeverity.HIGH,
@@ -351,7 +351,7 @@ class NeuralOrchestrator:
         try:
             # Simulate agent orchestration
             task_id = str(uuid.uuid4())
-            
+
             # Check if service is degraded
             if self.error_handler.is_service_degraded("orchestrate_agents"):
                 return {
@@ -361,19 +361,19 @@ class NeuralOrchestrator:
                     "agents_allocated": min(2, self.active_agents),
                     "estimated_completion": "extended"
                 }
-            
+
             # Normal orchestration
             agents_needed = request_data.get("complexity", 3)
-            
+
             if agents_needed > 10:
                 raise ValueError("Too many agents requested")
-            
+
             # Simulate orchestration work
             await asyncio.sleep(0.1)
-            
+
             self.active_agents += agents_needed
             self.performance_metrics["requests_processed"] += 1
-            
+
             return {
                 "task_id": task_id,
                 "status": "success",
@@ -381,7 +381,7 @@ class NeuralOrchestrator:
                 "estimated_completion": "2-5 minutes",
                 "neural_models_used": self.neural_models_loaded
             }
-            
+
         except ValueError as e:
             # Handle validation errors
             raise HTTPException(status_code=400, detail=str(e))
@@ -389,7 +389,7 @@ class NeuralOrchestrator:
             # Handle unexpected errors
             self.performance_metrics["errors_handled"] += 1
             raise RuntimeError(f"Orchestration failed: {e}")
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.BUSINESS_LOGIC,
         severity=ErrorSeverity.MEDIUM,
@@ -414,7 +414,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan management"""
     # Startup
     print("🚀 Starting Enhanced Neural Orchestrator...")
-    
+
     # Initialize Prometheus instrumentation
     if PROMETHEUS_AVAILABLE:
         instrumentator = Instrumentator(
@@ -429,18 +429,18 @@ async def lifespan(app: FastAPI):
         )
         instrumentator.instrument(app).expose(app)
         print("📊 Prometheus instrumentation enabled")
-    
+
     print("✅ Neural Orchestrator startup complete")
-    
+
     yield
-    
+
     # Shutdown
     print("🛑 Shutting down Enhanced Neural Orchestrator...")
-    
+
     # Generate final error report
     error_summary = error_handler.get_error_summary()
     print(f"📋 Final Error Summary: {json.dumps(error_summary, indent=2, default=str)}")
-    
+
     print("✅ Neural Orchestrator shutdown complete")
 
 # Create FastAPI application
@@ -478,14 +478,14 @@ async def custom_http_exception_handler(request: Request, exc: HTTPException):
             "request_id": getattr(request.state, 'request_id', 'unknown')
         }
     )
-    
+
     if PROMETHEUS_AVAILABLE:
         ERROR_COUNTER.labels(
             service="neural_orchestrator",
             category=error_context.category.value,
             severity=error_context.severity.value
         ).inc()
-    
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
@@ -508,14 +508,14 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "request_id": getattr(request.state, 'request_id', 'unknown')
         }
     )
-    
+
     if PROMETHEUS_AVAILABLE:
         ERROR_COUNTER.labels(
             service="neural_orchestrator",
             category="validation",
             severity="low"
         ).inc()
-    
+
     return JSONResponse(
         status_code=422,
         content={
@@ -589,7 +589,7 @@ async def get_performance_metrics():
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     print("🧠 Starting Enhanced XORB Neural Orchestrator...")
     uvicorn.run(
         "enhanced_main:app",

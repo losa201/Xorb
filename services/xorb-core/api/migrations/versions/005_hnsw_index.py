@@ -31,7 +31,7 @@ def upgrade():
 
     # Create additional index for cosine distance if needed
     op.execute("""
-        CREATE INDEX CONCURRENTLY IF NOT EXISTS findings_embedding_cosine_hnsw  
+        CREATE INDEX CONCURRENTLY IF NOT EXISTS findings_embedding_cosine_hnsw
         ON findings
         USING hnsw (embedding vector_cosine_ops)
         WITH (m = 16, ef_construction = 64);

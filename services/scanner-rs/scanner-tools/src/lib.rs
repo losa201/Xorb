@@ -1,5 +1,5 @@
 //! Security Tool Integrations
-//! 
+//!
 //! Production-ready wrappers for security scanning tools:
 //! - Nmap: Network discovery and port scanning
 //! - Nuclei: Modern vulnerability scanner
@@ -26,13 +26,13 @@ use std::time::Duration;
 pub trait SecurityTool {
     /// Tool name identifier
     fn name(&self) -> &str;
-    
+
     /// Execute tool scan with target and options
     async fn scan(&self, target: &str, options: &ToolOptions) -> Result<ToolResult>;
-    
+
     /// Check if tool is available on system
     async fn is_available(&self) -> bool;
-    
+
     /// Get tool version information
     async fn version(&self) -> Result<String>;
 }
@@ -42,16 +42,16 @@ pub trait SecurityTool {
 pub struct ToolOptions {
     /// Maximum execution timeout
     pub timeout: Duration,
-    
+
     /// Stealth mode (slower, less detectable)
     pub stealth: bool,
-    
+
     /// Aggressive scanning (faster, more detectable)
     pub aggressive: bool,
-    
+
     /// Additional custom arguments
     pub extra_args: Vec<String>,
-    
+
     /// Output format preference
     pub output_format: OutputFormat,
 }
@@ -70,19 +70,19 @@ pub enum OutputFormat {
 pub struct ToolResult {
     /// Tool that generated this result
     pub tool_name: String,
-    
+
     /// Target that was scanned
     pub target: String,
-    
+
     /// Execution status
     pub status: ExecutionStatus,
-    
+
     /// Raw tool output
     pub raw_output: String,
-    
+
     /// Parsed structured findings
     pub findings: Vec<Finding>,
-    
+
     /// Execution metadata
     pub metadata: ExecutionMetadata,
 }
@@ -101,19 +101,19 @@ pub enum ExecutionStatus {
 pub struct Finding {
     /// Finding identifier
     pub id: String,
-    
+
     /// Finding title/summary
     pub title: String,
-    
+
     /// Detailed description
     pub description: String,
-    
+
     /// Severity level
     pub severity: Severity,
-    
+
     /// Affected target/port/service
     pub target: String,
-    
+
     /// Additional metadata
     pub metadata: std::collections::HashMap<String, String>,
 }
@@ -133,19 +133,19 @@ pub enum Severity {
 pub struct ExecutionMetadata {
     /// Start time
     pub start_time: chrono::DateTime<chrono::Utc>,
-    
+
     /// End time
     pub end_time: chrono::DateTime<chrono::Utc>,
-    
+
     /// Duration in milliseconds
     pub duration_ms: u64,
-    
+
     /// Exit code
     pub exit_code: Option<i32>,
-    
+
     /// Tool version used
     pub tool_version: String,
-    
+
     /// Command line executed
     pub command_line: String,
 }
@@ -187,7 +187,7 @@ impl ToolFactory {
             Box::new(NiktoTool::new()),
         ]
     }
-    
+
     /// Create tool by name
     pub fn create_by_name(name: &str) -> Option<Box<dyn SecurityTool + Send + Sync>> {
         match name.to_lowercase().as_str() {

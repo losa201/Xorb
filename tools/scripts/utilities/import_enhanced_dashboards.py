@@ -14,16 +14,16 @@ class XORBDashboardImporter:
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }
-        
+
     def import_dashboard(self, dashboard_file, dashboard_name):
         """Import a single dashboard from JSON file"""
         print(f"📊 Importing {dashboard_name}...")
-        
+
         try:
             # Read dashboard JSON
             with open(dashboard_file, 'r') as f:
                 dashboard_json = json.load(f)
-            
+
             # Prepare import payload
             import_payload = {
                 "dashboard": dashboard_json,
@@ -31,7 +31,7 @@ class XORBDashboardImporter:
                 "inputs": [],
                 "folderId": 0
             }
-            
+
             # Import dashboard
             response = requests.post(
                 f"{self.grafana_url}/api/dashboards/db",
@@ -39,7 +39,7 @@ class XORBDashboardImporter:
                 headers=self.headers,
                 auth=self.auth
             )
-            
+
             if response.status_code == 200:
                 result = response.json()
                 print(f"✅ Successfully imported {dashboard_name}")
@@ -50,15 +50,15 @@ class XORBDashboardImporter:
                 print(f"❌ Failed to import {dashboard_name}: {response.status_code}")
                 print(f"   Error: {response.text}")
                 return False
-                
+
         except Exception as e:
             print(f"❌ Error importing {dashboard_name}: {e}")
             return False
-    
+
     def setup_datasource(self):
         """Ensure Prometheus datasource is configured"""
         print("🔧 Setting up Prometheus datasource...")
-        
+
         datasource_config = {
             "name": "Prometheus",
             "type": "prometheus",
@@ -66,7 +66,7 @@ class XORBDashboardImporter:
             "access": "proxy",
             "isDefault": True
         }
-        
+
         try:
             response = requests.post(
                 f"{self.grafana_url}/api/datasources",
@@ -74,18 +74,18 @@ class XORBDashboardImporter:
                 headers=self.headers,
                 auth=self.auth
             )
-            
+
             if response.status_code in [200, 409]:  # 409 = already exists
                 print("✅ Prometheus datasource configured")
                 return True
             else:
                 print(f"⚠️  Datasource setup warning: {response.status_code}")
                 return False
-                
+
         except Exception as e:
             print(f"❌ Error setting up datasource: {e}")
             return False
-    
+
     def import_all_dashboards(self):
         """Import all XORB enhanced dashboards"""
         print("🎯 XORB ENHANCED DASHBOARD IMPORT")
@@ -93,11 +93,11 @@ class XORBDashboardImporter:
         print(f"📅 Import Time: {datetime.now().isoformat()}")
         print(f"🌐 Grafana URL: {self.grafana_url}")
         print()
-        
+
         # Setup datasource
         self.setup_datasource()
         print()
-        
+
         # Dashboard configurations
         dashboards = [
             {
@@ -126,22 +126,22 @@ class XORBDashboardImporter:
                 "description": "Historical data patterns and success trend analysis"
             }
         ]
-        
+
         # Import each dashboard
         successful_imports = 0
         for dashboard in dashboards:
             print(f"📋 {dashboard['name']}")
             print(f"   Description: {dashboard['description']}")
-            
+
             if os.path.exists(dashboard['file']):
                 if self.import_dashboard(dashboard['file'], dashboard['name']):
                     successful_imports += 1
                     time.sleep(1)  # Brief pause between imports
             else:
                 print(f"❌ Dashboard file not found: {dashboard['file']}")
-            
+
             print()
-        
+
         print("🎊 DASHBOARD IMPORT COMPLETE")
         print("=" * 50)
         print(f"✅ Successfully imported: {successful_imports}/{len(dashboards)} dashboards")
@@ -150,12 +150,12 @@ class XORBDashboardImporter:
         print(f"   Username: admin")
         print(f"   Password: xorb_rl_admin_2025")
         print()
-        
+
         print("📊 AVAILABLE DASHBOARDS:")
         for i, dashboard in enumerate(dashboards, 1):
             status = "✅" if i <= successful_imports else "❌"
             print(f"  {status} {dashboard['name']}")
-        
+
         print()
         print("🎯 DASHBOARD FEATURES:")
         print("  • 🧠 Real-time RL agent performance tracking")
@@ -165,13 +165,13 @@ class XORBDashboardImporter:
         print("  • 📈 Historical data analysis and trends")
         print("  • 🎨 Dark theme with interactive visualizations")
         print("  • 🔄 Auto-refresh every 5-10 seconds")
-        
+
         return successful_imports == len(dashboards)
 
 def main():
     """Main execution function"""
     importer = XORBDashboardImporter()
-    
+
     # Wait for Grafana to be ready
     print("⏳ Waiting for Grafana to be ready...")
     max_retries = 30
@@ -183,18 +183,18 @@ def main():
                 break
         except:
             pass
-        
+
         if i < max_retries - 1:
             print(f"   Retry {i+1}/{max_retries}...")
             time.sleep(2)
         else:
             print("❌ Grafana not ready, proceeding anyway...")
-    
+
     print()
-    
+
     # Import all dashboards
     success = importer.import_all_dashboards()
-    
+
     if success:
         print("🎉 ALL DASHBOARDS IMPORTED SUCCESSFULLY!")
         print()
@@ -212,7 +212,7 @@ def main():
         print("• Historical analysis with 23 learned patterns and trends")
     else:
         print("⚠️  Some dashboards failed to import. Check the logs above.")
-    
+
     return success
 
 if __name__ == "__main__":

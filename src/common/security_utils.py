@@ -111,13 +111,13 @@ class UnifiedBackupManager:
     Unified backup manager to replace multiple backup system implementations
     Consolidates functionality from various backup classes across the codebase
     """
-    
+
     def __init__(self, backup_root: str = "/tmp/xorb_backups"):
         self.backup_root = Path(backup_root)
         self.backup_root.mkdir(parents=True, exist_ok=True)
         self.operations: List[BackupOperation] = []
         self.logger = logging.getLogger(f"{__name__}.UnifiedBackupManager")
-        
+
         # Generate encryption key for backup encryption
         key_file = self.backup_root / ".backup_key"
         if key_file.exists():
@@ -128,16 +128,16 @@ class UnifiedBackupManager:
             with open(key_file, 'wb') as f:
                 f.write(self.encryption_key)
             os.chmod(key_file, 0o600)  # Restrict permissions
-    
+
     async def create_backup(self, source_path: str, backup_name: str = None) -> BackupOperation:
         """Create a backup of the specified path"""
         operation_id = f"backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        
+
         if backup_name is None:
             backup_name = f"{Path(source_path).name}_{operation_id}"
-        
+
         destination_path = self.backup_root / f"{backup_name}.tar.gz"
-        
+
         operation = BackupOperation(
             operation_id=operation_id,
             source_path=source_path,
@@ -145,13 +145,13 @@ class UnifiedBackupManager:
             timestamp=datetime.now(),
             result=BackupResult.FAILED
         )
-        
+
         try:
             if not os.path.exists(source_path):
                 operation.error_message = f"Source path does not exist: {source_path}"
                 self.logger.error(operation.error_message)
                 return operation
-            
+
             # Create compressed backup
             with tarfile.open(destination_path, 'w:gz') as tar:
                 if os.path.isfile(source_path):
@@ -164,21 +164,21 @@ class UnifiedBackupManager:
                             arcname = file_path.relative_to(Path(source_path).parent)
                             tar.add(file_path, arcname=str(arcname))
                             operation.file_count += 1
-            
+
             # Get backup size
             operation.total_size = destination_path.stat().st_size
             operation.result = BackupResult.SUCCESS
-            
+
             self.logger.info(f"Backup created: {backup_name} ({operation.file_count} files, {operation.total_size} bytes)")
-            
+
         except Exception as e:
             operation.error_message = str(e)
             operation.result = BackupResult.FAILED
             self.logger.error(f"Backup failed: {e}")
-        
+
         self.operations.append(operation)
         return operation
-    
+
     async def restore_backup(self, backup_path: str, restore_path: str) -> bool:
         """Restore a backup to the specified location"""
         try:
@@ -188,24 +188,24 @@ class UnifiedBackupManager:
                 if not backup_file.exists():
                     self.logger.error(f"Backup file not found: {backup_path}")
                     return False
-            
+
             restore_dir = Path(restore_path)
             restore_dir.mkdir(parents=True, exist_ok=True)
-            
+
             with tarfile.open(backup_file, 'r:gz') as tar:
                 tar.extractall(path=restore_dir)
-            
+
             self.logger.info(f"Backup restored from {backup_file} to {restore_dir}")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Restore failed: {e}")
             return False
-    
+
     def list_backups(self) -> List[Dict[str, Any]]:
         """List all available backups"""
         backups = []
-        
+
         for backup_file in self.backup_root.glob("*.tar.gz"):
             try:
                 stat = backup_file.stat()
@@ -218,14 +218,14 @@ class UnifiedBackupManager:
                 })
             except Exception as e:
                 self.logger.warning(f"Error reading backup {backup_file}: {e}")
-        
+
         return sorted(backups, key=lambda x: x["created"], reverse=True)
-    
+
     def cleanup_old_backups(self, retention_days: int = 30) -> int:
         """Clean up backups older than retention period"""
         cutoff_date = datetime.now() - timedelta(days=retention_days)
         removed_count = 0
-        
+
         for backup_file in self.backup_root.glob("*.tar.gz"):
             try:
                 file_date = datetime.fromtimestamp(backup_file.stat().st_ctime)
@@ -235,16 +235,16 @@ class UnifiedBackupManager:
                     self.logger.info(f"Removed old backup: {backup_file.name}")
             except Exception as e:
                 self.logger.warning(f"Error removing backup {backup_file}: {e}")
-        
+
         return removed_count
-    
+
     def get_backup_stats(self) -> Dict[str, Any]:
         """Get backup system statistics"""
         backups = self.list_backups()
         total_size = sum(b["size"] for b in backups)
-        
+
         recent_operations = [op for op in self.operations if op.timestamp > datetime.now() - timedelta(hours=24)]
-        
+
         return {
             "total_backups": len(backups),
             "total_size_bytes": total_size,
@@ -283,36 +283,36 @@ def validate_password_strength(password: str) -> Dict[str, Any]:
     """Validate password strength according to security policies"""
     issues = []
     score = 0
-    
+
     if len(password) >= 8:
         score += 1
     else:
         issues.append("Password must be at least 8 characters long")
-    
+
     if any(c.isupper() for c in password):
         score += 1
     else:
         issues.append("Password must contain at least one uppercase letter")
-    
+
     if any(c.islower() for c in password):
         score += 1
     else:
         issues.append("Password must contain at least one lowercase letter")
-    
+
     if any(c.isdigit() for c in password):
         score += 1
     else:
         issues.append("Password must contain at least one digit")
-    
+
     special_chars = "!@#$%^&*(),.?\":{}|<>"
     if any(c in special_chars for c in password):
         score += 1
     else:
         issues.append("Password must contain at least one special character")
-    
+
     strength_levels = ["Very Weak", "Weak", "Fair", "Good", "Strong"]
     strength = strength_levels[min(score, 4)]
-    
+
     return {
         "score": score,
         "max_score": 5,

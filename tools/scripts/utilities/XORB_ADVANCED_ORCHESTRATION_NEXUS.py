@@ -90,33 +90,33 @@ class OrchestrationDecision:
 
 class XORBAdvancedOrchestrationNexus:
     """Advanced multi-dimensional orchestration nexus"""
-    
+
     def __init__(self):
         self.nexus_id = f"NEXUS-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.orchestration_mode = OrchestrationMode.BALANCED
-        
+
         # Initialize subsystem modules
         self.intelligence_engine = XORBOperationalIntelligenceEngine()
         self.security_module = XORBQuantumResilientSecurityModule()
         self.enhanced_orchestrator = XORBEnhancedOrchestrator()
-        
+
         # Orchestration state
         self.active_tasks = {}
         self.completed_tasks = {}
         self.resource_pool = {}
         self.decision_history = []
         self.performance_metrics = {}
-        
+
         # AI decision-making parameters
         self.decision_threshold = 0.8
         self.resource_optimization_target = 0.85
         self.adaptive_learning_rate = 0.1
-        
+
         # Orchestration queues
         self.task_queue = queue.PriorityQueue()
         self.resource_queue = queue.Queue()
         self.decision_queue = queue.Queue()
-        
+
         # Performance tracking
         self.metrics = {
             "tasks_orchestrated": 0,
@@ -126,37 +126,37 @@ class XORBAdvancedOrchestrationNexus:
             "threat_response_time": 0.0,
             "orchestration_accuracy": 0.0
         }
-        
+
         # Start orchestration threads
         self.running = True
         self.orchestration_thread = threading.Thread(target=self._orchestration_loop, daemon=True)
         self.resource_thread = threading.Thread(target=self._resource_management_loop, daemon=True)
         self.decision_thread = threading.Thread(target=self._decision_processing_loop, daemon=True)
-        
+
         logger.info(f"🎛️ XORB Advanced Orchestration Nexus initialized - ID: {self.nexus_id}")
-    
+
     async def start_orchestration(self):
         """Start the orchestration nexus"""
         try:
             # Initialize resources
             await self._initialize_system_resources()
-            
+
             # Start orchestration threads
             self.orchestration_thread.start()
             self.resource_thread.start()
             self.decision_thread.start()
-            
+
             logger.info("🎛️ Advanced Orchestration Nexus started")
-            
+
         except Exception as e:
             logger.error(f"❌ Orchestration startup error: {e}")
             raise
-    
+
     async def stop_orchestration(self):
         """Stop the orchestration nexus"""
         try:
             self.running = False
-            
+
             # Wait for threads to complete
             if self.orchestration_thread.is_alive():
                 self.orchestration_thread.join(timeout=5)
@@ -164,42 +164,42 @@ class XORBAdvancedOrchestrationNexus:
                 self.resource_thread.join(timeout=5)
             if self.decision_thread.is_alive():
                 self.decision_thread.join(timeout=5)
-            
+
             logger.info("🎛️ Advanced Orchestration Nexus stopped")
-            
+
         except Exception as e:
             logger.error(f"❌ Orchestration shutdown error: {e}")
-    
+
     async def submit_orchestration_task(self, task: OrchestrationTask) -> str:
         """Submit task for orchestration"""
         try:
             # Validate task requirements
             await self._validate_task_requirements(task)
-            
+
             # Calculate task priority score
             priority_score = await self._calculate_task_priority_score(task)
-            
+
             # Add to task queue
             self.task_queue.put((priority_score, task))
             self.active_tasks[task.task_id] = task
-            
+
             # Update metrics
             self.metrics["tasks_orchestrated"] += 1
-            
+
             logger.info(f"🎛️ Submitted orchestration task: {task.task_id} | Priority: {task.priority.name}")
-            
+
             return task.task_id
-            
+
         except Exception as e:
             logger.error(f"❌ Task submission error: {e}")
             raise
-    
+
     async def orchestrate_threat_response(self, threat_data: Dict[str, Any]) -> OrchestrationDecision:
         """Orchestrate comprehensive threat response"""
         try:
             # Process threat intelligence
             threat_intel = await self.intelligence_engine.process_threat_intelligence(threat_data)
-            
+
             # Generate operational decision
             decision_context = {
                 "threat_level": threat_intel.threat_level.value,
@@ -207,9 +207,9 @@ class XORBAdvancedOrchestrationNexus:
                 "available_resources": await self._get_available_resources(),
                 "current_mode": self.orchestration_mode.value
             }
-            
+
             operational_decision = await self.intelligence_engine.generate_operational_decision(decision_context)
-            
+
             # Create orchestration decision
             orchestration_decision = OrchestrationDecision(
                 decision_id=f"ORCH-DEC-{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -220,90 +220,90 @@ class XORBAdvancedOrchestrationNexus:
                 confidence_score=operational_decision.confidence.value,
                 execution_plan=await self._create_execution_plan(operational_decision)
             )
-            
+
             # Execute orchestration decision
             await self._execute_orchestration_decision(orchestration_decision)
-            
+
             # Store decision
             self.decision_history.append(orchestration_decision)
             self.metrics["decisions_made"] += 1
-            
+
             logger.info(f"🎛️ Orchestrated threat response: {orchestration_decision.decision_id}")
-            
+
             return orchestration_decision
-            
+
         except Exception as e:
             logger.error(f"❌ Threat response orchestration error: {e}")
             raise
-    
+
     async def optimize_resource_allocation(self) -> Dict[str, Any]:
         """Optimize system resource allocation"""
         try:
             # Analyze current resource utilization
             utilization_analysis = await self._analyze_resource_utilization()
-            
+
             # Identify optimization opportunities
             optimization_opportunities = await self._identify_optimization_opportunities(utilization_analysis)
-            
+
             # Generate optimization plan
             optimization_plan = await self._generate_optimization_plan(optimization_opportunities)
-            
+
             # Execute optimizations
             optimization_results = await self._execute_resource_optimizations(optimization_plan)
-            
+
             # Update metrics
             self.metrics["resource_optimizations"] += 1
             self.metrics["system_efficiency"] = optimization_results["efficiency_improvement"]
-            
+
             logger.info(f"🎛️ Resource optimization complete | Efficiency: {optimization_results['efficiency_improvement']:.2%}")
-            
+
             return optimization_results
-            
+
         except Exception as e:
             logger.error(f"❌ Resource optimization error: {e}")
             return {}
-    
+
     async def adaptive_mode_switching(self, context: Dict[str, Any]) -> OrchestrationMode:
         """Adaptively switch orchestration modes based on context"""
         try:
             # Analyze current threat landscape
             threat_assessment = await self._assess_threat_landscape(context)
-            
+
             # Evaluate system performance
             performance_assessment = await self._assess_system_performance()
-            
+
             # Calculate optimal orchestration mode
             optimal_mode = await self._calculate_optimal_mode(threat_assessment, performance_assessment)
-            
+
             # Switch mode if different
             if optimal_mode != self.orchestration_mode:
                 previous_mode = self.orchestration_mode
                 self.orchestration_mode = optimal_mode
-                
+
                 # Adapt system parameters
                 await self._adapt_system_parameters(optimal_mode)
-                
+
                 logger.info(f"🎛️ Orchestration mode switched: {previous_mode.value} -> {optimal_mode.value}")
-            
+
             return optimal_mode
-            
+
         except Exception as e:
             logger.error(f"❌ Adaptive mode switching error: {e}")
             return self.orchestration_mode
-    
+
     async def coordinate_multi_system_operation(self, operation_spec: Dict[str, Any]) -> Dict[str, Any]:
         """Coordinate complex multi-system operations"""
         try:
             operation_id = f"MULTI-OP-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            
+
             # Parse operation specification
             subsystems = operation_spec.get("subsystems", [])
             coordination_type = operation_spec.get("coordination_type", "sequential")
             synchronization_points = operation_spec.get("synchronization_points", [])
-            
+
             # Create coordination plan
             coordination_plan = await self._create_coordination_plan(operation_spec)
-            
+
             # Execute coordinated operation
             if coordination_type == "parallel":
                 operation_results = await self._execute_parallel_coordination(coordination_plan)
@@ -311,12 +311,12 @@ class XORBAdvancedOrchestrationNexus:
                 operation_results = await self._execute_sequential_coordination(coordination_plan)
             else:  # complex coordination
                 operation_results = await self._execute_complex_coordination(coordination_plan)
-            
+
             # Aggregate results
             aggregated_results = await self._aggregate_operation_results(operation_results)
-            
+
             logger.info(f"🎛️ Multi-system operation complete: {operation_id} | Systems: {len(subsystems)}")
-            
+
             return {
                 "operation_id": operation_id,
                 "coordination_type": coordination_type,
@@ -326,11 +326,11 @@ class XORBAdvancedOrchestrationNexus:
                 "resource_efficiency": aggregated_results["resource_efficiency"],
                 "results": aggregated_results
             }
-            
+
         except Exception as e:
             logger.error(f"❌ Multi-system coordination error: {e}")
             return {}
-    
+
     def _orchestration_loop(self):
         """Main orchestration processing loop"""
         while self.running:
@@ -344,7 +344,7 @@ class XORBAdvancedOrchestrationNexus:
                 continue
             except Exception as e:
                 logger.error(f"❌ Orchestration loop error: {e}")
-    
+
     def _resource_management_loop(self):
         """Resource management processing loop"""
         while self.running:
@@ -352,11 +352,11 @@ class XORBAdvancedOrchestrationNexus:
                 # Periodic resource optimization
                 if time.time() % 60 < 1:  # Every minute
                     asyncio.run(self.optimize_resource_allocation())
-                
+
                 time.sleep(1)
             except Exception as e:
                 logger.error(f"❌ Resource management loop error: {e}")
-    
+
     def _decision_processing_loop(self):
         """Decision processing loop"""
         while self.running:
@@ -370,16 +370,16 @@ class XORBAdvancedOrchestrationNexus:
                 continue
             except Exception as e:
                 logger.error(f"❌ Decision processing loop error: {e}")
-    
+
     async def _process_orchestration_task(self, task: OrchestrationTask):
         """Process individual orchestration task"""
         try:
             task.status = "running"
             task.started = datetime.now()
-            
+
             # Allocate resources
             allocated_resources = await self._allocate_task_resources(task)
-            
+
             # Execute task based on type
             if task.task_type == "apt_simulation":
                 result = await self._execute_apt_simulation_task(task)
@@ -391,24 +391,24 @@ class XORBAdvancedOrchestrationNexus:
                 result = await self._execute_intelligence_processing_task(task)
             else:
                 result = await self._execute_generic_task(task)
-            
+
             # Update task status
             task.status = "completed"
             task.completed = datetime.now()
             task.progress = 1.0
-            
+
             # Release resources
             await self._release_task_resources(task, allocated_resources)
-            
+
             # Move to completed tasks
             self.completed_tasks[task.task_id] = self.active_tasks.pop(task.task_id)
-            
+
             logger.info(f"🎛️ Completed orchestration task: {task.task_id}")
-            
+
         except Exception as e:
             task.status = "failed"
             logger.error(f"❌ Task processing error: {e}")
-    
+
     async def _initialize_system_resources(self):
         """Initialize system resource pool"""
         try:
@@ -421,7 +421,7 @@ class XORBAdvancedOrchestrationNexus:
                 allocation_efficiency=0.85,
                 health_status=0.95
             )
-            
+
             # Initialize network resources
             self.resource_pool["network"] = SystemResource(
                 resource_id="network",
@@ -431,7 +431,7 @@ class XORBAdvancedOrchestrationNexus:
                 allocation_efficiency=0.80,
                 health_status=0.92
             )
-            
+
             # Initialize storage resources
             self.resource_pool["storage"] = SystemResource(
                 resource_id="storage",
@@ -441,7 +441,7 @@ class XORBAdvancedOrchestrationNexus:
                 allocation_efficiency=0.75,
                 health_status=0.98
             )
-            
+
             # Initialize intelligence resources
             self.resource_pool["intelligence"] = SystemResource(
                 resource_id="intelligence",
@@ -451,7 +451,7 @@ class XORBAdvancedOrchestrationNexus:
                 allocation_efficiency=0.90,
                 health_status=0.96
             )
-            
+
             # Initialize security resources
             self.resource_pool["security"] = SystemResource(
                 resource_id="security",
@@ -461,13 +461,13 @@ class XORBAdvancedOrchestrationNexus:
                 allocation_efficiency=0.88,
                 health_status=0.94
             )
-            
+
             logger.info("🎛️ System resources initialized")
-            
+
         except Exception as e:
             logger.error(f"❌ Resource initialization error: {e}")
             raise
-    
+
     async def get_orchestration_status(self) -> Dict[str, Any]:
         """Get comprehensive orchestration status"""
         try:
@@ -487,25 +487,25 @@ class XORBAdvancedOrchestrationNexus:
                     "enhanced_orchestrator": await self.enhanced_orchestrator.get_system_status()
                 }
             }
-            
+
             return status
-            
+
         except Exception as e:
             logger.error(f"❌ Status retrieval error: {e}")
             return {}
-    
+
     async def _calculate_resource_utilization(self) -> Dict[str, float]:
         """Calculate current resource utilization"""
         utilization = {}
         for resource_id, resource in self.resource_pool.items():
             utilization[resource_id] = 1.0 - (resource.available_capacity / resource.total_capacity)
         return utilization
-    
+
     async def _assess_system_health(self) -> Dict[str, Any]:
         """Assess overall system health"""
         health_scores = [resource.health_status for resource in self.resource_pool.values()]
         overall_health = statistics.mean(health_scores) if health_scores else 0.0
-        
+
         return {
             "overall_health": overall_health,
             "resource_health": {rid: r.health_status for rid, r in self.resource_pool.items()},
@@ -516,12 +516,12 @@ class XORBAdvancedOrchestrationNexus:
 async def main():
     """Demonstrate XORB Advanced Orchestration Nexus"""
     logger.info("🎛️ Starting XORB Advanced Orchestration Nexus demonstration")
-    
+
     nexus = XORBAdvancedOrchestrationNexus()
-    
+
     # Start orchestration
     await nexus.start_orchestration()
-    
+
     # Create sample orchestration task
     sample_task = OrchestrationTask(
         task_id="DEMO-TASK-001",
@@ -535,10 +535,10 @@ async def main():
         },
         estimated_duration=timedelta(minutes=30)
     )
-    
+
     # Submit task
     task_id = await nexus.submit_orchestration_task(sample_task)
-    
+
     # Simulate threat response
     threat_data = {
         "source": "detection_system",
@@ -547,26 +547,26 @@ async def main():
         "indicators": ["192.168.1.100", "malicious-domain.com"],
         "timestamp": datetime.now().isoformat()
     }
-    
+
     threat_response = await nexus.orchestrate_threat_response(threat_data)
-    
+
     # Optimize resources
     optimization_results = await nexus.optimize_resource_allocation()
-    
+
     # Get status
     orchestration_status = await nexus.get_orchestration_status()
-    
+
     # Wait a bit for processing
     await asyncio.sleep(2)
-    
+
     # Stop orchestration
     await nexus.stop_orchestration()
-    
+
     logger.info("🎛️ Advanced Orchestration Nexus demonstration complete")
     logger.info(f"📊 Task submitted: {task_id}")
     logger.info(f"🎯 Threat response: {threat_response.decision_id}")
     logger.info(f"⚡ Resource optimization: {optimization_results.get('efficiency_improvement', 0):.2%}")
-    
+
     return {
         "nexus_id": nexus.nexus_id,
         "task_submitted": task_id,

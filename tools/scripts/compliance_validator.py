@@ -108,10 +108,10 @@ class ComplianceReport:
 
 class SOC2Validator:
     """SOC2 Type II compliance validator"""
-    
+
     def __init__(self):
         self.controls = self._load_soc2_controls()
-    
+
     def _load_soc2_controls(self) -> List[ComplianceControl]:
         """Load SOC2 controls"""
         return [
@@ -176,36 +176,36 @@ class SOC2Validator:
                 automated_checks=["verify_data_encryption", "check_key_management"]
             )
         ]
-    
+
     async def validate_controls(self) -> List[Tuple[ComplianceControl, ControlStatus, str]]:
         """Validate SOC2 controls"""
         results = []
-        
+
         for control in self.controls:
             status, notes = await self._validate_control(control)
             control.status = status
             control.implementation_notes = notes
             control.last_validated = datetime.utcnow()
             results.append((control, status, notes))
-        
+
         return results
-    
+
     async def _validate_control(self, control: ComplianceControl) -> Tuple[ControlStatus, str]:
         """Validate individual control"""
         notes = []
-        
+
         if control.control_id == "CC6.1":
             # Check MFA implementation
             mfa_status = await self._check_mfa_implementation()
             rbac_status = await self._check_rbac_implementation()
-            
+
             if mfa_status and rbac_status:
                 return ControlStatus.IMPLEMENTED, "MFA and RBAC fully implemented"
             elif mfa_status or rbac_status:
                 return ControlStatus.PARTIALLY_IMPLEMENTED, "Some access controls implemented"
             else:
                 return ControlStatus.NOT_IMPLEMENTED, "Access controls not fully implemented"
-        
+
         elif control.control_id == "CC6.7":
             # Check encryption in transit
             tls_status = await self._check_tls_configuration()
@@ -213,7 +213,7 @@ class SOC2Validator:
                 return ControlStatus.IMPLEMENTED, "TLS 1.3 encryption verified"
             else:
                 return ControlStatus.FAILED, "TLS configuration insufficient"
-        
+
         elif control.control_id == "CC6.8":
             # Check encryption at rest
             encryption_status = await self._check_data_encryption()
@@ -221,10 +221,10 @@ class SOC2Validator:
                 return ControlStatus.IMPLEMENTED, "Data encryption at rest verified"
             else:
                 return ControlStatus.FAILED, "Data encryption insufficient"
-        
+
         # Default to implemented for demonstration
         return ControlStatus.IMPLEMENTED, "Control verified through automated checks"
-    
+
     async def _check_mfa_implementation(self) -> bool:
         """Check if MFA is properly implemented"""
         try:
@@ -236,7 +236,7 @@ class SOC2Validator:
         except Exception as e:
             logger.error(f"Error checking MFA: {e}")
         return False
-    
+
     async def _check_rbac_implementation(self) -> bool:
         """Check if RBAC is properly implemented"""
         try:
@@ -245,7 +245,7 @@ class SOC2Validator:
                 "services/xorb-core/api/app/auth/models.py",
                 "services/xorb-core/api/app/middleware/tenant_context.py"
             ]
-            
+
             for file_path in rbac_files:
                 if Path(file_path).exists():
                     content = Path(file_path).read_text()
@@ -254,7 +254,7 @@ class SOC2Validator:
         except Exception as e:
             logger.error(f"Error checking RBAC: {e}")
         return False
-    
+
     async def _check_tls_configuration(self) -> bool:
         """Check TLS configuration"""
         try:
@@ -263,7 +263,7 @@ class SOC2Validator:
                 "docker-compose.enterprise.yml",
                 "services/infrastructure/monitoring/prometheus.yml"
             ]
-            
+
             for file_path in tls_files:
                 if Path(file_path).exists():
                     content = Path(file_path).read_text()
@@ -272,7 +272,7 @@ class SOC2Validator:
         except Exception as e:
             logger.error(f"Error checking TLS: {e}")
         return False
-    
+
     async def _check_data_encryption(self) -> bool:
         """Check data encryption implementation"""
         try:
@@ -281,7 +281,7 @@ class SOC2Validator:
                 "packages/common/encryption.py",
                 "services/xorb-core/api/app/infrastructure/database.py"
             ]
-            
+
             for file_path in encryption_files:
                 if Path(file_path).exists():
                     content = Path(file_path).read_text()
@@ -294,10 +294,10 @@ class SOC2Validator:
 
 class ISO27001Validator:
     """ISO 27001 compliance validator"""
-    
+
     def __init__(self):
         self.controls = self._load_iso27001_controls()
-    
+
     def _load_iso27001_controls(self) -> List[ComplianceControl]:
         """Load ISO 27001 controls"""
         return [
@@ -338,27 +338,27 @@ class ISO27001Validator:
                 automated_checks=["check_vulnerability_management", "verify_patch_management"]
             )
         ]
-    
+
     async def validate_controls(self) -> List[Tuple[ComplianceControl, ControlStatus, str]]:
         """Validate ISO 27001 controls"""
         results = []
-        
+
         for control in self.controls:
             # Simplified validation - in production would have detailed checks
             status = ControlStatus.IMPLEMENTED
             notes = f"Control {control.control_id} validated through automated checks"
-            
+
             control.status = status
             control.implementation_notes = notes
             control.last_validated = datetime.utcnow()
             results.append((control, status, notes))
-        
+
         return results
 
 
 class ComplianceValidator:
     """Main compliance validation orchestrator"""
-    
+
     def __init__(self):
         self.validators = {
             ComplianceFramework.SOC2_TYPE_II: SOC2Validator(),
@@ -366,56 +366,56 @@ class ComplianceValidator:
         }
         self.evidence_collector = EvidenceCollector()
         self.report_generator = ComplianceReportGenerator()
-    
+
     async def validate_framework(self, framework: ComplianceFramework) -> ComplianceReport:
         """Validate specific compliance framework"""
         if framework not in self.validators:
             raise ValueError(f"Framework {framework} not supported")
-        
+
         logger.info(f"Starting compliance validation for {framework.value}")
-        
+
         validator = self.validators[framework]
         control_results = await validator.validate_controls()
-        
+
         # Generate compliance report
         report = await self._generate_compliance_report(framework, control_results)
-        
+
         # Collect evidence
         await self.evidence_collector.collect_evidence(control_results)
-        
+
         logger.info(f"Compliance validation completed for {framework.value}")
         return report
-    
+
     async def validate_all_frameworks(self) -> Dict[ComplianceFramework, ComplianceReport]:
         """Validate all supported frameworks"""
         reports = {}
-        
+
         for framework in self.validators.keys():
             try:
                 report = await self.validate_framework(framework)
                 reports[framework] = report
             except Exception as e:
                 logger.error(f"Error validating {framework.value}: {e}")
-        
+
         return reports
-    
+
     async def _generate_compliance_report(
-        self, 
-        framework: ComplianceFramework, 
+        self,
+        framework: ComplianceFramework,
         control_results: List[Tuple[ComplianceControl, ControlStatus, str]]
     ) -> ComplianceReport:
         """Generate compliance report"""
-        
+
         total_controls = len(control_results)
         implemented = sum(1 for _, status, _ in control_results if status == ControlStatus.IMPLEMENTED)
         partially_implemented = sum(1 for _, status, _ in control_results if status == ControlStatus.PARTIALLY_IMPLEMENTED)
         failed = sum(1 for _, status, _ in control_results if status == ControlStatus.FAILED)
-        
+
         compliance_percentage = (implemented / total_controls * 100) if total_controls > 0 else 0
-        
+
         findings = []
         recommendations = []
-        
+
         for control, status, notes in control_results:
             if status in [ControlStatus.FAILED, ControlStatus.NOT_IMPLEMENTED]:
                 findings.append({
@@ -425,9 +425,9 @@ class ComplianceValidator:
                     "notes": notes,
                     "risk_level": control.risk_level
                 })
-                
+
                 recommendations.append(f"Implement {control.control_id}: {control.title}")
-        
+
         return ComplianceReport(
             report_id=f"{framework.value}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
             framework=framework,
@@ -445,36 +445,36 @@ class ComplianceValidator:
 
 class EvidenceCollector:
     """Automated evidence collection"""
-    
+
     async def collect_evidence(self, control_results: List[Tuple[ComplianceControl, ControlStatus, str]]):
         """Collect evidence for controls"""
         evidence_items = []
-        
+
         for control, status, notes in control_results:
             if status == ControlStatus.IMPLEMENTED:
                 # Collect configuration evidence
                 config_evidence = await self._collect_configuration_evidence(control)
                 evidence_items.extend(config_evidence)
-                
+
                 # Collect log evidence
                 log_evidence = await self._collect_log_evidence(control)
                 evidence_items.extend(log_evidence)
-        
+
         # Store evidence
         await self._store_evidence(evidence_items)
-        
+
         return evidence_items
-    
+
     async def _collect_configuration_evidence(self, control: ComplianceControl) -> List[ComplianceEvidence]:
         """Collect configuration files as evidence"""
         evidence = []
-        
+
         config_files = [
             "docker-compose.enterprise.yml",
             "services/xorb-core/api/app/main.py",
             "services/infrastructure/vault/vault-config.hcl"
         ]
-        
+
         for file_path in config_files:
             if Path(file_path).exists():
                 evidence.append(ComplianceEvidence(
@@ -487,13 +487,13 @@ class EvidenceCollector:
                     collected_by="automated_collector",
                     hash_value=self._calculate_file_hash(file_path)
                 ))
-        
+
         return evidence
-    
+
     async def _collect_log_evidence(self, control: ComplianceControl) -> List[ComplianceEvidence]:
         """Collect log data as evidence"""
         evidence = []
-        
+
         # Simulate log collection
         log_data = {
             "timestamp": datetime.utcnow().isoformat(),
@@ -501,11 +501,11 @@ class EvidenceCollector:
             "validation_result": "PASS",
             "details": f"Automated validation of {control.title}"
         }
-        
+
         log_file = f"compliance_logs_{control.control_id}.json"
         with open(log_file, 'w') as f:
             json.dump(log_data, f, indent=2)
-        
+
         evidence.append(ComplianceEvidence(
             evidence_id=f"{control.control_id}_log",
             control_id=control.control_id,
@@ -516,9 +516,9 @@ class EvidenceCollector:
             collected_by="automated_collector",
             hash_value=self._calculate_file_hash(log_file)
         ))
-        
+
         return evidence
-    
+
     def _calculate_file_hash(self, file_path: str) -> str:
         """Calculate SHA256 hash of file"""
         try:
@@ -526,15 +526,15 @@ class EvidenceCollector:
                 return hashlib.sha256(f.read()).hexdigest()
         except Exception:
             return ""
-    
+
     async def _store_evidence(self, evidence_items: List[ComplianceEvidence]):
         """Store evidence in compliance repository"""
         evidence_dir = Path("compliance_evidence")
         evidence_dir.mkdir(exist_ok=True)
-        
+
         for evidence in evidence_items:
             evidence_file = evidence_dir / f"{evidence.evidence_id}.json"
-            
+
             evidence_data = {
                 "evidence_id": evidence.evidence_id,
                 "control_id": evidence.control_id,
@@ -546,17 +546,17 @@ class EvidenceCollector:
                 "hash_value": evidence.hash_value,
                 "metadata": evidence.metadata
             }
-            
+
             with open(evidence_file, 'w') as f:
                 json.dump(evidence_data, f, indent=2)
 
 
 class ComplianceReportGenerator:
     """Generate compliance reports in various formats"""
-    
+
     async def generate_executive_report(self, reports: Dict[ComplianceFramework, ComplianceReport]) -> str:
         """Generate executive summary report"""
-        
+
         executive_summary = {
             "report_title": "XORB Platform Compliance Assessment",
             "generated_at": datetime.utcnow().isoformat(),
@@ -565,7 +565,7 @@ class ComplianceReportGenerator:
             "overall_compliance_status": "COMPLIANT",
             "framework_results": {}
         }
-        
+
         for framework, report in reports.items():
             executive_summary["framework_results"][framework.value] = {
                 "compliance_percentage": report.compliance_percentage,
@@ -576,17 +576,17 @@ class ComplianceReportGenerator:
                 "key_findings": len(report.findings),
                 "recommendations": len(report.recommendations)
             }
-        
+
         # Generate report file
         report_file = f"compliance_executive_report_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
         with open(report_file, 'w') as f:
             json.dump(executive_summary, f, indent=2)
-        
+
         return report_file
-    
+
     async def generate_detailed_report(self, framework: ComplianceFramework, report: ComplianceReport) -> str:
         """Generate detailed compliance report"""
-        
+
         detailed_report = {
             "report_metadata": {
                 "report_id": report.report_id,
@@ -606,42 +606,42 @@ class ComplianceReportGenerator:
             "recommendations": report.recommendations,
             "evidence_summary": report.evidence_summary
         }
-        
+
         report_file = f"compliance_detailed_{framework.value}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.json"
         with open(report_file, 'w') as f:
             json.dump(detailed_report, f, indent=2)
-        
+
         return report_file
 
 
 async def main():
     """Main compliance validation execution"""
     logging.basicConfig(level=logging.INFO)
-    
+
     validator = ComplianceValidator()
-    
+
     # Validate all frameworks
     print("🔒 Starting XORB Platform Compliance Validation...")
     reports = await validator.validate_all_frameworks()
-    
+
     # Generate reports
     report_generator = ComplianceReportGenerator()
-    
+
     # Executive summary
     executive_report = await report_generator.generate_executive_report(reports)
     print(f"📊 Executive report generated: {executive_report}")
-    
+
     # Detailed reports
     for framework, report in reports.items():
         detailed_report = await report_generator.generate_detailed_report(framework, report)
         print(f"📋 Detailed {framework.value} report: {detailed_report}")
-        
+
         print(f"\n{framework.value.upper()} Compliance Results:")
         print(f"  Total Controls: {report.total_controls}")
         print(f"  Implemented: {report.implemented_controls}")
         print(f"  Compliance: {report.compliance_percentage:.1f}%")
         print(f"  Status: {'✅ COMPLIANT' if report.compliance_percentage >= 80 else '❌ NON-COMPLIANT'}")
-    
+
     print("\n🎉 Compliance validation completed successfully!")
 
 

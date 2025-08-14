@@ -48,7 +48,7 @@ class XORBPTaaSCompanyAPI:
         self.postgres_pool = None
         self.neo4j_driver = None
         self.qdrant_client = None
-        
+
     async def init_connections(self):
         """Initialize all database connections"""
         try:
@@ -56,21 +56,21 @@ class XORBPTaaSCompanyAPI:
             redis_host = os.getenv('REDIS_HOST', 'xorb-redis')
             redis_port = int(os.getenv('REDIS_PORT', 6379))
             redis_password = os.getenv('REDIS_PASSWORD', 'xorb_redis_2024')
-            
+
             self.redis = await aioredis.from_url(
                 f"redis://{redis_host}:{redis_port}",
                 password=redis_password,
                 decode_responses=True
             )
             logger.info("✅ Company API connected to Redis")
-            
+
             # PostgreSQL connection
             postgres_host = os.getenv('POSTGRES_HOST', 'xorb-postgres')
             postgres_port = int(os.getenv('POSTGRES_PORT', 5432))
             postgres_db = os.getenv('POSTGRES_DB', 'xorb_platform')
             postgres_user = os.getenv('POSTGRES_USER', 'xorb_user')
             postgres_password = os.getenv('POSTGRES_PASSWORD', 'xorb_secure_2024')
-            
+
             self.postgres_pool = await asyncpg.create_pool(
                 host=postgres_host,
                 port=postgres_port,
@@ -81,31 +81,31 @@ class XORBPTaaSCompanyAPI:
                 max_size=10
             )
             logger.info("✅ Company API connected to PostgreSQL")
-            
+
             # Neo4j connection
             neo4j_uri = os.getenv('NEO4J_URI', 'bolt://xorb-neo4j:7687')
             neo4j_user = os.getenv('NEO4J_USER', 'neo4j')
             neo4j_password = os.getenv('NEO4J_PASSWORD', 'xorb_graph_2024')
-            
+
             self.neo4j_driver = AsyncGraphDatabase.driver(
                 neo4j_uri, auth=(neo4j_user, neo4j_password)
             )
             logger.info("✅ Company API connected to Neo4j")
-            
+
             # Qdrant connection
             qdrant_host = os.getenv('QDRANT_HOST', 'xorb-qdrant')
             qdrant_port = int(os.getenv('QDRANT_PORT', 6333))
-            
+
             self.qdrant_client = QdrantClient(
                 host=qdrant_host,
                 port=qdrant_port
             )
             logger.info("✅ Company API connected to Qdrant")
-            
+
         except Exception as e:
             logger.error(f"❌ Company API database connection failed: {e}")
             raise
-    
+
     async def health_check(self, request: web_request) -> web_response:
         """Health check endpoint"""
         health_status = {
@@ -121,14 +121,14 @@ class XORBPTaaSCompanyAPI:
                 "compliance_reporting"
             ]
         }
-        
+
         return web.json_response(health_status)
-    
+
     async def register_company(self, request: web_request) -> web_response:
         """Register new company for bug bounty program"""
         try:
             data = await request.json()
-            
+
             # Validate required fields
             required_fields = ['company_name', 'contact_email', 'industry', 'website']
             for field in required_fields:
@@ -137,10 +137,10 @@ class XORBPTaaSCompanyAPI:
                         {"success": False, "error": f"Missing required field: {field}"},
                         status=400
                     )
-            
+
             # Generate company ID
             company_id = f"COMP-{hashlib.md5(data['contact_email'].encode()).hexdigest()[:8].upper()}"
-            
+
             company = {
                 "id": company_id,
                 "company_name": data['company_name'],
@@ -155,7 +155,7 @@ class XORBPTaaSCompanyAPI:
                 "total_bounties_paid": 0,
                 "active_researchers": 0
             }
-            
+
             return web.json_response({
                 "success": True,
                 "data": {
@@ -169,14 +169,14 @@ class XORBPTaaSCompanyAPI:
                     ]
                 }
             })
-            
+
         except Exception as e:
             logger.error(f"Company registration error: {e}")
             return web.json_response(
                 {"success": False, "error": "Registration failed"},
                 status=500
             )
-    
+
     async def get_company_dashboard(self, request: web_request) -> web_response:
         """Get company dashboard data"""
         dashboard_data = {
@@ -263,17 +263,17 @@ class XORBPTaaSCompanyAPI:
                 {"username": "ethical_hacker_pro", "bounties_earned": "$8,200", "submissions": 10, "success_rate": 0.91}
             ]
         }
-        
+
         return web.json_response({"success": True, "data": dashboard_data})
-    
+
     async def create_bounty_program(self, request: web_request) -> web_response:
         """Create new bug bounty program"""
         try:
             data = await request.json()
-            
+
             # Generate program ID
             program_id = f"PROG-{datetime.now().strftime('%Y%m%d')}-{hashlib.md5(str(datetime.now()).encode()).hexdigest()[:6].upper()}"
-            
+
             program = {
                 "id": program_id,
                 "name": data.get('name'),
@@ -294,7 +294,7 @@ class XORBPTaaSCompanyAPI:
                 "collaboration_allowed": data.get('collaboration_allowed', True),
                 "private_program": data.get('private_program', False)
             }
-            
+
             return web.json_response({
                 "success": True,
                 "data": {
@@ -309,19 +309,19 @@ class XORBPTaaSCompanyAPI:
                     ]
                 }
             })
-            
+
         except Exception as e:
             logger.error(f"Program creation error: {e}")
             return web.json_response(
                 {"success": False, "error": "Program creation failed"},
                 status=500
             )
-    
+
     async def get_vulnerability_reports(self, request: web_request) -> web_response:
         """Get vulnerability reports for company"""
         company_id = request.query.get('company_id')
         status_filter = request.query.get('status', 'all')
-        
+
         reports = [
             {
                 "id": f"VUL-{i:04d}",
@@ -343,20 +343,20 @@ class XORBPTaaSCompanyAPI:
             }
             for i in range(50)
         ]
-        
+
         # Filter by status if requested
         if status_filter != 'all':
             reports = [r for r in reports if r['status'] == status_filter]
-        
+
         return web.json_response({"success": True, "data": reports})
-    
+
     async def update_vulnerability_status(self, request: web_request) -> web_response:
         """Update vulnerability status and bounty"""
         vulnerability_id = request.match_info.get('vulnerability_id')
-        
+
         try:
             data = await request.json()
-            
+
             update_result = {
                 "vulnerability_id": vulnerability_id,
                 "previous_status": "triaging",
@@ -368,24 +368,24 @@ class XORBPTaaSCompanyAPI:
                 "notification_sent": True,
                 "researcher_notified": True
             }
-            
+
             return web.json_response({
                 "success": True,
                 "data": update_result,
                 "message": "Vulnerability status updated successfully"
             })
-            
+
         except Exception as e:
             logger.error(f"Status update error: {e}")
             return web.json_response(
                 {"success": False, "error": "Status update failed"},
                 status=500
             )
-    
+
     async def get_program_analytics(self, request: web_request) -> web_response:
         """Get detailed program analytics"""
         program_id = request.match_info.get('program_id')
-        
+
         analytics = {
             "program_id": program_id,
             "overview": {
@@ -437,16 +437,16 @@ class XORBPTaaSCompanyAPI:
                 "projected_completion_cost": "$75,000"
             }
         }
-        
+
         return web.json_response({"success": True, "data": analytics})
 
 async def create_app():
     """Create company API application"""
     company_api = XORBPTaaSCompanyAPI()
     await company_api.init_connections()
-    
+
     app = web.Application()
-    
+
     # Add CORS middleware
     @web.middleware
     async def cors_middleware(request, handler):
@@ -455,9 +455,9 @@ async def create_app():
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
-    
+
     app.middlewares.append(cors_middleware)
-    
+
     # Routes
     app.router.add_get('/health', company_api.health_check)
     app.router.add_post('/api/v1/companies/register', company_api.register_company)
@@ -466,7 +466,7 @@ async def create_app():
     app.router.add_get('/api/v1/vulnerabilities', company_api.get_vulnerability_reports)
     app.router.add_put('/api/v1/vulnerabilities/{vulnerability_id}', company_api.update_vulnerability_status)
     app.router.add_get('/api/v1/programs/{program_id}/analytics', company_api.get_program_analytics)
-    
+
     return app
 
 if __name__ == '__main__':

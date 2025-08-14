@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from ..services.ptaas_orchestrator_service import (
-    get_ptaas_orchestrator, 
+    get_ptaas_orchestrator,
     PTaaSOrchestrator,
     PTaaSTarget,
     PTaaSSession
@@ -66,7 +66,7 @@ class PTaaSMetricsResponse(BaseModel):
     total_vulnerabilities_found: int
     average_scan_duration: float
     scanner_availability: Dict[str, bool]
-    
+
 @router.post("/sessions", response_model=ScanSessionResponse)
 async def create_scan_session(
     request: ScanSessionRequest,
@@ -77,7 +77,7 @@ async def create_scan_session(
 ):
     """
     Create a new PTaaS scan session
-    
+
     This endpoint creates a new penetration testing session with the specified targets
     and configuration. The scan will be queued for execution and can be monitored
     via the session status endpoint.
@@ -95,7 +95,7 @@ async def create_scan_session(
                 authorized=target_req.authorized
             )
             ptaas_targets.append(target)
-        
+
         # Create scan session
         session_id = await orchestrator.create_scan_session(
             targets=ptaas_targets,
@@ -103,19 +103,19 @@ async def create_scan_session(
             tenant_id=tenant_id,
             metadata=request.metadata
         )
-        
+
         # Start the session in background
         background_tasks.add_task(orchestrator.start_scan_session, session_id)
-        
+
         # Get session details for response
         session_status = await orchestrator.get_scan_session_status(session_id)
         if not session_status:
             raise HTTPException(status_code=500, detail="Failed to retrieve session status")
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_session_created", 1)
-        
+
         # Add tracing context
         add_trace_context(
             operation="ptaas_session_created",
@@ -124,11 +124,11 @@ async def create_scan_session(
             targets_count=len(ptaas_targets),
             scan_type=request.scan_type
         )
-        
+
         logger.info(f"Created PTaaS session {session_id} for tenant {tenant_id}")
-        
+
         return ScanSessionResponse(**session_status)
-        
+
     except ValueError as e:
         logger.error(f"Invalid request for PTaaS session: {e}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -144,7 +144,7 @@ async def get_scan_session_status(
 ):
     """
     Get the status of a specific PTaaS scan session
-    
+
     Returns detailed information about the scan session including current status,
     progress, and results if completed.
     """
@@ -152,13 +152,13 @@ async def get_scan_session_status(
         session_status = await orchestrator.get_scan_session_status(session_id)
         if not session_status:
             raise HTTPException(status_code=404, detail="Session not found")
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_session_status_checked", 1)
-        
+
         return ScanSessionResponse(**session_status)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -173,7 +173,7 @@ async def cancel_scan_session(
 ):
     """
     Cancel an active PTaaS scan session
-    
+
     Cancels a running or queued scan session. Once cancelled, the session
     cannot be restarted.
     """
@@ -181,15 +181,15 @@ async def cancel_scan_session(
         success = await orchestrator.cancel_scan_session(session_id)
         if not success:
             raise HTTPException(status_code=404, detail="Session not found or cannot be cancelled")
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_session_cancelled", 1)
-        
+
         logger.info(f"Cancelled PTaaS session {session_id}")
-        
+
         return {"message": "Session cancelled successfully", "session_id": session_id}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -202,15 +202,15 @@ async def get_available_scan_profiles(
 ):
     """
     Get available scan profiles and scanner information
-    
+
     Returns a list of available scan profiles (quick, comprehensive, stealth, web_focused)
     and information about available security scanners.
     """
     try:
         profiles_info = await orchestrator.get_available_scan_profiles()
-        
+
         return AvailableProfilesResponse(**profiles_info)
-        
+
     except Exception as e:
         logger.error(f"Failed to get available scan profiles: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -224,20 +224,20 @@ async def list_scan_sessions(
 ):
     """
     List PTaaS scan sessions for the current tenant
-    
+
     Returns a paginated list of scan sessions, optionally filtered by status.
     """
     try:
         # This would typically query a database for tenant sessions
         # For now, return a basic response structure
         sessions = []
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_sessions_listed", 1)
-        
+
         return sessions
-        
+
     except Exception as e:
         logger.error(f"Failed to list scan sessions: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -249,14 +249,14 @@ async def get_ptaas_metrics(
 ):
     """
     Get PTaaS platform metrics and statistics
-    
+
     Returns comprehensive metrics about scan sessions, vulnerabilities found,
     and scanner availability.
     """
     try:
         # Get orchestrator health and metrics
         health = await orchestrator.health_check()
-        
+
         # Calculate basic metrics
         metrics_data = {
             "total_sessions": len(orchestrator.active_sessions),
@@ -267,13 +267,13 @@ async def get_ptaas_metrics(
             "average_scan_duration": 0.0,  # Would be calculated from completed sessions
             "scanner_availability": orchestrator.available_scanners
         }
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_metrics_retrieved", 1)
-        
+
         return PTaaSMetricsResponse(**metrics_data)
-        
+
     except Exception as e:
         logger.error(f"Failed to get PTaaS metrics: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -285,7 +285,7 @@ async def validate_scan_target(
 ):
     """
     Validate a scan target before creating a session
-    
+
     Performs basic validation of the target including reachability,
     authorization checks, and constraint validation.
     """
@@ -299,7 +299,7 @@ async def validate_scan_target(
             constraints=request.constraints or [],
             authorized=request.authorized
         )
-        
+
         # Perform basic validation
         validation_results = {
             "valid": True,
@@ -310,28 +310,28 @@ async def validate_scan_target(
             "warnings": [],
             "errors": []
         }
-        
+
         # Check for suspicious or restricted ports
         restricted_ports = [22, 23, 3389]  # SSH, Telnet, RDP
         dangerous_ports = [1433, 3306, 5432]  # Database ports
-        
+
         for port in request.ports:
             if port in restricted_ports:
                 validation_results["warnings"].append(f"Port {port} requires special authorization")
             elif port in dangerous_ports:
                 validation_results["warnings"].append(f"Port {port} contains sensitive services")
-        
+
         # Validate scan profile
         valid_profiles = ["quick", "comprehensive", "stealth", "web_focused"]
         if request.scan_profile not in valid_profiles:
             validation_results["errors"].append(f"Invalid scan profile: {request.scan_profile}")
             validation_results["valid"] = False
-        
+
         if validation_results["errors"]:
             validation_results["valid"] = False
-        
+
         return validation_results
-        
+
     except Exception as e:
         logger.error(f"Failed to validate scan target: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -342,12 +342,12 @@ async def get_ptaas_health(
 ):
     """
     Get PTaaS service health status
-    
+
     Returns health information for the PTaaS orchestrator and related services.
     """
     try:
         health = await orchestrator.health_check()
-        
+
         return {
             "status": health.status.value if hasattr(health.status, 'value') else health.status,
             "message": health.message,
@@ -355,7 +355,7 @@ async def get_ptaas_health(
             "checks": health.checks,
             "service": "ptaas_orchestrator"
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get PTaaS health: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -369,7 +369,7 @@ async def get_scan_results(
 ):
     """
     Get detailed scan results for a completed session
-    
+
     Returns comprehensive scan results including vulnerabilities found,
     services discovered, and security recommendations.
     """
@@ -377,12 +377,12 @@ async def get_scan_results(
         session_status = await orchestrator.get_scan_session_status(session_id)
         if not session_status:
             raise HTTPException(status_code=404, detail="Session not found")
-        
+
         if session_status["status"] != "completed":
             raise HTTPException(status_code=400, detail="Session not completed")
-        
+
         results = session_status.get("results", {})
-        
+
         if format == "json":
             return results
         elif format == "pdf":
@@ -399,7 +399,7 @@ async def get_scan_results(
             )
         else:
             raise HTTPException(status_code=400, detail="Unsupported format")
-        
+
     except HTTPException:
         raise
     except Exception as e:

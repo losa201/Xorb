@@ -84,7 +84,7 @@ async def create_embeddings(
 ):
     """
     Generate embeddings for input texts using NVIDIA's embed-qa-4 model
-    
+
     - **input**: List of texts to embed (max 100 items)
     - **model**: Embedding model to use (default: nvidia/embed-qa-4)
     - **input_type**: Type of input text (query, passage, classification, etc.)
@@ -94,7 +94,7 @@ async def create_embeddings(
     try:
         container = get_container()
         embedding_service = container.get(EmbeddingService)
-        
+
         # Generate embeddings using service
         result = await embedding_service.generate_embeddings(
             texts=request.input,
@@ -103,7 +103,7 @@ async def create_embeddings(
             user=current_user,
             org=current_org
         )
-        
+
         # Convert domain result to API response
         embedding_data = []
         for i, embedding in enumerate(result.embeddings):
@@ -111,13 +111,13 @@ async def create_embeddings(
                 embedding=embedding,
                 index=i
             ))
-        
+
         response = EmbeddingResponse(
             data=embedding_data,
             model=result.model,
             usage=result.usage_stats
         )
-        
+
         # Log usage in background
         def log_usage():
             log.info("Embedding usage recorded",
@@ -125,11 +125,11 @@ async def create_embeddings(
                     num_texts=len(request.input),
                     model=request.model,
                     total_chars=sum(len(text) for text in request.input))
-        
+
         background_tasks.add_task(log_usage)
-        
+
         return response
-        
+
     except DomainException as e:
         if "validation" in str(e).lower() or "invalid" in str(e).lower():
             raise HTTPException(status_code=400, detail=str(e))
@@ -145,15 +145,15 @@ async def list_embedding_models(
     current_user=Depends(get_current_user)
 ):
     """List available embedding models"""
-    
+
     try:
         container = get_container()
         embedding_service = container.get(EmbeddingService)
-        
+
         models = await embedding_service.get_available_models()
-        
+
         return {"object": "list", "data": models}
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
@@ -168,25 +168,25 @@ async def compute_similarity(
     current_user=Depends(get_current_user)
 ):
     """Compute semantic similarity between two texts"""
-    
+
     try:
         container = get_container()
         embedding_service = container.get(EmbeddingService)
-        
+
         similarity = await embedding_service.compute_similarity(
             text1=request.text1,
             text2=request.text2,
             model=request.model,
             user=current_user
         )
-        
+
         return {
             "similarity": similarity,
             "text1": request.text1,
             "text2": request.text2,
             "model": request.model
         }
-        
+
     except DomainException as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:

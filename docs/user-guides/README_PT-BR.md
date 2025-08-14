@@ -64,26 +64,26 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <details>
   <summary>Brew</summary>
-  
+
   ```sh
   brew install nuclei
   ```
-  
+
 </details>
 <details>
   <summary>Docker</summary>
-  
+
   ```sh
   docker pull projectdiscovery/nuclei:latest
   ```
-  
+
 </details>
 
 **Mais métodos de instalação [podem ser encontrados aqui](https://docs.projectdiscovery.io/tools/nuclei/install).**
 
 <table>
 <tr>
-<td>  
+<td>
 
 ### Modelos do Nuclei
 
@@ -107,7 +107,7 @@ Isso mostrará ajuda sobre a ferramenta. Aqui estão todas as opções que ela s
 
 
 ```console
-Nuclei é um scanner de vulnerabilidades rápido e baseado em templates  
+Nuclei é um scanner de vulnerabilidades rápido e baseado em templates
 que se concentra em sua ampla configurabilidade, extensibilidade e facilidade de uso.
 
 Usage:

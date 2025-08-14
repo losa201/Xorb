@@ -6,7 +6,7 @@ set -euo pipefail
 
 # Default configuration
 DEFAULT_POSTGRES_PASSWORD="xorb-postgres-$(date +%Y%m%d)"
-DEFAULT_REDIS_PASSWORD="xorb-redis-$(date +%Y%m%d)"  
+DEFAULT_REDIS_PASSWORD="xorb-redis-$(date +%Y%m%d)"
 DEFAULT_JWT_SECRET="$(openssl rand -hex 32)"
 
 # Colors for output
@@ -27,7 +27,7 @@ export JWT_SECRET="${JWT_SECRET:-$DEFAULT_JWT_SECRET}"
 
 echo -e "${GREEN}✅ Environment configured:${NC}"
 echo "  📊 Postgres Password: [HIDDEN]"
-echo "  ⚡ Redis Password: [HIDDEN]"  
+echo "  ⚡ Redis Password: [HIDDEN]"
 echo "  🔐 JWT Secret: [HIDDEN]"
 echo ""
 

@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from ..services.production_service_implementations import (
-    ProductionAuthenticationService, ProductionPTaaSService, 
+    ProductionAuthenticationService, ProductionPTaaSService,
     ProductionHealthService
 )
 from ..services.production_intelligence_service import ProductionThreatIntelligenceService
@@ -95,7 +95,7 @@ async def health_check(container: ProductionServiceContainer = Depends(get_conta
     try:
         health_service = container.get_service("health_service")
         health_results = await health_service.get_system_health()
-        
+
         return {
             "status": "operational",
             "timestamp": datetime.utcnow().isoformat(),
@@ -119,7 +119,7 @@ async def platform_status(container: ProductionServiceContainer = Depends(get_co
     try:
         service_status = container.get_service_status()
         health_results = await container.health_check_all_services()
-        
+
         return {
             "platform_info": {
                 "name": "XORB Production Security Platform",
@@ -161,7 +161,7 @@ async def create_security_scan(
     """Create a new security scan with real-world tools"""
     try:
         ptaas_service = container.get_service("ptaas_service")
-        
+
         scan_result = await ptaas_service.create_scan_session(
             targets=scan_request.targets,
             scan_type=scan_request.scan_type,
@@ -169,7 +169,7 @@ async def create_security_scan(
             org=org,
             metadata=scan_request.metadata
         )
-        
+
         return {
             "success": True,
             "scan_session": scan_result,
@@ -191,7 +191,7 @@ async def get_scan_status(
     try:
         ptaas_service = container.get_service("ptaas_service")
         status_result = await ptaas_service.get_scan_status(session_id, user)
-        
+
         return status_result
     except Exception as e:
         logger.error(f"Failed to get scan status: {e}")
@@ -207,7 +207,7 @@ async def get_scan_results(
     try:
         ptaas_service = container.get_service("ptaas_service")
         scan_results = await ptaas_service.get_scan_results(session_id, user)
-        
+
         return scan_results
     except Exception as e:
         logger.error(f"Failed to get scan results: {e}")
@@ -223,7 +223,7 @@ async def cancel_scan(
     try:
         ptaas_service = container.get_service("ptaas_service")
         cancelled = await ptaas_service.cancel_scan(session_id, user)
-        
+
         if cancelled:
             return {"success": True, "message": "Scan cancelled successfully"}
         else:
@@ -240,7 +240,7 @@ async def get_scan_profiles(
     try:
         ptaas_service = container.get_service("ptaas_service")
         profiles = await ptaas_service.get_available_scan_profiles()
-        
+
         return {
             "scan_profiles": profiles,
             "total_profiles": len(profiles)
@@ -259,14 +259,14 @@ async def create_compliance_scan(
     """Create a compliance-specific security scan"""
     try:
         ptaas_service = container.get_service("ptaas_service")
-        
+
         compliance_scan = await ptaas_service.create_compliance_scan(
             targets=compliance_request.targets,
             compliance_framework=compliance_request.compliance_framework,
             user=user,
             org=org
         )
-        
+
         return {
             "success": True,
             "compliance_scan": compliance_scan,
@@ -288,13 +288,13 @@ async def analyze_threat_indicators(
     """Analyze threat indicators using AI-powered threat intelligence"""
     try:
         intelligence_service = container.get_service("threat_intelligence_service")
-        
+
         analysis_result = await intelligence_service.analyze_indicators(
             indicators=analysis_request.indicators,
             context=analysis_request.context,
             user=user
         )
-        
+
         return {
             "success": True,
             "analysis": analysis_result,
@@ -314,12 +314,12 @@ async def correlate_threats(
     """Correlate scan results with threat intelligence feeds"""
     try:
         intelligence_service = container.get_service("threat_intelligence_service")
-        
+
         correlation_result = await intelligence_service.correlate_threats(
             scan_results=scan_results,
             threat_feeds=threat_feeds
         )
-        
+
         return {
             "success": True,
             "correlation": correlation_result,
@@ -337,12 +337,12 @@ async def get_threat_predictions(
     """Get AI-powered threat predictions for your environment"""
     try:
         intelligence_service = container.get_service("threat_intelligence_service")
-        
+
         prediction_result = await intelligence_service.get_threat_prediction(
             environment_data=prediction_request.environment_data,
             timeframe=prediction_request.timeframe
         )
-        
+
         return {
             "success": True,
             "predictions": prediction_result,
@@ -362,12 +362,12 @@ async def generate_threat_report(
     """Generate comprehensive threat intelligence report"""
     try:
         intelligence_service = container.get_service("threat_intelligence_service")
-        
+
         report = await intelligence_service.generate_threat_report(
             analysis_results=analysis_results,
             report_format=report_format
         )
-        
+
         return {
             "success": True,
             "report": report,
@@ -390,13 +390,13 @@ async def create_security_workflow(
     """Create a security automation workflow"""
     try:
         orchestration_service = container.get_service("security_orchestration_service")
-        
+
         workflow = await orchestration_service.create_workflow(
             workflow_definition=workflow_request.workflow_definition,
             user=user,
             org=org
         )
-        
+
         return {
             "success": True,
             "workflow": workflow,
@@ -416,13 +416,13 @@ async def execute_security_workflow(
     """Execute a security workflow"""
     try:
         orchestration_service = container.get_service("security_orchestration_service")
-        
+
         execution = await orchestration_service.execute_workflow(
             workflow_id=workflow_id,
             parameters=parameters or {},
             user=user
         )
-        
+
         return {
             "success": True,
             "execution": execution,
@@ -441,12 +441,12 @@ async def get_workflow_execution_status(
     """Get the status of a workflow execution"""
     try:
         orchestration_service = container.get_service("security_orchestration_service")
-        
+
         status = await orchestration_service.get_workflow_status(
             execution_id=execution_id,
             user=user
         )
-        
+
         return status
     except Exception as e:
         logger.error(f"Failed to get workflow status: {e}")
@@ -464,13 +464,13 @@ async def validate_compliance(
     """Validate compliance against a specific framework"""
     try:
         compliance_service = container.get_service("compliance_service")
-        
+
         validation_result = await compliance_service.validate_compliance(
             framework=framework,
             scan_results=scan_results,
             organization=org
         )
-        
+
         return {
             "success": True,
             "validation": validation_result,
@@ -522,7 +522,7 @@ async def get_compliance_frameworks():
             "description": "US framework for improving cybersecurity"
         }
     ]
-    
+
     return {
         "frameworks": frameworks,
         "total_frameworks": len(frameworks),
@@ -541,13 +541,13 @@ async def get_security_alerts(
     """Get recent security alerts"""
     try:
         monitoring_service = container.get_service("security_monitoring_service")
-        
+
         alerts = await monitoring_service.get_security_alerts(
             organization=org,
             severity_filter=severity,
             limit=limit
         )
-        
+
         return {
             "alerts": alerts,
             "total_alerts": len(alerts),
@@ -568,13 +568,13 @@ async def start_monitoring(
     """Start real-time security monitoring"""
     try:
         monitoring_service = container.get_service("security_monitoring_service")
-        
+
         monitoring_result = await monitoring_service.start_real_time_monitoring(
             targets=targets,
             monitoring_config=monitoring_config,
             user=user
         )
-        
+
         return {
             "success": True,
             "monitoring": monitoring_result,
@@ -632,7 +632,7 @@ async def get_security_dashboard(
                 }
             ]
         }
-        
+
         return {
             "dashboard": dashboard_data,
             "timeframe": timeframe,
@@ -697,7 +697,7 @@ async def get_platform_capabilities():
             "audit_trail": "Complete audit logging with cryptographic integrity"
         }
     }
-    
+
     return {
         "platform_capabilities": capabilities,
         "version": "3.0.0",

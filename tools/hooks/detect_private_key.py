@@ -26,7 +26,7 @@ def main():
         try:
             with open(filename, 'r', encoding='utf-8', errors='ignore') as f:
                 content = f.read()
-                
+
             for pattern in PRIVATE_KEY_PATTERNS:
                 if re.search(pattern, content):
                     violations.append(filename)

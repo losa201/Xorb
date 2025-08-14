@@ -17,52 +17,52 @@ depends_on = None
 
 def upgrade() -> None:
     """Add pgvector extension and embedding column."""
-    
+
     # Enable pgvector extension
     op.execute("CREATE EXTENSION IF NOT EXISTS vector")
-    
+
     # Add vector column to embedding_vectors table
     op.execute("""
-        ALTER TABLE embedding_vectors 
+        ALTER TABLE embedding_vectors
         ADD COLUMN IF NOT EXISTS embedding vector(1536)
     """)
-    
+
     # Create HNSW index for fast similarity search
     op.execute("""
         CREATE INDEX IF NOT EXISTS idx_embedding_vectors_embedding_hnsw
-        ON embedding_vectors 
+        ON embedding_vectors
         USING hnsw (embedding vector_cosine_ops)
         WITH (m = 16, ef_construction = 64)
     """)
-    
+
     # Create index on content_hash for deduplication
     op.create_index(
         'idx_embedding_vectors_content_hash',
         'embedding_vectors',
         ['content_hash']
     )
-    
+
     # Create composite index for tenant + source lookups
     op.create_index(
         'idx_embedding_vectors_tenant_source',
         'embedding_vectors',
         ['tenant_id', 'source_type', 'source_id']
     )
-    
+
     # Create index on embedding model for filtering
     op.create_index(
         'idx_embedding_vectors_model',
         'embedding_vectors',
         ['embedding_model']
     )
-    
+
     # Add constraints
     op.execute("""
         ALTER TABLE embedding_vectors
-        ADD CONSTRAINT chk_embedding_dimension 
+        ADD CONSTRAINT chk_embedding_dimension
         CHECK (vector_dims(embedding) = 1536)
     """)
-    
+
     # Create function for embedding search optimization
     op.execute("""
         CREATE OR REPLACE FUNCTION search_embeddings(
@@ -84,9 +84,9 @@ def upgrade() -> None:
         BEGIN
             -- Set tenant context for RLS
             PERFORM set_config('app.tenant_id', search_tenant_id::text, true);
-            
+
             RETURN QUERY
-            SELECT 
+            SELECT
                 ev.id,
                 ev.source_type,
                 ev.source_id,
@@ -107,20 +107,20 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Remove pgvector support."""
-    
+
     # Drop function
     op.execute("DROP FUNCTION IF EXISTS search_embeddings")
-    
+
     # Drop constraints
     op.execute("ALTER TABLE embedding_vectors DROP CONSTRAINT IF EXISTS chk_embedding_dimension")
-    
+
     # Drop indexes
     op.drop_index('idx_embedding_vectors_model')
     op.drop_index('idx_embedding_vectors_tenant_source')
     op.drop_index('idx_embedding_vectors_content_hash')
     op.execute("DROP INDEX IF EXISTS idx_embedding_vectors_embedding_hnsw")
-    
+
     # Drop vector column
     op.execute("ALTER TABLE embedding_vectors DROP COLUMN IF EXISTS embedding")
-    
+
     # Note: We don't drop the vector extension as it might be used by other applications

@@ -104,7 +104,7 @@ async def submit_resource_request(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Submit a resource request to the WFQ scheduler with quota enforcement."""
-    
+
     try:
         # Validate resource type
         try:
@@ -115,7 +115,7 @@ async def submit_resource_request(
                 status_code=400,
                 detail=f"Invalid resource_type. Must be one of: {valid_types}"
             )
-        
+
         # Validate priority
         try:
             priority = RequestPriority[request.priority.upper()]
@@ -125,7 +125,7 @@ async def submit_resource_request(
                 status_code=400,
                 detail=f"Invalid priority. Must be one of: {valid_priorities}"
             )
-        
+
         # Submit request
         accepted, message, request_id = await control_plane.submit_request(
             tenant_id=request.tenant_id,
@@ -135,15 +135,15 @@ async def submit_resource_request(
             estimated_duration=request.estimated_duration,
             metadata=request.metadata
         )
-        
+
         # Get queue information if accepted
         queue_position = None
         estimated_wait_time = None
-        
+
         if accepted and request_id:
             queue_stats = control_plane.wfq_scheduler.get_queue_stats()
             estimated_wait_time = queue_stats["average_wait_time_ms"] / 1000.0
-        
+
         return RequestResponse(
             accepted=accepted,
             message=message,
@@ -151,7 +151,7 @@ async def submit_resource_request(
             queue_position=queue_position,
             estimated_wait_time=estimated_wait_time
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -164,10 +164,10 @@ async def get_request_status(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Get status of a submitted resource request."""
-    
+
     try:
         status_info = await control_plane.get_request_status(request_id)
-        
+
         return RequestStatusResponse(
             request_id=request_id,
             status=status_info["status"],
@@ -176,7 +176,7 @@ async def get_request_status(
             processing_time=status_info.get("processing_time"),
             estimated_wait_time=status_info.get("estimated_wait_time")
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get request status: {str(e)}")
 
@@ -187,7 +187,7 @@ async def create_tenant_profile(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Create a new tenant profile with quotas and WFQ weight."""
-    
+
     try:
         # Validate tier
         valid_tiers = ["enterprise", "professional", "starter"]
@@ -196,7 +196,7 @@ async def create_tenant_profile(
                 status_code=400,
                 detail=f"Invalid tier. Must be one of: {valid_tiers}"
             )
-        
+
         # Convert custom quotas if provided
         custom_quotas = None
         if request.custom_quotas:
@@ -206,20 +206,20 @@ async def create_tenant_profile(
                 }
             except ValueError as e:
                 raise HTTPException(status_code=400, detail=f"Invalid resource type in custom quotas: {str(e)}")
-        
+
         # Create tenant profile
         profile = control_plane.quota_manager.create_tenant_profile(
             tenant_id=request.tenant_id,
             tier=request.tier,
             custom_quotas=custom_quotas
         )
-        
+
         return {
             "tenant_profile": profile.to_dict(),
             "message": f"Tenant profile created successfully for {request.tenant_id}",
             "created_at": datetime.utcnow().isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -232,10 +232,10 @@ async def get_tenant_status(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Get comprehensive status for a specific tenant."""
-    
+
     try:
         status_info = await control_plane.get_tenant_status(tenant_id)
-        
+
         return TenantStatusResponse(
             tenant_id=status_info["tenant_id"],
             queue_length=status_info["queue_length"],
@@ -243,7 +243,7 @@ async def get_tenant_status(
             fairness_metrics=status_info["fairness_metrics"],
             status_generated_at=datetime.fromisoformat(status_info["status_generated_at"])
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get tenant status: {str(e)}")
 
@@ -255,7 +255,7 @@ async def update_tenant_quota(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Update quota limits for a specific tenant and resource type."""
-    
+
     try:
         # Validate resource type
         try:
@@ -266,25 +266,25 @@ async def update_tenant_quota(
                 status_code=400,
                 detail=f"Invalid resource_type. Must be one of: {valid_types}"
             )
-        
+
         # Check if tenant exists
         if tenant_id not in control_plane.quota_manager.tenant_profiles:
             raise HTTPException(status_code=404, detail=f"Tenant {tenant_id} not found")
-        
+
         # Update quota
         profile = control_plane.quota_manager.tenant_profiles[tenant_id]
         old_limit = profile.quotas.get(resource_type, 0)
-        
+
         profile.quotas[resource_type] = request.new_limit
         profile.updated_at = datetime.utcnow()
-        
+
         # Update burst allowance if provided
         if request.burst_allowance is not None:
             profile.burst_allowance[resource_type] = request.burst_allowance
-        
+
         # Save updated profile
         control_plane.quota_manager._save_tenant_profile(profile)
-        
+
         return {
             "tenant_id": tenant_id,
             "resource_type": request.resource_type,
@@ -294,7 +294,7 @@ async def update_tenant_quota(
             "message": f"Quota updated successfully for {tenant_id}",
             "updated_at": profile.updated_at.isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -306,17 +306,17 @@ async def get_system_status(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Get comprehensive control plane system status and metrics."""
-    
+
     try:
         status_info = await control_plane.get_system_status()
-        
+
         return SystemStatusResponse(
             system_health=status_info["system_health"],
             queue_statistics=status_info["queue_statistics"],
             fairness_report=status_info["fairness_report"],
             generated_at=datetime.fromisoformat(status_info["generated_at"])
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get system status: {str(e)}")
 
@@ -326,10 +326,10 @@ async def get_fairness_report(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Get detailed fairness analysis and recommendations."""
-    
+
     try:
         fairness_report = control_plane.fairness_engine.generate_fairness_report()
-        
+
         return {
             "fairness_report": fairness_report,
             "fairness_summary": {
@@ -340,7 +340,7 @@ async def get_fairness_report(
             },
             "generated_at": fairness_report["report_generated_at"]
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to generate fairness report: {str(e)}")
 
@@ -350,10 +350,10 @@ async def get_queue_statistics(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Get detailed WFQ scheduler queue statistics."""
-    
+
     try:
         queue_stats = control_plane.wfq_scheduler.get_queue_stats()
-        
+
         return {
             "wfq_statistics": queue_stats,
             "scheduler_health": {
@@ -365,7 +365,7 @@ async def get_queue_statistics(
             },
             "generated_at": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get queue statistics: {str(e)}")
 
@@ -376,21 +376,21 @@ async def trigger_system_rebalance(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Trigger system rebalancing to improve fairness."""
-    
+
     try:
         # Get current fairness violations
         violations = control_plane.fairness_engine.identify_fairness_violations()
-        
+
         # Add background task for rebalancing
         background_tasks.add_task(_perform_system_rebalance, control_plane, violations)
-        
+
         return {
             "rebalance_triggered": True,
             "violations_found": len(violations),
             "message": "System rebalancing initiated in background",
             "triggered_at": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to trigger rebalancing: {str(e)}")
 
@@ -398,7 +398,7 @@ async def trigger_system_rebalance(
 @router.get("/resources/types")
 async def get_resource_types():
     """Get available resource types for quota management."""
-    
+
     return {
         "resource_types": [
             {
@@ -415,11 +415,11 @@ async def control_plane_health(
     control_plane: G8ControlPlaneService = Depends(get_g8_control_plane_service)
 ):
     """Health check for control plane service."""
-    
+
     try:
         system_status = await control_plane.get_system_status()
         is_healthy = system_status["system_health"]["control_plane_running"]
-        
+
         return {
             "status": "healthy" if is_healthy else "unhealthy",
             "service": "G8 Control Plane",
@@ -436,7 +436,7 @@ async def control_plane_health(
             },
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         return {
             "status": "unhealthy",
@@ -451,14 +451,14 @@ async def _perform_system_rebalance(
     violations: List[Dict[str, Any]]
 ):
     """Background task to perform system rebalancing."""
-    
+
     try:
         print(f"🔄 Starting system rebalance for {len(violations)} violations")
-        
+
         for violation in violations:
             tenant_id = violation["tenant_id"]
             violation_type = violation["violation_type"]
-            
+
             if violation_type == "low_fairness_score":
                 # Increase tenant weight slightly
                 profile = control_plane.quota_manager.tenant_profiles.get(tenant_id)
@@ -466,35 +466,35 @@ async def _perform_system_rebalance(
                     old_weight = profile.weight
                     profile.weight = min(profile.weight * 1.2, 20.0)  # Max weight limit
                     control_plane.wfq_scheduler.set_tenant_weight(tenant_id, profile.weight)
-                    
+
                     print(f"📈 Increased WFQ weight for {tenant_id}: {old_weight} → {profile.weight}")
-            
+
             elif violation_type == "resource_starvation":
                 # Temporarily boost priority for this tenant's requests
                 print(f"🚨 Addressing resource starvation for {tenant_id}")
                 # In a real system, this might trigger capacity scaling or resource reallocation
-        
+
         # Wait for changes to take effect
         await asyncio.sleep(5)
-        
+
         # Generate new fairness report
         new_report = control_plane.fairness_engine.generate_fairness_report()
         print(f"✅ Rebalancing complete. New fairness index: {new_report['system_fairness_index']:.3f}")
-        
+
     except Exception as e:
         print(f"❌ Error during system rebalancing: {e}")
 
 
 def _get_resource_description(resource_type: ResourceType) -> str:
     """Get human-readable description for resource type."""
-    
+
     descriptions = {
         ResourceType.API_REQUESTS: "API requests per time window",
-        ResourceType.SCAN_JOBS: "Security scan jobs per time window", 
+        ResourceType.SCAN_JOBS: "Security scan jobs per time window",
         ResourceType.STORAGE_GB: "Storage capacity in gigabytes",
         ResourceType.COMPUTE_HOURS: "Compute time allocation in hours",
         ResourceType.BANDWIDTH_MBPS: "Network bandwidth in Mbps",
         ResourceType.CONCURRENT_SCANS: "Maximum concurrent security scans"
     }
-    
+
     return descriptions.get(resource_type, "Unknown resource type")

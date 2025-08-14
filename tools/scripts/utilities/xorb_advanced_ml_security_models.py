@@ -103,7 +103,7 @@ class ModelPerformance:
 class XorbAdvancedMLSecurityModels:
     """
     Advanced machine learning security analysis framework.
-    
+
     Features:
     - Neural network-based threat prediction
     - Ensemble anomaly detection algorithms

@@ -110,7 +110,7 @@ class UnifiedThreatModel:
         self.attack_vectors = PTaaSDiscovery()     # From PTaaS
         self.defensive_measures = XORBDefenses()   # From XORB
         self.threat_correlation = ThreatIntel()    # Shared analysis
-    
+
     def continuous_validation(self):
         """Continuous red/blue team validation"""
         vulnerabilities = self.attack_vectors.discover()
@@ -150,7 +150,7 @@ class UnifiedThreatModel:
 
 ### ✅ **Completed**
 - Enterprise repository structure
-- Unified documentation system  
+- Unified documentation system
 - Integrated service architecture
 - Cross-service communication framework
 

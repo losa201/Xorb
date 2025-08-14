@@ -38,14 +38,14 @@ class SessionManager:
             "last_active": datetime.now()
         }
         return session_id
-    
+
     @staticmethod
     def get_session(session_id: str) -> Optional[Dict]:
         if session_id in sessions:
             sessions[session_id]["last_active"] = datetime.now()
             return sessions[session_id]
         return None
-    
+
     @staticmethod
     def delete_session(session_id: str):
         if session_id in sessions:
@@ -73,7 +73,7 @@ async def dashboard(request: Request):
     user = get_current_user(request)
     if not user:
         return RedirectResponse(url="/login", status_code=302)
-    
+
     return HTMLResponse(content=f"""
 <!DOCTYPE html>
 <html lang="en">
@@ -89,7 +89,7 @@ async def dashboard(request: Request):
             color: #e2e8f0;
             min-height: 100vh;
         }}
-        
+
         .header {{
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             padding: 1rem 2rem;
@@ -98,16 +98,16 @@ async def dashboard(request: Request):
             align-items: center;
             box-shadow: 0 4px 20px rgba(0,0,0,0.3);
         }}
-        
+
         .logo {{ font-size: 1.5rem; font-weight: bold; color: white; }}
         .user-info {{ color: white; opacity: 0.9; }}
-        
+
         .container {{
             max-width: 1200px;
             margin: 2rem auto;
             padding: 0 2rem;
         }}
-        
+
         .welcome-card {{
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -116,14 +116,14 @@ async def dashboard(request: Request):
             margin-bottom: 2rem;
             backdrop-filter: blur(10px);
         }}
-        
+
         .stats-grid {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-bottom: 2rem;
         }}
-        
+
         .stat-card {{
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -131,22 +131,22 @@ async def dashboard(request: Request):
             padding: 1.5rem;
             text-align: center;
         }}
-        
+
         .stat-value {{
             font-size: 2rem;
             font-weight: bold;
             color: #667eea;
             margin-bottom: 0.5rem;
         }}
-        
+
         .stat-label {{ opacity: 0.8; }}
-        
+
         .features-grid {{
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 1.5rem;
         }}
-        
+
         .feature-card {{
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -154,24 +154,24 @@ async def dashboard(request: Request):
             padding: 1.5rem;
             transition: transform 0.2s ease;
         }}
-        
+
         .feature-card:hover {{
             transform: translateY(-2px);
             border-color: #667eea;
         }}
-        
+
         .feature-icon {{
             font-size: 2rem;
             margin-bottom: 1rem;
         }}
-        
+
         .feature-title {{
             font-size: 1.2rem;
             font-weight: 600;
             margin-bottom: 0.5rem;
             color: #667eea;
         }}
-        
+
         .btn {{
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -183,17 +183,17 @@ async def dashboard(request: Request):
             display: inline-block;
             transition: transform 0.2s ease;
         }}
-        
+
         .btn:hover {{
             transform: translateY(-1px);
         }}
-        
+
         .logout-btn {{
             background: rgba(239, 68, 68, 0.8);
             padding: 0.5rem 1rem;
             font-size: 0.9rem;
         }}
-        
+
         .status-indicator {{
             display: inline-block;
             width: 8px;
@@ -203,7 +203,7 @@ async def dashboard(request: Request):
             margin-right: 0.5rem;
             animation: pulse 2s infinite;
         }}
-        
+
         @keyframes pulse {{
             0%, 100% {{ opacity: 1; }}
             50% {{ opacity: 0.5; }}
@@ -215,20 +215,20 @@ async def dashboard(request: Request):
         <div class="logo">🛡️ XORB PTaaS Platform</div>
         <div class="user-info">
             <span class="status-indicator"></span>
-            Welcome, {user} | 
+            Welcome, {user} |
             <a href="/logout" class="logout-btn btn">Logout</a>
         </div>
     </div>
-    
+
     <div class="container">
         <div class="welcome-card">
             <h1>🚀 Welcome to XORB PTaaS</h1>
             <p style="margin-top: 1rem; opacity: 0.8;">
-                Next-generation AI-powered Penetration Testing as a Service platform. 
+                Next-generation AI-powered Penetration Testing as a Service platform.
                 Your security testing and threat intelligence hub is ready for action.
             </p>
         </div>
-        
+
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-value">3</div>
@@ -247,7 +247,7 @@ async def dashboard(request: Request):
                 <div class="stat-label">Avg Response Time</div>
             </div>
         </div>
-        
+
         <div class="features-grid">
             <div class="feature-card">
                 <div class="feature-icon">🤖</div>
@@ -257,7 +257,7 @@ async def dashboard(request: Request):
                 </p>
                 <a href="/api/v1/ai/chat" class="btn">Launch ARIA</a>
             </div>
-            
+
             <div class="feature-card">
                 <div class="feature-icon">🔍</div>
                 <div class="feature-title">Security Scanning</div>
@@ -266,7 +266,7 @@ async def dashboard(request: Request):
                 </p>
                 <a href="/api/v1/scans" class="btn">Start Scan</a>
             </div>
-            
+
             <div class="feature-card">
                 <div class="feature-icon">📊</div>
                 <div class="feature-title">Threat Intelligence</div>
@@ -275,7 +275,7 @@ async def dashboard(request: Request):
                 </p>
                 <a href="/api/v1/dashboard" class="btn">View Intelligence</a>
             </div>
-            
+
             <div class="feature-card">
                 <div class="feature-icon">👥</div>
                 <div class="feature-title">Multi-Tenant Management</div>
@@ -284,7 +284,7 @@ async def dashboard(request: Request):
                 </p>
                 <a href="/api/v1/tenants" class="btn">Manage Tenants</a>
             </div>
-            
+
             <div class="feature-card">
                 <div class="feature-icon">📈</div>
                 <div class="feature-title">Professional Reports</div>
@@ -293,7 +293,7 @@ async def dashboard(request: Request):
                 </p>
                 <a href="/api/v1/reports" class="btn">Generate Report</a>
             </div>
-            
+
             <div class="feature-card">
                 <div class="feature-icon">🌐</div>
                 <div class="feature-title">Progressive Web App</div>
@@ -303,12 +303,12 @@ async def dashboard(request: Request):
                 <button onclick="installPWA()" class="btn">Install App</button>
             </div>
         </div>
-        
+
         <div style="margin-top: 3rem; text-align: center; opacity: 0.6;">
             <p>🔐 Platform Status: Operational | API: http://188.245.101.102:8001 | Version: 1.0.0</p>
         </div>
     </div>
-    
+
     <script>
         // PWA installation
         let deferredPrompt;
@@ -316,7 +316,7 @@ async def dashboard(request: Request):
             e.preventDefault();
             deferredPrompt = e;
         }});
-        
+
         function installPWA() {{
             if (deferredPrompt) {{
                 deferredPrompt.prompt();
@@ -330,7 +330,7 @@ async def dashboard(request: Request):
                 alert('PWA installation not available. Try accessing from a supported browser.');
             }}
         }}
-        
+
         // Auto-refresh stats every 30 seconds
         setInterval(() => {{
             // In production, fetch real data
@@ -346,7 +346,7 @@ async def login_page(request: Request):
     user = get_current_user(request)
     if user:
         return RedirectResponse(url="/", status_code=302)
-    
+
     return HTMLResponse(content="""
 <!DOCTYPE html>
 <html lang="en">
@@ -365,7 +365,7 @@ async def login_page(request: Request):
             align-items: center;
             justify-content: center;
         }
-        
+
         .login-container {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid rgba(255, 255, 255, 0.1);
@@ -376,13 +376,13 @@ async def login_page(request: Request):
             backdrop-filter: blur(20px);
             box-shadow: 0 8px 40px rgba(0,0,0,0.3);
         }
-        
+
         .logo {
             text-align: center;
             font-size: 3rem;
             margin-bottom: 1rem;
         }
-        
+
         .title {
             text-align: center;
             font-size: 1.5rem;
@@ -393,23 +393,23 @@ async def login_page(request: Request):
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
+
         .subtitle {
             text-align: center;
             opacity: 0.7;
             margin-bottom: 2rem;
         }
-        
+
         .form-group {
             margin-bottom: 1.5rem;
         }
-        
+
         .form-label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 500;
         }
-        
+
         .form-input {
             width: 100%;
             padding: 0.75rem 1rem;
@@ -420,13 +420,13 @@ async def login_page(request: Request):
             font-size: 1rem;
             transition: border-color 0.2s ease;
         }
-        
+
         .form-input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
+
         .login-btn {
             width: 100%;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -438,11 +438,11 @@ async def login_page(request: Request):
             cursor: pointer;
             transition: transform 0.2s ease;
         }
-        
+
         .login-btn:hover {
             transform: translateY(-1px);
         }
-        
+
         .credentials-info {
             margin-top: 2rem;
             padding: 1rem;
@@ -451,7 +451,7 @@ async def login_page(request: Request):
             border-radius: 6px;
             font-size: 0.9rem;
         }
-        
+
         .error-message {
             color: #ef4444;
             margin-top: 1rem;
@@ -464,21 +464,21 @@ async def login_page(request: Request):
         <div class="logo">🛡️</div>
         <h1 class="title">XORB PTaaS</h1>
         <p class="subtitle">AI-Powered Security Platform</p>
-        
+
         <form method="post" action="/login">
             <div class="form-group">
                 <label class="form-label" for="username">Username</label>
                 <input type="text" id="username" name="username" class="form-input" required>
             </div>
-            
+
             <div class="form-group">
                 <label class="form-label" for="password">Password</label>
                 <input type="password" id="password" name="password" class="form-input" required>
             </div>
-            
+
             <button type="submit" class="login-btn">Login to Dashboard</button>
         </form>
-        
+
         <div class="credentials-info">
             <strong>Valid Credentials:</strong><br>
             • Username: <code>admin</code> | Password: <code>xorb_admin_2025</code><br>
@@ -510,7 +510,7 @@ async def logout(request: Request):
     session_id = request.cookies.get("session_id")
     if session_id:
         SessionManager.delete_session(session_id)
-    
+
     response = RedirectResponse(url="/login", status_code=302)
     response.delete_cookie(key="session_id")
     return response

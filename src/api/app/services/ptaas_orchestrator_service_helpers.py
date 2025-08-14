@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 class PTaaSOrchestratorHelpers:
     """Helper methods for PTaaS Orchestrator"""
-    
+
     def _load_compliance_configs(self) -> Dict[str, Dict[str, Any]]:
         """Load compliance framework configurations"""
         return {
@@ -91,7 +91,7 @@ class PTaaSOrchestratorHelpers:
                 }
             }
         }
-    
+
     def _create_workflow_templates(self) -> Dict[str, Dict[str, Any]]:
         """Create predefined workflow templates"""
         return {
@@ -100,7 +100,7 @@ class PTaaSOrchestratorHelpers:
                 "description": "Complete security assessment with all scanning phases",
                 "phases": [
                     "network_discovery",
-                    "vulnerability_scanning", 
+                    "vulnerability_scanning",
                     "web_application_testing",
                     "ssl_tls_analysis",
                     "database_security_testing",
@@ -122,7 +122,7 @@ class PTaaSOrchestratorHelpers:
                 "parallel_execution": False
             },
             "compliance_pci_dss": {
-                "name": "PCI-DSS Compliance Assessment", 
+                "name": "PCI-DSS Compliance Assessment",
                 "description": "PCI-DSS compliance validation workflow",
                 "phases": [
                     "network_segmentation_check",
@@ -151,18 +151,18 @@ class PTaaSOrchestratorHelpers:
                 "stealth_mode": True
             }
         }
-    
+
     def _create_session_workflow(
-        self, 
-        targets: List[Any], 
-        scan_type: str, 
+        self,
+        targets: List[Any],
+        scan_type: str,
         metadata: Dict[str, Any]
     ) -> Any:
         """Create workflow for a PTaaS session"""
         from . import PTaaSWorkflow, WorkflowType, WorkflowTask
-        
+
         workflow_id = f"session_{scan_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        
+
         # Select workflow template based on scan type
         if scan_type == "comprehensive":
             template = self.workflow_templates["comprehensive_assessment"]
@@ -170,13 +170,13 @@ class PTaaSOrchestratorHelpers:
             template = self.workflow_templates["quick_assessment"]
         elif scan_type == "compliance":
             framework = metadata.get("compliance_framework", "PCI-DSS")
-            template = self.workflow_templates.get(f"compliance_{framework.lower().replace('-', '_')}", 
+            template = self.workflow_templates.get(f"compliance_{framework.lower().replace('-', '_')}",
                                                  self.workflow_templates["comprehensive_assessment"])
         elif scan_type == "red_team":
             template = self.workflow_templates["red_team_simulation"]
         else:
             template = self.workflow_templates["comprehensive_assessment"]
-        
+
         # Create workflow tasks based on template
         tasks = []
         for i, phase in enumerate(template["phases"]):
@@ -194,7 +194,7 @@ class PTaaSOrchestratorHelpers:
                 parallel_execution=template.get("parallel_execution", False)
             )
             tasks.append(task)
-        
+
         # Create workflow
         workflow = PTaaSWorkflow(
             id=workflow_id,
@@ -205,13 +205,13 @@ class PTaaSOrchestratorHelpers:
             targets=targets,
             metadata=metadata
         )
-        
+
         return workflow
-    
+
     def _estimate_workflow_duration(self, workflow: Any) -> int:
         """Estimate workflow duration based on tasks and complexity"""
         base_duration = 0
-        
+
         # Calculate base duration from tasks
         for task in workflow.tasks:
             if task.parallel_execution:
@@ -219,21 +219,21 @@ class PTaaSOrchestratorHelpers:
                 base_duration += task.timeout_minutes * 60 * 0.3
             else:
                 base_duration += task.timeout_minutes * 60
-        
+
         # Adjust for number of targets
         target_multiplier = 1.0 + (len(workflow.targets) - 1) * 0.2
-        
+
         # Adjust for workflow complexity
         complexity_multiplier = 1.0
         if workflow.workflow_type.value == "red_team_exercise":
             complexity_multiplier = 1.5
         elif workflow.workflow_type.value == "compliance_scan":
             complexity_multiplier = 1.3
-        
+
         final_duration = int(base_duration * target_multiplier * complexity_multiplier)
-        
+
         return max(final_duration, 300)  # Minimum 5 minutes
-    
+
     async def _compile_session_results(self, session: Any, execution: Any) -> Dict[str, Any]:
         """Compile comprehensive results from session execution"""
         try:
@@ -263,35 +263,35 @@ class PTaaSOrchestratorHelpers:
                 "recommendations": [],
                 "executive_summary": {}
             }
-            
+
             # Aggregate results from all completed tasks
             total_vulnerabilities = 0
             critical_vulns = 0
             high_vulns = 0
             all_open_ports = set()
             all_services = []
-            
+
             for task_id, task_result in execution.results.items():
                 if task_result.get("status") == "completed":
                     task_data = task_result.get("result", {})
-                    
+
                     # Aggregate vulnerability data
                     if "vulnerabilities_found" in task_data:
                         total_vulnerabilities += task_data["vulnerabilities_found"]
-                    
+
                     if "severity_breakdown" in task_data:
                         critical_vulns += task_data["severity_breakdown"].get("critical", 0)
                         high_vulns += task_data["severity_breakdown"].get("high", 0)
-                    
+
                     if "detailed_findings" in task_data:
                         results["scan_results"]["vulnerabilities"].extend(
                             task_data["detailed_findings"][:10]  # Limit for response size
                         )
-                    
+
                     # Aggregate port and service data
                     if "open_ports_total" in task_data:
                         all_open_ports.update(range(task_data["open_ports_total"]))
-                    
+
                     # Collect compliance findings
                     if "compliance_score" in task_data:
                         results["scan_results"]["compliance_findings"].append({
@@ -300,7 +300,7 @@ class PTaaSOrchestratorHelpers:
                             "controls_passed": task_data.get("controls_passed", 0),
                             "controls_failed": task_data.get("controls_failed", 0)
                         })
-            
+
             # Calculate security metrics
             results["scan_results"]["security_metrics"] = {
                 "total_vulnerabilities": total_vulnerabilities,
@@ -310,11 +310,11 @@ class PTaaSOrchestratorHelpers:
                 "services_identified": len(all_services),
                 "scan_coverage": len(execution.completed_tasks) / len(execution.results) if execution.results else 0
             }
-            
+
             # Calculate risk score
             risk_score = self._calculate_session_risk_score(results["scan_results"]["security_metrics"])
             results["threat_intelligence"]["risk_score"] = risk_score
-            
+
             # Determine threat level
             if risk_score >= 0.8:
                 threat_level = "critical"
@@ -324,24 +324,24 @@ class PTaaSOrchestratorHelpers:
                 threat_level = "medium"
             else:
                 threat_level = "low"
-            
+
             results["threat_intelligence"]["threat_level"] = threat_level
-            
+
             # Generate recommendations
             results["recommendations"] = self._generate_session_recommendations(
-                results["scan_results"]["security_metrics"], 
+                results["scan_results"]["security_metrics"],
                 threat_level
             )
-            
+
             # Generate executive summary
             results["executive_summary"] = self._generate_executive_summary(
                 results["scan_results"]["security_metrics"],
                 results["threat_intelligence"],
                 session
             )
-            
+
             return results
-            
+
         except Exception as e:
             logger.error(f"Failed to compile session results: {e}")
             return {
@@ -353,44 +353,44 @@ class PTaaSOrchestratorHelpers:
                 "threat_intelligence": {"error": str(e)},
                 "recommendations": ["Manual review required due to compilation error"]
             }
-    
+
     def _calculate_session_risk_score(self, metrics: Dict[str, Any]) -> float:
         """Calculate comprehensive risk score for session"""
         try:
             total_vulns = metrics.get("total_vulnerabilities", 0)
             critical_vulns = metrics.get("critical_vulnerabilities", 0)
             high_vulns = metrics.get("high_vulnerabilities", 0)
-            
+
             # Base score from vulnerability counts
             base_score = min(total_vulns / 20.0, 1.0)  # Normalize to 0-1
-            
+
             # Critical vulnerability multiplier
             critical_multiplier = critical_vulns * 0.3
-            
+
             # High vulnerability multiplier
             high_multiplier = high_vulns * 0.15
-            
+
             # Calculate final risk score
             risk_score = min(base_score + critical_multiplier + high_multiplier, 1.0)
-            
+
             return round(risk_score, 3)
-            
+
         except Exception as e:
             logger.error(f"Risk score calculation failed: {e}")
             return 0.5
-    
+
     def _generate_session_recommendations(
-        self, 
-        metrics: Dict[str, Any], 
+        self,
+        metrics: Dict[str, Any],
         threat_level: str
     ) -> List[str]:
         """Generate actionable recommendations based on scan results"""
         recommendations = []
-        
+
         critical_vulns = metrics.get("critical_vulnerabilities", 0)
         high_vulns = metrics.get("high_vulnerabilities", 0)
         total_vulns = metrics.get("total_vulnerabilities", 0)
-        
+
         # Critical findings recommendations
         if critical_vulns > 0:
             recommendations.append(
@@ -399,13 +399,13 @@ class PTaaSOrchestratorHelpers:
             recommendations.append(
                 "🔒 Consider implementing emergency incident response procedures"
             )
-        
+
         # High severity recommendations
         if high_vulns > 0:
             recommendations.append(
                 f"⚠️ HIGH PRIORITY: Remediate {high_vulns} high-severity vulnerabilities within 48 hours"
             )
-        
+
         # Threat level specific recommendations
         if threat_level == "critical":
             recommendations.extend([
@@ -426,7 +426,7 @@ class PTaaSOrchestratorHelpers:
                 "🔄 Update security policies and procedures",
                 "👥 Provide additional security training"
             ])
-        
+
         # General security improvements
         if total_vulns > 0:
             recommendations.extend([
@@ -435,7 +435,7 @@ class PTaaSOrchestratorHelpers:
                 "📝 Update security documentation",
                 "🎯 Conduct focused security testing"
             ])
-        
+
         # Always include these best practices
         recommendations.extend([
             "📊 Schedule regular security assessments",
@@ -443,22 +443,22 @@ class PTaaSOrchestratorHelpers:
             "👥 Provide ongoing security awareness training",
             "📋 Review and update incident response procedures"
         ])
-        
+
         return recommendations[:10]  # Limit to top 10 recommendations
-    
+
     def _generate_executive_summary(
-        self, 
-        metrics: Dict[str, Any], 
-        threat_intel: Dict[str, Any], 
+        self,
+        metrics: Dict[str, Any],
+        threat_intel: Dict[str, Any],
         session: Any
     ) -> Dict[str, Any]:
         """Generate executive summary for leadership"""
-        
+
         total_vulns = metrics.get("total_vulnerabilities", 0)
         critical_vulns = metrics.get("critical_vulnerabilities", 0)
         risk_score = threat_intel.get("risk_score", 0)
         threat_level = threat_intel.get("threat_level", "low")
-        
+
         # Overall security posture assessment
         if risk_score >= 0.8:
             posture = "Critical - Immediate attention required"
@@ -472,7 +472,7 @@ class PTaaSOrchestratorHelpers:
         else:
             posture = "Low Risk - Maintain current security measures"
             color = "green"
-        
+
         # Business impact assessment
         if critical_vulns > 0:
             business_impact = "High - Critical vulnerabilities pose immediate risk to business operations"
@@ -482,7 +482,7 @@ class PTaaSOrchestratorHelpers:
             business_impact = "Low - Identified issues are manageable with standard remediation processes"
         else:
             business_impact = "Minimal - No significant security issues identified"
-        
+
         # Cost/resource estimation
         if critical_vulns > 0:
             estimated_effort = "High - Requires immediate resource allocation and potential external assistance"
@@ -490,7 +490,7 @@ class PTaaSOrchestratorHelpers:
             estimated_effort = "Medium - Standard security team resources with prioritized scheduling"
         else:
             estimated_effort = "Low - Regular maintenance windows and standard processes"
-        
+
         summary = {
             "scan_overview": {
                 "scan_type": session.scan_type,
@@ -520,9 +520,9 @@ class PTaaSOrchestratorHelpers:
                 "long_term_improvements": 5
             }
         }
-        
+
         return summary
-    
+
     async def _save_session_state(self, session: Any):
         """Save session state to persistent storage"""
         try:
@@ -535,19 +535,19 @@ class PTaaSOrchestratorHelpers:
                     "scan_type": session.scan_type,
                     "metadata": session.metadata
                 }
-                
+
                 await self.redis_client.hset(
                     f"ptaas_session:{session.session_id}",
-                    mapping={k: json.dumps(v) if not isinstance(v, str) else v 
+                    mapping={k: json.dumps(v) if not isinstance(v, str) else v
                             for k, v in session_data.items()}
                 )
-                
+
                 # Set expiration (7 days)
                 await self.redis_client.expire(f"ptaas_session:{session.session_id}", 604800)
-                
+
         except Exception as e:
             logger.error(f"Failed to save session state: {e}")
-    
+
     async def _load_persistent_state(self):
         """Load persistent state from storage"""
         try:
@@ -564,12 +564,12 @@ class PTaaSOrchestratorHelpers:
                                 self.sessions[session_id] = type('Session', (), session_data)()
                     except Exception as e:
                         logger.error(f"Failed to load session {key}: {e}")
-                
+
                 logger.info(f"Loaded {len(self.sessions)} sessions from persistent storage")
-                
+
         except Exception as e:
             logger.error(f"Failed to load persistent state: {e}")
-    
+
     async def _save_persistent_state(self):
         """Save current state to persistent storage"""
         try:
@@ -577,27 +577,27 @@ class PTaaSOrchestratorHelpers:
                 # Save current sessions
                 for session_id, session in self.sessions.items():
                     await self._save_session_state(session)
-                
+
                 logger.info(f"Saved {len(self.sessions)} sessions to persistent storage")
-                
+
         except Exception as e:
             logger.error(f"Failed to save persistent state: {e}")
-    
+
     def _get_compliance_requirements(self, framework: str) -> Dict[str, Any]:
         """Get detailed compliance requirements for framework"""
         compliance_configs = self._load_compliance_configs()
         return compliance_configs.get(framework, {})
-    
+
     async def _validate_pci_dss_compliance(
-        self, 
-        vulnerabilities: List[Dict], 
+        self,
+        vulnerabilities: List[Dict],
         requirements: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Validate PCI-DSS compliance based on scan results"""
-        
+
         compliance_score = 85.0  # Base score
         findings = []
-        
+
         # Check for critical vulnerabilities that affect PCI compliance
         critical_vulns = [v for v in vulnerabilities if v.get("severity") == "critical"]
         if critical_vulns:
@@ -608,20 +608,20 @@ class PTaaSOrchestratorHelpers:
                 "issue": f"{len(critical_vulns)} critical vulnerabilities found",
                 "impact": "High"
             })
-        
+
         # Check network security (Requirement 1)
-        network_vulns = [v for v in vulnerabilities 
-                        if any(keyword in v.get("name", "").lower() 
+        network_vulns = [v for v in vulnerabilities
+                        if any(keyword in v.get("name", "").lower()
                               for keyword in ["firewall", "network", "segmentation"])]
         if network_vulns:
             compliance_score -= 5.0
             findings.append({
                 "control": "1.1-1.3",
-                "status": "failed", 
+                "status": "failed",
                 "issue": "Network security vulnerabilities identified",
                 "impact": "Medium"
             })
-        
+
         # Check for encryption issues (Requirement 3-4)
         crypto_vulns = [v for v in vulnerabilities
                        if any(keyword in v.get("name", "").lower()
@@ -634,23 +634,23 @@ class PTaaSOrchestratorHelpers:
                 "issue": "Encryption/cryptography vulnerabilities found",
                 "impact": "High"
             })
-        
+
         return {
             "compliance_score": max(compliance_score, 0.0),
             "findings": findings,
             "status": "compliant" if compliance_score >= 80.0 else "non_compliant"
         }
-    
+
     async def _validate_hipaa_compliance(
-        self, 
-        vulnerabilities: List[Dict], 
+        self,
+        vulnerabilities: List[Dict],
         requirements: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Validate HIPAA compliance based on scan results"""
-        
+
         compliance_score = 80.0  # Base score
         findings = []
-        
+
         # Check access control vulnerabilities
         access_vulns = [v for v in vulnerabilities
                        if any(keyword in v.get("name", "").lower()
@@ -662,7 +662,7 @@ class PTaaSOrchestratorHelpers:
                 "status": "failed",
                 "issue": "Access control vulnerabilities identified"
             })
-        
+
         # Check encryption requirements
         crypto_vulns = [v for v in vulnerabilities
                        if any(keyword in v.get("name", "").lower()
@@ -674,23 +674,23 @@ class PTaaSOrchestratorHelpers:
                 "status": "failed",
                 "issue": "Transmission security vulnerabilities found"
             })
-        
+
         return {
             "compliance_score": max(compliance_score, 0.0),
             "findings": findings,
             "status": "compliant" if compliance_score >= 75.0 else "non_compliant"
         }
-    
+
     async def _validate_sox_compliance(
-        self, 
-        vulnerabilities: List[Dict], 
+        self,
+        vulnerabilities: List[Dict],
         requirements: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Validate SOX compliance based on scan results"""
-        
+
         compliance_score = 90.0  # Base score
         findings = []
-        
+
         # Check IT control vulnerabilities
         it_vulns = [v for v in vulnerabilities
                    if any(keyword in v.get("name", "").lower()
@@ -702,59 +702,59 @@ class PTaaSOrchestratorHelpers:
                 "status": "failed",
                 "issue": "IT control vulnerabilities identified"
             })
-        
+
         return {
             "compliance_score": max(compliance_score, 0.0),
             "findings": findings,
             "status": "compliant" if compliance_score >= 85.0 else "non_compliant"
         }
-    
+
     async def start_scan_session(self, session_id: str):
         """Start executing a scan session"""
         try:
             if session_id not in self.sessions:
                 logger.error(f"Session {session_id} not found")
                 return
-            
+
             session = self.sessions[session_id]
             execution = self.executions.get(session.workflow_execution_id)
-            
+
             if not execution:
                 logger.error(f"Execution not found for session {session_id}")
                 return
-            
+
             # Update session status
             session.status = self.WorkflowStatus.RUNNING
             session.started_at = datetime.utcnow()
-            
+
             # Queue execution task
             await self.task_queue.put({
                 "type": "execute_workflow",
                 "execution_id": execution.id,
                 "session_id": session_id
             })
-            
+
             logger.info(f"Started scan session {session_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to start scan session {session_id}: {e}")
-    
+
     async def get_scan_session_status(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get comprehensive scan session status"""
         try:
             if session_id not in self.sessions:
                 return None
-            
+
             session = self.sessions[session_id]
             execution = self.executions.get(session.workflow_execution_id)
-            
+
             if not execution:
                 return {
                     "session_id": session_id,
                     "status": "error",
                     "error": "Execution not found"
                 }
-            
+
             status_data = {
                 "session_id": session_id,
                 "status": execution.status.value,
@@ -769,13 +769,13 @@ class PTaaSOrchestratorHelpers:
                 "failed_tasks": len(execution.failed_tasks),
                 "errors": execution.errors
             }
-            
+
             # Add results if completed
             if execution.status.value == "completed" and hasattr(execution, 'results'):
                 status_data["results"] = await self._compile_session_results(session, execution)
-            
+
             return status_data
-            
+
         except Exception as e:
             logger.error(f"Failed to get session status {session_id}: {e}")
             return {
@@ -783,79 +783,79 @@ class PTaaSOrchestratorHelpers:
                 "status": "error",
                 "error": str(e)
             }
-    
+
     async def cancel_scan_session(self, session_id: str) -> bool:
         """Cancel an active scan session"""
         try:
             if session_id not in self.sessions:
                 return False
-            
+
             session = self.sessions[session_id]
             execution = self.executions.get(session.workflow_execution_id)
-            
+
             if not execution:
                 return False
-            
+
             # Cancel execution
             if session.workflow_execution_id in self.active_executions:
                 task = self.active_executions[session.workflow_execution_id]
                 task.cancel()
                 self.active_executions.pop(session.workflow_execution_id)
-            
+
             # Update status
             execution.status = self.WorkflowStatus.CANCELLED
             execution.end_time = datetime.utcnow()
             session.status = self.WorkflowStatus.CANCELLED
             session.completed_at = datetime.utcnow()
-            
+
             # Save state
             await self._save_session_state(session)
-            
+
             logger.info(f"Cancelled scan session {session_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to cancel session {session_id}: {e}")
             return False
-    
+
     @property
     def available_scanners(self) -> Dict[str, bool]:
         """Get available scanner status"""
         if hasattr(self, 'scanner_service') and self.scanner_service:
             return {
-                name: config.available 
+                name: config.available
                 for name, config in self.scanner_service.scanners.items()
             }
         return {}
-    
+
     @property
     def active_sessions(self) -> Dict[str, Any]:
         """Get active sessions"""
         return getattr(self, 'sessions', {})
-    
-    @property  
+
+    @property
     def WorkflowStatus(self):
         """Get WorkflowStatus enum"""
         from . import WorkflowStatus
         return WorkflowStatus
-    
+
     async def _workflow_worker(self, worker_id: str):
         """Background worker for processing workflows"""
         logger.info(f"Started workflow worker: {worker_id}")
-        
+
         while True:
             try:
                 # Get task from queue
                 task = await self.task_queue.get()
-                
+
                 if task.get("type") == "execute_workflow":
                     execution_id = task.get("execution_id")
                     session_id = task.get("session_id")
-                    
+
                     if execution_id in self.executions:
                         execution = self.executions[execution_id]
                         workflow = self.workflows.get(execution.workflow_id)
-                        
+
                         if workflow:
                             # Execute workflow
                             await self._execute_workflow_with_monitoring(
@@ -865,20 +865,20 @@ class PTaaSOrchestratorHelpers:
                             logger.error(f"Workflow not found: {execution.workflow_id}")
                     else:
                         logger.error(f"Execution not found: {execution_id}")
-                
+
                 self.task_queue.task_done()
-                
+
             except asyncio.CancelledError:
                 logger.info(f"Workflow worker {worker_id} cancelled")
                 break
             except Exception as e:
                 logger.error(f"Workflow worker {worker_id} error: {e}")
                 await asyncio.sleep(1)
-    
+
     async def _execute_workflow_with_monitoring(
-        self, 
-        execution: Any, 
-        workflow: Any, 
+        self,
+        execution: Any,
+        workflow: Any,
         session_id: Optional[str]
     ):
         """Execute workflow with comprehensive monitoring"""
@@ -886,44 +886,44 @@ class PTaaSOrchestratorHelpers:
             execution.status = self.WorkflowStatus.RUNNING
             execution.start_time = datetime.utcnow()
             execution.current_task = "initializing"
-            
+
             # Simulate workflow execution phases
             phases = ["initialization", "target_validation", "scanning", "analysis", "reporting"]
-            
+
             for i, phase in enumerate(phases):
                 execution.current_task = phase
                 execution.progress_percentage = (i / len(phases)) * 100
-                
+
                 # Simulate phase execution
                 await asyncio.sleep(1)  # Simulate work
-                
+
                 execution.completed_tasks.append(phase)
-                
+
                 logger.debug(f"Workflow {execution.id} completed phase: {phase}")
-            
+
             # Mark as completed
             execution.status = self.WorkflowStatus.COMPLETED
             execution.end_time = datetime.utcnow()
             execution.progress_percentage = 100.0
             execution.current_task = "completed"
-            
+
             # Update session if available
             if session_id and session_id in self.sessions:
                 session = self.sessions[session_id]
                 session.status = self.WorkflowStatus.COMPLETED
                 session.completed_at = datetime.utcnow()
                 await self._save_session_state(session)
-            
+
             logger.info(f"Workflow execution {execution.id} completed successfully")
-            
+
         except Exception as e:
             execution.status = self.WorkflowStatus.FAILED
             execution.end_time = datetime.utcnow()
             execution.errors.append(str(e))
-            
+
             if session_id and session_id in self.sessions:
                 session = self.sessions[session_id]
                 session.status = self.WorkflowStatus.FAILED
                 session.completed_at = datetime.utcnow()
-            
+
             logger.error(f"Workflow execution {execution.id} failed: {e}")

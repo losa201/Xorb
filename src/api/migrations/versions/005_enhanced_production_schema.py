@@ -20,7 +20,7 @@ depends_on = None
 
 def upgrade():
     """Create enhanced production schema with comprehensive tables"""
-    
+
     # Enhanced Users table with advanced features
     op.create_table(
         'users',
@@ -46,7 +46,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Tenants table for multi-tenancy
     op.create_table(
         'tenants',
@@ -64,7 +64,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Enhanced scan sessions table
     op.create_table(
         'scan_sessions',
@@ -90,7 +90,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Scan targets table
     op.create_table(
         'scan_targets',
@@ -106,7 +106,7 @@ def upgrade():
         sa.Column('metadata', postgresql.JSONB, default=lambda: {}),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now())
     )
-    
+
     # Scan results table
     op.create_table(
         'scan_results',
@@ -123,7 +123,7 @@ def upgrade():
         sa.Column('mitre_techniques', postgresql.JSONB, default=lambda: []),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now())
     )
-    
+
     # Threat intelligence indicators table
     op.create_table(
         'threat_indicators',
@@ -143,7 +143,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Threat analysis sessions table
     op.create_table(
         'threat_analysis_sessions',
@@ -164,7 +164,7 @@ def upgrade():
         sa.Column('analysis_metadata', postgresql.JSONB, default=lambda: {}),
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now())
     )
-    
+
     # Behavioral profiles table
     op.create_table(
         'behavioral_profiles',
@@ -182,7 +182,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Threat hunting queries table
     op.create_table(
         'threat_hunting_queries',
@@ -205,7 +205,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Forensics evidence table
     op.create_table(
         'forensics_evidence',
@@ -229,7 +229,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Compliance assessments table
     op.create_table(
         'compliance_assessments',
@@ -255,7 +255,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Workflow orchestration table
     op.create_table(
         'workflows',
@@ -278,7 +278,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Workflow executions table
     op.create_table(
         'workflow_executions',
@@ -300,7 +300,7 @@ def upgrade():
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.func.now(), onupdate=sa.func.now())
     )
-    
+
     # Add foreign key constraints
     op.create_foreign_key('fk_users_tenant', 'users', 'tenants', ['tenant_id'], ['id'])
     op.create_foreign_key('fk_scan_sessions_user', 'scan_sessions', 'users', ['user_id'], ['id'])
@@ -322,7 +322,7 @@ def upgrade():
     op.create_foreign_key('fk_workflows_tenant', 'workflows', 'tenants', ['tenant_id'], ['id'])
     op.create_foreign_key('fk_workflow_executions_workflow', 'workflow_executions', 'workflows', ['workflow_id'], ['id'])
     op.create_foreign_key('fk_workflow_executions_tenant', 'workflow_executions', 'tenants', ['tenant_id'], ['id'])
-    
+
     # Create indexes for performance
     op.create_index('idx_users_tenant_active', 'users', ['tenant_id', 'is_active'])
     op.create_index('idx_scan_sessions_tenant_status', 'scan_sessions', ['tenant_id', 'status'])
@@ -334,7 +334,7 @@ def upgrade():
     op.create_index('idx_compliance_framework_date', 'compliance_assessments', ['framework', 'assessment_date'])
     op.create_index('idx_workflows_type_enabled', 'workflows', ['workflow_type', 'is_enabled'])
     op.create_index('idx_workflow_executions_status_created', 'workflow_executions', ['status', 'created_at'])
-    
+
     # Enable Row Level Security (RLS) for multi-tenancy
     op.execute('ALTER TABLE users ENABLE ROW LEVEL SECURITY')
     op.execute('ALTER TABLE scan_sessions ENABLE ROW LEVEL SECURITY')
@@ -347,18 +347,18 @@ def upgrade():
     op.execute('ALTER TABLE compliance_assessments ENABLE ROW LEVEL SECURITY')
     op.execute('ALTER TABLE workflows ENABLE ROW LEVEL SECURITY')
     op.execute('ALTER TABLE workflow_executions ENABLE ROW LEVEL SECURITY')
-    
+
     # Create RLS policies
     op.execute('''
         CREATE POLICY tenant_isolation_users ON users
         USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
     ''')
-    
+
     op.execute('''
         CREATE POLICY tenant_isolation_scan_sessions ON scan_sessions
         USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
     ''')
-    
+
     op.execute('''
         CREATE POLICY tenant_isolation_behavioral_profiles ON behavioral_profiles
         USING (tenant_id = current_setting('app.current_tenant_id')::uuid)
@@ -367,12 +367,12 @@ def upgrade():
 
 def downgrade():
     """Remove enhanced production schema"""
-    
+
     # Drop RLS policies
     op.execute('DROP POLICY IF EXISTS tenant_isolation_users ON users')
     op.execute('DROP POLICY IF EXISTS tenant_isolation_scan_sessions ON scan_sessions')
     op.execute('DROP POLICY IF EXISTS tenant_isolation_behavioral_profiles ON behavioral_profiles')
-    
+
     # Disable RLS
     op.execute('ALTER TABLE users DISABLE ROW LEVEL SECURITY')
     op.execute('ALTER TABLE scan_sessions DISABLE ROW LEVEL SECURITY')
@@ -385,7 +385,7 @@ def downgrade():
     op.execute('ALTER TABLE compliance_assessments DISABLE ROW LEVEL SECURITY')
     op.execute('ALTER TABLE workflows DISABLE ROW LEVEL SECURITY')
     op.execute('ALTER TABLE workflow_executions DISABLE ROW LEVEL SECURITY')
-    
+
     # Drop tables in reverse order of dependencies
     op.drop_table('workflow_executions')
     op.drop_table('workflows')

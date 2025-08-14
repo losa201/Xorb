@@ -22,11 +22,11 @@ logger = logging.getLogger(__name__)
 
 class S3StorageDriver(StorageDriver):
     """S3-compatible storage driver."""
-    
+
     def __init__(self, config: S3Config):
         super().__init__(config)
         self.config: S3Config = config
-        
+
         # Configure boto3 client
         session_config = Config(
             region_name=config.region,
@@ -36,7 +36,7 @@ class S3StorageDriver(StorageDriver):
                 'mode': 'adaptive'
             }
         )
-        
+
         # Set up credentials
         credentials = {}
         if config.access_key_id and config.secret_access_key:
@@ -44,7 +44,7 @@ class S3StorageDriver(StorageDriver):
                 'aws_access_key_id': config.access_key_id,
                 'aws_secret_access_key': config.secret_access_key
             }
-        
+
         # Create S3 client
         self.s3_client = boto3.client(
             's3',
@@ -52,16 +52,16 @@ class S3StorageDriver(StorageDriver):
             config=session_config,
             **credentials
         )
-        
+
         # Verify bucket access on initialization
         asyncio.create_task(self._verify_bucket_access())
-    
+
     async def _verify_bucket_access(self) -> None:
         """Verify S3 bucket access and permissions."""
         try:
             # Check if bucket exists and is accessible
             await asyncio.get_event_loop().run_in_executor(
-                None, 
+                None,
                 self.s3_client.head_bucket,
                 {'Bucket': self.config.bucket_name}
             )
@@ -78,21 +78,21 @@ class S3StorageDriver(StorageDriver):
             logger.error("S3 credentials not found")
         except Exception as e:
             logger.error(f"S3 bucket verification failed: {e}")
-    
+
     async def generate_presigned_upload_url(
-        self, 
+        self,
         request: PresignedUrlRequest
     ) -> PresignedUrlResponse:
         """Generate presigned URL for S3 upload."""
         file_id = uuid4()
-        
+
         # Generate S3 object key
         object_key = self.generate_file_path(
-            request.tenant_id, 
+            request.tenant_id,
             request.filename,
             file_id
         )
-        
+
         # Prepare presigned POST parameters
         conditions = [
             {'bucket': self.config.bucket_name},
@@ -100,7 +100,7 @@ class S3StorageDriver(StorageDriver):
             ['content-length-range', 1, request.size_bytes],
             {'Content-Type': request.content_type}
         ]
-        
+
         # Add custom metadata conditions
         fields = {
             'Content-Type': request.content_type,
@@ -109,15 +109,15 @@ class S3StorageDriver(StorageDriver):
             'x-amz-meta-file-id': str(file_id),
             'x-amz-meta-original-filename': request.filename
         }
-        
+
         # Add tags if specified
         if request.tags:
             fields['x-amz-tagging'] = '&'.join([f'tag{i}={tag}' for i, tag in enumerate(request.tags)])
-        
+
         # Add custom metadata
         for key, value in request.custom_metadata.items():
             fields[f'x-amz-meta-{key}'] = value
-        
+
         try:
             # Generate presigned POST
             response = await asyncio.get_event_loop().run_in_executor(
@@ -130,20 +130,20 @@ class S3StorageDriver(StorageDriver):
                     ExpiresIn=request.expires_in
                 )
             )
-            
+
             return PresignedUrlResponse(
                 upload_url=response['url'],
                 file_id=file_id,
                 expires_at=datetime.utcnow() + timedelta(seconds=request.expires_in),
                 required_headers=response['fields']
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to generate S3 presigned upload URL: {e}")
             raise
-    
+
     async def generate_presigned_download_url(
-        self, 
+        self,
         request: DownloadUrlRequest
     ) -> DownloadUrlResponse:
         """Generate presigned URL for S3 download."""
@@ -151,20 +151,20 @@ class S3StorageDriver(StorageDriver):
         file_metadata = await self._get_file_metadata_from_db(request.file_id)
         if not file_metadata:
             raise FileNotFoundError(f"File {request.file_id} not found")
-        
+
         object_key = file_metadata['storage_path']
-        
+
         # Prepare download parameters
         params = {
             'Bucket': self.config.bucket_name,
             'Key': object_key
         }
-        
+
         # Set content disposition if specified
         if request.content_disposition:
             filename = request.custom_filename or file_metadata['filename']
             params['ResponseContentDisposition'] = f'{request.content_disposition}; filename="{filename}"'
-        
+
         try:
             # Generate presigned URL
             url = await asyncio.get_event_loop().run_in_executor(
@@ -175,7 +175,7 @@ class S3StorageDriver(StorageDriver):
                     ExpiresIn=request.expires_in
                 )
             )
-            
+
             return DownloadUrlResponse(
                 download_url=url,
                 filename=file_metadata['filename'],
@@ -183,19 +183,19 @@ class S3StorageDriver(StorageDriver):
                 size_bytes=file_metadata['size_bytes'],
                 expires_at=datetime.utcnow() + timedelta(seconds=request.expires_in)
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to generate S3 presigned download URL: {e}")
             raise
-    
+
     async def upload_file(
-        self, 
-        file_data: bytes, 
+        self,
+        file_data: bytes,
         metadata: FileMetadata
     ) -> FileMetadata:
         """Upload file directly to S3."""
         object_key = metadata.storage_path
-        
+
         # Prepare metadata for S3
         s3_metadata = {
             'tenant-id': str(metadata.tenant_id),
@@ -204,16 +204,16 @@ class S3StorageDriver(StorageDriver):
             'original-filename': metadata.original_filename or metadata.filename,
             'sha256-hash': metadata.sha256_hash
         }
-        
+
         # Add custom metadata
         s3_metadata.update(metadata.custom_metadata)
-        
+
         # Prepare tags
         tags = []
         for tag in metadata.tags:
             tags.append(f'tag={tag}')
         tag_string = '&'.join(tags) if tags else None
-        
+
         try:
             # Upload to S3
             put_args = {
@@ -223,31 +223,31 @@ class S3StorageDriver(StorageDriver):
                 'ContentType': metadata.content_type,
                 'Metadata': s3_metadata
             }
-            
+
             if tag_string:
                 put_args['Tagging'] = tag_string
-            
+
             # Add server-side encryption if enabled
             if self.config.enable_encryption:
                 put_args['ServerSideEncryption'] = 'AES256'
-            
+
             await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: self.s3_client.put_object(**put_args)
             )
-            
+
             # Update metadata
             metadata.status = FileStatus.UPLOADED
             metadata.updated_at = datetime.utcnow()
-            
+
             logger.info(f"Uploaded file to S3: {object_key}")
             return metadata
-            
+
         except Exception as e:
             logger.error(f"Failed to upload file to S3 {object_key}: {e}")
             metadata.status = FileStatus.ERROR
             raise
-    
+
     async def download_file(self, file_path: str) -> AsyncIterator[bytes]:
         """Download file from S3 as async iterator."""
         try:
@@ -259,17 +259,17 @@ class S3StorageDriver(StorageDriver):
                     Key=file_path
                 )
             )
-            
+
             # Stream the body
             body = response['Body']
             chunk_size = 64 * 1024  # 64KB chunks
-            
+
             while True:
                 chunk = body.read(chunk_size)
                 if not chunk:
                     break
                 yield chunk
-            
+
         except ClientError as e:
             if e.response['Error']['Code'] == 'NoSuchKey':
                 raise FileNotFoundError(f"File not found in S3: {file_path}")
@@ -279,7 +279,7 @@ class S3StorageDriver(StorageDriver):
         except Exception as e:
             logger.error(f"Failed to download file from S3 {file_path}: {e}")
             raise
-    
+
     async def delete_file(self, file_path: str) -> bool:
         """Delete file from S3."""
         try:
@@ -290,14 +290,14 @@ class S3StorageDriver(StorageDriver):
                     Key=file_path
                 )
             )
-            
+
             logger.info(f"Deleted file from S3: {file_path}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to delete file from S3 {file_path}: {e}")
             return False
-    
+
     async def file_exists(self, file_path: str) -> bool:
         """Check if file exists in S3."""
         try:
@@ -318,7 +318,7 @@ class S3StorageDriver(StorageDriver):
         except Exception as e:
             logger.error(f"Error checking S3 file existence {file_path}: {e}")
             return False
-    
+
     async def get_file_metadata(self, file_path: str) -> Optional[Dict]:
         """Get file metadata from S3."""
         try:
@@ -329,7 +329,7 @@ class S3StorageDriver(StorageDriver):
                     Key=file_path
                 )
             )
-            
+
             return {
                 'size_bytes': response['ContentLength'],
                 'content_type': response['ContentType'],
@@ -339,7 +339,7 @@ class S3StorageDriver(StorageDriver):
                 'storage_class': response.get('StorageClass', 'STANDARD'),
                 'server_side_encryption': response.get('ServerSideEncryption')
             }
-            
+
         except ClientError as e:
             if e.response['Error']['Code'] == '404':
                 return None
@@ -349,10 +349,10 @@ class S3StorageDriver(StorageDriver):
         except Exception as e:
             logger.error(f"Error getting S3 file metadata {file_path}: {e}")
             return None
-    
+
     async def list_files(
-        self, 
-        prefix: str, 
+        self,
+        prefix: str,
         limit: int = 100,
         continuation_token: Optional[str] = None
     ) -> Tuple[List[str], Optional[str]]:
@@ -363,47 +363,47 @@ class S3StorageDriver(StorageDriver):
                 'Prefix': prefix,
                 'MaxKeys': limit
             }
-            
+
             if continuation_token:
                 params['ContinuationToken'] = continuation_token
-            
+
             response = await asyncio.get_event_loop().run_in_executor(
                 None,
                 lambda: self.s3_client.list_objects_v2(**params)
             )
-            
+
             files = []
             if 'Contents' in response:
                 files = [obj['Key'] for obj in response['Contents']]
-            
+
             next_token = response.get('NextContinuationToken')
-            
+
             return files, next_token
-            
+
         except Exception as e:
             logger.error(f"Failed to list S3 files with prefix {prefix}: {e}")
             return [], None
-    
+
     async def _get_file_metadata_from_db(self, file_id, tenant_id: Optional[str] = None) -> Optional[Dict]:
         """Get file metadata from database."""
         from ..repositories.evidence_repository import EvidenceRepository
         from uuid import UUID
-        
+
         try:
             if not tenant_id:
                 logger.warning("No tenant_id provided for file metadata lookup")
                 return None
-            
+
             # Convert tenant_id to UUID if it's a string
             if isinstance(tenant_id, str):
                 tenant_uuid = UUID(tenant_id)
             else:
                 tenant_uuid = tenant_id
-            
+
             # Query evidence from database
             repo = EvidenceRepository()
             evidence = await repo.get_by_id(file_id, tenant_uuid)
-            
+
             if evidence:
                 return {
                     'storage_path': evidence.storage_path,
@@ -411,9 +411,9 @@ class S3StorageDriver(StorageDriver):
                     'filename': evidence.filename,
                     'size_bytes': int(evidence.size_bytes) if evidence.size_bytes else 0
                 }
-            
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Failed to get file metadata for {file_id}: {e}")
             return None

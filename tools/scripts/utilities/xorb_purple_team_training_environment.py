@@ -99,7 +99,7 @@ class ExerciseSession:
 class XorbPurpleTeamTraining:
     """
     Comprehensive purple team training environment.
-    
+
     Features:
     - Multi-scenario training library
     - Real-time collaboration tools

@@ -3,7 +3,7 @@
 
 terraform {
   required_version = ">= 1.5"
-  
+
   required_providers {
     aws = {
       source  = "hashicorp/aws"
@@ -40,7 +40,7 @@ terraform {
 # Provider configurations
 provider "aws" {
   region = var.aws_region
-  
+
   default_tags {
     tags = {
       Project     = "XORB"
@@ -79,7 +79,7 @@ data "aws_caller_identity" "current" {}
 # Local values
 locals {
   cluster_name = "${var.project_name}-${var.environment}"
-  
+
   common_tags = {
     Project     = var.project_name
     Environment = var.environment
@@ -90,7 +90,7 @@ locals {
   # Network configuration
   vpc_cidr = var.vpc_cidr
   azs      = slice(data.aws_availability_zones.available.names, 0, var.az_count)
-  
+
   # Subnets
   private_subnet_cidrs = [for i in range(var.az_count) : cidrsubnet(local.vpc_cidr, 8, i)]
   public_subnet_cidrs  = [for i in range(var.az_count) : cidrsubnet(local.vpc_cidr, 8, i + 100)]
@@ -100,7 +100,7 @@ locals {
 # Random password generation
 resource "random_password" "db_passwords" {
   for_each = toset(["postgres", "redis"])
-  
+
   length  = 32
   special = true
 }
@@ -247,10 +247,10 @@ module "eks" {
     # General purpose nodes
     general = {
       name = "${local.cluster_name}-general"
-      
+
       instance_types = var.general_node_instance_types
       capacity_type  = "ON_DEMAND"
-      
+
       min_size     = var.general_node_min_size
       max_size     = var.general_node_max_size
       desired_size = var.general_node_desired_size
@@ -274,10 +274,10 @@ module "eks" {
     # High-compute nodes for ML workloads
     ml_compute = {
       name = "${local.cluster_name}-ml-compute"
-      
+
       instance_types = var.ml_node_instance_types
       capacity_type  = var.ml_node_capacity_type
-      
+
       min_size     = var.ml_node_min_size
       max_size     = var.ml_node_max_size
       desired_size = var.ml_node_desired_size
@@ -309,10 +309,10 @@ module "eks" {
     # Monitoring and observability nodes
     monitoring = {
       name = "${local.cluster_name}-monitoring"
-      
+
       instance_types = var.monitoring_node_instance_types
       capacity_type  = "ON_DEMAND"
-      
+
       min_size     = var.monitoring_node_min_size
       max_size     = var.monitoring_node_max_size
       desired_size = var.monitoring_node_desired_size

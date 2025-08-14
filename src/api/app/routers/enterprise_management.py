@@ -41,29 +41,29 @@ class UserRole(str, enum.Enum):
 class OrganizationCreate(BaseModel):
     """Organization creation request"""
     model_config = {"protected_namespaces": ()}
-    
+
     name: str = Field(..., min_length=2, max_length=100, description="Organization name")
     tier: OrganizationTier = Field(..., description="Organization tier")
     admin_email: EmailStr = Field(..., description="Admin email address")
     industry: Optional[str] = Field(None, description="Organization industry")
     country: Optional[str] = Field(None, description="Organization country")
     compliance_requirements: List[str] = Field(default_factory=list, description="Required compliance frameworks")
-    
+
 class UserCreate(BaseModel):
     """User creation request"""
     model_config = {"protected_namespaces": ()}
-    
+
     username: str = Field(..., min_length=3, max_length=50, description="Username")
     email: EmailStr = Field(..., description="Email address")
     full_name: str = Field(..., min_length=2, max_length=100, description="Full name")
     role: UserRole = Field(..., description="User role")
     department: Optional[str] = Field(None, description="Department")
     phone: Optional[str] = Field(None, description="Phone number")
-    
+
 class LicenseInfo(BaseModel):
     """License information"""
     model_config = {"protected_namespaces": ()}
-    
+
     tier: str
     max_users: int
     max_scans_per_month: int
@@ -71,11 +71,11 @@ class LicenseInfo(BaseModel):
     support_level: str
     features: List[str]
     expires_at: datetime
-    
+
 class UsageMetrics(BaseModel):
     """Organization usage metrics"""
     model_config = {"protected_namespaces": ()}
-    
+
     period: str
     users_active: int
     scans_conducted: int
@@ -83,11 +83,11 @@ class UsageMetrics(BaseModel):
     compliance_assessments: int
     api_calls: int
     storage_used_gb: float
-    
+
 class AuditLogEntry(BaseModel):
     """Audit log entry"""
     model_config = {"protected_namespaces": ()}
-    
+
     timestamp: datetime
     user_id: str
     action: str
@@ -106,14 +106,14 @@ async def create_organization(
 ):
     """
     Create new organization in the platform
-    
+
     Features:
     - Multi-tenant architecture setup
     - Tier-based feature configuration
     - Compliance framework initialization
     - Admin user provisioning
     """
-    
+
     try:
         # Check if user has permission to create organizations
         if not hasattr(current_user, 'role') or current_user.role != 'super_admin':
@@ -121,10 +121,10 @@ async def create_organization(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Only super admins can create organizations"
             )
-        
+
         # Generate organization ID
         org_id = f"org_{uuid.uuid4().hex[:8]}"
-        
+
         # Create organization structure
         organization = {
             "id": org_id,
@@ -140,12 +140,12 @@ async def create_organization(
             "usage_limits": _get_usage_limits(org_data.tier),
             "features": _get_tier_features(org_data.tier)
         }
-        
+
         # Initialize organization services
         await _initialize_org_services(org_id, org_data.tier)
-        
+
         logger.info(f"Organization created: {org_id} - {org_data.name}")
-        
+
         return {
             "organization": organization,
             "setup_instructions": [
@@ -161,7 +161,7 @@ async def create_organization(
                 "Start security assessments"
             ]
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -179,7 +179,7 @@ async def get_organization(
     current_user = Depends(require_auth)
 ):
     """Get organization details and configuration"""
-    
+
     try:
         # Mock organization data (in production, retrieve from database)
         organization = {
@@ -212,9 +212,9 @@ async def get_organization(
                 "Advanced reporting"
             ]
         }
-        
+
         return organization
-        
+
     except Exception as e:
         logger.error(f"Error retrieving organization: {e}")
         raise HTTPException(
@@ -231,7 +231,7 @@ async def get_organization_usage(
     current_user = Depends(require_auth)
 ):
     """Get organization usage metrics and billing information"""
-    
+
     try:
         # Mock usage data (in production, calculate from actual usage)
         usage_data = {
@@ -275,9 +275,9 @@ async def get_organization_usage(
                 "api_usage_growth": 45.8
             }
         }
-        
+
         return usage_data
-        
+
     except Exception as e:
         logger.error(f"Error retrieving organization usage: {e}")
         raise HTTPException(
@@ -296,7 +296,7 @@ async def create_user(
     current_user = Depends(require_auth)
 ):
     """Create new user in organization"""
-    
+
     try:
         # Check permissions
         if not _can_manage_users(current_user):
@@ -304,10 +304,10 @@ async def create_user(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions to create users"
             )
-        
+
         # Generate user ID
         user_id = f"usr_{uuid.uuid4().hex[:8]}"
-        
+
         # Create user
         user = {
             "id": user_id,
@@ -324,7 +324,7 @@ async def create_user(
             "permissions": _get_role_permissions(user_data.role),
             "settings": _get_default_user_settings()
         }
-        
+
         # Send activation email in background
         background_tasks.add_task(
             _send_user_activation_email,
@@ -332,9 +332,9 @@ async def create_user(
             user["full_name"],
             user_id
         )
-        
+
         logger.info(f"User created: {user_id} in organization {org_id}")
-        
+
         return {
             "user": user,
             "activation_status": "email_sent",
@@ -345,7 +345,7 @@ async def create_user(
                 "Configure access permissions"
             ]
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -367,7 +367,7 @@ async def list_users(
     current_user = Depends(require_auth)
 ):
     """List users in organization with filtering"""
-    
+
     try:
         # Mock user data (in production, query database)
         users = []
@@ -384,17 +384,17 @@ async def list_users(
                 "created_at": datetime.utcnow() - timedelta(days=30 + i)
             }
             users.append(user)
-        
+
         # Apply filters
         if role:
             users = [u for u in users if u["role"] == role]
         if status:
             users = [u for u in users if u["status"] == status]
-        
+
         # Apply pagination
         total_users = len(users)
         paginated_users = users[offset:offset + limit]
-        
+
         return {
             "users": paginated_users,
             "pagination": {
@@ -412,7 +412,7 @@ async def list_users(
                 }
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Error listing users: {e}")
         raise HTTPException(
@@ -430,7 +430,7 @@ async def get_license_info(
     current_user = Depends(require_auth)
 ):
     """Get organization license and subscription information"""
-    
+
     try:
         license_info = {
             "organization_id": org_id,
@@ -476,9 +476,9 @@ async def get_license_info(
                 "technical_contact": "tech-support@xorb.com"
             }
         }
-        
+
         return license_info
-        
+
     except Exception as e:
         logger.error(f"Error retrieving license info: {e}")
         raise HTTPException(
@@ -501,7 +501,7 @@ async def get_audit_logs(
     current_user = Depends(require_auth)
 ):
     """Get organization audit logs"""
-    
+
     try:
         # Check audit access permissions
         if not _can_access_audit_logs(current_user):
@@ -509,7 +509,7 @@ async def get_audit_logs(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions to access audit logs"
             )
-        
+
         # Mock audit log data
         audit_logs = []
         for i in range(50):  # Mock 50 audit entries
@@ -531,7 +531,7 @@ async def get_audit_logs(
                 }
             }
             audit_logs.append(log_entry)
-        
+
         # Apply filters
         if start_date:
             audit_logs = [log for log in audit_logs if log["timestamp"] >= start_date]
@@ -541,10 +541,10 @@ async def get_audit_logs(
             audit_logs = [log for log in audit_logs if log["user_id"] == user_id]
         if action:
             audit_logs = [log for log in audit_logs if log["action"] == action]
-        
+
         # Apply limit
         limited_logs = audit_logs[:limit]
-        
+
         return {
             "audit_logs": limited_logs,
             "total_count": len(audit_logs),
@@ -561,7 +561,7 @@ async def get_audit_logs(
                 "top_users": {}
             }
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -579,11 +579,11 @@ async def get_system_health(
     current_user = Depends(require_auth)
 ):
     """Get system health and performance metrics"""
-    
+
     try:
         optimizer = await get_performance_optimizer()
         stats = await optimizer.get_comprehensive_stats()
-        
+
         # Add system-specific health checks
         health_data = {
             "overall_status": "healthy",
@@ -614,9 +614,9 @@ async def get_system_health(
                 "intrusion_detection_active": True
             }
         }
-        
+
         return health_data
-        
+
     except Exception as e:
         logger.error(f"Error retrieving system health: {e}")
         raise HTTPException(
@@ -628,7 +628,7 @@ async def get_system_health(
 
 def _get_tier_settings(tier: OrganizationTier) -> Dict[str, Any]:
     """Get settings for organization tier"""
-    
+
     tier_settings = {
         OrganizationTier.STARTER: {
             "max_users": 10,
@@ -655,12 +655,12 @@ def _get_tier_settings(tier: OrganizationTier) -> Dict[str, Any]:
             "support_level": "premium"
         }
     }
-    
+
     return tier_settings.get(tier, tier_settings[OrganizationTier.STARTER])
 
 def _get_usage_limits(tier: OrganizationTier) -> Dict[str, int]:
     """Get usage limits for tier"""
-    
+
     settings = _get_tier_settings(tier)
     return {
         "users": settings["max_users"],
@@ -671,18 +671,18 @@ def _get_usage_limits(tier: OrganizationTier) -> Dict[str, int]:
 
 def _get_tier_features(tier: OrganizationTier) -> List[str]:
     """Get available features for tier"""
-    
+
     base_features = ["basic_scanning", "incident_management", "compliance_reporting"]
-    
+
     if tier in [OrganizationTier.PROFESSIONAL, OrganizationTier.ENTERPRISE, OrganizationTier.ENTERPRISE_PLUS]:
         base_features.extend(["advanced_analytics", "api_access", "integrations"])
-    
+
     if tier in [OrganizationTier.ENTERPRISE, OrganizationTier.ENTERPRISE_PLUS]:
         base_features.extend(["ai_threat_prediction", "automated_response", "sso_integration"])
-    
+
     if tier == OrganizationTier.ENTERPRISE_PLUS:
         base_features.extend(["custom_development", "dedicated_support", "white_labeling"])
-    
+
     return base_features
 
 async def _initialize_org_services(org_id: str, tier: OrganizationTier):
@@ -692,34 +692,34 @@ async def _initialize_org_services(org_id: str, tier: OrganizationTier):
 
 def _get_role_permissions(role: UserRole) -> List[str]:
     """Get permissions for user role"""
-    
+
     permissions_map = {
         UserRole.SUPER_ADMIN: ["*"],  # All permissions
         UserRole.ORG_ADMIN: [
-            "users:manage", "settings:manage", "billing:view", 
+            "users:manage", "settings:manage", "billing:view",
             "scans:manage", "incidents:manage", "compliance:manage"
         ],
         UserRole.SECURITY_MANAGER: [
-            "scans:manage", "incidents:manage", "users:view", 
+            "scans:manage", "incidents:manage", "users:view",
             "reports:generate", "integrations:manage"
         ],
         UserRole.SECURITY_ANALYST: [
-            "scans:create", "scans:view", "incidents:view", 
+            "scans:create", "scans:view", "incidents:view",
             "reports:view", "alerts:manage"
         ],
         UserRole.COMPLIANCE_OFFICER: [
-            "compliance:manage", "reports:generate", "audits:view", 
+            "compliance:manage", "reports:generate", "audits:view",
             "policies:manage"
         ],
         UserRole.AUDITOR: [
-            "audits:view", "reports:view", "compliance:view", 
+            "audits:view", "reports:view", "compliance:view",
             "logs:view"
         ],
         UserRole.VIEWER: [
             "scans:view", "reports:view", "incidents:view"
         ]
     }
-    
+
     return permissions_map.get(role, ["scans:view"])
 
 def _get_default_user_settings() -> Dict[str, Any]:

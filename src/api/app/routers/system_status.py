@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from ..container import get_container, Container
 from ..domain.repositories import CacheRepository
 from ..services.interfaces import (
-    AuthenticationService, AuthorizationService, EmbeddingService, 
+    AuthenticationService, AuthorizationService, EmbeddingService,
     DiscoveryService, TenantService, RateLimitingService, NotificationService
 )
 from ..services.advanced_vulnerability_analyzer import AdvancedVulnerabilityAnalyzer
@@ -52,14 +52,14 @@ async def get_system_health(container: Container = Depends(get_container)):
     """Get basic system health check"""
     try:
         start_time = datetime.utcnow()
-        
+
         # Check core dependencies
         health_checks = {
             "status": "healthy",
             "timestamp": start_time.isoformat(),
             "checks": {}
         }
-        
+
         # Check cache (Redis)
         try:
             cache_repo = container.get(CacheRepository)
@@ -67,7 +67,7 @@ async def get_system_health(container: Container = Depends(get_container)):
             await cache_repo.set(test_key, "ok", ttl=60)
             cache_result = await cache_repo.get(test_key)
             await cache_repo.delete(test_key)
-            
+
             health_checks["checks"]["cache"] = {
                 "status": "healthy" if cache_result == "ok" else "unhealthy",
                 "response_time_ms": (datetime.utcnow() - start_time).total_seconds() * 1000
@@ -78,7 +78,7 @@ async def get_system_health(container: Container = Depends(get_container)):
                 "error": str(e)
             }
             health_checks["status"] = "degraded"
-        
+
         # Check database if using production DB
         try:
             db_manager = container.get(ProductionDatabaseManager)
@@ -95,9 +95,9 @@ async def get_system_health(container: Container = Depends(get_container)):
                 "status": "not_configured",
                 "note": "Using in-memory repositories"
             }
-        
+
         return health_checks
-        
+
     except Exception as e:
         logger.error(f"Health check failed: {str(e)}")
         return {
@@ -112,11 +112,11 @@ async def get_platform_status(container: Container = Depends(get_container)):
     """Get comprehensive platform status"""
     try:
         start_time = datetime.utcnow()
-        
+
         # Get individual service health
         services = []
         overall_healthy = True
-        
+
         # Authentication Service
         auth_health = await _check_service_health(
             "Authentication Service",
@@ -126,7 +126,7 @@ async def get_platform_status(container: Container = Depends(get_container)):
         services.append(auth_health)
         if auth_health.status != "healthy":
             overall_healthy = False
-        
+
         # Authorization Service
         authz_health = await _check_service_health(
             "Authorization Service",
@@ -136,7 +136,7 @@ async def get_platform_status(container: Container = Depends(get_container)):
         services.append(authz_health)
         if authz_health.status != "healthy":
             overall_healthy = False
-        
+
         # Embedding Service
         embed_health = await _check_service_health(
             "Embedding Service",
@@ -146,7 +146,7 @@ async def get_platform_status(container: Container = Depends(get_container)):
         services.append(embed_health)
         if embed_health.status != "healthy":
             overall_healthy = False
-        
+
         # Discovery Service
         discovery_health = await _check_service_health(
             "Discovery Service",
@@ -156,7 +156,7 @@ async def get_platform_status(container: Container = Depends(get_container)):
         services.append(discovery_health)
         if discovery_health.status != "healthy":
             overall_healthy = False
-        
+
         # Rate Limiting Service
         rate_limit_health = await _check_service_health(
             "Rate Limiting Service",
@@ -166,7 +166,7 @@ async def get_platform_status(container: Container = Depends(get_container)):
         services.append(rate_limit_health)
         if rate_limit_health.status != "healthy":
             overall_healthy = False
-        
+
         # Notification Service
         notification_health = await _check_service_health(
             "Notification Service",
@@ -176,7 +176,7 @@ async def get_platform_status(container: Container = Depends(get_container)):
         services.append(notification_health)
         if notification_health.status != "healthy":
             overall_healthy = False
-        
+
         # Vulnerability Analyzer
         vuln_analyzer_health = await _check_service_health(
             "Vulnerability Analyzer",
@@ -186,13 +186,13 @@ async def get_platform_status(container: Container = Depends(get_container)):
         services.append(vuln_analyzer_health)
         if vuln_analyzer_health.status != "healthy":
             overall_healthy = False
-        
+
         # Infrastructure status
         infrastructure = await _get_infrastructure_status(container)
-        
+
         # Calculate implementation completeness
         implementation_score = _calculate_implementation_completeness(services, infrastructure)
-        
+
         # Determine overall status
         if overall_healthy and infrastructure.get("cache", {}).get("status") == "healthy":
             platform_status = "operational"
@@ -200,14 +200,14 @@ async def get_platform_status(container: Container = Depends(get_container)):
             platform_status = "outage"
         else:
             platform_status = "degraded"
-        
+
         # Production readiness assessment
         production_ready = (
             implementation_score > 0.9 and
             platform_status == "operational" and
             infrastructure.get("database", {}).get("status") in ["healthy", "not_configured"]
         )
-        
+
         return PlatformStatus(
             status=platform_status,
             uptime_seconds=(datetime.utcnow() - start_time).total_seconds(),
@@ -219,7 +219,7 @@ async def get_platform_status(container: Container = Depends(get_container)):
             production_ready=production_ready,
             implementation_completeness=implementation_score
         )
-        
+
     except Exception as e:
         logger.error(f"Platform status check failed: {str(e)}")
         raise HTTPException(
@@ -240,7 +240,7 @@ async def get_production_readiness(container: Container = Depends(get_container)
             "critical_gaps": [],
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
         # Security Implementation (30% weight)
         security_score = 0.95  # High score due to comprehensive security implementations
         readiness["categories"]["security"] = {
@@ -255,7 +255,7 @@ async def get_production_readiness(container: Container = Depends(get_container)
                 "encryption": "Data encryption and secure token management"
             }
         }
-        
+
         # Architecture Quality (25% weight)
         architecture_score = 0.92
         readiness["categories"]["architecture"] = {
@@ -269,7 +269,7 @@ async def get_production_readiness(container: Container = Depends(get_container)
                 "repository_pattern": "Data access abstraction implemented"
             }
         }
-        
+
         # Infrastructure (20% weight)
         infrastructure_score = 0.88
         readiness["categories"]["infrastructure"] = {
@@ -283,7 +283,7 @@ async def get_production_readiness(container: Container = Depends(get_container)
                 "secrets_management": "Environment-based configuration"
             }
         }
-        
+
         # Business Logic (15% weight)
         business_logic_score = 0.90
         readiness["categories"]["business_logic"] = {
@@ -297,7 +297,7 @@ async def get_production_readiness(container: Container = Depends(get_container)
                 "reporting": "Executive and technical reporting"
             }
         }
-        
+
         # Operational Readiness (10% weight)
         operational_score = 0.85
         readiness["categories"]["operational"] = {
@@ -311,34 +311,34 @@ async def get_production_readiness(container: Container = Depends(get_container)
                 "documentation": "Extensive documentation provided"
             }
         }
-        
+
         # Calculate overall score
         overall_score = sum(
-            category["score"] * category["weight"] 
+            category["score"] * category["weight"]
             for category in readiness["categories"].values()
         )
-        
+
         readiness["overall_score"] = overall_score
         readiness["ready_for_production"] = overall_score >= 0.85
-        
+
         # Generate recommendations
         if overall_score < 0.85:
             readiness["critical_gaps"].append("Overall score below production threshold (85%)")
-        
+
         if security_score < 0.9:
             readiness["recommendations"].append("Enhance security controls and monitoring")
-        
+
         if architecture_score < 0.9:
             readiness["recommendations"].append("Improve architecture patterns and code quality")
-        
+
         if infrastructure_score < 0.8:
             readiness["recommendations"].append("Strengthen infrastructure and deployment pipeline")
-        
+
         if not readiness["recommendations"]:
             readiness["recommendations"].append("Platform is production-ready with excellent implementation quality")
-        
+
         return readiness
-        
+
     except Exception as e:
         logger.error(f"Production readiness check failed: {str(e)}")
         raise HTTPException(
@@ -354,16 +354,16 @@ async def _check_service_health(
 ) -> ServiceHealth:
     """Check health of individual service"""
     start_time = datetime.utcnow()
-    
+
     try:
         service = get_service_func()
         health_result = await health_check_func(service)
         response_time = (datetime.utcnow() - start_time).total_seconds() * 1000
-        
+
         status = health_result.get("status", "unknown")
         if status not in ["healthy", "degraded", "unhealthy"]:
             status = "healthy" if status == "ok" else "unhealthy"
-        
+
         return ServiceHealth(
             name=service_name,
             status=status,
@@ -372,7 +372,7 @@ async def _check_service_health(
             details=health_result,
             error_message=health_result.get("error")
         )
-        
+
     except Exception as e:
         response_time = (datetime.utcnow() - start_time).total_seconds() * 1000
         return ServiceHealth(
@@ -388,7 +388,7 @@ async def _check_service_health(
 async def _get_infrastructure_status(container: Container) -> Dict[str, Any]:
     """Get infrastructure component status"""
     infrastructure = {}
-    
+
     # Cache status
     try:
         cache_repo = container.get(CacheRepository)
@@ -396,7 +396,7 @@ async def _get_infrastructure_status(container: Container) -> Dict[str, Any]:
         await cache_repo.set(test_key, "ok", ttl=60)
         cache_result = await cache_repo.get(test_key)
         await cache_repo.delete(test_key)
-        
+
         infrastructure["cache"] = {
             "status": "healthy" if cache_result == "ok" else "unhealthy",
             "type": "Redis",
@@ -409,7 +409,7 @@ async def _get_infrastructure_status(container: Container) -> Dict[str, Any]:
             "connection": "failed",
             "error": str(e)
         }
-    
+
     # Database status
     try:
         if container._config.get('use_production_db'):
@@ -432,7 +432,7 @@ async def _get_infrastructure_status(container: Container) -> Dict[str, Any]:
             "type": "PostgreSQL",
             "error": str(e)
         }
-    
+
     return infrastructure
 
 
@@ -441,7 +441,7 @@ def _calculate_implementation_completeness(
     infrastructure: Dict[str, Any]
 ) -> float:
     """Calculate implementation completeness score"""
-    
+
     # Service implementation weights
     service_weights = {
         "Authentication Service": 0.20,
@@ -452,7 +452,7 @@ def _calculate_implementation_completeness(
         "Embedding Service": 0.10,
         "Discovery Service": 0.10
     }
-    
+
     # Calculate service score
     service_score = 0.0
     for service in services:
@@ -461,12 +461,12 @@ def _calculate_implementation_completeness(
             service_score += weight
         elif service.status == "degraded":
             service_score += weight * 0.5
-    
+
     # Infrastructure score (20% of total)
     infra_score = 0.0
     if infrastructure.get("cache", {}).get("status") == "healthy":
         infra_score += 0.10
     if infrastructure.get("database", {}).get("status") in ["healthy", "not_configured"]:
         infra_score += 0.10
-    
+
     return min(1.0, service_score + infra_score)

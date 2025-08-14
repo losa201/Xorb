@@ -15,7 +15,7 @@ import time
 
 def debug_single_endpoint():
     """Test a single endpoint to see the actual error"""
-    
+
     # Start server
     print("🚀 Starting debug server...")
     server_thread = threading.Thread(
@@ -26,16 +26,16 @@ def debug_single_endpoint():
     )
     server_thread.start()
     time.sleep(3)
-    
+
     # Generate token
     token = authenticator.generate_jwt(
-        user_id="debug_user", 
+        user_id="debug_user",
         client_id="debug_client",
         roles=[Role.ADMIN]
     )
-    
+
     headers = {"Authorization": f"Bearer {token}"}
-    
+
     # Test specific endpoint
     print("\n🔍 Testing /v1/agents endpoint...")
     try:
@@ -45,7 +45,7 @@ def debug_single_endpoint():
         print(f"Content: {response.text}")
     except Exception as e:
         print(f"Request failed: {e}")
-    
+
     # Test health endpoint (which works)
     print("\n✅ Testing /health endpoint...")
     try:

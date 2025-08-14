@@ -44,34 +44,34 @@ success() {
 # Check prerequisites
 check_prerequisites() {
     log "Checking deployment prerequisites..."
-    
+
     # Check if running as appropriate user
     if [[ $EUID -eq 0 ]]; then
         warn "Running as root. Consider using a dedicated deployment user."
     fi
-    
+
     # Check required tools
     local required_tools=("docker" "docker-compose" "kubectl" "helm" "jq" "curl")
     local missing_tools=()
-    
+
     for tool in "${required_tools[@]}"; do
         if ! command -v "$tool" &> /dev/null; then
             missing_tools+=("$tool")
         fi
     done
-    
+
     if [[ ${#missing_tools[@]} -gt 0 ]]; then
         error "Missing required tools: ${missing_tools[*]}"
         error "Please install missing tools and retry"
         exit 1
     fi
-    
+
     # Check Docker daemon
     if ! docker info &> /dev/null; then
         error "Docker daemon is not running"
         exit 1
     fi
-    
+
     # Check Kubernetes connection
     if ! kubectl cluster-info &> /dev/null; then
         warn "No Kubernetes cluster detected. Will deploy with Docker Compose."
@@ -80,18 +80,18 @@ check_prerequisites() {
         info "Kubernetes cluster detected. Will use Kubernetes deployment."
         USE_KUBERNETES=true
     fi
-    
+
     success "Prerequisites check completed"
 }
 
 # Generate configuration
 generate_configuration() {
     log "Generating deployment configuration..."
-    
+
     # Create deployment directory
     DEPLOY_DIR="/opt/xorb-deployment-$(date +%Y%m%d-%H%M%S)"
     mkdir -p "$DEPLOY_DIR"/{config,secrets,logs,backups}
-    
+
     # Generate environment configuration
     cat > "$DEPLOY_DIR/config/environment.env" << EOF
 # XORB Enterprise Configuration
@@ -140,7 +140,7 @@ LOG_LEVEL=INFO
 LOG_FORMAT=json
 AUDIT_LOG_RETENTION=365d
 EOF
-    
+
     # Generate Docker Compose configuration
     cat > "$DEPLOY_DIR/docker-compose.enterprise.yml" << 'EOF'
 version: '3.8'
@@ -361,26 +361,26 @@ networks:
       config:
         - subnet: 172.20.0.0/16
 EOF
-    
+
     # Generate Kubernetes manifests
     if [[ "$USE_KUBERNETES" == "true" ]]; then
         generate_kubernetes_manifests
     fi
-    
+
     # Generate SSL certificates
     generate_ssl_certificates
-    
+
     # Generate monitoring configuration
     generate_monitoring_config
-    
+
     success "Configuration generated in $DEPLOY_DIR"
 }
 
 generate_kubernetes_manifests() {
     log "Generating Kubernetes manifests..."
-    
+
     mkdir -p "$DEPLOY_DIR/k8s"
-    
+
     # Namespace
     cat > "$DEPLOY_DIR/k8s/namespace.yaml" << EOF
 apiVersion: v1
@@ -392,7 +392,7 @@ metadata:
     app.kubernetes.io/name: xorb-ptaas
     app.kubernetes.io/version: "$XORB_VERSION"
 EOF
-    
+
     # ConfigMap
     cat > "$DEPLOY_DIR/k8s/configmap.yaml" << EOF
 apiVersion: v1
@@ -406,7 +406,7 @@ data:
   LOG_LEVEL: "INFO"
   ENABLE_METRICS: "true"
 EOF
-    
+
     # Secrets
     cat > "$DEPLOY_DIR/k8s/secrets.yaml" << EOF
 apiVersion: v1
@@ -421,7 +421,7 @@ stringData:
   JWT_SECRET: "$(openssl rand -base64 64)"
   ENCRYPTION_KEY: "$(openssl rand -base64 32)"
 EOF
-    
+
     # PostgreSQL Deployment
     cat > "$DEPLOY_DIR/k8s/postgres.yaml" << EOF
 apiVersion: apps/v1
@@ -491,7 +491,7 @@ spec:
     requests:
       storage: 100Gi
 EOF
-    
+
     # XORB API Deployment
     cat > "$DEPLOY_DIR/k8s/xorb-api.yaml" << EOF
 apiVersion: apps/v1
@@ -552,7 +552,7 @@ spec:
     targetPort: 8000
   type: ClusterIP
 EOF
-    
+
     # Ingress
     cat > "$DEPLOY_DIR/k8s/ingress.yaml" << EOF
 apiVersion: networking.k8s.io/v1
@@ -593,16 +593,16 @@ EOF
 
 generate_ssl_certificates() {
     log "Generating SSL certificates..."
-    
+
     mkdir -p "$DEPLOY_DIR/config/ssl"
-    
+
     # Generate self-signed certificate for development
     if [[ "$ENVIRONMENT" != "production" ]]; then
         openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
             -keyout "$DEPLOY_DIR/config/ssl/privkey.pem" \
             -out "$DEPLOY_DIR/config/ssl/fullchain.pem" \
             -subj "/C=US/ST=State/L=City/O=Organization/CN=$DOMAIN"
-        
+
         info "Generated self-signed SSL certificate for development"
     else
         warn "Production deployment detected. Please configure proper SSL certificates."
@@ -613,7 +613,7 @@ generate_ssl_certificates() {
 
 generate_monitoring_config() {
     log "Generating monitoring configuration..."
-    
+
     # Prometheus configuration
     cat > "$DEPLOY_DIR/config/prometheus.yml" << EOF
 global:
@@ -656,7 +656,7 @@ scrape_configs:
     static_configs:
       - targets: ['node-exporter:9100']
 EOF
-    
+
     # Alert rules
     cat > "$DEPLOY_DIR/config/alert_rules.yml" << EOF
 groups:
@@ -689,11 +689,11 @@ groups:
       summary: "Database connection failure"
       description: "Cannot connect to PostgreSQL database"
 EOF
-    
+
     # Grafana dashboard provisioning
     mkdir -p "$DEPLOY_DIR/config/grafana/dashboards"
     mkdir -p "$DEPLOY_DIR/config/grafana/datasources"
-    
+
     cat > "$DEPLOY_DIR/config/grafana/datasources/prometheus.yml" << EOF
 apiVersion: 1
 
@@ -709,9 +709,9 @@ EOF
 # Deploy XORB Platform
 deploy_platform() {
     log "Deploying XORB PTaaS Platform..."
-    
+
     cd "$DEPLOY_DIR"
-    
+
     if [[ "$USE_KUBERNETES" == "true" ]]; then
         deploy_kubernetes
     else
@@ -721,41 +721,41 @@ deploy_platform() {
 
 deploy_docker_compose() {
     log "Deploying with Docker Compose..."
-    
+
     # Pull latest images
     docker-compose -f docker-compose.enterprise.yml pull
-    
+
     # Start services
     docker-compose -f docker-compose.enterprise.yml up -d
-    
+
     # Wait for services to be healthy
     log "Waiting for services to become healthy..."
-    
+
     local max_attempts=60
     local attempt=0
-    
+
     while [[ $attempt -lt $max_attempts ]]; do
         if docker-compose -f docker-compose.enterprise.yml ps | grep -q "Up (healthy)"; then
             break
         fi
-        
+
         echo -n "."
         sleep 5
         ((attempt++))
     done
-    
+
     if [[ $attempt -eq $max_attempts ]]; then
         error "Services failed to become healthy within timeout"
         docker-compose -f docker-compose.enterprise.yml logs
         exit 1
     fi
-    
+
     success "Docker Compose deployment completed"
 }
 
 deploy_kubernetes() {
     log "Deploying to Kubernetes..."
-    
+
     # Apply manifests
     kubectl apply -f k8s/namespace.yaml
     kubectl apply -f k8s/configmap.yaml
@@ -763,42 +763,42 @@ deploy_kubernetes() {
     kubectl apply -f k8s/postgres.yaml
     kubectl apply -f k8s/xorb-api.yaml
     kubectl apply -f k8s/ingress.yaml
-    
+
     # Wait for deployments
     kubectl wait --for=condition=available --timeout=300s deployment/postgres -n xorb-ptaas
     kubectl wait --for=condition=available --timeout=300s deployment/xorb-api -n xorb-ptaas
-    
+
     success "Kubernetes deployment completed"
 }
 
 # Run initial setup
 run_initial_setup() {
     log "Running initial platform setup..."
-    
+
     # Wait for API to be available
     local api_url="http://localhost:8000"
     if [[ "$USE_KUBERNETES" == "true" ]]; then
         api_url="https://$DOMAIN/api"
     fi
-    
+
     local max_attempts=30
     local attempt=0
-    
+
     while [[ $attempt -lt $max_attempts ]]; do
         if curl -f "$api_url/health" &> /dev/null; then
             break
         fi
-        
+
         echo -n "."
         sleep 10
         ((attempt++))
     done
-    
+
     if [[ $attempt -eq $max_attempts ]]; then
         error "API failed to become available"
         exit 1
     fi
-    
+
     # Run database migrations
     log "Running database migrations..."
     if [[ "$USE_KUBERNETES" == "true" ]]; then
@@ -806,11 +806,11 @@ run_initial_setup() {
     else
         docker-compose -f docker-compose.enterprise.yml exec xorb-api python -m alembic upgrade head
     fi
-    
+
     # Create default admin user
     log "Creating default admin user..."
     local admin_password=$(openssl rand -base64 20)
-    
+
     cat > "$DEPLOY_DIR/create_admin.py" << EOF
 import asyncio
 from src.api.app.auth.enterprise_auth import get_enterprise_auth, EnterpriseUser, AuthProvider
@@ -818,7 +818,7 @@ from datetime import datetime
 
 async def create_admin():
     auth = get_enterprise_auth()
-    
+
     admin_user = EnterpriseUser(
         user_id="admin_001",
         email="admin@company.com",
@@ -832,7 +832,7 @@ async def create_admin():
         is_verified=True,
         created_at=datetime.utcnow()
     )
-    
+
     auth.users[admin_user.user_id] = admin_user
     print(f"Admin user created: {admin_user.email}")
     print(f"Password: $admin_password")
@@ -840,14 +840,14 @@ async def create_admin():
 if __name__ == "__main__":
     asyncio.run(create_admin())
 EOF
-    
+
     if [[ "$USE_KUBERNETES" == "true" ]]; then
         kubectl cp "$DEPLOY_DIR/create_admin.py" xorb-ptaas/$(kubectl get pods -n xorb-ptaas -l app=xorb-api -o jsonpath='{.items[0].metadata.name}'):/tmp/
         kubectl exec -it deployment/xorb-api -n xorb-ptaas -- python /tmp/create_admin.py
     else
         docker-compose -f docker-compose.enterprise.yml exec xorb-api python /tmp/create_admin.py
     fi
-    
+
     # Save admin credentials
     cat > "$DEPLOY_DIR/admin_credentials.txt" << EOF
 XORB PTaaS Enterprise - Admin Credentials
@@ -858,16 +858,16 @@ Login URL: https://$DOMAIN
 
 Please change the password after first login.
 EOF
-    
+
     chmod 600 "$DEPLOY_DIR/admin_credentials.txt"
-    
+
     success "Initial setup completed"
 }
 
 # Generate deployment report
 generate_deployment_report() {
     log "Generating deployment report..."
-    
+
     cat > "$DEPLOY_DIR/deployment_report.md" << EOF
 # XORB PTaaS Enterprise Deployment Report
 
@@ -929,37 +929,37 @@ generate_deployment_report() {
 
 Deployment ID: $(uuidgen)
 EOF
-    
+
     success "Deployment report generated: $DEPLOY_DIR/deployment_report.md"
 }
 
 # Validate deployment
 validate_deployment() {
     log "Validating deployment..."
-    
+
     local api_url="http://localhost:8000"
     if [[ "$USE_KUBERNETES" == "true" ]]; then
         api_url="https://$DOMAIN/api"
     fi
-    
+
     # Test API health
     if ! curl -f "$api_url/health" &> /dev/null; then
         error "API health check failed"
         return 1
     fi
-    
+
     # Test database connection
     if ! curl -f "$api_url/health/database" &> /dev/null; then
         error "Database health check failed"
         return 1
     fi
-    
+
     # Test authentication
     if ! curl -f "$api_url/auth/health" &> /dev/null; then
         error "Authentication health check failed"
         return 1
     fi
-    
+
     success "Deployment validation passed"
 }
 
@@ -971,29 +971,29 @@ main() {
 ║                    Production Ready Platform                 ║
 ╚══════════════════════════════════════════════════════════════╝
 "
-    
+
     log "Starting XORB PTaaS Enterprise deployment..."
     log "Version: $XORB_VERSION | Environment: $ENVIRONMENT | Domain: $DOMAIN"
-    
+
     check_prerequisites
     generate_configuration
     deploy_platform
     run_initial_setup
-    
+
     if validate_deployment; then
         generate_deployment_report
-        
+
         success "🚀 XORB PTaaS Enterprise deployment completed successfully!"
         success "📍 Deployment location: $DEPLOY_DIR"
         success "🌐 Access your platform at: https://$DOMAIN"
         success "📊 Monitoring dashboard: http://$DOMAIN:3001"
         success "📋 See deployment_report.md for complete details"
-        
+
         echo ""
         warn "⚠️  IMPORTANT: Please secure your admin credentials in admin_credentials.txt"
         warn "⚠️  IMPORTANT: Configure proper SSL certificates for production use"
         warn "⚠️  IMPORTANT: Set up external API keys in config/environment.env"
-        
+
     else
         error "❌ Deployment validation failed. Check logs and retry."
         exit 1

@@ -37,14 +37,14 @@ async def _send_webhook_notifications(
     """Send webhook notifications for red team operations"""
     try:
         import aiohttp
-        
+
         notification_payload = {
             "operation_id": operation_id,
             "event_type": event_type,
             "timestamp": datetime.utcnow().isoformat(),
             "data": data
         }
-        
+
         async with aiohttp.ClientSession() as session:
             for webhook_url in webhooks:
                 try:
@@ -59,7 +59,7 @@ async def _send_webhook_notifications(
                             logger.warning(f"Webhook notification failed: {response.status}")
                 except Exception as e:
                     logger.error(f"Failed to send webhook to {webhook_url}: {e}")
-                    
+
     except Exception as e:
         logger.error(f"Error sending webhook notifications: {e}")
 security = HTTPBearer()
@@ -119,7 +119,7 @@ async def create_red_team_objective(
 ):
     """
     Create a sophisticated red team operation objective
-    
+
     This endpoint creates a comprehensive red team operation plan with:
     - AI-driven attack path selection
     - MITRE ATT&CK framework integration
@@ -134,10 +134,10 @@ async def create_red_team_objective(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions for red team operations"
             )
-        
+
         # Get red team agent
         red_team_agent = await get_sophisticated_red_team_agent()
-        
+
         # Create objective
         objective = RedTeamObjective(
             objective_id=str(uuid.uuid4()),
@@ -152,17 +152,17 @@ async def create_red_team_objective(
             stealth_requirements=request.stealth_requirements,
             defensive_learning_goals=request.defensive_learning_goals
         )
-        
+
         # Plan operation
         operation = await red_team_agent.plan_red_team_operation(
             objective=objective,
             target_environment=tenant_context.get('environment_info', {}),
             constraints=None
         )
-        
+
         # Log operation creation
         logger.info(f"Red team operation created: {operation.operation_id} by user {user_context.get('user_id')}")
-        
+
         return {
             "operation_id": operation.operation_id,
             "name": operation.name,
@@ -191,7 +191,7 @@ async def create_red_team_objective(
             "purple_team_integration": operation.purple_team_integration,
             "created_at": datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to create red team objective: {e}")
         raise HTTPException(
@@ -210,7 +210,7 @@ async def execute_red_team_operation(
 ):
     """
     Execute a planned red team operation with real-time defensive coordination
-    
+
     Features:
     - Controlled execution with safety constraints
     - Real-time purple team coordination
@@ -225,10 +225,10 @@ async def execute_red_team_operation(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Insufficient permissions for red team operation execution"
             )
-        
+
         # Get red team agent
         red_team_agent = await get_sophisticated_red_team_agent()
-        
+
         # Execute operation in background
         background_tasks.add_task(
             _execute_operation_background,
@@ -238,7 +238,7 @@ async def execute_red_team_operation(
             user_context,
             tenant_context
         )
-        
+
         return {
             "operation_id": operation_id,
             "execution_status": "initiated",
@@ -248,7 +248,7 @@ async def execute_red_team_operation(
             "purple_team_coordination": True,
             "safety_constraints_active": True
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to execute red team operation: {e}")
         raise HTTPException(
@@ -269,21 +269,21 @@ async def list_red_team_operations(
     try:
         # Verify authorization
         user_context = await verify_token(credentials.credentials)
-        
+
         # Get red team agent
         red_team_agent = await get_sophisticated_red_team_agent()
-        
+
         # Get operations (would implement filtering in real system)
         operations = list(red_team_agent.active_operations.values()) + red_team_agent.operation_history
-        
+
         # Apply status filter
         if status:
             operations = [op for op in operations if op.status == status]
-        
+
         # Apply pagination
         total = len(operations)
         operations = operations[offset:offset + limit]
-        
+
         return {
             "operations": [
                 {
@@ -304,7 +304,7 @@ async def list_red_team_operations(
             "offset": offset,
             "has_more": offset + limit < total
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to list red team operations: {e}")
         raise HTTPException(
@@ -323,22 +323,22 @@ async def get_red_team_operation(
     try:
         # Verify authorization
         user_context = await verify_token(credentials.credentials)
-        
+
         # Get red team agent
         red_team_agent = await get_sophisticated_red_team_agent()
-        
+
         # Find operation
         operation = red_team_agent.active_operations.get(operation_id)
         if not operation:
             # Check historical operations
             operation = next((op for op in red_team_agent.operation_history if op.operation_id == operation_id), None)
-        
+
         if not operation:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Red team operation not found"
             )
-        
+
         return {
             "operation_id": operation.operation_id,
             "name": operation.name,
@@ -372,7 +372,7 @@ async def get_red_team_operation(
             "purple_team_integration": operation.purple_team_integration,
             "results": operation.results if operation.results else None
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -392,7 +392,7 @@ async def generate_threat_actor_intelligence(
 ):
     """
     Generate comprehensive threat actor intelligence for defensive purposes
-    
+
     Provides detailed threat actor analysis including:
     - Behavioral patterns and TTPs
     - Detection rules and signatures
@@ -402,13 +402,13 @@ async def generate_threat_actor_intelligence(
     try:
         # Verify authorization
         user_context = await verify_token(credentials.credentials)
-        
+
         # Get red team agent
         red_team_agent = await get_sophisticated_red_team_agent()
-        
+
         # Generate threat actor intelligence
         intelligence = await red_team_agent.generate_threat_actor_intelligence(actor_id)
-        
+
         return {
             "actor_id": actor_id,
             "analysis_timestamp": datetime.now().isoformat(),
@@ -418,7 +418,7 @@ async def generate_threat_actor_intelligence(
             "generated_by": "sophisticated_red_team_agent",
             "version": "1.0"
         }
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -442,20 +442,20 @@ async def list_threat_actors(
     try:
         # Verify authorization
         user_context = await verify_token(credentials.credentials)
-        
+
         # Get red team agent
         red_team_agent = await get_sophisticated_red_team_agent()
-        
+
         # Get threat actor profiles
         actors = red_team_agent.threat_actor_models
-        
+
         # Apply sophistication filter
         if sophistication_level:
             actors = {
-                k: v for k, v in actors.items() 
+                k: v for k, v in actors.items()
                 if v.sophistication_level.value == sophistication_level
             }
-        
+
         return {
             "threat_actors": [
                 {
@@ -472,7 +472,7 @@ async def list_threat_actors(
             "total_actors": len(actors),
             "sophistication_levels": list(SophisticationLevel.__members__.keys())
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to list threat actors: {e}")
         raise HTTPException(
@@ -493,21 +493,21 @@ async def get_defensive_insights(
     try:
         # Verify authorization
         user_context = await verify_token(credentials.credentials)
-        
+
         # Get red team agent
         red_team_agent = await get_sophisticated_red_team_agent()
-        
+
         # Get defensive insights
         insights = list(red_team_agent.defensive_insights)
-        
+
         # Apply type filter
         if insight_type:
             insights = [insight for insight in insights if insight.get('type') == insight_type]
-        
+
         # Apply pagination
         total = len(insights)
         insights = insights[offset:offset + limit]
-        
+
         return {
             "defensive_insights": insights,
             "total": total,
@@ -523,7 +523,7 @@ async def get_defensive_insights(
                 "training_needs": len([i for i in insights if i.get('type') == DefensiveInsight.TRAINING_NEED.value])
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get defensive insights: {e}")
         raise HTTPException(
@@ -541,13 +541,13 @@ async def get_red_team_metrics(
     try:
         # Verify authorization
         user_context = await verify_token(credentials.credentials)
-        
+
         # Get red team agent
         red_team_agent = await get_sophisticated_red_team_agent()
-        
+
         # Get metrics
         metrics = await red_team_agent.get_operation_metrics()
-        
+
         return {
             "metrics": metrics,
             "timestamp": datetime.now().isoformat(),
@@ -561,7 +561,7 @@ async def get_red_team_metrics(
                 "real_time_feedback": True
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get red team metrics: {e}")
         raise HTTPException(
@@ -576,10 +576,10 @@ async def get_red_team_health():
     try:
         # Get red team agent
         red_team_agent = await get_sophisticated_red_team_agent()
-        
+
         # Get health status
         health = await red_team_agent.health_check()
-        
+
         return {
             "service_name": health.service_name,
             "status": health.status.value,
@@ -596,7 +596,7 @@ async def get_red_team_health():
                 "purple_team_integration": True
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Red team health check failed: {e}")
         raise HTTPException(
@@ -629,20 +629,20 @@ async def _execute_operation_background(
     """Execute red team operation in background"""
     try:
         logger.info(f"Starting background execution of red team operation: {operation_id}")
-        
+
         # Execute the operation
         results = await red_team_agent.execute_red_team_operation(operation_id)
-        
+
         logger.info(f"Red team operation {operation_id} completed successfully")
-        
+
         # Send notifications if webhooks provided
         if request.notification_webhooks:
             await _send_webhook_notifications(
-                operation_id, 
-                "operation_completed", 
+                operation_id,
+                "operation_completed",
                 results,
                 request.notification_webhooks
             )
-            
+
     except Exception as e:
         logger.error(f"Background execution of red team operation {operation_id} failed: {e}")

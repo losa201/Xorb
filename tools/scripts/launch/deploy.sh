@@ -42,14 +42,14 @@ check_permissions() {
 # Detect system capabilities
 detect_system() {
     log "Detecting system capabilities..."
-    
+
     # Check OS
     if [[ -f /etc/os-release ]]; then
         . /etc/os-release
         OS=$NAME
         VERSION=$VERSION_ID
         info "Detected OS: $OS $VERSION"
-        
+
         if [[ "$OS" != *"Ubuntu"* ]]; then
             warn "This script is optimized for Ubuntu 24.04. Your mileage may vary."
         fi
@@ -57,7 +57,7 @@ detect_system() {
         error "Cannot detect operating system"
         exit 1
     fi
-    
+
     # Check if we're in a container or pRoot environment
     if [[ -n "$PROOT_ROOT" ]] || [[ -f /.dockerenv ]] || grep -q container /proc/1/cgroup 2>/dev/null; then
         info "Container/pRoot environment detected - using user-space installation"
@@ -68,7 +68,7 @@ detect_system() {
         export CONTAINER_ENV=false
         export USE_SUDO=true
     fi
-    
+
     # Check Python version
     if command -v python3.12 &> /dev/null; then
         PYTHON_CMD="python3.12"
@@ -85,27 +85,27 @@ detect_system() {
         error "Python 3 not found. Please install Python 3.12+"
         exit 1
     fi
-    
+
     info "Using Python command: $PYTHON_CMD"
 }
 
 # Install system dependencies
 install_system_deps() {
     log "Installing system dependencies..."
-    
+
     if [[ "$CONTAINER_ENV" == "true" ]]; then
         warn "Container environment - skipping system package installation"
         warn "Ensure the following packages are available: curl, git, redis-server"
         return 0
     fi
-    
+
     # Update package list
     if [[ "$USE_SUDO" == "true" ]]; then
         sudo apt update
     else
         apt update 2>/dev/null || warn "Cannot update package list - continuing anyway"
     fi
-    
+
     # Install required packages
     local packages=(
         curl
@@ -121,7 +121,7 @@ install_system_deps() {
         libsqlite3-dev
         pkg-config
     )
-    
+
     for package in "${packages[@]}"; do
         if ! dpkg -l | grep -q "^ii  $package "; then
             info "Installing $package..."
@@ -134,7 +134,7 @@ install_system_deps() {
             info "$package is already installed"
         fi
     done
-    
+
     # Start Redis if not in container
     if [[ "$CONTAINER_ENV" == "false" ]]; then
         if command -v systemctl &> /dev/null; then
@@ -149,21 +149,21 @@ install_system_deps() {
 # Install Poetry
 install_poetry() {
     log "Installing Poetry..."
-    
+
     if command -v poetry &> /dev/null; then
         info "Poetry is already installed: $(poetry --version)"
         return 0
     fi
-    
+
     # Install Poetry using the official installer
     curl -sSL https://install.python-poetry.org | $PYTHON_CMD -
-    
+
     # Add Poetry to PATH
     if [[ -d "$HOME/.local/bin" ]]; then
         export PATH="$HOME/.local/bin:$PATH"
         echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
     fi
-    
+
     # Verify installation
     if command -v poetry &> /dev/null; then
         info "Poetry installed successfully: $(poetry --version)"
@@ -176,21 +176,21 @@ install_poetry() {
 # Setup Python environment
 setup_python_env() {
     log "Setting up Python environment..."
-    
+
     # Configure Poetry to create virtual environments in project directory
     poetry config virtualenvs.in-project true
-    
+
     # Install dependencies
     info "Installing Python dependencies (this may take a few minutes)..."
     poetry install
-    
+
     # Install additional tools
     poetry run pip install --upgrade pip
-    
+
     # Install Playwright browsers
     info "Installing Playwright browsers..."
     poetry run playwright install chromium || warn "Failed to install Playwright browsers"
-    
+
     # Verify installation
     poetry run python --version
     poetry run python -c "import redis; print('Redis client OK')" || warn "Redis client not working"
@@ -200,7 +200,7 @@ setup_python_env() {
 # Setup configuration
 setup_config() {
     log "Setting up configuration..."
-    
+
     # Create environment file from template
     if [[ ! -f .env ]]; then
         if [[ -f .env.example ]]; then
@@ -225,7 +225,7 @@ EOF
     else
         info ".env file already exists"
     fi
-    
+
     # Create required directories
     local dirs=(
         logs
@@ -235,14 +235,14 @@ EOF
         knowledge_cache
         prometheus_data
     )
-    
+
     for dir in "${dirs[@]}"; do
         if [[ ! -d "$dir" ]]; then
             mkdir -p "$dir"
             info "Created directory: $dir"
         fi
     done
-    
+
     # Set appropriate permissions
     chmod 755 logs reports_output screenshots
     chmod 700 models knowledge_cache  # More restrictive for sensitive data
@@ -251,7 +251,7 @@ EOF
 # Initialize database
 init_database() {
     log "Initializing database..."
-    
+
     # Create SQLite database and tables
     poetry run python -c "
 import asyncio
@@ -272,21 +272,21 @@ except Exception as e:
     print(f'Database initialization failed: {e}')
     exit(1)
 "
-    
+
     info "Database initialized successfully"
 }
 
 # Run tests
 run_tests() {
     log "Running basic tests..."
-    
+
     # Check if pytest is available
     if poetry run python -c "import pytest" 2>/dev/null; then
         info "Running test suite..."
         poetry run pytest --tb=short -v || warn "Some tests failed"
     else
         warn "pytest not available - running basic validation tests"
-        
+
         # Basic validation tests
         poetry run python -c "
 import sys
@@ -303,7 +303,7 @@ except Exception as e:
     sys.exit(1)
 "
     fi
-    
+
     info "Basic tests completed"
 }
 
@@ -313,13 +313,13 @@ setup_services() {
         warn "Skipping systemd service setup (container/unprivileged environment)"
         return 0
     fi
-    
+
     log "Setting up systemd services..."
-    
+
     local service_file="/etc/systemd/system/xorb.service"
     local current_dir=$(pwd)
     local user=$(whoami)
-    
+
     # Create systemd service file
     sudo tee "$service_file" > /dev/null << EOF
 [Unit]
@@ -342,11 +342,11 @@ SyslogIdentifier=xorb
 [Install]
 WantedBy=multi-user.target
 EOF
-    
+
     # Enable and start service
     sudo systemctl daemon-reload
     sudo systemctl enable xorb.service
-    
+
     info "Systemd service created and enabled"
     info "Use 'sudo systemctl start xorb' to start the service"
     info "Use 'sudo systemctl status xorb' to check service status"
@@ -356,7 +356,7 @@ EOF
 # Create startup scripts
 create_scripts() {
     log "Creating startup scripts..."
-    
+
     # Create main startup script
     cat > start-xorb.sh << 'EOF'
 #!/bin/bash
@@ -398,7 +398,7 @@ trap cleanup EXIT
 
 echo "✅ XORB Platform is running!"
 echo "   - Orchestrator PID: $ORCHESTRATOR_PID"
-echo "   - LLM Updater PID: $LLM_PID" 
+echo "   - LLM Updater PID: $LLM_PID"
 echo "   - Dashboard PID: $DASHBOARD_PID"
 echo ""
 echo "Press Ctrl+C to stop all services"
@@ -406,7 +406,7 @@ echo "Press Ctrl+C to stop all services"
 # Wait for all background processes
 wait
 EOF
-    
+
     # Create dashboard-only script
     cat > start-dashboard.sh << 'EOF'
 #!/bin/bash
@@ -417,7 +417,7 @@ export PATH="$HOME/.local/bin:$PATH"
 echo "📊 Starting XORB Dashboard..."
 poetry run python monitoring/dashboard.py
 EOF
-    
+
     # Create health check script
     cat > health-check.sh << 'EOF'
 #!/bin/bash
@@ -428,10 +428,10 @@ export PATH="$HOME/.local/bin:$PATH"
 echo "🔍 XORB Health Check..."
 poetry run python monitoring/dashboard.py --health
 EOF
-    
+
     # Make scripts executable
     chmod +x start-xorb.sh start-dashboard.sh health-check.sh
-    
+
     info "Created startup scripts:"
     info "  - start-xorb.sh: Start full XORB platform"
     info "  - start-dashboard.sh: Start dashboard only"
@@ -441,7 +441,7 @@ EOF
 # Print deployment summary
 print_summary() {
     log "🎉 XORB deployment completed successfully!"
-    
+
     echo ""
     echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
     echo "                    XORB SECURITY PLATFORM"
@@ -501,7 +501,7 @@ main() {
     echo "🚀 XORB Security Platform - Automated Deployment"
     echo "=================================================="
     echo ""
-    
+
     check_permissions
     detect_system
     install_system_deps

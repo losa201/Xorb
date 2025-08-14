@@ -15,7 +15,7 @@ This document defines the comprehensive observability strategy for XORB Phase G5
 - **SLO**: 99% (1% error budget)
 - **Measurement**: Histogram tracking end-to-end latency per tenant/subject
 
-#### 2. Evidence Ingest Latency  
+#### 2. Evidence Ingest Latency
 - **Metric**: `evidence_ingest_p95_ms`
 - **Description**: Evidence processing end-to-end latency
 - **Target**: P95 < 500ms
@@ -30,7 +30,7 @@ This document defines the comprehensive observability strategy for XORB Phase G5
 - **Measurement**: Counter ratio of failed/total auth requests
 
 #### 4. mTLS Handshake Failure Rate
-- **Metric**: `mtls_handshake_fail_rate` 
+- **Metric**: `mtls_handshake_fail_rate`
 - **Description**: mTLS connection establishment failure rate
 - **Target**: < 0.5% failure rate
 - **SLO**: 99.9% (0.1% error budget)
@@ -51,7 +51,7 @@ This document defines the comprehensive observability strategy for XORB Phase G5
 
 ### Alert Thresholds (Google SRE Standards)
 - **Fast Burn**: 14.4x burn rate (2% budget in 1 hour) → Critical
-- **Medium Burn**: 6x burn rate (5% budget in 6 hours) → Warning  
+- **Medium Burn**: 6x burn rate (5% budget in 6 hours) → Warning
 - **Slow Burn**: 1x burn rate (10% budget in 3 days) → Ticket
 - **Low Budget**: < 10% remaining → Warning
 - **Critical Budget**: < 5% remaining → Critical
@@ -62,7 +62,7 @@ This document defines the comprehensive observability strategy for XORB Phase G5
 - **Location**: `/src/api/app/observability/`
 - **Components**:
   - `instrumentation.py`: Core OTel setup with Prometheus integration
-  - `sli_metrics.py`: SLI metric collection classes  
+  - `sli_metrics.py`: SLI metric collection classes
   - `error_budgets.py`: Error budget tracking and alerting
 
 ### Prometheus Metrics
@@ -102,7 +102,7 @@ This document defines the comprehensive observability strategy for XORB Phase G5
 
 #### Mitigation Actions
 1. **Immediate**: Enable circuit breakers to shed load
-2. **Short-term**: Scale NATS cluster horizontally  
+2. **Short-term**: Scale NATS cluster horizontally
 3. **Medium-term**: Implement tenant-level rate limiting
 4. **Long-term**: Review bus architecture for bottlenecks
 
@@ -126,7 +126,7 @@ This document defines the comprehensive observability strategy for XORB Phase G5
 3. **Medium-term**: Implement evidence compression
 4. **Long-term**: Optimize signing/verification pipeline
 
-### Authentication SLO Breach  
+### Authentication SLO Breach
 **Runbook**: https://wiki.xorb.io/runbooks/slo-auth-error-fast-burn
 
 #### Symptoms
@@ -191,7 +191,7 @@ This document defines the comprehensive observability strategy for XORB Phase G5
 # Initialize observability instrumentation
 make obs-instrument
 
-# Deploy Grafana dashboards  
+# Deploy Grafana dashboards
 make obs-dashboards
 
 # Validate SLO configuration
@@ -262,7 +262,7 @@ route:
       group_wait: 5s
       group_interval: 5m
       repeat_interval: 12h
-      
+
     - match:
         alert_type: fast_burn
       receiver: xorb-oncall-pagerduty
@@ -273,7 +273,7 @@ route:
 
 ### Dashboard URLs
 - **SLO Overview**: http://localhost:3000/d/xorb-slo-error-budgets
-- **Bus Metrics**: http://localhost:3000/d/xorb-backplane  
+- **Bus Metrics**: http://localhost:3000/d/xorb-backplane
 - **Evidence Pipeline**: http://localhost:3000/d/xorb-evidence
 - **Authentication**: http://localhost:3000/d/xorb-auth
 
@@ -284,7 +284,7 @@ route:
 - Per-tenant error budget tracking
 - Tenant-specific SLO targets
 
-### Phase G7 Integration  
+### Phase G7 Integration
 - Evidence signing latency SLI
 - Merkle roll-up processing SLI
 - Cryptographic verification performance

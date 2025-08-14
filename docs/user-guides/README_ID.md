@@ -16,7 +16,7 @@
 <a href="https://discord.gg/projectdiscovery"><img src="https://img.shields.io/discord/695645237418131507.svg?logo=discord"></a>
 <a href="https://twitter.com/pdnuclei"><img src="https://img.shields.io/twitter/follow/pdnuclei.svg?logo=twitter"></a>
 </p>
-      
+
 <p align="center">
   <a href="#cara-kerja">Cara Kerja</a> •
   <a href="#instalasi-nuclei">Instalasi</a> •
@@ -64,7 +64,7 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <table>
 <tr>
-<td>  
+<td>
 
 ### Nuclei Templates
 
@@ -331,7 +331,7 @@ Nuclei menawarkan sejumlah besar fitur yang berguna bagi teknisi keamanan untuk 
 
 <table>
 <tr>
-<td>  
+<td>
 
 **Untuk Pemburu Celah Berhadiah:**
 
@@ -350,7 +350,7 @@ Silakan periksa proyek sumber terbuka kami yang lain yang mungkin cocok dengan a
 <table>
 <tr>
 <td>
-  
+
 **Untuk Penguji Penetrasi:**
 
 Nuclei sangat meningkatkan cara Anda mendekati penilaian keamanan dengan menambah proses manual yang berulang. Para konsultan sudah mengonversi langkah penilaian manual mereka dengan Nuclei, ini memungkinkan mereka untuk menjalankan serangkaian pendekatan penilaian khusus mereka di ribuan host secara otomatis.
@@ -385,7 +385,7 @@ Kami memiliki [utas diskusi tentang ini](https://github.com/projectdiscovery/nuc
 
 ### Sumber Daya
 
-- [Menemukan bug dengan menggunakan Nuclei dengan PinkDraconian (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) oleh **[@PinkDraconian](https://twitter.com/PinkDraconian)** 
+- [Menemukan bug dengan menggunakan Nuclei dengan PinkDraconian (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) oleh **[@PinkDraconian](https://twitter.com/PinkDraconian)**
 - [Nuclei: Mengemas Pukulan dengan Pemindaian Kerentanan](https://bishopfox.com/blog/nuclei-vulnerability-scan) oleh **Bishopfox**
 - [Kerangka kemanjuran WAF](https://www.fastly.com/blog/the-waf-efficacy-framework-measuring-the-effectiveness-of-your-waf) oleh **Fastly**
 - [Memindai Aplikasi Web Langsung dengan Nuclei di Aliran CI/CD](https://blog.escape.tech/devsecops-part-iii-scanning-live-web-applications/) oleh **[@TristanKalos](https://twitter.com/TristanKalos)**

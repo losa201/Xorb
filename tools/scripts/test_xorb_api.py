@@ -23,7 +23,7 @@ try:
     from app.main import app
     from app.security.auth import authenticator
     from app.security import Role
-    
+
     # Try to use TestClient, fall back to a simpler approach
     try:
         from fastapi.testclient import TestClient
@@ -35,7 +35,7 @@ try:
         print(f"⚠️ TestClient not working: {e}")
         print("🔄 Falling back to direct function calls")
         USE_FASTAPI_CLIENT = False
-        
+
     API_AVAILABLE = True
 except ImportError as e:
     print(f"Could not import XORB API: {e}")
@@ -44,7 +44,7 @@ except ImportError as e:
 
 class XORBAPITester:
     """Comprehensive XORB API testing suite"""
-    
+
     def __init__(self):
         self.client = None
         self.token = None
@@ -55,42 +55,42 @@ class XORBAPITester:
             'threats': [],
             'decisions': []
         }
-    
+
     def setup_client(self):
         """Setup test client"""
         if not API_AVAILABLE:
             print("❌ XORB API not available for testing")
             return False
-        
+
         if USE_FASTAPI_CLIENT:
             self.client = TestClient(app)
         else:
             # Direct function call approach for testing
             self.client = None
             self.app = app
-        
+
         # Generate test JWT token
         self.token = authenticator.generate_jwt(
             user_id="test_user",
             client_id="test_client",
             roles=[Role.ADMIN]  # Use admin role for full testing
         )
-        
+
         print("✅ Test client setup complete")
         return True
-    
+
     def make_request(self, method: str, url: str, **kwargs) -> Dict[str, Any]:
         """Make authenticated API request"""
         headers = kwargs.get('headers', {})
         headers['Authorization'] = f'Bearer {self.token}'
         kwargs['headers'] = headers
-        
+
         if USE_FASTAPI_CLIENT and self.client:
             response = self.client.request(method, url, **kwargs)
-            
+
             # Log request for debugging
             print(f"📡 {method} {url} -> {response.status_code}")
-            
+
             return {
                 'status_code': response.status_code,
                 'data': response.json() if response.status_code != 204 else None,
@@ -99,14 +99,14 @@ class XORBAPITester:
         else:
             # Simulate API call for testing
             print(f"📡 {method} {url} -> 200 (simulated)")
-            
+
             # Return simulated successful response
             return {
                 'status_code': 200,
                 'data': self._get_mock_response(method, url),
                 'headers': {'Content-Type': 'application/json'}
             }
-    
+
     def _get_mock_response(self, method: str, url: str) -> Dict[str, Any]:
         """Generate mock response for testing"""
         if url == '/health':
@@ -162,38 +162,38 @@ class XORBAPITester:
             }
         else:
             return {"message": "Test response", "timestamp": datetime.utcnow().isoformat()}
-    
+
     def test_health_check(self) -> bool:
         """Test basic health check"""
         print("\n🏥 Testing Health Check...")
-        
+
         try:
             response = self.make_request('GET', '/health')
             success = response['status_code'] == 200 and response['data']['status'] == 'ok'
-            
+
             self.test_results.append({
                 'test': 'health_check',
                 'success': success,
                 'response': response
             })
-            
+
             if success:
                 print("✅ Health check passed")
             else:
                 print(f"❌ Health check failed: {response}")
-            
+
             return success
-            
+
         except Exception as e:
             print(f"❌ Health check error: {e}")
             return False
-    
+
     def test_agent_management(self) -> bool:
         """Test agent management endpoints"""
         print("\n🤖 Testing Agent Management...")
-        
+
         success = True
-        
+
         try:
             # Test create agent
             agent_data = {
@@ -206,14 +206,14 @@ class XORBAPITester:
                     "alert_threshold": 0.8
                 }
             }
-            
+
             response = self.make_request('POST', '/v1/agents', json=agent_data)
-            
+
             if response['status_code'] == 201:
                 agent = response['data']
                 self.created_resources['agents'].append(agent['id'])
                 print(f"✅ Agent created: {agent['name']} ({agent['id']})")
-                
+
                 # Test get agent
                 get_response = self.make_request('GET', f'/v1/agents/{agent["id"]}')
                 if get_response['status_code'] == 200:
@@ -221,7 +221,7 @@ class XORBAPITester:
                 else:
                     print(f"❌ Agent retrieval failed: {get_response['status_code']}")
                     success = False
-                
+
                 # Test agent status
                 status_response = self.make_request('GET', f'/v1/agents/{agent["id"]}/status')
                 if status_response['status_code'] == 200:
@@ -230,25 +230,25 @@ class XORBAPITester:
                 else:
                     print(f"❌ Agent status check failed: {status_response['status_code']}")
                     success = False
-                
+
                 # Test send command
                 command_data = {
                     "command": "status_check",
                     "parameters": {},
                     "timeout_seconds": 30
                 }
-                
+
                 cmd_response = self.make_request('POST', f'/v1/agents/{agent["id"]}/commands', json=command_data)
                 if cmd_response['status_code'] == 200:
                     print("✅ Agent command executed")
                 else:
                     print(f"❌ Agent command failed: {cmd_response['status_code']}")
                     success = False
-                
+
             else:
                 print(f"❌ Agent creation failed: {response['status_code']}")
                 success = False
-            
+
             # Test list agents
             list_response = self.make_request('GET', '/v1/agents')
             if list_response['status_code'] == 200:
@@ -257,24 +257,24 @@ class XORBAPITester:
             else:
                 print(f"❌ Agent listing failed: {list_response['status_code']}")
                 success = False
-            
+
         except Exception as e:
             print(f"❌ Agent management test error: {e}")
             success = False
-        
+
         self.test_results.append({
             'test': 'agent_management',
             'success': success
         })
-        
+
         return success
-    
+
     def test_task_orchestration(self) -> bool:
         """Test task orchestration endpoints"""
         print("\n⚡ Testing Task Orchestration...")
-        
+
         success = True
-        
+
         try:
             # Test create task
             task_data = {
@@ -292,14 +292,14 @@ class XORBAPITester:
                 "description": "Test task for API validation",
                 "orchestration_strategy": "ai_optimized"
             }
-            
+
             response = self.make_request('POST', '/v1/orchestration/tasks', json=task_data)
-            
+
             if response['status_code'] == 201:
                 task = response['data']
                 self.created_resources['tasks'].append(task['id'])
                 print(f"✅ Task created: {task['name']} ({task['id']})")
-                
+
                 # Test get task
                 get_response = self.make_request('GET', f'/v1/orchestration/tasks/{task["id"]}')
                 if get_response['status_code'] == 200:
@@ -307,7 +307,7 @@ class XORBAPITester:
                 else:
                     print(f"❌ Task retrieval failed: {get_response['status_code']}")
                     success = False
-                
+
                 # Test update task priority
                 update_data = {"priority": "critical"}
                 update_response = self.make_request('PUT', f'/v1/orchestration/tasks/{task["id"]}', json=update_data)
@@ -316,11 +316,11 @@ class XORBAPITester:
                 else:
                     print(f"❌ Task update failed: {update_response['status_code']}")
                     success = False
-                
+
             else:
                 print(f"❌ Task creation failed: {response['status_code']}")
                 success = False
-            
+
             # Test list tasks
             list_response = self.make_request('GET', '/v1/orchestration/tasks')
             if list_response['status_code'] == 200:
@@ -329,7 +329,7 @@ class XORBAPITester:
             else:
                 print(f"❌ Task listing failed: {list_response['status_code']}")
                 success = False
-            
+
             # Test orchestration metrics
             metrics_response = self.make_request('GET', '/v1/orchestration/metrics')
             if metrics_response['status_code'] == 200:
@@ -338,14 +338,14 @@ class XORBAPITester:
             else:
                 print(f"❌ Orchestration metrics failed: {metrics_response['status_code']}")
                 success = False
-            
+
             # Test AI optimization request
             optimization_data = {
                 "tasks": self.created_resources['tasks'][:1],  # Use first created task
                 "optimization_criteria": ["efficiency", "priority"],
                 "constraints": {}
             }
-            
+
             opt_response = self.make_request('POST', '/v1/orchestration/optimize', json=optimization_data)
             if opt_response['status_code'] == 200:
                 optimization = opt_response['data']
@@ -353,24 +353,24 @@ class XORBAPITester:
             else:
                 print(f"❌ AI optimization failed: {opt_response['status_code']}")
                 success = False
-            
+
         except Exception as e:
             print(f"❌ Task orchestration test error: {e}")
             success = False
-        
+
         self.test_results.append({
             'test': 'task_orchestration',
             'success': success
         })
-        
+
         return success
-    
+
     def test_security_operations(self) -> bool:
         """Test security operations endpoints"""
         print("\n🛡️ Testing Security Operations...")
-        
+
         success = True
-        
+
         try:
             # Test create threat
             threat_data = {
@@ -393,14 +393,14 @@ class XORBAPITester:
                 ],
                 "tags": {"test": "true", "source": "api_test"}
             }
-            
+
             response = self.make_request('POST', '/v1/security/threats', json=threat_data)
-            
+
             if response['status_code'] == 201:
                 threat = response['data']
                 self.created_resources['threats'].append(threat['id'])
                 print(f"✅ Threat created: {threat['name']} ({threat['id']})")
-                
+
                 # Test get threat
                 get_response = self.make_request('GET', f'/v1/security/threats/{threat["id"]}')
                 if get_response['status_code'] == 200:
@@ -408,10 +408,10 @@ class XORBAPITester:
                 else:
                     print(f"❌ Threat retrieval failed: {get_response['status_code']}")
                     success = False
-                
+
                 # Test update threat status
                 status_response = self.make_request(
-                    'PUT', 
+                    'PUT',
                     f'/v1/security/threats/{threat["id"]}/status?status=investigating&notes=Starting investigation'
                 )
                 if status_response['status_code'] == 200:
@@ -419,7 +419,7 @@ class XORBAPITester:
                 else:
                     print(f"❌ Threat status update failed: {status_response['status_code']}")
                     success = False
-                
+
                 # Test threat response
                 response_data = {
                     "actions": ["block_ip", "collect_forensics"],
@@ -430,9 +430,9 @@ class XORBAPITester:
                     "auto_execute": False,
                     "notify_team": True
                 }
-                
+
                 response_result = self.make_request(
-                    'POST', 
+                    'POST',
                     f'/v1/security/threats/{threat["id"]}/respond',
                     json=response_data
                 )
@@ -441,7 +441,7 @@ class XORBAPITester:
                 else:
                     print(f"❌ Threat response failed: {response_result['status_code']}")
                     success = False
-                
+
                 # Test threat timeline
                 timeline_response = self.make_request('GET', f'/v1/security/threats/{threat["id"]}/timeline')
                 if timeline_response['status_code'] == 200:
@@ -450,11 +450,11 @@ class XORBAPITester:
                 else:
                     print(f"❌ Threat timeline failed: {timeline_response['status_code']}")
                     success = False
-                
+
             else:
                 print(f"❌ Threat creation failed: {response['status_code']}")
                 success = False
-            
+
             # Test list threats
             list_response = self.make_request('GET', '/v1/security/threats?hours_back=1')
             if list_response['status_code'] == 200:
@@ -463,7 +463,7 @@ class XORBAPITester:
             else:
                 print(f"❌ Threat listing failed: {list_response['status_code']}")
                 success = False
-            
+
             # Test security metrics
             metrics_response = self.make_request('GET', '/v1/security/metrics')
             if metrics_response['status_code'] == 200:
@@ -472,7 +472,7 @@ class XORBAPITester:
             else:
                 print(f"❌ Security metrics failed: {metrics_response['status_code']}")
                 success = False
-            
+
             # Test compliance status
             compliance_response = self.make_request('GET', '/v1/security/compliance')
             if compliance_response['status_code'] == 200:
@@ -481,24 +481,24 @@ class XORBAPITester:
             else:
                 print(f"❌ Compliance status failed: {compliance_response['status_code']}")
                 success = False
-            
+
         except Exception as e:
             print(f"❌ Security operations test error: {e}")
             success = False
-        
+
         self.test_results.append({
             'test': 'security_operations',
             'success': success
         })
-        
+
         return success
-    
+
     def test_intelligence_integration(self) -> bool:
         """Test intelligence integration endpoints"""
         print("\n🧠 Testing Intelligence Integration...")
-        
+
         success = True
-        
+
         try:
             # Test AI decision request
             decision_data = {
@@ -522,14 +522,14 @@ class XORBAPITester:
                 "timeout_seconds": 30,
                 "explanation_required": True
             }
-            
+
             response = self.make_request('POST', '/v1/intelligence/decisions', json=decision_data)
-            
+
             if response['status_code'] == 200:
                 decision = response['data']
                 self.created_resources['decisions'].append(decision['decision_id'])
                 print(f"✅ AI decision: {decision['recommendation']} (confidence: {decision['confidence_score']:.2f})")
-                
+
                 # Test get decision
                 get_response = self.make_request('GET', f'/v1/intelligence/decisions/{decision["decision_id"]}')
                 if get_response['status_code'] == 200:
@@ -537,7 +537,7 @@ class XORBAPITester:
                 else:
                     print(f"❌ Decision retrieval failed: {get_response['status_code']}")
                     success = False
-                
+
                 # Test provide feedback
                 feedback_data = {
                     "decision_id": decision['decision_id'],
@@ -557,24 +557,24 @@ class XORBAPITester:
                         "Model confidence aligned with actual severity"
                     ]
                 }
-                
+
                 feedback_response = self.make_request('POST', '/v1/intelligence/feedback', json=feedback_data)
                 if feedback_response['status_code'] == 200:
                     print("✅ Learning feedback provided")
                 else:
                     print(f"❌ Learning feedback failed: {feedback_response['status_code']}")
                     success = False
-                
+
             else:
                 print(f"❌ AI decision request failed: {response['status_code']}")
                 success = False
-            
+
             # Test list models
             models_response = self.make_request('GET', '/v1/intelligence/models')
             if models_response['status_code'] == 200:
                 models = models_response['data']
                 print(f"✅ Listed {len(models)} AI models")
-                
+
                 # Test get orchestration brain status
                 if models:
                     model_id = models[0]['model_id']
@@ -588,7 +588,7 @@ class XORBAPITester:
             else:
                 print(f"❌ Models listing failed: {models_response['status_code']}")
                 success = False
-            
+
             # Test intelligence metrics
             metrics_response = self.make_request('GET', '/v1/intelligence/metrics')
             if metrics_response['status_code'] == 200:
@@ -597,7 +597,7 @@ class XORBAPITester:
             else:
                 print(f"❌ Intelligence metrics failed: {metrics_response['status_code']}")
                 success = False
-            
+
             # Test continuous learning enable
             cl_response = self.make_request('POST', '/v1/intelligence/continuous-learning/enable')
             if cl_response['status_code'] == 200:
@@ -606,24 +606,24 @@ class XORBAPITester:
             else:
                 print(f"❌ Continuous learning failed: {cl_response['status_code']}")
                 success = False
-            
+
         except Exception as e:
             print(f"❌ Intelligence integration test error: {e}")
             success = False
-        
+
         self.test_results.append({
             'test': 'intelligence_integration',
             'success': success
         })
-        
+
         return success
-    
+
     def test_telemetry_endpoints(self) -> bool:
         """Test telemetry and monitoring endpoints"""
         print("\n📊 Testing Telemetry & Monitoring...")
-        
+
         success = True
-        
+
         try:
             # Test system health
             health_response = self.make_request('GET', '/v1/telemetry/health')
@@ -633,7 +633,7 @@ class XORBAPITester:
             else:
                 print(f"❌ System health check failed: {health_response['status_code']}")
                 success = False
-            
+
             # Test system metrics
             metrics_response = self.make_request('GET', '/v1/telemetry/metrics')
             if metrics_response['status_code'] == 200:
@@ -642,22 +642,22 @@ class XORBAPITester:
             else:
                 print(f"❌ System metrics failed: {metrics_response['status_code']}")
                 success = False
-            
+
         except Exception as e:
             print(f"❌ Telemetry test error: {e}")
             success = False
-        
+
         self.test_results.append({
             'test': 'telemetry_monitoring',
             'success': success
         })
-        
+
         return success
-    
+
     def cleanup_resources(self):
         """Clean up created test resources"""
         print("\n🧹 Cleaning up test resources...")
-        
+
         # Delete created agents
         for agent_id in self.created_resources['agents']:
             try:
@@ -668,7 +668,7 @@ class XORBAPITester:
                     print(f"⚠️ Could not delete agent {agent_id}")
             except Exception as e:
                 print(f"⚠️ Error deleting agent {agent_id}: {e}")
-        
+
         # Cancel created tasks
         for task_id in self.created_resources['tasks']:
             try:
@@ -679,34 +679,34 @@ class XORBAPITester:
                     print(f"⚠️ Could not cancel task {task_id}")
             except Exception as e:
                 print(f"⚠️ Error cancelling task {task_id}: {e}")
-        
+
         print("🧹 Cleanup completed")
-    
+
     def generate_report(self):
         """Generate test report"""
         print("\n" + "="*60)
         print("📋 XORB API TEST REPORT")
         print("="*60)
-        
+
         total_tests = len(self.test_results)
         passed_tests = sum(1 for result in self.test_results if result['success'])
         failed_tests = total_tests - passed_tests
-        
+
         print(f"Total Tests: {total_tests}")
         print(f"Passed: {passed_tests} ✅")
         print(f"Failed: {failed_tests} ❌")
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
-        
+
         print("\nTest Results:")
         for result in self.test_results:
             status = "✅ PASS" if result['success'] else "❌ FAIL"
             print(f"  {result['test']}: {status}")
-        
+
         print("\nResources Created:")
         for resource_type, resources in self.created_resources.items():
             if resources:
                 print(f"  {resource_type}: {len(resources)}")
-        
+
         print("\nAPI Endpoints Tested:")
         endpoints = [
             "GET /health",
@@ -734,27 +734,27 @@ class XORBAPITester:
             "GET /v1/telemetry/health",
             "GET /v1/telemetry/metrics"
         ]
-        
+
         for endpoint in endpoints:
             print(f"  {endpoint}")
-        
+
         print("\n" + "="*60)
-        
+
         if failed_tests == 0:
             print("🎉 ALL TESTS PASSED! XORB API is fully functional.")
         else:
             print("⚠️ Some tests failed. Check the logs above for details.")
-        
+
         print("="*60)
-    
+
     async def run_all_tests(self):
         """Run complete test suite"""
         print("🚀 Starting XORB API Test Suite")
         print("="*60)
-        
+
         if not self.setup_client():
             return False
-        
+
         # Run all test suites
         tests = [
             self.test_health_check,
@@ -764,41 +764,41 @@ class XORBAPITester:
             self.test_intelligence_integration,
             self.test_telemetry_endpoints
         ]
-        
+
         all_passed = True
-        
+
         for test in tests:
             try:
                 result = test()
                 if not result:
                     all_passed = False
-                    
+
                 # Small delay between tests
                 time.sleep(1)
-                
+
             except Exception as e:
                 print(f"❌ Test failed with exception: {e}")
                 all_passed = False
-        
+
         # Cleanup and report
         self.cleanup_resources()
         self.generate_report()
-        
+
         return all_passed
 
 
 def main():
     """Main test execution"""
     tester = XORBAPITester()
-    
+
     # Run the test suite
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    
+
     try:
         success = loop.run_until_complete(tester.run_all_tests())
         exit_code = 0 if success else 1
-        
+
     except KeyboardInterrupt:
         print("\n⚠️ Test suite interrupted by user")
         exit_code = 1
@@ -807,7 +807,7 @@ def main():
         exit_code = 1
     finally:
         loop.close()
-    
+
     return exit_code
 
 

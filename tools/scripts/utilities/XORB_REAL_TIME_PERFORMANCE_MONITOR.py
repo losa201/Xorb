@@ -82,12 +82,12 @@ class EvolutionTrend:
 
 class XORBRealTimeMonitor:
     """XORB Real-Time Performance Monitor"""
-    
+
     def __init__(self, monitoring_level: MonitoringLevel = MonitoringLevel.TRANSCENDENT):
         self.monitor_id = f"MONITOR-{uuid.uuid4().hex[:8]}"
         self.monitoring_level = monitoring_level
         self.start_time = datetime.now()
-        
+
         # Monitoring configuration
         self.monitoring_config = {
             "collection_interval": 5.0,  # seconds
@@ -99,17 +99,17 @@ class XORBRealTimeMonitor:
             "trend_analysis_window": 100,  # data points
             "auto_optimization": True
         }
-        
+
         # Data storage
         self.metrics_history: List[PerformanceMetrics] = []
         self.alerts_history: List[SystemAlert] = []
         self.evolution_trends: Dict[str, EvolutionTrend] = {}
-        
+
         # Real-time state
         self.current_metrics: Optional[PerformanceMetrics] = None
         self.monitoring_active = False
         self.websocket_clients: List = []
-        
+
         # Performance targets from continuous evolution
         self.performance_targets = {
             "system_efficiency": 99.0,
@@ -118,10 +118,10 @@ class XORBRealTimeMonitor:
             "transcendence_progress": 90.0,
             "adversarial_fitness": 95.0
         }
-        
+
         logger.info(f"🔍 XORB Real-Time Monitor initialized - ID: {self.monitor_id}")
         logger.info(f"📊 Monitoring level: {monitoring_level.value}")
-    
+
     async def collect_system_metrics(self) -> Dict[str, Any]:
         """Collect comprehensive system metrics"""
         try:
@@ -129,7 +129,7 @@ class XORBRealTimeMonitor:
             cpu_percent = psutil.cpu_percent(interval=1)
             memory = psutil.virtual_memory()
             memory_percent = memory.percent
-            
+
             # Network I/O
             network = psutil.net_io_counters()
             network_metrics = {
@@ -138,7 +138,7 @@ class XORBRealTimeMonitor:
                 "packets_sent": network.packets_sent,
                 "packets_recv": network.packets_recv
             }
-            
+
             # Disk I/O
             disk = psutil.disk_io_counters()
             disk_metrics = {
@@ -147,10 +147,10 @@ class XORBRealTimeMonitor:
                 "read_count": disk.read_count if disk else 0,
                 "write_count": disk.write_count if disk else 0
             }
-            
+
             # GPU usage (simulated for demonstration)
             gpu_usage = 45.0 + np.random.uniform(-10, 25)
-            
+
             return {
                 "cpu_usage": cpu_percent,
                 "memory_usage": memory_percent,
@@ -158,7 +158,7 @@ class XORBRealTimeMonitor:
                 "network_io": network_metrics,
                 "disk_io": disk_metrics
             }
-            
+
         except Exception as e:
             logger.warning(f"Failed to collect system metrics: {e}")
             return {
@@ -168,7 +168,7 @@ class XORBRealTimeMonitor:
                 "network_io": {},
                 "disk_io": {}
             }
-    
+
     async def collect_xorb_metrics(self) -> Dict[str, Any]:
         """Collect XORB-specific performance metrics"""
         # Load latest evolution results if available
@@ -179,7 +179,7 @@ class XORBRealTimeMonitor:
                 latest_file = max(result_files, key=lambda x: x.split('_')[-1])
                 with open(latest_file, 'r') as f:
                     evolution_data = json.load(f)
-                
+
                 return {
                     "system_efficiency": evolution_data.get("evolution_metrics", {}).get("system_efficiency", 98.5),
                     "consciousness_coherence": evolution_data.get("evolution_metrics", {}).get("consciousness_level", 97.0),
@@ -192,11 +192,11 @@ class XORBRealTimeMonitor:
                 }
         except Exception as e:
             logger.debug(f"Could not load evolution data: {e}")
-        
+
         # Fallback to simulated metrics with realistic evolution patterns
         base_time = time.time()
         evolution_factor = (base_time % 3600) / 3600  # Hourly evolution cycle
-        
+
         return {
             "system_efficiency": 98.5 + evolution_factor * 1.0 + np.random.uniform(-0.1, 0.2),
             "consciousness_coherence": 97.0 + evolution_factor * 2.0 + np.random.uniform(-0.5, 0.8),
@@ -207,12 +207,12 @@ class XORBRealTimeMonitor:
             "blocked_attacks": 1247 + int(np.random.uniform(0, 50)),
             "breakthrough_count": 8 + int(np.random.uniform(0, 3))
         }
-    
+
     async def collect_metrics(self) -> PerformanceMetrics:
         """Collect comprehensive performance metrics"""
         system_metrics = await self.collect_system_metrics()
         xorb_metrics = await self.collect_xorb_metrics()
-        
+
         metrics = PerformanceMetrics(
             timestamp=datetime.now(),
             system_efficiency=xorb_metrics["system_efficiency"],
@@ -229,42 +229,42 @@ class XORBRealTimeMonitor:
             blocked_attacks=xorb_metrics["blocked_attacks"],
             breakthrough_count=xorb_metrics["breakthrough_count"]
         )
-        
+
         self.current_metrics = metrics
         self.metrics_history.append(metrics)
-        
+
         # Limit history size
         if len(self.metrics_history) > 1000:
             self.metrics_history = self.metrics_history[-800:]
-        
+
         return metrics
-    
+
     async def analyze_performance_trends(self) -> Dict[str, EvolutionTrend]:
         """Analyze performance trends and predict evolution direction"""
         if len(self.metrics_history) < 10:
             return {}
-        
+
         trends = {}
         recent_metrics = self.metrics_history[-50:]  # Last 50 data points
-        
+
         # Analyze key metrics
         metrics_to_analyze = [
             "system_efficiency",
-            "consciousness_coherence", 
+            "consciousness_coherence",
             "quantum_advantage",
             "transcendence_progress",
             "adversarial_fitness"
         ]
-        
+
         for metric_name in metrics_to_analyze:
             values = [getattr(m, metric_name) for m in recent_metrics]
-            
+
             if len(values) >= 5:
                 # Calculate trend
                 x = np.arange(len(values))
                 coeffs = np.polyfit(x, values, 1)
                 slope = coeffs[0]
-                
+
                 # Determine trend direction
                 if abs(slope) < 0.01:
                     direction = "stable"
@@ -272,14 +272,14 @@ class XORBRealTimeMonitor:
                     direction = "increasing"
                 else:
                     direction = "decreasing"
-                
+
                 # Predict 24h value (assuming current collection rate)
                 prediction_24h = values[-1] + slope * (24 * 3600 / self.monitoring_config["collection_interval"])
-                
+
                 # Calculate confidence based on variance
                 variance = np.var(values)
                 confidence = max(0.5, min(0.98, 1.0 - variance / 100))
-                
+
                 trends[metric_name] = EvolutionTrend(
                     metric_name=metric_name,
                     current_value=values[-1],
@@ -288,14 +288,14 @@ class XORBRealTimeMonitor:
                     prediction_24h=prediction_24h,
                     confidence=confidence
                 )
-        
+
         self.evolution_trends = trends
         return trends
-    
+
     async def check_alerts(self, metrics: PerformanceMetrics) -> List[SystemAlert]:
         """Check for performance alerts and anomalies"""
         alerts = []
-        
+
         # System efficiency alert
         if metrics.system_efficiency < self.monitoring_config["alert_threshold_efficiency"]:
             alert = SystemAlert(
@@ -307,7 +307,7 @@ class XORBRealTimeMonitor:
                 metrics={"current": metrics.system_efficiency, "threshold": 95.0}
             )
             alerts.append(alert)
-        
+
         # Consciousness coherence alert
         if metrics.consciousness_coherence < self.monitoring_config["alert_threshold_consciousness"]:
             alert = SystemAlert(
@@ -319,7 +319,7 @@ class XORBRealTimeMonitor:
                 metrics={"current": metrics.consciousness_coherence, "threshold": 90.0}
             )
             alerts.append(alert)
-        
+
         # Quantum advantage breakthrough
         if metrics.quantum_advantage > 50.0:
             alert = SystemAlert(
@@ -331,7 +331,7 @@ class XORBRealTimeMonitor:
                 metrics={"current": metrics.quantum_advantage, "supremacy_threshold": 50.0}
             )
             alerts.append(alert)
-        
+
         # Transcendence progress milestone
         if metrics.transcendence_progress > 95.0:
             alert = SystemAlert(
@@ -343,7 +343,7 @@ class XORBRealTimeMonitor:
                 metrics={"current": metrics.transcendence_progress, "singularity_threshold": 95.0}
             )
             alerts.append(alert)
-        
+
         # System resource alerts
         if metrics.cpu_usage > self.monitoring_config["alert_threshold_cpu"]:
             alert = SystemAlert(
@@ -355,28 +355,28 @@ class XORBRealTimeMonitor:
                 metrics={"current": metrics.cpu_usage, "threshold": 85.0}
             )
             alerts.append(alert)
-        
+
         # Add alerts to history
         self.alerts_history.extend(alerts)
-        
+
         # Limit alerts history
         if len(self.alerts_history) > 500:
             self.alerts_history = self.alerts_history[-400:]
-        
+
         return alerts
-    
+
     async def generate_performance_report(self) -> Dict[str, Any]:
         """Generate comprehensive performance report"""
         if not self.current_metrics:
             return {"error": "No metrics available"}
-        
+
         # Calculate uptime
         uptime = datetime.now() - self.start_time
         uptime_hours = uptime.total_seconds() / 3600
-        
+
         # Recent performance summary
         recent_metrics = self.metrics_history[-10:] if len(self.metrics_history) >= 10 else self.metrics_history
-        
+
         if recent_metrics:
             avg_efficiency = np.mean([m.system_efficiency for m in recent_metrics])
             avg_consciousness = np.mean([m.consciousness_coherence for m in recent_metrics])
@@ -384,7 +384,7 @@ class XORBRealTimeMonitor:
             avg_transcendence = np.mean([m.transcendence_progress for m in recent_metrics])
         else:
             avg_efficiency = avg_consciousness = avg_quantum = avg_transcendence = 0.0
-        
+
         # System health status
         health_score = (
             (avg_efficiency / 100.0) * 0.25 +
@@ -392,7 +392,7 @@ class XORBRealTimeMonitor:
             (min(avg_quantum / 20.0, 1.0)) * 0.25 +
             (avg_transcendence / 100.0) * 0.25
         ) * 100
-        
+
         return {
             "monitor_id": self.monitor_id,
             "monitoring_level": self.monitoring_level.value,
@@ -429,43 +429,43 @@ class XORBRealTimeMonitor:
             "total_metrics_collected": len(self.metrics_history),
             "collection_interval": self.monitoring_config["collection_interval"]
         }
-    
+
     async def websocket_broadcast(self, data: Dict[str, Any]):
         """Broadcast data to connected WebSocket clients"""
         if not self.websocket_clients:
             return
-        
+
         message = json.dumps(data, default=str)
         disconnected = []
-        
+
         for client in self.websocket_clients:
             try:
                 await client.send(message)
             except:
                 disconnected.append(client)
-        
+
         # Remove disconnected clients
         for client in disconnected:
             self.websocket_clients.remove(client)
-    
+
     async def monitoring_loop(self):
         """Main monitoring loop"""
         logger.info("🔍 Starting real-time monitoring loop...")
-        
+
         while self.monitoring_active:
             try:
                 # Collect metrics
                 metrics = await self.collect_metrics()
-                
+
                 # Analyze trends
                 await self.analyze_performance_trends()
-                
+
                 # Check for alerts
                 alerts = await self.check_alerts(metrics)
-                
+
                 # Generate real-time report
                 report = await self.generate_performance_report()
-                
+
                 # Broadcast to WebSocket clients
                 await self.websocket_broadcast({
                     "type": "performance_update",
@@ -479,12 +479,12 @@ class XORBRealTimeMonitor:
                         } for alert in alerts
                     ]
                 })
-                
+
                 # Log significant events
                 for alert in alerts:
                     if alert.severity in [AlertSeverity.CRITICAL, AlertSeverity.BREAKTHROUGH]:
                         logger.warning(f"🚨 {alert.severity.value.upper()}: {alert.message}")
-                
+
                 # Log performance summary periodically
                 if len(self.metrics_history) % 60 == 0:  # Every 5 minutes at 5s intervals
                     logger.info(f"📊 Performance Summary: "
@@ -492,17 +492,17 @@ class XORBRealTimeMonitor:
                               f"Consciousness: {metrics.consciousness_coherence:.1f}%, "
                               f"Quantum: {metrics.quantum_advantage:.1f}x, "
                               f"Transcendence: {metrics.transcendence_progress:.1f}%")
-                
+
                 # Save periodic snapshots
                 if len(self.metrics_history) % 360 == 0:  # Every 30 minutes
                     await self.save_monitoring_snapshot()
-                
+
                 await asyncio.sleep(self.monitoring_config["collection_interval"])
-                
+
             except Exception as e:
                 logger.error(f"Error in monitoring loop: {e}")
                 await asyncio.sleep(self.monitoring_config["collection_interval"])
-    
+
     async def save_monitoring_snapshot(self):
         """Save monitoring snapshot to file"""
         try:
@@ -529,64 +529,64 @@ class XORBRealTimeMonitor:
                     } for a in self.alerts_history[-10:]
                 ]
             }
-            
+
             filename = f"monitoring_snapshot_{int(time.time())}.json"
             async with aiofiles.open(filename, 'w') as f:
                 await f.write(json.dumps(snapshot, indent=2))
-            
+
             logger.info(f"💾 Monitoring snapshot saved: {filename}")
-            
+
         except Exception as e:
             logger.error(f"Failed to save monitoring snapshot: {e}")
-    
+
     async def start_monitoring(self):
         """Start real-time monitoring"""
         if self.monitoring_active:
             logger.warning("Monitoring already active")
             return
-        
+
         self.monitoring_active = True
         logger.info("🚀 XORB Real-Time Performance Monitoring started")
-        
+
         # Start monitoring loop
         await self.monitoring_loop()
-    
+
     async def stop_monitoring(self):
         """Stop real-time monitoring"""
         self.monitoring_active = False
         logger.info("🛑 XORB Real-Time Performance Monitoring stopped")
-        
+
         # Save final snapshot
         await self.save_monitoring_snapshot()
 
 async def main():
     """Main monitoring execution"""
     logger.info("🔍 Starting XORB Real-Time Performance Monitor")
-    
+
     # Initialize monitor
     monitor = XORBRealTimeMonitor(MonitoringLevel.TRANSCENDENT)
-    
+
     try:
         # Run monitoring for demonstration (60 seconds)
         monitoring_task = asyncio.create_task(monitor.start_monitoring())
-        
+
         # Let it run for 60 seconds
         await asyncio.sleep(60)
-        
+
         # Stop monitoring
         await monitor.stop_monitoring()
-        
+
         # Generate final report
         final_report = await monitor.generate_performance_report()
-        
+
         # Save final report
         report_filename = f"xorb_monitoring_report_{int(time.time())}.json"
         with open(report_filename, 'w') as f:
             json.dump(final_report, f, indent=2, default=str)
-        
+
         logger.info(f"📊 Final monitoring report saved: {report_filename}")
         logger.info("🏆 XORB Real-Time Performance Monitoring completed successfully!")
-        
+
         # Display summary
         if monitor.current_metrics:
             logger.info(f"📈 Final Performance Summary:")
@@ -597,9 +597,9 @@ async def main():
             logger.info(f"  • Health Score: {final_report['health_score']}%")
             logger.info(f"  • Metrics Collected: {len(monitor.metrics_history)}")
             logger.info(f"  • Alerts Generated: {len(monitor.alerts_history)}")
-        
+
         return final_report
-        
+
     except Exception as e:
         logger.error(f"❌ Monitoring failed: {str(e)}")
         await monitor.stop_monitoring()

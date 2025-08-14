@@ -57,7 +57,7 @@ class BaseAgent(SimulationObject):
         self.policies = []
         self.current_policy = None
         self.logger = logging.getLogger(f"{__name__}.{agent_id}")
-        
+
     def add_policy(self, policy: AgentPolicy):
         """Add a policy to the agent"""
         self.policies.append(policy)
@@ -74,31 +74,31 @@ class BaseAgent(SimulationObject):
     def perceive(self, world_state: WorldState) -> Perception:
         """Perceive the world state"""
         perception = Perception()
-        
+
         # Find visible objects
         perception.visible_objects = [
             obj for obj in world_state.objects.values()
             if self._is_visible(obj, world_state)
         ]
-        
+
         # Get threat level
         perception.threat_level = self._calculate_threat(perception.visible_objects)
-        
+
         # Get resource map
         perception.resource_map = self._map_resources(world_state)
-        
+
         return perception
 
     def _is_visible(self, obj: SimulationObject, world_state: WorldState) -> bool:
         """Check if an object is within this agent's perception range"""
         if obj.id == self.id:
             return False
-            
+
         # Calculate distance
         position = np.array(self.state.position)
         obj_position = np.array(obj.position if hasattr(obj, 'position') else [0.0, 0.0])
         distance = np.linalg.norm(position - obj_position)
-        
+
         # Check if within range
         return distance <= self.state.perception_range
 
@@ -120,23 +120,23 @@ class BaseAgent(SimulationObject):
         if not self.current_policy:
             self.logger.warning("No policy available for planning")
             return None
-            
+
         return self.current_policy.select_action(self.state, perception)
 
     def execute(self, action: AgentAction, world_state: WorldState) -> Dict[str, Any]:
         """Execute an action in the world"""
         self.logger.debug(f"Executing action: {action.type}")
-        
+
         # Default implementation - should be overridden by specific agent types
         result = {
             "success": True,
             "reward": 0.0,
             "done": False
         }
-        
+
         # Update state based on action
         self._update_state_after_action(action)
-        
+
         return result
 
     def _update_state_after_action(self, action: AgentAction):
@@ -186,15 +186,15 @@ class RuleBasedPolicy(AgentPolicy):
     """Rule-based policy implementation"""
     def __init__(self, rules: List[Dict[str, Any]]):
         self.rules = rules
-        
+
     def select_action(self, state: AgentState, perception: Perception) -> AgentAction:
         """Select action based on rule matching"""
         action = AgentAction()
         action.timestamp = 0.0  # Will be set by the agent
-        
+
         # Default action
         action.type = "wait"
-        
+
         # Apply rules in priority order
         for rule in self.rules:
             if self._rule_condition_met(rule, state, perception):
@@ -202,11 +202,11 @@ class RuleBasedPolicy(AgentPolicy):
                 action.parameters = rule.get("parameters", {})
                 action.target = rule.get("target", None)
                 break
-                
+
         return action
 
-    def _rule_condition_met(self, rule: Dict[str, Any], 
-                           state: AgentState, 
+    def _rule_condition_met(self, rule: Dict[str, Any],
+                           state: AgentState,
                            perception: Perception) -> bool:
         """Check if a rule's conditions are met"""
         # Default implementation - should be extended
@@ -224,7 +224,7 @@ class RLAgentPolicy(AgentPolicy):
         self.action_space = action_space
         # In a real implementation, this would be a neural network or other model
         self.model = self._build_model()
-        
+
     def _build_model(self):
         """Build the RL model"""
         # Placeholder for actual model implementation
@@ -234,12 +234,12 @@ class RLAgentPolicy(AgentPolicy):
         """Select action using the RL model"""
         # Convert state and perception to observation
         observation = self._convert_to_observation(state, perception)
-        
+
         # Get action from model (placeholder implementation)
         action = AgentAction()
         action.type = "rl_action"
         action.timestamp = 0.0
-        
+
         return action
 
     def _convert_to_observation(self, state: AgentState, perception: Perception):
@@ -281,7 +281,7 @@ class MissionPlanner:
     """Plans and assigns missions to agents"""
     def __init__(self):
         self.mission_templates = {}
-        
+
     def register_template(self, template_id: str, template: Dict[str, Any]):
         """Register a mission template"""
         self.mission_templates[template_id] = template
@@ -290,13 +290,13 @@ class MissionPlanner:
         """Generate a mission from a template"""
         if template_id not in self.mission_templates:
             raise ValueError(f"Template {template_id} not found")
-            
+
         template = self.mission_templates[template_id]
         # Apply parameters to template
         mission_id = f"{template_id}_{parameters.get('instance_id', '001')}"
         mission_type = template["type"]
         objectives = template["objectives"]
-        
+
         # Create and return mission
         return Mission(mission_id, mission_type, objectives)
 
@@ -358,7 +358,7 @@ class ResourceManager:
     """Manages resources in the simulation"""
     def __init__(self):
         self.resources = {}
-        
+
     def add_resource(self, resource: Resource):
         """Add a new resource to the manager"""
         self.resources[resource.id] = resource
@@ -417,7 +417,7 @@ class EventManager:
     def __init__(self):
         self.event_queue = []
         self.handlers = {}
-        
+
     def register_handler(self, event_type: str, handler):
         """Register a handler for a specific event type"""
         if event_type not in self.handlers:
@@ -427,17 +427,17 @@ class EventManager:
     def post_event(self, event: SimulationEvent):
         """Post an event to the queue"""
         self.event_queue.append(event)
-        
+
     def process_events(self):
         """Process all events in the queue"""
         # Sort events by timestamp
         self.event_queue.sort(key=lambda e: e.timestamp)
-        
+
         for event in self.event_queue:
             if not event.handled:
                 self._dispatch_event(event)
                 event.handled = True
-        
+
         # Clear handled events
         self.event_queue = [e for e in self.event_queue if not e.handled]
 
@@ -471,7 +471,7 @@ def create_default_agent(agent_id: str, agent_type: str) -> BaseAgent:
         agent.add_policy(RuleBasedPolicy([]))
     else:
         raise ValueError(f"Unknown agent type: {agent_type}")
-        
+
     return agent
 
 
@@ -512,28 +512,28 @@ if __name__ == "__main__":
     # Create agents
     red_agent = create_default_agent("R-001", "red")
     blue_agent = create_default_agent("B-001", "blue")
-    
+
     # Create mission planner and assign mission
     mission_planner = create_mission_planner()
     mission = mission_planner.generate_mission("default_attack", {"instance_id": "001"})
     mission_planner.assign_mission(mission, red_agent)
-    
+
     # Create resource manager
     resource_manager = create_resource_manager()
-    
+
     # Create event manager
     event_manager = create_event_manager()
-    
+
     # Create world state and add agents
     world_state = WorldState()
     world_state.add_agent(red_agent)
     world_state.add_agent(blue_agent)
-    
+
     # Simulation loop
     for step in range(100):
         # Update world state
         world_state.update()
-        
+
         # Agents perceive and act
         for agent in world_state.agents.values():
             perception = agent.perceive(world_state)
@@ -541,17 +541,17 @@ if __name__ == "__main__":
             if action:
                 result = agent.execute(action, world_state)
                 agent.update(result["reward"], result["done"])
-        
+
         # Update missions
         mission_planner.update_missions(world_state)
-        
+
         # Process events
         event_manager.process_events()
-        
+
         # Log state
         if step % 10 == 0:
             print(f"\nStep {step}:")
             for agent in world_state.agents.values():
                 print(f"{agent.state.id} state: {agent.get_state()}")
-                
+
     print("\nSimulation complete")

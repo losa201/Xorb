@@ -39,7 +39,7 @@ stringData:
     -----END CERTIFICATE-----
   SSL_KEY: |
     -----BEGIN PRIVATE KEY-----
-    # SSL private key placeholder  
+    # SSL private key placeholder
     -----END PRIVATE KEY-----
 ---
 apiVersion: apps/v1
@@ -182,26 +182,26 @@ data:
     worker_processes auto;
     error_log /var/log/nginx/error.log warn;
     pid /var/run/nginx.pid;
-    
+
     events {
         worker_connections 1024;
         use epoll;
         multi_accept on;
     }
-    
+
     http {
         include /etc/nginx/mime.types;
         default_type application/octet-stream;
-        
+
         # Logging
         log_format main '$remote_addr - $remote_user [$time_local] "$request" '
                        '$status $body_bytes_sent "$http_referer" '
                        '"$http_user_agent" "$http_x_forwarded_for" '
                        'rt=$request_time uct="$upstream_connect_time" '
                        'uht="$upstream_header_time" urt="$upstream_response_time"';
-        
+
         access_log /var/log/nginx/access.log main;
-        
+
         # Performance
         sendfile on;
         tcp_nopush on;
@@ -209,7 +209,7 @@ data:
         keepalive_timeout 65;
         types_hash_max_size 2048;
         client_max_body_size 2m;
-        
+
         # Gzip compression
         gzip on;
         gzip_vary on;
@@ -225,7 +225,7 @@ data:
             application/xml+rss
             application/atom+xml
             image/svg+xml;
-        
+
         # Security headers
         add_header X-Frame-Options DENY always;
         add_header X-Content-Type-Options nosniff always;
@@ -233,30 +233,30 @@ data:
         add_header Referrer-Policy "strict-origin-when-cross-origin" always;
         add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' wss: https:; font-src 'self';" always;
         add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-        
+
         # Rate limiting
         limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
         limit_req_zone $binary_remote_addr zone=login:10m rate=1r/s;
-        
+
         # Upstream for API
         upstream xorb_api {
             least_conn;
             server xorb-api-service:8000 max_fails=3 fail_timeout=30s;
             keepalive 32;
         }
-        
+
         # HTTP server (redirect to HTTPS)
         server {
             listen 80;
             server_name _;
             return 301 https://$host$request_uri;
         }
-        
+
         # HTTPS server
         server {
             listen 443 ssl http2;
             server_name ptaas.example.com;
-            
+
             # SSL configuration
             ssl_certificate /etc/ssl/certs/tls.crt;
             ssl_certificate_key /etc/ssl/certs/tls.key;
@@ -265,18 +265,18 @@ data:
             ssl_prefer_server_ciphers off;
             ssl_session_cache shared:SSL:10m;
             ssl_session_timeout 10m;
-            
+
             # Root and index
             root /usr/share/nginx/html;
             index index.html;
-            
+
             # Static assets with caching
             location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
                 expires 1y;
                 add_header Cache-Control "public, immutable";
                 add_header X-Content-Type-Options nosniff;
             }
-            
+
             # API proxy
             location /api/ {
                 limit_req zone=api burst=20 nodelay;
@@ -293,7 +293,7 @@ data:
                 proxy_send_timeout 10s;
                 proxy_read_timeout 30s;
             }
-            
+
             # WebSocket proxy
             location /ws/ {
                 proxy_pass http://xorb_api;
@@ -306,19 +306,19 @@ data:
                 proxy_set_header X-Forwarded-Proto $scheme;
                 proxy_read_timeout 86400;
             }
-            
+
             # Health check endpoints
             location /health {
                 access_log off;
                 return 200 "healthy\n";
                 add_header Content-Type text/plain;
             }
-            
+
             location /ready {
                 access_log off;
                 try_files /index.html =503;
             }
-            
+
             # Metrics endpoint for Prometheus
             location /metrics {
                 access_log off;
@@ -329,7 +329,7 @@ data:
                 return 200 "# PTaaS Frontend Metrics\n";
                 add_header Content-Type text/plain;
             }
-            
+
             # React Router support
             location / {
                 try_files $uri $uri/ /index.html;
@@ -337,7 +337,7 @@ data:
                 add_header Pragma no-cache;
                 add_header Expires 0;
             }
-            
+
             # Security.txt
             location /.well-known/security.txt {
                 return 200 "Contact: security@ptaas.example.com\nPreferred-Languages: en\nCanonical: https://ptaas.example.com/.well-known/security.txt\n";

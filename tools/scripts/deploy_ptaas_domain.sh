@@ -51,41 +51,41 @@ check_root() {
 # Check prerequisites
 check_prerequisites() {
     log "Checking prerequisites..."
-    
+
     # Check if Docker is installed
     if ! command -v docker &> /dev/null; then
         error "Docker is not installed. Please install Docker first."
         exit 1
     fi
-    
+
     # Check if Docker Compose is installed
     if ! command -v docker-compose &> /dev/null; then
         error "Docker Compose is not installed. Please install Docker Compose first."
         exit 1
     fi
-    
+
     # Check if nginx is available
     if ! command -v nginx &> /dev/null; then
         warning "Nginx is not installed. Installing nginx..."
         apt-get update
         apt-get install -y nginx apache2-utils
     fi
-    
+
     success "Prerequisites check completed"
 }
 
 # Create web directories
 setup_web_directories() {
     log "Setting up web directories..."
-    
+
     # Create main domain directory
     mkdir -p "${WEB_ROOT}/${DOMAIN}"
     mkdir -p "${WEB_ROOT}/${ADMIN_DOMAIN}"
-    
+
     # Set proper ownership
     chown -R www-data:www-data "${WEB_ROOT}/${DOMAIN}"
     chown -R www-data:www-data "${WEB_ROOT}/${ADMIN_DOMAIN}"
-    
+
     # Create basic index files
     cat > "${WEB_ROOT}/${DOMAIN}/index.html" << EOF
 <!DOCTYPE html>
@@ -95,10 +95,10 @@ setup_web_directories() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XORB PTaaS Platform</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 40px; 
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
             background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
             color: white;
             min-height: 100vh;
@@ -111,13 +111,13 @@ setup_web_directories() {
             text-align: center;
             max-width: 600px;
         }
-        h1 { 
-            font-size: 3em; 
+        h1 {
+            font-size: 3em;
             margin-bottom: 0.5em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        p { 
-            font-size: 1.2em; 
+        p {
+            font-size: 1.2em;
             margin-bottom: 2em;
             opacity: 0.9;
         }
@@ -150,10 +150,10 @@ EOF
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>XORB PTaaS Admin</title>
     <style>
-        body { 
-            font-family: Arial, sans-serif; 
-            margin: 0; 
-            padding: 40px; 
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
             background: linear-gradient(135deg, #2c1810 0%, #8b4513 100%);
             color: white;
             min-height: 100vh;
@@ -166,8 +166,8 @@ EOF
             text-align: center;
             max-width: 600px;
         }
-        h1 { 
-            font-size: 2.5em; 
+        h1 {
+            font-size: 2.5em;
             margin-bottom: 0.5em;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
@@ -192,17 +192,17 @@ EOF
 </body>
 </html>
 EOF
-    
+
     success "Web directories created and configured"
 }
 
 # Setup SSL certificates
 setup_ssl() {
     log "Setting up SSL certificates..."
-    
+
     if [[ -f "${SSL_DIR}/verteidiq.com.crt" && -f "${SSL_DIR}/verteidiq.com.key" ]]; then
         success "SSL certificates already exist"
-        
+
         # Verify certificate
         if openssl x509 -in "${SSL_DIR}/verteidiq.com.crt" -text -noout | grep -q "${DOMAIN}"; then
             success "SSL certificate is valid for ${DOMAIN}"
@@ -227,10 +227,10 @@ setup_ssl() {
 # Setup authentication
 setup_authentication() {
     log "Setting up authentication files..."
-    
+
     # Create nginx directory if it doesn't exist
     mkdir -p /etc/nginx
-    
+
     # Create password file for PTaaS metrics if it doesn't exist
     if [[ ! -f "/etc/nginx/.htpasswd_ptaas" ]]; then
         log "Creating PTaaS metrics authentication file..."
@@ -238,7 +238,7 @@ setup_authentication() {
         htpasswd -c /etc/nginx/.htpasswd_ptaas ptaas_metrics
         chmod 600 /etc/nginx/.htpasswd_ptaas
     fi
-    
+
     # Create password file for PTaaS admin if it doesn't exist
     if [[ ! -f "/etc/nginx/.htpasswd_ptaas_admin" ]]; then
         log "Creating PTaaS admin authentication file..."
@@ -246,14 +246,14 @@ setup_authentication() {
         htpasswd -c /etc/nginx/.htpasswd_ptaas_admin ptaas_admin
         chmod 600 /etc/nginx/.htpasswd_ptaas_admin
     fi
-    
+
     success "Authentication setup completed"
 }
 
 # Validate nginx configuration
 validate_nginx_config() {
     log "Validating nginx configuration..."
-    
+
     if nginx -t; then
         success "Nginx configuration is valid"
     else
@@ -265,43 +265,43 @@ validate_nginx_config() {
 # Deploy Docker services
 deploy_services() {
     log "Deploying PTaaS Docker services..."
-    
+
     cd "${PROJECT_DIR}/infra"
-    
+
     # Check if environment file exists
     if [[ ! -f "${ENV_FILE}" ]]; then
         error "Environment file not found: ${ENV_FILE}"
         exit 1
     fi
-    
+
     # Copy environment file
     cp "${ENV_FILE}" .env
-    
+
     log "Starting PTaaS services..."
     docker-compose -f docker-compose-ptaas.yml up -d
-    
+
     # Wait for services to start
     sleep 30
-    
+
     # Check service health
     log "Checking service health..."
     local services_healthy=true
-    
+
     if ! curl -f http://localhost:8080/health &>/dev/null; then
         error "PTaaS Core service health check failed"
         services_healthy=false
     fi
-    
+
     if ! curl -f http://localhost:8081/api/v1/health &>/dev/null; then
         error "Researcher API service health check failed"
         services_healthy=false
     fi
-    
+
     if ! curl -f http://localhost:8082/api/v1/health &>/dev/null; then
         error "Company API service health check failed"
         services_healthy=false
     fi
-    
+
     if [[ "$services_healthy" == true ]]; then
         success "All PTaaS services are healthy"
     else
@@ -312,14 +312,14 @@ deploy_services() {
 # Test external access
 test_external_access() {
     log "Testing external access..."
-    
+
     # Test HTTPS access
     if curl -f -k "https://${DOMAIN}/health" &>/dev/null; then
         success "HTTPS access to ${DOMAIN} is working"
     else
         warning "HTTPS access to ${DOMAIN} may not be working yet"
     fi
-    
+
     # Test admin domain
     if curl -f -k "https://${ADMIN_DOMAIN}/" &>/dev/null; then
         success "HTTPS access to ${ADMIN_DOMAIN} is working"
@@ -331,17 +331,17 @@ test_external_access() {
 # Setup firewall rules
 setup_firewall() {
     log "Setting up firewall rules..."
-    
+
     if command -v ufw &> /dev/null; then
         # Allow HTTP and HTTPS
         ufw allow 80/tcp comment "HTTP for PTaaS"
         ufw allow 443/tcp comment "HTTPS for PTaaS"
-        
+
         # Enable firewall if not already enabled
         if ! ufw status | grep -q "Status: active"; then
             echo "y" | ufw enable
         fi
-        
+
         success "Firewall rules configured"
     else
         warning "UFW not installed, skipping firewall configuration"
@@ -351,9 +351,9 @@ setup_firewall() {
 # Generate deployment report
 generate_report() {
     log "Generating deployment report..."
-    
+
     local report_file="${PROJECT_DIR}/logs/ptaas_deployment_$(date +%Y%m%d_%H%M%S).json"
-    
+
     cat > "$report_file" << EOF
 {
   "deployment_timestamp": "$(date -Iseconds)",
@@ -380,7 +380,7 @@ generate_report() {
   }
 }
 EOF
-    
+
     success "Deployment report saved to: $report_file"
 }
 
@@ -392,7 +392,7 @@ main() {
     echo "Domain: ${DOMAIN}"
     echo "Admin: ${ADMIN_DOMAIN}"
     echo
-    
+
     check_root
     check_prerequisites
     setup_web_directories
@@ -403,7 +403,7 @@ main() {
     test_external_access
     setup_firewall
     generate_report
-    
+
     echo
     success "🎉 PTaaS deployment completed successfully!"
     echo

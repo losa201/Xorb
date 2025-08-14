@@ -118,7 +118,7 @@ Refresh access token using refresh token.
 ```json
 {
   "access_token": "string",
-  "token_type": "Bearer", 
+  "token_type": "Bearer",
   "expires_in": 1800,
   "expires_at": "2024-01-15T14:30:00Z"
 }
@@ -574,7 +574,7 @@ If migrating from the legacy authentication services:
    ```python
    # Old
    from app.services.auth_security_service import AuthSecurityService
-   
+
    # New
    from app.services.unified_auth_service_consolidated import UnifiedAuthService
    ```
@@ -583,7 +583,7 @@ If migrating from the legacy authentication services:
    ```python
    # Old
    auth_service = AuthSecurityService(user_repo, redis_client)
-   
+
    # New
    auth_service = UnifiedAuthService(
        user_repository=user_repo,

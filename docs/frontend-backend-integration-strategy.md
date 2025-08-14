@@ -13,7 +13,7 @@ This document outlines a comprehensive strategy for integrating the existing PTa
 - **State Management**: TanStack React Query for server state
 - **Routing**: React Router DOM v6
 - **Monitoring**: Sentry, Web Vitals tracking
-- **Key Features**: 
+- **Key Features**:
   - Security dashboard with charts (Recharts)
   - Compliance tracking (GDPR, NIS2, TISAX, KRITIS)
   - Real-time activity feeds
@@ -63,7 +63,7 @@ interface APIResponse<T> {
 # Backend CORS Configuration
 CORS_ORIGINS = [
     "https://app.verteidiq.com",
-    "https://staging.verteidiq.com", 
+    "https://staging.verteidiq.com",
     "http://localhost:3000"  # Development
 ]
 
@@ -199,12 +199,12 @@ const useComplianceFrameworks = () => {
 class PTaaSAPIClient {
   private baseURL: string;
   private httpClient: AxiosInstance;
-  
+
   constructor(config: APIClientConfig) {
     this.baseURL = config.baseURL;
     this.httpClient = this.createHttpClient(config);
   }
-  
+
   private createHttpClient(config: APIClientConfig): AxiosInstance {
     const client = axios.create({
       baseURL: this.baseURL,
@@ -214,22 +214,22 @@ class PTaaSAPIClient {
         'Accept': 'application/json'
       }
     });
-    
+
     // Request interceptor for authentication
     client.interceptors.request.use((config) => {
       const token = this.getAuthToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
-      
+
       const tenantId = this.getCurrentTenant();
       if (tenantId) {
         config.headers['X-Tenant-ID'] = tenantId;
       }
-      
+
       return config;
     });
-    
+
     // Response interceptor for error handling
     client.interceptors.response.use(
       (response) => response,
@@ -241,10 +241,10 @@ class PTaaSAPIClient {
         throw new APIError(error);
       }
     );
-    
+
     return client;
   }
-  
+
   // API Modules
   public dashboard = new DashboardAPI(this.httpClient);
   public scans = new ScansAPI(this.httpClient);
@@ -264,24 +264,24 @@ class EnterpriseSSOClient {
       tenant_id: tenantId,
       redirect_uri: window.location.origin + '/auth/callback'
     });
-    
+
     return response.data.authorization_url;
   }
-  
+
   async handleSSOCallback(
-    code: string, 
-    state: string, 
+    code: string,
+    state: string,
     tenantId: string
   ): Promise<AuthTokens> {
     const response = await apiClient.get('/auth/enterprise/sso/callback', {
       params: { code, state, tenant_id: tenantId }
     });
-    
+
     const tokens = response.data;
     this.storeTokens(tokens);
     return tokens;
   }
-  
+
   private storeTokens(tokens: AuthTokens): void {
     // Secure token storage
     sessionStorage.setItem('access_token', tokens.access_token);
@@ -297,35 +297,35 @@ class EnterpriseSSOClient {
 class PTaaSWebSocket {
   private ws: WebSocket | null = null;
   private subscriptions = new Map<string, Function[]>();
-  
+
   connect(tenantId: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const wsUrl = `wss://api.verteidiq.com/ws/${tenantId}`;
       const token = this.getAuthToken();
-      
+
       this.ws = new WebSocket(`${wsUrl}?token=${token}`);
-      
+
       this.ws.onopen = () => {
         console.log('WebSocket connected');
         resolve();
       };
-      
+
       this.ws.onmessage = (event) => {
         const message = JSON.parse(event.data);
         this.handleMessage(message);
       };
-      
+
       this.ws.onerror = reject;
     });
   }
-  
+
   subscribe(event: string, callback: Function): void {
     if (!this.subscriptions.has(event)) {
       this.subscriptions.set(event, []);
     }
     this.subscriptions.get(event)!.push(callback);
   }
-  
+
   private handleMessage(message: WebSocketMessage): void {
     const callbacks = this.subscriptions.get(message.type) || [];
     callbacks.forEach(callback => callback(message.data));
@@ -396,16 +396,16 @@ const CSP_POLICY = {
 class TokenManager {
   private static readonly ACCESS_TOKEN_KEY = 'ptaas_access_token';
   private static readonly REFRESH_TOKEN_KEY = 'ptaas_refresh_token';
-  
+
   static storeTokens(tokens: AuthTokens): void {
     // Store access token in memory/session storage (expires quickly)
     sessionStorage.setItem(this.ACCESS_TOKEN_KEY, tokens.access_token);
-    
+
     // Store refresh token in secure httpOnly cookie (if possible)
     // or encrypted localStorage for SPA
     this.secureStore(this.REFRESH_TOKEN_KEY, tokens.refresh_token);
   }
-  
+
   private static secureStore(key: string, value: string): void {
     // Implement encryption for sensitive data
     const encrypted = this.encrypt(value);
@@ -419,7 +419,7 @@ class TokenManager {
 ### 1. Code Splitting & Lazy Loading
 ```typescript
 // Component-level code splitting
-const SecurityDashboard = lazy(() => 
+const SecurityDashboard = lazy(() =>
   import('./components/SecurityDashboard').then(module => ({
     default: module.SecurityDashboard
   }))
@@ -478,7 +478,7 @@ const performanceMonitor = {
     onFID(sendToAnalytics);
     onLCP(sendToAnalytics);
   },
-  
+
   trackAPIPerformance: (endpoint: string, duration: number) => {
     if (duration > 1000) {
       console.warn(`Slow API response: ${endpoint} took ${duration}ms`);
@@ -551,22 +551,22 @@ jobs:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: 'PTaaS/package-lock.json'
-      
+
       - name: Install dependencies
         run: npm ci
         working-directory: PTaaS
-      
+
       - name: Run tests
         run: npm test
         working-directory: PTaaS
-      
+
       - name: Build application
         run: npm run build
         working-directory: PTaaS
         env:
           VITE_API_BASE_URL: https://api.verteidiq.com
           VITE_SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
-      
+
       - name: Deploy to CDN
         run: npm run deploy
         working-directory: PTaaS

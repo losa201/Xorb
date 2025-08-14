@@ -4,7 +4,7 @@ Sprint 1 Deployment Verification Script
 
 Verifies all Sprint 0 & Sprint 1 optimizations are properly deployed:
 - SHA-1 embedding deduplication with Redis caching
-- HNSW vector indices for fast similarity search  
+- HNSW vector indices for fast similarity search
 - gRPC embedding service for better performance
 - HPA/VPA dynamic scaling configuration
 - NATS JetStream event-driven architecture
@@ -256,9 +256,9 @@ class DeploymentVerifier:
             if vector_ext:
                 # Check for HNSW indices
                 cur.execute("""
-                    SELECT indexname, tablename, indexdef 
-                    FROM pg_indexes 
-                    WHERE indexdef LIKE '%hnsw%' 
+                    SELECT indexname, tablename, indexdef
+                    FROM pg_indexes
+                    WHERE indexdef LIKE '%hnsw%'
                     AND schemaname = 'public';
                 """)
 

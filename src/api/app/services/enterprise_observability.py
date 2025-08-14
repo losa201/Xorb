@@ -77,24 +77,24 @@ class SystemMetrics:
 
 class EnterpriseObservabilityService(XORBService):
     """Enterprise-grade observability and monitoring service"""
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="enterprise_observability",
             dependencies=["database", "cache"],
             **kwargs
         )
-        
+
         # Metric storage (in production, would use time-series DB)
         self.metrics_storage: Dict[str, deque] = defaultdict(lambda: deque(maxlen=10000))
         self.service_metrics: Dict[str, ServiceMetrics] = {}
         self.alerts: Dict[str, Alert] = {}
         self.alert_rules: Dict[str, Dict[str, Any]] = {}
-        
+
         # Performance tracking
         self.request_metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self.error_tracking: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-        
+
         # SLA tracking
         self.sla_targets = {
             "availability": 99.9,
@@ -102,15 +102,15 @@ class EnterpriseObservabilityService(XORBService):
             "error_rate": 0.5,  # percentage
             "mttr": 15  # minutes - Mean Time To Recovery
         }
-        
+
         # Alerting configuration
         self.notification_channels = []
         self.alert_escalation_rules = {}
-        
+
         # Health check intervals
         self.health_check_interval = 30  # seconds
         self.metrics_collection_interval = 10  # seconds
-        
+
         # Initialize default alert rules
         self._initialize_default_alert_rules()
 
@@ -118,22 +118,22 @@ class EnterpriseObservabilityService(XORBService):
         """Initialize observability service"""
         try:
             logger.info("Initializing Enterprise Observability Service...")
-            
+
             # Start background tasks
             asyncio.create_task(self._collect_system_metrics_loop())
             asyncio.create_task(self._health_check_loop())
             asyncio.create_task(self._alert_evaluation_loop())
             asyncio.create_task(self._cleanup_old_metrics_loop())
-            
+
             # Initialize service discovery
             await self._discover_services()
-            
+
             # Load persisted alert rules
             await self._load_alert_rules()
-            
+
             logger.info("Enterprise Observability Service initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize observability service: {e}")
             return False
@@ -146,7 +146,7 @@ class EnterpriseObservabilityService(XORBService):
         timestamp: datetime = None
     ) -> bool:
         """Collect a metric data point"""
-        
+
         try:
             metric_point = MetricPoint(
                 timestamp=timestamp or datetime.utcnow(),
@@ -154,14 +154,14 @@ class EnterpriseObservabilityService(XORBService):
                 tags=tags or {},
                 metadata={}
             )
-            
+
             self.metrics_storage[metric_name].append(metric_point)
-            
+
             # Real-time alert evaluation for this metric
             await self._evaluate_metric_alerts(metric_name, value)
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to collect metric {metric_name}: {e}")
             return False
@@ -176,10 +176,10 @@ class EnterpriseObservabilityService(XORBService):
         tenant_id: str = None
     ) -> bool:
         """Record HTTP request metrics"""
-        
+
         try:
             timestamp = datetime.utcnow()
-            
+
             # Request metrics
             request_data = {
                 "endpoint": endpoint,
@@ -190,9 +190,9 @@ class EnterpriseObservabilityService(XORBService):
                 "user_id": user_id,
                 "tenant_id": tenant_id
             }
-            
+
             self.request_metrics[f"{method}:{endpoint}"].append(request_data)
-            
+
             # Collect aggregated metrics
             await self.collect_metric(
                 "http_requests_total",
@@ -204,7 +204,7 @@ class EnterpriseObservabilityService(XORBService):
                 },
                 timestamp=timestamp
             )
-            
+
             await self.collect_metric(
                 "http_request_duration_ms",
                 response_time_ms,
@@ -214,7 +214,7 @@ class EnterpriseObservabilityService(XORBService):
                 },
                 timestamp=timestamp
             )
-            
+
             # Track errors
             if status_code >= 400:
                 await self.collect_metric(
@@ -227,18 +227,18 @@ class EnterpriseObservabilityService(XORBService):
                     },
                     timestamp=timestamp
                 )
-                
+
                 self.error_tracking["http_errors"].append(request_data)
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to record request metrics: {e}")
             return False
 
     async def get_service_health_dashboard(self) -> Dict[str, Any]:
         """Get comprehensive service health dashboard"""
-        
+
         try:
             dashboard = {
                 "overview": await self._get_platform_overview(),
@@ -250,9 +250,9 @@ class EnterpriseObservabilityService(XORBService):
                 "capacity_metrics": await self._get_capacity_metrics(),
                 "generated_at": datetime.utcnow().isoformat()
             }
-            
+
             return dashboard
-            
+
         except Exception as e:
             logger.error(f"Failed to generate health dashboard: {e}")
             return {"error": str(e)}
@@ -268,9 +268,9 @@ class EnterpriseObservabilityService(XORBService):
         tags: Dict[str, str] = None
     ) -> str:
         """Create a new alert rule"""
-        
+
         rule_id = str(uuid4())
-        
+
         try:
             alert_rule = {
                 "rule_id": rule_id,
@@ -286,15 +286,15 @@ class EnterpriseObservabilityService(XORBService):
                 "evaluation_interval": 60,  # seconds
                 "cooldown_period": 300  # seconds
             }
-            
+
             self.alert_rules[rule_id] = alert_rule
-            
+
             # Persist alert rule
             await self._persist_alert_rule(rule_id, alert_rule)
-            
+
             logger.info(f"Created alert rule: {name} ({rule_id})")
             return rule_id
-            
+
         except Exception as e:
             logger.error(f"Failed to create alert rule: {e}")
             raise
@@ -305,11 +305,11 @@ class EnterpriseObservabilityService(XORBService):
         service_filter: List[str] = None
     ) -> Dict[str, Any]:
         """Get detailed performance analytics"""
-        
+
         try:
             end_time = datetime.utcnow()
             start_time = self._parse_timeframe(timeframe, end_time)
-            
+
             analytics = {
                 "timeframe": {
                     "start": start_time.isoformat(),
@@ -323,16 +323,16 @@ class EnterpriseObservabilityService(XORBService):
                 "user_experience_metrics": await self._analyze_user_experience(start_time, end_time),
                 "capacity_planning": await self._analyze_capacity_planning(start_time, end_time)
             }
-            
+
             return analytics
-            
+
         except Exception as e:
             logger.error(f"Failed to generate performance analytics: {e}")
             return {"error": str(e)}
 
     async def get_security_metrics(self) -> Dict[str, Any]:
         """Get security-focused metrics and insights"""
-        
+
         try:
             security_metrics = {
                 "authentication_metrics": await self._get_authentication_metrics(),
@@ -343,9 +343,9 @@ class EnterpriseObservabilityService(XORBService):
                 "compliance_metrics": await self._get_compliance_metrics(),
                 "incident_response_metrics": await self._get_incident_response_metrics()
             }
-            
+
             return security_metrics
-            
+
         except Exception as e:
             logger.error(f"Failed to generate security metrics: {e}")
             return {"error": str(e)}
@@ -358,9 +358,9 @@ class EnterpriseObservabilityService(XORBService):
         org: Organization
     ) -> str:
         """Create custom monitoring dashboard"""
-        
+
         dashboard_id = str(uuid4())
-        
+
         try:
             dashboard = {
                 "dashboard_id": dashboard_id,
@@ -373,17 +373,17 @@ class EnterpriseObservabilityService(XORBService):
                 "shared": False,
                 "tags": []
             }
-            
+
             # Validate widgets
             for widget in widgets:
                 await self._validate_widget_configuration(widget)
-            
+
             # Store dashboard configuration
             await self._persist_dashboard(dashboard_id, dashboard)
-            
+
             logger.info(f"Created custom dashboard: {dashboard_name} ({dashboard_id})")
             return dashboard_id
-            
+
         except Exception as e:
             logger.error(f"Failed to create custom dashboard: {e}")
             raise
@@ -391,7 +391,7 @@ class EnterpriseObservabilityService(XORBService):
     # Private helper methods
     async def _collect_system_metrics_loop(self):
         """Background task to collect system metrics"""
-        
+
         while True:
             try:
                 await self._collect_system_metrics()
@@ -402,29 +402,29 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _collect_system_metrics(self):
         """Collect system-level metrics"""
-        
+
         try:
             # CPU metrics
             cpu_percent = psutil.cpu_percent(interval=1)
             await self.collect_metric("system_cpu_usage_percent", cpu_percent)
-            
+
             # Memory metrics
             memory = psutil.virtual_memory()
             await self.collect_metric("system_memory_usage_percent", memory.percent)
             await self.collect_metric("system_memory_available_bytes", memory.available)
             await self.collect_metric("system_memory_used_bytes", memory.used)
-            
+
             # Disk metrics
             disk = psutil.disk_usage('/')
             disk_percent = (disk.used / disk.total) * 100
             await self.collect_metric("system_disk_usage_percent", disk_percent)
             await self.collect_metric("system_disk_free_bytes", disk.free)
-            
+
             # Network metrics
             net_io = psutil.net_io_counters()
             await self.collect_metric("system_network_bytes_sent", net_io.bytes_sent)
             await self.collect_metric("system_network_bytes_recv", net_io.bytes_recv)
-            
+
             # Load average (Unix systems)
             try:
                 load_avg = psutil.getloadavg()
@@ -434,17 +434,17 @@ class EnterpriseObservabilityService(XORBService):
             except AttributeError:
                 # Windows doesn't have load average
                 pass
-            
+
             # Process metrics
             process_count = len(psutil.pids())
             await self.collect_metric("system_process_count", process_count)
-            
+
         except Exception as e:
             logger.error(f"Failed to collect system metrics: {e}")
 
     async def _health_check_loop(self):
         """Background task for health checks"""
-        
+
         while True:
             try:
                 await self._perform_health_checks()
@@ -455,98 +455,98 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _perform_health_checks(self):
         """Perform health checks on all services"""
-        
+
         timestamp = datetime.utcnow()
-        
+
         for service_id in self.service_metrics.keys():
             try:
                 health_score = await self._check_service_health(service_id)
-                
+
                 if service_id in self.service_metrics:
                     self.service_metrics[service_id].health_score = health_score
                     self.service_metrics[service_id].last_updated = timestamp
-                
+
                 await self.collect_metric(
                     "service_health_score",
                     health_score,
                     tags={"service": service_id},
                     timestamp=timestamp
                 )
-                
+
             except Exception as e:
                 logger.error(f"Health check failed for service {service_id}: {e}")
 
     async def _check_service_health(self, service_id: str) -> float:
         """Check health of individual service"""
-        
+
         try:
             # Get recent metrics for the service
             recent_errors = self._get_recent_error_rate(service_id)
             recent_response_time = self._get_recent_response_time(service_id)
-            
+
             # Calculate health score (0-100)
             health_score = 100.0
-            
+
             # Penalize for high error rate
             if recent_errors > 5.0:  # 5% error rate
                 health_score -= min(recent_errors * 10, 50)
-            
+
             # Penalize for slow response times
             if recent_response_time > 1000:  # 1 second
                 health_score -= min((recent_response_time - 1000) / 100, 30)
-            
+
             return max(health_score, 0.0)
-            
+
         except Exception as e:
             logger.error(f"Failed to check health for {service_id}: {e}")
             return 50.0  # Default to moderate health
 
     def _get_recent_error_rate(self, service_id: str) -> float:
         """Get recent error rate for service"""
-        
+
         try:
             # Calculate error rate from recent requests
             recent_requests = list(self.request_metrics.get(service_id, []))
             if not recent_requests:
                 return 0.0
-            
+
             # Look at last 100 requests or last 5 minutes
             cutoff_time = datetime.utcnow() - timedelta(minutes=5)
             recent_requests = [r for r in recent_requests if r["timestamp"] > cutoff_time]
-            
+
             if not recent_requests:
                 return 0.0
-            
+
             error_count = sum(1 for r in recent_requests if r["status_code"] >= 400)
             return (error_count / len(recent_requests)) * 100
-            
+
         except Exception:
             return 0.0
 
     def _get_recent_response_time(self, service_id: str) -> float:
         """Get recent average response time for service"""
-        
+
         try:
             recent_requests = list(self.request_metrics.get(service_id, []))
             if not recent_requests:
                 return 0.0
-            
+
             # Look at last 5 minutes
             cutoff_time = datetime.utcnow() - timedelta(minutes=5)
             recent_requests = [r for r in recent_requests if r["timestamp"] > cutoff_time]
-            
+
             if not recent_requests:
                 return 0.0
-            
+
             response_times = [r["response_time_ms"] for r in recent_requests]
             return statistics.mean(response_times)
-            
+
         except Exception:
             return 0.0
 
     async def _alert_evaluation_loop(self):
         """Background task for alert evaluation"""
-        
+
         while True:
             try:
                 await self._evaluate_all_alerts()
@@ -557,11 +557,11 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _evaluate_all_alerts(self):
         """Evaluate all alert rules"""
-        
+
         for rule_id, rule in self.alert_rules.items():
             if not rule.get("enabled", True):
                 continue
-            
+
             try:
                 await self._evaluate_alert_rule(rule_id, rule)
             except Exception as e:
@@ -569,25 +569,25 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _evaluate_alert_rule(self, rule_id: str, rule: Dict[str, Any]):
         """Evaluate a specific alert rule"""
-        
+
         metric_name = rule["metric_name"]
         condition = rule["condition"]
         threshold = rule["threshold"]
-        
+
         # Get recent metric values
         recent_values = self._get_recent_metric_values(metric_name, minutes=5)
-        
+
         if not recent_values:
             return
-        
+
         current_value = recent_values[-1].value
-        
+
         # Evaluate condition
         alert_triggered = self._evaluate_condition(current_value, condition, threshold)
-        
+
         # Check if alert already exists
         existing_alert = self._find_active_alert(rule_id)
-        
+
         if alert_triggered and not existing_alert:
             # Create new alert
             await self._create_alert(rule_id, rule, current_value)
@@ -597,15 +597,15 @@ class EnterpriseObservabilityService(XORBService):
 
     def _get_recent_metric_values(self, metric_name: str, minutes: int = 5) -> List[MetricPoint]:
         """Get recent metric values"""
-        
+
         cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
         metrics = self.metrics_storage.get(metric_name, [])
-        
+
         return [m for m in metrics if m.timestamp > cutoff_time]
 
     def _evaluate_condition(self, value: float, condition: str, threshold: float) -> bool:
         """Evaluate alert condition"""
-        
+
         if condition == "gt":
             return value > threshold
         elif condition == "gte":
@@ -621,19 +621,19 @@ class EnterpriseObservabilityService(XORBService):
 
     def _find_active_alert(self, rule_id: str) -> Optional[Dict[str, Any]]:
         """Find active alert for rule"""
-        
+
         for alert in self.alerts.values():
-            if (alert.tags.get("rule_id") == rule_id and 
+            if (alert.tags.get("rule_id") == rule_id and
                 alert.status == "active"):
                 return asdict(alert)
-        
+
         return None
 
     async def _create_alert(self, rule_id: str, rule: Dict[str, Any], current_value: float):
         """Create a new alert"""
-        
+
         alert_id = str(uuid4())
-        
+
         alert = Alert(
             alert_id=alert_id,
             name=rule["name"],
@@ -648,30 +648,30 @@ class EnterpriseObservabilityService(XORBService):
             tags={"rule_id": rule_id, **rule.get("tags", {})},
             metadata={"metric_name": rule["metric_name"]}
         )
-        
+
         self.alerts[alert_id] = alert
-        
+
         # Send notifications
         await self._send_alert_notifications(alert)
-        
+
         logger.warning(f"Alert triggered: {alert.name} (value: {current_value}, threshold: {alert.threshold})")
 
     async def _resolve_alert(self, alert_id: str):
         """Resolve an alert"""
-        
+
         if alert_id in self.alerts:
             alert = self.alerts[alert_id]
             alert.status = "resolved"
             alert.updated_at = datetime.utcnow()
-            
+
             # Send resolution notifications
             await self._send_alert_notifications(alert)
-            
+
             logger.info(f"Alert resolved: {alert.name}")
 
     async def _send_alert_notifications(self, alert: Alert):
         """Send alert notifications"""
-        
+
         try:
             # In production, this would integrate with notification services
             # (email, Slack, PagerDuty, etc.)
@@ -684,22 +684,22 @@ class EnterpriseObservabilityService(XORBService):
                 "threshold": alert.threshold,
                 "timestamp": alert.updated_at.isoformat()
             }
-            
+
             logger.info(f"Alert notification: {notification_data}")
-            
+
         except Exception as e:
             logger.error(f"Failed to send alert notifications: {e}")
 
     async def _evaluate_metric_alerts(self, metric_name: str, value: float):
         """Evaluate alerts for a specific metric"""
-        
+
         for rule_id, rule in self.alert_rules.items():
             if rule["metric_name"] == metric_name and rule.get("enabled", True):
                 await self._evaluate_alert_rule(rule_id, rule)
 
     async def _cleanup_old_metrics_loop(self):
         """Background task to cleanup old metrics"""
-        
+
         while True:
             try:
                 await self._cleanup_old_metrics()
@@ -710,9 +710,9 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _cleanup_old_metrics(self):
         """Remove old metric data to prevent memory bloat"""
-        
+
         cutoff_time = datetime.utcnow() - timedelta(hours=24)
-        
+
         for metric_name, metrics in self.metrics_storage.items():
             # Remove old metrics
             while metrics and metrics[0].timestamp < cutoff_time:
@@ -720,7 +720,7 @@ class EnterpriseObservabilityService(XORBService):
 
     def _initialize_default_alert_rules(self):
         """Initialize default alert rules"""
-        
+
         default_rules = [
             {
                 "name": "High CPU Usage",
@@ -755,7 +755,7 @@ class EnterpriseObservabilityService(XORBService):
                 "description": "HTTP response time is above 2 seconds"
             }
         ]
-        
+
         for rule in default_rules:
             rule_id = str(uuid4())
             rule["rule_id"] = rule_id
@@ -764,23 +764,23 @@ class EnterpriseObservabilityService(XORBService):
             rule["evaluation_interval"] = 60
             rule["cooldown_period"] = 300
             rule["tags"] = {"type": "default"}
-            
+
             self.alert_rules[rule_id] = rule
 
     async def _discover_services(self):
         """Discover available services for monitoring"""
-        
+
         # In production, this would integrate with service discovery
         # For now, initialize with known services
         services = [
             "ptaas_service",
-            "threat_intelligence_service", 
+            "threat_intelligence_service",
             "ai_engine",
             "authentication_service",
             "database_service",
             "cache_service"
         ]
-        
+
         for service_id in services:
             self.service_metrics[service_id] = ServiceMetrics(
                 service_id=service_id,
@@ -796,7 +796,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _load_alert_rules(self):
         """Load persisted alert rules"""
-        
+
         try:
             # In production, load from database
             # For now, keep the default rules initialized earlier
@@ -806,7 +806,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _persist_alert_rule(self, rule_id: str, rule: Dict[str, Any]):
         """Persist alert rule to storage"""
-        
+
         try:
             # In production, save to database
             logger.info(f"Alert rule persisted: {rule_id}")
@@ -815,7 +815,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _persist_dashboard(self, dashboard_id: str, dashboard: Dict[str, Any]):
         """Persist dashboard configuration"""
-        
+
         try:
             # In production, save to database
             logger.info(f"Dashboard persisted: {dashboard_id}")
@@ -824,12 +824,12 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _validate_widget_configuration(self, widget: Dict[str, Any]):
         """Validate widget configuration"""
-        
+
         required_fields = ["type", "title", "metric"]
         for field in required_fields:
             if field not in widget:
                 raise ValueError(f"Widget missing required field: {field}")
-        
+
         # Validate metric exists
         metric_name = widget["metric"]
         if metric_name not in self.metrics_storage:
@@ -837,7 +837,7 @@ class EnterpriseObservabilityService(XORBService):
 
     def _parse_timeframe(self, timeframe: str, end_time: datetime) -> datetime:
         """Parse timeframe string to start time"""
-        
+
         if timeframe.endswith('h'):
             hours = int(timeframe[:-1])
             return end_time - timedelta(hours=hours)
@@ -853,10 +853,10 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _get_platform_overview(self) -> Dict[str, Any]:
         """Get platform overview metrics"""
-        
+
         total_services = len(self.service_metrics)
         healthy_services = sum(1 for s in self.service_metrics.values() if s.health_score > 80)
-        
+
         return {
             "total_services": total_services,
             "healthy_services": healthy_services,
@@ -867,9 +867,9 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _get_services_status(self) -> List[Dict[str, Any]]:
         """Get status of all services"""
-        
+
         services_status = []
-        
+
         for service_id, metrics in self.service_metrics.items():
             status = {
                 "service_id": service_id,
@@ -880,16 +880,16 @@ class EnterpriseObservabilityService(XORBService):
                 "last_updated": metrics.last_updated.isoformat()
             }
             services_status.append(status)
-        
+
         return services_status
 
     async def _get_system_metrics_summary(self) -> Dict[str, Any]:
         """Get system metrics summary"""
-        
+
         cpu_metrics = self.metrics_storage.get("system_cpu_usage_percent", [])
         memory_metrics = self.metrics_storage.get("system_memory_usage_percent", [])
         disk_metrics = self.metrics_storage.get("system_disk_usage_percent", [])
-        
+
         return {
             "cpu_usage": cpu_metrics[-1].value if cpu_metrics else 0,
             "memory_usage": memory_metrics[-1].value if memory_metrics else 0,
@@ -899,9 +899,9 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _get_active_alerts(self) -> List[Dict[str, Any]]:
         """Get active alerts"""
-        
+
         active_alerts = []
-        
+
         for alert in self.alerts.values():
             if alert.status == "active":
                 active_alerts.append({
@@ -912,17 +912,17 @@ class EnterpriseObservabilityService(XORBService):
                     "threshold": alert.threshold,
                     "created_at": alert.created_at.isoformat()
                 })
-        
+
         return active_alerts
 
     async def _get_sla_status(self) -> Dict[str, Any]:
         """Get SLA compliance status"""
-        
+
         # Calculate current SLA metrics
         current_availability = 99.8  # Simplified calculation
         current_response_time = self._calculate_current_p95_response_time()
         current_error_rate = self._calculate_current_error_rate()
-        
+
         return {
             "availability": {
                 "current": current_availability,
@@ -943,41 +943,41 @@ class EnterpriseObservabilityService(XORBService):
 
     def _calculate_current_p95_response_time(self) -> float:
         """Calculate current 95th percentile response time"""
-        
+
         all_response_times = []
         cutoff_time = datetime.utcnow() - timedelta(hours=1)
-        
+
         for requests in self.request_metrics.values():
             for request in requests:
                 if request["timestamp"] > cutoff_time:
                     all_response_times.append(request["response_time_ms"])
-        
+
         if not all_response_times:
             return 0.0
-        
+
         all_response_times.sort()
         p95_index = int(len(all_response_times) * 0.95)
         return all_response_times[p95_index] if p95_index < len(all_response_times) else all_response_times[-1]
 
     def _calculate_current_error_rate(self) -> float:
         """Calculate current error rate"""
-        
+
         total_requests = 0
         error_requests = 0
         cutoff_time = datetime.utcnow() - timedelta(hours=1)
-        
+
         for requests in self.request_metrics.values():
             for request in requests:
                 if request["timestamp"] > cutoff_time:
                     total_requests += 1
                     if request["status_code"] >= 400:
                         error_requests += 1
-        
+
         return (error_requests / total_requests * 100) if total_requests > 0 else 0.0
 
     async def _get_performance_metrics(self) -> Dict[str, Any]:
         """Get performance metrics summary"""
-        
+
         return {
             "current_rps": self._calculate_current_rps(),
             "avg_response_time": self._calculate_avg_response_time(),
@@ -987,37 +987,37 @@ class EnterpriseObservabilityService(XORBService):
 
     def _calculate_current_rps(self) -> float:
         """Calculate current requests per second"""
-        
+
         cutoff_time = datetime.utcnow() - timedelta(minutes=1)
         request_count = 0
-        
+
         for requests in self.request_metrics.values():
             for request in requests:
                 if request["timestamp"] > cutoff_time:
                     request_count += 1
-        
+
         return request_count / 60.0  # Convert to per second
 
     def _calculate_avg_response_time(self) -> float:
         """Calculate average response time"""
-        
+
         all_response_times = []
         cutoff_time = datetime.utcnow() - timedelta(hours=1)
-        
+
         for requests in self.request_metrics.values():
             for request in requests:
                 if request["timestamp"] > cutoff_time:
                     all_response_times.append(request["response_time_ms"])
-        
+
         return statistics.mean(all_response_times) if all_response_times else 0.0
 
     async def _get_capacity_metrics(self) -> Dict[str, Any]:
         """Get capacity planning metrics"""
-        
+
         return {
             "resource_utilization": {
                 "cpu": "normal",
-                "memory": "normal", 
+                "memory": "normal",
                 "disk": "normal",
                 "network": "normal"
             },
@@ -1031,7 +1031,7 @@ class EnterpriseObservabilityService(XORBService):
     # Analytics methods
     async def _analyze_request_patterns(self, start_time: datetime, end_time: datetime) -> Dict[str, Any]:
         """Analyze request patterns"""
-        
+
         return {
             "total_requests": 1250,  # Simulated
             "requests_per_minute": 20.8,
@@ -1042,7 +1042,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _analyze_error_patterns(self, start_time: datetime, end_time: datetime) -> Dict[str, Any]:
         """Analyze error patterns"""
-        
+
         return {
             "total_errors": 15,
             "error_rate": 1.2,
@@ -1053,7 +1053,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _analyze_performance_trends(self, start_time: datetime, end_time: datetime) -> Dict[str, Any]:
         """Analyze performance trends"""
-        
+
         return {
             "response_time_trend": "improving",
             "throughput_trend": "stable",
@@ -1063,7 +1063,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _analyze_resource_utilization(self, start_time: datetime, end_time: datetime) -> Dict[str, Any]:
         """Analyze resource utilization"""
-        
+
         return {
             "cpu_peak": 75.2,
             "memory_peak": 68.5,
@@ -1074,7 +1074,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _analyze_user_experience(self, start_time: datetime, end_time: datetime) -> Dict[str, Any]:
         """Analyze user experience metrics"""
-        
+
         return {
             "apdex_score": 0.85,  # Application Performance Index
             "user_satisfaction": "good",
@@ -1084,7 +1084,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _analyze_capacity_planning(self, start_time: datetime, end_time: datetime) -> Dict[str, Any]:
         """Analyze capacity planning data"""
-        
+
         return {
             "growth_projection": "15% over next quarter",
             "bottleneck_analysis": ["database connections", "memory usage"],
@@ -1095,7 +1095,7 @@ class EnterpriseObservabilityService(XORBService):
     # Security metrics methods
     async def _get_authentication_metrics(self) -> Dict[str, Any]:
         """Get authentication metrics"""
-        
+
         return {
             "login_attempts": 450,
             "successful_logins": 428,
@@ -1106,7 +1106,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _get_authorization_failures(self) -> Dict[str, Any]:
         """Get authorization failure metrics"""
-        
+
         return {
             "authorization_failures": 12,
             "privilege_escalation_attempts": 2,
@@ -1116,7 +1116,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _get_suspicious_activities(self) -> Dict[str, Any]:
         """Get suspicious activity metrics"""
-        
+
         return {
             "anomalous_behaviors": 15,
             "potential_threats": 3,
@@ -1126,7 +1126,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _get_ptaas_security_metrics(self) -> Dict[str, Any]:
         """Get PTaaS-specific security metrics"""
-        
+
         return {
             "scans_performed": 85,
             "vulnerabilities_discovered": 234,
@@ -1137,7 +1137,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _get_threat_detection_metrics(self) -> Dict[str, Any]:
         """Get threat detection metrics"""
-        
+
         return {
             "threats_detected": 18,
             "false_positives": 3,
@@ -1148,7 +1148,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _get_compliance_metrics(self) -> Dict[str, Any]:
         """Get compliance metrics"""
-        
+
         return {
             "compliance_score": 92.5,
             "audit_findings": 3,
@@ -1159,7 +1159,7 @@ class EnterpriseObservabilityService(XORBService):
 
     async def _get_incident_response_metrics(self) -> Dict[str, Any]:
         """Get incident response metrics"""
-        
+
         return {
             "incidents_this_month": 5,
             "mean_response_time": 12.5,  # minutes

@@ -73,7 +73,7 @@ class NetworkAsset:
     hardening_level: int  # 1-10
     monitoring_coverage: int  # 1-10
     data_classification: str  # public, internal, confidential, secret
-    
+
 @dataclass
 class ZeroTrustPolicy:
     policy_id: str
@@ -113,25 +113,25 @@ class BreachScenario:
 
 class XORBZeroTrustBreachSimulator:
     """XORB Zero Trust Breach Simulator"""
-    
+
     def __init__(self):
         self.simulator_id = f"ZTBS-{uuid.uuid4().hex[:8]}"
         self.initialization_time = datetime.now()
-        
+
         # Network topology
         self.network_assets = self._initialize_network_topology()
         self.zero_trust_policies = self._initialize_zero_trust_policies()
-        
+
         # Breach scenarios
         self.breach_scenarios = self._initialize_breach_scenarios()
-        
+
         # Active simulations
         self.active_breaches: List[BreachAttempt] = []
         self.completed_breaches: List[BreachAttempt] = []
-        
+
         # Network mapping
         self.trust_zone_networks = self._map_trust_zones()
-        
+
         # Metrics
         self.simulation_metrics = {
             "scenarios_executed": 0,
@@ -143,10 +143,10 @@ class XORBZeroTrustBreachSimulator:
             "policy_violations": 0,
             "lateral_movement_successes": 0
         }
-        
+
         logger.info(f"🛡️ XORB Zero Trust Breach Simulator initialized - ID: {self.simulator_id}")
         logger.info("🔒 Zero Trust testing: TACTICAL BREACH SIMULATION")
-    
+
     def _initialize_network_topology(self) -> List[NetworkAsset]:
         """Initialize realistic network topology"""
         return [
@@ -163,7 +163,7 @@ class XORBZeroTrustBreachSimulator:
                 monitoring_coverage=9,
                 data_classification="public"
             ),
-            
+
             # Corporate network assets
             NetworkAsset(
                 asset_id="dc-01",
@@ -177,7 +177,7 @@ class XORBZeroTrustBreachSimulator:
                 monitoring_coverage=10,
                 data_classification="confidential"
             ),
-            
+
             NetworkAsset(
                 asset_id="db-01",
                 name="Customer Database",
@@ -190,7 +190,7 @@ class XORBZeroTrustBreachSimulator:
                 monitoring_coverage=10,
                 data_classification="secret"
             ),
-            
+
             NetworkAsset(
                 asset_id="fs-01",
                 name="Corporate File Server",
@@ -203,7 +203,7 @@ class XORBZeroTrustBreachSimulator:
                 monitoring_coverage=8,
                 data_classification="internal"
             ),
-            
+
             NetworkAsset(
                 asset_id="ws-01",
                 name="Finance Workstation",
@@ -216,7 +216,7 @@ class XORBZeroTrustBreachSimulator:
                 monitoring_coverage=7,
                 data_classification="confidential"
             ),
-            
+
             NetworkAsset(
                 asset_id="backup-01",
                 name="Backup System",
@@ -229,7 +229,7 @@ class XORBZeroTrustBreachSimulator:
                 monitoring_coverage=9,
                 data_classification="secret"
             ),
-            
+
             # Container infrastructure
             NetworkAsset(
                 asset_id="k8s-01",
@@ -243,7 +243,7 @@ class XORBZeroTrustBreachSimulator:
                 monitoring_coverage=9,
                 data_classification="confidential"
             ),
-            
+
             NetworkAsset(
                 asset_id="sec-01",
                 name="Security Appliance",
@@ -257,7 +257,7 @@ class XORBZeroTrustBreachSimulator:
                 data_classification="confidential"
             )
         ]
-    
+
     def _initialize_zero_trust_policies(self) -> List[ZeroTrustPolicy]:
         """Initialize Zero Trust security policies"""
         return [
@@ -273,7 +273,7 @@ class XORBZeroTrustBreachSimulator:
                 logging_enabled=True,
                 inspection_level=8
             ),
-            
+
             # DMZ to Corporate - Restricted
             ZeroTrustPolicy(
                 policy_id="policy-02",
@@ -286,7 +286,7 @@ class XORBZeroTrustBreachSimulator:
                 logging_enabled=True,
                 inspection_level=9
             ),
-            
+
             # Corporate to Sensitive - Authenticated
             ZeroTrustPolicy(
                 policy_id="policy-03",
@@ -299,7 +299,7 @@ class XORBZeroTrustBreachSimulator:
                 logging_enabled=True,
                 inspection_level=9
             ),
-            
+
             # Sensitive to Critical - Highly Restricted
             ZeroTrustPolicy(
                 policy_id="policy-04",
@@ -312,7 +312,7 @@ class XORBZeroTrustBreachSimulator:
                 logging_enabled=True,
                 inspection_level=10
             ),
-            
+
             # No access to Isolated
             ZeroTrustPolicy(
                 policy_id="policy-05",
@@ -326,7 +326,7 @@ class XORBZeroTrustBreachSimulator:
                 inspection_level=10
             )
         ]
-    
+
     def _initialize_breach_scenarios(self) -> List[BreachScenario]:
         """Initialize breach simulation scenarios"""
         return [
@@ -340,7 +340,7 @@ class XORBZeroTrustBreachSimulator:
                 expected_blocks=["web-01->db-01", "fs-01->db-01"],
                 success_criteria=["database_access_denied", "lateral_movement_blocked"]
             ),
-            
+
             BreachScenario(
                 scenario_id="scenario-02",
                 name="Workstation to Domain Controller",
@@ -351,7 +351,7 @@ class XORBZeroTrustBreachSimulator:
                 expected_blocks=[],
                 success_criteria=["authentication_required", "authorization_validated"]
             ),
-            
+
             BreachScenario(
                 scenario_id="scenario-03",
                 name="Corporate to Backup Exfiltration",
@@ -362,7 +362,7 @@ class XORBZeroTrustBreachSimulator:
                 expected_blocks=["fs-01->backup-01"],
                 success_criteria=["backup_access_denied", "isolation_maintained"]
             ),
-            
+
             BreachScenario(
                 scenario_id="scenario-04",
                 name="Container Escape to Infrastructure",
@@ -374,7 +374,7 @@ class XORBZeroTrustBreachSimulator:
                 success_criteria=["container_isolation_maintained", "privilege_escalation_blocked"]
             )
         ]
-    
+
     def _map_trust_zones(self) -> Dict[TrustZone, List[str]]:
         """Map trust zones to network ranges"""
         return {
@@ -385,17 +385,17 @@ class XORBZeroTrustBreachSimulator:
             TrustZone.CRITICAL: ["10.3.0.0/24"],
             TrustZone.ISOLATED: ["10.4.0.0/24"]
         }
-    
+
     async def evaluate_zero_trust_policy(self, source_asset: NetworkAsset, target_asset: NetworkAsset, protocol: NetworkProtocol) -> Dict[str, Any]:
         """Evaluate Zero Trust policy for connection attempt"""
         # Find applicable policy
         applicable_policy = None
         for policy in self.zero_trust_policies:
-            if (policy.source_zone == source_asset.trust_zone and 
+            if (policy.source_zone == source_asset.trust_zone and
                 policy.destination_zone == target_asset.trust_zone):
                 applicable_policy = policy
                 break
-        
+
         if not applicable_policy:
             # Default deny
             return {
@@ -406,22 +406,22 @@ class XORBZeroTrustBreachSimulator:
                 "authorization_required": True,
                 "logged": True
             }
-        
+
         # Check protocol allowlist
         protocol_allowed = protocol in applicable_policy.allowed_protocols
-        
+
         # Simulate authentication/authorization
         auth_success = True
         authz_success = True
-        
+
         if applicable_policy.authentication_required:
             auth_success = random.random() > 0.1  # 90% auth success rate
-        
+
         if applicable_policy.authorization_required and auth_success:
             authz_success = random.random() > 0.05  # 95% authz success rate
-        
+
         allowed = protocol_allowed and auth_success and authz_success
-        
+
         return {
             "allowed": allowed,
             "policy_id": applicable_policy.policy_id,
@@ -433,23 +433,23 @@ class XORBZeroTrustBreachSimulator:
             "logged": applicable_policy.logging_enabled,
             "inspection_level": applicable_policy.inspection_level
         }
-    
+
     async def simulate_breach_attempt(self, source_asset_id: str, target_asset_id: str, breach_type: BreachType, method: str) -> BreachAttempt:
         """Simulate single breach attempt"""
         source_asset = next((a for a in self.network_assets if a.asset_id == source_asset_id), None)
         target_asset = next((a for a in self.network_assets if a.asset_id == target_asset_id), None)
-        
+
         if not source_asset or not target_asset:
             raise ValueError(f"Invalid asset IDs: {source_asset_id}, {target_asset_id}")
-        
+
         start_time = time.time()
-        
+
         # Select protocol based on target services
         protocol = random.choice(target_asset.exposed_services) if target_asset.exposed_services else NetworkProtocol.CUSTOM
-        
+
         # Evaluate Zero Trust policy
         policy_result = await self.evaluate_zero_trust_policy(source_asset, target_asset, protocol)
-        
+
         # Simulate attack execution
         attack_success = False
         if policy_result["allowed"]:
@@ -457,16 +457,16 @@ class XORBZeroTrustBreachSimulator:
             attack_difficulty = target_asset.hardening_level + target_asset.monitoring_coverage
             success_probability = max(0.1, 1.0 - (attack_difficulty / 20.0))
             attack_success = random.random() < success_probability
-        
+
         # Simulate detection
         detection_probability = target_asset.monitoring_coverage / 10.0
         if not policy_result["allowed"]:
             detection_probability = 0.95  # Policy violations are highly detectable
-        
+
         detected = random.random() < detection_probability
-        
+
         response_time = time.time() - start_time
-        
+
         # Generate evidence
         evidence = []
         if policy_result["logged"]:
@@ -476,7 +476,7 @@ class XORBZeroTrustBreachSimulator:
             evidence.append(f"network_trace_{uuid.uuid4().hex[:8]}")
         if not policy_result["allowed"]:
             evidence.append(f"policy_violation_{policy_result['policy_id']}")
-        
+
         breach_attempt = BreachAttempt(
             attempt_id=f"BREACH-{uuid.uuid4().hex[:8]}",
             breach_type=breach_type,
@@ -490,7 +490,7 @@ class XORBZeroTrustBreachSimulator:
             response_time_seconds=response_time,
             evidence_collected=evidence
         )
-        
+
         # Update metrics
         self.simulation_metrics["breach_attempts"] += 1
         if attack_success:
@@ -501,16 +501,16 @@ class XORBZeroTrustBreachSimulator:
             self.simulation_metrics["detected_breaches"] += 1
         if not policy_result["allowed"]:
             self.simulation_metrics["policy_violations"] += 1
-        
+
         return breach_attempt
-    
+
     async def execute_breach_scenario(self, scenario: BreachScenario) -> Dict[str, Any]:
         """Execute complete breach scenario"""
         logger.info(f"🎯 Executing breach scenario: {scenario.name}")
-        
+
         scenario_results = []
         current_position = scenario.initial_compromise_asset
-        
+
         # Simulate attack progression through attack path
         for i, target_asset in enumerate(scenario.attack_path[1:], 1):
             breach_type = BreachType.LATERAL_MOVEMENT
@@ -518,18 +518,18 @@ class XORBZeroTrustBreachSimulator:
                 breach_type = BreachType.INITIAL_COMPROMISE
             elif i == len(scenario.attack_path) - 1:
                 breach_type = BreachType.EXFILTRATION
-            
+
             method = f"attack_step_{i}"
-            
+
             attempt = await self.simulate_breach_attempt(
-                current_position, 
-                target_asset, 
-                breach_type, 
+                current_position,
+                target_asset,
+                breach_type,
                 method
             )
-            
+
             scenario_results.append(attempt)
-            
+
             # If blocked or failed, stop progression
             if attempt.blocked_by_policy or not attempt.success:
                 logger.info(f"❌ Attack progression stopped at {target_asset}")
@@ -539,14 +539,14 @@ class XORBZeroTrustBreachSimulator:
                 current_position = target_asset
                 if breach_type == BreachType.LATERAL_MOVEMENT:
                     self.simulation_metrics["lateral_movement_successes"] += 1
-            
+
             # Realistic timing between attack steps
             await asyncio.sleep(random.uniform(2, 5))
-        
+
         # Evaluate scenario success
         blocks_achieved = len([r for r in scenario_results if r.blocked_by_policy])
         detections_achieved = len([r for r in scenario_results if r.detected])
-        
+
         scenario_summary = {
             "scenario_id": scenario.scenario_id,
             "scenario_name": scenario.name,
@@ -559,25 +559,25 @@ class XORBZeroTrustBreachSimulator:
             "detection_effectiveness": detections_achieved / len(scenario_results) if scenario_results else 1.0,
             "breach_attempts": [asdict(attempt) for attempt in scenario_results]
         }
-        
+
         return scenario_summary
-    
+
     async def zero_trust_simulation_cycle(self) -> Dict[str, Any]:
         """Execute complete Zero Trust simulation cycle"""
         logger.info("🔒 Starting Zero Trust breach simulation cycle")
-        
+
         # Select random scenario
         scenario = random.choice(self.breach_scenarios)
-        
+
         # Execute scenario
         scenario_results = await self.execute_breach_scenario(scenario)
-        
+
         # Generate policy recommendations
         policy_recommendations = await self._generate_policy_recommendations(scenario_results)
-        
+
         # Update metrics
         self.simulation_metrics["scenarios_executed"] += 1
-        
+
         cycle_results = {
             "cycle_timestamp": datetime.now().isoformat(),
             "scenario_executed": scenario.name,
@@ -585,19 +585,19 @@ class XORBZeroTrustBreachSimulator:
             "policy_recommendations": policy_recommendations,
             "simulation_metrics": self.simulation_metrics
         }
-        
+
         return cycle_results
-    
+
     async def _generate_policy_recommendations(self, scenario_results: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Generate Zero Trust policy recommendations"""
         recommendations = []
-        
+
         # Analyze successful breaches
         for attempt in scenario_results["breach_attempts"]:
             if attempt["success"] and not attempt["blocked_by_policy"]:
                 source_asset = next((a for a in self.network_assets if a.asset_id == attempt["source_asset"]), None)
                 target_asset = next((a for a in self.network_assets if a.asset_id == attempt["target_asset"]), None)
-                
+
                 if source_asset and target_asset:
                     recommendations.append({
                         "type": "policy_tightening",
@@ -606,7 +606,7 @@ class XORBZeroTrustBreachSimulator:
                         "impact": "security_improvement",
                         "effort": "medium"
                     })
-        
+
         # Analyze undetected breaches
         undetected_attempts = [a for a in scenario_results["breach_attempts"] if a["success"] and not a["detected"]]
         if undetected_attempts:
@@ -617,7 +617,7 @@ class XORBZeroTrustBreachSimulator:
                 "impact": "detection_improvement",
                 "effort": "high"
             })
-        
+
         # Analyze policy gaps
         if scenario_results["zero_trust_effectiveness"] < 0.8:
             recommendations.append({
@@ -627,42 +627,42 @@ class XORBZeroTrustBreachSimulator:
                 "impact": "security_improvement",
                 "effort": "medium"
             })
-        
+
         return recommendations
 
 async def main():
     """Main Zero Trust breach simulation execution"""
     logger.info("🔒 Starting XORB Zero Trust Breach Simulator")
-    
+
     # Initialize simulator
     ztbs = XORBZeroTrustBreachSimulator()
-    
+
     # Execute continuous simulation cycles
     session_duration = 4  # 4 minutes for demonstration
     cycles_completed = 0
-    
+
     start_time = time.time()
     end_time = start_time + (session_duration * 60)
-    
+
     while time.time() < end_time:
         try:
             # Execute Zero Trust simulation cycle
             cycle_results = await ztbs.zero_trust_simulation_cycle()
             cycles_completed += 1
-            
+
             # Log progress
             logger.info(f"🔒 Zero Trust Cycle #{cycles_completed} completed")
             logger.info(f"📊 Scenario: {cycle_results['scenario_executed']}")
             logger.info(f"🛡️ ZT Effectiveness: {cycle_results['scenario_results']['zero_trust_effectiveness']:.1%}")
             logger.info(f"🔍 Detection Rate: {cycle_results['scenario_results']['detection_effectiveness']:.1%}")
             logger.info(f"📋 Recommendations: {len(cycle_results['policy_recommendations'])}")
-            
+
             await asyncio.sleep(25.0)  # 25-second cycles
-            
+
         except Exception as e:
             logger.error(f"Error in Zero Trust simulation: {e}")
             await asyncio.sleep(10.0)
-    
+
     # Final results
     final_results = {
         "session_id": f"ZTBS-SESSION-{int(start_time)}",
@@ -672,15 +672,15 @@ async def main():
         "detection_effectiveness": ztbs.simulation_metrics["detected_breaches"] / max(1, ztbs.simulation_metrics["breach_attempts"]),
         "lateral_movement_prevention": 1.0 - (ztbs.simulation_metrics["lateral_movement_successes"] / max(1, ztbs.simulation_metrics["breach_attempts"]))
     }
-    
+
     # Save results
     results_filename = f"xorb_zero_trust_simulation_results_{int(time.time())}.json"
     with open(results_filename, 'w') as f:
         json.dump(final_results, f, indent=2, default=str)
-    
+
     logger.info(f"💾 Zero Trust simulation results saved: {results_filename}")
     logger.info("🏆 XORB Zero Trust Breach Simulation completed!")
-    
+
     # Display final summary
     logger.info("🔒 Zero Trust Simulation Summary:")
     logger.info(f"  • Cycles completed: {cycles_completed}")
@@ -691,7 +691,7 @@ async def main():
     logger.info(f"  • Zero Trust effectiveness: {final_results['zero_trust_effectiveness']:.1%}")
     logger.info(f"  • Detection effectiveness: {final_results['detection_effectiveness']:.1%}")
     logger.info(f"  • Lateral movement prevention: {final_results['lateral_movement_prevention']:.1%}")
-    
+
     return final_results
 
 if __name__ == "__main__":

@@ -37,7 +37,7 @@ log_debug() {
 # Configuration validation using centralized config manager
 validate_config() {
     log_info "Validating configuration using XORB config manager..."
-    
+
     python3 -c "
 import sys
 sys.path.append('/app/src')
@@ -54,7 +54,7 @@ except Exception as e:
     print(f'❌ Configuration validation failed: {e}')
     sys.exit(1)
 "
-    
+
     if [ $? -eq 0 ]; then
         log_info "Configuration validation completed successfully"
     else
@@ -66,7 +66,7 @@ except Exception as e:
 # Health check dependencies using config manager
 check_dependencies() {
     log_info "Checking service dependencies..."
-    
+
     # Check PostgreSQL and Redis connectivity using config manager
     python3 -c "
 import asyncio
@@ -78,7 +78,7 @@ async def check_postgres():
         from common.config_manager import get_config
         config = get_config()
         db_url = config.database.get_url()
-        
+
         import asyncpg
         conn = await asyncpg.connect(db_url)
         await conn.execute('SELECT 1')
@@ -93,7 +93,7 @@ async def check_redis():
     try:
         from common.config_manager import get_config
         config = get_config()
-        
+
         import aioredis
         redis = aioredis.from_url(config.redis.get_url())
         await redis.ping()
@@ -112,7 +112,7 @@ async def main():
 result = asyncio.run(main())
 sys.exit(0 if result else 1)
 "
-    
+
     if [ $? -eq 0 ]; then
         log_info "All dependency checks passed"
         return 0
@@ -140,7 +140,7 @@ run_migrations() {
 # Function to validate configuration
 validate_config() {
     log "Validating configuration..."
-    
+
     # Check Python modules can be imported
     python -c "
 import sys
@@ -152,13 +152,13 @@ except ImportError as e:
     print(f'✗ Import error: {e}')
     sys.exit(1)
 "
-    
+
     # Check file permissions
     if [[ ! -r /app/app/main.py ]]; then
         log "ERROR: Cannot read application files"
         exit 1
     fi
-    
+
     log "Configuration validation passed"
 }
 
@@ -166,13 +166,13 @@ except ImportError as e:
 setup_clamav() {
     if [[ "${ENABLE_CLAMAV:-false}" == "true" ]]; then
         log "Setting up ClamAV..."
-        
+
         # Update virus definitions if needed
         if [[ ! -f /var/lib/clamav/daily.cvd ]] || [[ $(find /var/lib/clamav/daily.cvd -mtime +1) ]]; then
             log "Updating ClamAV virus definitions..."
             freshclam --quiet || log "WARNING: Could not update virus definitions"
         fi
-        
+
         # Start ClamAV daemon
         log "Starting ClamAV daemon..."
         clamd || log "WARNING: Could not start ClamAV daemon"
@@ -182,10 +182,10 @@ setup_clamav() {
 # Function to setup directories and permissions
 setup_directories() {
     log "Setting up directories..."
-    
+
     # Create necessary directories
     mkdir -p /app/logs /app/data /app/tmp
-    
+
     # Ensure proper ownership (should already be set in Dockerfile)
     if [[ "$(id -u)" == "0" ]]; then
         chown -R xorb:xorb /app/logs /app/data /app/tmp
@@ -205,13 +205,13 @@ trap cleanup SIGTERM SIGINT
 # Graceful shutdown handler
 shutdown_handler() {
     log_info "Received shutdown signal - performing graceful shutdown..."
-    
+
     # Send SIGTERM to application process
     if [ ! -z "$APP_PID" ]; then
         kill -TERM "$APP_PID" 2>/dev/null || true
         wait "$APP_PID" 2>/dev/null || true
     fi
-    
+
     log_info "Graceful shutdown completed"
     exit 0
 }
@@ -220,21 +220,21 @@ shutdown_handler() {
 main() {
     # Set up signal handlers
     trap shutdown_handler SIGTERM SIGINT
-    
+
     # Validate environment
     if [ -z "${ENVIRONMENT:-}" ]; then
         export ENVIRONMENT="production"
     fi
-    
+
     log_info "Starting XORB API Service in $ENVIRONMENT environment"
     log_info "User: $(id)"
     log_info "Working directory: $(pwd)"
     log_info "Python version: $(python3 --version)"
-    
+
     # Pre-startup validation
     validate_config
     check_dependencies
-    
+
     # Run migrations if not skipped
     if [[ "${SKIP_MIGRATIONS:-false}" != "true" ]]; then
         log_info "Running database migrations..."
@@ -247,7 +247,7 @@ main() {
     else
         log_info "Skipping migrations (SKIP_MIGRATIONS=true)"
     fi
-    
+
     # Determine startup command based on environment and provided arguments
     if [ $# -eq 0 ]; then
         # No arguments provided, use default production command
@@ -256,17 +256,17 @@ main() {
             set -- uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --reload --log-level debug
         else
             log_info "Starting production server with Gunicorn"
-            
+
             # Calculate worker processes
             WORKERS=${WORKERS:-$(($(nproc) * 2 + 1))}
             MAX_WORKERS=${MAX_WORKERS:-16}
-            
+
             if [ "$WORKERS" -gt "$MAX_WORKERS" ]; then
                 WORKERS=$MAX_WORKERS
             fi
-            
+
             log_info "Starting with $WORKERS worker processes"
-            
+
             set -- gunicorn app.main:app \
                 -k uvicorn.workers.UvicornWorker \
                 -w "$WORKERS" \
@@ -281,14 +281,14 @@ main() {
                 --error-logfile -
         fi
     fi
-    
+
     log_info "Starting application with command: $*"
     log_info "Health endpoint will be available at http://localhost:${PORT:-8000}/health"
-    
+
     # Execute the main command in background to handle signals
     "$@" &
     APP_PID=$!
-    
+
     # Wait for the application process
     wait "$APP_PID"
 }

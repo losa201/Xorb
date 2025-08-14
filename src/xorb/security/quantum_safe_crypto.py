@@ -93,11 +93,11 @@ class HybridCiphertext:
 
 class KyberKEM:
     """Kyber Key Encapsulation Mechanism implementation"""
-    
+
     def __init__(self, security_level: SecurityLevel = SecurityLevel.LEVEL_3):
         self.security_level = security_level
         self.params = self._get_kyber_parameters(security_level)
-        
+
     def _get_kyber_parameters(self, level: SecurityLevel) -> Dict[str, int]:
         """Get Kyber parameters for security level"""
         params = {
@@ -115,57 +115,57 @@ class KyberKEM:
             }
         }
         return params[level]
-    
+
     async def generate_keypair(self) -> Tuple[bytes, bytes]:
         """Generate Kyber keypair"""
         try:
             # Simulate Kyber key generation
             # In production, this would use actual Kyber implementation
             seed = secrets.token_bytes(32)
-            
+
             # Generate polynomial matrices A, s, e
             public_key_size = self.params["k"] * self.params["n"] * 12 // 8
             private_key_size = self.params["k"] * self.params["n"] * 12 // 8
-            
+
             # Simulate key generation using secure random
             private_key = secrets.token_bytes(private_key_size)
             public_key = hashlib.shake_256(private_key + seed).digest(public_key_size)
-            
+
             return public_key, private_key
-            
+
         except Exception as e:
             logger.error(f"Kyber keypair generation failed: {e}")
             raise
-    
+
     async def encapsulate(self, public_key: bytes) -> Tuple[bytes, bytes]:
         """Encapsulate shared secret using public key"""
         try:
             # Generate random message
             message = secrets.token_bytes(32)
-            
+
             # Simulate encapsulation
             # In production, this would use actual Kyber encapsulation
             shared_secret = hashlib.sha256(message + public_key).digest()
             ciphertext = hashlib.shake_256(message + public_key + b"encaps").digest(
-                self.params["k"] * self.params["n"] * self.params["du"] // 8 + 
+                self.params["k"] * self.params["n"] * self.params["du"] // 8 +
                 self.params["n"] * self.params["dv"] // 8
             )
-            
+
             return ciphertext, shared_secret
-            
+
         except Exception as e:
             logger.error(f"Kyber encapsulation failed: {e}")
             raise
-    
+
     async def decapsulate(self, ciphertext: bytes, private_key: bytes) -> bytes:
         """Decapsulate shared secret using private key"""
         try:
             # Simulate decapsulation
             # In production, this would use actual Kyber decapsulation
             shared_secret = hashlib.sha256(ciphertext + private_key + b"decaps").digest()
-            
+
             return shared_secret
-            
+
         except Exception as e:
             logger.error(f"Kyber decapsulation failed: {e}")
             raise
@@ -173,11 +173,11 @@ class KyberKEM:
 
 class DilithiumSignature:
     """Dilithium digital signature implementation"""
-    
+
     def __init__(self, security_level: SecurityLevel = SecurityLevel.LEVEL_3):
         self.security_level = security_level
         self.params = self._get_dilithium_parameters(security_level)
-        
+
     def _get_dilithium_parameters(self, level: SecurityLevel) -> Dict[str, int]:
         """Get Dilithium parameters for security level"""
         params = {
@@ -195,63 +195,63 @@ class DilithiumSignature:
             }
         }
         return params[level]
-    
+
     async def generate_keypair(self) -> Tuple[bytes, bytes]:
         """Generate Dilithium signing keypair"""
         try:
             # Simulate Dilithium key generation
             seed = secrets.token_bytes(32)
-            
+
             public_key_size = 32 + self.params["k"] * self.params["n"] * 13 // 8
-            private_key_size = (32 + 32 + self.params["k"] * self.params["n"] * 13 // 8 + 
-                              self.params["l"] * self.params["n"] * 3 // 8 + 
+            private_key_size = (32 + 32 + self.params["k"] * self.params["n"] * 13 // 8 +
+                              self.params["l"] * self.params["n"] * 3 // 8 +
                               self.params["k"] * self.params["n"] * 13 // 8)
-            
+
             private_key = secrets.token_bytes(private_key_size)
             public_key = hashlib.shake_256(private_key + seed + b"dilithium").digest(public_key_size)
-            
+
             return public_key, private_key
-            
+
         except Exception as e:
             logger.error(f"Dilithium keypair generation failed: {e}")
             raise
-    
+
     async def sign(self, message: bytes, private_key: bytes) -> bytes:
         """Sign message with Dilithium"""
         try:
             # Create deterministic signature
             message_hash = hashlib.sha256(message).digest()
-            
+
             # Simulate signing process
             signature_data = private_key[:32] + message_hash
             signature = hashlib.shake_256(signature_data + b"dilithium_sign").digest(
-                self.params["l"] * self.params["n"] * 20 // 8 + 
-                self.params["k"] * self.params["n"] * 20 // 8 + 
+                self.params["l"] * self.params["n"] * 20 // 8 +
+                self.params["k"] * self.params["n"] * 20 // 8 +
                 80
             )
-            
+
             return signature
-            
+
         except Exception as e:
             logger.error(f"Dilithium signing failed: {e}")
             raise
-    
+
     async def verify(self, message: bytes, signature: bytes, public_key: bytes) -> bool:
         """Verify Dilithium signature"""
         try:
             # Simulate verification process
             message_hash = hashlib.sha256(message).digest()
-            
+
             # Recreate expected signature for verification
             verification_data = public_key[:32] + message_hash
             expected_signature = hashlib.shake_256(
                 verification_data + b"dilithium_sign"
             ).digest(len(signature))
-            
+
             # In a real implementation, this would involve polynomial arithmetic
             # For simulation, we use a simplified comparison
             return hmac.compare_digest(signature[:32], expected_signature[:32])
-            
+
         except Exception as e:
             logger.error(f"Dilithium verification failed: {e}")
             return False
@@ -259,33 +259,33 @@ class DilithiumSignature:
 
 class QuantumSafeCrypto:
     """Main quantum-safe cryptography engine"""
-    
+
     def __init__(self):
         self.kyber_kem = KyberKEM()
         self.dilithium_sig = DilithiumSignature()
         self.key_cache = {}
         self.algorithm_registry = {}
-        
+
     async def initialize(self):
         """Initialize quantum-safe crypto engine"""
         logger.info("Initializing Quantum-Safe Cryptography Engine")
-        
+
         # Register available algorithms
         self.algorithm_registry = {
             QuantumAlgorithm.KYBER: self.kyber_kem,
             QuantumAlgorithm.DILITHIUM: self.dilithium_sig,
         }
-        
+
         # Generate master keys for different security levels
         await self._generate_master_keys()
-        
+
     async def _generate_master_keys(self):
         """Generate master keys for different security levels"""
         for level in SecurityLevel:
             # Generate Kyber keypair
             kyber = KyberKEM(level)
             pub_key, priv_key = await kyber.generate_keypair()
-            
+
             master_key = QuantumKey(
                 algorithm=QuantumAlgorithm.KYBER,
                 security_level=level,
@@ -295,13 +295,13 @@ class QuantumSafeCrypto:
                 expires_at=datetime.now() + timedelta(days=365),
                 metadata={"key_type": "master", "usage": "key_encapsulation"}
             )
-            
+
             self.key_cache[f"master_kyber_{level.value}"] = master_key
-            
+
             # Generate Dilithium keypair
             dilithium = DilithiumSignature(level)
             sig_pub, sig_priv = await dilithium.generate_keypair()
-            
+
             signing_key = QuantumKey(
                 algorithm=QuantumAlgorithm.DILITHIUM,
                 security_level=level,
@@ -311,32 +311,32 @@ class QuantumSafeCrypto:
                 expires_at=datetime.now() + timedelta(days=365),
                 metadata={"key_type": "master", "usage": "digital_signature"}
             )
-            
+
             self.key_cache[f"master_dilithium_{level.value}"] = signing_key
-    
+
     async def hybrid_encrypt(self, plaintext: bytes, recipient_public_key: bytes,
                            params: CryptographicParameters) -> HybridCiphertext:
         """Hybrid quantum-safe encryption"""
         try:
             logger.debug(f"Performing hybrid encryption with {params.quantum_algorithm.value}")
-            
+
             # Step 1: Quantum-safe key encapsulation
             if params.quantum_algorithm == QuantumAlgorithm.KYBER:
                 kyber = KyberKEM(params.security_level)
                 encapsulated_key, shared_secret = await kyber.encapsulate(recipient_public_key)
             else:
                 raise ValueError(f"Unsupported quantum algorithm: {params.quantum_algorithm}")
-            
+
             # Step 2: Derive symmetric keys from shared secret
             kdf_salt = secrets.token_bytes(32)
             symmetric_key = hashlib.pbkdf2_hmac('sha256', shared_secret, kdf_salt, 100000, 32)
-            
+
             # Step 3: Encrypt with quantum-safe symmetric algorithm
             nonce = secrets.token_bytes(params.nonce_size)
             quantum_ciphertext, quantum_tag = await self._aead_encrypt(
                 plaintext, symmetric_key, nonce, b"quantum_safe"
             )
-            
+
             # Step 4: Classical encryption (if hybrid mode)
             classical_ciphertext = b""
             if params.hybrid_mode and params.classical_algorithm:
@@ -344,7 +344,7 @@ class QuantumSafeCrypto:
                 classical_ciphertext, classical_tag = await self._aead_encrypt(
                     plaintext, classical_key, nonce, b"classical"
                 )
-            
+
             return HybridCiphertext(
                 quantum_ciphertext=quantum_ciphertext,
                 classical_ciphertext=classical_ciphertext,
@@ -358,34 +358,34 @@ class QuantumSafeCrypto:
                 },
                 timestamp=datetime.now()
             )
-            
+
         except Exception as e:
             logger.error(f"Hybrid encryption failed: {e}")
             raise
-    
+
     async def hybrid_decrypt(self, ciphertext: HybridCiphertext, private_key: bytes,
                            params: CryptographicParameters) -> bytes:
         """Hybrid quantum-safe decryption"""
         try:
             logger.debug(f"Performing hybrid decryption")
-            
+
             # Step 1: Quantum-safe key decapsulation
             if params.quantum_algorithm == QuantumAlgorithm.KYBER:
                 kyber = KyberKEM(params.security_level)
                 shared_secret = await kyber.decapsulate(ciphertext.encapsulated_key, private_key)
             else:
                 raise ValueError(f"Unsupported quantum algorithm: {params.quantum_algorithm}")
-            
+
             # Step 2: Derive symmetric keys
             kdf_salt = secrets.token_bytes(32)  # In practice, this would be stored with ciphertext
             symmetric_key = hashlib.pbkdf2_hmac('sha256', shared_secret, kdf_salt, 100000, 32)
-            
+
             # Step 3: Decrypt quantum-safe ciphertext
             plaintext = await self._aead_decrypt(
-                ciphertext.quantum_ciphertext, symmetric_key, ciphertext.nonce, 
+                ciphertext.quantum_ciphertext, symmetric_key, ciphertext.nonce,
                 ciphertext.tag, b"quantum_safe"
             )
-            
+
             # Step 4: Verify with classical decryption (if hybrid mode)
             if params.hybrid_mode and ciphertext.classical_ciphertext:
                 classical_key = hashlib.sha256(shared_secret + b"classical").digest()
@@ -393,43 +393,43 @@ class QuantumSafeCrypto:
                     ciphertext.classical_ciphertext, classical_key, ciphertext.nonce,
                     ciphertext.tag, b"classical"
                 )
-                
+
                 # Verify both decryptions match
                 if not hmac.compare_digest(plaintext, classical_plaintext):
                     raise ValueError("Quantum and classical decryption mismatch")
-            
+
             return plaintext
-            
+
         except Exception as e:
             logger.error(f"Hybrid decryption failed: {e}")
             raise
-    
+
     async def quantum_safe_sign(self, message: bytes, private_key: bytes,
                               algorithm: QuantumAlgorithm = QuantumAlgorithm.DILITHIUM) -> bytes:
         """Create quantum-safe digital signature"""
         try:
             if algorithm == QuantumAlgorithm.DILITHIUM:
                 signature = await self.dilithium_sig.sign(message, private_key)
-                
+
                 # Add metadata to signature
                 metadata = {
                     "algorithm": algorithm.value,
                     "timestamp": int(time.time()),
                     "version": "1.0"
                 }
-                
+
                 # Prepend metadata to signature
                 metadata_bytes = json.dumps(metadata).encode()
                 metadata_length = struct.pack(">H", len(metadata_bytes))
-                
+
                 return metadata_length + metadata_bytes + signature
             else:
                 raise ValueError(f"Unsupported signature algorithm: {algorithm}")
-                
+
         except Exception as e:
             logger.error(f"Quantum-safe signing failed: {e}")
             raise
-    
+
     async def quantum_safe_verify(self, message: bytes, signature: bytes, public_key: bytes) -> bool:
         """Verify quantum-safe digital signature"""
         try:
@@ -437,56 +437,56 @@ class QuantumSafeCrypto:
             metadata_length = struct.unpack(">H", signature[:2])[0]
             metadata_bytes = signature[2:2+metadata_length]
             actual_signature = signature[2+metadata_length:]
-            
+
             metadata = json.loads(metadata_bytes.decode())
             algorithm = QuantumAlgorithm(metadata["algorithm"])
-            
+
             if algorithm == QuantumAlgorithm.DILITHIUM:
                 return await self.dilithium_sig.verify(message, actual_signature, public_key)
             else:
                 raise ValueError(f"Unsupported signature algorithm: {algorithm}")
-                
+
         except Exception as e:
             logger.error(f"Quantum-safe verification failed: {e}")
             return False
-    
-    async def _aead_encrypt(self, plaintext: bytes, key: bytes, nonce: bytes, 
+
+    async def _aead_encrypt(self, plaintext: bytes, key: bytes, nonce: bytes,
                           associated_data: bytes) -> Tuple[bytes, bytes]:
         """AEAD encryption using ChaCha20-Poly1305"""
         try:
             if CRYPTO_AVAILABLE:
                 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
-                
+
                 aead = ChaCha20Poly1305(key)
                 ciphertext_with_tag = aead.encrypt(nonce, plaintext, associated_data)
-                
+
                 # Separate ciphertext and tag
                 ciphertext = ciphertext_with_tag[:-16]
                 tag = ciphertext_with_tag[-16:]
-                
+
                 return ciphertext, tag
             else:
                 # Simulate AEAD encryption
                 cipher_key = hashlib.sha256(key + nonce + associated_data).digest()
                 ciphertext = bytes(a ^ b for a, b in zip(plaintext, cipher_key * (len(plaintext) // 32 + 1)))
                 tag = hashlib.sha256(ciphertext + key + nonce).digest()[:16]
-                
+
                 return ciphertext, tag
-                
+
         except Exception as e:
             logger.error(f"AEAD encryption failed: {e}")
             raise
-    
-    async def _aead_decrypt(self, ciphertext: bytes, key: bytes, nonce: bytes, 
+
+    async def _aead_decrypt(self, ciphertext: bytes, key: bytes, nonce: bytes,
                           tag: bytes, associated_data: bytes) -> bytes:
         """AEAD decryption using ChaCha20-Poly1305"""
         try:
             if CRYPTO_AVAILABLE:
                 from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
-                
+
                 aead = ChaCha20Poly1305(key)
                 plaintext = aead.decrypt(nonce, ciphertext + tag, associated_data)
-                
+
                 return plaintext
             else:
                 # Simulate AEAD decryption
@@ -494,16 +494,16 @@ class QuantumSafeCrypto:
                 expected_tag = hashlib.sha256(ciphertext + key + nonce).digest()[:16]
                 if not hmac.compare_digest(tag, expected_tag):
                     raise ValueError("Authentication tag verification failed")
-                
+
                 cipher_key = hashlib.sha256(key + nonce + associated_data).digest()
                 plaintext = bytes(a ^ b for a, b in zip(ciphertext, cipher_key * (len(ciphertext) // 32 + 1)))
-                
+
                 return plaintext
-                
+
         except Exception as e:
             logger.error(f"AEAD decryption failed: {e}")
             raise
-    
+
     async def generate_quantum_safe_keypair(self, algorithm: QuantumAlgorithm,
                                           security_level: SecurityLevel = SecurityLevel.LEVEL_3) -> Tuple[bytes, bytes]:
         """Generate quantum-safe keypair"""
@@ -516,11 +516,11 @@ class QuantumSafeCrypto:
                 return await dilithium.generate_keypair()
             else:
                 raise ValueError(f"Unsupported algorithm: {algorithm}")
-                
+
         except Exception as e:
             logger.error(f"Keypair generation failed: {e}")
             raise
-    
+
     async def get_algorithm_info(self) -> Dict[str, Any]:
         """Get information about available quantum-safe algorithms"""
         return {
@@ -541,17 +541,17 @@ class QuantumSafeCrypto:
 
 class QuantumSafeProtocol:
     """Quantum-safe communication protocol"""
-    
+
     def __init__(self, crypto_engine: QuantumSafeCrypto):
         self.crypto = crypto_engine
         self.session_keys = {}
-        
+
     async def establish_quantum_safe_session(self, peer_public_key: bytes,
                                            our_private_key: bytes) -> str:
         """Establish quantum-safe communication session"""
         try:
             session_id = secrets.token_hex(16)
-            
+
             # Perform quantum-safe key exchange
             params = CryptographicParameters(
                 quantum_algorithm=QuantumAlgorithm.KYBER,
@@ -560,14 +560,14 @@ class QuantumSafeProtocol:
                 hybrid_mode=True,
                 key_size=32
             )
-            
+
             # Encapsulate session key
             kyber = KyberKEM(params.security_level)
             encapsulated_key, shared_secret = await kyber.encapsulate(peer_public_key)
-            
+
             # Derive session keys
             session_key = hashlib.pbkdf2_hmac('sha256', shared_secret, session_id.encode(), 100000, 32)
-            
+
             self.session_keys[session_id] = {
                 "key": session_key,
                 "established_at": datetime.now(),
@@ -575,28 +575,28 @@ class QuantumSafeProtocol:
                 "encapsulated_key": encapsulated_key,
                 "parameters": params
             }
-            
+
             logger.info(f"Established quantum-safe session: {session_id}")
             return session_id
-            
+
         except Exception as e:
             logger.error(f"Session establishment failed: {e}")
             raise
-    
+
     async def send_quantum_safe_message(self, session_id: str, message: bytes) -> bytes:
         """Send message using quantum-safe encryption"""
         try:
             if session_id not in self.session_keys:
                 raise ValueError("Invalid session ID")
-                
+
             session = self.session_keys[session_id]
-            
+
             # Encrypt message with session key
             nonce = secrets.token_bytes(12)
             ciphertext, tag = await self.crypto._aead_encrypt(
                 message, session["key"], nonce, session_id.encode()
             )
-            
+
             # Create protocol message
             protocol_message = {
                 "session_id": session_id,
@@ -605,35 +605,35 @@ class QuantumSafeProtocol:
                 "tag": base64.b64encode(tag).decode(),
                 "timestamp": int(time.time())
             }
-            
+
             return json.dumps(protocol_message).encode()
-            
+
         except Exception as e:
             logger.error(f"Quantum-safe message sending failed: {e}")
             raise
-    
+
     async def receive_quantum_safe_message(self, protocol_data: bytes) -> bytes:
         """Receive and decrypt quantum-safe message"""
         try:
             protocol_message = json.loads(protocol_data.decode())
             session_id = protocol_message["session_id"]
-            
+
             if session_id not in self.session_keys:
                 raise ValueError("Invalid session ID")
-                
+
             session = self.session_keys[session_id]
-            
+
             # Decrypt message
             nonce = base64.b64decode(protocol_message["nonce"])
             ciphertext = base64.b64decode(protocol_message["ciphertext"])
             tag = base64.b64decode(protocol_message["tag"])
-            
+
             plaintext = await self.crypto._aead_decrypt(
                 ciphertext, session["key"], nonce, tag, session_id.encode()
             )
-            
+
             return plaintext
-            
+
         except Exception as e:
             logger.error(f"Quantum-safe message receiving failed: {e}")
             raise
@@ -645,11 +645,11 @@ _quantum_crypto: Optional[QuantumSafeCrypto] = None
 async def get_quantum_crypto() -> QuantumSafeCrypto:
     """Get global quantum-safe crypto instance"""
     global _quantum_crypto
-    
+
     if _quantum_crypto is None:
         _quantum_crypto = QuantumSafeCrypto()
         await _quantum_crypto.initialize()
-    
+
     return _quantum_crypto
 
 

@@ -63,16 +63,16 @@ class MobileNotification(BaseModel):
 
 class MobileInterface:
     """Mobile-responsive interface system"""
-    
+
     def __init__(self):
         self.active_sessions: Dict[str, MobileSession] = {}
         self.dashboard_widgets: List[DashboardWidget] = []
         self.notifications: List[MobileNotification] = []
-        
+
         # Initialize sample data
         self._initialize_widgets()
         self._initialize_notifications()
-    
+
     def _initialize_widgets(self):
         """Initialize dashboard widgets"""
         widgets = [
@@ -143,11 +143,11 @@ class MobileInterface:
                 "mobile_enabled": True
             }
         ]
-        
+
         for widget_data in widgets:
             widget = DashboardWidget(**widget_data)
             self.dashboard_widgets.append(widget)
-    
+
     def _initialize_notifications(self):
         """Initialize sample notifications"""
         notifications = [
@@ -161,7 +161,7 @@ class MobileInterface:
                 "action_url": "/threats/investigate/192.168.1.100"
             },
             {
-                "notification_id": "notif_002", 
+                "notification_id": "notif_002",
                 "title": "System Update",
                 "message": "Security patches applied successfully to 15 servers",
                 "severity": "info",
@@ -179,22 +179,22 @@ class MobileInterface:
                 "action_url": "/compliance/soc2"
             }
         ]
-        
+
         for notif_data in notifications:
             notification = MobileNotification(**notif_data)
             self.notifications.append(notification)
-    
+
     def detect_device_type(self, user_agent: str) -> DeviceType:
         """Detect device type from user agent"""
         user_agent_lower = user_agent.lower()
-        
+
         if any(mobile in user_agent_lower for mobile in ['mobile', 'android', 'iphone', 'ipod']):
             return DeviceType.MOBILE
         elif any(tablet in user_agent_lower for tablet in ['tablet', 'ipad']):
             return DeviceType.TABLET
         else:
             return DeviceType.DESKTOP
-    
+
     def get_mobile_widgets(self, device_type: DeviceType) -> List[DashboardWidget]:
         """Get widgets optimized for mobile devices"""
         if device_type == DeviceType.MOBILE:
@@ -207,31 +207,31 @@ class MobileInterface:
         else:
             # Desktop gets all widgets
             return sorted(self.dashboard_widgets, key=lambda x: x.priority)
-    
+
     def get_notifications(self, limit: int = 10, unread_only: bool = False) -> List[MobileNotification]:
         """Get notifications with mobile optimization"""
         notifications = self.notifications
-        
+
         if unread_only:
             notifications = [n for n in notifications if not n.read]
-        
+
         # Sort by timestamp (newest first) and limit
         notifications.sort(key=lambda x: x.timestamp, reverse=True)
         return notifications[:limit]
-    
+
     async def fetch_service_data(self, service: str) -> Dict:
         """Fetch data from other XORB services"""
         service_urls = {
             "threat_intelligence": "http://localhost:9004/health",
-            "collaboration": "http://localhost:9005/health", 
+            "collaboration": "http://localhost:9005/health",
             "analytics": "http://localhost:9006/health",
             "reporting": "http://localhost:9007/health",
             "hardening": "http://localhost:9008/health"
         }
-        
+
         if service not in service_urls:
             return {"status": "unknown", "error": "Service not found"}
-        
+
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(service_urls[service], timeout=aiohttp.ClientTimeout(total=5)) as response:
@@ -251,7 +251,7 @@ async def detect_device(request: Request):
     """Detect device type and capabilities"""
     user_agent = request.headers.get("user-agent", "")
     device_type = mobile_interface.detect_device_type(user_agent)
-    
+
     return {
         "device_type": device_type,
         "user_agent": user_agent,
@@ -268,18 +268,18 @@ async def get_mobile_dashboard(request: Request, role: str = "analyst"):
     """Get mobile-optimized dashboard data"""
     user_agent = request.headers.get("user-agent", "")
     device_type = mobile_interface.detect_device_type(user_agent)
-    
+
     # Get appropriate widgets for device
     widgets = mobile_interface.get_mobile_widgets(device_type)
-    
+
     # Get recent notifications
     notifications = mobile_interface.get_notifications(limit=5, unread_only=True)
-    
+
     # Fetch service status
     services_status = {}
     for service in ["threat_intelligence", "collaboration", "analytics", "reporting", "hardening"]:
         services_status[service] = await mobile_interface.fetch_service_data(service)
-    
+
     return {
         "device_type": device_type,
         "widgets": [widget.dict() for widget in widgets],
@@ -308,7 +308,7 @@ async def mark_notification_read(notification_id: str):
     notification = next((n for n in mobile_interface.notifications if n.notification_id == notification_id), None)
     if not notification:
         raise HTTPException(status_code=404, detail="Notification not found")
-    
+
     notification.read = True
     return {"status": "marked_read", "notification_id": notification_id}
 
@@ -317,14 +317,14 @@ async def get_services_status():
     """Get status of all XORB services"""
     services = ["threat_intelligence", "collaboration", "analytics", "reporting", "hardening"]
     status = {}
-    
+
     for service in services:
         status[service] = await mobile_interface.fetch_service_data(service)
-    
+
     # Calculate overall health
     healthy_services = sum(1 for s in status.values() if s.get("status") == "healthy")
     overall_health = (healthy_services / len(services)) * 100
-    
+
     return {
         "overall_health": round(overall_health, 1),
         "healthy_services": healthy_services,
@@ -342,24 +342,24 @@ async def mobile_app(request: Request):
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>XORB Mobile - Cybersecurity Operations</title>
-    
+
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#0d1117">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="XORB Mobile">
-    
+
     <!-- PWA Icons -->
     <link rel="icon" sizes="192x192" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjNThhNmZmIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xMiAyQzEzLjEgMiAxNCAyLjkgMTQgNFY4SDE2VjZIMThWOEgyMFYxMEgxOFYxMkgyMFYxNEgxOFYxNkgyMFYxOEgxOFYyMEgxNlYxOEgxNFYyMEgxMlYxOEgxMFYyMEg4VjE4SDZWMjBINFYxOEg2VjE2SDRWMTRINlYxMkg0VjEwSDZWOEg0VjZINlY4SDhWNkgxMFY4SDEyVjRDMTIgMi45IDEyLjkgMiAxMiAyWiIvPjwvc3ZnPg==">
     <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSIjNThhNmZmIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik0xMiAyQzEzLjEgMiAxNCAyLjkgMTQgNFY4SDE2VjZIMThWOEgyMFYxMEgxOFYxMkgyMFYxNEgxOFYxNkgyMFYxOEgxOFYyMEgxNlYxOEgxNFYyMEgxMlYxOEgxMFYyMEg4VjE4SDZWMjBINFYxOEg2VjE2SDRWMTRINlYxMkg0VjEwSDZWOEg0VjZINlY4SDhWNkgxMFY4SDEyVjRDMTIgMi45IDEyLjkgMiAxMiAyWiIvPjwvc3ZnPg==">
-    
+
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: #0d1117;
@@ -367,14 +367,14 @@ async def mobile_app(request: Request):
             overflow-x: hidden;
             -webkit-font-smoothing: antialiased;
         }
-        
+
         /* Mobile-first responsive design */
         .container {
             max-width: 100vw;
             padding: 0;
             margin: 0;
         }
-        
+
         /* Header */
         .header {
             background: #161b22;
@@ -387,17 +387,17 @@ async def mobile_app(request: Request):
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .header h1 {
             font-size: 1.2em;
             color: #58a6ff;
         }
-        
+
         .header-actions {
             display: flex;
             gap: 10px;
         }
-        
+
         .notification-badge {
             position: relative;
             background: #21262d;
@@ -410,7 +410,7 @@ async def mobile_app(request: Request):
             justify-content: center;
             cursor: pointer;
         }
-        
+
         .notification-count {
             position: absolute;
             top: -5px;
@@ -425,7 +425,7 @@ async def mobile_app(request: Request):
             align-items: center;
             justify-content: center;
         }
-        
+
         /* Dashboard Grid - Mobile First */
         .dashboard {
             padding: 15px;
@@ -433,7 +433,7 @@ async def mobile_app(request: Request):
             grid-template-columns: 1fr;
             gap: 15px;
         }
-        
+
         /* Widget Cards */
         .widget {
             background: #161b22;
@@ -442,28 +442,28 @@ async def mobile_app(request: Request):
             padding: 20px;
             transition: transform 0.2s, box-shadow 0.2s;
         }
-        
+
         .widget:active {
             transform: scale(0.98);
         }
-        
+
         .widget-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
-        
+
         .widget-title {
             font-size: 1em;
             font-weight: 600;
             color: #58a6ff;
         }
-        
+
         .widget-icon {
             font-size: 1.2em;
         }
-        
+
         /* Metric Widget */
         .metric-value {
             font-size: 2.5em;
@@ -472,18 +472,18 @@ async def mobile_app(request: Request):
             text-align: center;
             margin: 10px 0;
         }
-        
+
         .metric-unit {
             font-size: 0.8em;
             color: #8b949e;
         }
-        
+
         .metric-trend {
             text-align: center;
             font-size: 0.9em;
             color: #2ea043;
         }
-        
+
         /* Counter Widget */
         .counter-grid {
             display: grid;
@@ -491,23 +491,23 @@ async def mobile_app(request: Request):
             gap: 10px;
             margin-top: 10px;
         }
-        
+
         .counter-item {
             background: #0d1117;
             padding: 10px;
             border-radius: 8px;
             text-align: center;
         }
-        
+
         .counter-value {
             font-size: 1.5em;
             font-weight: bold;
         }
-        
+
         .counter-critical { color: #f85149; }
         .counter-high { color: #d29922; }
         .counter-medium { color: #58a6ff; }
-        
+
         /* Status Widget */
         .status-indicator {
             display: flex;
@@ -515,22 +515,22 @@ async def mobile_app(request: Request):
             gap: 10px;
             margin: 10px 0;
         }
-        
+
         .status-dot {
             width: 12px;
             height: 12px;
             border-radius: 50%;
             background: #2ea043;
         }
-        
+
         .status-dot.warning { background: #d29922; }
         .status-dot.error { background: #f85149; }
-        
+
         /* List Widget */
         .incident-list {
             list-style: none;
         }
-        
+
         .incident-item {
             background: #0d1117;
             padding: 12px;
@@ -541,68 +541,68 @@ async def mobile_app(request: Request):
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .incident-high { border-left-color: #f85149; }
         .incident-medium { border-left-color: #d29922; }
         .incident-low { border-left-color: #2ea043; }
-        
+
         .incident-info {
             flex: 1;
         }
-        
+
         .incident-id {
             font-weight: 600;
             color: #f0f6fc;
         }
-        
+
         .incident-status {
             font-size: 0.8em;
             color: #8b949e;
         }
-        
+
         .incident-time {
             font-size: 0.8em;
             color: #8b949e;
             white-space: nowrap;
         }
-        
+
         /* Progress Widget */
         .compliance-list {
             list-style: none;
         }
-        
+
         .compliance-item {
             margin: 12px 0;
         }
-        
+
         .compliance-header {
             display: flex;
             justify-content: space-between;
             margin-bottom: 5px;
         }
-        
+
         .compliance-name {
             font-weight: 600;
             color: #f0f6fc;
         }
-        
+
         .compliance-score {
             color: #2ea043;
         }
-        
+
         .progress-bar {
             background: #21262d;
             height: 8px;
             border-radius: 4px;
             overflow: hidden;
         }
-        
+
         .progress-fill {
             height: 100%;
             background: linear-gradient(90deg, #f85149, #d29922, #2ea043);
             transition: width 0.3s;
         }
-        
+
         /* Bottom Navigation */
         .bottom-nav {
             position: fixed;
@@ -616,7 +616,7 @@ async def mobile_app(request: Request):
             padding: 10px 0;
             z-index: 1000;
         }
-        
+
         .nav-item {
             display: flex;
             flex-direction: column;
@@ -626,20 +626,20 @@ async def mobile_app(request: Request):
             color: #8b949e;
             transition: color 0.2s;
         }
-        
+
         .nav-item.active {
             color: #58a6ff;
         }
-        
+
         .nav-icon {
             font-size: 1.2em;
             margin-bottom: 2px;
         }
-        
+
         .nav-label {
             font-size: 0.7em;
         }
-        
+
         /* Notifications Panel */
         .notifications-panel {
             position: fixed;
@@ -652,11 +652,11 @@ async def mobile_app(request: Request):
             transition: right 0.3s;
             overflow-y: auto;
         }
-        
+
         .notifications-panel.open {
             right: 0;
         }
-        
+
         .notifications-header {
             background: #161b22;
             border-bottom: 1px solid #30363d;
@@ -665,42 +665,42 @@ async def mobile_app(request: Request):
             justify-content: space-between;
             align-items: center;
         }
-        
+
         .notification-item {
             background: #161b22;
             border-bottom: 1px solid #30363d;
             padding: 15px;
             border-left: 4px solid #58a6ff;
         }
-        
+
         .notification-critical { border-left-color: #f85149; }
         .notification-warning { border-left-color: #d29922; }
         .notification-info { border-left-color: #58a6ff; }
-        
+
         .notification-title {
             font-weight: 600;
             color: #f0f6fc;
             margin-bottom: 5px;
         }
-        
+
         .notification-message {
             color: #8b949e;
             font-size: 0.9em;
             margin-bottom: 5px;
         }
-        
+
         .notification-time {
             color: #6e7681;
             font-size: 0.8em;
         }
-        
+
         /* Loading States */
         .loading {
             text-align: center;
             padding: 20px;
             color: #8b949e;
         }
-        
+
         .spinner {
             display: inline-block;
             width: 20px;
@@ -710,11 +710,11 @@ async def mobile_app(request: Request):
             border-top-color: #58a6ff;
             animation: spin 1s ease-in-out infinite;
         }
-        
+
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-        
+
         /* Tablet Styles */
         @media (min-width: 768px) {
             .dashboard {
@@ -722,16 +722,16 @@ async def mobile_app(request: Request):
                 padding: 20px;
                 gap: 20px;
             }
-            
+
             .notifications-panel {
                 width: 400px;
             }
-            
+
             .bottom-nav {
                 display: none;
             }
         }
-        
+
         /* Desktop Styles */
         @media (min-width: 1024px) {
             .dashboard {
@@ -740,16 +740,16 @@ async def mobile_app(request: Request):
                 margin: 0 auto;
                 padding: 30px;
             }
-            
+
             .header {
                 padding: 15px 30px;
             }
-            
+
             .header h1 {
                 font-size: 1.5em;
             }
         }
-        
+
         /* Dark mode enhancements */
         @media (prefers-color-scheme: dark) {
             body {
@@ -757,14 +757,14 @@ async def mobile_app(request: Request):
                 color: #f0f6fc;
             }
         }
-        
+
         /* Reduced motion */
         @media (prefers-reduced-motion: reduce) {
             .widget, .notification-item, .nav-item {
                 transition: none;
             }
         }
-        
+
         /* High contrast mode */
         @media (prefers-contrast: high) {
             .widget {
@@ -785,7 +785,7 @@ async def mobile_app(request: Request):
                 </div>
             </div>
         </div>
-        
+
         <!-- Dashboard -->
         <div class="dashboard" id="dashboard">
             <div class="loading">
@@ -793,7 +793,7 @@ async def mobile_app(request: Request):
                 <p>Loading dashboard...</p>
             </div>
         </div>
-        
+
         <!-- Bottom Navigation (Mobile Only) -->
         <div class="bottom-nav">
             <a href="#" class="nav-item active" onclick="showDashboard()">
@@ -813,7 +813,7 @@ async def mobile_app(request: Request):
                 <span class="nav-label">Settings</span>
             </a>
         </div>
-        
+
         <!-- Notifications Panel -->
         <div class="notifications-panel" id="notifications-panel">
             <div class="notifications-header">
@@ -825,39 +825,39 @@ async def mobile_app(request: Request):
             </div>
         </div>
     </div>
-    
+
     <script>
         let deviceInfo = null;
         let dashboardData = null;
-        
+
         // Initialize app
         async function initApp() {
             try {
                 // Detect device capabilities
                 deviceInfo = await fetch('/mobile/detect-device').then(r => r.json());
                 console.log('Device detected:', deviceInfo);
-                
+
                 // Load dashboard data
                 await loadDashboard();
-                
+
                 // Load notifications
                 await loadNotifications();
-                
+
                 // Set up periodic refresh
                 setInterval(loadDashboard, 30000); // Refresh every 30 seconds
                 setInterval(loadNotifications, 60000); // Refresh notifications every minute
-                
+
                 // Register service worker for PWA
                 if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.register('/sw.js').catch(console.error);
                 }
-                
+
             } catch (error) {
                 console.error('App initialization failed:', error);
                 document.getElementById('dashboard').innerHTML = '<div class="loading">❌ Failed to load app</div>';
             }
         }
-        
+
         async function loadDashboard() {
             try {
                 dashboardData = await fetch('/mobile/dashboard').then(r => r.json());
@@ -867,23 +867,23 @@ async def mobile_app(request: Request):
                 document.getElementById('dashboard').innerHTML = '<div class="loading">❌ Failed to load dashboard</div>';
             }
         }
-        
+
         function renderDashboard(data) {
             const dashboard = document.getElementById('dashboard');
             dashboard.innerHTML = '';
-            
+
             data.widgets.forEach(widget => {
                 const widgetElement = createWidget(widget);
                 dashboard.appendChild(widgetElement);
             });
         }
-        
+
         function createWidget(widget) {
             const div = document.createElement('div');
             div.className = 'widget';
-            
+
             let content = '';
-            
+
             if (widget.type === 'metric') {
                 content = `
                     <div class="widget-header">
@@ -974,11 +974,11 @@ async def mobile_app(request: Request):
                     </ul>
                 `;
             }
-            
+
             div.innerHTML = content;
             return div;
         }
-        
+
         async function loadNotifications() {
             try {
                 const data = await fetch('/mobile/notifications?limit=10').then(r => r.json());
@@ -988,21 +988,21 @@ async def mobile_app(request: Request):
                 console.error('Notifications load failed:', error);
             }
         }
-        
+
         function updateNotificationBadge(count) {
             const badge = document.getElementById('notification-count');
             badge.textContent = count;
             badge.style.display = count > 0 ? 'flex' : 'none';
         }
-        
+
         function renderNotifications(notifications) {
             const list = document.getElementById('notifications-list');
-            
+
             if (notifications.length === 0) {
                 list.innerHTML = '<div class="loading">No notifications</div>';
                 return;
             }
-            
+
             list.innerHTML = notifications.map(notif => `
                 <div class="notification-item notification-${notif.severity}" onclick="handleNotificationClick('${notif.notification_id}', '${notif.action_url || ''}')">
                     <div class="notification-title">${notif.title}</div>
@@ -1011,69 +1011,69 @@ async def mobile_app(request: Request):
                 </div>
             `).join('');
         }
-        
+
         function toggleNotifications() {
             const panel = document.getElementById('notifications-panel');
             panel.classList.toggle('open');
         }
-        
+
         async function handleNotificationClick(notificationId, actionUrl) {
             try {
                 // Mark as read
                 await fetch(`/mobile/notifications/${notificationId}/read`, { method: 'POST' });
-                
+
                 // Handle action URL
                 if (actionUrl) {
                     // In a real app, this would navigate to the appropriate section
                     console.log('Navigate to:', actionUrl);
                 }
-                
+
                 // Refresh notifications
                 await loadNotifications();
-                
+
             } catch (error) {
                 console.error('Notification click failed:', error);
             }
         }
-        
+
         // Navigation handlers
         function showDashboard() {
             updateActiveNav(0);
             loadDashboard();
         }
-        
+
         function showThreats() {
             updateActiveNav(1);
             document.getElementById('dashboard').innerHTML = '<div class="loading">🚨 Threat Intelligence Interface Coming Soon</div>';
         }
-        
+
         function showReports() {
             updateActiveNav(2);
             document.getElementById('dashboard').innerHTML = '<div class="loading">📊 Mobile Reports Interface Coming Soon</div>';
         }
-        
+
         function showSettings() {
             updateActiveNav(3);
             document.getElementById('dashboard').innerHTML = '<div class="loading">⚙️ Mobile Settings Interface Coming Soon</div>';
         }
-        
+
         function updateActiveNav(activeIndex) {
             const navItems = document.querySelectorAll('.nav-item');
             navItems.forEach((item, index) => {
                 item.classList.toggle('active', index === activeIndex);
             });
         }
-        
+
         // Handle offline/online status
         window.addEventListener('online', () => {
             console.log('App is online');
             loadDashboard();
         });
-        
+
         window.addEventListener('offline', () => {
             console.log('App is offline');
         });
-        
+
         // Handle visibility change (app resume/pause)
         document.addEventListener('visibilitychange', () => {
             if (!document.hidden) {
@@ -1081,7 +1081,7 @@ async def mobile_app(request: Request):
                 loadNotifications();
             }
         });
-        
+
         // Initialize app when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initApp);
@@ -1135,7 +1135,7 @@ self.addEventListener('push', (event) => {
             url: '/'
         }
     };
-    
+
     event.waitUntil(
         self.registration.showNotification('XORB Security Alert', options)
     );
@@ -1185,7 +1185,7 @@ async def health_check():
         "version": "8.0.0",
         "capabilities": [
             "Progressive Web App",
-            "Mobile-First Design", 
+            "Mobile-First Design",
             "Responsive Layout",
             "Offline Support",
             "Push Notifications",

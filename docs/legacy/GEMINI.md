@@ -43,7 +43,7 @@ XORB is a comprehensive cybersecurity platform designed for threat detection, vu
    ```bash
    # Start services using Docker
    docker-compose -f docker-compose.security.yml up -d
-   
+
    # Run services directly
    python activate_xorb_services.py
    ```

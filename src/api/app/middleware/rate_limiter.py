@@ -239,10 +239,10 @@ class ResourceBudgetManager:
         """Check time-based rate limit using sliding window"""
 
         key = f"rate_limit:{org_id}:{limit_type}"
-        
+
         # Use the new Redis manager rate limiting function
         result = await rate_limit_check(key, limit, window_seconds)
-        
+
         # Update quota usage metric
         current_count = result.get("current_count", 0)
         usage_ratio = current_count / limit if limit > 0 else 0
@@ -270,7 +270,7 @@ class ResourceBudgetManager:
         """Check concurrent resource limit"""
 
         key = f"concurrent:{org_id}:{limit_type}"
-        
+
         if self.redis_manager and self.redis_manager.is_healthy:
             current_value = await self.redis_manager.get(key)
             current_count = int(current_value) if current_value else 0
@@ -298,7 +298,7 @@ class ResourceBudgetManager:
         # This would query the database for current count
         # For now, simulate with Redis
         key = f"static:{org_id}:{limit_type}"
-        
+
         if self.redis_manager and self.redis_manager.is_healthy:
             current_value = await self.redis_manager.get(key)
             current_count = int(current_value) if current_value else 0
@@ -396,14 +396,14 @@ class ResourceBudgetManager:
 
             for resource, window in resources:
                 key = f"rate_limit:{org_id}:{resource}"
-                
+
                 if self.redis_manager and self.redis_manager.is_healthy:
                     now = int(time.time())
                     window_start = now - window
                     current_usage = await self.redis_manager.zcount(key, window_start, now)
                 else:
                     current_usage = 0
-                    
+
                 report["current_usage"][resource] = current_usage
 
                 # Calculate usage ratio
@@ -458,7 +458,7 @@ async def rate_limit_middleware(request: Request, call_next):
         # Create organization entity from headers
         org = Organization.create(name=f"Org-{org_id}", plan_type=plan_type)
         org.id = org_id  # Override with actual ID from header
-        
+
         # Use legacy rate limiter for now - in a full implementation,
         # this would use a proper RateLimitService from the container
         result = await resource_manager.check_rate_limit(
@@ -476,7 +476,7 @@ async def rate_limit_middleware(request: Request, call_next):
                 remaining=result.remaining,
                 reset_time=result.reset_time
             )
-            
+
             # Record metrics
             rate_limit_requests_total.labels(
                 org_id=org_id,
@@ -517,7 +517,7 @@ async def rate_limit_middleware(request: Request, call_next):
         response.headers["X-RateLimit-Resource"] = result.resource_type
 
         return response
-        
+
     except Exception as e:
         logger.error("Rate limiting failed", error=str(e))
         # Fail open - allow request if rate limiting fails

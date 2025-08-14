@@ -42,14 +42,14 @@ async def health_check_template(self) -> ServiceHealth:
             "service_operational": True,
             "dependencies_available": True
         }
-        
+
         all_healthy = all(checks.values())
         status = ServiceStatus.HEALTHY if all_healthy else ServiceStatus.DEGRADED
-        
+
         uptime = 0.0
         if hasattr(self, 'start_time') and self.start_time:
             uptime = (datetime.utcnow() - self.start_time).total_seconds()
-        
+
         return ServiceHealth(
             status=status,
             message="Service operational",

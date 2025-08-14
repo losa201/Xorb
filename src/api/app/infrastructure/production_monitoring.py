@@ -74,7 +74,7 @@ class ProductionMonitoring:
     """
     Production-grade monitoring and observability system
     """
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.registry = CollectorRegistry()
@@ -84,18 +84,18 @@ class ProductionMonitoring:
         self.metric_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self.alert_handlers: List[Callable] = []
         self.last_alert_times: Dict[str, datetime] = {}
-        
+
         # Initialize core metrics
         self._initialize_core_metrics()
         self._load_monitoring_rules()
-        
+
         # Background monitoring task
         self._monitoring_task: Optional[asyncio.Task] = None
         self.running = False
-    
+
     def _initialize_core_metrics(self):
         """Initialize core system metrics"""
-        
+
         # API Performance Metrics
         self.metrics['api_requests_total'] = Counter(
             'xorb_api_requests_total',
@@ -103,20 +103,20 @@ class ProductionMonitoring:
             ['method', 'endpoint', 'status'],
             registry=self.registry
         )
-        
+
         self.metrics['api_request_duration'] = Histogram(
             'xorb_api_request_duration_seconds',
             'API request duration',
             ['method', 'endpoint'],
             registry=self.registry
         )
-        
+
         self.metrics['api_active_connections'] = Gauge(
             'xorb_api_active_connections',
             'Active API connections',
             registry=self.registry
         )
-        
+
         # PTaaS Metrics
         self.metrics['ptaas_scans_total'] = Counter(
             'xorb_ptaas_scans_total',
@@ -124,40 +124,40 @@ class ProductionMonitoring:
             ['scan_type', 'status'],
             registry=self.registry
         )
-        
+
         self.metrics['ptaas_scan_duration'] = Histogram(
             'xorb_ptaas_scan_duration_seconds',
             'PTaaS scan duration',
             ['scan_type'],
             registry=self.registry
         )
-        
+
         self.metrics['ptaas_vulnerabilities_found'] = Counter(
             'xorb_ptaas_vulnerabilities_found_total',
             'Vulnerabilities found by PTaaS',
             ['severity', 'scanner'],
             registry=self.registry
         )
-        
+
         # System Metrics
         self.metrics['system_cpu_percent'] = Gauge(
             'xorb_system_cpu_percent',
             'System CPU usage percentage',
             registry=self.registry
         )
-        
+
         self.metrics['system_memory_percent'] = Gauge(
             'xorb_system_memory_percent',
             'System memory usage percentage',
             registry=self.registry
         )
-        
+
         self.metrics['system_disk_percent'] = Gauge(
             'xorb_system_disk_percent',
             'System disk usage percentage',
             registry=self.registry
         )
-        
+
         # Security Metrics
         self.metrics['auth_attempts_total'] = Counter(
             'xorb_auth_attempts_total',
@@ -165,30 +165,30 @@ class ProductionMonitoring:
             ['result', 'provider'],
             registry=self.registry
         )
-        
+
         self.metrics['security_incidents_total'] = Counter(
             'xorb_security_incidents_total',
             'Security incidents detected',
             ['severity', 'type'],
             registry=self.registry
         )
-        
+
         # Business Metrics
         self.metrics['active_users'] = Gauge(
             'xorb_active_users',
             'Currently active users',
             registry=self.registry
         )
-        
+
         self.metrics['tenant_count'] = Gauge(
             'xorb_tenant_count',
             'Total number of tenants',
             registry=self.registry
         )
-    
+
     def _load_monitoring_rules(self):
         """Load monitoring and alerting rules"""
-        
+
         self.monitoring_rules = [
             # System Performance Rules
             MonitoringRule(
@@ -218,7 +218,7 @@ class ProductionMonitoring:
                 severity=AlertSeverity.HIGH,
                 cooldown_minutes=15
             ),
-            
+
             # API Performance Rules
             MonitoringRule(
                 rule_id="high_api_response_time",
@@ -229,7 +229,7 @@ class ProductionMonitoring:
                 severity=AlertSeverity.MEDIUM,
                 cooldown_minutes=3
             ),
-            
+
             # Security Rules
             MonitoringRule(
                 rule_id="high_failed_auth_rate",
@@ -240,7 +240,7 @@ class ProductionMonitoring:
                 severity=AlertSeverity.HIGH,
                 cooldown_minutes=2
             ),
-            
+
             # PTaaS Rules
             MonitoringRule(
                 rule_id="critical_vulnerabilities_found",
@@ -252,24 +252,24 @@ class ProductionMonitoring:
                 cooldown_minutes=1
             )
         ]
-    
+
     # ========================================================================
     # METRICS COLLECTION
     # ========================================================================
-    
+
     async def start_monitoring(self):
         """Start background monitoring"""
-        
+
         if self.running:
             return
-        
+
         self.running = True
         self._monitoring_task = asyncio.create_task(self._monitoring_loop())
         logger.info("Production monitoring started")
-    
+
     async def stop_monitoring(self):
         """Stop background monitoring"""
-        
+
         self.running = False
         if self._monitoring_task:
             self._monitoring_task.cancel()
@@ -277,56 +277,56 @@ class ProductionMonitoring:
                 await self._monitoring_task
             except asyncio.CancelledError:
                 pass
-        
+
         logger.info("Production monitoring stopped")
-    
+
     async def _monitoring_loop(self):
         """Main monitoring loop"""
-        
+
         while self.running:
             try:
                 # Collect system metrics
                 await self._collect_system_metrics()
-                
+
                 # Evaluate monitoring rules
                 await self._evaluate_monitoring_rules()
-                
+
                 # Wait before next collection
                 await asyncio.sleep(30)  # Collect every 30 seconds
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Error in monitoring loop: {e}")
                 await asyncio.sleep(60)  # Wait longer on error
-    
+
     async def _collect_system_metrics(self):
         """Collect comprehensive system metrics"""
-        
+
         try:
             # CPU metrics
             cpu_percent = psutil.cpu_percent(interval=1)
             self.metrics['system_cpu_percent'].set(cpu_percent)
             self._record_metric_history('system_cpu_percent', cpu_percent)
-            
+
             # Memory metrics
             memory = psutil.virtual_memory()
             memory_percent = memory.percent
             self.metrics['system_memory_percent'].set(memory_percent)
             self._record_metric_history('system_memory_percent', memory_percent)
-            
+
             # Disk metrics
             disk = psutil.disk_usage('/')
             disk_percent = (disk.used / disk.total) * 100
             self.metrics['system_disk_percent'].set(disk_percent)
             self._record_metric_history('system_disk_percent', disk_percent)
-            
+
             # Network I/O
             network_io = psutil.net_io_counters()
-            
+
             # Process count
             process_count = len(psutil.pids())
-            
+
             # Create system metrics snapshot
             system_metrics = SystemMetrics(
                 cpu_percent=cpu_percent,
@@ -340,47 +340,47 @@ class ProductionMonitoring:
                 process_count=process_count,
                 timestamp=datetime.utcnow()
             )
-            
+
             # Store in history
             self._record_metric_history('system_metrics', asdict(system_metrics))
-            
+
         except Exception as e:
             logger.error(f"Error collecting system metrics: {e}")
-    
+
     def _record_metric_history(self, metric_name: str, value: Any):
         """Record metric value in history"""
-        
+
         self.metric_history[metric_name].append({
             'timestamp': datetime.utcnow(),
             'value': value
         })
-    
+
     # ========================================================================
     # METRIC RECORDING
     # ========================================================================
-    
+
     def record_api_request(
-        self, 
-        method: str, 
-        endpoint: str, 
-        status_code: int, 
+        self,
+        method: str,
+        endpoint: str,
+        status_code: int,
         duration: float
     ):
         """Record API request metrics"""
-        
+
         # Request counter
         self.metrics['api_requests_total'].labels(
             method=method,
             endpoint=endpoint,
             status=str(status_code)
         ).inc()
-        
+
         # Duration histogram
         self.metrics['api_request_duration'].labels(
             method=method,
             endpoint=endpoint
         ).observe(duration)
-        
+
         # Check for slow requests
         if duration > 2.0:
             asyncio.create_task(self._trigger_alert(
@@ -394,27 +394,27 @@ class ProductionMonitoring:
                     "status_code": status_code
                 }
             ))
-    
+
     def record_ptaas_scan(
-        self, 
-        scan_type: str, 
-        status: str, 
+        self,
+        scan_type: str,
+        status: str,
         duration: float,
         vulnerabilities: Dict[str, int] = None
     ):
         """Record PTaaS scan metrics"""
-        
+
         # Scan counter
         self.metrics['ptaas_scans_total'].labels(
             scan_type=scan_type,
             status=status
         ).inc()
-        
+
         # Duration histogram
         self.metrics['ptaas_scan_duration'].labels(
             scan_type=scan_type
         ).observe(duration)
-        
+
         # Vulnerability metrics
         if vulnerabilities:
             for severity, count in vulnerabilities.items():
@@ -422,7 +422,7 @@ class ProductionMonitoring:
                     severity=severity,
                     scanner=scan_type
                 ).inc(count)
-                
+
                 # Alert on critical vulnerabilities
                 if severity == "critical" and count > 0:
                     asyncio.create_task(self._trigger_alert(
@@ -435,23 +435,23 @@ class ProductionMonitoring:
                             "total_vulnerabilities": vulnerabilities
                         }
                     ))
-    
+
     def record_auth_attempt(self, result: str, provider: str):
         """Record authentication attempt"""
-        
+
         self.metrics['auth_attempts_total'].labels(
             result=result,
             provider=provider
         ).inc()
-    
+
     def record_security_incident(self, severity: str, incident_type: str):
         """Record security incident"""
-        
+
         self.metrics['security_incidents_total'].labels(
             severity=severity,
             type=incident_type
         ).inc()
-        
+
         # Auto-alert on security incidents
         asyncio.create_task(self._trigger_alert(
             "security_incident",
@@ -462,24 +462,24 @@ class ProductionMonitoring:
                 "severity": severity
             }
         ))
-    
+
     def update_business_metrics(self, active_users: int, tenant_count: int):
         """Update business metrics"""
-        
+
         self.metrics['active_users'].set(active_users)
         self.metrics['tenant_count'].set(tenant_count)
-    
+
     # ========================================================================
     # ALERTING
     # ========================================================================
-    
+
     async def _evaluate_monitoring_rules(self):
         """Evaluate all monitoring rules for alerts"""
-        
+
         for rule in self.monitoring_rules:
             if not rule.enabled:
                 continue
-            
+
             try:
                 # Check cooldown
                 last_alert = self.last_alert_times.get(rule.rule_id)
@@ -487,48 +487,48 @@ class ProductionMonitoring:
                     cooldown_end = last_alert + timedelta(minutes=rule.cooldown_minutes)
                     if datetime.utcnow() < cooldown_end:
                         continue
-                
+
                 # Get current metric value
                 current_value = await self._get_metric_value(rule.metric_name)
                 if current_value is None:
                     continue
-                
+
                 # Evaluate condition
                 triggered = self._evaluate_condition(
                     current_value, rule.condition, rule.threshold
                 )
-                
+
                 if triggered:
                     await self._trigger_rule_alert(rule, current_value)
-                
+
             except Exception as e:
                 logger.error(f"Error evaluating rule {rule.rule_id}: {e}")
-    
+
     async def _get_metric_value(self, metric_name: str) -> Optional[float]:
         """Get current value for a metric"""
-        
+
         try:
             if metric_name in self.metric_history:
                 history = self.metric_history[metric_name]
                 if history:
                     latest = history[-1]
                     value = latest.get('value')
-                    
+
                     # Handle different value types
                     if isinstance(value, (int, float)):
                         return float(value)
                     elif isinstance(value, dict) and 'cpu_percent' in value:
                         return float(value['cpu_percent'])
-                    
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting metric value for {metric_name}: {e}")
             return None
-    
+
     def _evaluate_condition(self, value: float, condition: str, threshold: float) -> bool:
         """Evaluate monitoring condition"""
-        
+
         if condition == ">":
             return value > threshold
         elif condition == "<":
@@ -539,12 +539,12 @@ class ProductionMonitoring:
             return value <= threshold
         elif condition == "==":
             return abs(value - threshold) < 0.001
-        
+
         return False
-    
+
     async def _trigger_rule_alert(self, rule: MonitoringRule, current_value: float):
         """Trigger alert for monitoring rule"""
-        
+
         await self._trigger_alert(
             rule.rule_id,
             f"{rule.name}: {rule.metric_name} is {current_value:.2f} (threshold: {rule.threshold})",
@@ -557,19 +557,19 @@ class ProductionMonitoring:
                 "condition": rule.condition
             }
         )
-        
+
         # Update last alert time
         self.last_alert_times[rule.rule_id] = datetime.utcnow()
-    
+
     async def _trigger_alert(
-        self, 
-        alert_id: str, 
-        description: str, 
+        self,
+        alert_id: str,
+        description: str,
         severity: AlertSeverity,
         metadata: Dict[str, Any] = None
     ):
         """Trigger alert"""
-        
+
         alert = Alert(
             alert_id=alert_id,
             name=alert_id.replace("_", " ").title(),
@@ -579,33 +579,33 @@ class ProductionMonitoring:
             source="xorb_monitoring",
             metadata=metadata or {}
         )
-        
+
         self.alerts.append(alert)
-        
+
         # Notify alert handlers
         for handler in self.alert_handlers:
             try:
                 await handler(alert)
             except Exception as e:
                 logger.error(f"Error in alert handler: {e}")
-        
+
         logger.warning(f"Alert triggered: {alert.name} - {alert.description}")
-    
+
     def add_alert_handler(self, handler: Callable):
         """Add alert handler"""
         self.alert_handlers.append(handler)
-    
+
     # ========================================================================
     # METRICS EXPORT
     # ========================================================================
-    
+
     def get_prometheus_metrics(self) -> str:
         """Get metrics in Prometheus format"""
         return generate_latest(self.registry).decode('utf-8')
-    
+
     def get_metrics_summary(self) -> Dict[str, Any]:
         """Get metrics summary"""
-        
+
         summary = {
             "timestamp": datetime.utcnow().isoformat(),
             "system": {},
@@ -614,28 +614,28 @@ class ProductionMonitoring:
             "security": {},
             "business": {}
         }
-        
+
         # Get latest system metrics
         if 'system_metrics' in self.metric_history:
             latest_system = self.metric_history['system_metrics']
             if latest_system:
                 summary["system"] = latest_system[-1]['value']
-        
+
         # Calculate API metrics
         summary["api"] = {
             "total_requests": self._get_counter_value('api_requests_total'),
             "avg_response_time": self._get_histogram_avg('api_request_duration')
         }
-        
+
         # Calculate PTaaS metrics
         summary["ptaas"] = {
             "total_scans": self._get_counter_value('ptaas_scans_total'),
             "avg_scan_duration": self._get_histogram_avg('ptaas_scan_duration'),
             "vulnerabilities_found": self._get_counter_value('ptaas_vulnerabilities_found')
         }
-        
+
         return summary
-    
+
     def _get_counter_value(self, metric_name: str) -> float:
         """Get counter metric value"""
         try:
@@ -645,7 +645,7 @@ class ProductionMonitoring:
         except:
             pass
         return 0.0
-    
+
     def _get_histogram_avg(self, metric_name: str) -> float:
         """Get histogram average value"""
         try:
@@ -658,14 +658,14 @@ class ProductionMonitoring:
         except:
             pass
         return 0.0
-    
+
     # ========================================================================
     # ALERT MANAGEMENT
     # ========================================================================
-    
+
     def get_active_alerts(self) -> List[Dict[str, Any]]:
         """Get all active alerts"""
-        
+
         active_alerts = []
         for alert in self.alerts:
             if not alert.resolved:
@@ -678,38 +678,38 @@ class ProductionMonitoring:
                     "acknowledged": alert.acknowledged,
                     "metadata": alert.metadata
                 })
-        
+
         return active_alerts
-    
+
     def acknowledge_alert(self, alert_id: str) -> bool:
         """Acknowledge an alert"""
-        
+
         for alert in self.alerts:
             if alert.alert_id == alert_id and not alert.resolved:
                 alert.acknowledged = True
                 logger.info(f"Alert acknowledged: {alert_id}")
                 return True
-        
+
         return False
-    
+
     def resolve_alert(self, alert_id: str) -> bool:
         """Resolve an alert"""
-        
+
         for alert in self.alerts:
             if alert.alert_id == alert_id:
                 alert.resolved = True
                 logger.info(f"Alert resolved: {alert_id}")
                 return True
-        
+
         return False
-    
+
     # ========================================================================
     # HEALTH CHECK
     # ========================================================================
-    
+
     def get_health_status(self) -> Dict[str, Any]:
         """Get monitoring system health status"""
-        
+
         return {
             "monitoring_active": self.running,
             "rules_count": len(self.monitoring_rules),
@@ -728,36 +728,36 @@ class ProductionMonitoring:
 
 async def webhook_alert_handler(alert: Alert):
     """Send alert via webhook"""
-    
+
     webhook_urls = {
         "slack": os.getenv("SLACK_WEBHOOK_URL"),
         "teams": os.getenv("TEAMS_WEBHOOK_URL"),
         "discord": os.getenv("DISCORD_WEBHOOK_URL"),
         "pagerduty": os.getenv("PAGERDUTY_API_URL")
     }
-    
+
     for service, url in webhook_urls.items():
         if url:
             await _send_webhook_alert(alert, service, url)
 
 async def _send_webhook_alert(alert: Alert, service: str, webhook_url: str):
     """Send alert to specific webhook service"""
-    
+
     try:
         payload = _format_alert_payload(alert, service)
-        
+
         async with httpx.AsyncClient(timeout=10.0) as client:
             response = await client.post(webhook_url, json=payload)
             response.raise_for_status()
-            
+
         logger.info(f"Alert sent to {service}: {alert.alert_id}")
-        
+
     except Exception as e:
         logger.error(f"Failed to send alert to {service}: {e}")
 
 def _format_alert_payload(alert: Alert, service: str) -> Dict[str, Any]:
     """Format alert for specific service"""
-    
+
     if service == "slack":
         return {
             "text": f"🚨 XORB Alert: {alert.name}",
@@ -771,7 +771,7 @@ def _format_alert_payload(alert: Alert, service: str) -> Dict[str, Any]:
                 ]
             }]
         }
-    
+
     elif service == "teams":
         return {
             "@type": "MessageCard",
@@ -788,7 +788,7 @@ def _format_alert_payload(alert: Alert, service: str) -> Dict[str, Any]:
                 ]
             }]
         }
-    
+
     # Default generic format
     return {
         "alert_id": alert.alert_id,
@@ -802,7 +802,7 @@ def _format_alert_payload(alert: Alert, service: str) -> Dict[str, Any]:
 
 def _get_alert_color(severity: AlertSeverity) -> str:
     """Get color for alert severity"""
-    
+
     colors = {
         AlertSeverity.CRITICAL: "#FF0000",  # Red
         AlertSeverity.HIGH: "#FF8C00",      # Orange
@@ -810,5 +810,5 @@ def _get_alert_color(severity: AlertSeverity) -> str:
         AlertSeverity.LOW: "#00CED1",       # Light Blue
         AlertSeverity.INFO: "#808080"       # Gray
     }
-    
+
     return colors.get(severity, "#808080")

@@ -30,7 +30,7 @@ variable "node_region" {
   default     = "eu-central"
   validation {
     condition = contains([
-      "eu-central", "us-east", "us-west", 
+      "eu-central", "us-east", "us-west",
       "asia-pacific", "eu-west", "ca-central"
     ], var.node_region)
     error_message = "Node region must be a valid deployment region."
@@ -106,9 +106,9 @@ locals {
       monitoring     = "sovereign"
     }
   }
-  
+
   current_config = local.node_configs[var.node_tier]
-  
+
   # Compliance-specific configurations
   compliance_config = {
     GDPR = {
@@ -147,7 +147,7 @@ resource "tls_private_key" "xorb_node_key" {
 resource "hcloud_ssh_key" "xorb_node_ssh" {
   name       = "xorb-node-${var.node_region}-${random_id.node_id.hex}"
   public_key = tls_private_key.xorb_node_key.public_key_openssh
-  
+
   labels = {
     node_region = var.node_region
     node_tier   = var.node_tier
@@ -165,7 +165,7 @@ resource "random_id" "node_id" {
 resource "hcloud_network" "xorb_network" {
   name     = "xorb-network-${var.node_region}-${random_id.node_id.hex}"
   ip_range = "10.0.0.0/16"
-  
+
   labels = {
     node_region = var.node_region
     node_tier   = var.node_tier
@@ -183,7 +183,7 @@ resource "hcloud_network_subnet" "xorb_subnet" {
 # Security group with zero-trust principles
 resource "hcloud_firewall" "xorb_firewall" {
   name = "xorb-firewall-${var.node_region}-${random_id.node_id.hex}"
-  
+
   labels = {
     node_region = var.node_region
     node_tier   = var.node_tier
@@ -257,7 +257,7 @@ resource "hcloud_firewall" "xorb_firewall" {
 # Cloud-init configuration for hardened XORB node
 data "template_file" "cloud_init" {
   template = file("${path.module}/cloud-init-xorb-node.yml")
-  
+
   vars = {
     node_id               = random_id.node_id.hex
     node_region          = var.node_region
@@ -276,17 +276,17 @@ resource "hcloud_server" "xorb_nodes" {
   image       = "ubuntu-22.04"
   server_type = local.current_config.server_type
   location    = "fsn1"  # Hetzner Falkenstein (EU)
-  
+
   ssh_keys  = [hcloud_ssh_key.xorb_node_ssh.id]
   firewall_ids = [hcloud_firewall.xorb_firewall.id]
-  
+
   user_data = base64gzip(data.template_file.cloud_init.rendered)
-  
+
   network {
     network_id = hcloud_network.xorb_network.id
     ip         = "10.0.1.${count.index + 10}"
   }
-  
+
   labels = {
     node_region   = var.node_region
     node_tier     = var.node_tier
@@ -308,7 +308,7 @@ resource "hcloud_volume" "xorb_storage" {
   name     = "xorb-storage-${var.node_region}-${count.index + 1}-${random_id.node_id.hex}"
   size     = local.current_config.storage_size
   location = "fsn1"
-  
+
   labels = {
     node_region = var.node_region
     node_tier   = var.node_tier
@@ -330,7 +330,7 @@ resource "hcloud_load_balancer" "xorb_lb" {
   name               = "xorb-lb-${var.node_region}-${random_id.node_id.hex}"
   load_balancer_type = var.node_tier == "government" ? "lb21" : "lb11"
   location           = "fsn1"
-  
+
   labels = {
     node_region = var.node_region
     node_tier   = var.node_tier
@@ -350,7 +350,7 @@ resource "hcloud_load_balancer_service" "xorb_https" {
   protocol         = "https"
   listen_port      = 443
   destination_port = 8080
-  
+
   health_check {
     protocol = "http"
     port     = 8080
@@ -362,7 +362,7 @@ resource "hcloud_load_balancer_service" "xorb_https" {
       status_codes = ["2??", "3??"]
     }
   }
-  
+
   http {
     sticky_sessions = true
     redirect_http   = true
@@ -388,7 +388,7 @@ resource "cloudflare_record" "xorb_node_dns" {
   value   = hcloud_load_balancer.xorb_lb.ipv4
   type    = "A"
   proxied = true
-  
+
   comment = "XORB federated node - ${var.node_region}"
 }
 
@@ -400,7 +400,7 @@ resource "cloudflare_record" "xorb_node_dns_ipv6" {
   value   = hcloud_load_balancer.xorb_lb.ipv6
   type    = "AAAA"
   proxied = true
-  
+
   comment = "XORB federated node IPv6 - ${var.node_region}"
 }
 
@@ -408,7 +408,7 @@ resource "cloudflare_record" "xorb_node_dns_ipv6" {
 resource "hcloud_server_backup" "xorb_backup" {
   count     = local.current_config.backup_enabled ? local.current_config.node_count : 0
   server_id = hcloud_server.xorb_nodes[count.index].id
-  
+
   labels = {
     node_region = var.node_region
     node_tier   = var.node_tier

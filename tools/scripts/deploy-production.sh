@@ -84,7 +84,7 @@ execute_with_retry() {
     local max_attempts="${2:-3}"
     local retry_delay="${3:-10}"
     local attempt=1
-    
+
     while [ $attempt -le $max_attempts ]; do
         if eval "$cmd"; then
             return 0
@@ -117,20 +117,20 @@ wait_for_condition() {
     local timeout="${3:-300}"
     local check_interval="${4:-10}"
     local elapsed=0
-    
+
     info "⏳ Waiting for: $description (timeout: ${timeout}s)"
-    
+
     while [ $elapsed -lt $timeout ]; do
         if eval "$condition"; then
             log "✅ Condition met: $description"
             return 0
         fi
-        
+
         sleep $check_interval
         elapsed=$((elapsed + check_interval))
         debug "Still waiting for: $description (${elapsed}/${timeout}s)"
     done
-    
+
     error "Timeout waiting for: $description"
     return 1
 }
@@ -138,43 +138,43 @@ wait_for_condition() {
 # Prerequisites and environment validation
 check_prerequisites() {
     step "🔍 Checking deployment prerequisites"
-    
+
     # Check required commands
     local required_commands=("kubectl" "helm" "docker" "git" "python3")
     for cmd in "${required_commands[@]}"; do
         check_command "$cmd" || exit 1
     done
-    
+
     # Check Kubernetes cluster access
     if ! kubectl cluster-info &> /dev/null; then
         error "Cannot connect to Kubernetes cluster"
         exit 1
     fi
-    
+
     # Check cluster version compatibility
     local k8s_version=$(kubectl version --short --client=false | grep Server | awk '{print $3}' | sed 's/v//')
     local major_version=$(echo "$k8s_version" | cut -d. -f1)
     local minor_version=$(echo "$k8s_version" | cut -d. -f2)
-    
+
     if [ "$major_version" -lt 1 ] || ([ "$major_version" -eq 1 ] && [ "$minor_version" -lt 24 ]); then
         error "Kubernetes version $k8s_version is not supported. Minimum required: 1.24"
         exit 1
     fi
-    
+
     # Check node resources
     local node_count=$(kubectl get nodes --no-headers | wc -l)
     if [ "$node_count" -lt "$MIN_NODES" ]; then
         error "Insufficient nodes: $node_count (minimum: $MIN_NODES)"
         exit 1
     fi
-    
+
     # Check available disk space
     local available_space=$(df / | awk 'NR==2 {print $4}')
     if [ "$available_space" -lt 20971520 ]; then # 20GB in KB
         error "Insufficient disk space. At least 20GB required"
         exit 1
     fi
-    
+
     # Check for required container images
     local required_images=("redis:7-alpine" "postgres:14-alpine")
     for image in "${required_images[@]}"; do
@@ -182,7 +182,7 @@ check_prerequisites() {
             warn "Unable to pull image: $image"
         fi
     done
-    
+
     # Check Helm version
     local helm_version=$(helm version --short | grep -o 'v[0-9]\+\.[0-9]\+\.[0-9]\+' | sed 's/v//')
     local helm_major=$(echo "$helm_version" | cut -d. -f1)
@@ -190,61 +190,61 @@ check_prerequisites() {
         error "Helm version $helm_version is not supported. Minimum required: 3.0"
         exit 1
     fi
-    
+
     log "✅ Prerequisites check completed successfully"
 }
 
 validate_environment() {
     step "⚙️ Validating deployment environment"
-    
+
     # Check required environment variables
     local required_vars=(
         "POSTGRES_PASSWORD"
         "REDIS_PASSWORD"
         "JWT_SECRET"
     )
-    
+
     for var in "${required_vars[@]}"; do
         if [ -z "${!var:-}" ]; then
             error "Required environment variable $var is not set"
             exit 1
         fi
     done
-    
+
     # Validate configuration files
     local config_files=(
         "k8s/autonomous-orchestrator-deployment.yaml"
         "docs/AUTONOMOUS_ORCHESTRATOR_ARCHITECTURE.md"
         "xorb_core/api/autonomous_api_gateway.py"
     )
-    
+
     for config_file in "${config_files[@]}"; do
         if [ ! -f "$config_file" ]; then
             error "Required configuration file not found: $config_file"
             exit 1
         fi
     done
-    
+
     # Validate Kubernetes manifests
     if ! kubectl apply --dry-run=client -f k8s/autonomous-orchestrator-deployment.yaml &> /dev/null; then
         error "Invalid Kubernetes manifests"
         exit 1
     fi
-    
+
     # Check namespace
     if ! kubectl get namespace "$NAMESPACE" &> /dev/null; then
         info "Creating namespace: $NAMESPACE"
         kubectl create namespace "$NAMESPACE"
         kubectl label namespace "$NAMESPACE" istio-injection=enabled
     fi
-    
+
     log "✅ Environment validation completed"
 }
 
 create_backup() {
     if [ "$BACKUP_BEFORE_DEPLOY" = "true" ]; then
         step "💾 Creating comprehensive backup"
-        
+
         # Create backup metadata
         cat > "$BACKUP_DIR/metadata.json" << EOF
 {
@@ -255,11 +255,11 @@ create_backup() {
     "namespace": "$NAMESPACE"
 }
 EOF
-        
+
         # Backup Kubernetes resources
         info "📋 Backing up Kubernetes resources"
         kubectl get all,configmaps,secrets,pvc -n "$NAMESPACE" -o yaml > "$BACKUP_DIR/k8s-resources.yaml" 2>/dev/null || true
-        
+
         # Backup Redis data if running
         if kubectl get pods -n "$NAMESPACE" -l app=redis --no-headers 2>/dev/null | grep -q Running; then
             info "📊 Backing up Redis data"
@@ -267,30 +267,30 @@ EOF
             kubectl exec "$redis_pod" -n "$NAMESPACE" -- redis-cli BGSAVE
             kubectl cp "$NAMESPACE/$redis_pod:/data/dump.rdb" "$BACKUP_DIR/redis-backup.rdb"
         fi
-        
+
         # Backup PostgreSQL data if running
         if kubectl get pods -n "$NAMESPACE" -l app=postgres --no-headers 2>/dev/null | grep -q Running; then
             info "📊 Backing up PostgreSQL data"
             local postgres_pod=$(kubectl get pods -n "$NAMESPACE" -l app=postgres -o jsonpath='{.items[0].metadata.name}')
             kubectl exec "$postgres_pod" -n "$NAMESPACE" -- pg_dumpall -U postgres > "$BACKUP_DIR/postgres-backup.sql"
         fi
-        
+
         # Backup application configuration
         cp -r . "$BACKUP_DIR/source-backup" 2>/dev/null || true
-        
+
         # Create backup archive
         tar -czf "${BACKUP_DIR}.tar.gz" -C "$(dirname "$BACKUP_DIR")" "$(basename "$BACKUP_DIR")"
-        
+
         # Store backup location for rollback
         echo "$BACKUP_DIR" > /tmp/xorb_backup_location
-        
+
         log "✅ Backup completed: ${BACKUP_DIR}.tar.gz"
     fi
 }
 
 deploy_infrastructure() {
     step "🏗️ Deploying infrastructure components"
-    
+
     # Deploy namespace and RBAC
     info "🔒 Setting up namespace and RBAC"
     kubectl apply -f - << EOF
@@ -333,7 +333,7 @@ subjects:
   name: xorb-orchestrator
   namespace: $NAMESPACE
 EOF
-    
+
     # Create secrets
     info "🔐 Creating application secrets"
     kubectl create secret generic xorb-orchestrator-secrets \
@@ -342,7 +342,7 @@ EOF
         --from-literal=postgres-password="$POSTGRES_PASSWORD" \
         --namespace="$NAMESPACE" \
         --dry-run=client -o yaml | kubectl apply -f -
-    
+
     # Deploy Redis cluster
     info "⚡ Deploying Redis cluster"
     kubectl apply -f - << EOF
@@ -437,31 +437,31 @@ spec:
     name: redis
   type: ClusterIP
 EOF
-    
+
     # Wait for Redis to be ready
     wait_for_condition "Redis deployment" \
         "kubectl get pods -n $NAMESPACE -l app=redis --no-headers | grep -q Running" \
         300 10
-    
+
     log "✅ Infrastructure deployment completed"
 }
 
 deploy_orchestrator() {
     step "🤖 Deploying XORB Autonomous Orchestrator"
-    
+
     # Apply the main orchestrator deployment
     info "🚀 Applying orchestrator manifests"
     kubectl apply -f k8s/autonomous-orchestrator-deployment.yaml
-    
+
     # Wait for orchestrator pods to be ready
     wait_for_condition "Orchestrator pods ready" \
         "[ \$(kubectl get pods -n $NAMESPACE -l app=xorb-orchestrator --field-selector=status.phase=Running --no-headers | wc -l) -ge $ORCHESTRATOR_REPLICAS ]" \
         $HEALTH_CHECK_TIMEOUT 15
-    
+
     # Verify services are accessible
     info "🔍 Verifying service endpoints"
     local orchestrator_service="xorb-orchestrator.$NAMESPACE.svc.cluster.local"
-    
+
     # Test internal connectivity
     kubectl run test-connectivity --rm -i --tty --restart=Never \
         --image=curlimages/curl:latest \
@@ -469,13 +469,13 @@ deploy_orchestrator() {
         -- curl -f -s "http://$orchestrator_service:8080/health" || {
         warn "Health check endpoint not responding"
     }
-    
+
     log "✅ Orchestrator deployment completed"
 }
 
 run_health_checks() {
     step "🏥 Running comprehensive health checks"
-    
+
     # Check pod health
     info "📋 Checking pod status"
     local unhealthy_pods=$(kubectl get pods -n "$NAMESPACE" --field-selector=status.phase!=Running --no-headers | wc -l)
@@ -484,7 +484,7 @@ run_health_checks() {
         kubectl get pods -n "$NAMESPACE" --field-selector=status.phase!=Running
         return 1
     fi
-    
+
     # Check service endpoints
     info "🌐 Checking service endpoints"
     local services=("redis-service" "xorb-orchestrator")
@@ -494,7 +494,7 @@ run_health_checks() {
             return 1
         fi
     done
-    
+
     # Test Redis connectivity
     info "⚡ Testing Redis connectivity"
     local redis_pod=$(kubectl get pods -n "$NAMESPACE" -l app=redis -o jsonpath='{.items[0].metadata.name}')
@@ -502,7 +502,7 @@ run_health_checks() {
         error "Redis connectivity test failed"
         return 1
     fi
-    
+
     # Test orchestrator API
     info "🤖 Testing orchestrator API"
     local orchestrator_pod=$(kubectl get pods -n "$NAMESPACE" -l app=xorb-orchestrator -o jsonpath='{.items[0].metadata.name}')
@@ -510,7 +510,7 @@ run_health_checks() {
         error "Orchestrator API health check failed"
         return 1
     fi
-    
+
     log "✅ All health checks passed"
 }
 
@@ -519,13 +519,13 @@ run_integration_tests() {
         warn "⏭️ Skipping integration tests (SKIP_TESTS=true)"
         return 0
     fi
-    
+
     step "🧪 Running integration tests"
-    
+
     # Test agent discovery and registration
     info "🔍 Testing agent discovery"
     local test_pod_name="xorb-integration-test-$(date +%s)"
-    
+
     kubectl run "$test_pod_name" \
         --image=python:3.11-slim \
         --namespace="$NAMESPACE" \
@@ -542,13 +542,13 @@ try:
     if response.status_code != 200:
         print('Health check failed')
         sys.exit(1)
-    
+
     # Test orchestrator status
     response = requests.get('http://xorb-orchestrator:8080/ready', timeout=10)
     if response.status_code != 200:
         print('Readiness check failed')
         sys.exit(1)
-    
+
     print('✅ Integration tests passed')
 except Exception as e:
     print(f'❌ Integration test failed: {e}')
@@ -558,7 +558,7 @@ except Exception as e:
         error "Integration tests failed"
         return 1
     }
-    
+
     log "✅ Integration tests completed"
 }
 
@@ -567,9 +567,9 @@ setup_monitoring() {
         warn "⏭️ Skipping monitoring setup (ENABLE_MONITORING=false)"
         return 0
     fi
-    
+
     step "📊 Setting up monitoring and observability"
-    
+
     # Deploy Prometheus ServiceMonitor
     info "🔍 Deploying Prometheus monitoring"
     kubectl apply -f - << EOF
@@ -590,14 +590,14 @@ spec:
     path: /metrics
     honorLabels: true
 EOF
-    
+
     # Create Grafana dashboard ConfigMap
     info "📈 Creating Grafana dashboard"
     kubectl create configmap xorb-orchestrator-dashboard \
         --from-file=config/grafana_dashboard.json \
         --namespace=monitoring \
         --dry-run=client -o yaml | kubectl apply -f - || warn "Could not create Grafana dashboard"
-    
+
     log "✅ Monitoring setup completed"
 }
 
@@ -606,40 +606,40 @@ validate_security() {
         warn "⏭️ Skipping security validation (VALIDATE_SECURITY=false)"
         return 0
     fi
-    
+
     step "🔒 Running security validation"
-    
+
     # Check pod security contexts
     info "🛡️ Validating pod security contexts"
     local pods_without_security_context=$(kubectl get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{"Pod: "}{.metadata.name}{"\n"}{range .spec.containers[*]}{"  Container: "}{.name}{" SecurityContext: "}{.securityContext}{"\n"}{end}{end}' | grep 'SecurityContext: <no value>' | wc -l)
-    
+
     if [ "$pods_without_security_context" -gt 0 ]; then
         warn "Found $pods_without_security_context containers without security context"
     fi
-    
+
     # Check for privileged containers
     info "🚫 Checking for privileged containers"
     local privileged_containers=$(kubectl get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{range .spec.containers[*]}{.securityContext.privileged}{"\n"}{end}{end}' | grep -c true || echo 0)
-    
+
     if [ "$privileged_containers" -gt 0 ]; then
         error "Found $privileged_containers privileged containers"
         return 1
     fi
-    
+
     # Verify network policies are in place
     info "🌐 Checking network policies"
     if ! kubectl get networkpolicies -n "$NAMESPACE" | grep -q xorb-orchestrator-netpol; then
         warn "Network policy not found - services may be overly exposed"
     fi
-    
+
     # Check for secrets in environment variables
     info "🔐 Validating secret management"
     local pods_with_secret_envs=$(kubectl get pods -n "$NAMESPACE" -o jsonpath='{range .items[*]}{range .spec.containers[*]}{range .env[*]}{.valueFrom.secretKeyRef.name}{"\n"}{end}{end}{end}' | grep -v "^$" | wc -l)
-    
+
     if [ "$pods_with_secret_envs" -eq 0 ]; then
         warn "No secrets found in environment variables - verify secret management"
     fi
-    
+
     log "✅ Security validation completed"
 }
 
@@ -648,32 +648,32 @@ rollback_deployment() {
         warn "⏭️ Rollback disabled (ROLLBACK_ON_FAILURE=false)"
         return 0
     fi
-    
+
     if [ ! -f /tmp/xorb_backup_location ]; then
         error "No backup location found for rollback"
         return 1
     fi
-    
+
     local backup_location=$(cat /tmp/xorb_backup_location)
     step "🔄 Rolling back deployment"
-    
+
     warn "🔄 Initiating rollback to backup: $backup_location"
-    
+
     # Delete current deployment
     info "🗑️ Removing current deployment"
     kubectl delete -f k8s/autonomous-orchestrator-deployment.yaml --ignore-not-found=true || true
-    
+
     # Wait for pods to terminate
     wait_for_condition "Pods terminated" \
         "[ \$(kubectl get pods -n $NAMESPACE -l app=xorb-orchestrator --no-headers | wc -l) -eq 0 ]" \
         120 5
-    
+
     # Restore from backup if available
     if [ -f "$backup_location/k8s-resources.yaml" ]; then
         info "📋 Restoring Kubernetes resources"
         kubectl apply -f "$backup_location/k8s-resources.yaml" || warn "Failed to restore some resources"
     fi
-    
+
     # Restore Redis data if available
     if [ -f "$backup_location/redis-backup.rdb" ]; then
         info "⚡ Restoring Redis data"
@@ -683,13 +683,13 @@ rollback_deployment() {
             kubectl exec "$redis_pod" -n "$NAMESPACE" -- redis-cli --pass "$REDIS_PASSWORD" DEBUG RESTART || warn "Failed to restart Redis"
         fi
     fi
-    
+
     log "✅ Rollback completed"
 }
 
 generate_deployment_report() {
     step "📋 Generating deployment report"
-    
+
     # Collect deployment statistics
     local pod_count=$(kubectl get pods -n "$NAMESPACE" --no-headers | wc -l)
     local running_pods=$(kubectl get pods -n "$NAMESPACE" --field-selector=status.phase=Running --no-headers | wc -l)
@@ -697,7 +697,7 @@ generate_deployment_report() {
     local deployment_end_time=$(date +%s)
     local deployment_start_time=$(cat /tmp/xorb_deployment_start_time 2>/dev/null || echo "$deployment_end_time")
     local deployment_duration=$((deployment_end_time - deployment_start_time))
-    
+
     # Generate comprehensive report
     cat > "$REPORT_FILE" << EOF
 {
@@ -768,7 +768,7 @@ generate_deployment_report() {
   ]
 }
 EOF
-    
+
     log "✅ Deployment report generated: $REPORT_FILE"
 }
 
@@ -812,7 +812,7 @@ print_deployment_summary() {
     echo ""
     echo -e "${YELLOW}⚠️  NEXT STEPS:${NC}"
     echo "  1. Configure external access (Ingress/LoadBalancer)"
-    echo "  2. Set up SSL/TLS certificates"  
+    echo "  2. Set up SSL/TLS certificates"
     echo "  3. Configure monitoring alerts"
     echo "  4. Set up automated backup schedules"
     echo "  5. Review security settings and network policies"
@@ -831,7 +831,7 @@ cleanup() {
 handle_error() {
     local exit_code=$?
     error "Deployment failed with exit code: $exit_code"
-    
+
     # Generate failure report
     cat > "${REPORT_FILE%.json}-FAILED.json" << EOF
 {
@@ -846,17 +846,17 @@ handle_error() {
   }
 }
 EOF
-    
+
     # Attempt rollback
     rollback_deployment
-    
+
     # Cleanup
     cleanup
-    
+
     echo -e "${RED}❌ DEPLOYMENT FAILED${NC}"
     echo "Check logs: $DEPLOYMENT_LOG"
     echo "Failure report: ${REPORT_FILE%.json}-FAILED.json"
-    
+
     exit $exit_code
 }
 
@@ -864,20 +864,20 @@ EOF
 main() {
     # Record start time
     date +%s > /tmp/xorb_deployment_start_time
-    
+
     # Set up error handling
     trap handle_error ERR
     trap cleanup EXIT
-    
+
     echo -e "${WHITE}🚀 XORB Autonomous Orchestrator - Production Deployment${NC}"
     echo -e "${WHITE}Version: $SCRIPT_VERSION | Deployment ID: $DEPLOYMENT_ID${NC}"
     echo ""
-    
+
     if [ "$DRY_RUN" = "true" ]; then
         warn "🧪 DRY RUN MODE - No actual changes will be made"
         echo ""
     fi
-    
+
     # Execute deployment pipeline
     check_prerequisites
     validate_environment
@@ -890,10 +890,10 @@ main() {
     validate_security
     generate_deployment_report
     print_deployment_summary
-    
+
     # Final success message
     log "🎉 XORB Autonomous Orchestrator production deployment completed successfully!"
-    
+
     # Cleanup
     cleanup
 }

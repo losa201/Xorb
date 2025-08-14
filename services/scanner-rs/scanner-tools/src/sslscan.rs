@@ -90,20 +90,20 @@ impl SslScanTool {
             binary_path: "sslscan".to_string(),
         }
     }
-    
+
     /// Create with custom binary path
     pub fn with_binary_path(path: &str) -> Self {
         Self {
             binary_path: path.to_string(),
         }
     }
-    
+
     /// Build sslscan command arguments
     fn build_args(&self, target: &str, options: &ToolOptions) -> Vec<String> {
         let mut args = vec![
             "--xml=-".to_string(), // XML output to stdout
         ];
-        
+
         // Parse host and port from target
         let (host, port) = if target.contains(':') {
             let parts: Vec<&str> = target.split(':').collect();
@@ -112,7 +112,7 @@ impl SslScanTool {
             // Default HTTPS port
             (target.to_string(), "443".to_string())
         };
-        
+
         // Scan mode based on options
         if options.aggressive {
             args.extend(vec![
@@ -140,38 +140,38 @@ impl SslScanTool {
                 "--show-certificate".to_string(),
             ]);
         }
-        
+
         // Add extra arguments
         args.extend(options.extra_args.clone());
-        
+
         // Add target with port
         args.push(format!("{}:{}", host, port));
-        
+
         args
     }
-    
+
     /// Parse SSLScan XML output
     fn parse_xml_output(&self, output: &str, target: &str) -> Result<Vec<Finding>> {
         let mut findings = Vec::new();
-        
+
         match from_str::<Document>(output) {
             Ok(document) => {
                 let ssltest = document.ssltest;
-                
+
                 // Analyze ciphers for weak configurations
                 for cipher in ssltest.ciphers {
                     if cipher.status == "accepted" {
                         let mut metadata = std::collections::HashMap::new();
                         metadata.insert("ssl_version".to_string(), cipher.sslversion.clone());
                         metadata.insert("cipher_name".to_string(), cipher.cipher.clone());
-                        
+
                         if let Some(bits) = cipher.bits {
                             metadata.insert("key_bits".to_string(), bits.to_string());
                         }
-                        
+
                         // Determine severity based on cipher and protocol
                         let (severity, issue_type) = self.assess_cipher_security(&cipher);
-                        
+
                         if severity != Severity::Info {
                             findings.push(Finding {
                                 id: Uuid::new_v4().to_string(),
@@ -187,13 +187,13 @@ impl SslScanTool {
                         }
                     }
                 }
-                
+
                 // Analyze certificates
                 if let Some(certificates) = ssltest.certificates {
                     for cert in certificates {
                         let mut metadata = std::collections::HashMap::new();
                         metadata.insert("cert_type".to_string(), cert.cert_type.clone());
-                        
+
                         if let Some(subject) = &cert.subject {
                             metadata.insert("subject".to_string(), subject.clone());
                         }
@@ -206,7 +206,7 @@ impl SslScanTool {
                         if let Some(pk_bits) = cert.pk_bits {
                             metadata.insert("public_key_bits".to_string(), pk_bits.to_string());
                         }
-                        
+
                         // Check for weak certificates
                         let cert_findings = self.assess_certificate_security(&cert, target);
                         for mut finding in cert_findings {
@@ -215,18 +215,18 @@ impl SslScanTool {
                         }
                     }
                 }
-                
+
                 // Analyze protocols
                 if let Some(protocols) = ssltest.protocols {
                     for protocol in protocols {
                         if protocol.enabled == "1" {
                             let severity = self.assess_protocol_security(&protocol);
-                            
+
                             if severity != Severity::Info {
                                 let mut metadata = std::collections::HashMap::new();
                                 metadata.insert("protocol_type".to_string(), protocol.protocol_type.clone());
                                 metadata.insert("protocol_version".to_string(), protocol.version.clone());
-                                
+
                                 findings.push(Finding {
                                     id: Uuid::new_v4().to_string(),
                                     title: format!("Insecure Protocol: {} {}", protocol.protocol_type, protocol.version),
@@ -248,10 +248,10 @@ impl SslScanTool {
                 findings.extend(self.parse_text_output(output, target)?);
             }
         }
-        
+
         Ok(findings)
     }
-    
+
     /// Assess cipher security level
     fn assess_cipher_security(&self, cipher: &Cipher) -> (Severity, &'static str) {
         // Check for weak protocols
@@ -262,7 +262,7 @@ impl SslScanTool {
             "TLSv1.1" => return (Severity::Low, "Legacy TLS Protocol"),
             _ => {}
         }
-        
+
         // Check for weak ciphers
         let cipher_name = cipher.cipher.to_lowercase();
         if cipher_name.contains("null") || cipher_name.contains("anon") {
@@ -283,11 +283,11 @@ impl SslScanTool {
             (Severity::Info, "Accepted Cipher")
         }
     }
-    
+
     /// Assess certificate security
     fn assess_certificate_security(&self, cert: &Certificate, target: &str) -> Vec<Finding> {
         let mut findings = Vec::new();
-        
+
         // Check signature algorithm
         if let Some(sig_alg) = &cert.signature_algorithm {
             if sig_alg.to_lowercase().contains("md5") {
@@ -310,7 +310,7 @@ impl SslScanTool {
                 });
             }
         }
-        
+
         // Check public key strength
         if let Some(pk_bits) = cert.pk_bits {
             if pk_bits < 2048 {
@@ -324,10 +324,10 @@ impl SslScanTool {
                 });
             }
         }
-        
+
         findings
     }
-    
+
     /// Assess protocol security
     fn assess_protocol_security(&self, protocol: &Protocol) -> Severity {
         match protocol.version.as_str() {
@@ -338,11 +338,11 @@ impl SslScanTool {
             _ => Severity::Info,
         }
     }
-    
+
     /// Fallback text parsing for SSLScan output
     fn parse_text_output(&self, output: &str, target: &str) -> Result<Vec<Finding>> {
         let mut findings = Vec::new();
-        
+
         for line in output.lines() {
             if line.contains("Accepted") && (line.contains("SSLv2") || line.contains("SSLv3")) {
                 findings.push(Finding {
@@ -355,7 +355,7 @@ impl SslScanTool {
                 });
             }
         }
-        
+
         Ok(findings)
     }
 }
@@ -371,18 +371,18 @@ impl SecurityTool for SslScanTool {
     fn name(&self) -> &str {
         "sslscan"
     }
-    
+
     #[instrument(skip(self, options), fields(tool = "sslscan", target = %target))]
     async fn scan(&self, target: &str, options: &ToolOptions) -> Result<ToolResult> {
         let start_time = chrono::Utc::now();
         let start_instant = std::time::Instant::now();
-        
+
         info!(target = %target, "Starting SSLScan analysis");
-        
+
         // Build command arguments
         let args = self.build_args(target, options);
         let command_line = format!("{} {}", self.binary_path, args.join(" "));
-        
+
         // Execute sslscan with timeout
         let result = timeout(
             options.timeout,
@@ -392,29 +392,29 @@ impl SecurityTool for SslScanTool {
                 .stderr(Stdio::piped())
                 .output()
         ).await;
-        
+
         let execution_time = start_instant.elapsed();
         let end_time = chrono::Utc::now();
-        
+
         match result {
             Ok(Ok(output)) => {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                
+
                 if output.status.success() {
                     let findings = self.parse_xml_output(&stdout, target)
                         .unwrap_or_else(|e| {
                             warn!(error = %e, "Failed to parse SSLScan output, returning empty findings");
                             Vec::new()
                         });
-                    
+
                     info!(
                         target = %target,
                         duration_ms = %execution_time.as_millis(),
                         findings_count = %findings.len(),
                         "SSLScan analysis completed successfully"
                     );
-                    
+
                     Ok(ToolResult {
                         tool_name: self.name().to_string(),
                         target: target.to_string(),
@@ -436,13 +436,13 @@ impl SecurityTool for SslScanTool {
                     } else {
                         stderr.to_string()
                     };
-                    
+
                     error!(
                         target = %target,
                         error = %error_msg,
                         "SSLScan analysis failed"
                     );
-                    
+
                     Ok(ToolResult {
                         tool_name: self.name().to_string(),
                         target: target.to_string(),
@@ -498,7 +498,7 @@ impl SecurityTool for SslScanTool {
             }
         }
     }
-    
+
     async fn is_available(&self) -> bool {
         Command::new(&self.binary_path)
             .arg("--version")
@@ -507,14 +507,14 @@ impl SecurityTool for SslScanTool {
             .map(|output| output.status.success())
             .unwrap_or(false)
     }
-    
+
     async fn version(&self) -> Result<String> {
         let output = Command::new(&self.binary_path)
             .arg("--version")
             .output()
             .await
             .map_err(|e| anyhow!("Failed to get SSLScan version: {}", e))?;
-            
+
         if output.status.success() {
             let version_output = String::from_utf8_lossy(&output.stdout);
             // Parse version from output
@@ -534,17 +534,17 @@ impl SecurityTool for SslScanTool {
 mod tests {
     use super::*;
     use crate::{ToolOptions, OutputFormat};
-    
+
     #[test]
     fn test_sslscan_tool_creation() {
         let tool = SslScanTool::new();
         assert_eq!(tool.name(), "sslscan");
         assert_eq!(tool.binary_path, "sslscan");
-        
+
         let tool_custom = SslScanTool::with_binary_path("/usr/local/bin/sslscan");
         assert_eq!(tool_custom.binary_path, "/usr/local/bin/sslscan");
     }
-    
+
     #[test]
     fn test_build_args() {
         let tool = SslScanTool::new();
@@ -553,7 +553,7 @@ mod tests {
             extra_args: vec!["--bugs".to_string()],
             ..Default::default()
         };
-        
+
         let args = tool.build_args("example.com:443", &options);
         assert!(args.contains(&"--xml=-".to_string()));
         assert!(args.contains(&"--ssl2".to_string()));
@@ -561,11 +561,11 @@ mod tests {
         assert!(args.contains(&"--bugs".to_string()));
         assert!(args.iter().any(|arg| arg.contains("example.com:443")));
     }
-    
+
     #[test]
     fn test_cipher_security_assessment() {
         let tool = SslScanTool::new();
-        
+
         let ssl2_cipher = Cipher {
             status: "accepted".to_string(),
             sslversion: "SSLv2".to_string(),
@@ -575,7 +575,7 @@ mod tests {
         let (severity, issue_type) = tool.assess_cipher_security(&ssl2_cipher);
         assert_eq!(severity, Severity::Critical);
         assert_eq!(issue_type, "Critical SSL Protocol");
-        
+
         let weak_cipher = Cipher {
             status: "accepted".to_string(),
             sslversion: "TLSv1.2".to_string(),
@@ -585,18 +585,18 @@ mod tests {
         let (severity, _) = tool.assess_cipher_security(&weak_cipher);
         assert_eq!(severity, Severity::High);
     }
-    
+
     #[test]
     fn test_protocol_security_assessment() {
         let tool = SslScanTool::new();
-        
+
         let ssl2_protocol = Protocol {
             protocol_type: "SSLv2".to_string(),
             version: "2.0".to_string(),
             enabled: "1".to_string(),
         };
         assert_eq!(tool.assess_protocol_security(&ssl2_protocol), Severity::Critical);
-        
+
         let tls12_protocol = Protocol {
             protocol_type: "TLSv1".to_string(),
             version: "1.2".to_string(),
@@ -604,7 +604,7 @@ mod tests {
         };
         assert_eq!(tool.assess_protocol_security(&tls12_protocol), Severity::Info);
     }
-    
+
     #[tokio::test]
     async fn test_tool_availability() {
         let tool = SslScanTool::new();

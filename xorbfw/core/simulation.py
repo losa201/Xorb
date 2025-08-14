@@ -41,14 +41,14 @@ class WorldState:
         """Get the portion of the topology visible to a specific agent"""
         if agent_id not in self.agent_states:
             return {"nodes": [], "edges": []}
-        
+
         # Get the subgraph visible to this agent based on their current knowledge
         visible_nodes = list(nx.single_source_shortest_path_length(
-            self.topology_graph, 
+            self.topology_graph,
             self.agent_states[agent_id]["position"],
             cutoff=2  # Agent can see 2 hops away
         ).keys())
-        
+
         subgraph = self.topology_graph.subgraph(visible_nodes)
         return {
             "nodes": [{"id": n, **subgraph.nodes[n]} for n in subgraph.nodes()],
@@ -83,10 +83,10 @@ class SimulationEngine:
         # Initialize with default topology if configured
         if self.config.get("generate_default_topology", True):
             self._generate_default_topology()
-            
+
         # Initialize resource map
         self._initialize_resources()
-        
+
         # Initialize communication network
         self._initialize_comms()
 
@@ -94,11 +94,11 @@ class SimulationEngine:
         """Generate a default network topology for testing"""
         # Create a simple star topology
         self.world_state.topology_graph.add_node("central_hub", type="server", critical=True)
-        
+
         for i in range(1, 6):  # Create 5 peripheral nodes
             node_id = f"node_{i}"
             self.world_state.topology_graph.add_node(
-                node_id, 
+                node_id,
                 type="workstation",
                 security_level=random.choice(["low", "medium", "high"])
             )
@@ -143,7 +143,7 @@ class SimulationEngine:
         """Run a single simulation step"""
         # Update world state
         self._update_world_state()
-        
+
         # Agents take actions
         for agent_id, agent in self.agents.items():
             if self.world_state.agent_states[agent_id]["status"] == "active":
@@ -153,7 +153,7 @@ class SimulationEngine:
                 except Exception as e:
                     self.logger.error(f"Error in agent {agent_id}: {str(e)}")
                     self.world_state.agent_states[agent_id]["status"] = "failed"
-        
+
         # Update simulation timestamp
         self.world_state.timestamp = datetime.now().isoformat()
 
@@ -161,10 +161,10 @@ class SimulationEngine:
         """Update the world state based on simulation rules"""
         # Update threat zones based on agent activities
         self._update_threat_zones()
-        
+
         # Update resource availability
         self._update_resources()
-        
+
         # Update communication network
         self._update_comms()
 
@@ -172,16 +172,16 @@ class SimulationEngine:
         """Update threat zones based on agent activities and adversarial encounters"""
         # Clear old threat zones
         self.world_state.threat_zones = []
-        
+
         # First detect adversarial encounters
-        red_agents = {aid: state for aid, state in self.world_state.agent_states.items() 
+        red_agents = {aid: state for aid, state in self.world_state.agent_states.items()
                      if state["type"] == "red"}
-        blue_agents = {aid: state for aid, state in self.world_state.agent_states.items() 
+        blue_agents = {aid: state for aid, state in self.world_state.agent_states.items()
                       if state["type"] == "blue"}
-        
+
         # Track adversarial encounters for telemetry
         encounters = []
-        
+
         # Check for red-blue agent interactions
         for red_id, red_state in red_agents.items():
             for blue_id, blue_state in blue_agents.items():
@@ -189,20 +189,20 @@ class SimulationEngine:
                 distance = np.linalg.norm(
                     np.array(red_state["position"]) - np.array(blue_state["position"])
                 )
-                
+
                 # Get agent capabilities
                 red_stealth = red_state.get("stealth_budget", 0.5)
                 blue_detection = blue_state.get("detection_radius", 15.0)
-                
+
                 # Adjust detection radius based on stealth
                 effective_radius = blue_detection * (1.0 - red_stealth * 0.7)
-                
+
                 # Check if within detection range
                 if distance <= effective_radius:
                     # Calculate threat level based on distance and capabilities
                     normalized_distance = distance / effective_radius
                     threat_level = 1.0 - (normalized_distance * 0.5)  # Closer = higher threat
-                    
+
                     # Record encounter
                     encounters.append({
                         "red_agent": red_id,
@@ -211,7 +211,7 @@ class SimulationEngine:
                         "threat_level": threat_level,
                         "timestamp": self.world_state.timestamp
                     })
-                    
+
                     # Create threat zone at red agent's position
                     self.world_state.threat_zones.append({
                         "center": red_state["position"],
@@ -221,13 +221,13 @@ class SimulationEngine:
                         "red_agent": red_id,
                         "blue_agent": blue_id
                     })
-        
+
         # Add individual agent threat zones for non-encounter activities
         for agent_id, state in self.world_state.agent_states.items():
             if state["status"] == "active" and state.get("last_action"):
                 # Higher stealth level means less threat generation
                 threat_level = max(0.1, 1.0 - state["stealth_level"])
-                
+
                 # Create a threat zone around the agent's position
                 self.world_state.threat_zones.append({
                     "center": state["position"],
@@ -235,7 +235,7 @@ class SimulationEngine:
                     "intensity": threat_level * 0.5,  # Lower intensity for non-encounter activities
                     "duration": 5
                 })
-        
+
         # Update telemetry with encounters
         if encounters:
             self.world_state.telemetry.data["adversarial_encounters"].extend(encounters)
@@ -251,13 +251,13 @@ class SimulationEngine:
     def _update_comms(self) -> None:
         """Update communication network state"""
         # Simple model: bandwidth usage fluctuates based on agent activity
-        active_agents = sum(1 for state in self.world_state.agent_states.values() 
+        active_agents = sum(1 for state in self.world_state.agent_states.values()
                           if state["status"] == "active")
-        
+
         # More active agents = more bandwidth usage
         base_usage = 300.0
         activity_factor = active_agents * 20.0
-        
+
         self.world_state.comms_network["bandwidth"]["used"] = min(
             self.world_state.comms_network["bandwidth"]["available"],
             base_usage + activity_factor
@@ -266,7 +266,7 @@ class SimulationEngine:
     def _execute_action(self, agent_id: str, action: Dict[str, Any]) -> None:
         """Execute an agent's action and update world state"""
         action_type = action.get("type")
-        
+
         if action_type == "move":
             self._handle_move_action(agent_id, action)
         elif action_type == "exploit":
@@ -275,53 +275,53 @@ class SimulationEngine:
             self._handle_exfiltrate_action(agent_id, action)
         elif action_type == "maintain_stealth":
             self._handle_stealth_action(agent_id, action)
-        
+
         # Update agent's last action time
         self.world_state.agent_states[agent_id]["last_action"] = action
-        
+
     def _handle_move_action(self, agent_id: str, action: Dict[str, Any]) -> None:
         """Handle a move action from an agent"""
         target = action.get("target")
         if target in self.world_state.topology_graph.nodes():
             self.world_state.agent_states[agent_id]["position"] = target
-            
+
     def _handle_exploit_action(self, agent_id: str, action: Dict[str, Any]) -> None:
         """Handle an exploit action from an agent"""
         target = action.get("target")
         vulnerability = action.get("vulnerability")
-        
+
         if target in self.world_state.topology_graph.nodes():
             # Simple exploitation model
             node = self.world_state.topology_graph.nodes()[target]
             if vulnerability in node.get("vulnerabilities", []):
                 # Success! Agent gains access
                 node["access_level"] = max(node.get("access_level", 0), 2)
-                
+
     def _handle_exfiltrate_action(self, agent_id: str, action: Dict[str, Any]) -> None:
         """Handle a data exfiltration action"""
         target = action.get("target")
         data_size = action.get("data_size", 1.0)
-        
+
         if target in self.world_state.topology_graph.nodes():
             # Simple exfiltration model
             comms = self.world_state.comms_network
             available_bandwidth = comms["bandwidth"]["available"] - comms["bandwidth"]["used"]
-            
+
             if available_bandwidth > data_size * 10:
                 # Success! Data exfiltrated
                 comms["bandwidth"]["used"] += data_size * 10
-                
+
     def _handle_stealth_action(self, agent_id: str, action: Dict[str, Any]) -> None:
         """Handle a stealth maintenance action"""
         # Simple stealth model - reduces threat generation temporarily
-        self.world_state.agent_states[agent_id]["stealth_level"] = min(1.0, 
+        self.world_state.agent_states[agent_id]["stealth_level"] = min(1.0,
             self.world_state.agent_states[agent_id].get("stealth_level", 0.5) + 0.1)
 
     def run_simulation(self, steps: int) -> None:
         """Run the simulation for a specified number of steps"""
         for _ in range(steps):
             self.step()
-            
+
     def save_state(self, path: str) -> None:
         """Save the current simulation state to a file"""
         with open(path, 'w') as f:
@@ -337,7 +337,7 @@ class SimulationEngine:
                 self.world_state.topology_graph.add_node(node["id"], **node)
             for edge in state_data["topology"]["edges"]:
                 self.world_state.topology_graph.add_edge(edge["source"], edge["target"], **edge)
-            
+
             # Restore other state components
             self.world_state.resource_map = state_data["resource_map"]
             self.world_state.agent_states = state_data["agent_states"]
@@ -370,7 +370,7 @@ class BaseAgent(ABC):
     def is_action_valid(self, action: Dict[str, Any], world_state: WorldState) -> bool:
         """Check if an action is valid given the current world state"""
         action_type = action.get("type")
-        
+
         if action_type == "move":
             # Check if target exists and is reachable
             target = action.get("target")
@@ -378,26 +378,26 @@ class BaseAgent(ABC):
         elif action_type == "exploit":
             # Check if target exists and has vulnerabilities
             target = action.get("target")
-            return (target in world_state.topology_graph.nodes() and 
+            return (target in world_state.topology_graph.nodes() and
                    len(world_state.topology_graph.nodes()[target].get("vulnerabilities", [])) > 0)
         elif action_type == "exfiltrate":
             # Check if target exists and has data
             target = action.get("target")
-            return (target in world_state.topology_graph.nodes() and 
+            return (target in world_state.topology_graph.nodes() and
                    world_state.topology_graph.nodes()[target].get("data_size", 0) > 0)
-        
+
         return True  # Default to valid for unknown action types
 
     def calculate_action_cost(self, action: Dict[str, Any]) -> Dict[str, float]:
         """Calculate the resource cost of an action"""
         action_type = action.get("type", "unknown")
-        
+
         costs = {
             "cpu": 0.1,
             "memory": 0.05,
             "bandwidth": 0.05
         }
-        
+
         if action_type == "exploit":
             costs["cpu"] += 0.2
             costs["bandwidth"] += 0.1
@@ -406,16 +406,16 @@ class BaseAgent(ABC):
             costs["cpu"] += 0.15
             costs["memory"] += 0.1
             costs["bandwidth"] += 0.2 * data_size
-        
+
         return costs
 
     def has_sufficient_resources(self, action: Dict[str, Any], world_state: WorldState) -> bool:
         """Check if the agent has sufficient resources to perform an action"""
         resources = world_state.agent_states[self.agent_id]["resources"]
         action_cost = self.calculate_action_cost(action)
-        
+
         return all(
-            resources[res_type] >= cost 
+            resources[res_type] >= cost
             for res_type, cost in action_cost.items()
         )
 
@@ -423,14 +423,14 @@ class BaseAgent(ABC):
         """Consume resources after performing an action"""
         resources = world_state.agent_states[self.agent_id]["resources"]
         action_cost = self.calculate_action_cost(action)
-        
+
         for res_type, cost in action_cost.items():
             resources[res_type] = max(0.0, resources[res_type] - cost)
 
     def check_detection(self, world_state: WorldState) -> bool:
         """Check if the agent is detected based on threat zones and stealth level"""
         position = world_state.agent_states[self.agent_id]["position"]
-        
+
         # Check for threat zones
         for zone in world_state.threat_zones:
             if self._is_in_zone(position, zone):
@@ -438,7 +438,7 @@ class BaseAgent(ABC):
                 detection_chance = zone["intensity"] * (1.0 - self.stealth_level)
                 if random.random() < detection_chance:
                     return True
-        
+
         return False
 
     def _is_in_zone(self, position: str, zone: Dict[str, Any]) -> bool:
@@ -459,7 +459,7 @@ class BaseAgent(ABC):
         """Get list of agents in the same or adjacent nodes"""
         position = world_state.agent_states[self.agent_id]["position"]
         nearby_nodes = [position] + list(world_state.topology_graph.neighbors(position))
-        
+
         return [
             aid for aid, state in world_state.agent_states.items()
             if state["position"] in nearby_nodes and aid != self.agent_id
@@ -472,12 +472,12 @@ class BaseAgent(ABC):
     def get_threat_level(self, world_state: WorldState) -> float:
         """Get the current threat level for this agent"""
         position = world_state.agent_states[self.agent_id]["position"]
-        
+
         threat_level = 0.0
         for zone in world_state.threat_zones:
             if self._is_in_zone(position, zone):
                 threat_level = max(threat_level, zone["intensity"])
-        
+
         return threat_level
 
     def get_mission_context(self, world_state: WorldState) -> Dict[str, Any]:

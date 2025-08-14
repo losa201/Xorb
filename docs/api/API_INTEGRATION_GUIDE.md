@@ -262,7 +262,7 @@ class XORBClient:
         self.session = requests.Session()
         if token:
             self.session.headers.update({'Authorization': f'Bearer {token}'})
-    
+
     def authenticate(self, client_id, client_secret):
         """Get JWT token"""
         response = self.session.post(
@@ -278,7 +278,7 @@ class XORBClient:
         self.token = data['access_token']
         self.session.headers.update({'Authorization': f'Bearer {self.token}'})
         return data
-    
+
     def create_agent(self, name, agent_type, capabilities=None):
         """Create a new agent"""
         payload = {
@@ -293,7 +293,7 @@ class XORBClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def submit_task(self, name, task_type, priority="medium", **kwargs):
         """Submit orchestration task"""
         payload = {
@@ -309,13 +309,13 @@ class XORBClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def get_threats(self, severity=None, hours_back=24):
         """Get security threats"""
         params = {"hours_back": hours_back}
         if severity:
             params["severity"] = severity
-        
+
         response = self.session.get(
             f"{self.base_url}/security/threats",
             cert=self.cert,
@@ -323,7 +323,7 @@ class XORBClient:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def request_ai_decision(self, decision_type, context):
         """Request AI-driven decision"""
         payload = {
@@ -504,16 +504,16 @@ const client = new XORBClient({
   try {
     // Authenticate
     await client.authenticate('your_client_id', 'your_client_secret');
-    
+
     // Create agent
     const agent = await client.createAgent({
       name: 'Security Analyst Bot',
       agent_type: 'security_analyst',
       capabilities: ['log_analysis', 'threat_intelligence']
     });
-    
+
     console.log('Agent created:', agent.id);
-    
+
     // Submit task
     const task = await client.submitTask({
       name: 'Daily Security Scan',
@@ -524,9 +524,9 @@ const client = new XORBClient({
         include_compliance: true
       }
     });
-    
+
     console.log('Task submitted:', task.id);
-    
+
   } catch (error) {
     console.error('API Error:', error.response?.data || error.message);
   }

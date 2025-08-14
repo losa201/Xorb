@@ -39,7 +39,7 @@ class SecurityEventType(Enum):
 class SeverityLevel(Enum):
     """Security event severity levels"""
     CRITICAL = "critical"
-    HIGH = "high" 
+    HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
     INFO = "info"
@@ -165,27 +165,27 @@ class EnterpriseSecurityPlatform:
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self.logger = logging.getLogger(__name__)
-        
+
         # Event and incident storage
         self.events: Dict[str, SecurityEvent] = {}
         self.incidents: Dict[str, SecurityIncident] = {}
         self.threat_hunting_queries: Dict[str, ThreatHuntingQuery] = {}
         self.compliance_rules: Dict[str, ComplianceRule] = {}
-        
+
         # Analytics and correlation
         self.event_correlator = SecurityEventCorrelator()
         self.threat_detector = AdvancedThreatDetector()
         self.behavior_analyzer = UserBehaviorAnalyzer()
         self.compliance_monitor = ComplianceMonitor()
-        
+
         # Response automation
         self.response_orchestrator = SecurityResponseOrchestrator()
         self.playbook_engine = SecurityPlaybookEngine()
-        
+
         # Threat intelligence integration
         self.threat_intel_feeds = {}
         self.ioc_database = {}
-        
+
         # Performance tracking
         self.detection_metrics = {
             "events_processed": 0,
@@ -194,11 +194,11 @@ class EnterpriseSecurityPlatform:
             "response_time_avg": 0.0,
             "detection_accuracy": 0.0
         }
-        
+
         # Real-time processing
         self.event_queue = asyncio.Queue()
         self.processing_workers = []
-        
+
         # Initialize built-in security capabilities
         self._initialize_threat_hunting_queries()
         self._initialize_compliance_rules()
@@ -208,30 +208,30 @@ class EnterpriseSecurityPlatform:
         """Initialize the enterprise security platform"""
         try:
             self.logger.info("Initializing Enterprise Security Platform...")
-            
+
             # Start event processing workers
             for i in range(5):  # 5 workers for parallel processing
                 worker = asyncio.create_task(self._event_processing_worker(f"worker_{i}"))
                 self.processing_workers.append(worker)
-            
+
             # Initialize correlation engine
             await self.event_correlator.initialize()
-            
+
             # Initialize threat detection
             await self.threat_detector.initialize()
-            
+
             # Initialize behavior analysis
             await self.behavior_analyzer.initialize()
-            
+
             # Start background tasks
             asyncio.create_task(self._continuous_threat_hunting())
             asyncio.create_task(self._compliance_monitoring())
             asyncio.create_task(self._metrics_collection())
             asyncio.create_task(self._threat_intel_updates())
-            
+
             self.logger.info("Enterprise Security Platform initialized successfully")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to initialize security platform: {e}")
             return False
@@ -257,30 +257,30 @@ class EnterpriseSecurityPlatform:
                 tags=event_data.get("tags", []),
                 metadata=event_data.get("metadata", {})
             )
-            
+
             # Enrich event with threat intelligence
             await self._enrich_event_with_threat_intel(event)
-            
+
             # Calculate risk and confidence scores
             await self._calculate_event_scores(event)
-            
+
             # Store event
             self.events[event.id] = event
-            
+
             # Queue for processing
             await self.event_queue.put(event)
-            
+
             self.detection_metrics["events_processed"] += 1
-            
+
             self.logger.info(f"Ingested security event: {event.id} ({event.severity.value})")
             return event.id
-            
+
         except Exception as e:
             self.logger.error(f"Failed to ingest security event: {e}")
             raise
 
     async def create_security_incident(
-        self, 
+        self,
         title: str,
         description: str,
         severity: SeverityLevel,
@@ -289,7 +289,7 @@ class EnterpriseSecurityPlatform:
         """Create new security incident"""
         try:
             incident_id = str(uuid4())
-            
+
             # Calculate SLA deadline based on severity
             sla_hours = {
                 SeverityLevel.CRITICAL: 1,
@@ -297,9 +297,9 @@ class EnterpriseSecurityPlatform:
                 SeverityLevel.MEDIUM: 24,
                 SeverityLevel.LOW: 72
             }
-            
+
             sla_deadline = datetime.utcnow() + timedelta(hours=sla_hours.get(severity, 24))
-            
+
             incident = SecurityIncident(
                 id=incident_id,
                 title=title,
@@ -314,53 +314,53 @@ class EnterpriseSecurityPlatform:
                     "details": f"Incident created with severity {severity.value}"
                 }]
             )
-            
+
             # Perform impact assessment
             incident.impact_assessment = await self._assess_incident_impact(incident)
-            
+
             # Store incident
             self.incidents[incident_id] = incident
-            
+
             # Trigger automated response
             await self._trigger_incident_response(incident)
-            
+
             self.detection_metrics["incidents_created"] += 1
-            
+
             self.logger.info(f"Created security incident: {incident_id} ({severity.value})")
             return incident_id
-            
+
         except Exception as e:
             self.logger.error(f"Failed to create security incident: {e}")
             raise
 
     async def execute_threat_hunt(
-        self, 
-        query_id: str, 
+        self,
+        query_id: str,
         time_range: Dict[str, Any] = None
     ) -> Dict[str, Any]:
         """Execute threat hunting query"""
         try:
             if query_id not in self.threat_hunting_queries:
                 raise ValueError(f"Threat hunting query {query_id} not found")
-            
+
             query = self.threat_hunting_queries[query_id]
-            
+
             # Execute query
             results = await self._execute_hunting_query(query, time_range)
-            
+
             # Analyze results
             analysis = await self._analyze_hunting_results(results, query)
-            
+
             # Update query statistics
             query.last_run = datetime.utcnow()
             if analysis.get("false_positives", 0) > 0:
                 total_results = analysis.get("total_results", 1)
                 query.false_positive_rate = analysis["false_positives"] / total_results
-            
+
             # Create events for significant findings
             if analysis.get("significant_findings", 0) > 0:
                 await self._create_events_from_hunt_results(results, query)
-            
+
             return {
                 "query_id": query_id,
                 "execution_time": analysis.get("execution_time", 0),
@@ -371,20 +371,20 @@ class EnterpriseSecurityPlatform:
                 "mitre_techniques": query.mitre_techniques,
                 "results": results[:100] if results else []  # Limit for API response
             }
-            
+
         except Exception as e:
             self.logger.error(f"Threat hunt execution failed: {e}")
             raise
 
     async def run_compliance_check(
-        self, 
-        framework: str = None, 
+        self,
+        framework: str = None,
         control_id: str = None
     ) -> Dict[str, Any]:
         """Run compliance checks for specified framework or control"""
         try:
             checks_to_run = []
-            
+
             if control_id:
                 if control_id in self.compliance_rules:
                     checks_to_run = [self.compliance_rules[control_id]]
@@ -395,7 +395,7 @@ class EnterpriseSecurityPlatform:
                 ]
             else:
                 checks_to_run = list(self.compliance_rules.values())
-            
+
             results = {
                 "total_checks": len(checks_to_run),
                 "passed": 0,
@@ -403,52 +403,52 @@ class EnterpriseSecurityPlatform:
                 "not_applicable": 0,
                 "results": []
             }
-            
+
             for rule in checks_to_run:
                 check_result = await self._execute_compliance_check(rule)
                 results["results"].append(check_result)
-                
+
                 if check_result["status"] == "passed":
                     results["passed"] += 1
                 elif check_result["status"] == "failed":
                     results["failed"] += 1
                 else:
                     results["not_applicable"] += 1
-                
+
                 # Update rule status
                 rule.last_check = datetime.utcnow()
                 rule.compliance_status = check_result["status"]
-            
+
             # Calculate compliance percentage
             total_applicable = results["passed"] + results["failed"]
             if total_applicable > 0:
                 results["compliance_percentage"] = (results["passed"] / total_applicable) * 100
             else:
                 results["compliance_percentage"] = 100
-            
+
             return results
-            
+
         except Exception as e:
             self.logger.error(f"Compliance check failed: {e}")
             raise
 
     async def orchestrate_security_response(
-        self, 
-        incident_id: str, 
+        self,
+        incident_id: str,
         response_actions: List[ResponseAction]
     ) -> Dict[str, Any]:
         """Orchestrate automated security response"""
         try:
             if incident_id not in self.incidents:
                 raise ValueError(f"Incident {incident_id} not found")
-            
+
             incident = self.incidents[incident_id]
             response_results = []
-            
+
             for action in response_actions:
                 result = await self._execute_response_action(action, incident)
                 response_results.append(result)
-                
+
                 # Log action in incident timeline
                 incident.timeline.append({
                     "timestamp": datetime.utcnow().isoformat(),
@@ -456,26 +456,26 @@ class EnterpriseSecurityPlatform:
                     "details": result.get("details", ""),
                     "success": result.get("success", False)
                 })
-            
+
             # Update incident status
             if all(r.get("success", False) for r in response_results):
                 incident.status = IncidentStatus.CONTAINED
                 incident.updated_at = datetime.utcnow()
-            
+
             return {
                 "incident_id": incident_id,
                 "actions_executed": len(response_actions),
                 "successful_actions": sum(1 for r in response_results if r.get("success", False)),
                 "response_results": response_results
             }
-            
+
         except Exception as e:
             self.logger.error(f"Security response orchestration failed: {e}")
             raise
 
     async def generate_security_report(
-        self, 
-        report_type: str, 
+        self,
+        report_type: str,
         time_range: Dict[str, Any],
         filters: Dict[str, Any] = None
     ) -> Dict[str, Any]:
@@ -483,18 +483,18 @@ class EnterpriseSecurityPlatform:
         try:
             start_time = datetime.fromisoformat(time_range["start"])
             end_time = datetime.fromisoformat(time_range["end"])
-            
+
             # Filter events and incidents by time range
             filtered_events = [
                 event for event in self.events.values()
                 if start_time <= event.timestamp <= end_time
             ]
-            
+
             filtered_incidents = [
                 incident for incident in self.incidents.values()
                 if start_time <= incident.created_at <= end_time
             ]
-            
+
             if report_type == "executive_summary":
                 return await self._generate_executive_summary(filtered_events, filtered_incidents, time_range)
             elif report_type == "threat_landscape":
@@ -505,7 +505,7 @@ class EnterpriseSecurityPlatform:
                 return await self._generate_incident_analysis_report(filtered_incidents, time_range)
             else:
                 raise ValueError(f"Unknown report type: {report_type}")
-                
+
         except Exception as e:
             self.logger.error(f"Security report generation failed: {e}")
             raise
@@ -516,20 +516,20 @@ class EnterpriseSecurityPlatform:
             try:
                 # Get event from queue
                 event = await self.event_queue.get()
-                
+
                 # Process event through correlation engine
                 correlations = await self.event_correlator.correlate_event(event)
-                
+
                 # Check for threat patterns
                 threat_analysis = await self.threat_detector.analyze_event(event)
-                
+
                 # Analyze user behavior if applicable
                 if event.user_context:
                     behavior_analysis = await self.behavior_analyzer.analyze_user_event(event)
                     if behavior_analysis.get("anomaly_detected"):
                         # Create behavior anomaly event
                         await self._create_behavior_anomaly_event(event, behavior_analysis)
-                
+
                 # Auto-create incidents for high-severity correlated events
                 if correlations.get("incident_worthy", False) and event.severity in [SeverityLevel.CRITICAL, SeverityLevel.HIGH]:
                     incident_id = await self.create_security_incident(
@@ -538,14 +538,14 @@ class EnterpriseSecurityPlatform:
                         severity=event.severity,
                         event_ids=[event.id] + correlations.get("related_events", [])
                     )
-                    
+
                     # Trigger immediate response for critical incidents
                     if event.severity == SeverityLevel.CRITICAL:
                         await self._trigger_immediate_response(incident_id)
-                
+
                 # Mark queue task as done
                 self.event_queue.task_done()
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
@@ -560,25 +560,25 @@ class EnterpriseSecurityPlatform:
                 for query in self.threat_hunting_queries.values():
                     if not query.enabled or not query.schedule:
                         continue
-                    
+
                     # Simple schedule check (in production, use proper cron parsing)
                     should_run = False
-                    if query.schedule == "hourly" and (not query.last_run or 
+                    if query.schedule == "hourly" and (not query.last_run or
                         datetime.utcnow() - query.last_run >= timedelta(hours=1)):
                         should_run = True
-                    elif query.schedule == "daily" and (not query.last_run or 
+                    elif query.schedule == "daily" and (not query.last_run or
                         datetime.utcnow() - query.last_run >= timedelta(days=1)):
                         should_run = True
-                    
+
                     if should_run:
                         try:
                             await self.execute_threat_hunt(query.id)
                         except Exception as e:
                             self.logger.error(f"Scheduled threat hunt {query.id} failed: {e}")
-                
+
                 # Sleep for 5 minutes before next check
                 await asyncio.sleep(300)
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
@@ -593,25 +593,25 @@ class EnterpriseSecurityPlatform:
                 for rule in self.compliance_rules.values():
                     if not rule.automated_check:
                         continue
-                    
+
                     # Check if it's time to run this rule
                     should_run = False
-                    if rule.check_frequency == "daily" and (not rule.last_check or 
+                    if rule.check_frequency == "daily" and (not rule.last_check or
                         datetime.utcnow() - rule.last_check >= timedelta(days=1)):
                         should_run = True
-                    elif rule.check_frequency == "weekly" and (not rule.last_check or 
+                    elif rule.check_frequency == "weekly" and (not rule.last_check or
                         datetime.utcnow() - rule.last_check >= timedelta(weeks=1)):
                         should_run = True
-                    
+
                     if should_run:
                         try:
                             await self._execute_compliance_check(rule)
                         except Exception as e:
                             self.logger.error(f"Compliance check {rule.id} failed: {e}")
-                
+
                 # Sleep for 1 hour before next check
                 await asyncio.sleep(3600)
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
@@ -627,7 +627,7 @@ class EnterpriseSecurityPlatform:
                 description="Detect potential lateral movement activities",
                 query="""
                 SecurityEvent
-                | where EventType == "network_connection" 
+                | where EventType == "network_connection"
                 | where DestinationPort in (445, 139, 3389, 22)
                 | summarize ConnectionCount = count() by SourceIP, bin(TimeGenerated, 1h)
                 | where ConnectionCount > 10
@@ -639,7 +639,7 @@ class EnterpriseSecurityPlatform:
             ),
             ThreatHuntingQuery(
                 id="credential_dumping_detection",
-                name="Credential Dumping Detection", 
+                name="Credential Dumping Detection",
                 description="Detect potential credential dumping activities",
                 query="""
                 ProcessEvent
@@ -668,7 +668,7 @@ class EnterpriseSecurityPlatform:
                 schedule="hourly"
             )
         ]
-        
+
         for query in queries:
             self.threat_hunting_queries[query.id] = query
 
@@ -701,7 +701,7 @@ class EnterpriseSecurityPlatform:
             ),
             ComplianceRule(
                 id="sox_404",
-                framework="SOX", 
+                framework="SOX",
                 control_id="404",
                 title="Management Assessment of Internal Controls",
                 description="Management must assess internal controls over financial reporting",
@@ -712,7 +712,7 @@ class EnterpriseSecurityPlatform:
                 check_frequency="yearly"
             )
         ]
-        
+
         for rule in rules:
             self.compliance_rules[rule.id] = rule
 
@@ -730,13 +730,13 @@ class EnterpriseSecurityPlatform:
                 if threat_info:
                     event.metadata["threat_intel"] = event.metadata.get("threat_intel", {})
                     event.metadata["threat_intel"][indicator] = threat_info
-                    
+
                     # Update severity if threat intel indicates higher risk
                     if threat_info.get("severity") == "critical":
                         event.severity = SeverityLevel.CRITICAL
                     elif threat_info.get("severity") == "high" and event.severity not in [SeverityLevel.CRITICAL]:
                         event.severity = SeverityLevel.HIGH
-        
+
         except Exception as e:
             self.logger.error(f"Threat intel enrichment failed: {e}")
 
@@ -745,7 +745,7 @@ class EnterpriseSecurityPlatform:
         try:
             # Risk score calculation (0-100)
             risk_factors = []
-            
+
             # Severity contributes to risk
             severity_scores = {
                 SeverityLevel.CRITICAL: 90,
@@ -755,7 +755,7 @@ class EnterpriseSecurityPlatform:
                 SeverityLevel.INFO: 10
             }
             risk_factors.append(severity_scores.get(event.severity, 50))
-            
+
             # Asset criticality
             if "critical" in event.affected_assets:
                 risk_factors.append(80)
@@ -763,25 +763,25 @@ class EnterpriseSecurityPlatform:
                 risk_factors.append(60)
             else:
                 risk_factors.append(40)
-            
+
             # User context
             if event.user_context and "admin" in event.user_context.lower():
                 risk_factors.append(70)
             else:
                 risk_factors.append(30)
-            
+
             event.risk_score = sum(risk_factors) / len(risk_factors)
-            
+
             # Confidence score calculation
             confidence_factors = []
-            
+
             # Source system reliability
             reliable_sources = ["siem", "edr", "ids", "firewall"]
             if event.source_system in reliable_sources:
                 confidence_factors.append(0.8)
             else:
                 confidence_factors.append(0.6)
-            
+
             # Data completeness
             if len(event.indicators) > 0:
                 confidence_factors.append(0.9)
@@ -789,9 +789,9 @@ class EnterpriseSecurityPlatform:
                 confidence_factors.append(0.8)
             if event.affected_assets:
                 confidence_factors.append(0.7)
-            
+
             event.confidence_score = sum(confidence_factors) / len(confidence_factors) if confidence_factors else 0.5
-            
+
         except Exception as e:
             self.logger.error(f"Event score calculation failed: {e}")
             event.risk_score = 50.0
@@ -800,16 +800,16 @@ class EnterpriseSecurityPlatform:
 
 class SecurityEventCorrelator:
     """Advanced security event correlation engine"""
-    
+
     def __init__(self):
         self.correlation_window = timedelta(minutes=30)
         self.correlation_rules = []
         self.event_cache = deque(maxlen=10000)
-    
+
     async def initialize(self):
         """Initialize correlation engine"""
         self._load_correlation_rules()
-    
+
     async def correlate_event(self, event: SecurityEvent) -> Dict[str, Any]:
         """Correlate event with recent events"""
         correlations = {
@@ -818,27 +818,27 @@ class SecurityEventCorrelator:
             "incident_worthy": False,
             "attack_pattern": None
         }
-        
+
         # Add to cache
         self.event_cache.append(event)
-        
+
         # Find related events within time window
         cutoff_time = event.timestamp - self.correlation_window
         recent_events = [e for e in self.event_cache if e.timestamp >= cutoff_time and e.id != event.id]
-        
+
         # Apply correlation rules
         for rule in self.correlation_rules:
             matches = await self._apply_correlation_rule(rule, event, recent_events)
             if matches:
                 correlations["related_events"].extend([e.id for e in matches])
                 correlations["correlation_score"] += rule.get("weight", 1.0)
-                
+
                 if rule.get("creates_incident", False):
                     correlations["incident_worthy"] = True
                     correlations["attack_pattern"] = rule.get("pattern_name")
-        
+
         return correlations
-    
+
     def _load_correlation_rules(self):
         """Load correlation rules"""
         self.correlation_rules = [
@@ -855,7 +855,7 @@ class SecurityEventCorrelator:
                 "pattern_name": "credential_attack"
             },
             {
-                "name": "lateral_movement_pattern", 
+                "name": "lateral_movement_pattern",
                 "conditions": [
                     {"field": "event_type", "operator": "in", "values": ["network_connection", "process_creation"]},
                     {"field": "source_ip", "operator": "same"},
@@ -867,43 +867,43 @@ class SecurityEventCorrelator:
                 "pattern_name": "lateral_movement"
             }
         ]
-    
+
     async def _apply_correlation_rule(self, rule: Dict[str, Any], event: SecurityEvent, recent_events: List[SecurityEvent]) -> List[SecurityEvent]:
         """Apply correlation rule to find matching events"""
         matches = []
-        
+
         for recent_event in recent_events:
             if self._events_match_rule(rule, event, recent_event):
                 matches.append(recent_event)
-        
+
         return matches if len(matches) >= rule.get("minimum_events", 1) - 1 else []
-    
+
     def _events_match_rule(self, rule: Dict[str, Any], event1: SecurityEvent, event2: SecurityEvent) -> bool:
         """Check if two events match a correlation rule"""
         for condition in rule["conditions"]:
             field = condition["field"]
             operator = condition["operator"]
-            
+
             value1 = getattr(event1, field, None)
             value2 = getattr(event2, field, None)
-            
+
             if operator == "same" and value1 != value2:
                 return False
             elif operator == "in" and value1 not in condition.get("values", []):
                 return False
             elif operator == "contains" and not any(v in value1 for v in condition.get("values", [])):
                 return False
-        
+
         return True
 
 
 class AdvancedThreatDetector:
     """Advanced threat detection using ML and behavioral analysis"""
-    
+
     async def initialize(self):
         """Initialize threat detector"""
         pass
-    
+
     async def analyze_event(self, event: SecurityEvent) -> Dict[str, Any]:
         """Analyze event for threat indicators"""
         analysis = {
@@ -912,16 +912,16 @@ class AdvancedThreatDetector:
             "attack_stages": [],
             "recommended_actions": []
         }
-        
+
         # Analyze based on MITRE ATT&CK techniques
         if event.mitre_techniques:
             analysis["attack_stages"] = self._map_techniques_to_attack_stages(event.mitre_techniques)
             analysis["threat_score"] += len(event.mitre_techniques) * 10
-        
+
         # Analyze indicators
         if event.indicators:
             analysis["threat_score"] += len(event.indicators) * 5
-        
+
         # Severity-based scoring
         severity_scores = {
             SeverityLevel.CRITICAL: 80,
@@ -931,20 +931,20 @@ class AdvancedThreatDetector:
             SeverityLevel.INFO: 10
         }
         analysis["threat_score"] += severity_scores.get(event.severity, 20)
-        
+
         # Generate recommendations
         if analysis["threat_score"] > 70:
             analysis["recommended_actions"] = ["immediate_investigation", "containment", "threat_hunting"]
         elif analysis["threat_score"] > 40:
             analysis["recommended_actions"] = ["investigation", "monitoring"]
-        
+
         return analysis
-    
+
     def _map_techniques_to_attack_stages(self, techniques: List[str]) -> List[str]:
         """Map MITRE techniques to attack stages"""
         technique_mapping = {
             "T1078": "initial_access",
-            "T1566": "initial_access", 
+            "T1566": "initial_access",
             "T1055": "execution",
             "T1059": "execution",
             "T1547": "persistence",
@@ -952,50 +952,50 @@ class AdvancedThreatDetector:
             "T1021": "lateral_movement",
             "T1041": "exfiltration"
         }
-        
+
         stages = set()
         for technique in techniques:
             if technique in technique_mapping:
                 stages.add(technique_mapping[technique])
-        
+
         return list(stages)
 
 
 class UserBehaviorAnalyzer:
     """User behavior analysis for anomaly detection"""
-    
+
     def __init__(self):
         self.user_baselines = {}
         self.learning_period = timedelta(days=30)
-    
+
     async def initialize(self):
         """Initialize behavior analyzer"""
         pass
-    
+
     async def analyze_user_event(self, event: SecurityEvent) -> Dict[str, Any]:
         """Analyze user behavior for anomalies"""
         if not event.user_context:
             return {"anomaly_detected": False}
-        
+
         analysis = {
             "anomaly_detected": False,
             "anomaly_type": None,
             "anomaly_score": 0.0,
             "baseline_deviation": 0.0
         }
-        
+
         user_id = event.user_context
-        
+
         # Simple anomaly detection (in production, use sophisticated ML models)
         current_hour = event.timestamp.hour
-        
+
         # Check for unusual login times
         if event.event_type == SecurityEventType.USER_BEHAVIOR_ANOMALY:
             if current_hour < 6 or current_hour > 22:  # Outside business hours
                 analysis["anomaly_detected"] = True
                 analysis["anomaly_type"] = "unusual_time"
                 analysis["anomaly_score"] = 0.7
-        
+
         # Check for unusual locations (simplified)
         if "source_ip" in event.network_context:
             source_ip = event.network_context["source_ip"]
@@ -1003,9 +1003,9 @@ class UserBehaviorAnalyzer:
                 analysis["anomaly_detected"] = True
                 analysis["anomaly_type"] = "unusual_location"
                 analysis["anomaly_score"] = 0.8
-        
+
         return analysis
-    
+
     def _is_known_ip_for_user(self, user_id: str, ip: str) -> bool:
         """Check if IP is known for user (simplified)"""
         # In production, maintain user IP baselines
@@ -1014,7 +1014,7 @@ class UserBehaviorAnalyzer:
 
 class ComplianceMonitor:
     """Compliance monitoring and validation"""
-    
+
     async def check_control_compliance(self, control_id: str) -> Dict[str, Any]:
         """Check compliance for specific control"""
         return {
@@ -1027,7 +1027,7 @@ class ComplianceMonitor:
 
 class SecurityResponseOrchestrator:
     """Security response orchestration"""
-    
+
     async def execute_response_action(self, action: ResponseAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute security response action"""
         return {
@@ -1039,10 +1039,10 @@ class SecurityResponseOrchestrator:
 
 class SecurityPlaybookEngine:
     """Security playbook automation engine"""
-    
+
     def __init__(self):
         self.playbooks = {}
-    
+
     async def execute_playbook(self, playbook_id: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute security playbook"""
         return {
@@ -1058,9 +1058,9 @@ _enterprise_security_platform: Optional[EnterpriseSecurityPlatform] = None
 async def get_enterprise_security_platform(config: Dict[str, Any] = None) -> EnterpriseSecurityPlatform:
     """Get global enterprise security platform instance"""
     global _enterprise_security_platform
-    
+
     if _enterprise_security_platform is None:
         _enterprise_security_platform = EnterpriseSecurityPlatform(config)
         await _enterprise_security_platform.initialize()
-    
+
     return _enterprise_security_platform

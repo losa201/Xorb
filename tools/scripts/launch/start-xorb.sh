@@ -37,7 +37,7 @@ trap cleanup EXIT
 
 echo "✅ XORB Platform is running!"
 echo "   - Orchestrator PID: $ORCHESTRATOR_PID"
-echo "   - LLM Updater PID: $LLM_PID" 
+echo "   - LLM Updater PID: $LLM_PID"
 echo "   - Dashboard PID: $DASHBOARD_PID"
 echo ""
 echo "Press Ctrl+C to stop all services"

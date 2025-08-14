@@ -24,14 +24,14 @@ class RedisStorage:
         try:
             key = f"{self.key_prefix}workflow:{workflow.id}"
             value = json.dumps(asdict(workflow))
-            
+
             # Store workflow definition
             await self.redis.set(key, value, ex=self.default_ttl)
-            
+
             # Store version history
             version_key = f"{key}:versions"
             await self.redis.hset(version_key, workflow.version, value)
-            
+
             return True
         except Exception as e:
             print(f"Error storing workflow: {e}")
@@ -42,7 +42,7 @@ class RedisStorage:
         try:
             key = f"{self.key_prefix}workflow:{workflow_id}"
             data = await self.redis.get(key)
-            
+
             if data:
                 return WorkflowDefinition(**json.loads(data))
             return None
@@ -57,15 +57,15 @@ class RedisStorage:
             execution_key = f"{self.key_prefix}execution:{execution.id}"
             execution_value = json.dumps(asdict(execution))
             await self.redis.set(execution_key, execution_value, ex=self.default_ttl * 2)  # Longer TTL for executions
-            
+
             # Store execution in workflow index
             workflow_executions_key = f"{self.key_prefix}workflow:{execution.workflow_id}:executions"
             await self.redis.zadd(workflow_executions_key, {execution.id: execution.started_at.timestamp()})
-            
+
             # Store execution status index
             status_key = f"{self.key_prefix}execution:status:{execution.status.value}"
             await self.redis.sadd(status_key, execution.id)
-            
+
             return True
         except Exception as e:
             print(f"Error storing execution: {e}")
@@ -76,7 +76,7 @@ class RedisStorage:
         try:
             key = f"{self.key_prefix}execution:{execution_id}"
             data = await self.redis.get(key)
-            
+
             if data:
                 return WorkflowExecution(**json.loads(data))
             return None
@@ -88,33 +88,33 @@ class RedisStorage:
         """Update the status of a workflow execution"""
         try:
             key = f"{self.key_prefix}execution:{execution_id}"
-            
+
             # Get current execution data
             data = await self.redis.get(key)
             if not data:
                 return False
-                
+
             execution_data = json.loads(data)
-            
+
             # Update status and error message
             execution_data['status'] = status.value
             if error_message:
                 execution_data['error_message'] = error_message
-            
+
             # Update completed_at if execution is completing
             if status in [WorkflowStatus.COMPLETED, WorkflowStatus.FAILED, WorkflowStatus.CANCELLED]:
                 execution_data['completed_at'] = datetime.now().isoformat()
-                
+
             # Store updated execution
             await self.redis.set(key, json.dumps(execution_data), ex=self.default_ttl * 2)
-            
+
             # Update status index
             old_status = execution_data.get('status', 'pending')
             status_key_old = f"{self.key_prefix}execution:status:{old_status}"
             status_key_new = f"{self.key_prefix}execution:status:{status.value}"
             await self.redis.srem(status_key_old, execution_id)
             await self.redis.sadd(status_key_new, execution_id)
-            
+
             return True
         except Exception as e:
             print(f"Error updating execution status: {e}")
@@ -125,15 +125,15 @@ class RedisStorage:
         try:
             key = f"{self.key_prefix}execution:{execution_id}:task:{task_id}"
             value = json.dumps(result)
-            
+
             await self.redis.set(key, value, ex=self.default_ttl)
-            
+
             # Update execution record
             execution = await self.get_execution(execution_id)
             if execution:
                 execution.task_results[task_id] = result
                 await self.store_execution(execution)
-            
+
             return True
         except Exception as e:
             print(f"Error storing task result: {e}")
@@ -144,7 +144,7 @@ class RedisStorage:
         try:
             key = f"{self.key_prefix}execution:{execution_id}:task:{task_id}"
             data = await self.redis.get(key)
-            
+
             if data:
                 return json.loads(data)
             return None
@@ -157,13 +157,13 @@ class RedisStorage:
         try:
             key = f"{self.key_prefix}workflow:{workflow_id}:executions"
             execution_ids = await self.redis.zrange(key, offset, offset + limit - 1)
-            
+
             executions = []
             for execution_id in execution_ids:
                 execution = await self.get_execution(execution_id.decode())
                 if execution:
                     executions.append(execution)
-            
+
             return executions
         except Exception as e:
             print(f"Error getting workflow executions: {e}")
@@ -174,13 +174,13 @@ class RedisStorage:
         try:
             key = f"{self.key_prefix}execution:status:{status.value}"
             execution_ids = await self.redis.sscan(key, cursor=offset, count=limit)[1]
-            
+
             executions = []
             for execution_id in execution_ids:
                 execution = await self.get_execution(execution_id.decode())
                 if execution:
                     executions.append(execution)
-            
+
             return executions
         except Exception as e:
             print(f"Error getting executions by status: {e}")
@@ -191,18 +191,18 @@ class RedisStorage:
         try:
             # Get all active status
             active_statuses = [WorkflowStatus.PENDING.value, WorkflowStatus.RUNNING.value]
-            
+
             # Get executions for each status
             executions = []
             for status in active_statuses:
                 key = f"{self.key_prefix}execution:status:{status}"
                 execution_ids = await self.redis.sscan(key, cursor=0, count=limit)[1]
-                
+
                 for execution_id in execution_ids:
                     execution = await self.get_execution(execution_id.decode())
                     if execution:
                         executions.append(execution)
-            
+
             return executions
         except Exception as e:
             print(f"Error getting active executions: {e}")
@@ -213,7 +213,7 @@ class RedisStorage:
         try:
             key = f"{self.key_prefix}workflow:{workflow_id}:metrics"
             value = json.dumps(metrics)
-            
+
             await self.redis.set(key, value, ex=self.default_ttl)
             return True
         except Exception as e:
@@ -225,7 +225,7 @@ class RedisStorage:
         try:
             key = f"{self.key_prefix}workflow:{workflow_id}:metrics"
             data = await self.redis.get(key)
-            
+
             if data:
                 return json.loads(data)
             return None
@@ -238,15 +238,15 @@ class RedisStorage:
         try:
             variable_key = f"{self.key_prefix}execution:{execution_id}:variable:{key}"
             variable_value = json.dumps(value)
-            
+
             await self.redis.set(variable_key, variable_value, ex=self.default_ttl * 2)
-            
+
             # Update execution record
             execution = await self.get_execution(execution_id)
             if execution:
                 execution.variables[key] = value
                 await self.store_execution(execution)
-            
+
             return True
         except Exception as e:
             print(f"Error storing variable: {e}")
@@ -257,7 +257,7 @@ class RedisStorage:
         try:
             variable_key = f"{self.key_prefix}execution:{execution_id}:variable:{key}"
             data = await self.redis.get(variable_key)
-            
+
             if data:
                 return json.loads(data)
             return None
@@ -269,7 +269,7 @@ class RedisStorage:
         """Create a distributed lock"""
         try:
             lock_key = f"{self.key_prefix}lock:{key}"
-            
+
             # Use Redis SETNX to create a lock
             result = await self.redis.setnx(lock_key, "locked")
             if result == 1:
@@ -284,7 +284,7 @@ class RedisStorage:
         """Release a distributed lock"""
         try:
             lock_key = f"{self.key_prefix}lock:{key}"
-            
+
             # Use Redis DEL to release the lock
             result = await self.redis.delete(lock_key)
             return result == 1

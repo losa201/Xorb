@@ -22,7 +22,7 @@ const reports = {};
 /**
  * POST /scans
  * Create a new scan
- * 
+ *
  * Request Body:
  * {
  *   "target": "example.com",
@@ -33,7 +33,7 @@ const reports = {};
  *     "performance": true
  *   }
  * }
- * 
+ *
  * Response:
  * 201 Created
  * {
@@ -46,15 +46,15 @@ const reports = {};
 app.post('/scans', (req, res) => {
   try {
     const { target, scan_type = 'quick', options = {} } = req.body;
-    
+
     // Basic validation
     if (!target) {
       return res.status(400).json({ error: 'Target is required' });
     }
-    
+
     // Generate scan ID
     const id = uuidv4();
-    
+
     // Default options based on scan type
     const scanOptions = {
       subdomains: scan_type === 'full' || options.subdomains === true,
@@ -62,7 +62,7 @@ app.post('/scans', (req, res) => {
       performance: scan_type === 'full' || options.performance === true,
       ...options
     };
-    
+
     // Create scan record
     const scan = {
       id,
@@ -72,13 +72,13 @@ app.post('/scans', (req, res) => {
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
-    
+
     scans[id] = scan;
-    
+
     // In a real implementation, we would now:
     // 1. Add scan to queue for processing
     // 2. Trigger scanning engine
-    
+
     // Return 201 Created with Location header
     res.status(201)
       .header('Location', `/scans/${id}`)
@@ -92,7 +92,7 @@ app.post('/scans', (req, res) => {
 /**
  * GET /scans/{id}
  * Get scan status and details
- * 
+ *
  * Response:
  * 200 OK
  * {
@@ -108,11 +108,11 @@ app.get('/scans/:id', (req, res) => {
   try {
     const { id } = req.params;
     const scan = scans[id];
-    
+
     if (!scan) {
       return res.status(404).json({ error: 'Scan not found' });
     }
-    
+
     // In a real implementation, we would fetch the latest status from the scanning engine
     // For demo, return the stored scan with simulated progress
     const response = {
@@ -120,7 +120,7 @@ app.get('/scans/:id', (req, res) => {
       progress: scan.status === 'completed' ? 100 : scan.status === 'failed' ? 0 : 75,
       updated_at: new Date().toISOString()
     };
-    
+
     res.json(response);
   } catch (error) {
     console.error('Error fetching scan:', error);
@@ -131,7 +131,7 @@ app.get('/scans/:id', (req, res) => {
 /**
  * GET /reports/{id}
  * Get scan report
- * 
+ *
  * Response:
  * 200 OK
  * {
@@ -159,23 +159,23 @@ app.get('/reports/:id', (req, res) => {
   try {
     const { id } = req.params;
     const report = reports[id];
-    
+
     if (!report) {
       // Check if scan exists but report not generated yet
       const scan = scans[id];
       if (scan) {
         // In a real implementation, we would check if the scan completed
         // and trigger report generation if needed
-        return res.status(202).json({ 
+        return res.status(202).json({
           message: 'Report not ready yet',
           scan_id: id,
           status: scan.status
         });
       }
-      
+
       return res.status(404).json({ error: 'Report not found' });
     }
-    
+
     res.json(report);
   } catch (error) {
     console.error('Error fetching report:', error);
@@ -186,14 +186,14 @@ app.get('/reports/:id', (req, res) => {
 /**
  * POST /integrations/{type}
  * Configure third-party integrations
- * 
+ *
  * Request Body:
  * {
  *   "config": {
  *     // Integration-specific configuration
  *   }
  * }
- * 
+ *
  * Response:
  * 200 OK
  * {
@@ -206,25 +206,25 @@ app.post('/integrations/:type', (req, res) => {
   try {
     const { type } = req.params;
     const { config } = req.body;
-    
+
     // Validate integration type
     const validIntegrations = ['slack', 'jira', 'teams', 'email'];
     if (!validIntegrations.includes(type)) {
-      return res.status(400).json({ 
-        error: `Invalid integration type. Must be one of: ${validIntegrations.join(',')}` 
+      return res.status(400).json({
+        error: `Invalid integration type. Must be one of: ${validIntegrations.join(',')}`
       });
     }
-    
+
     // Basic validation
     if (!config) {
       return res.status(400).json({ error: 'Config is required' });
     }
-    
+
     // In a real implementation, we would:
     // 1. Validate integration-specific config
     // 2. Test connection
     // 3. Store encrypted credentials
-    
+
     // For demo, just return success
     res.json({
       integration_type: type,
@@ -240,7 +240,7 @@ app.post('/integrations/:type', (req, res) => {
 /**
  * GET /metrics
  * Get system metrics (for Prometheus scraping)
- * 
+ *
  * Response:
  * 200 OK
  * # HELP active_scans Number of active scans
@@ -256,16 +256,16 @@ app.get('/metrics', (req, res) => {
     // For demo, just return some sample metrics
     const activeScans = Object.values(scans).filter(s => s.status === 'running').length;
     const completedScans = Object.values(scans).filter(s => s.status === 'completed').length;
-    
+
     res.setHeader('Content-Type', 'text/plain');
     res.write('# HELP active_scans Number of active scans\n');
     res.write('# TYPE active_scans gauge\n');
     res.write(`active_scans ${activeScans}\n\n`);
-    
+
     res.write('# HELP completed_scans Total number of completed scans\n');
     res.write('# TYPE completed_scans counter\n');
     res.write(`completed_scans ${completedScans}\n\n`);
-    
+
     res.end();
   } catch (error) {
     console.error('Error fetching metrics:', error);

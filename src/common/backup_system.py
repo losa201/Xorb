@@ -14,7 +14,7 @@ from .security_utils import (
 # Export main classes for backward compatibility
 __all__ = [
     'backup_manager',
-    'UnifiedBackupManager', 
+    'UnifiedBackupManager',
     'BackupResult',
     'BackupOperation'
 ]

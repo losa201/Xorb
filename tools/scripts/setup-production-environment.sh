@@ -35,40 +35,40 @@ check_root() {
 # System requirements check
 check_system_requirements() {
     log "Checking system requirements..."
-    
+
     # Check OS
     if [[ ! -f /etc/os-release ]]; then
         error "Cannot determine OS version"
         exit 1
     fi
-    
+
     . /etc/os-release
     log "Detected OS: $NAME $VERSION"
-    
+
     # Check architecture
     ARCH=$(uname -m)
     log "Architecture: $ARCH"
-    
+
     # Check available memory (minimum 4GB)
     MEM_GB=$(free -g | awk '/^Mem:/{print $2}')
     if [[ $MEM_GB -lt 4 ]]; then
         warn "System has only ${MEM_GB}GB memory. Recommended: 8GB+"
     fi
-    
+
     # Check disk space (minimum 20GB)
     DISK_GB=$(df / | awk 'NR==2{print int($4/1024/1024)}')
     if [[ $DISK_GB -lt 20 ]]; then
         error "Insufficient disk space: ${DISK_GB}GB available. Need 20GB+"
         exit 1
     fi
-    
+
     log "System requirements check: PASSED"
 }
 
 # Update system packages
 update_system() {
     log "Updating system packages..."
-    
+
     if command -v apt-get &> /dev/null; then
         export DEBIAN_FRONTEND=noninteractive
         apt-get update -qq
@@ -112,20 +112,20 @@ update_system() {
         error "Unsupported package manager. Please install manually."
         exit 1
     fi
-    
+
     log "System packages updated successfully"
 }
 
 # Install Nmap
 install_nmap() {
     log "Installing Nmap..."
-    
+
     if command -v apt-get &> /dev/null; then
         apt-get install -y nmap
     elif command -v yum &> /dev/null; then
         yum install -y nmap
     fi
-    
+
     # Verify installation
     if command -v nmap &> /dev/null; then
         NMAP_VERSION=$(nmap --version | head -1 | awk '{print $3}')
@@ -139,12 +139,12 @@ install_nmap() {
 # Install Nuclei
 install_nuclei() {
     log "Installing Nuclei..."
-    
+
     # Install using Go
     if command -v go &> /dev/null; then
         export GO111MODULE=on
         go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-        
+
         # Move to system path
         cp ~/go/bin/nuclei /usr/local/bin/
     else
@@ -156,10 +156,10 @@ install_nuclei() {
         chmod +x /usr/local/bin/nuclei
         rm -f "nuclei_${NUCLEI_VERSION#v}_linux_amd64.zip"
     fi
-    
+
     # Update nuclei templates
     nuclei -update-templates -silent
-    
+
     # Verify installation
     if command -v nuclei &> /dev/null; then
         NUCLEI_VERSION=$(nuclei -version 2>&1 | grep -o 'v[0-9.]*')
@@ -173,7 +173,7 @@ install_nuclei() {
 # Install Nikto
 install_nikto() {
     log "Installing Nikto..."
-    
+
     if command -v apt-get &> /dev/null; then
         apt-get install -y nikto
     elif command -v yum &> /dev/null; then
@@ -183,7 +183,7 @@ install_nikto() {
         ln -sf /opt/nikto/program/nikto.pl /usr/local/bin/nikto
         chmod +x /usr/local/bin/nikto
     fi
-    
+
     # Verify installation
     if command -v nikto &> /dev/null; then
         log "Nikto installed successfully"
@@ -196,7 +196,7 @@ install_nikto() {
 # Install SSLScan
 install_sslscan() {
     log "Installing SSLScan..."
-    
+
     if command -v apt-get &> /dev/null; then
         apt-get install -y sslscan
     else
@@ -209,7 +209,7 @@ install_sslscan() {
         cd /
         rm -rf /tmp/sslscan
     fi
-    
+
     # Verify installation
     if command -v sslscan &> /dev/null; then
         log "SSLScan installed successfully"
@@ -222,7 +222,7 @@ install_sslscan() {
 # Install DIRB
 install_dirb() {
     log "Installing DIRB..."
-    
+
     if command -v apt-get &> /dev/null; then
         apt-get install -y dirb
     else
@@ -238,7 +238,7 @@ install_dirb() {
         cd /
         rm -rf /tmp/dirb222*
     fi
-    
+
     # Verify installation
     if command -v dirb &> /dev/null; then
         log "DIRB installed successfully"
@@ -251,7 +251,7 @@ install_dirb() {
 # Install Masscan
 install_masscan() {
     log "Installing Masscan..."
-    
+
     if command -v apt-get &> /dev/null; then
         apt-get install -y masscan
     else
@@ -264,7 +264,7 @@ install_masscan() {
         cd /
         rm -rf /tmp/masscan
     fi
-    
+
     # Verify installation
     if command -v masscan &> /dev/null; then
         log "Masscan installed successfully"
@@ -276,44 +276,44 @@ install_masscan() {
 # Install additional security tools
 install_additional_tools() {
     log "Installing additional security tools..."
-    
+
     # Install subfinder for subdomain discovery
     if command -v go &> /dev/null; then
         go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
         cp ~/go/bin/subfinder /usr/local/bin/ 2>/dev/null || true
     fi
-    
+
     # Install httpx for HTTP probing
     if command -v go &> /dev/null; then
         go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
         cp ~/go/bin/httpx /usr/local/bin/ 2>/dev/null || true
     fi
-    
+
     # Install naabu for port scanning
     if command -v go &> /dev/null; then
         go install -v github.com/projectdiscovery/naabu/v2/cmd/naabu@latest
         cp ~/go/bin/naabu /usr/local/bin/ 2>/dev/null || true
     fi
-    
+
     log "Additional tools installation completed"
 }
 
 # Configure security tools
 configure_tools() {
     log "Configuring security tools..."
-    
+
     # Create tools configuration directory
     mkdir -p /opt/xorb/config
     mkdir -p /opt/xorb/wordlists
     mkdir -p /opt/xorb/templates
-    
+
     # Download additional wordlists
     cd /opt/xorb/wordlists
     wget -q https://github.com/danielmiessler/SecLists/archive/master.zip -O seclists.zip
     unzip -q seclists.zip
     mv SecLists-master/* .
     rm -rf SecLists-master seclists.zip
-    
+
     # Create Nmap configuration
     cat > /opt/xorb/config/nmap.conf << 'EOF'
 # XORB Nmap Configuration
@@ -324,7 +324,7 @@ max_retries = 1
 host_timeout = 300
 scan_delay = 0
 EOF
-    
+
     # Create Nuclei configuration
     cat > /opt/xorb/config/nuclei.yaml << 'EOF'
 # XORB Nuclei Configuration
@@ -341,33 +341,33 @@ severity:
   - low
   - info
 EOF
-    
+
     # Set proper permissions
     chmod 755 /opt/xorb/config
     chmod 644 /opt/xorb/config/*
-    
+
     log "Security tools configuration completed"
 }
 
 # Create scanning user and environment
 setup_scanning_environment() {
     log "Setting up scanning environment..."
-    
+
     # Create dedicated scanning user
     if ! id "xorb-scanner" &>/dev/null; then
         useradd -r -s /bin/bash -d /opt/xorb xorb-scanner
         usermod -aG docker xorb-scanner
     fi
-    
+
     # Create scanning directories
     mkdir -p /opt/xorb/{scans,reports,logs,temp}
     chown -R xorb-scanner:xorb-scanner /opt/xorb
-    
+
     # Set up logging
     mkdir -p /var/log/xorb
     touch /var/log/xorb/scanner.log
     chown xorb-scanner:xorb-scanner /var/log/xorb/scanner.log
-    
+
     # Create systemd service for scanner
     cat > /etc/systemd/system/xorb-scanner.service << 'EOF'
 [Unit]
@@ -388,16 +388,16 @@ StandardError=append:/var/log/xorb/scanner.log
 [Install]
 WantedBy=multi-user.target
 EOF
-    
+
     systemctl daemon-reload
-    
+
     log "Scanning environment setup completed"
 }
 
 # Performance and security hardening
 harden_system() {
     log "Applying security hardening..."
-    
+
     # Increase file descriptor limits for scanning
     cat >> /etc/security/limits.conf << 'EOF'
 xorb-scanner soft nofile 65536
@@ -405,7 +405,7 @@ xorb-scanner hard nofile 65536
 xorb-scanner soft nproc 32768
 xorb-scanner hard nproc 32768
 EOF
-    
+
     # Configure kernel parameters for network scanning
     cat > /etc/sysctl.d/99-xorb-scanner.conf << 'EOF'
 # XORB Scanner Network Optimizations
@@ -419,9 +419,9 @@ net.core.netdev_max_backlog = 5000
 net.ipv4.tcp_window_scaling = 1
 net.ipv4.tcp_congestion_control = bbr
 EOF
-    
+
     sysctl -p /etc/sysctl.d/99-xorb-scanner.conf
-    
+
     # Configure firewall rules
     if command -v ufw &> /dev/null; then
         ufw --force enable
@@ -431,17 +431,17 @@ EOF
         ufw allow 8000/tcp  # XORB API
         ufw allow 3000/tcp  # Frontend
     fi
-    
+
     log "Security hardening completed"
 }
 
 # Validate installation
 validate_installation() {
     log "Validating security tools installation..."
-    
+
     TOOLS=("nmap" "nuclei" "nikto" "sslscan" "dirb")
     FAILED_TOOLS=()
-    
+
     for tool in "${TOOLS[@]}"; do
         if command -v "$tool" &> /dev/null; then
             log "✓ $tool is installed and accessible"
@@ -450,10 +450,10 @@ validate_installation() {
             FAILED_TOOLS+=("$tool")
         fi
     done
-    
+
     # Test tool functionality
     log "Testing tool functionality..."
-    
+
     # Test Nmap
     if nmap --version &>/dev/null; then
         log "✓ Nmap functionality test passed"
@@ -461,7 +461,7 @@ validate_installation() {
         error "✗ Nmap functionality test failed"
         FAILED_TOOLS+=("nmap-test")
     fi
-    
+
     # Test Nuclei
     if nuclei -version &>/dev/null; then
         log "✓ Nuclei functionality test passed"
@@ -469,7 +469,7 @@ validate_installation() {
         error "✗ Nuclei functionality test failed"
         FAILED_TOOLS+=("nuclei-test")
     fi
-    
+
     if [[ ${#FAILED_TOOLS[@]} -eq 0 ]]; then
         log "All security tools validation: PASSED"
         return 0
@@ -482,9 +482,9 @@ validate_installation() {
 # Generate installation report
 generate_report() {
     log "Generating installation report..."
-    
+
     REPORT_FILE="/opt/xorb/installation-report-$(date +%Y%m%d-%H%M%S).txt"
-    
+
     cat > "$REPORT_FILE" << EOF
 XORB PTaaS Production Environment Installation Report
 Generated: $(date)
@@ -517,7 +517,7 @@ Next Steps:
 
 For support, contact: devops@xorb-security.com
 EOF
-    
+
     chown xorb-scanner:xorb-scanner "$REPORT_FILE"
     log "Installation report saved to: $REPORT_FILE"
 }
@@ -526,7 +526,7 @@ EOF
 main() {
     log "Starting XORB PTaaS Production Environment Setup"
     log "=================================================="
-    
+
     check_root
     check_system_requirements
     update_system
@@ -540,7 +540,7 @@ main() {
     configure_tools
     setup_scanning_environment
     harden_system
-    
+
     if validate_installation; then
         generate_report
         log "=================================================="

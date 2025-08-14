@@ -24,7 +24,7 @@ class XORBAnalyticsService:
         self.postgres_pool = None
         self.ml_models = {}
         self.cache_ttl = 300  # 5 minutes
-        
+
     async def init_connections(self):
         """Initialize database connections"""
         try:
@@ -32,21 +32,21 @@ class XORBAnalyticsService:
             redis_host = os.getenv('REDIS_HOST', 'localhost')
             redis_port = int(os.getenv('REDIS_PORT', 6379))
             redis_password = os.getenv('REDIS_PASSWORD', 'xorb_redis_2024')
-            
+
             self.redis = await aioredis.from_url(
                 f"redis://{redis_host}:{redis_port}",
                 password=redis_password,
                 decode_responses=True
             )
             logger.info("✅ Analytics service connected to Redis")
-            
+
             # PostgreSQL connection for data
             postgres_host = os.getenv('POSTGRES_HOST', 'localhost')
             postgres_port = int(os.getenv('POSTGRES_PORT', 5432))
             postgres_db = os.getenv('POSTGRES_DB', 'xorb_multi_adversary')
             postgres_user = os.getenv('POSTGRES_USER', 'xorb_user')
             postgres_password = os.getenv('POSTGRES_PASSWORD', 'xorb_secure_2024')
-            
+
             self.postgres_pool = await asyncpg.create_pool(
                 host=postgres_host,
                 port=postgres_port,
@@ -57,10 +57,10 @@ class XORBAnalyticsService:
                 max_size=10
             )
             logger.info("✅ Analytics service connected to PostgreSQL")
-            
+
         except Exception as e:
             logger.error(f"❌ Analytics database connection failed: {e}")
-    
+
     async def health_check(self, request: web_request) -> web_response:
         """Health check endpoint"""
         return web.json_response({
@@ -70,11 +70,11 @@ class XORBAnalyticsService:
             "timestamp": datetime.now().isoformat(),
             "ml_models_loaded": len(self.ml_models)
         })
-    
+
     async def get_system_metrics(self, request: web_request) -> web_response:
         """Get comprehensive system metrics"""
         cache_key = "system_metrics"
-        
+
         # Try cache first
         if self.redis:
             try:
@@ -83,7 +83,7 @@ class XORBAnalyticsService:
                     return web.json_response(json.loads(cached))
             except Exception as e:
                 logger.warning(f"Cache read error: {e}")
-        
+
         # Generate fresh metrics
         metrics = {
             "timestamp": datetime.now().isoformat(),
@@ -102,16 +102,16 @@ class XORBAnalyticsService:
             "ml_accuracy": round(random.uniform(0.90, 0.98), 3),
             "false_positive_rate": round(random.uniform(0.02, 0.08), 3)
         }
-        
+
         # Cache the result
         if self.redis:
             try:
                 await self.redis.setex(cache_key, self.cache_ttl, json.dumps(metrics))
             except Exception as e:
                 logger.warning(f"Cache write error: {e}")
-        
+
         return web.json_response({"success": True, "data": metrics})
-    
+
     async def get_threat_analytics(self, request: web_request) -> web_response:
         """Get advanced threat analytics"""
         analytics = {
@@ -139,7 +139,7 @@ class XORBAnalyticsService:
             },
             "temporal_patterns": {
                 "hourly_distribution": [
-                    {"hour": i, "count": random.randint(10, 100)} 
+                    {"hour": i, "count": random.randint(10, 100)}
                     for i in range(24)
                 ],
                 "daily_trend": [
@@ -153,16 +153,16 @@ class XORBAnalyticsService:
                 "anomaly_score": round(random.uniform(0.1, 0.3), 3)
             }
         }
-        
+
         return web.json_response({"success": True, "data": analytics})
 
 async def create_app():
     """Create analytics application"""
     analytics = XORBAnalyticsService()
     await analytics.init_connections()
-    
+
     app = web.Application()
-    
+
     # Add CORS middleware
     @web.middleware
     async def cors_middleware(request, handler):
@@ -171,14 +171,14 @@ async def create_app():
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         return response
-    
+
     app.middlewares.append(cors_middleware)
-    
+
     # Routes
     app.router.add_get('/health', analytics.health_check)
     app.router.add_get('/api/v1/metrics', analytics.get_system_metrics)
     app.router.add_get('/api/v1/analytics/threats', analytics.get_threat_analytics)
-    
+
     return app
 
 if __name__ == '__main__':

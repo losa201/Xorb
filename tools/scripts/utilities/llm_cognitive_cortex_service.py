@@ -30,10 +30,10 @@ def setup_logging():
             logging.FileHandler('logs/llm_cortex_service.log')
         ]
     )
-    
+
     # Ensure logs directory exists
     os.makedirs('logs', exist_ok=True)
-    
+
     logger = logging.getLogger("xorb.llm.service")
     logger.info("XORB LLM Cognitive Cortex Service starting...")
     return logger
@@ -45,16 +45,16 @@ def validate_environment():
         'OPENROUTER_API_KEY',
         'NVIDIA_API_KEY'
     ]
-    
+
     missing_vars = []
     for var in required_vars:
         if not os.getenv(var):
             missing_vars.append(var)
-    
+
     if missing_vars:
         print(f"WARNING: Missing environment variables: {missing_vars}")
         print("Some LLM providers may not be available.")
-    
+
     # Set default audit key if not provided
     if not os.getenv('XORB_AUDIT_KEY'):
         os.environ['XORB_AUDIT_KEY'] = 'xorb-default-key-2025'
@@ -64,7 +64,7 @@ def validate_environment():
 async def health_check_loop():
     """Background health check loop"""
     import aiohttp
-    
+
     while True:
         try:
             async with aiohttp.ClientSession() as session:
@@ -76,7 +76,7 @@ async def health_check_loop():
                         print(f"Health check failed: {response.status}")
         except Exception as e:
             print(f"Health check error: {e}")
-        
+
         await asyncio.sleep(60)  # Check every minute
 
 
@@ -85,16 +85,16 @@ def main():
     print("🧠 XORB LLM Cognitive Cortex Service")
     print("=" * 50)
     print(f"Starting at: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    
+
     # Setup logging
     logger = setup_logging()
-    
+
     # Validate environment
     validate_environment()
-    
+
     # Start background health checks
     # asyncio.create_task(health_check_loop())
-    
+
     # Configuration
     config = {
         "host": "0.0.0.0",
@@ -104,9 +104,9 @@ def main():
         "access_log": True,
         "workers": 1  # Single worker for now to maintain state
     }
-    
+
     logger.info(f"Starting LLM Cognitive Cortex service on {config['host']}:{config['port']}")
-    
+
     try:
         # Run the service
         uvicorn.run(app, **config)

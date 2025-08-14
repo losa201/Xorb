@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS findings (
 );
 
 -- Insert initial test data
-INSERT INTO users (username, email) VALUES 
+INSERT INTO users (username, email) VALUES
     ('admin', 'admin@xorb.local'),
     ('testuser', 'test@xorb.local')
 ON CONFLICT (username) DO NOTHING;

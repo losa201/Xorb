@@ -35,7 +35,7 @@ try:
 except ImportError:
     RFC3161_AVAILABLE = False
 
-# IPFS/Storage imports  
+# IPFS/Storage imports
 try:
     import ipfshttpclient
     IPFS_AVAILABLE = True
@@ -80,13 +80,13 @@ class EvidenceMetadata:
     size_bytes: int
     content_hash: str  # SHA-256 of content
     tags: List[str] = None
-    
+
     def __post_init__(self):
         if self.tags is None:
             self.tags = []
 
 
-@dataclass 
+@dataclass
 class ChainOfCustodyEntry:
     """Chain of custody tracking entry."""
     timestamp: datetime
@@ -95,7 +95,7 @@ class ChainOfCustodyEntry:
     actor_type: str  # "user", "system", "api"
     details: str
     signature: Optional[str] = None  # Ed25519 signature of entry
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "timestamp": self.timestamp.isoformat(),
@@ -115,7 +115,7 @@ class TrustedTimestamp:
     tsr_data: bytes  # Timestamp Response (.tsr file)
     serial_number: str
     algorithm: str = "sha256"
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "timestamp": self.timestamp.isoformat(),
@@ -134,11 +134,11 @@ class EvidenceSignature:
     algorithm: str = "ed25519"
     signed_at: datetime = None
     signer: str = None
-    
+
     def __post_init__(self):
         if self.signed_at is None:
             self.signed_at = datetime.now(timezone.utc)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "signature": self.signature.hex(),
@@ -158,17 +158,17 @@ class ProvableEvidence:
     trusted_timestamp: Optional[TrustedTimestamp] = None
     chain_of_custody: List[ChainOfCustodyEntry] = None
     storage_references: Dict[str, str] = None  # IPFS hash, S3 path, etc.
-    
+
     def __post_init__(self):
         if self.chain_of_custody is None:
             self.chain_of_custody = []
         if self.storage_references is None:
             self.storage_references = {}
-    
+
     def add_custody_entry(self, entry: ChainOfCustodyEntry):
         """Add entry to chain of custody."""
         self.chain_of_custody.append(entry)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
@@ -184,83 +184,83 @@ class ProvableEvidence:
 
 class Ed25519KeyManager:
     """Manages Ed25519 keys for evidence signing."""
-    
+
     def __init__(self, key_storage_path: str = "evidence_keys"):
         self.key_storage_path = Path(key_storage_path)
         self.key_storage_path.mkdir(exist_ok=True)
         self._tenant_keys: Dict[str, Ed25519PrivateKey] = {}
-    
+
     def generate_tenant_key(self, tenant_id: str) -> Tuple[Ed25519PrivateKey, Ed25519PublicKey]:
         """Generate Ed25519 key pair for tenant."""
         if not CRYPTO_AVAILABLE:
             raise RuntimeError("Cryptography library not available")
-        
+
         # Generate new Ed25519 key pair
         private_key = Ed25519PrivateKey.generate()
         public_key = private_key.public_key()
-        
+
         # Store private key securely
         private_pem = private_key.private_bytes(
             encoding=Encoding.PEM,
             format=PrivateFormat.PKCS8,
             encryption_algorithm=NoEncryption()  # In production, use proper encryption
         )
-        
+
         # Store public key
         public_pem = public_key.public_bytes(
             encoding=Encoding.PEM,
             format=PublicFormat.SubjectPublicKeyInfo
         )
-        
+
         # Save to files
         private_key_file = self.key_storage_path / f"{tenant_id}_private.pem"
         public_key_file = self.key_storage_path / f"{tenant_id}_public.pem"
-        
+
         private_key_file.write_bytes(private_pem)
         public_key_file.write_bytes(public_pem)
-        
+
         # Set restrictive permissions
         private_key_file.chmod(0o600)
         public_key_file.chmod(0o644)
-        
+
         self._tenant_keys[tenant_id] = private_key
-        
+
         print(f"✅ Generated Ed25519 key pair for tenant {tenant_id}")
         return private_key, public_key
-    
+
     def load_tenant_key(self, tenant_id: str) -> Optional[Ed25519PrivateKey]:
         """Load tenant's private key."""
         if tenant_id in self._tenant_keys:
             return self._tenant_keys[tenant_id]
-        
+
         private_key_file = self.key_storage_path / f"{tenant_id}_private.pem"
         if not private_key_file.exists():
             return None
-        
+
         try:
             private_pem = private_key_file.read_bytes()
             private_key = serialization.load_pem_private_key(
-                private_pem, 
+                private_pem,
                 password=None  # In production, use proper password protection
             )
             self._tenant_keys[tenant_id] = private_key
             return private_key
-            
+
         except Exception as e:
             print(f"❌ Failed to load private key for tenant {tenant_id}: {e}")
             return None
-    
+
     def get_public_key(self, tenant_id: str) -> Optional[Ed25519PublicKey]:
         """Get tenant's public key."""
         public_key_file = self.key_storage_path / f"{tenant_id}_public.pem"
         if not public_key_file.exists():
             return None
-        
+
         try:
             public_pem = public_key_file.read_bytes()
             public_key = serialization.load_pem_public_key(public_pem)
             return public_key
-            
+
         except Exception as e:
             print(f"❌ Failed to load public key for tenant {tenant_id}: {e}")
             return None
@@ -268,16 +268,16 @@ class Ed25519KeyManager:
 
 class TrustedTimestampService:
     """Provides RFC 3161 trusted timestamps."""
-    
+
     def __init__(self):
         # Public timestamp authorities (TSAs)
         self.tsa_urls = [
             "http://timestamp.sectigo.com",
-            "http://timestamp.digicert.com", 
+            "http://timestamp.digicert.com",
             "http://time.certum.pl",
             "http://timestamp.globalsign.com/tsa/kaluga1"
         ]
-    
+
     async def get_trusted_timestamp(self, data_hash: bytes, algorithm: str = "sha256") -> Optional[TrustedTimestamp]:
         """Get RFC 3161 trusted timestamp for data hash."""
         if not RFC3161_AVAILABLE:
@@ -289,7 +289,7 @@ class TrustedTimestampService:
                 serial_number="mock_serial",
                 algorithm=algorithm
             )
-        
+
         for tsa_url in self.tsa_urls:
             try:
                 # Create timestamp request (simplified mock implementation)
@@ -303,7 +303,7 @@ class TrustedTimestampService:
                     "nonce": int(time.time() * 1000000),
                     "certReq": True
                 }
-                
+
                 # Send timestamp request
                 response = requests.post(
                     tsa_url,
@@ -311,11 +311,11 @@ class TrustedTimestampService:
                     headers={"Content-Type": "application/json"},
                     timeout=10
                 )
-                
+
                 if response.status_code == 200:
                     # Parse timestamp response (mock implementation)
                     tsr_data = response.content
-                    
+
                     return TrustedTimestamp(
                         timestamp=datetime.now(timezone.utc),
                         tsa_url=tsa_url,
@@ -323,11 +323,11 @@ class TrustedTimestampService:
                         serial_number=f"ts_{int(time.time())}",
                         algorithm=algorithm
                     )
-                
+
             except Exception as e:
                 print(f"⚠️ Failed to get timestamp from {tsa_url}: {e}")
                 continue
-        
+
         # Fallback to local timestamp
         print("⚠️ All TSAs failed - using local timestamp")
         return TrustedTimestamp(
@@ -341,13 +341,13 @@ class TrustedTimestampService:
 
 class ProvableEvidenceService:
     """Main service for creating and verifying provable evidence."""
-    
+
     def __init__(self, storage_path: str = "evidence_storage"):
         self.key_manager = Ed25519KeyManager()
         self.timestamp_service = TrustedTimestampService()
         self.storage_path = Path(storage_path)
         self.storage_path.mkdir(exist_ok=True)
-        
+
         # Initialize IPFS client if available
         self.ipfs_client = None
         if IPFS_AVAILABLE:
@@ -356,7 +356,7 @@ class ProvableEvidenceService:
                 print("✅ IPFS client connected for immutable storage")
             except Exception as e:
                 print(f"⚠️ IPFS not available: {e}")
-    
+
     async def create_evidence(
         self,
         tenant_id: str,
@@ -370,13 +370,13 @@ class ProvableEvidenceService:
         tags: List[str] = None
     ) -> ProvableEvidence:
         """Create cryptographically signed provable evidence."""
-        
+
         # Generate evidence ID
         evidence_id = f"ev_{tenant_id}_{int(time.time() * 1000000)}"
-        
+
         # Calculate content hash
         content_hash = hashlib.sha256(content).hexdigest()
-        
+
         # Create metadata
         metadata = EvidenceMetadata(
             evidence_id=evidence_id,
@@ -392,7 +392,7 @@ class ProvableEvidenceService:
             content_hash=content_hash,
             tags=tags or []
         )
-        
+
         # Get or generate signing key for tenant
         private_key = self.key_manager.load_tenant_key(tenant_id)
         if not private_key:
@@ -400,31 +400,31 @@ class ProvableEvidenceService:
             private_key, public_key = self.key_manager.generate_tenant_key(tenant_id)
         else:
             public_key = private_key.public_key()
-        
+
         # Create data to sign (metadata + content hash)
         signable_data = json.dumps({
             "metadata": asdict(metadata),
             "content_hash": content_hash
         }, sort_keys=True, default=str).encode('utf-8')
-        
+
         # Sign with Ed25519
         signature_bytes = private_key.sign(signable_data)
         public_key_bytes = public_key.public_bytes(
             encoding=Encoding.Raw,
             format=PublicFormat.Raw
         )
-        
+
         signature = EvidenceSignature(
             signature=signature_bytes,
             public_key=public_key_bytes,
             signer=f"{source_system}:{source_user}",
             signed_at=datetime.now(timezone.utc)
         )
-        
+
         # Get trusted timestamp
         data_hash = hashlib.sha256(signable_data).digest()
         trusted_timestamp = await self.timestamp_service.get_trusted_timestamp(data_hash)
-        
+
         # Create chain of custody
         creation_entry = ChainOfCustodyEntry(
             timestamp=datetime.now(timezone.utc),
@@ -434,7 +434,7 @@ class ProvableEvidenceService:
             details=f"Evidence created from {source_system}",
             signature=signature_bytes.hex()[:32]  # Short signature reference
         )
-        
+
         # Create provable evidence package
         evidence = ProvableEvidence(
             metadata=metadata,
@@ -443,13 +443,13 @@ class ProvableEvidenceService:
             trusted_timestamp=trusted_timestamp,
             chain_of_custody=[creation_entry]
         )
-        
+
         # Store evidence
         await self._store_evidence(evidence)
-        
+
         print(f"✅ Created provable evidence {evidence_id} for tenant {tenant_id}")
         return evidence
-    
+
     async def verify_evidence(self, evidence: ProvableEvidence) -> Dict[str, Any]:
         """Verify cryptographic integrity of evidence."""
         verification_results = {
@@ -459,7 +459,7 @@ class ProvableEvidenceService:
             "overall_valid": True,
             "checks": {}
         }
-        
+
         try:
             # 1. Verify content hash
             actual_hash = hashlib.sha256(evidence.content).hexdigest()
@@ -469,10 +469,10 @@ class ProvableEvidenceService:
                 "expected": evidence.metadata.content_hash,
                 "actual": actual_hash
             }
-            
+
             if not hash_valid:
                 verification_results["overall_valid"] = False
-            
+
             # 2. Verify Ed25519 signature
             try:
                 # Reconstruct signable data
@@ -480,27 +480,27 @@ class ProvableEvidenceService:
                     "metadata": asdict(evidence.metadata),
                     "content_hash": evidence.metadata.content_hash
                 }, sort_keys=True, default=str).encode('utf-8')
-                
+
                 # Load public key
                 public_key = Ed25519PublicKey.from_public_bytes(evidence.signature.public_key)
-                
+
                 # Verify signature
                 public_key.verify(evidence.signature.signature, signable_data)
-                
+
                 verification_results["checks"]["signature"] = {
                     "valid": True,
                     "algorithm": "ed25519",
                     "signer": evidence.signature.signer,
                     "signed_at": evidence.signature.signed_at.isoformat()
                 }
-                
+
             except Exception as e:
                 verification_results["checks"]["signature"] = {
                     "valid": False,
                     "error": str(e)
                 }
                 verification_results["overall_valid"] = False
-            
+
             # 3. Verify trusted timestamp (if available)
             if evidence.trusted_timestamp:
                 # Basic timestamp verification (mock implementation)
@@ -511,10 +511,10 @@ class ProvableEvidenceService:
                     "timestamp": evidence.trusted_timestamp.timestamp.isoformat(),
                     "serial_number": evidence.trusted_timestamp.serial_number
                 }
-                
+
                 if not timestamp_valid:
                     verification_results["overall_valid"] = False
-            
+
             # 4. Verify chain of custody integrity
             custody_valid = len(evidence.chain_of_custody) > 0
             verification_results["checks"]["chain_of_custody"] = {
@@ -522,34 +522,34 @@ class ProvableEvidenceService:
                 "entries": len(evidence.chain_of_custody),
                 "first_action": evidence.chain_of_custody[0].action if evidence.chain_of_custody else None
             }
-            
+
         except Exception as e:
             verification_results["checks"]["error"] = str(e)
             verification_results["overall_valid"] = False
-        
+
         return verification_results
-    
+
     async def _store_evidence(self, evidence: ProvableEvidence):
         """Store evidence in multiple locations for redundancy."""
         evidence_id = evidence.metadata.evidence_id
-        
+
         # 1. Local filesystem storage
         evidence_dir = self.storage_path / evidence.metadata.tenant_id
         evidence_dir.mkdir(exist_ok=True)
-        
+
         # Store evidence package (without content for size)
         evidence_file = evidence_dir / f"{evidence_id}.json"
         evidence_data = evidence.to_dict()
-        
+
         with open(evidence_file, 'w') as f:
             json.dump(evidence_data, f, indent=2, default=str)
-        
+
         # Store content separately
         content_file = evidence_dir / f"{evidence_id}_content.bin"
         content_file.write_bytes(evidence.content)
-        
+
         evidence.storage_references["filesystem"] = str(evidence_file)
-        
+
         # 2. IPFS storage (if available)
         if self.ipfs_client:
             try:
@@ -558,35 +558,35 @@ class ProvableEvidenceService:
                 ipfs_hash = ipfs_result["Hash"]
                 evidence.storage_references["ipfs"] = ipfs_hash
                 print(f"📦 Evidence content stored in IPFS: {ipfs_hash}")
-                
+
             except Exception as e:
                 print(f"⚠️ IPFS storage failed: {e}")
-        
+
         # 3. Update storage references in evidence file
         with open(evidence_file, 'w') as f:
             json.dump(evidence.to_dict(), f, indent=2, default=str)
-        
+
         print(f"💾 Evidence {evidence_id} stored successfully")
-    
+
     async def get_evidence(self, tenant_id: str, evidence_id: str) -> Optional[ProvableEvidence]:
         """Retrieve evidence by ID."""
         evidence_file = self.storage_path / tenant_id / f"{evidence_id}.json"
         content_file = self.storage_path / tenant_id / f"{evidence_id}_content.bin"
-        
+
         if not evidence_file.exists() or not content_file.exists():
             return None
-        
+
         try:
             # Load evidence metadata
             with open(evidence_file, 'r') as f:
                 evidence_data = json.load(f)
-            
+
             # Load content
             content = content_file.read_bytes()
-            
+
             # Reconstruct evidence object (simplified)
             metadata = EvidenceMetadata(**evidence_data["metadata"])
-            
+
             signature = EvidenceSignature(
                 signature=bytes.fromhex(evidence_data["signature"]["signature"]),
                 public_key=bytes.fromhex(evidence_data["signature"]["public_key"]),
@@ -594,7 +594,7 @@ class ProvableEvidenceService:
                 signed_at=datetime.fromisoformat(evidence_data["signature"]["signed_at"]),
                 signer=evidence_data["signature"]["signer"]
             )
-            
+
             # Reconstruct trusted timestamp if available
             trusted_timestamp = None
             if evidence_data.get("trusted_timestamp"):
@@ -606,7 +606,7 @@ class ProvableEvidenceService:
                     serial_number=ts_data["serial_number"],
                     algorithm=ts_data["algorithm"]
                 )
-            
+
             # Reconstruct chain of custody
             chain_of_custody = []
             for entry_data in evidence_data.get("chain_of_custody", []):
@@ -619,7 +619,7 @@ class ProvableEvidenceService:
                     signature=entry_data.get("signature")
                 )
                 chain_of_custody.append(entry)
-            
+
             evidence = ProvableEvidence(
                 metadata=metadata,
                 content=content,
@@ -628,7 +628,7 @@ class ProvableEvidenceService:
                 chain_of_custody=chain_of_custody,
                 storage_references=evidence_data.get("storage_references", {})
             )
-            
+
             # Add access entry to chain of custody
             access_entry = ChainOfCustodyEntry(
                 timestamp=datetime.now(timezone.utc),
@@ -638,9 +638,9 @@ class ProvableEvidenceService:
                 details=f"Evidence accessed via API"
             )
             evidence.add_custody_entry(access_entry)
-            
+
             return evidence
-            
+
         except Exception as e:
             print(f"❌ Failed to load evidence {evidence_id}: {e}")
             return None

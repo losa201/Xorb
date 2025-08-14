@@ -55,24 +55,24 @@ sys.path.append('/root/Xorb')
 async def enable_autonomous():
     try:
         from xorb_common.security.autonomous_security_config import autonomous_security
-        
+
         # Enable autonomous mode
         status = autonomous_security.enable_autonomous_mode()
         print('✅ Autonomous security mode enabled:', status)
-        
+
         # Disable security constraints
         constraints = ['network_restrictions', 'container_security', 'firewall_enforcement', 'roe_validation']
         disabled = autonomous_security.disable_security_constraints(constraints)
         print('🔓 Security constraints disabled:', disabled)
-        
+
         # Enable self-modification
         self_mod = autonomous_security.enable_self_modification()
         print('🧬 Self-modification enabled:', self_mod)
-        
+
         # Print final status
         final_status = autonomous_security.get_security_status()
         print('📊 Final autonomous status:', final_status)
-        
+
     except Exception as e:
         print(f'⚠️ Warning: Could not configure autonomous security: {e}')
         print('Services started but security config may need manual adjustment')
@@ -86,7 +86,7 @@ sleep 10
 
 services=(
     "xorb_postgres_autonomous:5432"
-    "xorb_redis_autonomous:6379" 
+    "xorb_redis_autonomous:6379"
     "xorb_nats_autonomous:4222"
     "xorb_temporal_autonomous:7233"
 )
@@ -94,7 +94,7 @@ services=(
 for service in "${services[@]}"; do
     container=$(echo $service | cut -d: -f1)
     port=$(echo $service | cut -d: -f2)
-    
+
     if docker ps | grep -q $container; then
         echo "✅ $container is running"
     else
@@ -111,7 +111,7 @@ docker-compose -f compose/docker-compose.autonomous.yml ps
 echo ""
 echo "🔧 Autonomous Configuration:"
 echo "- 🤖 Agent-led task prioritization: ENABLED"
-echo "- 🤝 Multi-agent collaboration: ENABLED"  
+echo "- 🤝 Multi-agent collaboration: ENABLED"
 echo "- 🔓 Security constraints: RELAXED"
 echo "- 🌐 Network restrictions: REMOVED"
 echo "- 🧬 Self-modification: ENABLED"
@@ -121,7 +121,7 @@ echo "- 🧠 Collaborative learning: ENABLED"
 echo ""
 echo "📡 Autonomous Endpoints:"
 echo "- API: http://localhost:8000"
-echo "- Orchestrator: http://localhost:8001" 
+echo "- Orchestrator: http://localhost:8001"
 echo "- Scanner: http://localhost:8004"
 echo "- Embedding Service: grpc://localhost:50051"
 echo "- Agent Monitor: http://localhost:8009"

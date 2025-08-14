@@ -9,7 +9,7 @@ from .error_budgets import ErrorBudgetTracker
 
 __all__ = [
     "setup_instrumentation",
-    "get_tracer", 
+    "get_tracer",
     "get_meter",
     "SLIMetrics",
     "ErrorBudgetTracker"

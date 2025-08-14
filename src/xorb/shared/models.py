@@ -13,7 +13,7 @@ from .execution_enums import ScanType, ExploitType, EvidenceType
 
 class UnifiedUser(Base, BaseModel):
     __tablename__ = "users"
-    
+
     id: str = Column(String, primary_key=True, default=lambda: str(uuid4()))
     username: str = Column(String, unique=True, index=True)
     email: str = Column(String, unique=True, index=True)
@@ -105,7 +105,7 @@ class ThreatIntelligence(Base, BaseModel):
 
 class ScanResultModel(Base, BaseModel):
     __tablename__ = "scan_results"
-    
+
     id: str = Column(String, primary_key=True, default=lambda: str(uuid4()))
     target_id: str = Column(String, index=True)
     scan_type: str = Column(String)  # ScanType stored as string
@@ -119,7 +119,7 @@ class ScanResultModel(Base, BaseModel):
 
 class ExploitResultModel(Base, BaseModel):
     __tablename__ = "exploit_results"
-    
+
     id: str = Column(String, primary_key=True, default=lambda: str(uuid4()))
     target_id: str = Column(String, index=True)
     vulnerability_id: str = Column(String)
@@ -134,7 +134,7 @@ class ExploitResultModel(Base, BaseModel):
 
 class EvidenceModel(Base, BaseModel):
     __tablename__ = "evidence"
-    
+
     id: str = Column(String, primary_key=True, default=lambda: str(uuid4()))
     evidence_type: str = Column(String)  # EvidenceType stored as string
     target_id: str = Column(String, index=True)

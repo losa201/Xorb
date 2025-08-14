@@ -154,30 +154,30 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
     """
     Enterprise-grade compliance automation service
     """
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="compliance_automation",
             dependencies=["database", "scanner", "threat_intelligence"],
             **kwargs
         )
-        
+
         # Core components
         self.compliance_controls: Dict[str, ComplianceControl] = {}
         self.control_assessments: Dict[str, ControlAssessment] = {}
         self.compliance_gaps: Dict[str, ComplianceGap] = {}
         self.remediation_items: Dict[str, RemediationItem] = {}
         self.compliance_reports: Dict[str, ComplianceReport] = {}
-        
+
         # Framework mappings
         self.framework_controls = self._initialize_framework_controls()
         self.control_mappings = self._initialize_control_mappings()
-        
+
         # Automation components
         self.automated_checks: Dict[str, Any] = {}
         self.assessment_schedules: Dict[str, datetime] = {}
         self.notification_templates: Dict[str, str] = {}
-        
+
         # Analytics and metrics
         self.compliance_metrics = {
             "total_frameworks": 0,
@@ -190,67 +190,67 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
             "overdue_assessments": 0,
             "reports_generated": 0
         }
-        
+
         # Background tasks
         self.automation_tasks: List[asyncio.Task] = []
-        
+
         # Configuration
         self.auto_assessment_enabled = True
         self.continuous_monitoring = True
         self.real_time_alerts = True
-    
+
     async def initialize(self) -> bool:
         """Initialize the compliance automation service"""
         try:
             logger.info("Initializing Enterprise Compliance Automation Service...")
-            
+
             # Load compliance frameworks and controls
             await self._load_compliance_frameworks()
-            
+
             # Initialize automated checks
             await self._initialize_automated_checks()
-            
+
             # Load existing assessments and gaps
             await self._load_existing_data()
-            
+
             # Start automation tasks
             if self.auto_assessment_enabled:
                 await self._start_automation_tasks()
-            
+
             # Start continuous monitoring
             if self.continuous_monitoring:
                 await self._start_continuous_monitoring()
-            
+
             logger.info("Compliance Automation Service initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize compliance automation service: {e}")
             return False
-    
+
     async def shutdown(self) -> bool:
         """Shutdown the service"""
         try:
             # Cancel automation tasks
             for task in self.automation_tasks:
                 task.cancel()
-            
+
             await asyncio.gather(*self.automation_tasks, return_exceptions=True)
-            
+
             # Save state
             await self._save_compliance_state()
-            
+
             logger.info("Compliance Automation Service shutdown complete")
             return True
-            
+
         except Exception as e:
             logger.error(f"Error during shutdown: {e}")
             return False
-    
+
     # ========================================================================
     # COMPLIANCE VALIDATION
     # ========================================================================
-    
+
     async def validate_compliance(
         self,
         framework: ComplianceFramework,
@@ -258,12 +258,12 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
         assessment_type: str = "full"
     ) -> Dict[str, Any]:
         """Validate compliance against specific framework"""
-        
+
         try:
             validation_id = str(uuid.uuid4())
-            
+
             logger.info(f"Starting {framework.value} compliance validation")
-            
+
             validation_result = {
                 "validation_id": validation_id,
                 "framework": framework.value,
@@ -276,60 +276,60 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 "recommendations": [],
                 "next_actions": []
             }
-            
+
             # Get framework controls
             framework_controls = self.framework_controls.get(framework.value, [])
-            
+
             if not framework_controls:
                 raise ValueError(f"No controls defined for framework {framework.value}")
-            
+
             # Assess each control
             total_score = 0.0
             assessed_controls = 0
-            
+
             for control_id in framework_controls:
                 if control_id in self.compliance_controls:
                     control = self.compliance_controls[control_id]
-                    
+
                     # Perform control assessment
                     assessment_result = await self._assess_control(control, scope)
                     validation_result["control_results"].append(assessment_result)
-                    
+
                     total_score += assessment_result["score"]
                     assessed_controls += 1
-                    
+
                     # Identify gaps
                     if assessment_result["status"] != ComplianceStatus.COMPLIANT.value:
                         gap = await self._identify_control_gap(control, assessment_result)
                         validation_result["gaps_identified"].append(gap)
-            
+
             # Calculate overall compliance
             if assessed_controls > 0:
                 validation_result["overall_compliance"] = total_score / assessed_controls
                 validation_result["compliance_percentage"] = validation_result["overall_compliance"] * 100
-            
+
             # Generate recommendations
             validation_result["recommendations"] = await self._generate_compliance_recommendations(
                 validation_result["control_results"],
                 validation_result["gaps_identified"]
             )
-            
+
             # Generate next actions
             validation_result["next_actions"] = await self._generate_next_actions(
                 validation_result["gaps_identified"]
             )
-            
+
             validation_result["completed_at"] = datetime.utcnow().isoformat()
-            
+
             # Update metrics
             self.compliance_metrics["reports_generated"] += 1
-            
+
             return validation_result
-            
+
         except Exception as e:
             logger.error(f"Compliance validation failed: {e}")
             raise
-    
+
     async def generate_compliance_report(
         self,
         framework: ComplianceFramework,
@@ -338,31 +338,31 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
         report_type: str = "executive"
     ) -> Dict[str, Any]:
         """Generate comprehensive compliance report"""
-        
+
         try:
             report_id = str(uuid.uuid4())
-            
+
             logger.info(f"Generating {report_type} compliance report for {framework.value}")
-            
+
             # Collect assessment data for period
             assessments = await self._get_assessments_for_period(
                 framework, period_start, period_end
             )
-            
+
             # Calculate compliance metrics
             compliance_metrics = await self._calculate_compliance_metrics(assessments)
-            
+
             # Generate executive summary
             executive_summary = await self._generate_executive_summary(
                 framework, compliance_metrics, assessments
             )
-            
+
             # Compile gaps and remediation status
             gaps_summary = await self._compile_gaps_summary(framework, period_start, period_end)
-            
+
             # Generate detailed findings
             detailed_findings = await self._generate_detailed_findings(assessments)
-            
+
             # Create compliance report
             report = ComplianceReport(
                 report_id=report_id,
@@ -383,80 +383,80 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 ),
                 next_actions=await self._generate_action_plan(gaps_summary)
             )
-            
+
             # Add framework-specific appendices
             if report_type == "detailed":
                 report.appendices = await self._generate_report_appendices(
                     framework, assessments, gaps_summary
                 )
-            
+
             # Store report
             self.compliance_reports[report_id] = report
-            
+
             # Update metrics
             self.compliance_metrics["reports_generated"] += 1
-            
+
             return asdict(report)
-            
+
         except Exception as e:
             logger.error(f"Compliance report generation failed: {e}")
             raise
-    
+
     async def get_compliance_gaps(
         self,
         framework: Optional[ComplianceFramework] = None,
         severity_filter: Optional[ControlSeverity] = None
     ) -> List[Dict[str, Any]]:
         """Identify compliance gaps and remediation steps"""
-        
+
         try:
             gaps = []
-            
+
             for gap in self.compliance_gaps.values():
                 # Apply filters
                 if framework and gap.framework != framework:
                     continue
                 if severity_filter and gap.risk_level != severity_filter:
                     continue
-                
+
                 # Get remediation items for this gap
                 remediation_items = [
                     asdict(item) for item in self.remediation_items.values()
                     if item.gap_id == gap.gap_id
                 ]
-                
+
                 # Calculate progress
                 total_items = len(remediation_items)
                 completed_items = len([item for item in remediation_items if item["status"] == "completed"])
                 progress_percentage = (completed_items / total_items * 100) if total_items > 0 else 0
-                
+
                 gap_data = asdict(gap)
                 gap_data["remediation_items"] = remediation_items
                 gap_data["progress_percentage"] = progress_percentage
                 gap_data["days_until_target"] = (gap.target_completion - datetime.utcnow()).days
-                
+
                 gaps.append(gap_data)
-            
+
             # Sort by priority and risk level
             gaps.sort(key=lambda x: (
                 x["remediation_priority"],
                 x["risk_level"],
                 x["target_completion"]
             ))
-            
+
             return gaps
-            
+
         except Exception as e:
             logger.error(f"Failed to get compliance gaps: {e}")
             raise
-    
+
     async def track_remediation_progress(
         self,
         gap_id: Optional[str] = None,
         framework: Optional[ComplianceFramework] = None
     ) -> Dict[str, Any]:
         """Track progress of compliance remediation efforts"""
-        
+
         try:
             progress_report = {
                 "report_id": str(uuid.uuid4()),
@@ -470,7 +470,7 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 "timeline": [],
                 "metrics": {}
             }
-            
+
             # Filter remediation items
             filtered_items = []
             for item in self.remediation_items.values():
@@ -479,16 +479,16 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 if framework and self.compliance_gaps[item.gap_id].framework != framework:
                     continue
                 filtered_items.append(item)
-            
+
             # Calculate progress metrics
             total_items = len(filtered_items)
             completed_items = len([item for item in filtered_items if item.status == "completed"])
             in_progress_items = len([item for item in filtered_items if item.status == "in_progress"])
             overdue_items = len([
-                item for item in filtered_items 
+                item for item in filtered_items
                 if item.due_date < datetime.utcnow() and item.status != "completed"
             ])
-            
+
             progress_report["summary"] = {
                 "total_items": total_items,
                 "completed_items": completed_items,
@@ -497,25 +497,25 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 "overdue_items": overdue_items,
                 "overall_progress": (completed_items / total_items * 100) if total_items > 0 else 0
             }
-            
+
             # Detailed item information
             for item in filtered_items:
                 item_data = asdict(item)
                 item_data["gap_info"] = asdict(self.compliance_gaps[item.gap_id])
                 item_data["is_overdue"] = item.due_date < datetime.utcnow() and item.status != "completed"
                 progress_report["remediation_items"].append(item_data)
-            
+
             # Generate timeline
             progress_report["timeline"] = await self._generate_remediation_timeline(filtered_items)
-            
+
             # Calculate cost and effort metrics
             total_cost = sum([item.cost_estimate or 0 for item in filtered_items])
             total_effort = sum([item.estimated_hours for item in filtered_items])
             completed_cost = sum([
-                item.cost_estimate or 0 for item in filtered_items 
+                item.cost_estimate or 0 for item in filtered_items
                 if item.status == "completed"
             ])
-            
+
             progress_report["metrics"] = {
                 "total_estimated_cost": total_cost,
                 "completed_cost": completed_cost,
@@ -523,43 +523,43 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 "total_estimated_hours": total_effort,
                 "cost_efficiency": (completed_cost / total_cost * 100) if total_cost > 0 else 0
             }
-            
+
             return progress_report
-            
+
         except Exception as e:
             logger.error(f"Failed to track remediation progress: {e}")
             raise
-    
+
     # ========================================================================
     # AUTOMATED COMPLIANCE MONITORING
     # ========================================================================
-    
+
     async def run_automated_assessment(
         self,
         control_id: str,
         assessment_config: Optional[Dict[str, Any]] = None
     ) -> ControlAssessment:
         """Run automated compliance assessment for a control"""
-        
+
         try:
             if control_id not in self.compliance_controls:
                 raise ValueError(f"Control {control_id} not found")
-            
+
             control = self.compliance_controls[control_id]
-            
+
             if not control.automated_check:
                 raise ValueError(f"Control {control_id} does not support automated assessment")
-            
+
             logger.info(f"Running automated assessment for control {control_id}")
-            
+
             # Get automated check configuration
             check_config = self.automated_checks.get(control_id, {})
             if assessment_config:
                 check_config.update(assessment_config)
-            
+
             # Perform automated checks
             assessment_result = await self._run_automated_control_check(control, check_config)
-            
+
             # Create assessment record
             assessment = ControlAssessment(
                 assessment_id=str(uuid.uuid4()),
@@ -574,38 +574,38 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 recommendations=assessment_result["recommendations"],
                 next_assessment_due=datetime.utcnow() + timedelta(days=30)  # Default 30 days
             )
-            
+
             # Store assessment
             self.control_assessments[assessment.assessment_id] = assessment
-            
+
             # Update metrics
             if assessment.status == ComplianceStatus.COMPLIANT:
                 self.compliance_metrics["compliant_controls"] += 1
             else:
                 self.compliance_metrics["non_compliant_controls"] += 1
-            
+
             # Create compliance gap if non-compliant
             if assessment.status in [ComplianceStatus.NON_COMPLIANT, ComplianceStatus.PARTIALLY_COMPLIANT]:
                 await self._create_compliance_gap_from_assessment(assessment)
-            
+
             logger.info(f"Automated assessment completed for {control_id}: {assessment.status.value}")
-            
+
             return assessment
-            
+
         except Exception as e:
             logger.error(f"Automated assessment failed for {control_id}: {e}")
             raise
-    
+
     async def schedule_recurring_assessments(
         self,
         framework: ComplianceFramework,
         frequency: str = "quarterly"
     ) -> Dict[str, Any]:
         """Schedule recurring compliance assessments"""
-        
+
         try:
             schedule_id = str(uuid.uuid4())
-            
+
             # Calculate next assessment dates
             if frequency == "monthly":
                 next_date = datetime.utcnow() + timedelta(days=30)
@@ -618,10 +618,10 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 interval_days = 365
             else:
                 raise ValueError(f"Unsupported frequency: {frequency}")
-            
+
             # Get framework controls
             framework_controls = self.framework_controls.get(framework.value, [])
-            
+
             schedule_config = {
                 "schedule_id": schedule_id,
                 "framework": framework.value,
@@ -633,32 +633,32 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 "notification_enabled": True,
                 "created_at": datetime.utcnow().isoformat()
             }
-            
+
             # Schedule assessments for each control
             for control_id in framework_controls:
                 if control_id in self.compliance_controls:
                     control = self.compliance_controls[control_id]
                     if control.automated_check:
                         self.assessment_schedules[f"{schedule_id}_{control_id}"] = next_date
-            
+
             # Start recurring assessment task
             recurring_task = asyncio.create_task(
                 self._run_recurring_assessments(schedule_config)
             )
             self.automation_tasks.append(recurring_task)
-            
+
             logger.info(f"Scheduled recurring {frequency} assessments for {framework.value}")
-            
+
             return schedule_config
-            
+
         except Exception as e:
             logger.error(f"Failed to schedule recurring assessments: {e}")
             raise
-    
+
     # ========================================================================
     # COMPLIANCE SERVICE INTERFACE IMPLEMENTATION
     # ========================================================================
-    
+
     async def validate_compliance(
         self,
         framework: str,
@@ -670,7 +670,7 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
             return await self.validate_compliance(framework_enum, scope)
         except ValueError:
             raise ValueError(f"Unsupported compliance framework: {framework}")
-    
+
     async def generate_compliance_report(
         self,
         framework: str,
@@ -682,13 +682,13 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
             framework_enum = ComplianceFramework(framework)
             start_date = datetime.fromisoformat(period_start)
             end_date = datetime.fromisoformat(period_end)
-            
+
             return await self.generate_compliance_report(
                 framework_enum, start_date, end_date
             )
         except ValueError:
             raise ValueError(f"Invalid framework or date format")
-    
+
     async def get_compliance_gaps(
         self,
         framework: Optional[str] = None
@@ -698,27 +698,27 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
             framework_enum = None
             if framework:
                 framework_enum = ComplianceFramework(framework)
-            
+
             return await self.get_compliance_gaps(framework_enum)
         except ValueError:
             raise ValueError(f"Unsupported compliance framework: {framework}")
-    
+
     async def track_remediation_progress(
         self,
         gap_id: str
     ) -> Dict[str, Any]:
         """Track progress of compliance remediation efforts"""
         return await self.track_remediation_progress(gap_id)
-    
+
     # ========================================================================
     # SECURITY SERVICE INTERFACE IMPLEMENTATION
     # ========================================================================
-    
+
     async def process_security_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """Process a security event"""
         try:
             event_type = event.get("type", "unknown")
-            
+
             if event_type == "compliance_violation":
                 return await self._process_compliance_violation_event(event)
             elif event_type == "control_failure":
@@ -727,11 +727,11 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 return await self._process_audit_finding_event(event)
             else:
                 return {"status": "ignored", "reason": f"Unknown event type: {event_type}"}
-                
+
         except Exception as e:
             logger.error(f"Failed to process security event: {e}")
             return {"status": "error", "error": str(e)}
-    
+
     async def get_security_metrics(self) -> Dict[str, Any]:
         """Get security-specific metrics"""
         try:
@@ -751,11 +751,11 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                     gap.framework.value for gap in self.compliance_gaps.values()
                 ]))
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to get security metrics: {e}")
             return {"error": str(e)}
-    
+
     async def health_check(self) -> ServiceHealth:
         """Perform health check"""
         try:
@@ -768,36 +768,36 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 "automation_tasks": len([t for t in self.automation_tasks if not t.done()]),
                 "continuous_monitoring": self.continuous_monitoring
             }
-            
+
             status = ServiceStatus.HEALTHY
             message = "Compliance automation service operational"
-            
+
             # Check for critical issues
             critical_gaps = len([
                 gap for gap in self.compliance_gaps.values()
                 if gap.risk_level == ControlSeverity.CRITICAL and gap.status == "open"
             ])
-            
+
             if critical_gaps > 0:
                 status = ServiceStatus.DEGRADED
                 message = f"{critical_gaps} critical compliance gaps require attention"
-            
+
             overdue_assessments = len([
                 schedule_date for schedule_date in self.assessment_schedules.values()
                 if schedule_date < datetime.utcnow()
             ])
-            
+
             if overdue_assessments > 10:
                 status = ServiceStatus.DEGRADED
                 message = f"{overdue_assessments} assessments overdue"
-            
+
             return ServiceHealth(
                 status=status,
                 message=message,
                 timestamp=datetime.utcnow(),
                 checks=checks
             )
-            
+
         except Exception as e:
             return ServiceHealth(
                 status=ServiceStatus.UNHEALTHY,
@@ -805,11 +805,11 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 timestamp=datetime.utcnow(),
                 checks={"error": str(e)}
             )
-    
+
     # ========================================================================
     # UTILITY METHODS
     # ========================================================================
-    
+
     def _initialize_framework_controls(self) -> Dict[str, List[str]]:
         """Initialize framework control mappings"""
         return {
@@ -830,7 +830,7 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
                 "iso_a11", "iso_a12", "iso_a13", "iso_a14", "iso_a15", "iso_a16"
             ]
         }
-    
+
     def _initialize_control_mappings(self) -> Dict[str, List[str]]:
         """Initialize cross-framework control mappings"""
         return {
@@ -841,7 +841,7 @@ class EnterpriseComplianceAutomationService(SecurityService, ComplianceService):
             "incident_response": ["pci_12.1", "iso_a16"],
             "audit_logging": ["pci_10.1", "sox_404", "iso_a12"]
         }
-    
+
     # Additional utility methods would be implemented here...
 
 
@@ -851,13 +851,13 @@ _compliance_service: Optional[EnterpriseComplianceAutomationService] = None
 async def get_compliance_automation_service() -> EnterpriseComplianceAutomationService:
     """Get global compliance automation service instance"""
     global _compliance_service
-    
+
     if _compliance_service is None:
         _compliance_service = EnterpriseComplianceAutomationService()
         await _compliance_service.initialize()
-        
+
         # Register with global service registry
         from .base_service import service_registry
         service_registry.register(_compliance_service)
-    
+
     return _compliance_service

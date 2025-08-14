@@ -42,7 +42,7 @@ class BehaviorType(Enum):
 class AnomalyType(Enum):
     """Types of behavioral anomalies"""
     TEMPORAL_ANOMALY = "temporal_anomaly"
-    LOCATION_ANOMALY = "location_anomaly" 
+    LOCATION_ANOMALY = "location_anomaly"
     VOLUME_ANOMALY = "volume_anomaly"
     PATTERN_ANOMALY = "pattern_anomaly"
     VELOCITY_ANOMALY = "velocity_anomaly"
@@ -153,13 +153,13 @@ class AdvancedBehavioralAnalyticsEngine:
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self.logger = logging.getLogger(__name__)
-        
+
         # Behavioral data storage
         self.behavior_events: deque = deque(maxlen=1000000)  # Keep last 1M events
         self.baselines: Dict[str, BehaviorBaseline] = {}
         self.anomalies: Dict[str, BehaviorAnomaly] = {}
         self.predictions: Dict[str, ThreatPrediction] = {}
-        
+
         # ML Models for different anomaly types
         self.anomaly_models = {
             "isolation_forest": {},
@@ -168,26 +168,26 @@ class AdvancedBehavioralAnalyticsEngine:
             "sequence_analysis": {},
             "peer_group_analysis": {}
         }
-        
+
         # Feature extractors and scalers
         self.feature_extractors = {}
         self.scalers = {}
-        
+
         # Peer group clustering
         self.peer_groups: Dict[str, Set[str]] = {}
         self.group_profiles: Dict[str, Dict[str, Any]] = {}
-        
+
         # Real-time processing
         self.event_buffer: deque = deque(maxlen=10000)
         self.processing_queue = asyncio.Queue()
-        
+
         # Learning and adaptation
         self.learning_schedule = {
             "baseline_update": timedelta(hours=1),
             "model_retrain": timedelta(days=1),
             "peer_group_refresh": timedelta(days=7)
         }
-        
+
         # Performance metrics
         self.analytics_metrics = {
             "events_processed": 0,
@@ -197,7 +197,7 @@ class AdvancedBehavioralAnalyticsEngine:
             "detection_accuracy": 0.0,
             "processing_latency": 0.0
         }
-        
+
         # Configuration parameters
         self.baseline_learning_period = timedelta(days=30)
         self.anomaly_threshold = self.config.get("anomaly_threshold", 0.7)
@@ -208,27 +208,27 @@ class AdvancedBehavioralAnalyticsEngine:
         """Initialize the behavioral analytics engine"""
         try:
             self.logger.info("Initializing Advanced Behavioral Analytics Engine...")
-            
+
             # Initialize ML models
             await self._initialize_ml_models()
-            
+
             # Load existing baselines and models
             await self._load_persisted_data()
-            
+
             # Start processing workers
             for i in range(3):
                 asyncio.create_task(self._behavior_processing_worker(f"worker_{i}"))
-            
+
             # Start background tasks
             asyncio.create_task(self._baseline_learning_task())
             asyncio.create_task(self._model_training_task())
             asyncio.create_task(self._peer_group_analysis_task())
             asyncio.create_task(self._threat_prediction_task())
             asyncio.create_task(self._performance_monitoring_task())
-            
+
             self.logger.info("Behavioral Analytics Engine initialized successfully")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to initialize behavioral analytics engine: {e}")
             return False
@@ -237,7 +237,7 @@ class AdvancedBehavioralAnalyticsEngine:
         """Analyze a single behavior event in real-time"""
         try:
             start_time = time.time()
-            
+
             # Create behavior event
             event = BehaviorEvent(
                 id=str(uuid4()),
@@ -257,30 +257,30 @@ class AdvancedBehavioralAnalyticsEngine:
                 metadata=event_data.get("metadata", {}),
                 risk_indicators=event_data.get("risk_indicators", [])
             )
-            
+
             # Store event
             self.behavior_events.append(event)
             self.event_buffer.append(event)
-            
+
             # Queue for asynchronous processing
             await self.processing_queue.put(event)
-            
+
             # Perform real-time analysis
             analysis_result = await self._real_time_analysis(event)
-            
+
             # Update metrics
             self.analytics_metrics["events_processed"] += 1
             self.analytics_metrics["processing_latency"] = time.time() - start_time
-            
+
             return analysis_result
-            
+
         except Exception as e:
             self.logger.error(f"Behavior event analysis failed: {e}")
             raise
 
     async def detect_anomalies_for_entity(
-        self, 
-        entity_id: str, 
+        self,
+        entity_id: str,
         time_range: Dict[str, Any] = None
     ) -> List[BehaviorAnomaly]:
         """Detect behavioral anomalies for specific entity"""
@@ -300,48 +300,48 @@ class AdvancedBehavioralAnalyticsEngine:
                     e for e in self.behavior_events
                     if e.entity_id == entity_id and e.timestamp >= cutoff_time
                 ]
-            
+
             if not events:
                 return []
-            
+
             # Perform comprehensive anomaly detection
             anomalies = []
-            
+
             # Temporal anomaly detection
             temporal_anomalies = await self._detect_temporal_anomalies(entity_id, events)
             anomalies.extend(temporal_anomalies)
-            
+
             # Volume/frequency anomaly detection
             volume_anomalies = await self._detect_volume_anomalies(entity_id, events)
             anomalies.extend(volume_anomalies)
-            
+
             # Pattern anomaly detection
             pattern_anomalies = await self._detect_pattern_anomalies(entity_id, events)
             anomalies.extend(pattern_anomalies)
-            
+
             # Peer group anomaly detection
             peer_anomalies = await self._detect_peer_group_anomalies(entity_id, events)
             anomalies.extend(peer_anomalies)
-            
+
             # ML-based anomaly detection
             ml_anomalies = await self._detect_ml_anomalies(entity_id, events)
             anomalies.extend(ml_anomalies)
-            
+
             # Store detected anomalies
             for anomaly in anomalies:
                 self.anomalies[anomaly.id] = anomaly
-            
+
             self.analytics_metrics["anomalies_detected"] += len(anomalies)
-            
+
             return anomalies
-            
+
         except Exception as e:
             self.logger.error(f"Anomaly detection failed for entity {entity_id}: {e}")
             return []
 
     async def generate_threat_predictions(
-        self, 
-        entity_id: str, 
+        self,
+        entity_id: str,
         prediction_horizon: str = "24h"
     ) -> List[ThreatPrediction]:
         """Generate ML-powered threat predictions for entity"""
@@ -349,16 +349,16 @@ class AdvancedBehavioralAnalyticsEngine:
             # Get entity baseline and recent events
             baseline = await self._get_or_create_baseline(entity_id, BehaviorType.USER_AUTHENTICATION)
             recent_events = await self._get_recent_events(entity_id, timedelta(days=7))
-            
+
             if not baseline or len(recent_events) < 10:
                 return []
-            
+
             # Extract features for prediction
             features = await self._extract_prediction_features(entity_id, recent_events, baseline)
-            
+
             # Generate predictions for different threat types
             predictions = []
-            
+
             # Account compromise prediction
             account_compromise_prob = await self._predict_account_compromise(features)
             if account_compromise_prob > 0.3:
@@ -373,7 +373,7 @@ class AdvancedBehavioralAnalyticsEngine:
                     contributing_factors=await self._get_compromise_factors(features),
                     recommended_mitigations=await self._get_compromise_mitigations(account_compromise_prob)
                 ))
-            
+
             # Insider threat prediction
             insider_threat_prob = await self._predict_insider_threat(features)
             if insider_threat_prob > 0.2:
@@ -388,7 +388,7 @@ class AdvancedBehavioralAnalyticsEngine:
                     contributing_factors=await self._get_insider_threat_factors(features),
                     recommended_mitigations=await self._get_insider_threat_mitigations(insider_threat_prob)
                 ))
-            
+
             # Data exfiltration prediction
             exfiltration_prob = await self._predict_data_exfiltration(features)
             if exfiltration_prob > 0.25:
@@ -403,15 +403,15 @@ class AdvancedBehavioralAnalyticsEngine:
                     contributing_factors=await self._get_exfiltration_factors(features),
                     recommended_mitigations=await self._get_exfiltration_mitigations(exfiltration_prob)
                 ))
-            
+
             # Store predictions
             for prediction in predictions:
                 self.predictions[prediction.id] = prediction
-            
+
             self.analytics_metrics["predictions_generated"] += len(predictions)
-            
+
             return predictions
-            
+
         except Exception as e:
             self.logger.error(f"Threat prediction failed for entity {entity_id}: {e}")
             return []
@@ -425,25 +425,25 @@ class AdvancedBehavioralAnalyticsEngine:
                 e for e in self.behavior_events
                 if e.entity_id == entity_id and e.timestamp >= cutoff_time
             ]
-            
+
             if len(events) < self.min_baseline_samples and not force_update:
                 self.logger.debug(f"Insufficient events for baseline update: {len(events)}")
                 return False
-            
+
             # Group events by behavior type
             events_by_type = defaultdict(list)
             for event in events:
                 events_by_type[event.behavior_type].append(event)
-            
+
             # Update baselines for each behavior type
             for behavior_type, type_events in events_by_type.items():
                 baseline = await self._calculate_baseline(entity_id, behavior_type, type_events)
                 baseline_key = f"{entity_id}_{behavior_type.value}"
                 self.baselines[baseline_key] = baseline
-            
+
             self.logger.info(f"Updated baseline for entity {entity_id} with {len(events)} events")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Baseline update failed for entity {entity_id}: {e}")
             return False
@@ -454,22 +454,22 @@ class AdvancedBehavioralAnalyticsEngine:
             # Get recent anomalies
             recent_anomalies = [
                 a for a in self.anomalies.values()
-                if a.entity_id == entity_id and 
+                if a.entity_id == entity_id and
                 a.detected_at >= datetime.utcnow() - timedelta(days=30)
             ]
-            
+
             # Get recent predictions
             recent_predictions = [
                 p for p in self.predictions.values()
                 if p.entity_id == entity_id and
                 p.predicted_at >= datetime.utcnow() - timedelta(days=7)
             ]
-            
+
             # Calculate risk scores
             anomaly_risk_score = self._calculate_anomaly_risk_score(recent_anomalies)
             prediction_risk_score = self._calculate_prediction_risk_score(recent_predictions)
             overall_risk_score = (anomaly_risk_score + prediction_risk_score) / 2
-            
+
             # Determine risk level
             if overall_risk_score >= 0.8:
                 risk_level = RiskLevel.CRITICAL
@@ -481,14 +481,14 @@ class AdvancedBehavioralAnalyticsEngine:
                 risk_level = RiskLevel.LOW
             else:
                 risk_level = RiskLevel.INFORMATIONAL
-            
+
             # Get peer group information
             peer_group = await self._get_entity_peer_group(entity_id)
-            
+
             # Generate risk factors and recommendations
             risk_factors = await self._identify_risk_factors(entity_id, recent_anomalies, recent_predictions)
             recommendations = await self._generate_risk_mitigation_recommendations(risk_factors, risk_level)
-            
+
             return {
                 "entity_id": entity_id,
                 "overall_risk_score": overall_risk_score,
@@ -502,7 +502,7 @@ class AdvancedBehavioralAnalyticsEngine:
                 "recommendations": recommendations,
                 "last_updated": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             self.logger.error(f"Risk profile generation failed for entity {entity_id}: {e}")
             return {"entity_id": entity_id, "error": str(e)}
@@ -518,37 +518,37 @@ class AdvancedBehavioralAnalyticsEngine:
             "peer_comparison": {},
             "recommended_actions": []
         }
-        
+
         try:
             # Get baseline for comparison
             baseline = await self._get_baseline(event.entity_id, event.behavior_type)
-            
+
             if baseline:
                 # Check for immediate anomalies
                 analysis_result["baseline_deviations"] = await self._compare_to_baseline(event, baseline)
-                
+
                 # Calculate immediate risk score
                 analysis_result["immediate_risk_score"] = self._calculate_immediate_risk_score(
                     event, analysis_result["baseline_deviations"]
                 )
-                
+
                 # Check peer group comparison
                 analysis_result["peer_comparison"] = await self._compare_to_peer_group(event)
-                
+
                 # Identify anomaly indicators
                 if analysis_result["immediate_risk_score"] > self.anomaly_threshold:
                     analysis_result["anomaly_indicators"] = self._identify_anomaly_indicators(
                         event, analysis_result["baseline_deviations"]
                     )
-                    
+
                     # Generate immediate recommendations
                     analysis_result["recommended_actions"] = self._generate_immediate_recommendations(
-                        analysis_result["immediate_risk_score"], 
+                        analysis_result["immediate_risk_score"],
                         analysis_result["anomaly_indicators"]
                     )
-            
+
             return analysis_result
-            
+
         except Exception as e:
             self.logger.error(f"Real-time analysis failed: {e}")
             analysis_result["error"] = str(e)
@@ -557,28 +557,28 @@ class AdvancedBehavioralAnalyticsEngine:
     async def _detect_temporal_anomalies(self, entity_id: str, events: List[BehaviorEvent]) -> List[BehaviorAnomaly]:
         """Detect temporal pattern anomalies"""
         anomalies = []
-        
+
         try:
             # Get baseline temporal patterns
             baseline = await self._get_baseline(entity_id, events[0].behavior_type)
             if not baseline or not baseline.temporal_patterns:
                 return anomalies
-            
+
             # Analyze temporal patterns in events
             hour_counts = defaultdict(int)
             day_counts = defaultdict(int)
-            
+
             for event in events:
                 hour_counts[event.timestamp.hour] += 1
                 day_counts[event.timestamp.weekday()] += 1
-            
+
             # Check for unusual hours
             baseline_hours = baseline.temporal_patterns.get("active_hours", set())
             unusual_hours = []
             for hour, count in hour_counts.items():
                 if hour not in baseline_hours and count > 1:  # More than 1 event in unusual hour
                     unusual_hours.append(hour)
-            
+
             if unusual_hours:
                 anomaly = BehaviorAnomaly(
                     id=str(uuid4()),
@@ -595,32 +595,32 @@ class AdvancedBehavioralAnalyticsEngine:
                     recommended_actions=["investigate_off_hours_activity", "verify_user_identity"]
                 )
                 anomalies.append(anomaly)
-        
+
         except Exception as e:
             self.logger.error(f"Temporal anomaly detection failed: {e}")
-        
+
         return anomalies
 
     async def _detect_volume_anomalies(self, entity_id: str, events: List[BehaviorEvent]) -> List[BehaviorAnomaly]:
         """Detect volume/frequency anomalies"""
         anomalies = []
-        
+
         try:
             # Get baseline volume patterns
             baseline = await self._get_baseline(entity_id, events[0].behavior_type)
             if not baseline or not baseline.volume_patterns:
                 return anomalies
-            
+
             # Calculate current volume metrics
             total_events = len(events)
             time_span_hours = (events[-1].timestamp - events[0].timestamp).total_seconds() / 3600
             events_per_hour = total_events / max(time_span_hours, 1)
-            
+
             # Compare to baseline
             baseline_rate = baseline.volume_patterns.get("events_per_hour", 0)
             if baseline_rate > 0:
                 volume_deviation = (events_per_hour - baseline_rate) / baseline_rate
-                
+
                 if volume_deviation > 2.0:  # 200% increase
                     anomaly = BehaviorAnomaly(
                         id=str(uuid4()),
@@ -637,22 +637,22 @@ class AdvancedBehavioralAnalyticsEngine:
                         recommended_actions=["investigate_bulk_activity", "check_automation", "verify_legitimate_use"]
                     )
                     anomalies.append(anomaly)
-        
+
         except Exception as e:
             self.logger.error(f"Volume anomaly detection failed: {e}")
-        
+
         return anomalies
 
     async def _detect_pattern_anomalies(self, entity_id: str, events: List[BehaviorEvent]) -> List[BehaviorAnomaly]:
         """Detect behavioral pattern anomalies"""
         anomalies = []
-        
+
         try:
             # Get baseline patterns
             baseline = await self._get_baseline(entity_id, events[0].behavior_type)
             if not baseline:
                 return anomalies
-            
+
             # Analyze action sequences
             action_sequences = []
             for i in range(len(events) - 2):
@@ -662,11 +662,11 @@ class AdvancedBehavioralAnalyticsEngine:
                     events[i+2].action_performed
                 ])
                 action_sequences.append(sequence)
-            
+
             # Check against baseline sequences
             baseline_sequences = set(baseline.sequence_patterns)
             unusual_sequences = [seq for seq in action_sequences if seq not in baseline_sequences]
-            
+
             if unusual_sequences and len(unusual_sequences) / len(action_sequences) > 0.3:
                 anomaly = BehaviorAnomaly(
                     id=str(uuid4()),
@@ -683,42 +683,42 @@ class AdvancedBehavioralAnalyticsEngine:
                     recommended_actions=["analyze_behavior_change", "verify_user_training"]
                 )
                 anomalies.append(anomaly)
-        
+
         except Exception as e:
             self.logger.error(f"Pattern anomaly detection failed: {e}")
-        
+
         return anomalies
 
     async def _detect_peer_group_anomalies(self, entity_id: str, events: List[BehaviorEvent]) -> List[BehaviorAnomaly]:
         """Detect anomalies compared to peer group"""
         anomalies = []
-        
+
         try:
             # Get entity's peer group
             peer_group = await self._get_entity_peer_group(entity_id)
             if not peer_group:
                 return anomalies
-            
+
             # Get peer group profile
             group_profile = self.group_profiles.get(peer_group)
             if not group_profile:
                 return anomalies
-            
+
             # Calculate entity metrics
             entity_metrics = await self._calculate_entity_metrics(events)
-            
+
             # Compare to peer group averages
             deviations = {}
             for metric, value in entity_metrics.items():
                 if metric in group_profile:
                     group_avg = group_profile[metric]["average"]
                     group_std = group_profile[metric]["std_dev"]
-                    
+
                     if group_std > 0:
                         z_score = abs(value - group_avg) / group_std
                         if z_score > 3.0:  # 3 standard deviations
                             deviations[metric] = z_score
-            
+
             if deviations:
                 max_deviation = max(deviations.values())
                 anomaly = BehaviorAnomaly(
@@ -736,32 +736,32 @@ class AdvancedBehavioralAnalyticsEngine:
                     recommended_actions=["compare_with_peers", "investigate_outlier_behavior"]
                 )
                 anomalies.append(anomaly)
-        
+
         except Exception as e:
             self.logger.error(f"Peer group anomaly detection failed: {e}")
-        
+
         return anomalies
 
     async def _detect_ml_anomalies(self, entity_id: str, events: List[BehaviorEvent]) -> List[BehaviorAnomaly]:
         """Detect anomalies using ML models"""
         anomalies = []
-        
+
         try:
             # Extract features for ML models
             features = await self._extract_ml_features(events)
             if not features:
                 return anomalies
-            
+
             # Prepare feature vector
             feature_vector = np.array(features).reshape(1, -1)
-            
+
             # Use Isolation Forest for anomaly detection
             if "isolation_forest" in self.anomaly_models:
                 model = self.anomaly_models["isolation_forest"].get(entity_id)
                 if model:
                     anomaly_score = model.decision_function(feature_vector)[0]
                     is_anomaly = model.predict(feature_vector)[0] == -1
-                    
+
                     if is_anomaly:
                         anomaly = BehaviorAnomaly(
                             id=str(uuid4()),
@@ -778,23 +778,23 @@ class AdvancedBehavioralAnalyticsEngine:
                             recommended_actions=["detailed_investigation", "ml_model_analysis"]
                         )
                         anomalies.append(anomaly)
-        
+
         except Exception as e:
             self.logger.error(f"ML anomaly detection failed: {e}")
-        
+
         return anomalies
 
     # Additional helper methods would continue here for model training, baseline calculation, etc.
     # Due to length constraints, I'll include key methods
 
     async def _calculate_baseline(
-        self, 
-        entity_id: str, 
-        behavior_type: BehaviorType, 
+        self,
+        entity_id: str,
+        behavior_type: BehaviorType,
         events: List[BehaviorEvent]
     ) -> BehaviorBaseline:
         """Calculate behavioral baseline from events"""
-        
+
         baseline = BehaviorBaseline(
             entity_id=entity_id,
             entity_type="user",  # Could be determined from entity_id
@@ -803,7 +803,7 @@ class AdvancedBehavioralAnalyticsEngine:
             last_updated=datetime.utcnow(),
             sample_count=len(events)
         )
-        
+
         # Calculate temporal patterns
         hours = [e.timestamp.hour for e in events]
         days = [e.timestamp.weekday() for e in events]
@@ -813,7 +813,7 @@ class AdvancedBehavioralAnalyticsEngine:
             "peak_hour": max(set(hours), key=hours.count) if hours else None,
             "peak_day": max(set(days), key=days.count) if days else None
         }
-        
+
         # Calculate volume patterns
         if len(events) > 1:
             time_span = (events[-1].timestamp - events[0].timestamp).total_seconds() / 3600
@@ -822,7 +822,7 @@ class AdvancedBehavioralAnalyticsEngine:
                 "avg_session_length": statistics.mean([e.duration for e in events if e.duration]),
                 "avg_data_volume": statistics.mean([e.data_volume for e in events if e.data_volume])
             }
-        
+
         # Calculate statistical features for ML
         numerical_features = []
         for event in events:
@@ -834,7 +834,7 @@ class AdvancedBehavioralAnalyticsEngine:
                 1 if event.success else 0
             ]
             numerical_features.append(features)
-        
+
         if numerical_features:
             features_array = np.array(numerical_features)
             baseline.statistical_features = {
@@ -843,9 +843,9 @@ class AdvancedBehavioralAnalyticsEngine:
                 "feature_mins": features_array.min(axis=0).tolist(),
                 "feature_maxs": features_array.max(axis=0).tolist()
             }
-        
+
         baseline.confidence_score = min(len(events) / self.min_baseline_samples, 1.0)
-        
+
         return baseline
 
     async def _get_baseline(self, entity_id: str, behavior_type: BehaviorType) -> Optional[BehaviorBaseline]:
@@ -869,9 +869,9 @@ _behavioral_analytics_engine: Optional[AdvancedBehavioralAnalyticsEngine] = None
 async def get_behavioral_analytics_engine(config: Dict[str, Any] = None) -> AdvancedBehavioralAnalyticsEngine:
     """Get global behavioral analytics engine instance"""
     global _behavioral_analytics_engine
-    
+
     if _behavioral_analytics_engine is None:
         _behavioral_analytics_engine = AdvancedBehavioralAnalyticsEngine(config)
         await _behavioral_analytics_engine.initialize()
-    
+
     return _behavioral_analytics_engine

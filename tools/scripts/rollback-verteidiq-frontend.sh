@@ -51,62 +51,62 @@ check_root() {
 # Stop services
 stop_services() {
     log "🛑 Stopping services..."
-    
+
     # Stop PM2 processes
     pm2 stop "$SERVICE_NAME" 2>/dev/null || true
     pm2 delete "$SERVICE_NAME" 2>/dev/null || true
-    
+
     # Stop systemd service
     systemctl stop "${SERVICE_NAME}.service" 2>/dev/null || true
     systemctl disable "${SERVICE_NAME}.service" 2>/dev/null || true
-    
+
     # Kill any processes on production port
     if lsof -ti:$PRODUCTION_PORT > /dev/null 2>&1; then
         warn "Killing existing process on port $PRODUCTION_PORT"
         kill -9 $(lsof -ti:$PRODUCTION_PORT) 2>/dev/null || true
     fi
-    
+
     info "✅ Services stopped"
 }
 
 # Remove configurations
 remove_configurations() {
     log "🗑️ Removing configurations..."
-    
+
     # Remove nginx site
     rm -f "/etc/nginx/sites-enabled/$DOMAIN"
     rm -f "/etc/nginx/sites-available/$DOMAIN"
-    
+
     # Remove systemd service
     rm -f "/etc/systemd/system/${SERVICE_NAME}.service"
     systemctl daemon-reload
-    
+
     # Remove monitoring cron job
     crontab -l 2>/dev/null | grep -v "monitor-frontend.sh" | crontab - 2>/dev/null || true
-    
+
     # Remove monitoring script
     rm -f "/root/Xorb/scripts/monitor-frontend.sh"
-    
+
     info "✅ Configurations removed"
 }
 
 # Clean up PM2
 cleanup_pm2() {
     log "🧹 Cleaning up PM2..."
-    
+
     # Remove PM2 ecosystem file
     rm -f "$FRONTEND_DIR/ecosystem.config.js"
-    
+
     # Reset PM2
     pm2 kill 2>/dev/null || true
-    
+
     info "✅ PM2 cleaned up"
 }
 
 # Restore nginx default
 restore_nginx_default() {
     log "🔄 Restoring nginx default..."
-    
+
     # Create a simple default page
     mkdir -p /var/www/html
     cat > /var/www/html/index.html <<EOF
@@ -130,38 +130,38 @@ restore_nginx_default() {
 </body>
 </html>
 EOF
-    
+
     # Create basic nginx config
     cat > /etc/nginx/sites-available/default <<EOF
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-    
+
     root /var/www/html;
     index index.html index.htm index.nginx-debian.html;
-    
+
     server_name _;
-    
+
     location / {
         try_files \$uri \$uri/ =404;
     }
 }
 EOF
-    
+
     ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-    
+
     # Test and reload nginx
     nginx -t && systemctl reload nginx
-    
+
     info "✅ Nginx default restored"
 }
 
 # Generate rollback report
 generate_report() {
     log "📋 Generating rollback report..."
-    
+
     REPORT_FILE="/root/Xorb/logs/verteidiq-rollback-report-$(date +%Y%m%d_%H%M%S).json"
-    
+
     cat > "$REPORT_FILE" <<EOF
 {
   "rollback": {
@@ -187,7 +187,7 @@ generate_report() {
   }
 }
 EOF
-    
+
     log "📋 Rollback report saved to: $REPORT_FILE"
 }
 
@@ -217,7 +217,7 @@ display_status() {
 main() {
     log "⏪ Starting Verteidiq.com PTaaS Frontend Rollback"
     log "================================================="
-    
+
     check_root
     stop_services
     remove_configurations
@@ -225,7 +225,7 @@ main() {
     restore_nginx_default
     generate_report
     display_status
-    
+
     log "✅ Rollback completed successfully!"
 }
 

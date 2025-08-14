@@ -104,30 +104,30 @@ class HiddenFunction:
 
 class XORBAPIUIExplorationAgent:
     """API & UI Exploration Agent for comprehensive application mapping"""
-    
+
     def __init__(self):
         self.agent_id = f"UIXPLORER-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.discovered_flows = {}
         self.privilege_boundaries = {}
         self.hidden_functions = {}
         self.session_tokens = {}
-        
+
         # Browser automation
         self.browser = None
         self.browser_context = None
-        
+
         # Exploration configuration
         self.max_depth = 5
         self.request_delay = 1.0
         self.stealth_mode = True
-        
+
         logger.info(f"🕸️ API & UI Exploration Agent initialized - ID: {self.agent_id}")
-    
+
     async def explore_from_openapi_spec(self, spec_url: str) -> List[UserFlow]:
         """Explore application flows from OpenAPI specification"""
         try:
             flows = []
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.get(spec_url) as response:
                     if response.content_type == 'application/json':
@@ -135,11 +135,11 @@ class XORBAPIUIExplorationAgent:
                     else:
                         spec_text = await response.text()
                         spec_data = yaml.safe_load(spec_text)
-            
+
             # Parse OpenAPI specification
             base_url = self._extract_base_url(spec_data)
             paths = spec_data.get('paths', {})
-            
+
             for path, methods in paths.items():
                 for method, details in methods.items():
                     if method.upper() in ['GET', 'POST', 'PUT', 'DELETE', 'PATCH']:
@@ -149,87 +149,87 @@ class XORBAPIUIExplorationAgent:
                         if flow:
                             flows.append(flow)
                             self.discovered_flows[flow.flow_id] = flow
-            
+
             logger.info(f"🕸️ Discovered {len(flows)} flows from OpenAPI spec")
             return flows
-            
+
         except Exception as e:
             logger.error(f"❌ OpenAPI exploration error: {e}")
             return []
-    
+
     async def explore_from_har_file(self, har_path: str) -> List[UserFlow]:
         """Explore application flows from HAR (HTTP Archive) file"""
         try:
             flows = []
-            
+
             with open(har_path, 'r') as f:
                 har_data = json.load(f)
-            
+
             entries = har_data.get('log', {}).get('entries', [])
-            
+
             # Group requests by session/user flow
             flow_sessions = self._group_har_entries_by_session(entries)
-            
+
             for session_id, session_entries in flow_sessions.items():
                 flow = await self._create_flow_from_har_session(session_id, session_entries)
                 if flow:
                     flows.append(flow)
                     self.discovered_flows[flow.flow_id] = flow
-            
+
             logger.info(f"🕸️ Discovered {len(flows)} flows from HAR file")
             return flows
-            
+
         except Exception as e:
             logger.error(f"❌ HAR exploration error: {e}")
             return []
-    
+
     async def explore_from_postman_collection(self, collection_path: str) -> List[UserFlow]:
         """Explore application flows from Postman collection"""
         try:
             flows = []
-            
+
             with open(collection_path, 'r') as f:
                 collection_data = json.load(f)
-            
+
             # Parse Postman collection structure
             items = collection_data.get('item', [])
-            
+
             for item in items:
                 flow = await self._create_flow_from_postman_item(item)
                 if flow:
                     flows.append(flow)
                     self.discovered_flows[flow.flow_id] = flow
-            
+
             logger.info(f"🕸️ Discovered {len(flows)} flows from Postman collection")
             return flows
-            
+
         except Exception as e:
             logger.error(f"❌ Postman exploration error: {e}")
             return []
-    
+
     async def explore_with_browser_automation(self, target_url: str, credentials: Dict[str, Any] = None) -> List[UserFlow]:
         """Explore application using browser automation"""
         if not PLAYWRIGHT_AVAILABLE:
             logger.warning("⚠️ Browser automation unavailable - Playwright not installed")
             return []
-        
+
         try:
             flows = []
-            
+
             async with async_playwright() as p:
                 # Launch browser in stealth mode
                 browser = await p.chromium.launch(
                     headless=True,
                     args=['--no-sandbox', '--disable-web-security']
                 )
-                
+
                 context = await browser.new_context(
                     viewport={'width': 1920, 'height': 1080},
                     user_agent='Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                 )
-                
+
                 page = await context.new_page()
-                
+
                 # Enable request interception
                 captured_requests = []
                 page.on('request', lambda request: captured_requests.append({
@@ -238,28 +238,28 @@ class XORBAPIUIExplorationAgent:
                     'headers': request.headers,
                     'post_data': request.post_data
                 }))
-                
+
                 # Navigate and explore
                 await page.goto(target_url)
                 await self._perform_browser_exploration(page, credentials)
-                
+
                 # Create flows from captured requests
                 flows = await self._create_flows_from_browser_requests(captured_requests)
-                
+
                 await browser.close()
-            
+
             logger.info(f"🕸️ Discovered {len(flows)} flows via browser automation")
             return flows
-            
+
         except Exception as e:
             logger.error(f"❌ Browser exploration error: {e}")
             return []
-    
+
     async def test_privilege_boundaries(self, flows: List[UserFlow]) -> List[PrivilegeBoundary]:
         """Test privilege boundaries between different user roles"""
         try:
             boundaries = []
-            
+
             # Group flows by privilege level
             privilege_groups = {}
             for flow in flows:
@@ -267,7 +267,7 @@ class XORBAPIUIExplorationAgent:
                 if level not in privilege_groups:
                     privilege_groups[level] = []
                 privilege_groups[level].append(flow)
-            
+
             # Test cross-privilege access
             for low_level, low_flows in privilege_groups.items():
                 for high_level, high_flows in privilege_groups.items():
@@ -278,19 +278,19 @@ class XORBAPIUIExplorationAgent:
                         if boundary:
                             boundaries.append(boundary)
                             self.privilege_boundaries[boundary.boundary_id] = boundary
-            
+
             logger.info(f"🛡️ Tested {len(boundaries)} privilege boundaries")
             return boundaries
-            
+
         except Exception as e:
             logger.error(f"❌ Privilege boundary testing error: {e}")
             return []
-    
+
     async def discover_hidden_functions(self, base_url: str, known_endpoints: List[str]) -> List[HiddenFunction]:
         """Discover hidden functions and admin endpoints"""
         try:
             hidden_functions = []
-            
+
             # Common admin/hidden paths
             hidden_paths = [
                 '/admin', '/administrator', '/panel', '/dashboard', '/console',
@@ -299,16 +299,16 @@ class XORBAPIUIExplorationAgent:
                 '/debug', '/test', '/dev', '/staging', '/backup',
                 '/.env', '/config.json', '/api-docs', '/swagger.json'
             ]
-            
+
             # HTTP methods to test
             methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD']
-            
+
             async with aiohttp.ClientSession() as session:
                 for path in hidden_paths:
                     for method in methods:
                         try:
                             url = f"{base_url}{path}"
-                            
+
                             async with session.request(method, url, timeout=5) as response:
                                 if response.status not in [404, 405, 403]:
                                     hidden_function = HiddenFunction(
@@ -321,24 +321,24 @@ class XORBAPIUIExplorationAgent:
                                         functionality=self._assess_functionality(path, response),
                                         risk_assessment=self._assess_risk_level(path, response.status)
                                     )
-                                    
+
                                     hidden_functions.append(hidden_function)
                                     self.hidden_functions[hidden_function.function_id] = hidden_function
-                            
+
                             # Stealth delay
                             if self.stealth_mode:
                                 await asyncio.sleep(self.request_delay)
-                                
+
                         except:
                             continue
-            
+
             logger.info(f"🔍 Discovered {len(hidden_functions)} hidden functions")
             return hidden_functions
-            
+
         except Exception as e:
             logger.error(f"❌ Hidden function discovery error: {e}")
             return []
-    
+
     async def test_session_handling(self, flows: List[UserFlow]) -> Dict[str, Any]:
         """Test session handling and authentication flaws"""
         try:
@@ -349,7 +349,7 @@ class XORBAPIUIExplorationAgent:
                 "csrf_vulnerabilities": [],
                 "broken_authentication": []
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 for flow in flows:
                     if flow.authentication_required:
@@ -357,37 +357,37 @@ class XORBAPIUIExplorationAgent:
                         fixation_result = await self._test_session_fixation(session, flow)
                         if fixation_result:
                             session_tests["session_fixation"].append(fixation_result)
-                        
+
                         # Test weak tokens
                         token_result = await self._test_weak_tokens(session, flow)
                         if token_result:
                             session_tests["weak_tokens"].append(token_result)
-                        
+
                         # Test CSRF
                         csrf_result = await self._test_csrf_protection(session, flow)
                         if csrf_result:
                             session_tests["csrf_vulnerabilities"].append(csrf_result)
-            
+
             total_issues = sum(len(issues) for issues in session_tests.values())
             logger.info(f"🔐 Found {total_issues} session handling issues")
-            
+
             return session_tests
-            
+
         except Exception as e:
             logger.error(f"❌ Session testing error: {e}")
             return {}
-    
+
     async def _create_flow_from_openapi(self, path: str, method: str, details: Dict[str, Any], base_url: str) -> Optional[UserFlow]:
         """Create user flow from OpenAPI endpoint definition"""
         try:
             flow_id = f"API-{hashlib.sha256(f'{method}{path}'.encode()).hexdigest()[:8]}"
-            
+
             # Determine flow type
             flow_type = self._classify_flow_type(path, method, details)
-            
+
             # Determine required role
             user_role = self._determine_required_role(details)
-            
+
             # Extract parameters
             parameters = {}
             for param in details.get('parameters', []):
@@ -396,7 +396,7 @@ class XORBAPIUIExplorationAgent:
                     'required': param.get('required', False),
                     'location': param.get('in', 'query')
                 }
-            
+
             # Create flow steps
             steps = [{
                 'step': 1,
@@ -404,7 +404,7 @@ class XORBAPIUIExplorationAgent:
                 'endpoint': f'{base_url}{path}',
                 'parameters': parameters
             }]
-            
+
             flow = UserFlow(
                 flow_id=flow_id,
                 flow_type=flow_type,
@@ -416,32 +416,32 @@ class XORBAPIUIExplorationAgent:
                 privilege_level=self._calculate_privilege_level(user_role),
                 discovered_by=ExplorationMethod.OPENAPI_SPEC
             )
-            
+
             return flow
-            
+
         except Exception as e:
             logger.error(f"❌ OpenAPI flow creation error: {e}")
             return None
-    
+
     async def _perform_browser_exploration(self, page: Page, credentials: Dict[str, Any] = None):
         """Perform automated browser exploration"""
         try:
             # Login if credentials provided
             if credentials:
                 await self._perform_login(page, credentials)
-            
+
             # Discover and click navigation elements
             await self._explore_navigation(page)
-            
+
             # Fill and submit forms
             await self._explore_forms(page)
-            
+
             # Test JavaScript interactions
             await self._explore_javascript_functions(page)
-            
+
         except Exception as e:
             logger.error(f"❌ Browser exploration error: {e}")
-    
+
     async def _perform_login(self, page: Page, credentials: Dict[str, Any]):
         """Perform login with provided credentials"""
         try:
@@ -450,12 +450,12 @@ class XORBAPIUIExplorationAgent:
                 'input[type="email"]', 'input[name="email"]', 'input[name="username"]',
                 'input[id="email"]', 'input[id="username"]', '#login_email', '#login_username'
             ]
-            
+
             password_selectors = [
                 'input[type="password"]', 'input[name="password"]',
                 'input[id="password"]', '#login_password'
             ]
-            
+
             # Fill login form
             for selector in login_selectors:
                 try:
@@ -463,20 +463,20 @@ class XORBAPIUIExplorationAgent:
                     break
                 except:
                     continue
-            
+
             for selector in password_selectors:
                 try:
                     await page.fill(selector, credentials.get('password', ''))
                     break
                 except:
                     continue
-            
+
             # Submit form
             submit_selectors = [
                 'button[type="submit"]', 'input[type="submit"]',
                 'button:has-text("Login")', 'button:has-text("Sign In")'
             ]
-            
+
             for selector in submit_selectors:
                 try:
                     await page.click(selector)
@@ -484,16 +484,16 @@ class XORBAPIUIExplorationAgent:
                     break
                 except:
                     continue
-                    
+
         except Exception as e:
             logger.error(f"❌ Login error: {e}")
-    
+
     async def _explore_navigation(self, page: Page):
         """Explore navigation elements"""
         try:
             # Find navigation links
             nav_links = await page.query_selector_all('a[href]')
-            
+
             for link in nav_links[:10]:  # Limit exploration
                 try:
                     href = await link.get_attribute('href')
@@ -504,14 +504,14 @@ class XORBAPIUIExplorationAgent:
                         await page.wait_for_load_state()
                 except:
                     continue
-                    
+
         except Exception as e:
             logger.error(f"❌ Navigation exploration error: {e}")
-    
+
     def _classify_flow_type(self, path: str, method: str, details: Dict[str, Any]) -> FlowType:
         """Classify flow type based on path and method"""
         path_lower = path.lower()
-        
+
         if 'auth' in path_lower or 'login' in path_lower:
             return FlowType.AUTHENTICATION
         elif 'admin' in path_lower or 'manage' in path_lower:
@@ -524,21 +524,21 @@ class XORBAPIUIExplorationAgent:
             return FlowType.API_ENDPOINT
         else:
             return FlowType.BUSINESS_LOGIC
-    
+
     def _determine_required_role(self, details: Dict[str, Any]) -> UserRole:
         """Determine required user role from OpenAPI details"""
         security = details.get('security', [])
-        
+
         if not security:
             return UserRole.ANONYMOUS
-        
+
         # Check for admin requirements
         tags = details.get('tags', [])
         if any('admin' in tag.lower() for tag in tags):
             return UserRole.ADMIN
-        
+
         return UserRole.USER
-    
+
     def _calculate_privilege_level(self, user_role: UserRole) -> int:
         """Calculate numeric privilege level"""
         privilege_map = {
@@ -549,9 +549,9 @@ class XORBAPIUIExplorationAgent:
             UserRole.SUPER_ADMIN: 4,
             UserRole.SERVICE_ACCOUNT: 5
         }
-        
+
         return privilege_map.get(user_role, 0)
-    
+
     async def get_exploration_summary(self) -> Dict[str, Any]:
         """Get comprehensive exploration summary"""
         try:
@@ -566,13 +566,13 @@ class XORBAPIUIExplorationAgent:
                 "risk_assessment": await self._calculate_risk_assessment(),
                 "exploration_coverage": await self._calculate_coverage()
             }
-            
+
             return summary
-            
+
         except Exception as e:
             logger.error(f"❌ Summary generation error: {e}")
             return {}
-    
+
     def _analyze_flow_types(self) -> Dict[str, int]:
         """Analyze distribution of flow types"""
         flow_types = {}
@@ -580,7 +580,7 @@ class XORBAPIUIExplorationAgent:
             flow_type = flow.flow_type.value
             flow_types[flow_type] = flow_types.get(flow_type, 0) + 1
         return flow_types
-    
+
     def _analyze_user_roles(self) -> Dict[str, int]:
         """Analyze distribution of user roles"""
         user_roles = {}
@@ -588,15 +588,15 @@ class XORBAPIUIExplorationAgent:
             role = flow.user_role.value
             user_roles[role] = user_roles.get(role, 0) + 1
         return user_roles
-    
+
     async def _calculate_risk_assessment(self) -> Dict[str, Any]:
         """Calculate overall risk assessment"""
-        high_risk_functions = [f for f in self.hidden_functions.values() 
+        high_risk_functions = [f for f in self.hidden_functions.values()
                               if f.risk_assessment == 'high']
-        
-        privilege_violations = [b for b in self.privilege_boundaries.values() 
+
+        privilege_violations = [b for b in self.privilege_boundaries.values()
                                if b.violation_detected]
-        
+
         return {
             "high_risk_hidden_functions": len(high_risk_functions),
             "privilege_violations": len(privilege_violations),
@@ -607,28 +607,28 @@ class XORBAPIUIExplorationAgent:
 async def main():
     """Demonstrate XORB API & UI Exploration Agent"""
     logger.info("🕸️ Starting API & UI Exploration demonstration")
-    
+
     agent = XORBAPIUIExplorationAgent()
-    
+
     # Sample explorations
     # Note: These would normally use real URLs and files
-    
+
     # Simulate OpenAPI exploration
     logger.info("🔍 Simulating OpenAPI exploration...")
     sample_openapi_flows = []
-    
+
     # Simulate hidden function discovery
     logger.info("🔍 Discovering hidden functions...")
     hidden_functions = await agent.discover_hidden_functions("https://example.com", [])
-    
+
     # Get exploration summary
     summary = await agent.get_exploration_summary()
-    
+
     logger.info("🕸️ Exploration demonstration complete")
     logger.info(f"📊 Total flows discovered: {summary.get('discovered_flows', 0)}")
     logger.info(f"🔍 Hidden functions found: {summary.get('hidden_functions', 0)}")
     logger.info(f"🛡️ Privilege boundaries tested: {summary.get('privilege_boundaries', 0)}")
-    
+
     return {
         "agent_id": agent.agent_id,
         "flows_discovered": summary.get('discovered_flows', 0),

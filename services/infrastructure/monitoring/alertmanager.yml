@@ -71,7 +71,7 @@ receivers:
         subject: '🚨 [CRITICAL] XORB Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
         body: |
           🚨 CRITICAL ALERT 🚨
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -79,7 +79,7 @@ receivers:
           Severity: {{ .Labels.severity }}
           Service: {{ .Labels.service }}
           Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
-          
+
           Dashboard: http://grafana.xorb.security/d/xorb-overview
           {{ end }}
     # webhook_configs:
@@ -93,7 +93,7 @@ receivers:
         subject: '🔒 [SECURITY] XORB Security Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
         body: |
           🔒 SECURITY ALERT 🔒
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -101,7 +101,7 @@ receivers:
           Severity: {{ .Labels.severity }}
           Service: {{ .Labels.service }}
           Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
-          
+
           Please investigate immediately.
           Security Dashboard: http://grafana.xorb.security/d/xorb-security
           {{ end }}
@@ -118,7 +118,7 @@ receivers:
         subject: '[API] XORB API Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
         body: |
           API Service Alert
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -126,7 +126,7 @@ receivers:
           Severity: {{ .Labels.severity }}
           Service: {{ .Labels.service }}
           Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
-          
+
           API Dashboard: http://grafana.xorb.security/d/xorb-api
           {{ end }}
 
@@ -136,7 +136,7 @@ receivers:
         subject: '[DATABASE] XORB Database Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
         body: |
           Database Service Alert
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -144,7 +144,7 @@ receivers:
           Severity: {{ .Labels.severity }}
           Service: {{ .Labels.service }}
           Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
-          
+
           Database Dashboard: http://grafana.xorb.security/d/xorb-database
           {{ end }}
 
@@ -154,7 +154,7 @@ receivers:
         subject: '[INFRA] XORB Infrastructure Alert: {{ .GroupLabels.SortedPairs.Values | join " " }}'
         body: |
           Infrastructure Alert
-          
+
           {{ range .Alerts }}
           Alert: {{ .Annotations.summary }}
           Description: {{ .Annotations.description }}
@@ -162,7 +162,7 @@ receivers:
           Severity: {{ .Labels.severity }}
           Service: {{ .Labels.service }}
           Time: {{ .StartsAt.Format "2006-01-02 15:04:05" }}
-          
+
           System Dashboard: http://grafana.xorb.security/d/xorb-system
           {{ end }}
 

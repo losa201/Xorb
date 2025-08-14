@@ -45,7 +45,7 @@ def get_service_info(url: str) -> Dict:
 def main():
     print("🛡️  Xorb 2.0 Phase 3 Advanced Security Deployment Verification")
     print("=" * 70)
-    
+
     # Core Infrastructure Services
     infrastructure_services = [
         ("PostgreSQL", "http://localhost:5432"),  # Will fail but shows it's there
@@ -57,7 +57,7 @@ def main():
         ("Prometheus", "http://localhost:9090"),
         ("Grafana", "http://localhost:3000"),
     ]
-    
+
     # Xorb Application Services
     app_services = [
         ("Xorb API", "http://localhost:8000/health"),
@@ -67,7 +67,7 @@ def main():
         ("SOC2 Monitor", "http://localhost:8083/health"),
         ("ISO27001 Monitor", "http://localhost:8084/health"),
     ]
-    
+
     print("\n📊 Infrastructure Services Status:")
     print("-" * 40)
     infrastructure_healthy = 0
@@ -76,9 +76,9 @@ def main():
         print(status)
         if healthy:
             infrastructure_healthy += 1
-    
+
     print(f"\nInfrastructure Health: {infrastructure_healthy}/{len(infrastructure_services)} services")
-    
+
     print("\n🚀 Application Services Status:")
     print("-" * 40)
     app_healthy = 0
@@ -87,13 +87,13 @@ def main():
         print(status)
         if healthy:
             app_healthy += 1
-    
+
     print(f"\nApplication Health: {app_healthy}/{len(app_services)} services")
-    
+
     # Detailed Service Information
     print("\n🔍 Detailed Service Information:")
     print("-" * 40)
-    
+
     # Cost Monitor Status
     print("\n💰 Cost Monitoring:")
     cost_data = get_service_info("http://localhost:8080/cost-status")
@@ -105,7 +105,7 @@ def main():
         print(f"   Status: {cost_data.get('status', 'N/A')}")
     else:
         print(f"   ❌ Unable to retrieve cost data: {cost_data['error']}")
-    
+
     # SIEM Status
     print("\n🛡️ SIEM Threat Detection:")
     siem_data = get_service_info("http://localhost:8081/threats")
@@ -116,10 +116,10 @@ def main():
             print(f"   - {threat.get('type', 'unknown')}: {threat.get('severity', 'unknown')}")
     else:
         print(f"   ❌ Unable to retrieve SIEM data: {siem_data['error']}")
-    
+
     # Compliance Status
     print("\n📋 Compliance Monitoring:")
-    
+
     # SOC2 Status
     soc2_data = get_service_info("http://localhost:8083/compliance-status")
     if "error" not in soc2_data:
@@ -128,7 +128,7 @@ def main():
         print(f"   Status: {soc2_data.get('status', 'N/A')}")
     else:
         print(f"   ❌ SOC2: {soc2_data['error']}")
-    
+
     # ISO27001 Status
     iso_data = get_service_info("http://localhost:8084/compliance-status")
     if "error" not in iso_data:
@@ -137,7 +137,7 @@ def main():
         print(f"   Status: {iso_data.get('status', 'N/A')}")
     else:
         print(f"   ❌ ISO27001: {iso_data['error']}")
-    
+
     # Cache Performance
     print("\n⚡ Cache Performance:")
     cache_data = get_service_info("http://localhost:8082/stats")
@@ -148,17 +148,17 @@ def main():
         print(f"   Healthy Nodes: {cache_data.get('nodes_healthy', 'N/A')}")
     else:
         print(f"   ❌ Unable to retrieve cache data: {cache_data['error']}")
-    
+
     # Overall Assessment
     total_services = len(infrastructure_services) + len(app_services)
     total_healthy = infrastructure_healthy + app_healthy
     health_percentage = (total_healthy / total_services) * 100
-    
+
     print("\n" + "=" * 70)
     print("📈 DEPLOYMENT SUMMARY")
     print("=" * 70)
     print(f"Overall Health: {total_healthy}/{total_services} services ({health_percentage:.1f}%)")
-    
+
     if health_percentage >= 80:
         print("🎉 DEPLOYMENT STATUS: ✅ EXCELLENT")
         print("   All critical systems are operational")
@@ -166,9 +166,9 @@ def main():
         print("🔄 DEPLOYMENT STATUS: ⚠️  PARTIAL")
         print("   Core infrastructure running, some services need attention")
     else:
-        print("⚠️  DEPLOYMENT STATUS: ❌ NEEDS ATTENTION") 
+        print("⚠️  DEPLOYMENT STATUS: ❌ NEEDS ATTENTION")
         print("   Multiple services require immediate attention")
-    
+
     print("\n🎯 Phase 3 Advanced Security Features:")
     print("   ✅ SIEM Integration with Behavioral Analysis")
     print("   ✅ Zero-Trust Network Architecture")
@@ -177,10 +177,10 @@ def main():
     print("   ✅ Cost Optimization (21% savings: $103/$130)")
     print("   ✅ Multi-layered Security Pipeline")
     print("   ✅ Enterprise-grade Monitoring & Observability")
-    
+
     print(f"\n💡 Security Score: 9.5/10 (Enterprise-Ready)")
     print(f"🏆 Principal AI Architect Enhancement: Phase 3 COMPLETE")
-    
+
     # Exit code based on health
     if health_percentage >= 60:
         sys.exit(0)  # Success

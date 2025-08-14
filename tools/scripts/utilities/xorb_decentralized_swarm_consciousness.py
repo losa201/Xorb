@@ -100,7 +100,7 @@ class ReflectiveCycle:
 class XorbDecentralizedSwarmConsciousness:
     """
     Advanced decentralized swarm consciousness orchestrator.
-    
+
     Features:
     - Intent broadcasting and consensus voting via NATS simulation
     - Emotional state engine with behavior modulation

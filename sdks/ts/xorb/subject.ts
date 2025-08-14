@@ -65,7 +65,7 @@ describe('SubjectBuilder', () => {
       .setService('user')
       .setEvent('created')
       .build();
-    
+
     expect(subject).toBe('xorb.acme.auth.user.created');
     expect(isValidSubject(subject)).toBe(true);
   });
@@ -73,7 +73,7 @@ describe('SubjectBuilder', () => {
   it('should reject invalid components', () => {
     expect(() => new SubjectBuilder().setTenant('invalid@name').build())
       .toThrow('Invalid tenant format: invalid@name');
-    
+
     expect(() => new SubjectBuilder().setDomain('my_domain').build())
       .toThrow('Invalid domain format: my_domain');
   });

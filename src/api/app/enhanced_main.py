@@ -63,14 +63,14 @@ _container = None
 async def lifespan(app: FastAPI):
     """Enhanced application lifespan with comprehensive service initialization"""
     global _container
-    
+
     # Startup
     logger.info("🚀 Starting XORB Enterprise API with Enhanced AI-Powered Services...")
-    
+
     try:
         # Initialize enhanced dependency injection container
         logger.info("📦 Initializing Enhanced Container with Production Services...")
-        
+
         config = {
             'DATABASE_URL': os.getenv('DATABASE_URL', 'postgresql+asyncpg://user:pass@localhost/xorb'),
             'REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
@@ -80,34 +80,34 @@ async def lifespan(app: FastAPI):
             'PTAAS_MAX_CONCURRENT_SCANS': 15,
             'ENABLE_ADVANCED_FEATURES': True
         }
-        
+
         _container = await get_container(config)
-        
+
         # Store container in app state for access in routes
         app.state.container = _container
         app.state.service_provider = await get_service_provider()
-        
+
         # Perform comprehensive health checks
         logger.info("🏥 Performing Enhanced Service Health Checks...")
         health_results = await _container.health_check()
-        
+
         if health_results.get("overall_status") == "healthy":
             logger.info("✅ All Enhanced Services Operational")
         else:
             logger.warning(f"⚠️ Service Health Status: {health_results.get('overall_status', 'unknown')}")
-        
+
         # Initialize AI services
         logger.info("🧠 Initializing AI-Powered Components...")
         try:
             threat_intel = await _container.get_threat_intelligence()
             ptaas_service = await _container.get_ptaas_service()
-            
+
             logger.info("✅ AI Threat Intelligence Engine initialized")
             logger.info("✅ Production PTaaS Service initialized")
-            
+
         except Exception as e:
             logger.warning(f"⚠️ Some AI components failed to initialize: {e}")
-        
+
         # Log service status
         services = _container.list_services()
         logger.info(f"📊 Enhanced Services Status:")
@@ -117,26 +117,26 @@ async def lifespan(app: FastAPI):
         logger.info(f"   • AI Threat Intel: ✅")
         logger.info(f"   • Health Monitoring: ✅")
         logger.info(f"   • Data Repositories: ✅")
-        
+
         logger.info("🎉 XORB Enterprise API startup complete with Enhanced AI Capabilities")
-        
+
         yield
-        
+
     except Exception as e:
         logger.error(f"❌ Failed to start Enhanced XORB Platform: {e}")
         raise
     finally:
         # Shutdown
         logger.info("🛑 Shutting down XORB Enterprise API with Enhanced Services...")
-        
+
         try:
             if _container:
                 await _container.shutdown()
                 logger.info("📦 Enhanced Container shutdown complete")
-            
+
             await shutdown_container()
             logger.info("✅ XORB Enterprise API shutdown complete")
-            
+
         except Exception as e:
             logger.error(f"❌ Error during enhanced services shutdown: {e}")
 
@@ -146,27 +146,27 @@ app = FastAPI(
     title="XORB Enterprise Cybersecurity Platform",
     description="""
     **The World's Most Advanced AI-Powered Cybersecurity Operations Platform**
-    
+
     ## 🎯 Enhanced Features
-    
+
     ### Production-Ready PTaaS
     - **Real Security Scanners**: Nmap, Nuclei, Nikto, SSLScan integration
     - **Advanced Orchestration**: Multi-stage workflow automation
     - **Compliance Automation**: PCI-DSS, HIPAA, SOX, ISO-27001 support
     - **Threat Simulation**: Advanced APT and ransomware scenarios
-    
+
     ### AI-Powered Intelligence
     - **Behavioral Analytics**: ML-powered user behavior analysis
     - **Threat Hunting**: Custom query language with real-time correlation
     - **Forensics Engine**: Legal-grade evidence collection
     - **Predictive Analytics**: Threat prediction and risk assessment
-    
+
     ### Enterprise Security
     - **Multi-Tenant Architecture**: Complete data isolation
     - **Advanced Authentication**: JWT, RBAC, MFA integration
     - **Rate Limiting**: Redis-backed with tenant support
     - **Audit Logging**: Comprehensive security event tracking
-    
+
     ### Production Infrastructure
     - **Enhanced Repositories**: PostgreSQL with Row-Level Security
     - **Redis Caching**: High-performance caching layer
@@ -236,7 +236,7 @@ async def root():
                 "enabled": True,
                 "capabilities": [
                     "behavioral_analytics",
-                    "threat_hunting", 
+                    "threat_hunting",
                     "forensics_engine",
                     "predictive_analytics"
                 ],
@@ -272,7 +272,7 @@ async def platform_info(request: Request):
     """Enhanced platform information with real-time metrics"""
     try:
         container = getattr(request.app.state, 'container', None)
-        
+
         if container:
             health_status = await container.health_check()
             service_count = container.service_count
@@ -281,7 +281,7 @@ async def platform_info(request: Request):
             health_status = {"overall_status": "degraded", "error": "Container not available"}
             service_count = 0
             is_initialized = False
-        
+
         return {
             "platform": "XORB Enterprise Cybersecurity",
             "version": "3.0.0",
@@ -315,7 +315,7 @@ async def platform_info(request: Request):
             ],
             "ai_capabilities": [
                 "Machine Learning Threat Correlation",
-                "Behavioral Anomaly Detection", 
+                "Behavioral Anomaly Detection",
                 "Predictive Threat Modeling",
                 "Automated Attribution Analysis",
                 "Natural Language Processing",
@@ -330,7 +330,7 @@ async def platform_info(request: Request):
                 "24x7_monitoring": True
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get platform info: {e}")
         return {
@@ -348,21 +348,21 @@ async def platform_info(request: Request):
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
-    
+
     openapi_schema = get_openapi(
         title="XORB Enterprise Cybersecurity Platform API",
         version="3.0.0",
         description="""
         **The World's Most Advanced AI-Powered Cybersecurity Operations Platform**
-        
+
         This API provides comprehensive cybersecurity services with real-world implementation:
-        
+
         ## 🎯 Production Features
         - **Real Security Scanners**: Integrated Nmap, Nuclei, Nikto, SSLScan
         - **AI Threat Intelligence**: Machine learning-powered analysis
         - **Enterprise Security**: Multi-tenant architecture with RBAC
         - **Compliance Automation**: PCI-DSS, HIPAA, SOX support
-        
+
         ## 🚀 Getting Started
         1. Use `/api/v1/health` to check system status
         2. Authenticate via `/api/v1/auth/login`
@@ -371,7 +371,7 @@ def custom_openapi():
         """,
         routes=app.routes,
     )
-    
+
     # Add enhanced security schemes
     openapi_schema["components"]["securitySchemes"] = {
         "BearerAuth": {
@@ -385,7 +385,7 @@ def custom_openapi():
             "name": "X-API-Key"
         }
     }
-    
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
@@ -416,7 +416,7 @@ async def enhanced_http_exception_handler(request: Request, exc: HTTPException):
 async def enhanced_internal_server_error_handler(request: Request, exc: Exception):
     """Enhanced internal server error handler"""
     logger.error(f"Internal server error: {exc}")
-    
+
     return JSONResponse(
         status_code=500,
         content={
@@ -437,7 +437,7 @@ async def enhanced_internal_server_error_handler(request: Request, exc: Exceptio
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     # Production server configuration
     uvicorn.run(
         "enhanced_main:app",

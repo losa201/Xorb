@@ -328,7 +328,7 @@ Authorization: Bearer {token}
   "targets": ["api.company.com", "web.company.com"],
   "scan_types": [
     "network_discovery",
-    "service_enumeration", 
+    "service_enumeration",
     "vulnerability_scan",
     "web_application_scan",
     "ssl_analysis",
@@ -652,14 +652,14 @@ echo "⏳ Monitoring scan progress..."
 while true; do
   STATUS_RESPONSE=$(curl -s "$BASE_URL/ptaas/sessions/$SESSION_ID" \
     -H "Authorization: Bearer $TOKEN")
-  
+
   STATUS=$(echo $STATUS_RESPONSE | jq -r '.status')
   echo "Status: $STATUS"
-  
+
   if [ "$STATUS" = "completed" ] || [ "$STATUS" = "failed" ]; then
     break
   fi
-  
+
   sleep 30
 done
 
@@ -690,28 +690,28 @@ class XORBThreatHunter:
     def __init__(self, base_url, token):
         self.base_url = base_url
         self.headers = {'Authorization': f'Bearer {token}'}
-    
+
     def hunt_suspicious_activity(self, timeframe="24h"):
         """Hunt for suspicious activity patterns"""
-        
+
         # Search for privilege escalation attempts
         escalation_query = {
             "query": "FIND events WHERE action = 'privilege_escalation' AND success = true",
             "data_source": "security_logs",
             "time_range": {"start": f"-{timeframe}", "end": "now"}
         }
-        
+
         response = requests.post(
             f"{self.base_url}/intelligence/threat-hunting/query",
             headers=self.headers,
             json=escalation_query
         )
-        
+
         return response.json()
-    
+
     def analyze_behavioral_anomalies(self, user_id):
         """Analyze user behavioral patterns"""
-        
+
         analysis_request = {
             "profile_id": user_id,
             "activity_data": {
@@ -720,13 +720,13 @@ class XORBThreatHunter:
                 "data_transfer_volume": 4.8
             }
         }
-        
+
         response = requests.post(
             f"{self.base_url}/intelligence/behavioral/analyze",
             headers=self.headers,
             json=analysis_request
         )
-        
+
         return response.json()
 
 # Usage
@@ -745,30 +745,30 @@ class ComplianceAutomation:
     def __init__(self, api_base, token):
         self.api_base = api_base
         self.headers = {'Authorization': f'Bearer {token}'}
-    
+
     async def run_compliance_suite(self, targets, frameworks):
         """Run comprehensive compliance assessment"""
-        
+
         async with aiohttp.ClientSession() as session:
             tasks = []
-            
+
             for framework in frameworks:
                 task = self.run_compliance_scan(session, targets, framework)
                 tasks.append(task)
-            
+
             results = await asyncio.gather(*tasks)
             return results
-    
+
     async def run_compliance_scan(self, session, targets, framework):
         """Execute compliance scan for specific framework"""
-        
+
         scan_config = {
             "compliance_framework": framework,
             "targets": targets,
             "scope": {"full_assessment": True},
             "assessment_type": "full"
         }
-        
+
         async with session.post(
             f"{self.api_base}/ptaas/orchestration/compliance-scan",
             headers=self.headers,
@@ -779,12 +779,12 @@ class ComplianceAutomation:
 # Usage
 async def main():
     automation = ComplianceAutomation("http://localhost:8000/api/v1", "your-token")
-    
+
     targets = ["web.company.com", "api.company.com", "db.company.com"]
     frameworks = ["PCI-DSS", "HIPAA", "SOX"]
-    
+
     results = await automation.run_compliance_suite(targets, frameworks)
-    
+
     for result in results:
         print(f"Compliance scan initiated: {result['scan_id']}")
 

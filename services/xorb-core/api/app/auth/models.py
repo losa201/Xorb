@@ -22,20 +22,20 @@ class Permission(str, Enum):
     EVIDENCE_READ = "evidence:read"
     EVIDENCE_WRITE = "evidence:write"
     EVIDENCE_DELETE = "evidence:delete"
-    
+
     # Findings
     FINDINGS_READ = "findings:read"
     FINDINGS_WRITE = "findings:write"
-    
+
     # Jobs & Orchestration
     JOBS_READ = "jobs:read"
     JOBS_WRITE = "jobs:write"
     JOBS_CANCEL = "jobs:cancel"
-    
+
     # Tenant Management
     TENANT_READ = "tenant:read"
     TENANT_WRITE = "tenant:write"
-    
+
     # System Administration
     SYSTEM_ADMIN = "system:admin"
 
@@ -81,7 +81,7 @@ class UserClaims(BaseModel):
     exp: Optional[datetime] = None
     iat: Optional[datetime] = None
     session_id: Optional[str] = None
-    
+
     def model_post_init(self, __context) -> None:
         """Derive permissions from roles."""
         if not self.permissions:
@@ -91,20 +91,20 @@ class UserClaims(BaseModel):
                 # Add all permissions for this role
                 role_permissions = ROLE_PERMISSIONS.get(role, set())
                 all_permissions.update(role_permissions)
-            
+
             self.permissions = list(all_permissions)
-            
+
         # Set admin flag
         self.is_admin = Role.SUPER_ADMIN in self.roles or Role.TENANT_ADMIN in self.roles
-    
+
     def has_role(self, role: Role) -> bool:
         """Check if user has specific role."""
         return role in self.roles
-    
+
     def has_permission(self, permission: Permission) -> bool:
         """Check if user has specific permission."""
         return permission in self.permissions
-    
+
     def is_super_admin(self) -> bool:
         """Check if user is super admin (cross-tenant access)."""
         return Role.SUPER_ADMIN in self.roles
@@ -125,7 +125,7 @@ class OIDCConfig(BaseModel):
     client_secret: str
     redirect_uri: str
     scopes: List[str] = Field(default_factory=lambda: ["openid", "profile", "email"])
-    
+
     # Claims mapping
     tenant_claim: str = "tenant_id"
     roles_claim: str = "roles"

@@ -68,7 +68,7 @@ class TestResult:
 
 class PTaaSDashboard:
     """Advanced PTaaS dashboard with comprehensive reporting"""
-    
+
     def __init__(self):
         self.test_results: Dict[str, TestResult] = {}
         self.active_connections = set()
@@ -84,10 +84,10 @@ class PTaaSDashboard:
             "low_findings": 0,
             "agent_utilization": 0.0
         }
-        
+
         # Initialize with sample data
         self._initialize_sample_data()
-    
+
     def _initialize_sample_data(self):
         """Initialize dashboard with sample test data"""
         sample_tests = [
@@ -112,7 +112,7 @@ class PTaaSDashboard:
                         "impact": "Complete database compromise possible"
                     },
                     {
-                        "finding_id": "VULN-1736075642-2", 
+                        "finding_id": "VULN-1736075642-2",
                         "title": "Stored XSS in User Comments",
                         "severity": "high",
                         "description": "Persistent XSS vulnerability in comment system",
@@ -122,7 +122,7 @@ class PTaaSDashboard:
                     },
                     {
                         "finding_id": "VULN-1736075642-3",
-                        "title": "Weak SSL/TLS Configuration", 
+                        "title": "Weak SSL/TLS Configuration",
                         "severity": "medium",
                         "description": "Server supports weak cipher suites",
                         "cvss_score": 5.3,
@@ -139,7 +139,7 @@ class PTaaSDashboard:
                 "start_time": datetime.now() - timedelta(hours=2),
                 "end_time": None,
                 "methodology": "NIST",
-                "client_id": "CLIENT-002", 
+                "client_id": "CLIENT-002",
                 "agents_used": ["AGENT-WEB-APP-002"],
                 "findings": [
                     {
@@ -154,7 +154,7 @@ class PTaaSDashboard:
                 ]
             }
         ]
-        
+
         for test_data in sample_tests:
             test_result = TestResult(
                 test_id=test_data["test_id"],
@@ -169,37 +169,37 @@ class PTaaSDashboard:
                 client_id=test_data["client_id"]
             )
             self.test_results[test_data["test_id"]] = test_result
-        
+
         self._update_metrics()
-    
+
     def _update_metrics(self):
         """Update dashboard metrics based on current test results"""
         self.dashboard_metrics["total_tests"] = len(self.test_results)
         self.dashboard_metrics["active_tests"] = len([t for t in self.test_results.values() if t.status == "running"])
         self.dashboard_metrics["completed_tests"] = len([t for t in self.test_results.values() if t.status == "completed"])
         self.dashboard_metrics["failed_tests"] = len([t for t in self.test_results.values() if t.status == "failed"])
-        
+
         # Count findings by severity
         all_findings = []
         for test in self.test_results.values():
             all_findings.extend(test.findings)
-        
+
         self.dashboard_metrics["total_findings"] = len(all_findings)
         self.dashboard_metrics["critical_findings"] = len([f for f in all_findings if f.get("severity") == "critical"])
         self.dashboard_metrics["high_findings"] = len([f for f in all_findings if f.get("severity") == "high"])
         self.dashboard_metrics["medium_findings"] = len([f for f in all_findings if f.get("severity") == "medium"])
         self.dashboard_metrics["low_findings"] = len([f for f in all_findings if f.get("severity") == "low"])
-    
+
     def get_dashboard_overview(self) -> Dict[str, Any]:
         """Get comprehensive dashboard overview"""
         self._update_metrics()
-        
+
         recent_tests = sorted(
             self.test_results.values(),
             key=lambda x: x.start_time,
             reverse=True
         )[:5]
-        
+
         return {
             "metrics": self.dashboard_metrics,
             "recent_tests": [
@@ -220,12 +220,12 @@ class PTaaSDashboard:
                 "low": self.dashboard_metrics["low_findings"]
             }
         }
-    
+
     def generate_test_chart(self, chart_type: str = "severity") -> str:
         """Generate charts for dashboard visualization"""
         plt.style.use('dark_background')
         fig, ax = plt.subplots(figsize=(10, 6))
-        
+
         if chart_type == "severity":
             # Severity distribution pie chart
             severities = ["Critical", "High", "Medium", "Low"]
@@ -236,7 +236,7 @@ class PTaaSDashboard:
                 self.dashboard_metrics["low_findings"]
             ]
             colors = ['#dc3545', '#fd7e14', '#ffc107', '#28a745']
-            
+
             # Filter out zero values
             non_zero_data = [(sev, count, color) for sev, count, color in zip(severities, counts, colors) if count > 0]
             if non_zero_data:
@@ -247,7 +247,7 @@ class PTaaSDashboard:
                 ax.text(0.5, 0.5, 'No findings yet', ha='center', va='center', fontsize=14, color='white')
                 ax.set_xlim(0, 1)
                 ax.set_ylim(0, 1)
-        
+
         elif chart_type == "test_status":
             # Test status bar chart
             statuses = ["Completed", "Running", "Failed"]
@@ -257,33 +257,33 @@ class PTaaSDashboard:
                 self.dashboard_metrics["failed_tests"]
             ]
             colors = ['#28a745', '#ffc107', '#dc3545']
-            
+
             bars = ax.bar(statuses, counts, color=colors)
             ax.set_title('Test Status Distribution', fontsize=16, fontweight='bold', color='white')
             ax.set_ylabel('Number of Tests', color='white')
-            
+
             # Add value labels on bars
             for bar, count in zip(bars, counts):
                 height = bar.get_height()
                 ax.text(bar.get_x() + bar.get_width() / 2., height + 0.1,
                        f'{count}', ha='center', va='bottom', color='white')
-        
+
         # Convert plot to base64 string
         buffer = io.BytesIO()
         plt.savefig(buffer, format='png', bbox_inches='tight', facecolor='#1a1a1a', edgecolor='none')
         buffer.seek(0)
         chart_data = base64.b64encode(buffer.getvalue()).decode()
         plt.close()
-        
+
         return f"data:image/png;base64,{chart_data}"
-    
+
     async def generate_detailed_report(self, test_id: str, format: str = "pdf") -> bytes:
         """Generate detailed test report in PDF format"""
         if test_id not in self.test_results:
             raise ValueError(f"Test {test_id} not found")
-        
+
         test = self.test_results[test_id]
-        
+
         if format == "pdf":
             return self._generate_pdf_report(test)
         elif format == "json":
@@ -301,14 +301,14 @@ class PTaaSDashboard:
             }, indent=2).encode()
         else:
             raise ValueError(f"Unsupported format: {format}")
-    
+
     def _generate_pdf_report(self, test: TestResult) -> bytes:
         """Generate comprehensive PDF report"""
         buffer = io.BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4)
         story = []
         styles = getSampleStyleSheet()
-        
+
         # Custom styles
         title_style = ParagraphStyle(
             'CustomTitle',
@@ -317,7 +317,7 @@ class PTaaSDashboard:
             spaceAfter=30,
             textColor=rl_colors.darkblue
         )
-        
+
         heading_style = ParagraphStyle(
             'CustomHeading',
             parent=styles['Heading2'],
@@ -325,18 +325,18 @@ class PTaaSDashboard:
             spaceAfter=12,
             textColor=rl_colors.darkblue
         )
-        
+
         # Title
         story.append(Paragraph(f"Penetration Test Report: {test.name}", title_style))
         story.append(Spacer(1, 12))
-        
+
         # Executive Summary
         story.append(Paragraph("Executive Summary", heading_style))
-        
+
         exec_summary = f"""
         This report contains the results of a comprehensive penetration test conducted on {test.target}.
         The assessment was performed using the {test.methodology} methodology and identified {len(test.findings)} security findings.
-        
+
         <b>Test Details:</b><br/>
         • Target: {test.target}<br/>
         • Test ID: {test.test_id}<br/>
@@ -345,19 +345,19 @@ class PTaaSDashboard:
         • Status: {test.status.title()}<br/>
         • Methodology: {test.methodology}<br/>
         """
-        
+
         story.append(Paragraph(exec_summary, styles['Normal']))
         story.append(Spacer(1, 20))
-        
+
         # Findings Summary
         story.append(Paragraph("Findings Summary", heading_style))
-        
+
         # Count findings by severity
         severity_counts = {}
         for finding in test.findings:
             severity = finding.get("severity", "unknown")
             severity_counts[severity] = severity_counts.get(severity, 0) + 1
-        
+
         summary_data = [
             ["Severity", "Count", "Description"],
             ["Critical", severity_counts.get("critical", 0), "Immediate attention required"],
@@ -365,7 +365,7 @@ class PTaaSDashboard:
             ["Medium", severity_counts.get("medium", 0), "Medium priority remediation"],
             ["Low", severity_counts.get("low", 0), "Low priority remediation"],
         ]
-        
+
         summary_table = Table(summary_data)
         summary_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), rl_colors.grey),
@@ -377,23 +377,23 @@ class PTaaSDashboard:
             ('BACKGROUND', (0, 1), (-1, -1), rl_colors.beige),
             ('GRID', (0, 0), (-1, -1), 1, rl_colors.black)
         ]))
-        
+
         story.append(summary_table)
         story.append(Spacer(1, 20))
-        
+
         # Detailed Findings
         story.append(Paragraph("Detailed Findings", heading_style))
-        
+
         for i, finding in enumerate(test.findings, 1):
             # Finding header
             finding_title = f"Finding {i}: {finding.get('title', 'Unknown')}"
             story.append(Paragraph(finding_title, styles['Heading3']))
-            
+
             # Finding details
             severity = finding.get("severity", "unknown").title()
             cvss_score = finding.get("cvss_score", "N/A")
             location = finding.get("location", "N/A")
-            
+
             finding_details = f"""
             <b>Severity:</b> {severity}<br/>
             <b>CVSS Score:</b> {cvss_score}<br/>
@@ -401,37 +401,37 @@ class PTaaSDashboard:
             <b>Description:</b> {finding.get('description', 'No description provided')}<br/>
             <b>Impact:</b> {finding.get('impact', 'Impact not specified')}<br/>
             """
-            
+
             story.append(Paragraph(finding_details, styles['Normal']))
             story.append(Spacer(1, 12))
-        
+
         # Recommendations
         story.append(PageBreak())
         story.append(Paragraph("Recommendations", heading_style))
-        
+
         recommendations = """
         Based on the findings identified during this penetration test, we recommend the following actions:
-        
+
         1. <b>Critical and High Severity Issues:</b> Address immediately with priority given to issues that could lead to data breach or system compromise.
-        
+
         2. <b>Input Validation:</b> Implement comprehensive input validation and output encoding to prevent injection attacks.
-        
+
         3. <b>Authentication and Authorization:</b> Strengthen authentication mechanisms and implement proper access controls.
-        
+
         4. <b>SSL/TLS Configuration:</b> Update SSL/TLS configuration to use modern, secure cipher suites.
-        
+
         5. <b>Security Headers:</b> Implement security headers to protect against common web vulnerabilities.
-        
+
         6. <b>Regular Security Testing:</b> Conduct regular penetration tests and security assessments.
         """
-        
+
         story.append(Paragraph(recommendations, styles['Normal']))
         story.append(Spacer(1, 20))
-        
+
         # Footer
         story.append(Paragraph("Report generated by XORB PTaaS Platform", styles['Normal']))
         story.append(Paragraph(f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", styles['Normal']))
-        
+
         # Build PDF
         doc.build(story)
         buffer.seek(0)
@@ -568,16 +568,16 @@ async def dashboard_home():
                 try {
                     const response = await fetch('/api/dashboard/overview');
                     const data = await response.json();
-                    
+
                     // Update metrics
                     updateMetrics(data.metrics);
-                    
+
                     // Update recent tests
                     updateRecentTests(data.recent_tests);
-                    
+
                     // Load charts
                     loadCharts();
-                    
+
                 } catch (error) {
                     console.error('Error loading dashboard data:', error);
                 }
@@ -716,7 +716,7 @@ async def get_test_details(test_id: str):
     """Get detailed information about a specific test"""
     if test_id not in dashboard.test_results:
         raise HTTPException(status_code=404, detail="Test not found")
-    
+
     test = dashboard.test_results[test_id]
     return {
         "test_id": test.test_id,
@@ -736,9 +736,9 @@ async def view_test_report(test_id: str):
     """View test report in browser"""
     if test_id not in dashboard.test_results:
         raise HTTPException(status_code=404, detail="Test not found")
-    
+
     test = dashboard.test_results[test_id]
-    
+
     # Generate HTML report
     html_content = f"""
     <!DOCTYPE html>
@@ -766,7 +766,7 @@ async def view_test_report(test_id: str):
                     <hr>
                 </div>
             </div>
-            
+
             <div class="row mb-4">
                 <div class="col-md-6">
                     <div class="card">
@@ -798,7 +798,7 @@ async def view_test_report(test_id: str):
                     </div>
                 </div>
             </div>
-            
+
             <div class="row">
                 <div class="col-12">
                     <div class="card">
@@ -807,7 +807,7 @@ async def view_test_report(test_id: str):
                         </div>
                         <div class="card-body">
     """
-    
+
     for i, finding in enumerate(test.findings, 1):
         severity_class = f"severity-{finding.get('severity', 'low')}"
         html_content += f"""
@@ -821,13 +821,13 @@ async def view_test_report(test_id: str):
                                 <hr>
                             </div>
         """
-    
+
     html_content += """
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <div class="row mt-4">
                 <div class="col-12">
                     <a href="/reports/{}/download?format=pdf" class="btn btn-success">
@@ -842,7 +842,7 @@ async def view_test_report(test_id: str):
     </body>
     </html>
     """.format(test_id)
-    
+
     return HTMLResponse(content=html_content)
 
 @app.get("/reports/{test_id}/download")
@@ -850,7 +850,7 @@ async def download_test_report(test_id: str, format: str = "pdf"):
     """Download test report in specified format"""
     try:
         report_data = await dashboard.generate_detailed_report(test_id, format)
-        
+
         if format == "pdf":
             return Response(
                 content=report_data,
@@ -865,7 +865,7 @@ async def download_test_report(test_id: str, format: str = "pdf"):
             )
         else:
             raise HTTPException(status_code=400, detail="Unsupported format")
-            
+
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:

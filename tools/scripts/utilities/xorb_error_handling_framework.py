@@ -107,7 +107,7 @@ class CircuitBreakerState:
 
 class XORBErrorHandler:
     """Central error handling and recovery system"""
-    
+
     def __init__(self, service_name: str, config: Optional[Dict[str, Any]] = None):
         self.service_name = service_name
         self.config = config or {}
@@ -116,10 +116,10 @@ class XORBErrorHandler:
         self.circuit_breakers: Dict[str, CircuitBreakerState] = {}
         self.error_patterns: Dict[str, int] = {}
         self.active_degradations: Dict[str, datetime] = {}
-        
+
         # Initialize logging
         self._setup_logging()
-        
+
         # Initialize metrics
         self.metrics = {
             "total_errors": 0,
@@ -129,10 +129,10 @@ class XORBErrorHandler:
             "circuit_breaker_trips": 0,
             "degradation_events": 0
         }
-        
+
         # Start background tasks
         self._start_background_tasks()
-        
+
         self.logger.info(f"XORB Error Handler initialized for service: {service_name}")
 
     def _setup_logging(self):
@@ -141,23 +141,23 @@ class XORBErrorHandler:
             '%(asctime)s - %(name)s - %(levelname)s - '
             '[%(service_name)s] - %(funcName)s:%(lineno)d - %(message)s'
         )
-        
+
         # Create logger
         self.logger = logging.getLogger(f"xorb.{self.service_name}")
         self.logger.setLevel(logging.DEBUG)
-        
+
         # Console handler
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         console_formatter = logging.Formatter(log_format)
         console_handler.setFormatter(console_formatter)
-        
+
         # File handler for errors
         error_handler = logging.FileHandler(f'logs/xorb_errors_{self.service_name}.log')
         error_handler.setLevel(logging.ERROR)
         error_formatter = logging.Formatter(log_format)
         error_handler.setFormatter(error_formatter)
-        
+
         # Add service name to log context
         old_factory = logging.getLogRecordFactory()
         def record_factory(*args, **kwargs):
@@ -165,7 +165,7 @@ class XORBErrorHandler:
             record.service_name = self.service_name
             return record
         logging.setLogRecordFactory(record_factory)
-        
+
         if not self.logger.handlers:
             self.logger.addHandler(console_handler)
             self.logger.addHandler(error_handler)
@@ -173,10 +173,10 @@ class XORBErrorHandler:
     def _start_background_tasks(self):
         """Start background monitoring and cleanup tasks"""
         self.executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix=f"xorb-error-{self.service_name}")
-        
+
         # Start error pattern analysis
         self.executor.submit(self._pattern_analysis_loop)
-        
+
         # Start circuit breaker monitoring
         self.executor.submit(self._circuit_breaker_monitor_loop)
 
@@ -185,15 +185,15 @@ class XORBErrorHandler:
         self.recovery_actions[action.action_id] = action
         self.logger.info(f"Registered recovery action: {action.name}")
 
-    def handle_error(self, 
-                    error: Exception, 
+    def handle_error(self,
+                    error: Exception,
                     category: ErrorCategory = ErrorCategory.UNKNOWN,
                     severity: ErrorSeverity = ErrorSeverity.MEDIUM,
                     context: Optional[Dict[str, Any]] = None,
                     user_id: Optional[str] = None,
                     request_id: Optional[str] = None) -> ErrorContext:
         """Handle an error with comprehensive logging and recovery"""
-        
+
         # Create error context
         error_context = ErrorContext(
             error_id=str(uuid.uuid4()),
@@ -210,11 +210,11 @@ class XORBErrorHandler:
             system_context=self._collect_system_context(),
             business_context=context or {}
         )
-        
+
         # Store error history
         self.error_history.append(error_context)
         self._update_metrics(error_context)
-        
+
         # Log error with appropriate level
         log_level = self._map_severity_to_log_level(severity)
         self.logger.log(
@@ -227,16 +227,16 @@ class XORBErrorHandler:
                 "context": context
             }
         )
-        
+
         # Attempt recovery
         self._attempt_recovery(error_context)
-        
+
         # Check for circuit breaker activation
         self._check_circuit_breaker(error_context)
-        
+
         # Analyze error patterns
         self._analyze_error_pattern(error_context)
-        
+
         return error_context
 
     def _get_calling_function(self) -> str:
@@ -274,13 +274,13 @@ class XORBErrorHandler:
     def _update_metrics(self, error_context: ErrorContext):
         """Update error metrics"""
         self.metrics["total_errors"] += 1
-        
+
         # Update category metrics
         category = error_context.category.value
         self.metrics["errors_by_category"][category] = (
             self.metrics["errors_by_category"].get(category, 0) + 1
         )
-        
+
         # Update severity metrics
         severity = error_context.severity.value
         self.metrics["errors_by_severity"][severity] = (
@@ -291,14 +291,14 @@ class XORBErrorHandler:
         """Attempt to recover from the error"""
         # Find matching recovery actions
         matching_actions = self._find_matching_recovery_actions(error_context)
-        
+
         for action in matching_actions:
             try:
                 self.logger.info(f"Attempting recovery action: {action.name}")
-                
+
                 # Execute recovery action
                 success = self._execute_recovery_action(action, error_context)
-                
+
                 if success:
                     error_context.resolved = True
                     error_context.resolution_time = datetime.now()
@@ -308,7 +308,7 @@ class XORBErrorHandler:
                 else:
                     error_context.recovery_attempts += 1
                     self.logger.warning(f"Recovery failed: {action.name}")
-                    
+
             except Exception as recovery_error:
                 self.logger.error(f"Recovery action failed: {action.name} - {recovery_error}")
                 error_context.recovery_attempts += 1
@@ -316,28 +316,28 @@ class XORBErrorHandler:
     def _find_matching_recovery_actions(self, error_context: ErrorContext) -> List[RecoveryAction]:
         """Find recovery actions that match the error context"""
         matching_actions = []
-        
+
         for action in self.recovery_actions.values():
             if self._action_matches_error(action, error_context):
                 matching_actions.append(action)
-        
+
         # Sort by priority (could be based on strategy, conditions, etc.)
         return sorted(matching_actions, key=lambda x: x.max_attempts, reverse=True)
 
     def _action_matches_error(self, action: RecoveryAction, error_context: ErrorContext) -> bool:
         """Check if a recovery action matches the error context"""
         conditions = action.conditions
-        
+
         # Check error category
         if "categories" in conditions:
             if error_context.category.value not in conditions["categories"]:
                 return False
-        
+
         # Check error type
         if "error_types" in conditions:
             if error_context.error_type not in conditions["error_types"]:
                 return False
-        
+
         # Check severity
         if "min_severity" in conditions:
             severity_order = {
@@ -348,7 +348,7 @@ class XORBErrorHandler:
             }
             if severity_order[error_context.severity] < severity_order[ErrorSeverity[conditions["min_severity"]]]:
                 return False
-        
+
         return True
 
     def _execute_recovery_action(self, action: RecoveryAction, error_context: ErrorContext) -> bool:
@@ -376,19 +376,19 @@ class XORBErrorHandler:
                     delay = (2 ** attempt) * 0.1  # 0.1, 0.2, 0.4, 0.8 seconds
                 else:  # linear
                     delay = attempt * 0.5  # 0, 0.5, 1.0, 1.5 seconds
-                
+
                 if attempt > 0:
                     time.sleep(delay)
-                
+
                 # Execute retry
                 result = action.handler(error_context)
                 if result:
                     self.logger.info(f"Retry successful on attempt {attempt + 1}")
                     return True
-                    
+
             except Exception as retry_error:
                 self.logger.warning(f"Retry attempt {attempt + 1} failed: {retry_error}")
-        
+
         return False
 
     def _execute_fallback(self, action: RecoveryAction, error_context: ErrorContext) -> bool:
@@ -400,21 +400,21 @@ class XORBErrorHandler:
                 return True
         except Exception as fallback_error:
             self.logger.error(f"Fallback failed: {fallback_error}")
-        
+
         return False
 
     def _handle_circuit_breaker(self, action: RecoveryAction, error_context: ErrorContext) -> bool:
         """Handle circuit breaker logic"""
         service_key = f"{error_context.service_name}:{error_context.function_name}"
-        
+
         if service_key not in self.circuit_breakers:
             self.circuit_breakers[service_key] = CircuitBreakerState(
                 service_name=service_key,
                 state="CLOSED"
             )
-        
+
         cb = self.circuit_breakers[service_key]
-        
+
         if cb.state == "OPEN":
             # Check if timeout has passed
             if (datetime.now() - cb.last_failure_time).seconds > cb.timeout_seconds:
@@ -424,29 +424,29 @@ class XORBErrorHandler:
             else:
                 # Circuit is open, fail fast
                 return False
-        
+
         if cb.state == "HALF_OPEN":
             if cb.current_half_open_calls >= cb.half_open_max_calls:
                 return False
             cb.current_half_open_calls += 1
-        
+
         # Try the operation
         try:
             result = action.handler(error_context)
             if result:
                 cb.success_count += 1
                 cb.last_success_time = datetime.now()
-                
+
                 if cb.state == "HALF_OPEN" and cb.success_count >= cb.success_threshold:
                     cb.state = "CLOSED"
                     cb.failure_count = 0
                     self.logger.info(f"Circuit breaker closed: {service_key}")
-                
+
                 return True
             else:
                 self._handle_circuit_breaker_failure(cb, service_key)
                 return False
-                
+
         except Exception:
             self._handle_circuit_breaker_failure(cb, service_key)
             return False
@@ -455,7 +455,7 @@ class XORBErrorHandler:
         """Handle circuit breaker failure"""
         cb.failure_count += 1
         cb.last_failure_time = datetime.now()
-        
+
         if cb.failure_count >= cb.failure_threshold:
             cb.state = "OPEN"
             self.metrics["circuit_breaker_trips"] += 1
@@ -466,7 +466,7 @@ class XORBErrorHandler:
         degradation_key = f"{error_context.service_name}:{error_context.function_name}"
         self.active_degradations[degradation_key] = datetime.now()
         self.metrics["degradation_events"] += 1
-        
+
         try:
             result = action.handler(error_context)
             self.logger.info(f"Graceful degradation enabled: {degradation_key}")
@@ -478,7 +478,7 @@ class XORBErrorHandler:
     def _check_circuit_breaker(self, error_context: ErrorContext):
         """Check if circuit breaker should be activated"""
         service_key = f"{error_context.service_name}:{error_context.function_name}"
-        
+
         if service_key in self.circuit_breakers:
             cb = self.circuit_breakers[service_key]
             self._handle_circuit_breaker_failure(cb, service_key)
@@ -487,10 +487,10 @@ class XORBErrorHandler:
         """Analyze error patterns for predictive handling"""
         # Create pattern key
         pattern_key = f"{error_context.category.value}:{error_context.error_type}"
-        
+
         # Update pattern count
         self.error_patterns[pattern_key] = self.error_patterns.get(pattern_key, 0) + 1
-        
+
         # Check for recurring patterns
         if self.error_patterns[pattern_key] > 5:  # Threshold for pattern detection
             self.logger.warning(f"Recurring error pattern detected: {pattern_key}")
@@ -509,13 +509,13 @@ class XORBErrorHandler:
         """Analyze error patterns and trends"""
         if len(self.error_history) < 10:
             return
-        
+
         # Get recent errors (last hour)
         recent_errors = [
             error for error in self.error_history
             if (datetime.now() - error.timestamp).seconds < 3600
         ]
-        
+
         if len(recent_errors) > 10:  # High error rate
             self.logger.warning(f"High error rate detected: {len(recent_errors)} errors in last hour")
 
@@ -531,7 +531,7 @@ class XORBErrorHandler:
     def _monitor_circuit_breakers(self):
         """Monitor and manage circuit breakers"""
         current_time = datetime.now()
-        
+
         for service_key, cb in self.circuit_breakers.items():
             if cb.state == "OPEN":
                 # Check if it's time to transition to HALF_OPEN
@@ -583,12 +583,12 @@ def xorb_error_handler(category: ErrorCategory = ErrorCategory.UNKNOWN,
         def wrapper(*args, **kwargs):
             # Get or create error handler for this service
             service_name = getattr(args[0], '__class__', 'unknown').__name__ if args else 'unknown'
-            
+
             if not hasattr(wrapper, '_error_handler'):
                 wrapper._error_handler = XORBErrorHandler(service_name)
-            
+
             error_handler = wrapper._error_handler
-            
+
             # Try main function
             for attempt in range(max(1, retry_count + 1)):
                 try:
@@ -602,7 +602,7 @@ def xorb_error_handler(category: ErrorCategory = ErrorCategory.UNKNOWN,
                             "max_attempts": retry_count + 1
                         }
                     )
-                    
+
                     if attempt == retry_count:  # Last attempt
                         if fallback_func:
                             try:
@@ -613,10 +613,10 @@ def xorb_error_handler(category: ErrorCategory = ErrorCategory.UNKNOWN,
                                     context={"fallback_function": fallback_func.__name__}
                                 )
                         raise e
-                    
+
                     # Wait before retry
                     time.sleep(0.1 * (2 ** attempt))  # Exponential backoff
-                    
+
         return wrapper
     return decorator
 
@@ -630,12 +630,12 @@ def xorb_async_error_handler(category: ErrorCategory = ErrorCategory.UNKNOWN,
         async def wrapper(*args, **kwargs):
             # Get or create error handler for this service
             service_name = getattr(args[0], '__class__', 'unknown').__name__ if args else 'unknown'
-            
+
             if not hasattr(wrapper, '_error_handler'):
                 wrapper._error_handler = XORBErrorHandler(service_name)
-            
+
             error_handler = wrapper._error_handler
-            
+
             # Try main function
             for attempt in range(max(1, retry_count + 1)):
                 try:
@@ -649,7 +649,7 @@ def xorb_async_error_handler(category: ErrorCategory = ErrorCategory.UNKNOWN,
                             "max_attempts": retry_count + 1
                         }
                     )
-                    
+
                     if attempt == retry_count:  # Last attempt
                         if fallback_func:
                             try:
@@ -663,10 +663,10 @@ def xorb_async_error_handler(category: ErrorCategory = ErrorCategory.UNKNOWN,
                                     context={"fallback_function": fallback_func.__name__}
                                 )
                         raise e
-                    
+
                     # Wait before retry
                     await asyncio.sleep(0.1 * (2 ** attempt))  # Exponential backoff
-                    
+
         return wrapper
     return decorator
 
@@ -687,13 +687,13 @@ def get_all_error_handlers() -> Dict[str, XORBErrorHandler]:
 if __name__ == "__main__":
     # Example usage
     error_handler = XORBErrorHandler("test_service")
-    
+
     # Register a recovery action
     def retry_database_connection(error_context: ErrorContext) -> bool:
         print(f"Retrying database connection for error: {error_context.error_id}")
         # Simulate retry logic
         return True
-    
+
     recovery_action = RecoveryAction(
         action_id="db_retry",
         name="Database Connection Retry",
@@ -702,21 +702,21 @@ if __name__ == "__main__":
         max_attempts=3,
         conditions={"categories": ["database"]}
     )
-    
+
     error_handler.register_recovery_action(recovery_action)
-    
+
     # Test error handling
     try:
         raise ConnectionError("Database connection failed")
     except Exception as e:
         error_context = error_handler.handle_error(
-            e, 
-            ErrorCategory.DATABASE, 
+            e,
+            ErrorCategory.DATABASE,
             ErrorSeverity.HIGH,
             context={"operation": "user_lookup", "table": "users"}
         )
         print(f"Error handled: {error_context.error_id}")
-    
+
     # Get error summary
     summary = error_handler.get_error_summary()
     print(f"Error Summary: {json.dumps(summary, indent=2, default=str)}")

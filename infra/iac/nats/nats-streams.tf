@@ -137,13 +137,13 @@ resource "nats_jetstream_consumer" "tenant_consumers" {
 
   stream_name = each.value.name
   name        = "${each.value.name}-consumer"
-  description = lookup(each.value.tags, "stream_class", "") == "replay" ? 
+  description = lookup(each.value.tags, "stream_class", "") == "replay" ?
     "Replay consumer with bounded window and rate limiting" :
     "Live consumer with high-priority flow control"
 
   # Consumer configuration with stream-class specific tuning
   durable         = true
-  deliver_policy  = lookup(each.value.tags, "stream_class", "") == "replay" ? 
+  deliver_policy  = lookup(each.value.tags, "stream_class", "") == "replay" ?
     var.replay_policy.start_time_policy : "last"
   ack_policy      = "explicit"    # Require explicit acks
   ack_wait       = lookup(each.value.tags, "stream_class", "") == "replay" ? "60s" : "30s"

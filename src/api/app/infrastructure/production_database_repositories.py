@@ -29,8 +29,8 @@ from ..domain.repositories import (
 )
 from ..domain.tenant_entities import Tenant, TenantPlan, TenantStatus
 from .database_models import (
-    UserModel, OrganizationModel, TenantModel, EmbeddingRequestModel, 
-    EmbeddingResultModel, DiscoveryWorkflowModel, AuthTokenModel, 
+    UserModel, OrganizationModel, TenantModel, EmbeddingRequestModel,
+    EmbeddingResultModel, DiscoveryWorkflowModel, AuthTokenModel,
     UserOrganizationModel, ScanSessionModel
 )
 
@@ -39,14 +39,14 @@ logger = logging.getLogger(__name__)
 
 class DatabaseConnectionManager:
     """Advanced database connection management with health monitoring"""
-    
+
     def __init__(self, database_url: str):
         self.database_url = database_url
         self.engine: Optional[AsyncEngine] = None
         self.session_factory = None
         self.connection_pool_size = 20
         self.max_overflow = 10
-        
+
     async def initialize(self):
         """Initialize database engine and session factory"""
         try:
@@ -67,29 +67,29 @@ class DatabaseConnectionManager:
                     }
                 }
             )
-            
+
             self.session_factory = sessionmaker(
-                self.engine, 
+                self.engine,
                 class_=AsyncSession,
                 expire_on_commit=False
             )
-            
+
             # Test connection
             async with self.engine.begin() as conn:
                 await conn.execute(text("SELECT 1"))
-            
+
             logger.info("Production database connection established successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize database: {e}")
             raise
-    
+
     @asynccontextmanager
     async def get_session(self):
         """Get database session with proper error handling"""
         if not self.session_factory:
             raise RuntimeError("Database not initialized")
-        
+
         async with self.session_factory() as session:
             try:
                 yield session
@@ -97,7 +97,7 @@ class DatabaseConnectionManager:
             except Exception:
                 await session.rollback()
                 raise
-    
+
     async def health_check(self) -> Dict[str, Any]:
         """Perform database health check"""
         try:
@@ -112,17 +112,17 @@ class DatabaseConnectionManager:
                 }
         except Exception as e:
             return {
-                "status": "unhealthy", 
+                "status": "unhealthy",
                 "error": str(e)
             }
 
 
 class ProductionUserRepository(UserRepository):
     """Production PostgreSQL user repository with advanced features"""
-    
+
     def __init__(self, db_manager: DatabaseConnectionManager):
         self.db_manager = db_manager
-    
+
     async def get_by_id(self, user_id: UUID) -> Optional[User]:
         """Get user by ID with optimized query"""
         async with self.db_manager.get_session() as session:
@@ -134,13 +134,13 @@ class ProductionUserRepository(UserRepository):
                 )
                 result = await session.execute(stmt)
                 user_model = result.scalar_one_or_none()
-                
+
                 return self._model_to_entity(user_model) if user_model else None
-                
+
             except Exception as e:
                 logger.error(f"Error getting user by ID {user_id}: {e}")
                 return None
-    
+
     async def get_by_username(self, username: str) -> Optional[User]:
         """Get user by username with case-insensitive search"""
         async with self.db_manager.get_session() as session:
@@ -152,13 +152,13 @@ class ProductionUserRepository(UserRepository):
                 )
                 result = await session.execute(stmt)
                 user_model = result.scalar_one_or_none()
-                
+
                 return self._model_to_entity(user_model) if user_model else None
-                
+
             except Exception as e:
                 logger.error(f"Error getting user by username {username}: {e}")
                 return None
-    
+
     async def get_by_email(self, email: str) -> Optional[User]:
         """Get user by email with case-insensitive search"""
         async with self.db_manager.get_session() as session:
@@ -170,13 +170,13 @@ class ProductionUserRepository(UserRepository):
                 )
                 result = await session.execute(stmt)
                 user_model = result.scalar_one_or_none()
-                
+
                 return self._model_to_entity(user_model) if user_model else None
-                
+
             except Exception as e:
                 logger.error(f"Error getting user by email {email}: {e}")
                 return None
-    
+
     async def create(self, user: User) -> User:
         """Create new user with comprehensive error handling"""
         async with self.db_manager.get_session() as session:
@@ -197,19 +197,19 @@ class ProductionUserRepository(UserRepository):
                     created_at=user.created_at,
                     updated_at=user.updated_at
                 )
-                
+
                 session.add(user_model)
                 await session.flush()
-                
+
                 return self._model_to_entity(user_model)
-                
+
             except IntegrityError as e:
                 logger.error(f"User creation failed due to constraint violation: {e}")
                 raise ValueError(f"User with username or email already exists")
             except Exception as e:
                 logger.error(f"Error creating user: {e}")
                 raise
-    
+
     async def update(self, user: User) -> User:
         """Update user with optimistic locking"""
         async with self.db_manager.get_session() as session:
@@ -232,18 +232,18 @@ class ProductionUserRepository(UserRepository):
                     )
                     .returning(UserModel)
                 )
-                
+
                 result = await session.execute(stmt)
                 updated_model = result.scalar_one()
-                
+
                 return self._model_to_entity(updated_model)
-                
+
             except NoResultFound:
                 raise ValueError(f"User {user.id} not found")
             except Exception as e:
                 logger.error(f"Error updating user {user.id}: {e}")
                 raise
-    
+
     async def delete(self, user_id: UUID) -> bool:
         """Soft delete user (mark as inactive)"""
         async with self.db_manager.get_session() as session:
@@ -253,14 +253,14 @@ class ProductionUserRepository(UserRepository):
                     .where(UserModel.id == user_id)
                     .values(is_active=False, updated_at=func.now())
                 )
-                
+
                 result = await session.execute(stmt)
                 return result.rowcount > 0
-                
+
             except Exception as e:
                 logger.error(f"Error deleting user {user_id}: {e}")
                 return False
-    
+
     def _model_to_entity(self, model: UserModel) -> User:
         """Convert database model to domain entity"""
         return User(
@@ -275,10 +275,10 @@ class ProductionUserRepository(UserRepository):
 
 class ProductionOrganizationRepository(OrganizationRepository):
     """Production PostgreSQL organization repository"""
-    
+
     def __init__(self, db_manager: DatabaseConnectionManager):
         self.db_manager = db_manager
-    
+
     async def get_by_id(self, org_id: UUID) -> Optional[Organization]:
         """Get organization by ID"""
         async with self.db_manager.get_session() as session:
@@ -290,13 +290,13 @@ class ProductionOrganizationRepository(OrganizationRepository):
                 )
                 result = await session.execute(stmt)
                 org_model = result.scalar_one_or_none()
-                
+
                 return self._model_to_entity(org_model) if org_model else None
-                
+
             except Exception as e:
                 logger.error(f"Error getting organization by ID {org_id}: {e}")
                 return None
-    
+
     async def get_by_name(self, name: str) -> Optional[Organization]:
         """Get organization by name"""
         async with self.db_manager.get_session() as session:
@@ -307,13 +307,13 @@ class ProductionOrganizationRepository(OrganizationRepository):
                 )
                 result = await session.execute(stmt)
                 org_model = result.scalar_one_or_none()
-                
+
                 return self._model_to_entity(org_model) if org_model else None
-                
+
             except Exception as e:
                 logger.error(f"Error getting organization by name {name}: {e}")
                 return None
-    
+
     async def create(self, organization: Organization) -> Organization:
         """Create new organization"""
         async with self.db_manager.get_session() as session:
@@ -327,19 +327,19 @@ class ProductionOrganizationRepository(OrganizationRepository):
                     created_at=organization.created_at,
                     updated_at=organization.updated_at
                 )
-                
+
                 session.add(org_model)
                 await session.flush()
-                
+
                 return self._model_to_entity(org_model)
-                
+
             except IntegrityError as e:
                 logger.error(f"Organization creation failed: {e}")
                 raise ValueError(f"Organization with name already exists")
             except Exception as e:
                 logger.error(f"Error creating organization: {e}")
                 raise
-    
+
     async def update(self, organization: Organization) -> Organization:
         """Update organization"""
         async with self.db_manager.get_session() as session:
@@ -356,18 +356,18 @@ class ProductionOrganizationRepository(OrganizationRepository):
                     )
                     .returning(OrganizationModel)
                 )
-                
+
                 result = await session.execute(stmt)
                 updated_model = result.scalar_one()
-                
+
                 return self._model_to_entity(updated_model)
-                
+
             except NoResultFound:
                 raise ValueError(f"Organization {organization.id} not found")
             except Exception as e:
                 logger.error(f"Error updating organization {organization.id}: {e}")
                 raise
-    
+
     async def get_user_organizations(self, user_id: UUID) -> List[Organization]:
         """Get organizations for a user"""
         async with self.db_manager.get_session() as session:
@@ -378,16 +378,16 @@ class ProductionOrganizationRepository(OrganizationRepository):
                     .where(UserOrganizationModel.user_id == user_id)
                     .where(OrganizationModel.is_active == True)
                 )
-                
+
                 result = await session.execute(stmt)
                 org_models = result.scalars().all()
-                
+
                 return [self._model_to_entity(org) for org in org_models]
-                
+
             except Exception as e:
                 logger.error(f"Error getting user organizations for {user_id}: {e}")
                 return []
-    
+
     async def add_user_to_organization(self, user_id: UUID, org_id: UUID, role: str = "member") -> bool:
         """Add user to organization"""
         async with self.db_manager.get_session() as session:
@@ -403,14 +403,14 @@ class ProductionOrganizationRepository(OrganizationRepository):
                     index_elements=['user_id', 'organization_id'],
                     set_={'role': stmt.excluded.role, 'updated_at': func.now()}
                 )
-                
+
                 await session.execute(stmt)
                 return True
-                
+
             except Exception as e:
                 logger.error(f"Error adding user {user_id} to organization {org_id}: {e}")
                 return False
-    
+
     def _model_to_entity(self, model: OrganizationModel) -> Organization:
         """Convert database model to domain entity"""
         return Organization(
@@ -423,10 +423,10 @@ class ProductionOrganizationRepository(OrganizationRepository):
 
 class ProductionScanSessionRepository(ScanSessionRepository):
     """Production scan session repository with advanced querying"""
-    
+
     def __init__(self, db_manager: DatabaseConnectionManager):
         self.db_manager = db_manager
-    
+
     async def create_session(self, session_data: dict) -> dict:
         """Create new scan session"""
         async with self.db_manager.get_session() as session:
@@ -443,10 +443,10 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                     metadata=session_data.get('metadata', {}),
                     created_at=func.now()
                 )
-                
+
                 session.add(scan_session)
                 await session.flush()
-                
+
                 return {
                     'session_id': str(scan_session.id),
                     'status': scan_session.status,
@@ -454,11 +454,11 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                     'targets': scan_session.targets,
                     'scan_type': scan_session.scan_type
                 }
-                
+
             except Exception as e:
                 logger.error(f"Error creating scan session: {e}")
                 raise
-    
+
     async def get_session(self, session_id: UUID) -> Optional[dict]:
         """Get scan session by ID"""
         async with self.db_manager.get_session() as session:
@@ -466,10 +466,10 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                 stmt = select(ScanSessionModel).where(ScanSessionModel.id == session_id)
                 result = await session.execute(stmt)
                 scan_model = result.scalar_one_or_none()
-                
+
                 if not scan_model:
                     return None
-                
+
                 return {
                     'session_id': str(scan_model.id),
                     'user_id': str(scan_model.user_id),
@@ -485,11 +485,11 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                     'updated_at': scan_model.updated_at.isoformat() if scan_model.updated_at else None,
                     'completed_at': scan_model.completed_at.isoformat() if scan_model.completed_at else None
                 }
-                
+
             except Exception as e:
                 logger.error(f"Error getting scan session {session_id}: {e}")
                 return None
-    
+
     async def update_session(self, session_id: UUID, updates: dict) -> bool:
         """Update scan session"""
         async with self.db_manager.get_session() as session:
@@ -497,33 +497,33 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                 update_values = {
                     'updated_at': func.now()
                 }
-                
+
                 # Add provided updates
                 for key, value in updates.items():
                     if key in ['status', 'results', 'metadata', 'error_message']:
                         update_values[key] = value
-                
+
                 # Set completion time if status is completed or failed
                 if updates.get('status') in ['completed', 'failed']:
                     update_values['completed_at'] = func.now()
-                
+
                 stmt = (
                     update(ScanSessionModel)
                     .where(ScanSessionModel.id == session_id)
                     .values(**update_values)
                 )
-                
+
                 result = await session.execute(stmt)
                 return result.rowcount > 0
-                
+
             except Exception as e:
                 logger.error(f"Error updating scan session {session_id}: {e}")
                 return False
-    
+
     async def get_user_sessions(
-        self, 
-        user_id: UUID, 
-        limit: int = 50, 
+        self,
+        user_id: UUID,
+        limit: int = 50,
         offset: int = 0,
         status_filter: Optional[str] = None
     ) -> List[dict]:
@@ -537,13 +537,13 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                     .limit(limit)
                     .offset(offset)
                 )
-                
+
                 if status_filter:
                     stmt = stmt.where(ScanSessionModel.status == status_filter)
-                
+
                 result = await session.execute(stmt)
                 sessions = result.scalars().all()
-                
+
                 return [
                     {
                         'session_id': str(s.id),
@@ -555,7 +555,7 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                     }
                     for s in sessions
                 ]
-                
+
             except Exception as e:
                 logger.error(f"Error getting user sessions for {user_id}: {e}")
                 return []
@@ -563,10 +563,10 @@ class ProductionScanSessionRepository(ScanSessionRepository):
 
 class ProductionAuthTokenRepository(AuthTokenRepository):
     """Production auth token repository with automatic cleanup"""
-    
+
     def __init__(self, db_manager: DatabaseConnectionManager):
         self.db_manager = db_manager
-    
+
     async def save_token(self, token: AuthToken) -> AuthToken:
         """Save auth token"""
         async with self.db_manager.get_session() as session:
@@ -580,16 +580,16 @@ class ProductionAuthTokenRepository(AuthTokenRepository):
                     is_revoked=False,
                     created_at=func.now()
                 )
-                
+
                 session.add(token_model)
                 await session.flush()
-                
+
                 return token
-                
+
             except Exception as e:
                 logger.error(f"Error saving token: {e}")
                 raise
-    
+
     async def get_by_token(self, token: str) -> Optional[AuthToken]:
         """Get token by token string"""
         async with self.db_manager.get_session() as session:
@@ -606,20 +606,20 @@ class ProductionAuthTokenRepository(AuthTokenRepository):
                 )
                 result = await session.execute(stmt)
                 token_model = result.scalar_one_or_none()
-                
+
                 if not token_model:
                     return None
-                
+
                 return AuthToken(
                     user_id=token_model.user_id,
                     token=token_model.token,
                     expires_at=token_model.expires_at
                 )
-                
+
             except Exception as e:
                 logger.error(f"Error getting token: {e}")
                 return None
-    
+
     async def revoke_token(self, token: str) -> bool:
         """Revoke a token"""
         async with self.db_manager.get_session() as session:
@@ -629,14 +629,14 @@ class ProductionAuthTokenRepository(AuthTokenRepository):
                     .where(AuthTokenModel.token == token)
                     .values(is_revoked=True, updated_at=func.now())
                 )
-                
+
                 result = await session.execute(stmt)
                 return result.rowcount > 0
-                
+
             except Exception as e:
                 logger.error(f"Error revoking token: {e}")
                 return False
-    
+
     async def revoke_user_tokens(self, user_id: UUID) -> int:
         """Revoke all tokens for a user"""
         async with self.db_manager.get_session() as session:
@@ -651,14 +651,14 @@ class ProductionAuthTokenRepository(AuthTokenRepository):
                     )
                     .values(is_revoked=True, updated_at=func.now())
                 )
-                
+
                 result = await session.execute(stmt)
                 return result.rowcount
-                
+
             except Exception as e:
                 logger.error(f"Error revoking user tokens for {user_id}: {e}")
                 return 0
-    
+
     async def cleanup_expired_tokens(self) -> int:
         """Clean up expired and revoked tokens"""
         async with self.db_manager.get_session() as session:
@@ -669,10 +669,10 @@ class ProductionAuthTokenRepository(AuthTokenRepository):
                         AuthTokenModel.is_revoked == True
                     )
                 )
-                
+
                 result = await session.execute(stmt)
                 return result.rowcount
-                
+
             except Exception as e:
                 logger.error(f"Error cleaning up tokens: {e}")
                 return 0
@@ -680,10 +680,10 @@ class ProductionAuthTokenRepository(AuthTokenRepository):
 
 class ProductionTenantRepository(TenantRepository):
     """Production tenant repository for multi-tenant support"""
-    
+
     def __init__(self, db_manager: DatabaseConnectionManager):
         self.db_manager = db_manager
-    
+
     async def create_tenant(self, tenant_data: dict) -> dict:
         """Create new tenant"""
         async with self.db_manager.get_session() as session:
@@ -697,10 +697,10 @@ class ProductionTenantRepository(TenantRepository):
                     settings=tenant_data.get('settings', {}),
                     created_at=func.now()
                 )
-                
+
                 session.add(tenant)
                 await session.flush()
-                
+
                 return {
                     'tenant_id': str(tenant.id),
                     'name': tenant.name,
@@ -709,14 +709,14 @@ class ProductionTenantRepository(TenantRepository):
                     'status': tenant.status.value,
                     'created_at': tenant.created_at.isoformat()
                 }
-                
+
             except IntegrityError as e:
                 logger.error(f"Tenant creation failed: {e}")
                 raise ValueError(f"Tenant with slug already exists")
             except Exception as e:
                 logger.error(f"Error creating tenant: {e}")
                 raise
-    
+
     async def get_tenant(self, tenant_id: UUID) -> Optional[dict]:
         """Get tenant by ID"""
         async with self.db_manager.get_session() as session:
@@ -724,10 +724,10 @@ class ProductionTenantRepository(TenantRepository):
                 stmt = select(TenantModel).where(TenantModel.id == tenant_id)
                 result = await session.execute(stmt)
                 tenant = result.scalar_one_or_none()
-                
+
                 if not tenant:
                     return None
-                
+
                 return {
                     'tenant_id': str(tenant.id),
                     'name': tenant.name,
@@ -738,11 +738,11 @@ class ProductionTenantRepository(TenantRepository):
                     'created_at': tenant.created_at.isoformat(),
                     'updated_at': tenant.updated_at.isoformat() if tenant.updated_at else None
                 }
-                
+
             except Exception as e:
                 logger.error(f"Error getting tenant {tenant_id}: {e}")
                 return None
-    
+
     async def get_tenant_by_name(self, name: str) -> Optional[dict]:
         """Get tenant by name"""
         async with self.db_manager.get_session() as session:
@@ -750,10 +750,10 @@ class ProductionTenantRepository(TenantRepository):
                 stmt = select(TenantModel).where(func.lower(TenantModel.name) == name.lower())
                 result = await session.execute(stmt)
                 tenant = result.scalar_one_or_none()
-                
+
                 if not tenant:
                     return None
-                
+
                 return {
                     'tenant_id': str(tenant.id),
                     'name': tenant.name,
@@ -761,11 +761,11 @@ class ProductionTenantRepository(TenantRepository):
                     'plan': tenant.plan.value,
                     'status': tenant.status.value
                 }
-                
+
             except Exception as e:
                 logger.error(f"Error getting tenant by name {name}: {e}")
                 return None
-    
+
     async def update_tenant(self, tenant_id: UUID, updates: dict) -> bool:
         """Update tenant"""
         async with self.db_manager.get_session() as session:
@@ -773,20 +773,20 @@ class ProductionTenantRepository(TenantRepository):
                 update_values = {
                     'updated_at': func.now()
                 }
-                
+
                 for key, value in updates.items():
                     if key in ['name', 'slug', 'plan', 'status', 'settings']:
                         update_values[key] = value
-                
+
                 stmt = (
                     update(TenantModel)
                     .where(TenantModel.id == tenant_id)
                     .values(**update_values)
                 )
-                
+
                 result = await session.execute(stmt)
                 return result.rowcount > 0
-                
+
             except Exception as e:
                 logger.error(f"Error updating tenant {tenant_id}: {e}")
                 return False

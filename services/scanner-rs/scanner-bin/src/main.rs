@@ -1,5 +1,5 @@
 //! XORB Scanner Binary
-//! 
+//!
 //! Main executable for the Rust scanner service with CLI interface,
 //! metrics endpoint, and production deployment capabilities.
 
@@ -14,7 +14,7 @@ use tracing::{info, error, warn};
 async fn main() -> Result<()> {
     // Initialize logging
     env_logger::init();
-    
+
     // Parse command line arguments
     let matches = Command::new("xorb-scanner")
         .version("1.0.0")
@@ -53,54 +53,54 @@ async fn main() -> Result<()> {
                 .default_value("default")
         )
         .get_matches();
-    
+
     // Load configuration
     let config_path = matches.get_one::<String>("config").unwrap();
     let port = matches.get_one::<String>("port").unwrap().parse::<u16>()?;
     let metrics_port = matches.get_one::<String>("metrics-port").unwrap().parse::<u16>()?;
     let tenant_id = matches.get_one::<String>("tenant").unwrap();
-    
+
     info!("Starting XORB Scanner Service");
     info!("Config: {}", config_path);
     info!("Service Port: {}", port);
     info!("Metrics Port: {}", metrics_port);
     info!("Tenant ID: {}", tenant_id);
-    
+
     // Create scanner configuration
     let config = ScannerConfig::default()
         .with_port(port)
         .with_metrics_port(metrics_port)
         .with_tenant_id(tenant_id.to_string());
-    
+
     // Initialize scanner core
     if let Err(e) = init(config.clone()).await {
         error!("Failed to initialize scanner core: {}", e);
         return Err(e);
     }
-    
+
     // Start services
     let scanner_service = tokio::spawn(async move {
         if let Err(e) = start_scanner_service(config).await {
             error!("Scanner service failed: {}", e);
         }
     });
-    
+
     let metrics_service = tokio::spawn(async move {
         if let Err(e) = start_metrics_service(metrics_port).await {
             error!("Metrics service failed: {}", e);
         }
     });
-    
+
     // Wait for shutdown signal
     info!("Scanner service started, waiting for shutdown signal...");
     signal::ctrl_c().await?;
-    
+
     info!("Shutdown signal received, stopping services...");
-    
+
     // Graceful shutdown
     scanner_service.abort();
     metrics_service.abort();
-    
+
     info!("Scanner service stopped");
     Ok(())
 }
@@ -108,7 +108,7 @@ async fn main() -> Result<()> {
 /// Start the main scanner service
 async fn start_scanner_service(config: ScannerConfig) -> Result<()> {
     info!("Starting scanner service on port {}", config.port);
-    
+
     // Main service loop would go here
     // This would integrate with the scanner-core worker and job processing
     loop {
@@ -121,21 +121,21 @@ async fn start_scanner_service(config: ScannerConfig) -> Result<()> {
 async fn start_metrics_service(port: u16) -> Result<()> {
     use std::convert::Infallible;
     use std::net::SocketAddr;
-    
+
     info!("Starting metrics service on port {}", port);
-    
+
     // Simple HTTP server for metrics
     let make_svc = hyper::service::make_service_fn(|_conn| async {
         Ok::<_, Infallible>(hyper::service::service_fn(handle_metrics))
     });
-    
+
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     let server = hyper::Server::bind(&addr).serve(make_svc);
-    
+
     if let Err(e) = server.await {
         error!("Metrics server error: {}", e);
     }
-    
+
     Ok(())
 }
 
@@ -192,19 +192,19 @@ xorb_scanner_tool_executions_total{tool_name="nikto",status="success"} 45
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_config_builder() {
         let config = ScannerConfig::default()
             .with_port(8080)
             .with_metrics_port(9090)
             .with_tenant_id("test-tenant".to_string());
-            
+
         assert_eq!(config.port, 8080);
         assert_eq!(config.metrics_port, 9090);
         assert_eq!(config.tenant_id, "test-tenant");
     }
-    
+
     #[tokio::test]
     async fn test_metrics_format() {
         let metrics = get_prometheus_metrics().await;

@@ -55,7 +55,7 @@ async def list_simulations():
 async def framework_status():
     return {
         "profile_manager": "operational",
-        "simulation_engine": "operational", 
+        "simulation_engine": "operational",
         "threat_synthesizer": "operational",
         "goal_optimizer": "operational",
         "integration": "complete"

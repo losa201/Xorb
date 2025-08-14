@@ -74,35 +74,35 @@ async def reset_circuit_breaker():
 
 async def handle_workflow_errors(target_id: str, error: Exception, attempt: int, max_attempts: int) -> bool:
     """Handle workflow errors with retry logic and circuit breaker.
-    
+
     Returns:
         bool: True if retry should be attempted, False if circuit breaker is tripped
     """
     current_time = time.time()
-    
+
     # Update error tracking
     if not CIRCUIT_BREAKER_STATE["tripped"]:
         # Reset window if it's expired
         if current_time - CIRCUIT_BREAKER_STATE["error_window_start"] > ERROR_WINDOW:
             CIRCUIT_BREAKER_STATE["error_count"] = 0
             CIRCUIT_BREAKER_STATE["error_window_start"] = current_time
-            
+
         CIRCUIT_BREAKER_STATE["error_count"] += 1
-        
+
     print(f"Error handling workflow {target_id}: {str(error)}. Attempt {attempt}/{max_attempts}")
-    
+
     # Check if circuit breaker should trip
     if CIRCUIT_BREAKER_STATE["error_count"] >= ERROR_THRESHOLD:
         CIRCUIT_BREAKER_STATE["tripped"] = True
         CIRCUIT_BREAKER_STATE["trip_time"] = current_time
         print(f"Circuit breaker tripped. Too many errors in {ERROR_WINDOW} seconds.")
         return False
-    
+
     # If tripped, don't retry
     if CIRCUIT_BREAKER_STATE["tripped"]:
         print("Circuit breaker is tripped. No further attempts will be made.")
         return False
-    
+
     # Calculate exponential backoff delay
     delay = min(INITIAL_RETRY_DELAY * (2 ** (attempt - 1)), MAX_RETRY_DELAY)
     print(f"Retrying in {delay} seconds...")
@@ -126,27 +126,27 @@ async def start_workflow_with_retries(client: Client, target, target_id: str, ma
             print(f"Successfully started workflow for: {target_id}")
             PROCESSED_TARGETS.add(target_id)
             return True
-            
+
         except WorkflowAlreadyStartedError:
             print(f"Workflow for {target_id} already running. Adding to processed list.")
             PROCESSED_TARGETS.add(target_id)
             return True
-            
+
         except RPCError as e:
             print(f"RPC error starting workflow for {target_id}: {e}")
             if not await handle_workflow_errors(target_id, e, attempt, max_attempts):
                 return False
-                
+
         except ApplicationError as e:
             print(f"Application error starting workflow for {target_id}: {e}")
             if not await handle_workflow_errors(target_id, e, attempt, max_attempts):
                 return False
-                
+
         except Exception as e:
             print(f"Unexpected error starting workflow for {target_id}: {e}")
             if not await handle_workflow_errors(target_id, e, attempt, max_attempts):
                 return False
-                
+
     return False
 
 async def main():
@@ -161,7 +161,7 @@ async def main():
         return
 
     print(f"Watching for new targets in: {TARGETS_FILE}")
-    
+
     # Start the circuit breaker reset task
     asyncio.create_task(reset_circuit_breaker())
 

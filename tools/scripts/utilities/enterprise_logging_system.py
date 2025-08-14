@@ -81,23 +81,23 @@ class LogEntry:
 
 class EnterpriseLoggingSystem:
     """Enterprise-grade logging and audit system"""
-    
+
     def __init__(self, config_path: str = "/root/Xorb/config/enterprise_logging.yaml"):
         self.config_path = config_path
         self.config = self._load_config()
         self.db_path = self.config.get('database', '/root/Xorb/data/enterprise_logging.db')
         self.log_dir = Path(self.config.get('log_directory', '/root/Xorb/logs'))
         self.audit_dir = Path(self.config.get('audit_directory', '/root/Xorb/logs/audit'))
-        
+
         # Ensure directories exist
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.audit_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Initialize components
         self._init_database()
         self._setup_loggers()
         self._start_background_services()
-        
+
         # Metrics
         self.metrics = {
             'total_events': 0,
@@ -106,7 +106,7 @@ class EnterpriseLoggingSystem:
             'critical_events': 0,
             'last_cleanup': datetime.now()
         }
-    
+
     def _load_config(self) -> Dict[str, Any]:
         """Load enterprise logging configuration"""
         default_config = {
@@ -150,7 +150,7 @@ class EnterpriseLoggingSystem:
                 'flush_interval_seconds': 5
             }
         }
-        
+
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, 'r') as f:
@@ -158,9 +158,9 @@ class EnterpriseLoggingSystem:
                     default_config.update(config)
             except Exception as e:
                 print(f"Warning: Could not load config from {self.config_path}: {e}")
-        
+
         return default_config
-    
+
     def _init_database(self):
         """Initialize enterprise logging database"""
         with sqlite3.connect(self.db_path) as conn:
@@ -182,7 +182,7 @@ class EnterpriseLoggingSystem:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-            
+
             # Audit events table
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS audit_events (
@@ -202,7 +202,7 @@ class EnterpriseLoggingSystem:
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-            
+
             # Compliance reports table
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS compliance_reports (
@@ -216,7 +216,7 @@ class EnterpriseLoggingSystem:
                     generated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-            
+
             # System metrics table
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS system_metrics (
@@ -227,53 +227,53 @@ class EnterpriseLoggingSystem:
                     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-            
+
             # Create indices for performance
             conn.execute('CREATE INDEX IF NOT EXISTS idx_log_timestamp ON log_entries(timestamp)')
             conn.execute('CREATE INDEX IF NOT EXISTS idx_log_level ON log_entries(level)')
             conn.execute('CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_events(timestamp)')
             conn.execute('CREATE INDEX IF NOT EXISTS idx_audit_type ON audit_events(event_type)')
             conn.execute('CREATE INDEX IF NOT EXISTS idx_audit_user ON audit_events(user_id)')
-            
+
             conn.commit()
-    
+
     def _setup_loggers(self):
         """Setup enterprise logging infrastructure"""
         # Main application logger
         self.app_logger = logging.getLogger('xorb.application')
         self.app_logger.setLevel(logging.DEBUG)
-        
+
         # Security logger
         self.security_logger = logging.getLogger('xorb.security')
         self.security_logger.setLevel(logging.INFO)
-        
+
         # Audit logger
         self.audit_logger = logging.getLogger('xorb.audit')
         self.audit_logger.setLevel(logging.INFO)
-        
+
         # Performance logger
         self.performance_logger = logging.getLogger('xorb.performance')
         self.performance_logger.setLevel(logging.INFO)
-        
+
         # Setup handlers
         self._setup_file_handlers()
         self._setup_syslog_handler()
-        
+
         # Custom formatter
         formatter = logging.Formatter(
             self.config['format']['log_format'],
             datefmt=self.config['format']['timestamp_format']
         )
-        
+
         for logger in [self.app_logger, self.security_logger, self.audit_logger, self.performance_logger]:
             for handler in logger.handlers:
                 handler.setFormatter(formatter)
-    
+
     def _setup_file_handlers(self):
         """Setup rotating file handlers"""
         max_bytes = self.config['rotation']['max_file_size_mb'] * 1024 * 1024
         backup_count = self.config['rotation']['backup_count']
-        
+
         # Application log handler
         app_handler = RotatingFileHandler(
             self.log_dir / 'application.log',
@@ -281,7 +281,7 @@ class EnterpriseLoggingSystem:
             backupCount=backup_count
         )
         self.app_logger.addHandler(app_handler)
-        
+
         # Security log handler
         security_handler = RotatingFileHandler(
             self.log_dir / 'security.log',
@@ -289,7 +289,7 @@ class EnterpriseLoggingSystem:
             backupCount=backup_count
         )
         self.security_logger.addHandler(security_handler)
-        
+
         # Audit log handler
         audit_handler = RotatingFileHandler(
             self.audit_dir / 'audit.log',
@@ -297,7 +297,7 @@ class EnterpriseLoggingSystem:
             backupCount=backup_count * 2  # Longer retention for audit logs
         )
         self.audit_logger.addHandler(audit_handler)
-        
+
         # Performance log handler
         performance_handler = RotatingFileHandler(
             self.log_dir / 'performance.log',
@@ -305,48 +305,48 @@ class EnterpriseLoggingSystem:
             backupCount=backup_count
         )
         self.performance_logger.addHandler(performance_handler)
-    
+
     def _setup_syslog_handler(self):
         """Setup syslog handler for system integration"""
         try:
             syslog_handler = SysLogHandler(address='/dev/log')
             syslog_formatter = logging.Formatter('XORB[%(process)d]: %(name)s - %(levelname)s - %(message)s')
             syslog_handler.setFormatter(syslog_formatter)
-            
+
             # Add to critical loggers only
             self.security_logger.addHandler(syslog_handler)
             self.audit_logger.addHandler(syslog_handler)
-        
+
         except Exception:
             # Syslog might not be available in all environments
             pass
-    
+
     def _start_background_services(self):
         """Start background services for log processing"""
         # Log processing queue
         self.log_queue = Queue()
         self.audit_queue = Queue()
-        
+
         # Start background threads
         self.log_processor_thread = threading.Thread(target=self._process_log_queue, daemon=True)
         self.audit_processor_thread = threading.Thread(target=self._process_audit_queue, daemon=True)
         self.cleanup_thread = threading.Thread(target=self._cleanup_old_logs, daemon=True)
-        
+
         self.log_processor_thread.start()
         self.audit_processor_thread.start()
         self.cleanup_thread.start()
-    
-    def log(self, level: LogLevel, message: str, logger_name: str = "xorb.application", 
+
+    def log(self, level: LogLevel, message: str, logger_name: str = "xorb.application",
             metadata: Dict[str, Any] = None, correlation_id: str = None):
         """Log a message with structured format"""
         import inspect
-        
+
         # Get caller information
         frame = inspect.currentframe().f_back
         module = frame.f_code.co_filename
         function = frame.f_code.co_name
         line_number = frame.f_lineno
-        
+
         log_entry = LogEntry(
             id=str(uuid.uuid4()),
             timestamp=datetime.now(),
@@ -361,20 +361,20 @@ class EnterpriseLoggingSystem:
             metadata=metadata or {},
             correlation_id=correlation_id
         )
-        
+
         # Queue for async processing
         if self.config['performance']['async_logging']:
             self.log_queue.put(log_entry)
         else:
             self._write_log_entry(log_entry)
-        
+
         # Update metrics
         self.metrics['total_events'] += 1
         if level in [LogLevel.ERROR, LogLevel.CRITICAL]:
             self.metrics['error_events'] += 1
         if level == LogLevel.CRITICAL:
             self.metrics['critical_events'] += 1
-    
+
     def audit(self, event: AuditEvent):
         """Log an audit event"""
         # Queue for async processing
@@ -382,14 +382,14 @@ class EnterpriseLoggingSystem:
             self.audit_queue.put(event)
         else:
             self._write_audit_event(event)
-        
+
         # Update metrics
         self.metrics['audit_events'] += 1
-        
+
         # Real-time compliance monitoring
         if self.config['compliance']['real_time_monitoring']:
             self._check_compliance_violations(event)
-    
+
     def create_audit_event(self, event_type: EventType, resource: str, action: str,
                           outcome: str, user_id: str = None, session_id: str = None,
                           source_ip: str = None, details: Dict[str, Any] = None,
@@ -411,14 +411,14 @@ class EnterpriseLoggingSystem:
             risk_score=risk_score,
             compliance_tags=compliance_tags or []
         )
-    
+
     def _process_log_queue(self):
         """Background thread to process log queue"""
         batch = []
         last_flush = time.time()
         batch_size = self.config['performance']['batch_size']
         flush_interval = self.config['performance']['flush_interval_seconds']
-        
+
         while True:
             try:
                 # Get log entry with timeout
@@ -427,26 +427,26 @@ class EnterpriseLoggingSystem:
                     batch.append(log_entry)
                 except:
                     pass
-                
+
                 # Flush batch if size or time threshold reached
                 current_time = time.time()
-                if (len(batch) >= batch_size or 
+                if (len(batch) >= batch_size or
                     (batch and current_time - last_flush >= flush_interval)):
-                    
+
                     self._write_log_batch(batch)
                     batch.clear()
                     last_flush = current_time
-            
+
             except Exception as e:
                 print(f"Error in log processor: {e}")
-    
+
     def _process_audit_queue(self):
         """Background thread to process audit queue"""
         batch = []
         last_flush = time.time()
         batch_size = self.config['performance']['batch_size']
         flush_interval = self.config['performance']['flush_interval_seconds']
-        
+
         while True:
             try:
                 # Get audit event with timeout
@@ -455,25 +455,25 @@ class EnterpriseLoggingSystem:
                     batch.append(audit_event)
                 except:
                     pass
-                
+
                 # Flush batch if size or time threshold reached
                 current_time = time.time()
-                if (len(batch) >= batch_size or 
+                if (len(batch) >= batch_size or
                     (batch and current_time - last_flush >= flush_interval)):
-                    
+
                     self._write_audit_batch(batch)
                     batch.clear()
                     last_flush = current_time
-            
+
             except Exception as e:
                 print(f"Error in audit processor: {e}")
-    
+
     def _write_log_entry(self, log_entry: LogEntry):
         """Write single log entry to database"""
         with sqlite3.connect(self.db_path) as conn:
             conn.execute('''
-                INSERT INTO log_entries 
-                (id, timestamp, level, logger_name, message, module, function, 
+                INSERT INTO log_entries
+                (id, timestamp, level, logger_name, message, module, function,
                  line_number, thread_id, process_id, metadata, correlation_id)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
@@ -484,7 +484,7 @@ class EnterpriseLoggingSystem:
                 log_entry.correlation_id
             ))
             conn.commit()
-    
+
     def _write_log_batch(self, batch: List[LogEntry]):
         """Write batch of log entries to database"""
         with sqlite3.connect(self.db_path) as conn:
@@ -498,15 +498,15 @@ class EnterpriseLoggingSystem:
                 )
                 for entry in batch
             ]
-            
+
             conn.executemany('''
-                INSERT INTO log_entries 
-                (id, timestamp, level, logger_name, message, module, function, 
+                INSERT INTO log_entries
+                (id, timestamp, level, logger_name, message, module, function,
                  line_number, thread_id, process_id, metadata, correlation_id)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', data)
             conn.commit()
-    
+
     def _write_audit_event(self, event: AuditEvent):
         """Write single audit event to database"""
         with sqlite3.connect(self.db_path) as conn:
@@ -523,7 +523,7 @@ class EnterpriseLoggingSystem:
                 json.dumps(event.compliance_tags) if event.compliance_tags else None
             ))
             conn.commit()
-    
+
     def _write_audit_batch(self, batch: List[AuditEvent]):
         """Write batch of audit events to database"""
         with sqlite3.connect(self.db_path) as conn:
@@ -537,7 +537,7 @@ class EnterpriseLoggingSystem:
                 )
                 for event in batch
             ]
-            
+
             conn.executemany('''
                 INSERT INTO audit_events
                 (event_id, timestamp, event_type, severity, user_id, session_id,
@@ -545,82 +545,82 @@ class EnterpriseLoggingSystem:
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', data)
             conn.commit()
-    
+
     def _check_compliance_violations(self, event: AuditEvent):
         """Check for compliance violations in real-time"""
         violations = []
-        
+
         # GDPR compliance checks
         if 'GDPR' in self.config['compliance']['frameworks']:
-            if (event.event_type == EventType.DATA_ACCESS and 
-                event.outcome == 'failure' and 
+            if (event.event_type == EventType.DATA_ACCESS and
+                event.outcome == 'failure' and
                 event.risk_score > 70):
                 violations.append("GDPR: Unauthorized data access attempt")
-        
+
         # SOC2 compliance checks
         if 'SOC2' in self.config['compliance']['frameworks']:
-            if (event.event_type == EventType.AUTHENTICATION and 
+            if (event.event_type == EventType.AUTHENTICATION and
                 event.outcome == 'failure'):
                 violations.append("SOC2: Authentication failure recorded")
-        
+
         # PCI-DSS compliance checks
         if 'PCI-DSS' in self.config['compliance']['frameworks']:
-            if (event.event_type == EventType.DATA_MODIFICATION and 
+            if (event.event_type == EventType.DATA_MODIFICATION and
                 'payment' in event.resource.lower()):
                 violations.append("PCI-DSS: Payment data modification")
-        
+
         # Log violations
         for violation in violations:
             self.log(LogLevel.WARNING, f"Compliance violation detected: {violation}",
                     "xorb.compliance", {"event_id": event.event_id})
-    
+
     def _cleanup_old_logs(self):
         """Background thread to clean up old logs"""
         while True:
             try:
                 current_time = datetime.now()
-                
+
                 # Only run cleanup once per day
                 if (current_time - self.metrics['last_cleanup']).days >= 1:
                     self._perform_cleanup()
                     self.metrics['last_cleanup'] = current_time
-                
+
                 # Sleep for 1 hour
                 time.sleep(3600)
-            
+
             except Exception as e:
                 print(f"Error in cleanup thread: {e}")
                 time.sleep(3600)
-    
+
     def _perform_cleanup(self):
         """Perform log cleanup operations"""
         retention_days = self.config['retention']['database_days']
         cutoff_date = datetime.now() - timedelta(days=retention_days)
-        
+
         with sqlite3.connect(self.db_path) as conn:
             # Clean up old log entries
             cursor = conn.execute('DELETE FROM log_entries WHERE timestamp < ?', (cutoff_date,))
             log_deleted = cursor.rowcount
-            
+
             # Clean up old audit events (longer retention)
             audit_retention_days = self.config['retention']['audit_files_days']
             audit_cutoff_date = datetime.now() - timedelta(days=audit_retention_days)
             cursor = conn.execute('DELETE FROM audit_events WHERE timestamp < ?', (audit_cutoff_date,))
             audit_deleted = cursor.rowcount
-            
+
             conn.commit()
-        
+
         # Clean up old log files
         self._cleanup_old_log_files()
-        
+
         self.log(LogLevel.INFO, f"Log cleanup completed: {log_deleted} log entries, {audit_deleted} audit events deleted",
                 "xorb.maintenance")
-    
+
     def _cleanup_old_log_files(self):
         """Clean up old rotated log files"""
         retention_days = self.config['retention']['log_files_days']
         cutoff_date = datetime.now() - timedelta(days=retention_days)
-        
+
         for log_dir in [self.log_dir, self.audit_dir]:
             for log_file in log_dir.glob('*.log.*'):
                 try:
@@ -635,34 +635,34 @@ class EnterpriseLoggingSystem:
                             log_file.unlink()
                         else:
                             log_file.unlink()
-                
+
                 except Exception as e:
                     print(f"Error cleaning up log file {log_file}: {e}")
-    
-    def generate_compliance_report(self, framework: str, start_date: datetime, 
+
+    def generate_compliance_report(self, framework: str, start_date: datetime,
                                  end_date: datetime) -> Dict[str, Any]:
         """Generate compliance report for specified framework and period"""
         with sqlite3.connect(self.db_path) as conn:
             # Get audit events for the period
             cursor = conn.execute('''
-                SELECT * FROM audit_events 
+                SELECT * FROM audit_events
                 WHERE timestamp BETWEEN ? AND ?
                 ORDER BY timestamp
             ''', (start_date, end_date))
-            
+
             events = cursor.fetchall()
-            
+
             # Analyze events for compliance
             findings = []
             recommendations = []
-            
+
             if framework == 'SOC2':
                 findings, recommendations = self._analyze_soc2_compliance(events)
             elif framework == 'GDPR':
                 findings, recommendations = self._analyze_gdpr_compliance(events)
             elif framework == 'PCI-DSS':
                 findings, recommendations = self._analyze_pci_compliance(events)
-            
+
             # Generate report
             report = {
                 'report_id': str(uuid.uuid4()),
@@ -675,7 +675,7 @@ class EnterpriseLoggingSystem:
                 'status': 'compliant' if len(findings) == 0 else 'non_compliant',
                 'generated_at': datetime.now()
             }
-            
+
             # Save report to database
             conn.execute('''
                 INSERT INTO compliance_reports
@@ -686,73 +686,73 @@ class EnterpriseLoggingSystem:
                 report['status'], json.dumps(findings), json.dumps(recommendations)
             ))
             conn.commit()
-        
+
         return report
-    
+
     def _analyze_soc2_compliance(self, events: List) -> tuple:
         """Analyze events for SOC2 compliance"""
         findings = []
         recommendations = []
-        
+
         # Check for authentication failures
         auth_failures = [e for e in events if 'authentication' in str(e) and 'failure' in str(e)]
         if len(auth_failures) > 100:  # Example threshold
             findings.append("High number of authentication failures detected")
             recommendations.append("Review authentication mechanisms and implement stronger controls")
-        
+
         return findings, recommendations
-    
+
     def _analyze_gdpr_compliance(self, events: List) -> tuple:
         """Analyze events for GDPR compliance"""
         findings = []
         recommendations = []
-        
+
         # Check for data access without proper authorization
         unauthorized_access = [e for e in events if 'data_access' in str(e) and 'unauthorized' in str(e)]
         if unauthorized_access:
             findings.append("Unauthorized data access attempts detected")
             recommendations.append("Implement stricter data access controls and monitoring")
-        
+
         return findings, recommendations
-    
+
     def _analyze_pci_compliance(self, events: List) -> tuple:
         """Analyze events for PCI-DSS compliance"""
         findings = []
         recommendations = []
-        
+
         # Check for payment data handling
         payment_events = [e for e in events if 'payment' in str(e).lower()]
         if payment_events:
             findings.append("Payment data processing events detected")
             recommendations.append("Ensure all payment data processing follows PCI-DSS requirements")
-        
+
         return findings, recommendations
-    
+
     def get_system_metrics(self) -> Dict[str, Any]:
         """Get current system metrics"""
         with sqlite3.connect(self.db_path) as conn:
             # Get recent event counts
             cursor = conn.execute('''
                 SELECT level, COUNT(*) as count
-                FROM log_entries 
+                FROM log_entries
                 WHERE timestamp > datetime('now', '-1 hour')
                 GROUP BY level
             ''')
             recent_logs = {row[0]: row[1] for row in cursor.fetchall()}
-            
+
             # Get audit event counts
             cursor = conn.execute('''
                 SELECT event_type, COUNT(*) as count
-                FROM audit_events 
+                FROM audit_events
                 WHERE timestamp > datetime('now', '-1 hour')
                 GROUP BY event_type
             ''')
             recent_audits = {row[0]: row[1] for row in cursor.fetchall()}
-            
+
             # Get database size
             cursor = conn.execute('SELECT page_count * page_size as size FROM pragma_page_count(), pragma_page_size()')
             db_size = cursor.fetchone()[0]
-        
+
         return {
             'metrics': self.metrics,
             'recent_logs': recent_logs,
@@ -765,24 +765,24 @@ class EnterpriseLoggingSystem:
 
 def main():
     """Main function for enterprise logging system"""
-    
+
     # Initialize enterprise logging system
     logging_system = EnterpriseLoggingSystem()
     logging_system._start_time = time.time()
-    
+
     print("📋 XORB Enterprise-Grade Logging and Audit System")
     print("=" * 60)
-    
+
     # Test different types of logging
     print("\n📝 Testing Logging Capabilities...")
-    
+
     # Application logs
-    logging_system.log(LogLevel.INFO, "System initialization completed successfully", 
+    logging_system.log(LogLevel.INFO, "System initialization completed successfully",
                       metadata={"component": "main", "version": "1.0.0"})
-    
-    logging_system.log(LogLevel.WARNING, "High memory usage detected", 
+
+    logging_system.log(LogLevel.WARNING, "High memory usage detected",
                       metadata={"memory_usage": "85%", "threshold": "80%"})
-    
+
     # Security events
     security_event = logging_system.create_audit_event(
         event_type=EventType.AUTHENTICATION,
@@ -795,7 +795,7 @@ def main():
         compliance_tags=["SOC2", "GDPR"]
     )
     logging_system.audit(security_event)
-    
+
     # Data access event
     data_event = logging_system.create_audit_event(
         event_type=EventType.DATA_ACCESS,
@@ -809,7 +809,7 @@ def main():
         compliance_tags=["GDPR", "SOC2"]
     )
     logging_system.audit(data_event)
-    
+
     # System change event
     system_event = logging_system.create_audit_event(
         event_type=EventType.SYSTEM_CHANGE,
@@ -823,35 +823,35 @@ def main():
         compliance_tags=["SOC2"]
     )
     logging_system.audit(system_event)
-    
+
     # Error event
-    logging_system.log(LogLevel.ERROR, "Database connection failed", 
+    logging_system.log(LogLevel.ERROR, "Database connection failed",
                       "xorb.database", {"error_code": "DB_CONN_001", "retry_count": 3})
-    
+
     # Critical event
-    logging_system.log(LogLevel.CRITICAL, "Security breach attempt detected", 
+    logging_system.log(LogLevel.CRITICAL, "Security breach attempt detected",
                       "xorb.security", {"attack_type": "sql_injection", "blocked": True})
-    
+
     print("✅ Log entries created successfully")
-    
+
     # Wait for background processing
     print("\n⏳ Processing logs asynchronously...")
     time.sleep(2)
-    
+
     # Generate compliance report
     print("\n📊 Generating Compliance Reports...")
     end_date = datetime.now()
     start_date = end_date - timedelta(hours=1)
-    
+
     try:
         soc2_report = logging_system.generate_compliance_report('SOC2', start_date, end_date)
         print(f"✅ SOC2 Report Generated: {soc2_report['status']}")
-        
+
         gdpr_report = logging_system.generate_compliance_report('GDPR', start_date, end_date)
         print(f"✅ GDPR Report Generated: {gdpr_report['status']}")
     except Exception as e:
         print(f"⚠️ Report generation warning: {e}")
-    
+
     # Display system metrics
     print("\n📈 System Metrics:")
     metrics = logging_system.get_system_metrics()
@@ -862,17 +862,17 @@ def main():
     print(f"  • Database Size: {metrics['database_size_bytes'] / 1024:.2f} KB")
     print(f"  • Log Queue Size: {metrics['log_queue_size']}")
     print(f"  • Audit Queue Size: {metrics['audit_queue_size']}")
-    
+
     if metrics['recent_logs']:
         print("  • Recent Log Levels:")
         for level, count in metrics['recent_logs'].items():
             print(f"    - {level}: {count}")
-    
+
     if metrics['recent_audits']:
         print("  • Recent Audit Types:")
         for event_type, count in metrics['recent_audits'].items():
             print(f"    - {event_type}: {count}")
-    
+
     print("\n🎯 Enterprise Logging System Deployment Complete!")
     print("  • Structured logging with metadata")
     print("  • Comprehensive audit trail")

@@ -30,31 +30,31 @@ def parse_args() -> argparse.Namespace:
         description='XORB Developer CLI Tool',
         epilog='Environment variables can be used for configuration. See README for details.'
     )
-    
+
     # Global options
     parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose output')
-    
+
     # Subcommands
     subparsers = parser.add_subparsers(dest='command', required=True)
-    
+
     # submit command
     submit_parser = subparsers.add_parser('submit', help='Submit discovery jobs')
     submit_parser.add_argument('--tenant', '-t', required=True, help='Tenant ID')
     submit_parser.add_argument('--targets', '-f', required=True, help='Path to targets JSON file')
-    
+
     # tail command
     tail_parser = subparsers.add_parser('tail', help='Tail events from NATS')
     tail_parser.add_argument('--tenant', '-t', required=True, help='Tenant ID')
     tail_parser.add_argument('--domain', '-d', required=True, choices=['evidence', 'scan', 'inventory'], help='Domain to tail')
     tail_parser.add_argument('--since', '-s', default='5m', help='Time window to tail (e.g., 5m, 1h, 2d)')
     tail_parser.add_argument('--follow', '-f', action='store_true', help='Follow stream (infinite tail)')
-    
+
     # verify command
     verify_parser = subparsers.add_parser('verify', help='Verify evidence signatures')
     verify_parser.add_argument('--object', '-o', required=True, help='Object URI (s3://, http://, file://)')
     verify_parser.add_argument('--sig', '-s', required=True, help='Signature (hex or base64)')
     verify_parser.add_argument('--tsr', '-t', required=True, help='Timestamp/rfc (hex or base64)')
-    
+
     return parser.parse_args()
 
 async def connect_to_nats() -> nats.NATS:
@@ -63,19 +63,19 @@ async def connect_to_nats() -> nats.NATS:
     user = os.getenv('NATS_USER')
     password = os.getenv('NATS_PASSWORD')
     token = os.getenv('NATS_TOKEN')
-    
+
     options = {
         'servers': [nats_url],
         'connect_timeout': 10,
         'max_reconnect_attempts': 3
     }
-    
+
     if user and password:
         options['user'] = user
         options['password'] = password
     elif token:
         options['token'] = token
-    
+
     nc = nats.NATS()
     try:
         await nc.connect(**options)
@@ -87,10 +87,10 @@ async def connect_to_nats() -> nats.NATS:
 async def tail_events(tenant: str, domain: str, since: str, follow: bool) -> None:
     """Tail events from NATS stream"""
     nc = await connect_to_nats()
-    
+
     # Create subject pattern
     subject = f'xorb.{tenant}.{domain}.>'
-    
+
     # Parse time window
     try:
         window = parse_time_window(since)
@@ -98,14 +98,14 @@ async def tail_events(tenant: str, domain: str, since: str, follow: bool) -> Non
     except ValueError as e:
         logging.error(f'Invalid time window: {e}')
         sys.exit(1)
-    
+
     logging.info(f'Tailing events for tenant {tenant}, domain {domain} since {since} (start time: {time.ctime(start_time)})')
-    
+
     try:
         # Create pull consumer
         js = nc.jetstream()
         consumer_name = f'tail-consumer-{int(time.time())}'
-        
+
         # Create consumer config with durable pull consumer settings
         consumer_config = {
             'durable_name': consumer_name,
@@ -117,10 +117,10 @@ async def tail_events(tenant: str, domain: str, since: str, follow: bool) -> Non
             'deliver_policy': 'by_start_time',
             'opt_start_time': start_time
         }
-        
+
         # Subscribe to the stream
         sub = await js.pull_subscribe(subject, consumer_name, config=consumer_config)
-        
+
         while True:
             try:
                 # Fetch messages
@@ -129,10 +129,10 @@ async def tail_events(tenant: str, domain: str, since: str, follow: bool) -> Non
                     try:
                         data = json.loads(msg.data.decode())
                         timestamp = data.get('timestamp', time.time())
-                        
+
                         # Format and print the message
                         print(f'[{time.ctime(timestamp)}] {msg.subject}: {json.dumps(data, ensure_ascii=False)}')
-                        
+
                         # Ack message
                         await msg.ack()
                     except Exception as e:
@@ -151,16 +151,16 @@ async def tail_events(tenant: str, domain: str, since: str, follow: bool) -> Non
 def parse_time_window(since: str) -> timedelta:
     """Parse time window string into timedelta"""
     import re
-    
+
     pattern = r'^(?P<value>\d+)(?P<unit>[smhd])$'
     match = re.match(pattern, since)
-    
+
     if not match:
         raise ValueError(f'Invalid time window format: {since}. Expected format: <number><unit> (e.g., 5m, 1h, 2d)')
-    
+
     value = int(match.group('value'))
     unit = match.group('unit')
-    
+
     if unit == 's':
         return timedelta(seconds=value)
     elif unit == 'm':
@@ -181,19 +181,19 @@ async def submit_job(tenant: str, targets_path: str) -> None:
     except Exception as e:
         logging.error(f'Error reading targets file: {e}')
         sys.exit(1)
-    
+
     # Validate targets format
     if not isinstance(targets, list):
         logging.error('Targets file must contain a JSON array')
         sys.exit(1)
-    
+
     logging.info(f'Submitting job for tenant {tenant} with {len(targets)} targets')
-    
+
     # In a real implementation, this would:
     # 1. Connect to NATS
     # 2. Publish job to appropriate subject
     # 3. Handle job ID and status
-    # 
+    #
     # For now, we'll simulate job submission
     logging.info('Job submitted successfully')
     print('Job ID: job-12345')
@@ -201,14 +201,14 @@ async def submit_job(tenant: str, targets_path: str) -> None:
 def verify_evidence(object_uri: str, signature: str, timestamp: str) -> None:
     """Verify evidence signature and timestamp"""
     logging.info(f'Verifying evidence: {object_uri}')
-    
+
     # Download object
     try:
         data = download_object(object_uri)
     except Exception as e:
         logging.error(f'Error downloading object: {e}')
         sys.exit(1)
-    
+
     # Parse signature and timestamp
     try:
         sig_bytes = parse_hex_or_base64(signature)
@@ -216,20 +216,20 @@ def verify_evidence(object_uri: str, signature: str, timestamp: str) -> None:
     except ValueError as e:
         logging.error(f'Invalid encoding: {e}')
         sys.exit(1)
-    
+
     # In a real implementation, this would:
     # 1. Verify Ed25519 signature
     # 2. Verify timestamp/rfc
     # 3. Check against trusted root
-    # 
+    #
     # For now, we'll simulate verification
-    
+
     # Simulate verification success/failure based on data
     # Flip a bit to test failure case
     if b'flip' in data:
         logging.error('Verification failed: Invalid signature')
         sys.exit(1)
-    
+
     logging.info('Verification successful')
     print('Signature and timestamp verified')
 
@@ -277,7 +277,7 @@ async def main() -> None:
     """Main entry point"""
     args = parse_args()
     setup_logging(args.verbose)
-    
+
     if args.command == 'submit':
         await submit_job(args.tenant, args.targets)
     elif args.command == 'tail':
@@ -290,4 +290,3 @@ async def main() -> None:
 
 if __name__ == '__main__':
     asyncio.run(main())
-    

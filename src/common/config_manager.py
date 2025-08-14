@@ -29,7 +29,7 @@ from .vault_client import VaultClient
 class Environment(Enum):
     """Supported environments"""
     DEVELOPMENT = "development"
-    STAGING = "staging" 
+    STAGING = "staging"
     PRODUCTION = "production"
     TEST = "test"
 
@@ -53,7 +53,7 @@ class DatabaseConfig:
     pool_size: int = 10
     max_overflow: int = 20
     pool_timeout: int = 30
-    
+
     def get_url(self) -> str:
         """Get database connection URL"""
         return f"postgresql://{self.username}:{self.password}@{self.host}:{self.port}/{self.name}?sslmode={self.ssl_mode}"
@@ -67,7 +67,7 @@ class RedisConfig:
     db: int = 0
     password: str = ""  # Will be loaded from secrets
     ssl: bool = False
-    
+
     def get_url(self) -> str:
         """Get Redis connection URL"""
         protocol = "rediss" if self.ssl else "redis"
@@ -118,7 +118,7 @@ class XORBConfig:
     app_name: str = "XORB Platform"
     app_version: str = "1.0.0"
     debug: bool = False
-    
+
     # Service configurations
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     redis: RedisConfig = field(default_factory=RedisConfig)
@@ -127,7 +127,7 @@ class XORBConfig:
     api_service: ServiceConfig = field(default_factory=lambda: ServiceConfig(port=8000))
     orchestrator_service: ServiceConfig = field(default_factory=lambda: ServiceConfig(port=8001))
     intelligence_service: ServiceConfig = field(default_factory=lambda: ServiceConfig(port=8002))
-    
+
     # Feature flags
     feature_flags: Dict[str, bool] = field(default_factory=lambda: {
         "advanced_analytics": True,
@@ -136,7 +136,7 @@ class XORBConfig:
         "multi_tenant": True,
         "sso_integration": False
     })
-    
+
     # External integrations
     integrations: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {
         "vault": {
@@ -153,13 +153,13 @@ class XORBConfig:
 
 class ConfigFileWatcher:
     """File system watcher for configuration changes"""
-    
+
     def __init__(self, config_manager):
         if WATCHDOG_AVAILABLE and FileSystemEventHandler:
             super().__init__()
         self.config_manager = config_manager
         self.logger = logging.getLogger(__name__)
-    
+
     def on_modified(self, event):
         """Handle file modification events"""
         if not event.is_directory and event.src_path in self.config_manager.watched_files:
@@ -174,7 +174,7 @@ if WATCHDOG_AVAILABLE and FileSystemEventHandler:
 class ConfigManager:
     """
     Centralized configuration manager for XORB platform
-    
+
     Features:
     - Environment-specific configurations
     - Secret management integration
@@ -182,8 +182,8 @@ class ConfigManager:
     - Configuration validation
     - Feature flags
     """
-    
-    def __init__(self, 
+
+    def __init__(self,
                  config_dir: str = "/root/Xorb/config",
                  environment: Optional[str] = None,
                  enable_hot_reload: bool = True):
@@ -191,16 +191,16 @@ class ConfigManager:
         self.environment = Environment(environment or os.getenv("XORB_ENV", "development"))
         self.enable_hot_reload = enable_hot_reload
         self.logger = logging.getLogger(__name__)
-        
+
         # Configuration state
         self.config: Optional[XORBConfig] = None
         self.watched_files: List[str] = []
         self.observers: List[Observer] = []
         self.reload_callbacks: List[callable] = []
-        
+
         # Thread safety
         self.config_lock = threading.RLock()
-        
+
         # Vault integration
         self.vault_client = None
         if os.getenv("VAULT_ENABLED", "true").lower() == "true":
@@ -208,14 +208,14 @@ class ConfigManager:
                 self.vault_client = VaultClient()
             except Exception as e:
                 self.logger.warning(f"Failed to initialize Vault client: {e}")
-        
+
         # Load initial configuration
         self.load_config()
-        
+
         # Start file watchers if hot-reload is enabled
         if self.enable_hot_reload:
             self.start_file_watchers()
-    
+
     def load_config(self) -> XORBConfig:
         """Load configuration from files and environment"""
         with self.config_lock:
@@ -223,49 +223,49 @@ class ConfigManager:
                 # Start with default configuration
                 config = XORBConfig()
                 config.environment = self.environment
-                
+
                 # Load base configuration
                 base_config_path = self.config_dir / "default.json"
                 if base_config_path.exists():
                     base_config = self._load_config_file(base_config_path)
                     config = self._merge_config(config, base_config)
                     self.watched_files.append(str(base_config_path))
-                
+
                 # Load environment-specific configuration
                 env_config_path = self.config_dir / f"{self.environment.value}.json"
                 if env_config_path.exists():
                     env_config = self._load_config_file(env_config_path)
                     config = self._merge_config(config, env_config)
                     self.watched_files.append(str(env_config_path))
-                
+
                 # Load secrets from Vault or environment
                 config = self._load_secrets(config)
-                
+
                 # Apply environment variable overrides
                 config = self._apply_env_overrides(config)
-                
+
                 # Validate configuration
                 self._validate_config(config)
-                
+
                 self.config = config
                 self.logger.info(f"Configuration loaded for environment: {self.environment.value}")
-                
+
                 # Trigger reload callbacks
                 for callback in self.reload_callbacks:
                     try:
                         callback(config)
                     except Exception as e:
                         self.logger.error(f"Error in config reload callback: {e}")
-                
+
                 return config
-                
+
             except Exception as e:
                 self.logger.error(f"Failed to load configuration: {e}")
                 if self.config is None:
                     # Return minimal working config if first load fails
                     self.config = XORBConfig()
                 return self.config
-    
+
     def _load_config_file(self, config_path: Path) -> Dict[str, Any]:
         """Load configuration from a file"""
         try:
@@ -277,15 +277,15 @@ class ConfigManager:
         except Exception as e:
             self.logger.error(f"Failed to load config file {config_path}: {e}")
             return {}
-    
+
     def _merge_config(self, base_config: XORBConfig, override_config: Dict[str, Any]) -> XORBConfig:
         """Merge configuration dictionaries into dataclass"""
         # Convert base config to dict
         config_dict = asdict(base_config)
-        
+
         # Deep merge override config
         self._deep_merge_dict(config_dict, override_config)
-        
+
         # Convert back to dataclass
         try:
             # Handle nested configs manually due to dataclass limitations
@@ -303,16 +303,16 @@ class ConfigManager:
                 config_dict['orchestrator_service'] = ServiceConfig(**config_dict['orchestrator_service'])
             if 'intelligence_service' in config_dict:
                 config_dict['intelligence_service'] = ServiceConfig(**config_dict['intelligence_service'])
-            
+
             # Handle environment enum
             if 'environment' in config_dict and isinstance(config_dict['environment'], str):
                 config_dict['environment'] = Environment(config_dict['environment'])
-            
+
             return XORBConfig(**config_dict)
         except Exception as e:
             self.logger.error(f"Failed to merge config: {e}")
             return base_config
-    
+
     def _deep_merge_dict(self, base_dict: Dict[str, Any], override_dict: Dict[str, Any]):
         """Deep merge two dictionaries"""
         for key, value in override_dict.items():
@@ -320,7 +320,7 @@ class ConfigManager:
                 self._deep_merge_dict(base_dict[key], value)
             else:
                 base_dict[key] = value
-    
+
     def _load_secrets(self, config: XORBConfig) -> XORBConfig:
         """Load secrets from Vault or environment variables"""
         try:
@@ -338,37 +338,37 @@ class ConfigManager:
                 config.redis.password = os.getenv("REDIS_PASSWORD", config.redis.password)
                 config.security.jwt_secret = os.getenv("JWT_SECRET", config.security.jwt_secret)
                 config.security.encryption_key = os.getenv("ENCRYPTION_KEY", config.security.encryption_key)
-                
+
         except Exception as e:
             self.logger.error(f"Failed to load secrets: {e}")
-        
+
         return config
-    
+
     def _apply_env_overrides(self, config: XORBConfig) -> XORBConfig:
         """Apply environment variable overrides"""
         # Database overrides
         config.database.host = os.getenv("DATABASE_HOST", config.database.host)
         config.database.port = int(os.getenv("DATABASE_PORT", config.database.port))
         config.database.name = os.getenv("DATABASE_NAME", config.database.name)
-        
-        # Redis overrides  
+
+        # Redis overrides
         config.redis.host = os.getenv("REDIS_HOST", config.redis.host)
         config.redis.port = int(os.getenv("REDIS_PORT", config.redis.port))
-        
+
         # Service overrides
         config.api_service.host = os.getenv("API_HOST", config.api_service.host)
         config.api_service.port = int(os.getenv("API_PORT", config.api_service.port))
-        
+
         # Debug and logging
         config.debug = os.getenv("DEBUG", str(config.debug)).lower() == "true"
         config.monitoring.log_level = os.getenv("LOG_LEVEL", config.monitoring.log_level)
-        
+
         return config
-    
+
     def _validate_config(self, config: XORBConfig):
         """Validate configuration"""
         errors = []
-        
+
         # Production checks
         if config.environment == Environment.PRODUCTION:
             if not config.security.jwt_secret:
@@ -377,11 +377,11 @@ class ConfigManager:
                 errors.append("Encryption key must be set in production")
             if config.debug:
                 errors.append("Debug mode should be disabled in production")
-        
+
         # Database checks
         if not config.database.host:
             errors.append("Database host must be specified")
-        
+
         # Port conflicts
         ports = [
             config.api_service.port,
@@ -392,21 +392,21 @@ class ConfigManager:
         ]
         if len(ports) != len(set(ports)):
             errors.append("Service ports must be unique")
-        
+
         if errors:
             error_msg = "Configuration validation failed:\n" + "\n".join(f"  - {error}" for error in errors)
             if config.environment == Environment.PRODUCTION:
                 raise ValueError(error_msg)
             else:
                 self.logger.warning(error_msg)
-    
+
     def start_file_watchers(self):
         """Start file system watchers for hot-reloading"""
         if not self.enable_hot_reload or not WATCHDOG_AVAILABLE:
             if not WATCHDOG_AVAILABLE:
                 self.logger.warning("Watchdog library not available - hot-reload disabled")
             return
-            
+
         try:
             event_handler = ConfigFileWatcher(self)
             observer = Observer()
@@ -416,7 +416,7 @@ class ConfigManager:
             self.logger.info("Configuration file watcher started")
         except Exception as e:
             self.logger.error(f"Failed to start file watcher: {e}")
-    
+
     def stop_file_watchers(self):
         """Stop file system watchers"""
         for observer in self.observers:
@@ -426,7 +426,7 @@ class ConfigManager:
             except Exception as e:
                 self.logger.error(f"Error stopping observer: {e}")
         self.observers.clear()
-    
+
     def reload_config(self):
         """Reload configuration from files"""
         self.logger.info("Reloading configuration...")
@@ -435,30 +435,30 @@ class ConfigManager:
             self.logger.info("Configuration reloaded successfully")
         except Exception as e:
             self.logger.error(f"Failed to reload configuration: {e}")
-    
+
     def get_config(self) -> XORBConfig:
         """Get current configuration"""
         with self.config_lock:
             if self.config is None:
                 self.load_config()
             return self.config
-    
+
     def register_reload_callback(self, callback: callable):
         """Register callback for configuration reloads"""
         self.reload_callbacks.append(callback)
-    
+
     def get_feature_flag(self, flag_name: str, default: bool = False) -> bool:
         """Get feature flag value"""
         config = self.get_config()
         return config.feature_flags.get(flag_name, default)
-    
+
     def set_feature_flag(self, flag_name: str, enabled: bool):
         """Set feature flag value"""
         with self.config_lock:
             config = self.get_config()
             config.feature_flags[flag_name] = enabled
             self.logger.info(f"Feature flag '{flag_name}' set to {enabled}")
-    
+
     def get_service_config(self, service_name: str) -> Optional[ServiceConfig]:
         """Get configuration for a specific service"""
         config = self.get_config()
@@ -468,12 +468,12 @@ class ConfigManager:
             "intelligence": config.intelligence_service
         }
         return service_configs.get(service_name)
-    
+
     def export_config(self, format: ConfigFormat = ConfigFormat.JSON, include_secrets: bool = False) -> str:
         """Export configuration to string"""
         config = self.get_config()
         config_dict = asdict(config)
-        
+
         # Remove secrets if not including them
         if not include_secrets:
             if 'database' in config_dict and 'password' in config_dict['database']:
@@ -483,11 +483,11 @@ class ConfigManager:
             if 'security' in config_dict:
                 config_dict['security']['jwt_secret'] = "[REDACTED]"
                 config_dict['security']['encryption_key'] = "[REDACTED]"
-        
+
         # Convert environment enum to string
         if 'environment' in config_dict:
             config_dict['environment'] = config_dict['environment'].value if hasattr(config_dict['environment'], 'value') else str(config_dict['environment'])
-        
+
         if format == ConfigFormat.JSON:
             return json.dumps(config_dict, indent=2)
         elif format == ConfigFormat.YAML:
@@ -497,7 +497,7 @@ class ConfigManager:
             env_vars = []
             self._flatten_dict_to_env(config_dict, env_vars)
             return "\n".join(env_vars)
-    
+
     def _flatten_dict_to_env(self, d: Dict[str, Any], env_vars: List[str], prefix: str = "XORB"):
         """Flatten dictionary to environment variables"""
         for key, value in d.items():
@@ -506,7 +506,7 @@ class ConfigManager:
                 self._flatten_dict_to_env(value, env_vars, env_key)
             else:
                 env_vars.append(f"{env_key}={value}")
-    
+
     def __del__(self):
         """Cleanup when manager is destroyed"""
         self.stop_file_watchers()

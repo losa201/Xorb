@@ -15,7 +15,7 @@ Successfully configured SSL certificates and HTTPS support for the PTaaS platfor
 ### Files Created
 - **Certificate**: `/root/Xorb/ssl/verteidiq.crt`
 - **Private Key**: `/root/Xorb/ssl/verteidiq.key`
-- **Permissions**: 
+- **Permissions**:
   - Certificate: 644 (readable)
   - Private Key: 600 (secure)
 

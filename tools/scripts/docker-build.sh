@@ -99,25 +99,25 @@ EOF
 check_dependencies() {
     local deps=("docker" "docker-compose" "jq")
     local missing_deps=()
-    
+
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
             missing_deps+=("$dep")
         fi
     done
-    
+
     if [[ ${#missing_deps[@]} -ne 0 ]]; then
         log_error "Missing dependencies: ${missing_deps[*]}"
         log_info "Please install missing dependencies before proceeding"
         exit 1
     fi
-    
+
     # Check Docker daemon
     if ! docker info >/dev/null 2>&1; then
         log_error "Docker daemon is not running"
         exit 1
     fi
-    
+
     log_debug "All dependencies are available"
 }
 
@@ -135,23 +135,23 @@ build_service() {
     local image_name="$REGISTRY/$service"
     local full_tag="$image_name:$VERSION-$BUILD_TARGET"
     local cache_tag="$image_name:${BUILD_TARGET}-cache"
-    
+
     log_info "Building $service service (target: $BUILD_TARGET)"
-    
+
     if [[ ! -f "$PROJECT_ROOT/$dockerfile" ]]; then
         log_error "Dockerfile not found: $dockerfile"
         return 1
     fi
-    
+
     local build_args=""
-    
+
     # Add cache arguments if enabled
     if [[ "$USE_CACHE" == "true" ]]; then
         build_args="--cache-from $cache_tag"
     else
         build_args="--no-cache"
     fi
-    
+
     # Build command
     local build_cmd="docker build \
         --target $BUILD_TARGET \
@@ -166,9 +166,9 @@ build_service() {
         --label xorb.build-target=$BUILD_TARGET \
         $build_args \
         $PROJECT_ROOT"
-    
+
     log_debug "Build command: $build_cmd"
-    
+
     if [[ "$DRY_RUN" == "false" ]]; then
         if eval "$build_cmd"; then
             log_info "✅ Successfully built $service ($full_tag)"
@@ -186,14 +186,14 @@ build_services() {
     local services=($(get_services))
     local failed_builds=()
     local build_pids=()
-    
+
     log_info "Building services: ${services[*]}"
     log_info "Environment: $ENVIRONMENT, Target: $BUILD_TARGET"
-    
+
     # Build services
     if [[ "$PARALLEL_BUILDS" == "true" && ${#services[@]} -gt 1 ]]; then
         log_info "Building services in parallel..."
-        
+
         for service in "${services[@]}"; do
             if [[ "$DRY_RUN" == "false" ]]; then
                 build_service "$service" &
@@ -202,7 +202,7 @@ build_services() {
                 build_service "$service"
             fi
         done
-        
+
         # Wait for all builds to complete
         if [[ "$DRY_RUN" == "false" ]]; then
             for pid in "${build_pids[@]}"; do
@@ -213,14 +213,14 @@ build_services() {
         fi
     else
         log_info "Building services sequentially..."
-        
+
         for service in "${services[@]}"; do
             if ! build_service "$service"; then
                 failed_builds+=("$service")
             fi
         done
     fi
-    
+
     # Report results
     if [[ ${#failed_builds[@]} -eq 0 ]]; then
         log_info "✅ All service builds completed successfully"
@@ -233,17 +233,17 @@ build_services() {
 
 push_services() {
     local services=($(get_services))
-    
+
     log_info "Pushing services to registry: $REGISTRY"
-    
+
     for service in "${services[@]}"; do
         local image_name="$REGISTRY/$service"
         local full_tag="$image_name:$VERSION-$BUILD_TARGET"
         local cache_tag="$image_name:${BUILD_TARGET}-cache"
-        
+
         if [[ "$DRY_RUN" == "false" ]]; then
             log_info "Pushing $service..."
-            
+
             # Push main tag
             if docker push "$full_tag"; then
                 log_info "✅ Pushed $full_tag"
@@ -251,14 +251,14 @@ push_services() {
                 log_error "❌ Failed to push $full_tag"
                 return 1
             fi
-            
+
             # Push cache tag for build optimization
             if docker push "$cache_tag"; then
                 log_debug "✅ Pushed cache tag $cache_tag"
             else
                 log_warn "⚠️ Failed to push cache tag $cache_tag"
             fi
-            
+
             # Push latest tag if this is a production build
             if [[ "$BUILD_TARGET" == "production" ]]; then
                 if docker push "$image_name:latest"; then
@@ -269,22 +269,22 @@ push_services() {
             log_info "[DRY RUN] Would push: $full_tag"
         fi
     done
-    
+
     log_info "✅ All services pushed successfully"
 }
 
 pull_services() {
     local services=($(get_services))
-    
+
     log_info "Pulling services from registry: $REGISTRY"
-    
+
     for service in "${services[@]}"; do
         local image_name="$REGISTRY/$service"
         local full_tag="$image_name:$VERSION-$BUILD_TARGET"
-        
+
         if [[ "$DRY_RUN" == "false" ]]; then
             log_info "Pulling $service..."
-            
+
             if docker pull "$full_tag"; then
                 log_info "✅ Pulled $full_tag"
             else
@@ -299,12 +299,12 @@ pull_services() {
 
 clean_services() {
     log_info "Cleaning up Docker images and containers for environment: $ENVIRONMENT"
-    
+
     if [[ "$DRY_RUN" == "false" ]]; then
         # Stop and remove containers
         log_info "Stopping containers..."
         docker-compose -f "docker-compose.$ENVIRONMENT.yml" down || true
-        
+
         # Remove images
         log_info "Removing images..."
         local services=($(get_services))
@@ -313,7 +313,7 @@ clean_services() {
             docker rmi "$image_name:$VERSION-$BUILD_TARGET" 2>/dev/null || true
             docker rmi "$image_name:latest" 2>/dev/null || true
         done
-        
+
         log_info "✅ Cleanup completed"
     else
         log_info "[DRY RUN] Would clean up containers and images for $ENVIRONMENT"
@@ -322,9 +322,9 @@ clean_services() {
 
 security_scan() {
     local services=($(get_services))
-    
+
     log_info "Running security scans on images..."
-    
+
     # Check if trivy is available
     if ! command -v trivy &> /dev/null; then
         log_warn "Trivy not found - installing..."
@@ -338,12 +338,12 @@ security_scan() {
             return 1
         fi
     fi
-    
+
     for service in "${services[@]}"; do
         local image_name="$REGISTRY/$service:$VERSION-$BUILD_TARGET"
-        
+
         log_info "Scanning $service for vulnerabilities..."
-        
+
         if [[ "$DRY_RUN" == "false" ]]; then
             # Run Trivy scan
             trivy image \
@@ -358,21 +358,21 @@ security_scan() {
             log_info "[DRY RUN] Would scan: $image_name"
         fi
     done
-    
+
     log_info "✅ Security scans completed successfully"
 }
 
 size_report() {
     local services=($(get_services))
-    
+
     log_info "Generating image size report..."
-    
+
     printf "%-20s %-30s %-10s\n" "SERVICE" "IMAGE" "SIZE"
     printf "%s\n" "$(printf '=%.0s' {1..70})"
-    
+
     for service in "${services[@]}"; do
         local image_name="$REGISTRY/$service:$VERSION-$BUILD_TARGET"
-        
+
         if docker image inspect "$image_name" >/dev/null 2>&1; then
             local size=$(docker image inspect "$image_name" --format='{{.Size}}' | numfmt --to=iec)
             printf "%-20s %-30s %-10s\n" "$service" "$image_name" "$size"
@@ -384,31 +384,31 @@ size_report() {
 
 deploy_services() {
     local compose_file="docker-compose.$ENVIRONMENT.yml"
-    
+
     log_info "Deploying services using $compose_file"
-    
+
     if [[ ! -f "$PROJECT_ROOT/$compose_file" ]]; then
         log_error "Docker Compose file not found: $compose_file"
         return 1
     fi
-    
+
     if [[ "$DRY_RUN" == "false" ]]; then
         cd "$PROJECT_ROOT"
-        
+
         # Pull latest images if not building locally
         if [[ "$BUILD_TARGET" != "development" ]]; then
             log_info "Pulling latest images..."
             docker-compose -f "$compose_file" pull || true
         fi
-        
+
         # Deploy services
         log_info "Starting services..."
         docker-compose -f "$compose_file" up -d
-        
+
         # Show status
         log_info "Service status:"
         docker-compose -f "$compose_file" ps
-        
+
         log_info "✅ Deployment completed"
     else
         log_info "[DRY RUN] Would deploy using: $compose_file"
@@ -418,7 +418,7 @@ deploy_services() {
 show_logs() {
     local compose_file="docker-compose.$ENVIRONMENT.yml"
     local services=($(get_services))
-    
+
     if [[ ${#services[@]} -eq 1 ]]; then
         docker-compose -f "$compose_file" logs -f "${services[0]}"
     else
@@ -428,13 +428,13 @@ show_logs() {
 
 validate_configs() {
     log_info "Validating Docker configurations..."
-    
+
     local configs=("docker-compose.development.yml" "docker-compose.production.yml")
-    
+
     for config in "${configs[@]}"; do
         if [[ -f "$PROJECT_ROOT/$config" ]]; then
             log_info "Validating $config..."
-            
+
             if docker-compose -f "$config" config >/dev/null 2>&1; then
                 log_info "✅ $config is valid"
             else
@@ -443,13 +443,13 @@ validate_configs() {
             fi
         fi
     done
-    
+
     log_info "✅ All configurations are valid"
 }
 
 main() {
     local command=""
-    
+
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -505,28 +505,28 @@ main() {
                 ;;
         esac
     done
-    
+
     # Remaining arguments are services
     SERVICES=("$@")
-    
+
     if [[ -z "$command" ]]; then
         log_error "No command specified"
         usage
         exit 1
     fi
-    
+
     # Change to project root
     cd "$PROJECT_ROOT"
-    
+
     # Check dependencies
     check_dependencies
-    
+
     log_debug "Command: $command"
     log_debug "Environment: $ENVIRONMENT"
     log_debug "Build Target: $BUILD_TARGET"
     log_debug "Services: $(get_services)"
     log_debug "DRY_RUN: $DRY_RUN"
-    
+
     # Execute command
     case "$command" in
         build)

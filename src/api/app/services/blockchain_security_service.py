@@ -126,14 +126,14 @@ class TransactionAnalysis:
 
 class BlockchainSecurityService(XORBService, SecurityOrchestrationService, ThreatIntelligenceService):
     """Advanced blockchain and DeFi security analysis service"""
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="blockchain_security_service",
             dependencies=["database", "threat_intelligence"],
             **kwargs
         )
-        
+
         # Network configurations
         self.network_configs = {
             BlockchainNetwork.ETHEREUM: {
@@ -155,7 +155,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 "native_token": "MATIC"
             }
         }
-        
+
         # Vulnerability patterns for smart contract analysis
         self.vulnerability_patterns = {
             VulnerabilityType.REENTRANCY: {
@@ -187,7 +187,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 "description": "Access control mechanisms detected"
             }
         }
-        
+
         # Known malicious addresses and patterns
         self.threat_intelligence = {
             "known_malicious_addresses": set(),
@@ -195,10 +195,10 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "defi_exploit_signatures": [],
             "mev_bot_addresses": set()
         }
-        
+
         # Analysis cache
         self.analysis_cache = {}
-        
+
     async def analyze_smart_contract(
         self,
         contract_address: str,
@@ -209,7 +209,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
         try:
             analysis_id = str(uuid4())
             analysis_options = analysis_options or {}
-            
+
             # Initialize analysis result
             analysis = SmartContractAnalysis(
                 contract_address=contract_address,
@@ -224,51 +224,51 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 recommendations=[],
                 metadata={}
             )
-            
+
             # Validate contract address
             if not self._is_valid_address(contract_address):
                 raise ValueError(f"Invalid contract address: {contract_address}")
-            
+
             # Get contract source code
             source_code = await self._get_contract_source_code(contract_address, network)
             if source_code:
                 # Analyze source code for vulnerabilities
                 vulnerabilities = await self._analyze_contract_source(source_code)
                 analysis.vulnerabilities = vulnerabilities
-            
+
             # Analyze contract bytecode
             bytecode_analysis = await self._analyze_contract_bytecode(contract_address, network)
             analysis.metadata["bytecode_analysis"] = bytecode_analysis
-            
+
             # Perform transaction pattern analysis
             tx_patterns = await self._analyze_contract_transactions(contract_address, network)
             analysis.metadata["transaction_patterns"] = tx_patterns
-            
+
             # Gas usage analysis
             analysis.gas_analysis = await self._analyze_gas_usage(contract_address, network)
-            
+
             # Calculate security score
             analysis.security_score = await self._calculate_security_score(analysis.vulnerabilities, bytecode_analysis)
-            
+
             # Determine threat level
             analysis.threat_level = self._determine_threat_level(analysis.security_score, analysis.vulnerabilities)
-            
+
             # Generate recommendations
             analysis.recommendations = await self._generate_contract_recommendations(analysis)
-            
+
             # Compliance analysis
             analysis.compliance_status = await self._analyze_compliance(contract_address, network)
-            
+
             # Cache analysis result
             self.analysis_cache[analysis_id] = analysis
-            
+
             logger.info(f"Smart contract analysis completed: {analysis_id}")
             return analysis
-            
+
         except Exception as e:
             logger.error(f"Smart contract analysis failed: {e}")
             raise
-    
+
     async def analyze_defi_protocol(
         self,
         protocol_contracts: List[str],
@@ -280,7 +280,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
         try:
             analysis_id = str(uuid4())
             analysis_options = analysis_options or {}
-            
+
             # Initialize analysis
             analysis = DeFiProtocolAnalysis(
                 protocol_name=protocol_name,
@@ -296,44 +296,44 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 recommendations=[],
                 overall_risk_score=0.0
             )
-            
+
             # Analyze each contract in the protocol
             contract_analyses = []
             for contract_address in protocol_contracts:
                 contract_analysis = await self.analyze_smart_contract(contract_address, network)
                 contract_analyses.append(contract_analysis)
-            
+
             # Calculate Total Value Locked (TVL)
             analysis.total_value_locked = await self._calculate_protocol_tvl(protocol_contracts, network)
-            
+
             # Identify attack vectors
             analysis.attack_vectors = await self._identify_defi_attack_vectors(contract_analyses)
-            
+
             # Analyze liquidity risks
             analysis.liquidity_risks = await self._analyze_liquidity_risks(protocol_contracts, network)
-            
+
             # Analyze governance risks
             analysis.governance_risks = await self._analyze_governance_risks(protocol_contracts, network)
-            
+
             # Identify oracle dependencies and risks
             analysis.oracle_dependencies = await self._analyze_oracle_dependencies(contract_analyses)
-            
+
             # Calculate risk factors
             analysis.risk_factors = await self._calculate_defi_risk_factors(analysis)
-            
+
             # Calculate overall risk score
             analysis.overall_risk_score = await self._calculate_defi_risk_score(analysis)
-            
+
             # Generate recommendations
             analysis.recommendations = await self._generate_defi_recommendations(analysis)
-            
+
             logger.info(f"DeFi protocol analysis completed: {analysis_id}")
             return analysis
-            
+
         except Exception as e:
             logger.error(f"DeFi protocol analysis failed: {e}")
             raise
-    
+
     async def analyze_transaction(
         self,
         transaction_hash: str,
@@ -344,7 +344,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
         try:
             analysis_id = str(uuid4())
             analysis_options = analysis_options or {}
-            
+
             # Initialize analysis
             analysis = TransactionAnalysis(
                 transaction_hash=transaction_hash,
@@ -357,39 +357,39 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 threat_level=ThreatLevel.MINIMAL,
                 metadata={}
             )
-            
+
             # Get transaction details
             tx_details = await self._get_transaction_details(transaction_hash, network)
             if not tx_details:
                 raise ValueError(f"Transaction not found: {transaction_hash}")
-            
+
             analysis.metadata["transaction_details"] = tx_details
-            
+
             # Analyze transaction patterns
             analysis.pattern_analysis = await self._analyze_transaction_patterns(tx_details)
-            
+
             # Check for risk indicators
             analysis.risk_indicators = await self._identify_risk_indicators(tx_details)
-            
+
             # AML/KYC analysis
             analysis.aml_flags = await self._perform_aml_analysis(tx_details)
-            
+
             # MEV analysis
             mev_analysis = await self._analyze_mev_activity(tx_details)
             analysis.metadata["mev_analysis"] = mev_analysis
-            
+
             # Determine threat level
             analysis.threat_level = self._determine_transaction_threat_level(
                 analysis.risk_indicators, analysis.aml_flags
             )
-            
+
             logger.info(f"Transaction analysis completed: {analysis_id}")
             return analysis
-            
+
         except Exception as e:
             logger.error(f"Transaction analysis failed: {e}")
             raise
-    
+
     async def monitor_defi_protocols(
         self,
         protocols: List[Dict[str, Any]],
@@ -399,7 +399,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
         try:
             monitoring_id = str(uuid4())
             monitoring_options = monitoring_options or {}
-            
+
             # Initialize monitoring session
             monitoring_session = {
                 "monitoring_id": monitoring_id,
@@ -408,7 +408,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 "alerts": [],
                 "status": "active"
             }
-            
+
             # Start monitoring each protocol
             monitoring_tasks = []
             for protocol in protocols:
@@ -416,7 +416,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                     self._monitor_protocol_realtime(protocol, monitoring_session)
                 )
                 monitoring_tasks.append(task)
-            
+
             # Return monitoring session info
             return {
                 "monitoring_id": monitoring_id,
@@ -424,11 +424,11 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 "protocols_monitored": len(protocols),
                 "monitoring_options": monitoring_options
             }
-            
+
         except Exception as e:
             logger.error(f"DeFi protocol monitoring failed: {e}")
             raise
-    
+
     # Private helper methods
     def _is_valid_address(self, address: str) -> bool:
         """Validate blockchain address format"""
@@ -437,7 +437,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
         else:
             # Basic validation for Ethereum addresses
             return bool(re.match(r'^0x[a-fA-F0-9]{40}$', address))
-    
+
     async def _get_contract_source_code(self, address: str, network: BlockchainNetwork) -> Optional[str]:
         """Retrieve contract source code from block explorer"""
         try:
@@ -445,10 +445,10 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             # For now, return mock source code
             return """
             pragma solidity ^0.8.0;
-            
+
             contract MockContract {
                 mapping(address => uint256) public balances;
-                
+
                 function transfer(address to, uint256 amount) external {
                     require(balances[msg.sender] >= amount, "Insufficient balance");
                     balances[msg.sender] -= amount;
@@ -459,11 +459,11 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
         except Exception as e:
             logger.error(f"Failed to get contract source code: {e}")
             return None
-    
+
     async def _analyze_contract_source(self, source_code: str) -> List[Dict[str, Any]]:
         """Analyze smart contract source code for vulnerabilities"""
         vulnerabilities = []
-        
+
         for vuln_type, pattern_info in self.vulnerability_patterns.items():
             for pattern in pattern_info["patterns"]:
                 matches = re.findall(pattern, source_code, re.IGNORECASE)
@@ -476,9 +476,9 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                         "matches": len(matches),
                         "line_numbers": []  # Would need more sophisticated parsing
                     })
-        
+
         return vulnerabilities
-    
+
     async def _analyze_contract_bytecode(self, address: str, network: BlockchainNetwork) -> Dict[str, Any]:
         """Analyze contract bytecode for security patterns"""
         # Mock bytecode analysis
@@ -490,7 +490,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "proxy_pattern": False,
             "upgradeable": False
         }
-    
+
     async def _analyze_contract_transactions(self, address: str, network: BlockchainNetwork) -> Dict[str, Any]:
         """Analyze historical transactions for the contract"""
         # Mock transaction pattern analysis
@@ -508,7 +508,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 "weekend_activity": "low"
             }
         }
-    
+
     async def _analyze_gas_usage(self, address: str, network: BlockchainNetwork) -> Dict[str, Any]:
         """Analyze gas usage patterns for the contract"""
         return {
@@ -518,7 +518,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "potential_savings": 15000,
             "gas_limit_risks": []
         }
-    
+
     async def _calculate_security_score(
         self,
         vulnerabilities: List[Dict[str, Any]],
@@ -526,7 +526,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
     ) -> float:
         """Calculate overall security score for a contract"""
         base_score = 1.0
-        
+
         # Deduct points for vulnerabilities
         for vuln in vulnerabilities:
             if vuln["severity"] == "critical":
@@ -537,20 +537,20 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 base_score -= 0.1
             elif vuln["severity"] == "low":
                 base_score -= 0.05
-        
+
         # Bonus points for security features
         if bytecode_analysis.get("has_access_control", False):
             base_score += 0.1
         if bytecode_analysis.get("uses_safe_math", False):
             base_score += 0.1
-        
+
         return max(0.0, min(1.0, base_score))
-    
+
     def _determine_threat_level(self, security_score: float, vulnerabilities: List[Dict[str, Any]]) -> ThreatLevel:
         """Determine threat level based on security analysis"""
         critical_vulns = [v for v in vulnerabilities if v["severity"] == "critical"]
         high_vulns = [v for v in vulnerabilities if v["severity"] == "high"]
-        
+
         if critical_vulns:
             return ThreatLevel.CRITICAL
         elif high_vulns or security_score < 0.3:
@@ -561,11 +561,11 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             return ThreatLevel.LOW
         else:
             return ThreatLevel.MINIMAL
-    
+
     async def _generate_contract_recommendations(self, analysis: SmartContractAnalysis) -> List[str]:
         """Generate security recommendations for a smart contract"""
         recommendations = []
-        
+
         # Vulnerability-based recommendations
         for vuln in analysis.vulnerabilities:
             if vuln["type"] == VulnerabilityType.REENTRANCY.value:
@@ -574,16 +574,16 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 recommendations.append("Use SafeMath library or Solidity 0.8+ built-in overflow protection")
             elif vuln["type"] == VulnerabilityType.ACCESS_CONTROL.value:
                 recommendations.append("Review and strengthen access control mechanisms")
-        
+
         # General security recommendations
         if analysis.security_score < 0.7:
             recommendations.append("Conduct professional security audit")
-        
+
         if analysis.gas_analysis.get("gas_optimization_score", 1.0) < 0.8:
             recommendations.append("Optimize gas usage to reduce transaction costs")
-        
+
         return recommendations
-    
+
     async def _analyze_compliance(self, address: str, network: BlockchainNetwork) -> Dict[str, Any]:
         """Analyze contract compliance with various standards"""
         return {
@@ -593,16 +593,16 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "audit_status": "not_audited",
             "formal_verification": False
         }
-    
+
     async def _calculate_protocol_tvl(self, contracts: List[str], network: BlockchainNetwork) -> float:
         """Calculate Total Value Locked for a DeFi protocol"""
         # Mock TVL calculation
         return 150000000.0  # $150M
-    
+
     async def _identify_defi_attack_vectors(self, contract_analyses: List[SmartContractAnalysis]) -> List[Dict[str, Any]]:
         """Identify potential attack vectors for DeFi protocol"""
         attack_vectors = []
-        
+
         # Common DeFi attack vectors
         attack_types = [
             {
@@ -624,9 +624,9 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 "impact": "high"
             }
         ]
-        
+
         return attack_types
-    
+
     async def _analyze_liquidity_risks(self, contracts: List[str], network: BlockchainNetwork) -> Dict[str, Any]:
         """Analyze liquidity-related risks"""
         return {
@@ -635,7 +635,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "liquidity_concentration": 0.3,  # 30% in top pool
             "withdrawal_limits": False
         }
-    
+
     async def _analyze_governance_risks(self, contracts: List[str], network: BlockchainNetwork) -> Dict[str, Any]:
         """Analyze governance-related risks"""
         return {
@@ -645,7 +645,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "governance_token_distribution": "concentrated",
             "emergency_powers": True
         }
-    
+
     async def _analyze_oracle_dependencies(self, contract_analyses: List[SmartContractAnalysis]) -> List[Dict[str, Any]]:
         """Analyze oracle dependencies and risks"""
         return [
@@ -657,7 +657,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 "manipulation_risk": "low"
             }
         ]
-    
+
     async def _calculate_defi_risk_factors(self, analysis: DeFiProtocolAnalysis) -> Dict[str, float]:
         """Calculate various risk factors for DeFi protocol"""
         return {
@@ -668,11 +668,11 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "regulatory_risk": 0.4,
             "market_risk": 0.35
         }
-    
+
     async def _calculate_defi_risk_score(self, analysis: DeFiProtocolAnalysis) -> float:
         """Calculate overall risk score for DeFi protocol"""
         risk_factors = analysis.risk_factors
-        
+
         # Weighted average of risk factors
         weights = {
             "smart_contract_risk": 0.3,
@@ -682,29 +682,29 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "regulatory_risk": 0.1,
             "market_risk": 0.1
         }
-        
+
         weighted_score = sum(
             risk_factors.get(factor, 0.0) * weight
             for factor, weight in weights.items()
         )
-        
+
         return min(1.0, weighted_score)
-    
+
     async def _generate_defi_recommendations(self, analysis: DeFiProtocolAnalysis) -> List[str]:
         """Generate recommendations for DeFi protocol"""
         recommendations = []
-        
+
         if analysis.overall_risk_score > 0.7:
             recommendations.append("High-risk protocol - consider reducing exposure")
-        
+
         if analysis.governance_risks.get("admin_keys", False):
             recommendations.append("Protocol has admin keys - monitor for changes")
-        
+
         if analysis.liquidity_risks.get("liquidity_concentration", 0) > 0.5:
             recommendations.append("High liquidity concentration - diversification risk")
-        
+
         return recommendations
-    
+
     async def _get_transaction_details(self, tx_hash: str, network: BlockchainNetwork) -> Optional[Dict[str, Any]]:
         """Get transaction details from blockchain"""
         # Mock transaction details
@@ -718,7 +718,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "block_number": 15000000,
             "timestamp": datetime.utcnow().isoformat()
         }
-    
+
     async def _analyze_transaction_patterns(self, tx_details: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze transaction for suspicious patterns"""
         return {
@@ -727,38 +727,38 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "contract_interaction": tx_details.get("input", "") != "0x",
             "timestamp_clustering": False
         }
-    
+
     async def _identify_risk_indicators(self, tx_details: Dict[str, Any]) -> List[str]:
         """Identify risk indicators in transaction"""
         indicators = []
-        
+
         # Check for high-value transfers
         if float(tx_details.get("value", 0)) > 10**19:  # > 10 ETH
             indicators.append("high_value_transfer")
-        
+
         # Check for known malicious addresses
         if tx_details.get("from") in self.threat_intelligence["known_malicious_addresses"]:
             indicators.append("known_malicious_sender")
-        
+
         if tx_details.get("to") in self.threat_intelligence["known_malicious_addresses"]:
             indicators.append("known_malicious_recipient")
-        
+
         return indicators
-    
+
     async def _perform_aml_analysis(self, tx_details: Dict[str, Any]) -> List[str]:
         """Perform Anti-Money Laundering analysis"""
         aml_flags = []
-        
+
         # Check for mixing service patterns
         # This would integrate with actual AML/KYC services
-        
+
         # Mock AML flags
         value = float(tx_details.get("value", 0))
         if value > 10**20:  # > 100 ETH
             aml_flags.append("large_transaction")
-        
+
         return aml_flags
-    
+
     async def _analyze_mev_activity(self, tx_details: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze for MEV (Maximal Extractable Value) activity"""
         return {
@@ -768,7 +768,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "sandwich_attack": False,
             "arbitrage_opportunity": False
         }
-    
+
     def _determine_transaction_threat_level(
         self,
         risk_indicators: List[str],
@@ -777,18 +777,18 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
         """Determine threat level for transaction"""
         if "known_malicious_sender" in risk_indicators or "known_malicious_recipient" in risk_indicators:
             return ThreatLevel.CRITICAL
-        
+
         if len(aml_flags) > 2:
             return ThreatLevel.HIGH
-        
+
         if len(risk_indicators) > 3:
             return ThreatLevel.MEDIUM
-        
+
         if len(risk_indicators) > 0:
             return ThreatLevel.LOW
-        
+
         return ThreatLevel.MINIMAL
-    
+
     async def _monitor_protocol_realtime(
         self,
         protocol: Dict[str, Any],
@@ -797,19 +797,19 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
         """Real-time monitoring of a single DeFi protocol"""
         try:
             protocol_name = protocol.get("name", "unknown")
-            
+
             while monitoring_session["status"] == "active":
                 # Check for new transactions
                 # Check for price anomalies
                 # Check for governance proposals
                 # Check for large withdrawals
-                
+
                 # Mock monitoring - in production this would connect to real-time feeds
                 await asyncio.sleep(10)  # Check every 10 seconds
-                
+
         except Exception as e:
             logger.error(f"Real-time monitoring failed for {protocol_name}: {e}")
-    
+
     # ThreatIntelligenceService interface methods
     async def analyze_indicators(
         self,
@@ -819,7 +819,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
     ) -> Dict[str, Any]:
         """Analyze blockchain threat indicators"""
         analysis_results = []
-        
+
         for indicator in indicators:
             if self._is_valid_address(indicator):
                 # Analyze as blockchain address
@@ -845,14 +845,14 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                         "type": "transaction_hash",
                         "error": str(e)
                     })
-        
+
         return {
             "analysis_id": str(uuid4()),
             "timestamp": datetime.utcnow().isoformat(),
             "indicators_analyzed": len(indicators),
             "results": analysis_results
         }
-    
+
     async def _analyze_address_reputation(self, address: str) -> Dict[str, Any]:
         """Analyze blockchain address reputation"""
         return {
@@ -863,7 +863,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "first_seen": "2021-01-15",
             "last_activity": "2024-01-10"
         }
-    
+
     async def correlate_threats(
         self,
         scan_results: Dict[str, Any],
@@ -877,7 +877,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "attribution": None,
             "recommendations": []
         }
-    
+
     async def get_threat_prediction(
         self,
         environment_data: Dict[str, Any],
@@ -891,7 +891,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "confidence": 0.75,
             "risk_factors": {}
         }
-    
+
     async def generate_threat_report(
         self,
         analysis_results: Dict[str, Any],
@@ -905,7 +905,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "findings": [],
             "recommendations": []
         }
-    
+
     # SecurityOrchestrationService interface methods
     async def create_workflow(
         self,
@@ -915,7 +915,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
     ) -> Dict[str, Any]:
         """Create blockchain security workflow"""
         workflow_id = str(uuid4())
-        
+
         return {
             "workflow_id": workflow_id,
             "type": "blockchain_security",
@@ -923,7 +923,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "status": "created",
             "created_at": datetime.utcnow().isoformat()
         }
-    
+
     async def execute_workflow(
         self,
         workflow_id: str,
@@ -932,14 +932,14 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
     ) -> Dict[str, Any]:
         """Execute blockchain security workflow"""
         execution_id = str(uuid4())
-        
+
         return {
             "execution_id": execution_id,
             "workflow_id": workflow_id,
             "status": "running",
             "started_at": datetime.utcnow().isoformat()
         }
-    
+
     async def get_workflow_status(
         self,
         execution_id: str,
@@ -951,7 +951,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "status": "completed",
             "progress": 100
         }
-    
+
     async def schedule_recurring_scan(
         self,
         targets: List[str],
@@ -961,7 +961,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
     ) -> Dict[str, Any]:
         """Schedule recurring blockchain security scans"""
         schedule_id = str(uuid4())
-        
+
         return {
             "schedule_id": schedule_id,
             "targets": targets,
@@ -969,42 +969,42 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
             "scan_type": "blockchain_security",
             "status": "scheduled"
         }
-    
+
     # XORBService interface methods
     async def initialize(self) -> bool:
         """Initialize blockchain security service"""
         try:
             self.start_time = datetime.utcnow()
             self.status = ServiceStatus.HEALTHY
-            
+
             # Initialize threat intelligence
             await self._load_threat_intelligence()
-            
+
             logger.info(f"Blockchain security service {self.service_id} initialized")
             return True
-            
+
         except Exception as e:
             logger.error(f"Blockchain security service initialization failed: {e}")
             self.status = ServiceStatus.UNHEALTHY
             return False
-    
+
     async def shutdown(self) -> bool:
         """Shutdown blockchain security service"""
         try:
             self.status = ServiceStatus.SHUTTING_DOWN
-            
+
             # Clear caches
             self.analysis_cache.clear()
             self.threat_intelligence.clear()
-            
+
             self.status = ServiceStatus.STOPPED
             logger.info(f"Blockchain security service {self.service_id} shutdown complete")
             return True
-            
+
         except Exception as e:
             logger.error(f"Blockchain security service shutdown failed: {e}")
             return False
-    
+
     async def health_check(self) -> ServiceHealth:
         """Perform blockchain security service health check"""
         try:
@@ -1014,14 +1014,14 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 "threat_intelligence": len(self.threat_intelligence) > 0,
                 "analysis_cache": len(self.analysis_cache) < 1000
             }
-            
+
             all_healthy = all(checks.values())
             status = ServiceStatus.HEALTHY if all_healthy else ServiceStatus.DEGRADED
-            
+
             uptime = 0.0
             if hasattr(self, 'start_time') and self.start_time:
                 uptime = (datetime.utcnow() - self.start_time).total_seconds()
-            
+
             return ServiceHealth(
                 status=status,
                 message="Blockchain security service operational",
@@ -1034,7 +1034,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                     "vulnerability_patterns": len(self.vulnerability_patterns)
                 }
             )
-            
+
         except Exception as e:
             logger.error(f"Blockchain security health check failed: {e}")
             return ServiceHealth(
@@ -1044,7 +1044,7 @@ class BlockchainSecurityService(XORBService, SecurityOrchestrationService, Threa
                 checks={},
                 last_error=str(e)
             )
-    
+
     async def _load_threat_intelligence(self):
         """Load blockchain threat intelligence data"""
         # Initialize with known threat addresses and patterns

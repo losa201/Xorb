@@ -19,7 +19,7 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
 
     BYPASS_PATHS = {
         "/health",
-        "/readiness", 
+        "/readiness",
         "/metrics",
         "/docs",
         "/openapi.json",
@@ -35,7 +35,7 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         tenant_id = None
-        
+
         try:
             # Extract tenant from user claims if authenticated
             if hasattr(request.state, 'user') and request.state.user:
@@ -75,7 +75,7 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
                     {"tenant_id": str(tenant_id)}
                 )
                 await session.commit()
-                
+
         except Exception as e:
             logger.error(f"Failed to set database tenant context: {e}")
             # Don't fail the request, but log the error

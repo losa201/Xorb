@@ -16,7 +16,7 @@
 <a href="https://discord.gg/projectdiscovery"><img src="https://img.shields.io/discord/695645237418131507.svg?logo=discord"></a>
 <a href="https://twitter.com/pdnuclei"><img src="https://img.shields.io/twitter/follow/pdnuclei.svg?logo=twitter"></a>
 </p>
-      
+
 <p align="center">
   <a href="#how-it-works">Cómo funciona</a> •
   <a href="#install-nuclei">Instalación</a> •
@@ -64,26 +64,26 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <details>
   <summary>Brew</summary>
-  
+
   ```sh
   brew install nuclei
   ```
-  
+
 </details>
 <details>
   <summary>Docker</summary>
-  
+
   ```sh
   docker pull projectdiscovery/nuclei:latest
   ```
-  
+
 </details>
 
 **Más métodos de instalación [pueden encontrarse aquí](https://docs.projectdiscovery.io/tools/nuclei/install).**
 
 <table>
 <tr>
-<td>  
+<td>
 
 ### Plantillas de Nuclei
 

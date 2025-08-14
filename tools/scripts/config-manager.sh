@@ -30,7 +30,7 @@ Usage: $0 [OPTIONS] COMMAND
 
 Commands:
   validate ENV             Validate configuration for environment
-  deploy ENV              Deploy configuration for environment  
+  deploy ENV              Deploy configuration for environment
   switch ENV              Switch to different environment
   export ENV [FORMAT]     Export configuration (json|yaml|env)
   secrets ENV             Manage secrets for environment
@@ -66,7 +66,7 @@ log() {
     shift
     local message="$*"
     local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
-    
+
     case "$level" in
         "INFO")
             echo -e "${GREEN}[INFO]${NC} ${timestamp} - $message" >&2
@@ -88,13 +88,13 @@ log() {
 check_dependencies() {
     local deps=("python3" "docker" "docker-compose" "jq")
     local missing_deps=()
-    
+
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" &> /dev/null; then
             missing_deps+=("$dep")
         fi
     done
-    
+
     if [[ ${#missing_deps[@]} -ne 0 ]]; then
         log "ERROR" "Missing dependencies: ${missing_deps[*]}"
         log "INFO" "Please install missing dependencies before proceeding"
@@ -105,20 +105,20 @@ check_dependencies() {
 validate_environment() {
     local env="$1"
     local config_file="$CONFIG_DIR/$env.json"
-    
+
     log "INFO" "Validating configuration for environment: $env"
-    
+
     if [[ ! -f "$config_file" ]]; then
         log "ERROR" "Configuration file not found: $config_file"
         return 1
     fi
-    
+
     # Validate JSON syntax
     if ! jq empty "$config_file" 2>/dev/null; then
         log "ERROR" "Invalid JSON syntax in $config_file"
         return 1
     fi
-    
+
     # Run Python configuration validation
     if [[ "$DRY_RUN" == "false" ]]; then
         cd "$PROJECT_ROOT"
@@ -138,23 +138,23 @@ except Exception as e:
     else
         log "INFO" "[DRY RUN] Would validate Python configuration"
     fi
-    
+
     log "INFO" "Configuration validation completed for $env"
 }
 
 deploy_environment() {
     local env="$1"
-    
+
     log "INFO" "Deploying configuration for environment: $env"
-    
+
     # Validate first
     validate_environment "$env" || return 1
-    
+
     # Check if secrets exist for production/staging
     if [[ "$env" == "production" || "$env" == "staging" ]]; then
         check_secrets "$env" || return 1
     fi
-    
+
     # Deploy using docker-compose
     local compose_file="$PROJECT_ROOT/docker-compose.$env.yml"
     if [[ -f "$compose_file" ]]; then
@@ -169,21 +169,21 @@ deploy_environment() {
     else
         log "WARN" "Docker compose file not found: $compose_file"
     fi
-    
+
     log "INFO" "Deployment completed for $env"
 }
 
 switch_environment() {
     local env="$1"
-    
+
     log "INFO" "Switching to environment: $env"
-    
+
     # Validate environment exists
     if [[ ! -f "$CONFIG_DIR/$env.json" ]]; then
         log "ERROR" "Environment configuration not found: $env"
         return 1
     fi
-    
+
     # Update environment variable
     if [[ -f "$PROJECT_ROOT/.env" ]]; then
         # Update existing .env file
@@ -197,7 +197,7 @@ switch_environment() {
         cp "$PROJECT_ROOT/.env.template" "$PROJECT_ROOT/.env"
         sed -i "s/XORB_ENV=.*/XORB_ENV=$env/" "$PROJECT_ROOT/.env"
     fi
-    
+
     export XORB_ENV="$env"
     log "INFO" "Switched to environment: $env"
 }
@@ -205,9 +205,9 @@ switch_environment() {
 export_configuration() {
     local env="$1"
     local format="${2:-json}"
-    
+
     log "INFO" "Exporting configuration for $env in $format format"
-    
+
     cd "$PROJECT_ROOT"
     python3 -c "
 import sys
@@ -229,43 +229,43 @@ check_secrets() {
     local env="$1"
     local secrets_dir="$PROJECT_ROOT/secrets"
     local required_secrets=("db_password" "jwt_secret" "encryption_key")
-    
+
     log "INFO" "Checking secrets for environment: $env"
-    
+
     for secret in "${required_secrets[@]}"; do
         if [[ ! -f "$secrets_dir/$secret" ]]; then
             log "ERROR" "Required secret file missing: $secrets_dir/$secret"
             return 1
         fi
     done
-    
+
     log "INFO" "All required secrets are present"
 }
 
 compare_configurations() {
     local env1="$1"
     local env2="$2"
-    
+
     log "INFO" "Comparing configurations: $env1 vs $env2"
-    
+
     local config1="$CONFIG_DIR/$env1.json"
     local config2="$CONFIG_DIR/$env2.json"
-    
+
     if [[ ! -f "$config1" || ! -f "$config2" ]]; then
         log "ERROR" "One or both configuration files not found"
         return 1
     fi
-    
+
     echo -e "${BLUE}Configuration differences between $env1 and $env2:${NC}"
     diff -u "$config1" "$config2" | head -50 || true
 }
 
 generate_templates() {
     log "INFO" "Generating configuration templates"
-    
+
     # Generate environment-specific templates
     local environments=("development" "staging" "production" "test")
-    
+
     for env in "${environments[@]}"; do
         local template_file="$CONFIG_DIR/${env}.template.json"
         if [[ "$DRY_RUN" == "false" ]]; then
@@ -292,25 +292,25 @@ except Exception as e:
 
 show_status() {
     log "INFO" "XORB Configuration Status"
-    
+
     echo -e "\n${BLUE}Current Environment:${NC} ${ENVIRONMENT}"
     echo -e "${BLUE}Config Directory:${NC} ${CONFIG_DIR}"
-    
+
     echo -e "\n${BLUE}Available Configurations:${NC}"
     for config_file in "$CONFIG_DIR"/*.json; do
         if [[ -f "$config_file" ]]; then
             local env_name=$(basename "$config_file" .json)
             local status="✅"
-            
+
             # Quick validation
             if ! jq empty "$config_file" 2>/dev/null; then
                 status="❌"
             fi
-            
+
             echo -e "  $status $env_name"
         fi
     done
-    
+
     echo -e "\n${BLUE}Docker Compose Files:${NC}"
     for compose_file in "$PROJECT_ROOT"/docker-compose.*.yml; do
         if [[ -f "$compose_file" ]]; then
@@ -321,7 +321,7 @@ show_status() {
 
 hot_reload() {
     log "INFO" "Triggering configuration hot-reload"
-    
+
     if [[ "$DRY_RUN" == "false" ]]; then
         cd "$PROJECT_ROOT"
         python3 -c "
@@ -347,11 +347,11 @@ backup_configuration() {
     local backup_dir="$PROJECT_ROOT/backups/config"
     local timestamp=$(date '+%Y%m%d_%H%M%S')
     local backup_file="$backup_dir/${env}_config_${timestamp}.json"
-    
+
     log "INFO" "Backing up configuration for $env"
-    
+
     mkdir -p "$backup_dir"
-    
+
     if [[ "$DRY_RUN" == "false" ]]; then
         cp "$CONFIG_DIR/$env.json" "$backup_file"
         log "INFO" "Configuration backed up to: $backup_file"
@@ -363,24 +363,24 @@ backup_configuration() {
 restore_configuration() {
     local env="$1"
     local backup_file="$2"
-    
+
     log "INFO" "Restoring configuration for $env from $backup_file"
-    
+
     if [[ ! -f "$backup_file" ]]; then
         log "ERROR" "Backup file not found: $backup_file"
         return 1
     fi
-    
+
     # Validate backup file
     if ! jq empty "$backup_file" 2>/dev/null; then
         log "ERROR" "Invalid backup file format"
         return 1
     fi
-    
+
     if [[ "$DRY_RUN" == "false" ]]; then
         # Backup current config first
         backup_configuration "$env"
-        
+
         # Restore from backup
         cp "$backup_file" "$CONFIG_DIR/$env.json"
         log "INFO" "Configuration restored for $env"
@@ -421,21 +421,21 @@ main() {
                 ;;
         esac
     done
-    
+
     if [[ -z "$COMMAND" ]]; then
         log "ERROR" "No command specified"
         usage
         exit 1
     fi
-    
+
     # Check dependencies
     check_dependencies
-    
+
     # Create config directory if it doesn't exist
     mkdir -p "$CONFIG_DIR"
-    
+
     log "DEBUG" "Command: $COMMAND, Environment: $ENVIRONMENT, DRY_RUN: $DRY_RUN"
-    
+
     # Execute command
     case "$COMMAND" in
         validate)

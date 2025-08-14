@@ -38,7 +38,7 @@
 
 ### Language Breakdown
 - **Python**: 417 files (92.4%) - Backend services, AI/ML components
-- **TypeScript**: 30 files (6.6%) - Frontend services, type definitions  
+- **TypeScript**: 30 files (6.6%) - Frontend services, type definitions
 - **JavaScript**: 2 files (0.4%) - Legacy scripts, utilities
 - **Shell/Docker**: 15 files (3.3%) - Deployment, infrastructure
 
@@ -49,26 +49,26 @@ graph TB
         FE[Next.js Frontend]
         PTaaS[PTaaS Dashboard]
     end
-    
+
     subgraph "API Gateway"
         API[FastAPI Gateway :8000]
         AUTH[Auth Service]
         RATE[Rate Limiter]
     end
-    
+
     subgraph "Core Services"
         ORCH[Orchestrator :8001]
         INTEL[Intelligence Engine :8002]
         EXEC[Execution Engine :8003]
         SIEM[SIEM Platform :8004]
     end
-    
+
     subgraph "Data Layer"
         PG[(PostgreSQL + pgvector)]
         REDIS[(Redis Cache)]
         TEMPORAL[(Temporal)]
     end
-    
+
     FE --> API
     PTaaS --> API
     API --> AUTH
@@ -211,7 +211,7 @@ graph TB
 
 **Performance Targets:**
 - API p50 < 50ms: ❌ Not measured
-- API p95 < 300ms: ❌ Not measured  
+- API p95 < 300ms: ❌ Not measured
 - Concurrent requests: ❌ Not tested
 
 ### 3.6 Observability Audit
@@ -278,31 +278,31 @@ graph TB
         WAF[WAF/Rate Limiter]
         LB[Load Balancer]
     end
-    
+
     subgraph "API Gateway"
         GW[API Gateway]
         AUTH[Auth Service]
         AUTHZ[Authorization Service]
     end
-    
+
     subgraph "Core Services"
         SCAN[Scan Orchestrator]
         WORK[Worker Pool]
         INTEL[Intelligence Service]
         REPORT[Reporting Service]
     end
-    
+
     subgraph "Data Layer"
         PG[(PostgreSQL)]
         REDIS[(Redis)]
         S3[(S3 Storage)]
     end
-    
+
     subgraph "Infrastructure"
         VAULT[HashiCorp Vault]
         MONITOR[Monitoring Stack]
     end
-    
+
     WAF --> LB
     LB --> GW
     GW --> AUTH
@@ -408,11 +408,11 @@ window: 5 minutes
 api_availability:
   target: 99.9%
   window: 30d
-  
+
 api_latency_p95:
   target: 300ms
   window: 5m
-  
+
 scan_success_rate:
   target: 95%
   window: 1h
@@ -428,7 +428,7 @@ scan_success_rate:
 ```python
 # Multi-layer validation
 1. File type whitelist
-2. Content type verification  
+2. Content type verification
 3. Antivirus scanning (ClamAV)
 4. Sandbox execution
 5. Size limits per tenant plan
@@ -446,11 +446,11 @@ scan_success_rate:
 database:
   engine: postgresql
   path: secret/db/credentials
-  
+
 jwt_signing:
   engine: transit
   key: jwt-signing-key
-  
+
 external_apis:
   engine: kv
   path: secret/external/

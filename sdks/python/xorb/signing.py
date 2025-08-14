@@ -5,26 +5,26 @@ from cryptography.hazmat.primitives import serialization
 
 class SignatureProvider(Protocol):
     """Interface for signature providers"""
-    
+
     def sign(self, payload: bytes) -> str:
         """Sign a payload and return the signature as hex string"""
         pass
-    
+
     def verify(self, payload: bytes, signature: str) -> bool:
         """Verify a signature against a payload"""
         pass
 
 class Ed25519Signer(SignatureProvider):
     """Ed25519 implementation of SignatureProvider"""
-    
+
     def __init__(self, private_key: Ed25519PrivateKey):
         self.private_key = private_key
-    
+
     def sign(self, payload: bytes) -> str:
         """Sign payload using Ed25519 private key"""
         signature = self.private_key.sign(payload)
         return signature.hex()
-    
+
     def verify(self, payload: bytes, signature: str) -> bool:
         """Verify signature using Ed25519 public key"""
         try:

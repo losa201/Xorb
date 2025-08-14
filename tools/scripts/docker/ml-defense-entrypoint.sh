@@ -51,10 +51,10 @@ done
 setup_memory_optimization() {
     local total_mem=$(free -m | awk 'NR==2{print $2}')
     local available_mem=$(free -m | awk 'NR==2{print $7}')
-    
+
     log "AMD EPYC System memory: ${total_mem}MB total, ${available_mem}MB available"
     log "Optimizing for 32GB RAM and 16 CPU cores"
-    
+
     # Already configured in configure_cpu(), but ensure consistency
     export TORCH_MEMORY_FRACTION=0.8
     export PYTORCH_CUDA_ALLOC_CONF=max_split_size_mb:512
@@ -169,11 +169,11 @@ async def ready_check(request):
         # Basic ML readiness check
         import sklearn
         import numpy as np
-        
+
         # Test basic operations
         test_array = np.random.rand(10, 10)
         test_result = np.dot(test_array, test_array.T)
-        
+
         return web.json_response({
             "status": "ready",
             "ml_frameworks": "operational"

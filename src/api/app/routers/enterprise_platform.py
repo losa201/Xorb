@@ -52,7 +52,7 @@ class PlatformHealthResponse(BaseModel):
     performance_metrics: Dict[str, Any]
     service_topology: Dict[str, Any]
 
-@router.get("/health", 
+@router.get("/health",
            summary="Get comprehensive platform health",
            response_model=PlatformHealthResponse)
 async def get_platform_health(current_user: UserClaims = Depends(get_current_user)):
@@ -62,27 +62,27 @@ async def get_platform_health(current_user: UserClaims = Depends(get_current_use
     """
     try:
         add_trace_context(operation="platform_health_check", user_id=str(current_user.user_id))
-        
+
         container = get_container()
-        
+
         # Get container health
         health_status = await container.get_health_status()
-        
+
         # Get database performance metrics
         db_metrics = {}
         if container.database_manager:
             db_metrics = await container.database_manager.get_performance_metrics()
-        
+
         # Get service topology
         service_topology = {}
         if container.service_discovery:
             service_topology = await container.service_discovery.get_service_topology()
-        
+
         # Get ML pipeline status
         ml_status = {}
         if container.ml_pipeline:
             ml_status = await container.ml_pipeline.get_model_performance()
-        
+
         return PlatformHealthResponse(
             status=health_status.get("status", "unknown"),
             timestamp=datetime.now(),
@@ -95,7 +95,7 @@ async def get_platform_health(current_user: UserClaims = Depends(get_current_use
             },
             service_topology=service_topology
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
 
@@ -113,36 +113,36 @@ async def optimize_database(
     """
     try:
         add_trace_context(
-            operation="database_optimization", 
+            operation="database_optimization",
             user_id=str(current_user.user_id),
             optimization_type="manual"
         )
-        
+
         container = get_container()
-        
+
         if not container.database_manager:
             raise HTTPException(
-                status_code=503, 
+                status_code=503,
                 detail="Advanced database manager not available"
             )
-        
+
         results = {
             "optimization_started": datetime.now(),
             "tasks": []
         }
-        
+
         # Query optimization analysis
         if request.enable_query_optimization:
             optimization_result = await container.database_manager.optimize_queries()
             results["query_optimization"] = optimization_result
             results["tasks"].append("query_optimization_completed")
-        
+
         # Connection pool analysis
         if request.analyze_slow_queries:
             pool_status = await container.database_manager.get_connection_pool_status()
             results["connection_pool_status"] = pool_status
             results["tasks"].append("connection_pool_analyzed")
-        
+
         # Background optimization task
         if request.update_connection_pool:
             async def background_optimization():
@@ -153,19 +153,19 @@ async def optimize_database(
                     pass
                 except Exception as e:
                     logger.error(f"Background optimization failed: {e}")
-            
+
             background_tasks.add_task(background_optimization)
             results["tasks"].append("background_optimization_scheduled")
-        
+
         return {
             "success": True,
             "message": "Database optimization completed",
             "results": results
         }
-        
+
     except Exception as e:
         raise HTTPException(
-            status_code=500, 
+            status_code=500,
             detail=f"Database optimization failed: {str(e)}"
         )
 
@@ -188,15 +188,15 @@ async def train_ml_model(
             model_name=request.model_name,
             algorithm=request.algorithm
         )
-        
+
         container = get_container()
-        
+
         if not container.ml_pipeline:
             raise HTTPException(
                 status_code=503,
                 detail="ML pipeline not available"
             )
-        
+
         # Background training task
         async def background_training():
             try:
@@ -210,7 +210,7 @@ async def train_ml_model(
                     }
                     for i in range(1000)
                 ]
-                
+
                 # Train the model
                 if request.model_name == "threat_classifier":
                     metadata = await container.ml_pipeline.train_threat_classification_model(
@@ -227,19 +227,19 @@ async def train_ml_model(
                     )
                 else:
                     raise ValueError(f"Unsupported model type: {request.model_name}")
-                
+
                 # Auto-deploy if requested
                 if request.auto_deploy:
                     await container.ml_pipeline.deploy_model(
                         model_id=metadata.model_id,
                         deployment_config={}
                     )
-                
+
             except Exception as e:
                 logger.error(f"ML model training failed: {e}")
-        
+
         background_tasks.add_task(background_training)
-        
+
         return {
             "success": True,
             "message": f"ML model training started: {request.model_name}",
@@ -248,7 +248,7 @@ async def train_ml_model(
             "training_started": datetime.now(),
             "auto_deploy": request.auto_deploy
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=500,
@@ -261,13 +261,13 @@ async def list_ml_models(current_user: UserClaims = Depends(get_current_user)):
     """Get list of all ML models and their performance metrics."""
     try:
         container = get_container()
-        
+
         if not container.ml_pipeline:
             return {"models": [], "message": "ML pipeline not available"}
-        
+
         # Get model performance
         model_performance = await container.ml_pipeline.get_model_performance()
-        
+
         models = []
         for model_id, performance in model_performance.items():
             models.append({
@@ -278,12 +278,12 @@ async def list_ml_models(current_user: UserClaims = Depends(get_current_user)):
                 "f1_score": performance.get("f1_score", 0.0),
                 "last_updated": performance.get("last_updated")
             })
-        
+
         return {
             "models": models,
             "total_count": len(models)
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list models: {str(e)}")
 
@@ -301,15 +301,15 @@ async def make_ml_prediction(
             user_id=str(current_user.user_id),
             model_name=model_name
         )
-        
+
         container = get_container()
-        
+
         if not container.ml_pipeline:
             raise HTTPException(
                 status_code=503,
                 detail="ML pipeline not available"
             )
-        
+
         # Make prediction
         if model_name == "threat_classifier":
             result = await container.ml_pipeline.predict_threat(
@@ -327,7 +327,7 @@ async def make_ml_prediction(
                 status_code=400,
                 detail=f"Unsupported model: {model_name}"
             )
-        
+
         return {
             "prediction": result.prediction,
             "confidence": result.confidence,
@@ -336,7 +336,7 @@ async def make_ml_prediction(
             "model_version": result.model_version,
             "processing_time_ms": result.processing_time_ms
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {str(e)}")
 
@@ -349,27 +349,27 @@ async def discover_services(
     """Discover services in the platform using advanced service discovery."""
     try:
         container = get_container()
-        
+
         if not container.service_discovery:
             return {"services": [], "message": "Service discovery not available"}
-        
+
         # Convert capabilities to enum values
         from ..infrastructure.enterprise_service_discovery import ServiceCapability, ServiceStatus
-        
+
         capabilities = []
         for cap_str in query.capabilities:
             try:
                 capabilities.append(ServiceCapability(cap_str))
             except ValueError:
                 pass  # Skip invalid capabilities
-        
+
         health_status = None
         if query.health_status:
             try:
                 health_status = ServiceStatus(query.health_status)
             except ValueError:
                 pass
-        
+
         # Discover services
         services = await container.service_discovery.discover_services(
             service_name=query.service_name,
@@ -377,7 +377,7 @@ async def discover_services(
             environment=query.environment,
             health_status=health_status
         )
-        
+
         # Convert to response format
         service_list = []
         for service in services:
@@ -399,13 +399,13 @@ async def discover_services(
                 "environment": service.environment,
                 "last_heartbeat": service.last_heartbeat.isoformat()
             })
-        
+
         return {
             "services": service_list,
             "total_count": len(service_list),
             "query": query.dict()
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Service discovery failed: {str(e)}")
 
@@ -415,17 +415,17 @@ async def get_service_topology(current_user: UserClaims = Depends(get_current_us
     """Get the complete service topology and dependency graph."""
     try:
         container = get_container()
-        
+
         if not container.service_discovery:
             return {"topology": {}, "message": "Service discovery not available"}
-        
+
         topology = await container.service_discovery.get_service_topology()
-        
+
         return {
             "topology": topology,
             "generated_at": datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get topology: {str(e)}")
 
@@ -442,15 +442,15 @@ async def create_database_backup(
             operation="database_backup",
             user_id=str(current_user.user_id)
         )
-        
+
         container = get_container()
-        
+
         if not container.database_manager:
             raise HTTPException(
                 status_code=503,
                 detail="Advanced database manager not available"
             )
-        
+
         # Background backup task
         async def background_backup():
             try:
@@ -459,15 +459,15 @@ async def create_database_backup(
                 logger.info(f"Database backup completed: {backup_result}")
             except Exception as e:
                 logger.error(f"Database backup failed: {e}")
-        
+
         background_tasks.add_task(background_backup)
-        
+
         return {
             "success": True,
             "message": "Database backup started",
             "backup_initiated": datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Backup initiation failed: {str(e)}")
 

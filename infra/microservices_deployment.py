@@ -162,24 +162,24 @@ class MicroserviceDeployment:
 
 class XORBMicroservicesDeployment:
     """Advanced microservices deployment system"""
-    
+
     def __init__(self, namespace: str = "xorb-services", platform: str = "kubernetes"):
         self.namespace = namespace
         self.platform = platform
         self.services: Dict[str, MicroserviceDeployment] = {}
         self.deployment_id = f"microservices_{int(time.time())}"
-        
+
         # Initialize service configurations
         self._initialize_microservice_configs()
-        
+
         logger.info(f"🚀 Microservices deployment system initialized")
         logger.info(f"📋 Namespace: {self.namespace}")
         logger.info(f"🎯 Platform: {self.platform}")
         logger.info(f"🆔 Deployment ID: {self.deployment_id}")
-    
+
     def _initialize_microservice_configs(self):
         """Initialize microservice configurations"""
-        
+
         # API Gateway Service
         api_gateway_config = MicroserviceConfig(
             name="xorb-api-gateway",
@@ -221,12 +221,12 @@ class XORBMicroservicesDeployment:
                 initial_delay_seconds=30
             )
         )
-        
+
         self.services["xorb-api-gateway"] = MicroserviceDeployment(
             config=api_gateway_config,
             status=ServiceStatus.PENDING
         )
-        
+
         # Neural Orchestrator Service
         orchestrator_config = MicroserviceConfig(
             name="xorb-neural-orchestrator",
@@ -261,12 +261,12 @@ class XORBMicroservicesDeployment:
                 initial_delay_seconds=60
             )
         )
-        
+
         self.services["xorb-neural-orchestrator"] = MicroserviceDeployment(
             config=orchestrator_config,
             status=ServiceStatus.PENDING
         )
-        
+
         # Learning Service
         learning_config = MicroserviceConfig(
             name="xorb-learning-service",
@@ -301,12 +301,12 @@ class XORBMicroservicesDeployment:
                 initial_delay_seconds=90
             )
         )
-        
+
         self.services["xorb-learning-service"] = MicroserviceDeployment(
             config=learning_config,
             status=ServiceStatus.PENDING
         )
-        
+
         # Threat Detection Service
         threat_detection_config = MicroserviceConfig(
             name="xorb-threat-detection",
@@ -339,12 +339,12 @@ class XORBMicroservicesDeployment:
                 port=8005
             )
         )
-        
+
         self.services["xorb-threat-detection"] = MicroserviceDeployment(
             config=threat_detection_config,
             status=ServiceStatus.PENDING
         )
-        
+
         # Worker Pool Service
         worker_pool_config = MicroserviceConfig(
             name="xorb-worker-pool",
@@ -378,12 +378,12 @@ class XORBMicroservicesDeployment:
                 port=8001
             )
         )
-        
+
         self.services["xorb-worker-pool"] = MicroserviceDeployment(
             config=worker_pool_config,
             status=ServiceStatus.PENDING
         )
-        
+
         # Analytics Engine
         analytics_config = MicroserviceConfig(
             name="xorb-analytics-engine",
@@ -416,12 +416,12 @@ class XORBMicroservicesDeployment:
                 port=8006
             )
         )
-        
+
         self.services["xorb-analytics-engine"] = MicroserviceDeployment(
             config=analytics_config,
             status=ServiceStatus.PENDING
         )
-        
+
         # Notification Service
         notification_config = MicroserviceConfig(
             name="xorb-notification-service",
@@ -454,12 +454,12 @@ class XORBMicroservicesDeployment:
                 port=8007
             )
         )
-        
+
         self.services["xorb-notification-service"] = MicroserviceDeployment(
             config=notification_config,
             status=ServiceStatus.PENDING
         )
-        
+
         # Backup Service
         backup_config = MicroserviceConfig(
             name="xorb-backup-service",
@@ -487,95 +487,95 @@ class XORBMicroservicesDeployment:
                 port=8008
             )
         )
-        
+
         self.services["xorb-backup-service"] = MicroserviceDeployment(
             config=backup_config,
             status=ServiceStatus.PENDING
         )
-        
+
         logger.info(f"🔧 Initialized {len(self.services)} microservice configurations")
-    
+
     async def deploy_microservices(self) -> bool:
         """Deploy all microservices with dependency management"""
         try:
             logger.info("🚀 Starting microservices deployment")
-            
+
             # Create namespace
             if self.platform == "kubernetes":
                 await self._create_kubernetes_namespace()
-            
+
             # Create deployment plan based on dependencies
             deployment_plan = self._create_deployment_plan()
-            
+
             # Execute deployment phases
             for phase_num, services_in_phase in enumerate(deployment_plan, 1):
                 logger.info(f"📋 Deploying Phase {phase_num}: {[s.config.name for s in services_in_phase]}")
-                
+
                 # Deploy services in parallel within phase
                 tasks = []
                 for service_deployment in services_in_phase:
                     task = asyncio.create_task(self._deploy_microservice(service_deployment))
                     tasks.append(task)
-                
+
                 # Wait for all services in phase to complete
                 results = await asyncio.gather(*tasks, return_exceptions=True)
-                
+
                 # Check for failures
                 failed_services = []
                 for i, result in enumerate(results):
                     if isinstance(result, Exception) or not result:
                         failed_services.append(services_in_phase[i])
-                
+
                 if failed_services:
                     logger.error(f"❌ Phase {phase_num} failed for services: {[s.config.name for s in failed_services]}")
                     return False
-                
+
                 logger.info(f"✅ Phase {phase_num} completed successfully")
-            
+
             # Setup service discovery and networking
             await self._setup_service_discovery()
-            
+
             # Setup monitoring for all services
             await self._setup_microservices_monitoring()
-            
+
             logger.info("🎉 Microservices deployment completed successfully!")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Microservices deployment failed: {e}")
             return False
-    
+
     def _create_deployment_plan(self) -> List[List[MicroserviceDeployment]]:
         """Create deployment plan based on service dependencies"""
-        
+
         # Build dependency graph
         graph = {}
         in_degree = {}
-        
+
         for service_name, service_deployment in self.services.items():
             dependencies = service_deployment.config.dependencies
             # Filter dependencies to only include other microservices
             service_dependencies = [dep for dep in dependencies if dep in self.services]
             graph[service_name] = service_dependencies
             in_degree[service_name] = len(service_dependencies)
-        
+
         # Topological sort
         phases = []
         remaining = set(self.services.keys())
-        
+
         while remaining:
             # Find services with no dependencies
             ready = [name for name in remaining if in_degree[name] == 0]
-            
+
             if not ready:
                 # Handle circular dependencies
                 ready = [min(remaining)]
                 logger.warning(f"⚠️  Circular dependency detected, forcing deployment of {ready[0]}")
-            
+
             # Create phase with ready services
             phase_services = [self.services[name] for name in ready]
             phases.append(phase_services)
-            
+
             # Remove deployed services and update dependencies
             for name in ready:
                 remaining.remove(name)
@@ -583,9 +583,9 @@ class XORBMicroservicesDeployment:
                     if name in graph[other_name]:
                         graph[other_name].remove(name)
                         in_degree[other_name] -= 1
-        
+
         return phases
-    
+
     async def _create_kubernetes_namespace(self) -> bool:
         """Create Kubernetes namespace for microservices"""
         try:
@@ -631,57 +631,57 @@ spec:
       memory: "128Mi"
     type: Container
 """
-            
+
             return await self._kubectl_apply(namespace_yaml)
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to create microservices namespace: {e}")
             return False
-    
+
     async def _deploy_microservice(self, service_deployment: MicroserviceDeployment) -> bool:
         """Deploy individual microservice"""
         try:
             config = service_deployment.config
             logger.info(f"🔧 Deploying microservice: {config.name}")
-            
+
             service_deployment.status = ServiceStatus.DEPLOYING
             service_deployment.start_time = datetime.now()
-            
+
             if self.platform == "kubernetes":
                 success = await self._deploy_kubernetes_microservice(service_deployment)
             else:
                 success = await self._deploy_docker_microservice(service_deployment)
-            
+
             service_deployment.end_time = datetime.now()
-            
+
             if success:
                 service_deployment.status = ServiceStatus.RUNNING
                 logger.info(f"✅ Microservice {config.name} deployed successfully")
-                
+
                 # Wait for service to become healthy
                 await self._wait_for_service_health(service_deployment)
-                
+
                 return True
             else:
                 service_deployment.status = ServiceStatus.FAILED
                 logger.error(f"❌ Microservice {config.name} deployment failed")
                 return False
-                
+
         except Exception as e:
             service_deployment.status = ServiceStatus.FAILED
             service_deployment.error_message = str(e)
             service_deployment.end_time = datetime.now()
             logger.error(f"❌ Microservice {service_deployment.config.name} deployment failed: {e}")
             return False
-    
+
     async def _deploy_kubernetes_microservice(self, service_deployment: MicroserviceDeployment) -> bool:
         """Deploy microservice to Kubernetes"""
         try:
             config = service_deployment.config
-            
+
             # Generate all Kubernetes manifests
             manifests = await self._generate_kubernetes_manifests(service_deployment)
-            
+
             # Apply manifests in order
             manifest_order = [
                 "serviceaccount",
@@ -694,7 +694,7 @@ spec:
                 "networkpolicy",
                 "poddisruptionbudget"
             ]
-            
+
             for manifest_type in manifest_order:
                 if manifest_type in manifests:
                     logger.info(f"📄 Applying {manifest_type} for {config.name}")
@@ -702,28 +702,28 @@ spec:
                     if not success:
                         logger.error(f"❌ Failed to apply {manifest_type} for {config.name}")
                         return False
-            
+
             # Store manifests
             service_deployment.deployment_manifest = manifests.get("deployment", "")
             service_deployment.service_manifest = manifests.get("service", "")
-            
+
             # Set endpoints
             service_deployment.endpoints = {
                 "http": f"{config.name}.{self.namespace}.svc.cluster.local:{config.port}",
                 "metrics": f"{config.name}.{self.namespace}.svc.cluster.local:{config.prometheus_port}"
             }
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Kubernetes microservice deployment failed: {e}")
             return False
-    
+
     async def _generate_kubernetes_manifests(self, service_deployment: MicroserviceDeployment) -> Dict[str, str]:
         """Generate comprehensive Kubernetes manifests for microservice"""
         config = service_deployment.config
         manifests = {}
-        
+
         # ServiceAccount
         manifests["serviceaccount"] = f"""
 apiVersion: v1
@@ -738,7 +738,7 @@ metadata:
     {"helm.sh/resource-policy": "keep"}
 automountServiceAccountToken: true
 """
-        
+
         # ConfigMap for application configuration
         manifests["configmap"] = f"""
 apiVersion: v1
@@ -767,7 +767,7 @@ data:
       application:
         name: {config.name}
 """
-        
+
         # Secret for sensitive data
         manifests["secret"] = f"""
 apiVersion: v1
@@ -784,7 +784,7 @@ data:
   redis-password: {self._base64_encode("redis_secure_password_123!")}
   jwt-secret: {self._base64_encode("xorb_jwt_secret_key_123456789")}
 """
-        
+
         # Service
         manifests["service"] = f"""
 apiVersion: v1
@@ -816,10 +816,10 @@ spec:
   type: ClusterIP
   sessionAffinity: None
 """
-        
+
         # Deployment
         strategy_config = self._get_deployment_strategy_config(config.strategy)
-        
+
         manifests["deployment"] = f"""
 apiVersion: apps/v1
 kind: Deployment
@@ -884,14 +884,14 @@ spec:
         {"  protocol: TCP" if config.enable_prometheus_scraping else ""}
         env:
 """
-        
+
         # Add environment variables
         for env_key, env_value in config.environment_variables.items():
             manifests["deployment"] += f"""
         - name: {env_key}
           value: "{env_value}"
 """
-        
+
         # Add common environment variables
         manifests["deployment"] += f"""
         - name: KUBERNETES_NAMESPACE
@@ -961,7 +961,7 @@ spec:
       dnsPolicy: ClusterFirst
       restartPolicy: Always
 """
-        
+
         # HorizontalPodAutoscaler
         if config.autoscaling.enabled:
             manifests["hpa"] = f"""
@@ -1013,7 +1013,7 @@ spec:
         value: 4
         periodSeconds: 15
 """
-        
+
         # ServiceMonitor for Prometheus
         if config.enable_prometheus_scraping:
             manifests["servicemonitor"] = f"""
@@ -1035,7 +1035,7 @@ spec:
     path: {config.prometheus_path}
     scrapeTimeout: 10s
 """
-        
+
         # NetworkPolicy
         manifests["networkpolicy"] = f"""
 apiVersion: networking.k8s.io/v1
@@ -1084,7 +1084,7 @@ spec:
     - protocol: TCP
       port: 443
 """
-        
+
         # PodDisruptionBudget
         manifests["poddisruptionbudget"] = f"""
 apiVersion: policy/v1
@@ -1101,9 +1101,9 @@ spec:
       app: {config.name}
   {"maxUnavailable: 1" if config.replicas > 1 else "minAvailable: 0"}
 """
-        
+
         return manifests
-    
+
     def _get_deployment_strategy_config(self, strategy: DeploymentStrategy) -> str:
         """Get Kubernetes deployment strategy configuration"""
         if strategy == DeploymentStrategy.ROLLING_UPDATE:
@@ -1119,11 +1119,11 @@ spec:
     rollingUpdate:
       maxSurge: 1
       maxUnavailable: 0"""
-    
+
     def _format_health_check(self, health_check: HealthCheck, indent: int, startup: bool = False) -> str:
         """Format health check configuration"""
         spaces = " " * indent
-        
+
         if health_check.type == HealthCheckType.HTTP:
             config = f"""{spaces}httpGet:
 {spaces}  path: {health_check.path}
@@ -1139,26 +1139,26 @@ spec:
             config = f"""{spaces}httpGet:
 {spaces}  path: /health
 {spaces}  port: {health_check.port}"""
-        
+
         # Add timing configuration
         initial_delay = health_check.initial_delay_seconds
         if startup:
             initial_delay = max(initial_delay, 10)
-            
+
         config += f"""
 {spaces}initialDelaySeconds: {initial_delay}
 {spaces}periodSeconds: {health_check.period_seconds}
 {spaces}timeoutSeconds: {health_check.timeout_seconds}
 {spaces}failureThreshold: {health_check.failure_threshold}
 {spaces}successThreshold: {health_check.success_threshold}"""
-        
+
         return config
-    
+
     def _format_yaml_dict(self, data: Dict[str, Any], indent: int) -> str:
         """Format dictionary as YAML with proper indentation"""
         if not data:
             return ""
-        
+
         spaces = " " * indent
         lines = []
         for key, value in data.items():
@@ -1167,14 +1167,14 @@ spec:
                 lines.append(self._format_yaml_dict(value, indent + 2))
             else:
                 lines.append(f"{spaces}{key}: {value}")
-        
+
         return "\n".join(lines)
-    
+
     def _format_yaml_list(self, data: List[Any], indent: int) -> str:
         """Format list as YAML with proper indentation"""
         if not data:
             return ""
-        
+
         spaces = " " * indent
         lines = []
         for item in data:
@@ -1184,59 +1184,59 @@ spec:
                     lines.append(f"{spaces}  {key}: {value}")
             else:
                 lines.append(f"{spaces}- {item}")
-        
+
         return "\n".join(lines)
-    
+
     async def _deploy_docker_microservice(self, service_deployment: MicroserviceDeployment) -> bool:
         """Deploy microservice using Docker Compose"""
         try:
             # This would integrate with existing Docker Compose deployment
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Docker microservice deployment failed: {e}")
             return False
-    
+
     async def _wait_for_service_health(self, service_deployment: MicroserviceDeployment, timeout: int = 300) -> bool:
         """Wait for service to become healthy"""
         try:
             config = service_deployment.config
             logger.info(f"⏳ Waiting for {config.name} to become healthy...")
-            
+
             start_time = time.time()
-            
+
             while time.time() - start_time < timeout:
                 health_status = await self._check_service_health(service_deployment)
-                
+
                 if health_status:
                     service_deployment.health_status = True
                     logger.info(f"✅ {config.name} is healthy")
                     return True
-                
+
                 logger.info(f"⏳ {config.name} not ready yet, waiting...")
                 await asyncio.sleep(10)
-            
+
             logger.error(f"❌ Timeout waiting for {config.name} to become healthy")
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Health check failed for {service_deployment.config.name}: {e}")
             return False
-    
+
     async def _check_service_health(self, service_deployment: MicroserviceDeployment) -> bool:
         """Check service health status"""
         try:
             config = service_deployment.config
-            
+
             if self.platform == "kubernetes":
                 # Check deployment status
                 result = subprocess.run([
-                    "kubectl", "rollout", "status", 
+                    "kubectl", "rollout", "status",
                     f"deployment/{config.name}",
                     f"--namespace={self.namespace}",
                     "--timeout=60s"
                 ], capture_output=True, text=True)
-                
+
                 if result.returncode == 0:
                     # Check pod readiness
                     result = subprocess.run([
@@ -1246,92 +1246,92 @@ spec:
                         "--field-selector=status.phase=Running",
                         "-o", "jsonpath='{.items[*].status.conditions[?(@.type==\"Ready\")].status}'"
                     ], capture_output=True, text=True)
-                    
+
                     if result.returncode == 0 and "True" in result.stdout:
                         return True
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Service health check failed: {e}")
             return False
-    
+
     async def _setup_service_discovery(self):
         """Setup service discovery and networking"""
         logger.info("🌐 Setting up service discovery")
-        
+
         # This would setup additional networking components like:
         # - Service discovery
         # - Load balancing
         # - Circuit breakers
         # - Rate limiting
-    
+
     async def _setup_microservices_monitoring(self):
         """Setup monitoring for all microservices"""
         logger.info("📊 Setting up microservices monitoring")
-        
+
         # Create ServiceMonitor resources for Prometheus scraping
         for service_name, service_deployment in self.services.items():
-            if (service_deployment.status == ServiceStatus.RUNNING and 
+            if (service_deployment.status == ServiceStatus.RUNNING and
                 service_deployment.config.enable_prometheus_scraping):
                 await self._setup_service_monitoring(service_deployment)
-    
+
     async def _setup_service_monitoring(self, service_deployment: MicroserviceDeployment):
         """Setup monitoring for individual service"""
         try:
             config = service_deployment.config
-            
+
             if self.platform == "kubernetes":
                 # ServiceMonitor should already be created in deployment manifests
                 logger.info(f"📊 Monitoring configured for {config.name}")
-            
+
         except Exception as e:
             logger.error(f"❌ Monitoring setup failed for {service_deployment.config.name}: {e}")
-    
+
     async def _kubectl_apply(self, yaml_content: str) -> bool:
         """Apply Kubernetes YAML configuration"""
         try:
             with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
                 f.write(yaml_content)
                 temp_file = f.name
-            
+
             cmd = ["kubectl", "apply", "-f", temp_file]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            
+
             os.unlink(temp_file)
-            
+
             if result.returncode == 0:
                 return True
             else:
                 logger.error(f"❌ kubectl apply failed: {result.stderr}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"❌ kubectl apply failed: {e}")
             return False
-    
+
     def _base64_encode(self, data: str) -> str:
         """Base64 encode string"""
         import base64
         return base64.b64encode(data.encode()).decode()
-    
+
     async def scale_service(self, service_name: str, replicas: int) -> bool:
         """Scale microservice"""
         try:
             if service_name not in self.services:
                 logger.error(f"❌ Service {service_name} not found")
                 return False
-            
+
             service_deployment = self.services[service_name]
             service_deployment.status = ServiceStatus.SCALING
-            
+
             if self.platform == "kubernetes":
                 result = subprocess.run([
                     "kubectl", "scale", "deployment", service_name,
                     f"--replicas={replicas}",
                     f"--namespace={self.namespace}"
                 ], capture_output=True, text=True, timeout=60)
-                
+
                 if result.returncode == 0:
                     service_deployment.config.replicas = replicas
                     service_deployment.status = ServiceStatus.RUNNING
@@ -1341,13 +1341,13 @@ spec:
                     service_deployment.status = ServiceStatus.FAILED
                     logger.error(f"❌ Failed to scale {service_name}: {result.stderr}")
                     return False
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Service scaling failed: {e}")
             return False
-    
+
     def get_microservices_status(self) -> Dict[str, Any]:
         """Get comprehensive microservices status"""
         status = {
@@ -1364,7 +1364,7 @@ spec:
                 "pending": 0
             }
         }
-        
+
         for name, service_deployment in self.services.items():
             config = service_deployment.config
             status["services"][name] = {
@@ -1382,7 +1382,7 @@ spec:
                 "autoscaling_enabled": config.autoscaling.enabled,
                 "service_mesh_enabled": config.service_mesh.enabled
             }
-            
+
             # Update summary counts
             if service_deployment.status == ServiceStatus.RUNNING:
                 status["summary"]["running"] += 1
@@ -1392,7 +1392,7 @@ spec:
                 status["summary"]["deploying"] += 1
             elif service_deployment.status == ServiceStatus.PENDING:
                 status["summary"]["pending"] += 1
-        
+
         return status
 
 async def main():
@@ -1402,19 +1402,19 @@ async def main():
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-    
+
     # Initialize microservices deployment
     microservices = XORBMicroservicesDeployment(
         namespace="xorb-services",
         platform="kubernetes"
     )
-    
+
     # Deploy microservices
     success = await microservices.deploy_microservices()
-    
+
     if success:
         print("🎉 Microservices deployment completed successfully!")
-        
+
         # Get status
         status = microservices.get_microservices_status()
         print(f"📊 Microservices Status:")
@@ -1422,7 +1422,7 @@ async def main():
         print(f"  Running: {status['summary']['running']}")
         print(f"  Failed: {status['summary']['failed']}")
         print(f"  Deploying: {status['summary']['deploying']}")
-        
+
         # Print service endpoints
         print(f"\n🔗 Service Endpoints:")
         for name, service in status['services'].items():
@@ -1432,7 +1432,7 @@ async def main():
                     print(f"    {endpoint_type}: {endpoint_url}")
     else:
         print("❌ Microservices deployment failed!")
-    
+
     return success
 
 if __name__ == "__main__":

@@ -78,7 +78,7 @@ POST   /control-plane/system/rebalance         # Trigger rebalancing
 python3 tools/scripts/g8_control_plane_cli.py create-tenant <tenant_id> <tier>
 python3 tools/scripts/g8_control_plane_cli.py tenant-status <tenant_id>
 
-# Request Management  
+# Request Management
 python3 tools/scripts/g8_control_plane_cli.py submit-request <tenant> <resource> [priority] [amount]
 
 # System Monitoring
@@ -120,7 +120,7 @@ make g8-cleanup                  # Clean storage and test data
 ### Resource Types
 1. **`api_requests`** - API requests per time window (rate limiting)
 2. **`scan_jobs`** - Security scan jobs per time window
-3. **`storage_gb`** - Storage capacity in gigabytes  
+3. **`storage_gb`** - Storage capacity in gigabytes
 4. **`compute_hours`** - Compute time allocation in hours
 5. **`bandwidth_mbps`** - Network bandwidth in Mbps
 6. **`concurrent_scans`** - Maximum concurrent security scans
@@ -149,7 +149,7 @@ make g8-cleanup                  # Clean storage and test data
   - Fair queuing algorithm validation
   - Virtual time progression
   - Thread safety verification
-  
+
 - **Quota Manager**: `tests/unit/g8_control_plane/test_quota_manager.py`
   - Tenant profile creation and persistence
   - Quota consumption and release
@@ -158,7 +158,7 @@ make g8-cleanup                  # Clean storage and test data
 
 ### Integration Tests
 - WFQ fairness under different load patterns
-- Quota recovery after window reset  
+- Quota recovery after window reset
 - Multi-tenant resource isolation
 - Burst handling scenarios
 
@@ -209,7 +209,7 @@ Fairness Index = (Σxi)² / (n × Σxi²)
 
 ### Tenant Weights (WFQ)
 - **Enterprise**: 10.0x (highest priority)
-- **Professional**: 3.0x (medium priority)  
+- **Professional**: 3.0x (medium priority)
 - **Starter**: 1.0x (baseline priority)
 - **Custom**: Configurable per tenant
 
@@ -290,7 +290,7 @@ make g8-test-fairness
 # Test WFQ Scheduler
 python3 -m pytest tests/unit/g8_control_plane/test_wfq_scheduler.py -v
 
-# Test Quota Manager  
+# Test Quota Manager
 python3 -m pytest tests/unit/g8_control_plane/test_quota_manager.py -v
 
 # Test CLI Help

@@ -95,7 +95,7 @@ async def get_ai_orchestrator(request: Request) -> AdvancedAutonomousAIOrchestra
     container = getattr(request.app.state, 'container', None)
     if not container:
         raise HTTPException(status_code=503, detail="AI orchestrator not available")
-    
+
     try:
         return container.get_service('advanced_ai_orchestrator')
     except Exception as e:
@@ -108,7 +108,7 @@ async def get_enterprise_ptaas(request: Request) -> EnterprisePTaaSService:
     container = getattr(request.app.state, 'container', None)
     if not container:
         raise HTTPException(status_code=503, detail="Enterprise PTaaS not available")
-    
+
     try:
         return container.get_service('enterprise_ptaas_service')
     except Exception as e:
@@ -121,7 +121,7 @@ async def get_threat_intelligence(request: Request) -> ProductionThreatIntellige
     container = getattr(request.app.state, 'container', None)
     if not container:
         raise HTTPException(status_code=503, detail="Threat intelligence not available")
-    
+
     try:
         return container.get_service('production_threat_intelligence')
     except Exception as e:
@@ -142,19 +142,19 @@ async def get_ai_platform_status(
         ai_health = await ai_orchestrator.get_health_status()
         ptaas_health = await enterprise_ptaas.get_health_status()
         threat_intel_health = await threat_intelligence.get_health_status()
-        
+
         # Get AI orchestrator metrics
         orchestration_metrics = ai_orchestrator.orchestration_metrics
-        
+
         # Get PTaaS tool status
         ptaas_tools = {
-            name: tool.status.value 
+            name: tool.status.value
             for name, tool in enterprise_ptaas.security_tools.items()
         }
-        
+
         # Get threat intelligence stats
         threat_intel_stats = threat_intelligence.database.stats
-        
+
         return {
             "platform_status": "operational",
             "ai_services": {
@@ -197,7 +197,7 @@ async def get_ai_platform_status(
             },
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get AI platform status: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve platform status")
@@ -213,21 +213,21 @@ async def analyze_threats(
     """Perform advanced AI-powered threat analysis"""
     try:
         start_time = datetime.utcnow()
-        
+
         # Analyze indicators with AI orchestrator
         ai_analysis = await ai_orchestrator.analyze_indicators(
             indicators=request.indicators,
             context=request.context,
             user=None  # System analysis
         )
-        
+
         # Get additional threat intelligence
         threat_intel_analysis = await threat_intelligence.analyze_indicators(
             indicators=request.indicators,
             context=request.context,
             user=None
         )
-        
+
         # Generate predictions if requested
         predictions = {}
         if request.include_predictions:
@@ -235,10 +235,10 @@ async def analyze_threats(
                 environment_data={"indicators": request.indicators},
                 timeframe="24h"
             )
-        
+
         # Calculate processing time
         processing_time = (datetime.utcnow() - start_time).total_seconds()
-        
+
         # Combine AI insights
         ai_insights = {
             "orchestrator_analysis": ai_analysis,
@@ -251,7 +251,7 @@ async def analyze_threats(
                 "correlation_strength": ai_analysis.get("agent_consensus", {}).get("consensus_confidence", 0.0)
             }
         }
-        
+
         return ThreatAnalysisResponse(
             analysis_id=ai_analysis.get("assessment_id", "unknown"),
             threat_level=ai_analysis.get("threat_assessment", {}).get("risk_level", "UNKNOWN"),
@@ -262,7 +262,7 @@ async def analyze_threats(
             processing_time=processing_time,
             timestamp=datetime.utcnow().isoformat()
         )
-        
+
     except Exception as e:
         logger.error(f"Threat analysis failed: {e}")
         raise HTTPException(status_code=500, detail=f"Threat analysis failed: {str(e)}")
@@ -277,7 +277,7 @@ async def ai_orchestration(
     """Execute AI-powered security orchestration"""
     try:
         orchestration_id = f"orch_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        
+
         if request.operation_type == "scan":
             # Orchestrate security scanning
             result = await ai_orchestrator.create_workflow(
@@ -290,18 +290,18 @@ async def ai_orchestration(
                 user=None,
                 org=None
             )
-            
+
         elif request.operation_type == "analysis":
             # Orchestrate threat analysis
             indicators = request.parameters.get("indicators", [])
             context = request.parameters.get("context", {})
-            
+
             result = await ai_orchestrator.analyze_indicators(
                 indicators=indicators,
                 context=context,
                 user=None
             )
-            
+
         elif request.operation_type == "response":
             # Orchestrate incident response
             result = await ai_orchestrator.execute_workflow(
@@ -309,10 +309,10 @@ async def ai_orchestration(
                 parameters=request.parameters,
                 user=None
             )
-            
+
         else:
             raise HTTPException(status_code=400, detail=f"Unknown operation type: {request.operation_type}")
-        
+
         return AIOrchestrationResponse(
             orchestration_id=orchestration_id,
             status="completed",
@@ -322,7 +322,7 @@ async def ai_orchestration(
             confidence_score=result.get("confidence", 0.0) if result else 0.0,
             timestamp=datetime.utcnow().isoformat()
         )
-        
+
     except Exception as e:
         logger.error(f"AI orchestration failed: {e}")
         raise HTTPException(status_code=500, detail=f"Orchestration failed: {str(e)}")
@@ -345,7 +345,7 @@ async def create_advanced_scan(
             "max_hours": request.max_duration_hours,
             "scan_profile": request.scan_profile
         }
-        
+
         scan_result = await enterprise_ptaas.create_scan_session(
             targets=request.targets,
             scan_type=request.scan_profile,
@@ -353,7 +353,7 @@ async def create_advanced_scan(
             org=None,
             metadata=metadata
         )
-        
+
         # Generate AI enhancements
         ai_enhancements = {
             "predictive_analysis": request.ai_enhancement,
@@ -362,7 +362,7 @@ async def create_advanced_scan(
             "compliance_automation": request.compliance_framework is not None,
             "stealth_optimization": request.stealth_mode
         }
-        
+
         # Real-time insights
         real_time_insights = {
             "scan_optimization": "AI-powered scan scheduling and resource allocation",
@@ -370,7 +370,7 @@ async def create_advanced_scan(
             "anomaly_detection": "ML-powered anomaly detection during scanning",
             "predictive_recommendations": "AI-generated security recommendations"
         }
-        
+
         return AdvancedScanResponse(
             session_id=scan_result["session_id"],
             status=scan_result["status"],
@@ -379,7 +379,7 @@ async def create_advanced_scan(
             real_time_insights=real_time_insights,
             autonomous_responses=["Real-time threat blocking", "Automatic evidence collection", "Dynamic scan adaptation"]
         )
-        
+
     except Exception as e:
         logger.error(f"Advanced scan creation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Scan creation failed: {str(e)}")
@@ -396,16 +396,16 @@ async def command_ai_agents(
         # Execute command with specific agent type
         if command.agent_type not in ["threat_hunter", "vulnerability_analyst"]:
             raise HTTPException(status_code=400, detail=f"Unknown agent type: {command.agent_type}")
-        
+
         # Find agents of the specified type
         target_agents = [
             agent for agent in ai_orchestrator.agents.values()
             if agent.agent_type.value == command.agent_type
         ]
-        
+
         if not target_agents:
             raise HTTPException(status_code=404, detail=f"No agents of type {command.agent_type} found")
-        
+
         # Execute command on agents
         results = []
         for agent in target_agents:
@@ -425,7 +425,7 @@ async def command_ai_agents(
                 })
             else:
                 raise HTTPException(status_code=400, detail=f"Unknown command: {command.command}")
-        
+
         return {
             "command_id": f"cmd_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
             "agent_type": command.agent_type,
@@ -434,7 +434,7 @@ async def command_ai_agents(
             "results": results,
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Agent command failed: {e}")
         raise HTTPException(status_code=500, detail=f"Agent command failed: {str(e)}")
@@ -453,7 +453,7 @@ async def get_real_time_insights(
             environment_data={"timestamp": datetime.utcnow().isoformat()},
             timeframe="1h"
         )
-        
+
         # Get AI orchestrator insights
         orchestration_insights = {
             "active_agents": len(ai_orchestrator.agents),
@@ -461,7 +461,7 @@ async def get_real_time_insights(
             "recent_decisions": ai_orchestrator.orchestration_metrics["total_decisions"],
             "threat_detection_rate": ai_orchestrator.orchestration_metrics["threat_detection_rate"]
         }
-        
+
         # Generate predictive insights
         predictive_insights = {
             "threat_trend": "Increasing APT activity detected",
@@ -469,7 +469,7 @@ async def get_real_time_insights(
             "attack_pattern_evolution": "New evasion techniques identified",
             "recommended_focus": ["Web application security", "Network segmentation", "Endpoint monitoring"]
         }
-        
+
         return {
             "insights_id": f"insights_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
             "threat_landscape": current_threats,
@@ -490,7 +490,7 @@ async def get_real_time_insights(
             "confidence": 0.85,
             "last_updated": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get real-time insights: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve insights")
@@ -507,18 +507,18 @@ async def get_ai_performance_analytics(
     try:
         # AI Orchestrator metrics
         orchestrator_metrics = ai_orchestrator.orchestration_metrics
-        
+
         # PTaaS metrics
         ptaas_metrics = enterprise_ptaas.metrics
-        
+
         # Threat Intelligence metrics
         threat_intel_metrics = threat_intelligence.metrics
-        
+
         # Calculate performance scores
         threat_detection_score = orchestrator_metrics["threat_detection_rate"] * 100
         scan_success_score = (ptaas_metrics["successful_scans"] / max(ptaas_metrics["total_scans"], 1)) * 100
         threat_intel_accuracy = (1 - threat_intel_metrics["false_positives"] / max(threat_intel_metrics["threats_detected"], 1)) * 100
-        
+
         return {
             "performance_summary": {
                 "overall_score": (threat_detection_score + scan_success_score + threat_intel_accuracy) / 3,
@@ -555,7 +555,7 @@ async def get_ai_performance_analytics(
             },
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get AI performance analytics: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve performance analytics")

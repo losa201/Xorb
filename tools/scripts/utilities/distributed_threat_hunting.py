@@ -131,7 +131,7 @@ class HuntingAgent:
 
 class DistributedThreatHunter:
     """Main distributed threat hunting coordinator"""
-    
+
     def __init__(
         self,
         node_id: str,
@@ -143,23 +143,23 @@ class DistributedThreatHunter:
         self.redis_url = redis_url
         self.postgres_dsn = postgres_dsn
         self.threat_intel_feeds = threat_intel_feeds or []
-        
+
         # Connection pools
         self.redis_pool = None
         self.postgres_pool = None
-        
+
         # Agent management
         self.agents: Dict[str, HuntingAgent] = {}
         self.active_tasks: Dict[str, HuntingTask] = {}
-        
+
         # Threat intelligence cache
         self.threat_indicators: Dict[str, ThreatIndicator] = {}
         self.threat_patterns: Dict[str, Any] = {}
-        
+
         # ML models for anomaly detection
         self.anomaly_detector = None
         self.false_positive_classifier = None
-        
+
         # Configuration
         self.config = {
             "max_concurrent_hunts": 50,
@@ -169,37 +169,37 @@ class DistributedThreatHunter:
             "anomaly_threshold": 0.8,
             "false_positive_threshold": 0.3
         }
-    
+
     async def initialize(self):
         """Initialize the threat hunting system"""
         try:
             # Initialize Redis connection
             self.redis_pool = aioredis.from_url(self.redis_url)
             await self.redis_pool.ping()
-            
+
             # Initialize PostgreSQL connection
             self.postgres_pool = await asyncpg.create_pool(self.postgres_dsn)
-            
+
             # Create database tables
             await self._create_tables()
-            
+
             # Initialize ML models
             await self._initialize_ml_models()
-            
+
             # Load threat intelligence
             await self._load_threat_intelligence()
-            
+
             # Start background tasks
             asyncio.create_task(self._heartbeat_monitor())
             asyncio.create_task(self._threat_intel_updater())
             asyncio.create_task(self._task_scheduler())
-            
+
             logger.info(f"Distributed threat hunter initialized for node {self.node_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize threat hunter: {e}")
             raise
-    
+
     async def _create_tables(self):
         """Create database tables for threat hunting"""
         create_tables_sql = """
@@ -217,7 +217,7 @@ class DistributedThreatHunter:
             ttl INTEGER,
             created_at TIMESTAMP DEFAULT NOW()
         );
-        
+
         CREATE TABLE IF NOT EXISTS threat_events (
             id VARCHAR(64) PRIMARY KEY,
             node_id VARCHAR(100) NOT NULL,
@@ -232,7 +232,7 @@ class DistributedThreatHunter:
             remediation_actions JSONB,
             created_at TIMESTAMP DEFAULT NOW()
         );
-        
+
         CREATE TABLE IF NOT EXISTS hunting_tasks (
             id VARCHAR(64) PRIMARY KEY,
             name VARCHAR(200) NOT NULL,
@@ -248,7 +248,7 @@ class DistributedThreatHunter:
             metadata JSONB,
             priority INTEGER DEFAULT 5
         );
-        
+
         CREATE TABLE IF NOT EXISTS hunting_agents (
             id VARCHAR(64) PRIMARY KEY,
             node_id VARCHAR(100) NOT NULL,
@@ -261,7 +261,7 @@ class DistributedThreatHunter:
             version VARCHAR(50),
             created_at TIMESTAMP DEFAULT NOW()
         );
-        
+
         CREATE TABLE IF NOT EXISTS threat_patterns (
             id VARCHAR(64) PRIMARY KEY,
             name VARCHAR(200) NOT NULL,
@@ -272,17 +272,17 @@ class DistributedThreatHunter:
             created_at TIMESTAMP DEFAULT NOW(),
             updated_at TIMESTAMP DEFAULT NOW()
         );
-        
+
         CREATE INDEX IF NOT EXISTS idx_threat_events_timestamp ON threat_events(timestamp);
         CREATE INDEX IF NOT EXISTS idx_threat_events_severity ON threat_events(severity);
         CREATE INDEX IF NOT EXISTS idx_threat_events_node_id ON threat_events(node_id);
         CREATE INDEX IF NOT EXISTS idx_hunting_tasks_status ON hunting_tasks(status);
         CREATE INDEX IF NOT EXISTS idx_hunting_agents_node_id ON hunting_agents(node_id);
         """
-        
+
         async with self.postgres_pool.acquire() as conn:
             await conn.execute(create_tables_sql)
-    
+
     async def _initialize_ml_models(self):
         """Initialize ML models for anomaly detection"""
         try:
@@ -290,20 +290,20 @@ class DistributedThreatHunter:
             # For now, we'll create placeholder implementations
             self.anomaly_detector = SimpleAnomalyDetector()
             self.false_positive_classifier = FalsePositiveClassifier()
-            
+
             logger.info("ML models initialized for threat hunting")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize ML models: {e}")
             raise
-    
+
     async def _load_threat_intelligence(self):
         """Load threat intelligence from various feeds"""
         try:
             # Load from database first
             async with self.postgres_pool.acquire() as conn:
                 rows = await conn.fetch("SELECT * FROM threat_indicators WHERE ttl IS NULL OR ttl > $1", int(time.time()))
-                
+
                 for row in rows:
                     indicator = ThreatIndicator(
                         id=row['id'],
@@ -319,40 +319,40 @@ class DistributedThreatHunter:
                         ttl=row['ttl']
                     )
                     self.threat_indicators[indicator.id] = indicator
-            
+
             # Load from external feeds
             for feed_url in self.threat_intel_feeds:
                 await self._fetch_threat_feed(feed_url)
-            
+
             logger.info(f"Loaded {len(self.threat_indicators)} threat indicators")
-            
+
         except Exception as e:
             logger.error(f"Failed to load threat intelligence: {e}")
-    
+
     async def _fetch_threat_feed(self, feed_url: str):
         """Fetch threat intelligence from external feed"""
         try:
             async with httpx.AsyncClient() as client:
                 response = await client.get(feed_url, timeout=30)
                 response.raise_for_status()
-                
+
                 # Parse feed (assuming JSON format)
                 feed_data = response.json()
-                
+
                 for item in feed_data.get('indicators', []):
                     indicator = self._parse_threat_indicator(item)
                     if indicator:
                         self.threat_indicators[indicator.id] = indicator
                         await self._store_threat_indicator(indicator)
-                        
+
         except Exception as e:
             logger.error(f"Failed to fetch threat feed {feed_url}: {e}")
-    
+
     def _parse_threat_indicator(self, data: Dict[str, Any]) -> Optional[ThreatIndicator]:
         """Parse threat indicator from feed data"""
         try:
             indicator_id = hashlib.sha256(f"{data['type']}:{data['value']}".encode()).hexdigest()
-            
+
             return ThreatIndicator(
                 id=indicator_id,
                 type=data['type'],
@@ -366,42 +366,42 @@ class DistributedThreatHunter:
                 metadata=data.get('metadata', {}),
                 ttl=data.get('ttl')
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to parse threat indicator: {e}")
             return None
-    
+
     async def _store_threat_indicator(self, indicator: ThreatIndicator):
         """Store threat indicator in database"""
         try:
             async with self.postgres_pool.acquire() as conn:
                 await conn.execute("""
-                    INSERT INTO threat_indicators 
+                    INSERT INTO threat_indicators
                     (id, type, value, confidence, severity, category, source, first_seen, last_seen, metadata, ttl)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                     ON CONFLICT (id) DO UPDATE SET
                         confidence = $4,
                         last_seen = $9,
                         metadata = $10
-                """, 
+                """,
                     indicator.id, indicator.type, indicator.value, indicator.confidence,
                     indicator.severity.value, indicator.category.value, indicator.source,
                     indicator.first_seen, indicator.last_seen, json.dumps(indicator.metadata),
                     indicator.ttl
                 )
-                
+
         except Exception as e:
             logger.error(f"Failed to store threat indicator: {e}")
-    
+
     async def register_agent(self, agent: HuntingAgent) -> bool:
         """Register a new hunting agent"""
         try:
             self.agents[agent.id] = agent
-            
+
             # Store in database
             async with self.postgres_pool.acquire() as conn:
                 await conn.execute("""
-                    INSERT INTO hunting_agents 
+                    INSERT INTO hunting_agents
                     (id, node_id, capabilities, status, last_heartbeat, load_average, active_tasks, max_concurrent_tasks, version)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
                     ON CONFLICT (id) DO UPDATE SET
@@ -414,7 +414,7 @@ class DistributedThreatHunter:
                     agent.last_heartbeat, agent.load_average, agent.active_tasks,
                     agent.max_concurrent_tasks, agent.version
                 )
-            
+
             # Announce agent registration
             await self.redis_pool.publish(
                 "threat_hunting:agent_events",
@@ -425,14 +425,14 @@ class DistributedThreatHunter:
                     "timestamp": datetime.utcnow().isoformat()
                 })
             )
-            
+
             logger.info(f"Registered hunting agent {agent.id} from node {agent.node_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to register agent {agent.id}: {e}")
             return False
-    
+
     async def create_hunting_task(
         self,
         name: str,
@@ -443,9 +443,9 @@ class DistributedThreatHunter:
         metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """Create a new distributed hunting task"""
-        
+
         task_id = hashlib.sha256(f"{name}:{query}:{time.time()}".encode()).hexdigest()
-        
+
         task = HuntingTask(
             id=task_id,
             name=name,
@@ -461,14 +461,14 @@ class DistributedThreatHunter:
             metadata=metadata or {},
             priority=priority
         )
-        
+
         # Store task
         self.active_tasks[task_id] = task
-        
+
         try:
             async with self.postgres_pool.acquire() as conn:
                 await conn.execute("""
-                    INSERT INTO hunting_tasks 
+                    INSERT INTO hunting_tasks
                     (id, name, description, query, target_nodes, status, created_by, created_at, priority, metadata)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
                 """,
@@ -476,7 +476,7 @@ class DistributedThreatHunter:
                     json.dumps(task.target_nodes), task.status.value, task.created_by,
                     task.created_at, task.priority, json.dumps(task.metadata)
                 )
-            
+
             # Notify task scheduler
             await self.redis_pool.publish(
                 "threat_hunting:task_events",
@@ -487,45 +487,45 @@ class DistributedThreatHunter:
                     "timestamp": datetime.utcnow().isoformat()
                 })
             )
-            
+
             logger.info(f"Created hunting task {task_id}: {name}")
             return task_id
-            
+
         except Exception as e:
             logger.error(f"Failed to create hunting task: {e}")
             raise
-    
+
     async def execute_hunting_task(self, task_id: str) -> Dict[str, Any]:
         """Execute a hunting task across distributed agents"""
-        
+
         if task_id not in self.active_tasks:
             raise ValueError(f"Task {task_id} not found")
-        
+
         task = self.active_tasks[task_id]
         task.status = HuntingTaskStatus.RUNNING
         task.started_at = datetime.utcnow()
-        
+
         logger.info(f"Executing hunting task {task_id}: {task.name}")
-        
+
         try:
             # Select capable agents
             selected_agents = await self._select_agents_for_task(task)
-            
+
             if not selected_agents:
                 raise Exception("No suitable agents available for task")
-            
+
             # Distribute task to agents
             agent_results = await self._distribute_task_to_agents(task, selected_agents)
-            
+
             # Correlate results from all agents
             correlated_results = await self._correlate_hunting_results(agent_results)
-            
+
             # Apply ML analysis for anomaly detection
             analyzed_results = await self._analyze_hunting_results(correlated_results)
-            
+
             # Generate threat events from significant findings
             threat_events = await self._generate_threat_events(analyzed_results, task)
-            
+
             # Update task with results
             task.results = {
                 "agent_results": agent_results,
@@ -539,98 +539,98 @@ class DistributedThreatHunter:
                     "execution_time": (datetime.utcnow() - task.started_at).total_seconds()
                 }
             }
-            
+
             task.status = HuntingTaskStatus.COMPLETED
             task.completed_at = datetime.utcnow()
-            
+
             # Update database
             await self._update_task_status(task)
-            
+
             # Store threat events
             for event in threat_events:
                 await self._store_threat_event(event)
-            
+
             logger.info(f"Completed hunting task {task_id} with {len(threat_events)} threat events")
-            
+
             return task.results
-            
+
         except Exception as e:
             task.status = HuntingTaskStatus.FAILED
             task.completed_at = datetime.utcnow()
             task.results = {"error": str(e)}
-            
+
             await self._update_task_status(task)
-            
+
             logger.error(f"Failed to execute hunting task {task_id}: {e}")
             raise
-    
+
     async def _select_agents_for_task(self, task: HuntingTask) -> List[HuntingAgent]:
         """Select the best agents for a hunting task"""
         suitable_agents = []
-        
+
         for agent_id in task.target_nodes:
             if agent_id in self.agents:
                 agent = self.agents[agent_id]
-                
+
                 # Check if agent is healthy and available
-                if (agent.status == "active" and 
+                if (agent.status == "active" and
                     agent.active_tasks < agent.max_concurrent_tasks and
                     (datetime.utcnow() - agent.last_heartbeat).total_seconds() < 60):
-                    
+
                     suitable_agents.append(agent)
-        
+
         # Sort by load average (prefer less loaded agents)
         suitable_agents.sort(key=lambda a: a.load_average)
-        
+
         return suitable_agents
-    
+
     async def _distribute_task_to_agents(
-        self, 
-        task: HuntingTask, 
+        self,
+        task: HuntingTask,
         agents: List[HuntingAgent]
     ) -> Dict[str, Any]:
         """Distribute hunting task to selected agents"""
-        
+
         agent_results = {}
-        
+
         # Create agent tasks
         agent_tasks = []
         for agent in agents:
             agent_tasks.append(self._execute_on_agent(agent, task))
-        
+
         # Execute tasks concurrently with timeout
         try:
             results = await asyncio.wait_for(
                 asyncio.gather(*agent_tasks, return_exceptions=True),
                 timeout=self.config["task_timeout"]
             )
-            
+
             for i, result in enumerate(results):
                 agent_id = agents[i].id
                 if isinstance(result, Exception):
                     agent_results[agent_id] = {"error": str(result)}
                 else:
                     agent_results[agent_id] = result
-                    
+
         except asyncio.TimeoutError:
             logger.warning(f"Task {task.id} timed out")
             for i, agent in enumerate(agents):
                 if agent.id not in agent_results:
                     agent_results[agent.id] = {"error": "timeout"}
-        
+
         return agent_results
-    
+
     async def _execute_on_agent(self, agent: HuntingAgent, task: HuntingTask) -> Dict[str, Any]:
         """Execute hunting task on a specific agent"""
-        
+
         # Simulate agent execution - in reality would send to agent via secure channel
         try:
             # Simulate hunting query execution
             await asyncio.sleep(np.random.uniform(1, 5))  # Simulate processing time
-            
+
             # Generate mock results based on task type
             results = await self._simulate_agent_hunting(agent, task)
-            
+
             return {
                 "agent_id": agent.id,
                 "node_id": agent.node_id,
@@ -639,7 +639,7 @@ class DistributedThreatHunter:
                 "execution_time": np.random.uniform(1, 10),
                 "timestamp": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             return {
                 "agent_id": agent.id,
@@ -648,12 +648,12 @@ class DistributedThreatHunter:
                 "error": str(e),
                 "timestamp": datetime.utcnow().isoformat()
             }
-    
+
     async def _simulate_agent_hunting(self, agent: HuntingAgent, task: HuntingTask) -> List[Dict[str, Any]]:
         """Simulate hunting results from an agent"""
-        
+
         findings = []
-        
+
         # Generate realistic findings based on task query
         if "malware" in task.query.lower():
             if np.random.random() < 0.3:  # 30% chance of finding something
@@ -670,7 +670,7 @@ class DistributedThreatHunter:
                     "timestamp": datetime.utcnow().isoformat(),
                     "source": f"agent_{agent.id}"
                 })
-        
+
         elif "network" in task.query.lower():
             if np.random.random() < 0.4:  # 40% chance of network findings
                 findings.append({
@@ -686,7 +686,7 @@ class DistributedThreatHunter:
                     "timestamp": datetime.utcnow().isoformat(),
                     "source": f"agent_{agent.id}"
                 })
-        
+
         elif "user" in task.query.lower():
             if np.random.random() < 0.2:  # 20% chance of user behavior findings
                 findings.append({
@@ -702,35 +702,35 @@ class DistributedThreatHunter:
                     "timestamp": datetime.utcnow().isoformat(),
                     "source": f"agent_{agent.id}"
                 })
-        
+
         return findings
-    
+
     async def _correlate_hunting_results(self, agent_results: Dict[str, Any]) -> Dict[str, Any]:
         """Correlate results from multiple agents to identify patterns"""
-        
+
         all_findings = []
         correlation_groups = {}
-        
+
         # Collect all findings
         for agent_id, result in agent_results.items():
             if result.get("status") == "completed":
                 for finding in result.get("findings", []):
                     finding["agent_id"] = agent_id
                     all_findings.append(finding)
-        
+
         # Group similar findings
         for finding in all_findings:
             correlation_key = self._generate_correlation_key(finding)
             if correlation_key not in correlation_groups:
                 correlation_groups[correlation_key] = []
             correlation_groups[correlation_key].append(finding)
-        
+
         # Identify significant correlations
         significant_correlations = []
         for key, findings in correlation_groups.items():
             if len(findings) > 1:  # Multiple agents found similar things
                 correlation_confidence = min(1.0, len(findings) * 0.3)
-                
+
                 significant_correlations.append({
                     "correlation_key": key,
                     "finding_count": len(findings),
@@ -738,50 +738,50 @@ class DistributedThreatHunter:
                     "confidence": correlation_confidence,
                     "findings": findings
                 })
-        
+
         return {
             "total_findings": len(all_findings),
             "correlation_groups": len(correlation_groups),
             "significant_correlations": significant_correlations,
             "unique_agents": len(set(f["agent_id"] for f in all_findings))
         }
-    
+
     def _generate_correlation_key(self, finding: Dict[str, Any]) -> str:
         """Generate a correlation key for similar findings"""
-        
+
         # Extract key attributes for correlation
         finding_type = finding.get("type", "unknown")
-        
+
         if finding_type == "suspicious_process":
             process_name = finding.get("details", {}).get("process_name", "")
             return f"process:{process_name}"
-        
+
         elif finding_type == "suspicious_network_connection":
             dest_ip = finding.get("details", {}).get("destination_ip", "")
             port = finding.get("details", {}).get("port", "")
             return f"network:{dest_ip}:{port}"
-        
+
         elif finding_type == "anomalous_user_behavior":
             username = finding.get("details", {}).get("username", "")
             return f"user:{username}"
-        
+
         return f"other:{finding_type}"
-    
+
     async def _analyze_hunting_results(self, correlated_results: Dict[str, Any]) -> Dict[str, Any]:
         """Apply ML analysis to hunting results"""
-        
+
         analyzed_findings = []
-        
+
         for correlation in correlated_results.get("significant_correlations", []):
             # Apply anomaly detection
             anomaly_score = await self.anomaly_detector.analyze(correlation)
-            
+
             # Apply false positive classification
             fp_probability = await self.false_positive_classifier.classify(correlation)
-            
+
             # Determine final confidence
             final_confidence = correlation["confidence"] * (1 - fp_probability) * anomaly_score
-            
+
             if final_confidence > self.config["anomaly_threshold"]:
                 analyzed_findings.append({
                     "correlation": correlation,
@@ -790,7 +790,7 @@ class DistributedThreatHunter:
                     "final_confidence": final_confidence,
                     "recommended_actions": self._generate_recommendations(correlation, final_confidence)
                 })
-        
+
         return {
             "analyzed_findings": analyzed_findings,
             "high_confidence_findings": [f for f in analyzed_findings if f["final_confidence"] > 0.9],
@@ -801,13 +801,13 @@ class DistributedThreatHunter:
                 "low_confidence": len([f for f in analyzed_findings if f["final_confidence"] < 0.7])
             }
         }
-    
+
     def _generate_recommendations(self, correlation: Dict[str, Any], confidence: float) -> List[str]:
         """Generate remediation recommendations based on findings"""
-        
+
         recommendations = []
         correlation_key = correlation["correlation_key"]
-        
+
         if "process:" in correlation_key:
             if confidence > 0.9:
                 recommendations.extend([
@@ -822,7 +822,7 @@ class DistributedThreatHunter:
                     "Collect additional forensic artifacts",
                     "Review process execution context"
                 ])
-        
+
         elif "network:" in correlation_key:
             if confidence > 0.9:
                 recommendations.extend([
@@ -837,7 +837,7 @@ class DistributedThreatHunter:
                     "Analyze traffic content if possible",
                     "Check reputation of destination IP"
                 ])
-        
+
         elif "user:" in correlation_key:
             if confidence > 0.9:
                 recommendations.extend([
@@ -852,37 +852,37 @@ class DistributedThreatHunter:
                     "Review recent login patterns",
                     "Check for privilege escalation attempts"
                 ])
-        
+
         # Always add general recommendations
         recommendations.extend([
             "Update threat intelligence databases",
             "Review and update detection rules",
             "Document findings for future reference"
         ])
-        
+
         return recommendations
-    
+
     async def _generate_threat_events(
-        self, 
-        analyzed_results: Dict[str, Any], 
+        self,
+        analyzed_results: Dict[str, Any],
         task: HuntingTask
     ) -> List[ThreatEvent]:
         """Generate threat events from significant findings"""
-        
+
         threat_events = []
-        
+
         for finding in analyzed_results.get("high_confidence_findings", []):
             correlation = finding["correlation"]
-            
+
             # Determine threat category and severity
             category = self._determine_threat_category(correlation)
             severity = self._determine_threat_severity(finding["final_confidence"])
-            
+
             # Create threat indicators
             indicators = []
             for f in correlation["findings"]:
                 indicator_id = hashlib.sha256(json.dumps(f, sort_keys=True).encode()).hexdigest()
-                
+
                 indicator = ThreatIndicator(
                     id=indicator_id,
                     type="hunting_finding",
@@ -896,10 +896,10 @@ class DistributedThreatHunter:
                     metadata={"agent_id": f["agent_id"], "finding_type": f["type"]}
                 )
                 indicators.append(indicator)
-            
+
             # Create threat event
             event_id = hashlib.sha256(f"{task.id}:{correlation['correlation_key']}:{time.time()}".encode()).hexdigest()
-            
+
             threat_event = ThreatEvent(
                 id=event_id,
                 node_id=self.node_id,
@@ -917,16 +917,16 @@ class DistributedThreatHunter:
                 },
                 remediation_actions=finding["recommended_actions"]
             )
-            
+
             threat_events.append(threat_event)
-        
+
         return threat_events
-    
+
     def _determine_threat_category(self, correlation: Dict[str, Any]) -> ThreatCategory:
         """Determine threat category based on correlation data"""
-        
+
         correlation_key = correlation["correlation_key"]
-        
+
         if "process:" in correlation_key:
             return ThreatCategory.MALWARE
         elif "network:" in correlation_key:
@@ -935,10 +935,10 @@ class DistributedThreatHunter:
             return ThreatCategory.PRIVILEGE_ESCALATION
         else:
             return ThreatCategory.RECONNAISSANCE
-    
+
     def _determine_threat_severity(self, confidence: float) -> ThreatSeverity:
         """Determine threat severity based on confidence score"""
-        
+
         if confidence >= 0.95:
             return ThreatSeverity.CRITICAL
         elif confidence >= 0.85:
@@ -947,14 +947,14 @@ class DistributedThreatHunter:
             return ThreatSeverity.MEDIUM
         else:
             return ThreatSeverity.LOW
-    
+
     async def _store_threat_event(self, event: ThreatEvent):
         """Store threat event in database"""
         try:
             async with self.postgres_pool.acquire() as conn:
                 await conn.execute("""
-                    INSERT INTO threat_events 
-                    (id, node_id, timestamp, severity, category, indicators, raw_data, 
+                    INSERT INTO threat_events
+                    (id, node_id, timestamp, severity, category, indicators, raw_data,
                      confidence, false_positive_probability, metadata, remediation_actions)
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
                 """,
@@ -965,59 +965,59 @@ class DistributedThreatHunter:
                     event.confidence, event.false_positive_probability,
                     json.dumps(event.metadata), json.dumps(event.remediation_actions)
                 )
-                
+
         except Exception as e:
             logger.error(f"Failed to store threat event: {e}")
-    
+
     async def _update_task_status(self, task: HuntingTask):
         """Update task status in database"""
         try:
             async with self.postgres_pool.acquire() as conn:
                 await conn.execute("""
-                    UPDATE hunting_tasks 
+                    UPDATE hunting_tasks
                     SET status = $1, started_at = $2, completed_at = $3, results = $4
                     WHERE id = $5
                 """,
                     task.status.value, task.started_at, task.completed_at,
                     json.dumps(task.results), task.id
                 )
-                
+
         except Exception as e:
             logger.error(f"Failed to update task status: {e}")
-    
+
     async def _heartbeat_monitor(self):
         """Monitor agent heartbeats"""
         while True:
             try:
                 current_time = datetime.utcnow()
                 stale_agents = []
-                
+
                 for agent_id, agent in self.agents.items():
                     if (current_time - agent.last_heartbeat).total_seconds() > 120:  # 2 minutes
                         stale_agents.append(agent_id)
-                
+
                 # Remove stale agents
                 for agent_id in stale_agents:
                     logger.warning(f"Removing stale agent {agent_id}")
                     del self.agents[agent_id]
-                
+
                 await asyncio.sleep(self.config["heartbeat_interval"])
-                
+
             except Exception as e:
                 logger.error(f"Error in heartbeat monitor: {e}")
                 await asyncio.sleep(30)
-    
+
     async def _threat_intel_updater(self):
         """Periodically update threat intelligence"""
         while True:
             try:
                 await self._load_threat_intelligence()
                 await asyncio.sleep(self.config["threat_intel_refresh"])
-                
+
             except Exception as e:
                 logger.error(f"Error updating threat intelligence: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _task_scheduler(self):
         """Schedule and prioritize hunting tasks"""
         while True:
@@ -1027,21 +1027,21 @@ class DistributedThreatHunter:
                     task for task in self.active_tasks.values()
                     if task.status == HuntingTaskStatus.PENDING
                 ]
-                
+
                 # Sort by priority (higher number = higher priority)
                 pending_tasks.sort(key=lambda t: t.priority, reverse=True)
-                
+
                 # Execute high priority tasks
                 for task in pending_tasks[:5]:  # Limit concurrent executions
                     if len([t for t in self.active_tasks.values() if t.status == HuntingTaskStatus.RUNNING]) < self.config["max_concurrent_hunts"]:
                         asyncio.create_task(self.execute_hunting_task(task.id))
-                
+
                 await asyncio.sleep(10)  # Check every 10 seconds
-                
+
             except Exception as e:
                 logger.error(f"Error in task scheduler: {e}")
                 await asyncio.sleep(30)
-    
+
     async def get_hunting_status(self) -> Dict[str, Any]:
         """Get current hunting system status"""
         return {
@@ -1068,43 +1068,43 @@ class DistributedThreatHunter:
                 "cpu_usage": "unknown"
             }
         }
-    
+
     async def cleanup(self):
         """Clean up resources"""
         if self.redis_pool:
             await self.redis_pool.close()
         if self.postgres_pool:
             await self.postgres_pool.close()
-        
+
         logger.info("Distributed threat hunter cleaned up")
 
 # Simple ML model implementations for demonstration
 class SimpleAnomalyDetector:
     """Simple anomaly detector for threat hunting"""
-    
+
     async def analyze(self, correlation: Dict[str, Any]) -> float:
         """Analyze correlation for anomalies"""
         # Simple heuristic-based scoring
         base_score = 0.5
-        
+
         # More findings = higher anomaly score
         finding_count = correlation.get("finding_count", 1)
         score_boost = min(0.4, finding_count * 0.1)
-        
+
         # Multiple agents = higher confidence
         agent_count = len(correlation.get("agents_involved", []))
         agent_boost = min(0.3, agent_count * 0.1)
-        
+
         return min(1.0, base_score + score_boost + agent_boost)
 
 class FalsePositiveClassifier:
     """Simple false positive classifier"""
-    
+
     async def classify(self, correlation: Dict[str, Any]) -> float:
         """Classify probability of false positive"""
         # Simple heuristic - fewer agents reporting = higher FP probability
         agent_count = len(correlation.get("agents_involved", []))
-        
+
         if agent_count >= 3:
             return 0.1  # Low FP probability
         elif agent_count == 2:
@@ -1115,7 +1115,7 @@ class FalsePositiveClassifier:
 # Example usage
 async def main():
     """Example usage of distributed threat hunting"""
-    
+
     hunter = DistributedThreatHunter(
         node_id="xorb-node-eu-central-1",
         threat_intel_feeds=[
@@ -1123,10 +1123,10 @@ async def main():
             "https://feeds.example.com/malware-hashes"
         ]
     )
-    
+
     try:
         await hunter.initialize()
-        
+
         # Register some mock agents
         agent1 = HuntingAgent(
             id="agent-1",
@@ -1139,7 +1139,7 @@ async def main():
             max_concurrent_tasks=10,
             version="2.1.0"
         )
-        
+
         agent2 = HuntingAgent(
             id="agent-2",
             node_id="xorb-node-eu-west-1",
@@ -1151,10 +1151,10 @@ async def main():
             max_concurrent_tasks=8,
             version="2.1.0"
         )
-        
+
         await hunter.register_agent(agent1)
         await hunter.register_agent(agent2)
-        
+
         # Create hunting tasks
         task_id = await hunter.create_hunting_task(
             name="Hunt for Suspicious Processes",
@@ -1162,15 +1162,15 @@ async def main():
             query="SELECT * FROM processes WHERE name LIKE '%suspicious%' OR command_line CONTAINS 'malware'",
             priority=8
         )
-        
+
         # Execute task
         results = await hunter.execute_hunting_task(task_id)
         print(f"Hunting results: {json.dumps(results, indent=2, default=str)}")
-        
+
         # Get system status
         status = await hunter.get_hunting_status()
         print(f"System status: {json.dumps(status, indent=2, default=str)}")
-        
+
     finally:
         await hunter.cleanup()
 

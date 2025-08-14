@@ -65,14 +65,14 @@ impl NucleiTool {
             binary_path: "nuclei".to_string(),
         }
     }
-    
+
     /// Create with custom binary path
     pub fn with_binary_path(path: &str) -> Self {
         Self {
             binary_path: path.to_string(),
         }
     }
-    
+
     /// Build nuclei command arguments
     fn build_args(&self, target: &str, options: &ToolOptions) -> Vec<String> {
         let mut args = vec![
@@ -81,7 +81,7 @@ impl NucleiTool {
             "-json".to_string(), // JSON output
             "-silent".to_string(), // Reduce noise
         ];
-        
+
         // Scan mode based on options
         if options.aggressive {
             args.extend(vec![
@@ -105,51 +105,51 @@ impl NucleiTool {
                 "50".to_string(),
             ]);
         }
-        
+
         // Add timeout
         args.extend(vec![
             "-timeout".to_string(),
             "10".to_string(), // 10 seconds per request
         ]);
-        
+
         // Add extra arguments
         args.extend(options.extra_args.clone());
-        
+
         args
     }
-    
+
     /// Parse Nuclei JSON output
     fn parse_json_output(&self, output: &str, target: &str) -> Result<Vec<Finding>> {
         let mut findings = Vec::new();
-        
+
         // Nuclei outputs one JSON object per line
         for line in output.lines() {
             if line.trim().is_empty() {
                 continue;
             }
-            
+
             match serde_json::from_str::<NucleiResult>(line) {
                 Ok(result) => {
                     let mut metadata = std::collections::HashMap::new();
                     metadata.insert("template_id".to_string(), result.template_id.clone());
                     metadata.insert("matched_at".to_string(), result.matched_at.clone());
-                    
+
                     if let Some(path) = &result.template_path {
                         metadata.insert("template_path".to_string(), path.clone());
                     }
-                    
+
                     if let Some(tags) = &result.info.tags {
                         metadata.insert("tags".to_string(), tags.join(","));
                     }
-                    
+
                     if let Some(authors) = &result.info.author {
                         metadata.insert("author".to_string(), authors.join(","));
                     }
-                    
+
                     if let Some(references) = &result.info.reference {
                         metadata.insert("references".to_string(), references.join(","));
                     }
-                    
+
                     // Add CVE information if available
                     if let Some(classification) = &result.info.classification {
                         if let Some(cve_ids) = &classification.cve_id {
@@ -159,7 +159,7 @@ impl NucleiTool {
                             metadata.insert("cwe_id".to_string(), cwe_ids.join(","));
                         }
                     }
-                    
+
                     let severity = match result.info.severity.to_lowercase().as_str() {
                         "critical" => Severity::Critical,
                         "high" => Severity::High,
@@ -167,10 +167,10 @@ impl NucleiTool {
                         "low" => Severity::Low,
                         _ => Severity::Info,
                     };
-                    
+
                     let description = result.info.description
                         .unwrap_or_else(|| format!("Vulnerability detected by template: {}", result.template_id));
-                    
+
                     findings.push(Finding {
                         id: Uuid::new_v4().to_string(),
                         title: result.info.name,
@@ -185,10 +185,10 @@ impl NucleiTool {
                 }
             }
         }
-        
+
         Ok(findings)
     }
-    
+
     /// Convert Nuclei severity to our severity enum
     fn map_severity(nuclei_severity: &str) -> Severity {
         match nuclei_severity.to_lowercase().as_str() {
@@ -213,18 +213,18 @@ impl SecurityTool for NucleiTool {
     fn name(&self) -> &str {
         "nuclei"
     }
-    
+
     #[instrument(skip(self, options), fields(tool = "nuclei", target = %target))]
     async fn scan(&self, target: &str, options: &ToolOptions) -> Result<ToolResult> {
         let start_time = chrono::Utc::now();
         let start_instant = std::time::Instant::now();
-        
+
         info!(target = %target, "Starting Nuclei vulnerability scan");
-        
+
         // Build command arguments
         let args = self.build_args(target, options);
         let command_line = format!("{} {}", self.binary_path, args.join(" "));
-        
+
         // Execute nuclei with timeout
         let result = timeout(
             options.timeout,
@@ -234,29 +234,29 @@ impl SecurityTool for NucleiTool {
                 .stderr(Stdio::piped())
                 .output()
         ).await;
-        
+
         let execution_time = start_instant.elapsed();
         let end_time = chrono::Utc::now();
-        
+
         match result {
             Ok(Ok(output)) => {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                
+
                 if output.status.success() {
                     let findings = self.parse_json_output(&stdout, target)
                         .unwrap_or_else(|e| {
                             warn!(error = %e, "Failed to parse Nuclei output, returning empty findings");
                             Vec::new()
                         });
-                    
+
                     info!(
                         target = %target,
                         duration_ms = %execution_time.as_millis(),
                         findings_count = %findings.len(),
                         "Nuclei scan completed successfully"
                     );
-                    
+
                     Ok(ToolResult {
                         tool_name: self.name().to_string(),
                         target: target.to_string(),
@@ -278,13 +278,13 @@ impl SecurityTool for NucleiTool {
                     } else {
                         stderr.to_string()
                     };
-                    
+
                     error!(
                         target = %target,
                         error = %error_msg,
                         "Nuclei scan failed"
                     );
-                    
+
                     Ok(ToolResult {
                         tool_name: self.name().to_string(),
                         target: target.to_string(),
@@ -340,7 +340,7 @@ impl SecurityTool for NucleiTool {
             }
         }
     }
-    
+
     async fn is_available(&self) -> bool {
         Command::new(&self.binary_path)
             .arg("-version")
@@ -349,14 +349,14 @@ impl SecurityTool for NucleiTool {
             .map(|output| output.status.success())
             .unwrap_or(false)
     }
-    
+
     async fn version(&self) -> Result<String> {
         let output = Command::new(&self.binary_path)
             .arg("-version")
             .output()
             .await
             .map_err(|e| anyhow!("Failed to get Nuclei version: {}", e))?;
-            
+
         if output.status.success() {
             let version_output = String::from_utf8_lossy(&output.stdout);
             // Parse version from output
@@ -376,17 +376,17 @@ impl SecurityTool for NucleiTool {
 mod tests {
     use super::*;
     use crate::{ToolOptions, OutputFormat};
-    
+
     #[test]
     fn test_nuclei_tool_creation() {
         let tool = NucleiTool::new();
         assert_eq!(tool.name(), "nuclei");
         assert_eq!(tool.binary_path, "nuclei");
-        
+
         let tool_custom = NucleiTool::with_binary_path("/usr/local/bin/nuclei");
         assert_eq!(tool_custom.binary_path, "/usr/local/bin/nuclei");
     }
-    
+
     #[test]
     fn test_build_args() {
         let tool = NucleiTool::new();
@@ -395,7 +395,7 @@ mod tests {
             extra_args: vec!["-tags".to_string(), "cve".to_string()],
             ..Default::default()
         };
-        
+
         let args = tool.build_args("https://example.com", &options);
         assert!(args.contains(&"-u".to_string()));
         assert!(args.contains(&"https://example.com".to_string()));
@@ -403,15 +403,15 @@ mod tests {
         assert!(args.contains(&"-severity".to_string()));
         assert!(args.contains(&"-tags".to_string()));
     }
-    
+
     #[test]
     fn test_parse_json_output() {
         let tool = NucleiTool::new();
         let json_output = r#"{"template-id":"CVE-2021-44228","info":{"name":"Apache Log4j RCE","author":["daffainfo"],"tags":["cve","rce","log4j"],"description":"Apache Log4j2 <=2.14.1 JNDI features used in configuration, log messages, and parameters do not protect against attacker controlled LDAP and other JNDI related endpoints.","severity":"critical","cvss-score":10.0},"matched-at":"https://example.com:443"}"#;
-        
+
         let findings = tool.parse_json_output(json_output, "https://example.com").unwrap();
         assert_eq!(findings.len(), 1);
-        
+
         let finding = &findings[0];
         assert_eq!(finding.title, "Apache Log4j RCE");
         assert_eq!(finding.severity, Severity::Critical);
@@ -420,7 +420,7 @@ mod tests {
         assert!(finding.metadata.contains_key("template_id"));
         assert!(finding.metadata.contains_key("tags"));
     }
-    
+
     #[test]
     fn test_severity_mapping() {
         assert_eq!(NucleiTool::map_severity("critical"), Severity::Critical);
@@ -430,7 +430,7 @@ mod tests {
         assert_eq!(NucleiTool::map_severity("info"), Severity::Info);
         assert_eq!(NucleiTool::map_severity("unknown"), Severity::Info);
     }
-    
+
     #[tokio::test]
     async fn test_tool_availability() {
         let tool = NucleiTool::new();

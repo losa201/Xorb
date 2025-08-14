@@ -38,7 +38,7 @@ def setup_instrumentation(
 ) -> None:
     """
     Setup comprehensive OpenTelemetry instrumentation for XORB platform.
-    
+
     Args:
         app_name: Application name for telemetry
         version: Application version
@@ -48,7 +48,7 @@ def setup_instrumentation(
         otlp_endpoint: OTLP collector endpoint (optional)
     """
     global _tracer, _meter
-    
+
     # Create resource with comprehensive metadata
     resource = Resource.create({
         "service.name": app_name,
@@ -60,50 +60,50 @@ def setup_instrumentation(
         "k8s.cluster.name": os.getenv("K8S_CLUSTER", "xorb-cluster"),
         "k8s.namespace.name": os.getenv("K8S_NAMESPACE", "xorb-system")
     })
-    
+
     # Setup distributed tracing
     trace_exporters = []
-    
+
     if enable_otlp:
         otlp_endpoint = otlp_endpoint or os.getenv("OTEL_EXPORTER_OTLP_ENDPOINT", "http://localhost:4317")
         trace_exporters.append(OTLPSpanExporter(endpoint=otlp_endpoint))
-    
+
     tracer_provider = TracerProvider(resource=resource)
-    
+
     for exporter in trace_exporters:
         tracer_provider.add_span_processor(BatchSpanProcessor(exporter))
-    
+
     trace.set_tracer_provider(tracer_provider)
     _tracer = trace.get_tracer(app_name, version)
-    
+
     # Setup metrics collection
     metric_readers = []
-    
+
     # Prometheus metrics reader (pull-based)
     prometheus_reader = PrometheusMetricReader()
     metric_readers.append(prometheus_reader)
-    
+
     # OTLP metrics export (push-based)
     if enable_otlp:
         otlp_metric_exporter = OTLPMetricExporter(endpoint=otlp_endpoint)
         metric_readers.append(
             PeriodicExportingMetricReader(otlp_metric_exporter, export_interval_millis=30000)
         )
-    
+
     meter_provider = MeterProvider(resource=resource, metric_readers=metric_readers)
     metrics.set_meter_provider(meter_provider)
     _meter = metrics.get_meter(app_name, version)
-    
+
     # Start Prometheus HTTP server
     try:
         start_http_server(prometheus_port)
         print(f"✅ Prometheus metrics server started on port {prometheus_port}")
     except OSError as e:
         print(f"⚠️ Prometheus server port {prometheus_port} already in use: {e}")
-    
+
     # Auto-instrument common libraries
     _setup_auto_instrumentation()
-    
+
     print(f"✅ OpenTelemetry instrumentation initialized for {app_name} v{version}")
 
 
@@ -112,16 +112,16 @@ def _setup_auto_instrumentation() -> None:
     try:
         # Auto-instrument FastAPI
         FastAPIInstrumentor.instrument()
-        
+
         # Auto-instrument database connections
         AsyncPGInstrumentor().instrument()
-        
+
         # Auto-instrument Redis
         RedisInstrumentor().instrument()
-        
+
         # Auto-instrument HTTP requests
         RequestsInstrumentor().instrument()
-        
+
         print("✅ Auto-instrumentation enabled for FastAPI, AsyncPG, Redis, Requests")
     except Exception as e:
         print(f"⚠️ Auto-instrumentation setup failed: {e}")
@@ -135,7 +135,7 @@ def get_tracer() -> trace.Tracer:
 
 
 def get_meter() -> metrics.Meter:
-    """Get the global meter instance.""" 
+    """Get the global meter instance."""
     if _meter is None:
         raise RuntimeError("OpenTelemetry not initialized. Call setup_instrumentation() first.")
     return _meter
@@ -145,7 +145,7 @@ def get_meter() -> metrics.Meter:
 def trace_operation(name: str, attributes: Optional[Dict[str, Any]] = None):
     """
     Context manager for tracing operations with automatic timing.
-    
+
     Args:
         name: Span name
         attributes: Additional span attributes
@@ -153,11 +153,11 @@ def trace_operation(name: str, attributes: Optional[Dict[str, Any]] = None):
     tracer = get_tracer()
     with tracer.start_as_current_span(name) as span:
         start_time = time.time()
-        
+
         if attributes:
             for key, value in attributes.items():
                 span.set_attribute(key, value)
-        
+
         try:
             yield span
         except Exception as e:
@@ -178,7 +178,7 @@ def record_custom_metric(
 ) -> None:
     """
     Record a custom metric value.
-    
+
     Args:
         name: Metric name
         value: Metric value
@@ -188,7 +188,7 @@ def record_custom_metric(
     """
     meter = get_meter()
     attributes = attributes or {}
-    
+
     if metric_type == "counter":
         counter = meter.create_counter(name, description=description)
         counter.add(value, attributes)
@@ -204,18 +204,18 @@ def record_custom_metric(
 
 class ObservabilityMiddleware:
     """FastAPI middleware for comprehensive request observability."""
-    
+
     def __init__(self, app):
         self.app = app
         self.meter = get_meter()
-        
+
         # Create core metrics
         self.request_counter = self.meter.create_counter(
             "http_requests_total",
             description="Total HTTP requests"
         )
         self.request_duration = self.meter.create_histogram(
-            "http_request_duration_seconds", 
+            "http_request_duration_seconds",
             description="HTTP request duration in seconds"
         )
         self.request_size = self.meter.create_histogram(
@@ -226,40 +226,40 @@ class ObservabilityMiddleware:
             "http_response_size_bytes",
             description="HTTP response size in bytes"
         )
-    
+
     async def __call__(self, scope, receive, send):
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        
+
         start_time = time.time()
         request = scope
-        
+
         # Extract request metadata
         method = request["method"]
         path = request["path"]
-        
+
         # Prepare labels
         labels = {
             "method": method,
             "path": path,
             "handler": "unknown"
         }
-        
+
         # Measure request size
         content_length = 0
         for header_name, header_value in request.get("headers", []):
             if header_name == b"content-length":
                 content_length = int(header_value.decode())
                 break
-        
+
         if content_length > 0:
             self.request_size.record(content_length, labels)
-        
+
         # Process request
         response_data = []
         status_code = 200
-        
+
         async def send_wrapper(message):
             nonlocal status_code, response_data
             if message["type"] == "http.response.start":
@@ -271,7 +271,7 @@ class ObservabilityMiddleware:
                 if body:
                     response_data.append(len(body))
             await send(message)
-        
+
         try:
             await self.app(scope, receive, send_wrapper)
         except Exception as e:
@@ -282,10 +282,10 @@ class ObservabilityMiddleware:
         finally:
             # Record metrics
             duration = time.time() - start_time
-            
+
             self.request_counter.add(1, labels)
             self.request_duration.record(duration, labels)
-            
+
             if response_data:
                 self.response_size.record(sum(response_data), labels)
 
@@ -296,15 +296,15 @@ async def observability_health_check() -> Dict[str, Any]:
     try:
         tracer = get_tracer()
         meter = get_meter()
-        
+
         # Test trace creation
         with tracer.start_as_current_span("health_check_trace") as span:
             span.set_attribute("component", "observability")
-        
+
         # Test metric recording
         health_counter = meter.create_counter("observability_health_checks_total")
         health_counter.add(1, {"status": "healthy"})
-        
+
         return {
             "status": "healthy",
             "tracing": "enabled",

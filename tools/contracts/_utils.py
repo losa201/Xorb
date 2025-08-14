@@ -14,10 +14,10 @@ from typing import Any, Dict, List, Tuple
 def checkout_file_from_main(file_path: str) -> str:
     """
     Checkout a file from the main branch to a temporary location.
-    
+
     Args:
         file_path: Path to the file relative to repository root
-        
+
     Returns:
         Path to the temporary file containing the main branch version
     """
@@ -30,7 +30,7 @@ def checkout_file_from_main(file_path: str) -> str:
             text=True,
             cwd=os.path.dirname(os.path.abspath(__file__))
         )
-        
+
         if result.returncode == 0:
             temp_file.write(result.stdout)
             temp_file.flush()
@@ -43,7 +43,7 @@ def checkout_file_from_main(file_path: str) -> str:
                 text=True,
                 cwd=os.path.dirname(os.path.abspath(__file__))
             )
-            
+
             if result.returncode == 0:
                 temp_file.write(result.stdout)
                 temp_file.flush()
@@ -58,10 +58,10 @@ def checkout_file_from_main(file_path: str) -> str:
 def load_yaml_file(file_path: str) -> Dict[str, Any]:
     """
     Load a YAML file into a dictionary.
-    
+
     Args:
         file_path: Path to the YAML file
-        
+
     Returns:
         Dictionary representation of the YAML file
     """
@@ -72,10 +72,10 @@ def load_yaml_file(file_path: str) -> Dict[str, Any]:
 def load_json_file(file_path: str) -> Dict[str, Any]:
     """
     Load a JSON file into a dictionary.
-    
+
     Args:
         file_path: Path to the JSON file
-        
+
     Returns:
         Dictionary representation of the JSON file
     """
@@ -86,7 +86,7 @@ def load_json_file(file_path: str) -> Dict[str, Any]:
 def write_json_file(file_path: str, data: Dict[str, Any]) -> None:
     """
     Write data to a JSON file.
-    
+
     Args:
         file_path: Path to the JSON file
         data: Data to write
@@ -98,7 +98,7 @@ def write_json_file(file_path: str, data: Dict[str, Any]) -> None:
 def write_markdown_table(file_path: str, headers: List[str], rows: List[List[str]]) -> None:
     """
     Write a markdown table to a file.
-    
+
     Args:
         file_path: Path to the markdown file
         headers: Table headers
@@ -117,39 +117,39 @@ def write_markdown_table(file_path: str, headers: List[str], rows: List[List[str
 def format_breaking_changes_as_markdown(changes: List[Dict[str, Any]], title: str) -> str:
     """
     Format breaking changes as a markdown table.
-    
+
     Args:
         changes: List of breaking changes
         title: Title for the section
-        
+
     Returns:
         Markdown formatted string
     """
     if not changes:
         return f"## {title}\n\nNo breaking changes detected.\n"
-    
+
     markdown = f"## {title}\n\n"
     markdown += "| What | Where | Why | Suggested Fix |\n"
     markdown += "|------|-------|-----|---------------|\n"
-    
+
     for change in changes:
         what = change.get('what', '')
         where = change.get('where', '')
         why = change.get('why', '')
         fix = change.get('fix', '')
         markdown += f"| {what} | {where} | {why} | {fix} |\n"
-    
+
     return markdown
 
 
 def git_diff_files(file1: str, file2: str) -> bool:
     """
     Check if two files are different using git diff.
-    
+
     Args:
         file1: Path to first file
         file2: Path to second file
-        
+
     Returns:
         True if files are different, False otherwise
     """

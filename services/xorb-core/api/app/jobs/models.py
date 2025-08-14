@@ -52,29 +52,29 @@ class JobDefinition(BaseModel):
     id: UUID = Field(default_factory=uuid4)
     job_type: JobType
     priority: JobPriority = JobPriority.NORMAL
-    
+
     # Execution parameters
     payload: Dict[str, Any] = Field(default_factory=dict)
     queue_name: str = "default"
-    
+
     # Scheduling
     scheduled_at: Optional[datetime] = None
     delay_seconds: int = 0
-    
+
     # Retry configuration
     retry_policy: RetryPolicy = Field(default_factory=RetryPolicy)
-    
+
     # Idempotency
     idempotency_key: Optional[str] = None
-    
+
     # Tenant context
     tenant_id: Optional[UUID] = None
     user_id: Optional[str] = None
-    
+
     # Metadata
     tags: List[str] = Field(default_factory=list)
     custom_metadata: Dict[str, str] = Field(default_factory=dict)
-    
+
     # Timeouts
     execution_timeout: int = 300  # 5 minutes
     queue_timeout: int = 3600  # 1 hour
@@ -86,25 +86,25 @@ class JobExecution(BaseModel):
     job_id: UUID
     attempt: int = 1
     status: JobStatus = JobStatus.PENDING
-    
+
     # Timing
     created_at: datetime = Field(default_factory=datetime.utcnow)
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    
+
     # Worker information
     worker_id: Optional[str] = None
     worker_hostname: Optional[str] = None
-    
+
     # Results
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
     traceback: Optional[str] = None
-    
+
     # Progress tracking
     progress: int = 0  # 0-100
     progress_message: Optional[str] = None
-    
+
     # Metrics
     duration_seconds: Optional[float] = None
     memory_usage_mb: Optional[float] = None
@@ -116,7 +116,7 @@ class JobResult(BaseModel):
     success: bool
     result: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
-    
+
     # Progress and metrics
     progress: int = 100
     progress_message: Optional[str] = None
@@ -176,22 +176,22 @@ class JobScheduleRequest(BaseModel):
     payload: Dict[str, Any] = Field(default_factory=dict)
     priority: JobPriority = JobPriority.NORMAL
     queue_name: str = "default"
-    
+
     # Scheduling options
     delay_seconds: int = 0
     scheduled_at: Optional[datetime] = None
-    
+
     # Idempotency
     idempotency_key: Optional[str] = None
-    
+
     # Context
     tenant_id: Optional[UUID] = None
     user_id: Optional[str] = None
-    
+
     # Configuration overrides
     retry_policy: Optional[RetryPolicy] = None
     execution_timeout: Optional[int] = None
-    
+
     # Metadata
     tags: List[str] = Field(default_factory=list)
     custom_metadata: Dict[str, str] = Field(default_factory=dict)

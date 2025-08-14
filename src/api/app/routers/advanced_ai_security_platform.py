@@ -83,20 +83,20 @@ async def analyze_threats(
 ):
     """
     Perform comprehensive AI-powered threat analysis
-    
+
     Analyzes threat indicators using advanced machine learning models,
     threat intelligence correlation, and behavioral analytics.
     """
     try:
         # Get threat intelligence service
         threat_intel_service = await get_advanced_threat_intelligence()
-        
+
         # Perform analysis
         analysis_result = await threat_intel_service.analyze_indicators(
             indicators=request.indicators,
             context=request.context
         )
-        
+
         # Add attribution analysis if requested
         if request.include_attribution:
             attribution_engine = await get_threat_attribution_engine()
@@ -105,7 +105,7 @@ async def analyze_threats(
                 context=request.context
             )
             analysis_result["attribution"] = attribution_result
-        
+
         # Add tracing
         add_trace_context(
             operation="ai_threat_analysis",
@@ -113,11 +113,11 @@ async def analyze_threats(
             indicators_count=len(request.indicators),
             analysis_depth=request.analysis_depth
         )
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ai_threat_analysis", 1)
-        
+
         return {
             "analysis_id": analysis_result.get("analysis_id"),
             "threat_level": analysis_result.get("threat_level"),
@@ -129,7 +129,7 @@ async def analyze_threats(
             "recommendations": analysis_result.get("recommendations", []),
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Threat analysis failed: {e}")
         raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
@@ -141,7 +141,7 @@ async def get_threat_intelligence_status():
     try:
         threat_intel_service = await get_advanced_threat_intelligence()
         status = await threat_intel_service.health_check()
-        
+
         return {
             "service_status": status.status.value,
             "ml_models_available": status.checks.get("ml_models_available", False),
@@ -155,7 +155,7 @@ async def get_threat_intelligence_status():
             ],
             "last_updated": status.timestamp.isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Status check failed: {e}")
         raise HTTPException(status_code=500, detail="Status check failed")
@@ -173,7 +173,7 @@ async def create_security_segment(
     """
     try:
         microseg_service = await get_microsegmentation_service()
-        
+
         # Map string zone type to enum
         from ..services.advanced_network_microsegmentation import NetworkZone
         zone_mapping = {
@@ -184,9 +184,9 @@ async def create_security_segment(
             "iot": NetworkZone.IOT,
             "management": NetworkZone.MANAGEMENT
         }
-        
+
         zone = zone_mapping.get(request.zone_type.lower(), NetworkZone.INTERNAL)
-        
+
         # Create segment
         segment = await microseg_service.create_security_segment(
             name=request.segment_name,
@@ -195,7 +195,7 @@ async def create_security_segment(
             security_level=request.security_level,
             isolation_level=request.isolation_level
         )
-        
+
         return {
             "segment_id": segment.segment_id,
             "name": segment.name,
@@ -205,7 +205,7 @@ async def create_security_segment(
             "created_at": segment.created_at.isoformat(),
             "policies_created": len(segment.policies)
         }
-        
+
     except Exception as e:
         logger.error(f"Segment creation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Segment creation failed: {str(e)}")
@@ -221,9 +221,9 @@ async def analyze_network_flow(
     """
     try:
         microseg_service = await get_microsegmentation_service()
-        
+
         analysis_result = await microseg_service.analyze_network_flow(flow_data)
-        
+
         return {
             "flow_id": analysis_result.get("flow_id"),
             "action": analysis_result.get("action"),
@@ -232,7 +232,7 @@ async def analyze_network_flow(
             "recommendations": analysis_result.get("recommendations", []),
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Flow analysis failed: {e}")
         raise HTTPException(status_code=500, detail=f"Flow analysis failed: {str(e)}")
@@ -251,12 +251,12 @@ async def quantum_safe_encrypt(
     try:
         if request.operation != "encrypt":
             raise HTTPException(status_code=400, detail="Invalid operation for encryption endpoint")
-        
+
         if not request.data:
             raise HTTPException(status_code=400, detail="Data required for encryption")
-        
+
         crypto_service = await get_quantum_crypto_service()
-        
+
         # Map algorithm string to enum
         from ..services.quantum_safe_cryptography import CryptoAlgorithm
         algorithm_mapping = {
@@ -264,11 +264,11 @@ async def quantum_safe_encrypt(
             "aes_256_gcm": CryptoAlgorithm.AES_256_GCM,
             "chacha20_poly1305": CryptoAlgorithm.CHACHA20_POLY1305
         }
-        
+
         algorithm = algorithm_mapping.get(request.algorithm.lower())
         if not algorithm:
             raise HTTPException(status_code=400, detail=f"Unsupported algorithm: {request.algorithm}")
-        
+
         # Encrypt data
         data_bytes = request.data.encode('utf-8')
         result = await crypto_service.encrypt_data(
@@ -276,7 +276,7 @@ async def quantum_safe_encrypt(
             key_id=request.key_id,
             algorithm=algorithm
         )
-        
+
         return {
             "encryption_id": str(uuid.uuid4()),
             "algorithm": result.algorithm.value,
@@ -286,7 +286,7 @@ async def quantum_safe_encrypt(
             "tag": base64.b64encode(result.tag).decode('utf-8') if result.tag else None,
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Encryption failed: {e}")
         raise HTTPException(status_code=500, detail=f"Encryption failed: {str(e)}")
@@ -302,19 +302,19 @@ async def quantum_key_exchange(
     """
     try:
         crypto_service = await get_quantum_crypto_service()
-        
+
         # Map algorithm
         from ..services.quantum_safe_cryptography import CryptoAlgorithm
         algo_map = {
             "kyber_1024": CryptoAlgorithm.KYBER_1024,
             "ecdsa_p384": CryptoAlgorithm.ECDSA_P384
         }
-        
+
         crypto_algorithm = algo_map.get(algorithm.lower(), CryptoAlgorithm.KYBER_1024)
-        
+
         # Perform key exchange
         shared_secret, encapsulated_key = await crypto_service.perform_key_exchange(crypto_algorithm)
-        
+
         return {
             "key_exchange_id": str(uuid.uuid4()),
             "algorithm": algorithm,
@@ -322,7 +322,7 @@ async def quantum_key_exchange(
             "encapsulated_key": base64.b64encode(encapsulated_key).decode('utf-8'),
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Key exchange failed: {e}")
         raise HTTPException(status_code=500, detail=f"Key exchange failed: {str(e)}")
@@ -340,7 +340,7 @@ async def create_forensic_case(
     """
     try:
         forensics_service = await get_forensics_engine()
-        
+
         # Map priority string to enum
         from ..services.advanced_forensics_engine import ForensicPriority
         priority_map = {
@@ -349,16 +349,16 @@ async def create_forensic_case(
             "medium": ForensicPriority.MEDIUM,
             "low": ForensicPriority.LOW
         }
-        
+
         priority = priority_map.get(request.priority.lower(), ForensicPriority.MEDIUM)
-        
+
         case = await forensics_service.create_forensic_case(
             case_name=request.case_name,
             description=request.description,
             incident_type=request.incident_type,
             priority=priority
         )
-        
+
         return {
             "case_id": case.case_id,
             "case_name": case.case_name,
@@ -368,7 +368,7 @@ async def create_forensic_case(
             "created_at": case.created_at.isoformat(),
             "investigator": case.investigator
         }
-        
+
     except Exception as e:
         logger.error(f"Forensic case creation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Case creation failed: {str(e)}")
@@ -387,7 +387,7 @@ async def acquire_evidence(
     """
     try:
         forensics_service = await get_forensics_engine()
-        
+
         # Map evidence type
         from ..services.advanced_forensics_engine import EvidenceType
         type_map = {
@@ -397,11 +397,11 @@ async def acquire_evidence(
             "log_files": EvidenceType.LOG_FILES,
             "browser_artifacts": EvidenceType.BROWSER_ARTIFACTS
         }
-        
+
         ev_type = type_map.get(evidence_type.lower())
         if not ev_type:
             raise HTTPException(status_code=400, detail=f"Invalid evidence type: {evidence_type}")
-        
+
         # Handle file upload if provided
         file_path = None
         if file:
@@ -411,14 +411,14 @@ async def acquire_evidence(
                 content = await file.read()
                 tmp_file.write(content)
                 file_path = tmp_file.name
-        
+
         evidence = await forensics_service.acquire_evidence(
             case_id=case_id,
             evidence_type=ev_type,
             source_location=source_location,
             file_path=file_path
         )
-        
+
         return {
             "evidence_id": evidence.evidence_id,
             "case_id": evidence.case_id,
@@ -428,7 +428,7 @@ async def acquire_evidence(
             "integrity_verified": evidence.integrity_verified,
             "file_hash_sha256": evidence.file_hash_sha256
         }
-        
+
     except Exception as e:
         logger.error(f"Evidence acquisition failed: {e}")
         raise HTTPException(status_code=500, detail=f"Evidence acquisition failed: {str(e)}")
@@ -445,24 +445,24 @@ async def analyze_malware(
     """
     try:
         forensics_service = await get_forensics_engine()
-        
+
         # Save uploaded file for analysis
         import tempfile
         with tempfile.NamedTemporaryFile(delete=False, suffix=".malware") as tmp_file:
             content = await file.read()
             tmp_file.write(content)
             file_path = tmp_file.name
-        
+
         # Perform malware analysis
         result = await forensics_service.analyze_malware_sample(
             file_path=file_path,
             case_id=case_id
         )
-        
+
         # Clean up temporary file
         import os
         os.unlink(file_path)
-        
+
         return {
             "analysis_id": str(uuid.uuid4()),
             "sample_hash": result.sample_hash,
@@ -476,7 +476,7 @@ async def analyze_malware(
             "file_indicators": result.file_indicators,
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Malware analysis failed: {e}")
         raise HTTPException(status_code=500, detail=f"Malware analysis failed: {str(e)}")
@@ -494,7 +494,7 @@ async def create_red_team_operation(
     """
     try:
         red_team_service = await get_sophisticated_red_team_agent()
-        
+
         # Create operation configuration
         operation_config = {
             "name": request.operation_name,
@@ -504,10 +504,10 @@ async def create_red_team_operation(
             "defensive_focus": request.defensive_focus,
             "tenant_id": str(tenant_id)
         }
-        
+
         # Execute operation
         operation_result = await red_team_service.execute_red_team_operation(operation_config)
-        
+
         return {
             "operation_id": operation_result.get("operation_id"),
             "status": operation_result.get("status"),
@@ -517,7 +517,7 @@ async def create_red_team_operation(
             "defensive_insights": operation_result.get("defensive_insights", []),
             "started_at": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Red team operation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Operation failed: {str(e)}")
@@ -533,40 +533,40 @@ async def get_platform_status():
     try:
         # Check all service health
         services_status = {}
-        
+
         try:
             threat_intel = await get_advanced_threat_intelligence()
             services_status["threat_intelligence"] = await threat_intel.health_check()
         except:
             services_status["threat_intelligence"] = {"status": "unavailable"}
-        
+
         try:
             microseg = await get_microsegmentation_service()
             services_status["microsegmentation"] = await microseg.health_check()
         except:
             services_status["microsegmentation"] = {"status": "unavailable"}
-        
+
         try:
             crypto = await get_quantum_crypto_service()
             services_status["quantum_crypto"] = await crypto.health_check()
         except:
             services_status["quantum_crypto"] = {"status": "unavailable"}
-        
+
         try:
             forensics = await get_forensics_engine()
             services_status["forensics"] = await forensics.health_check()
         except:
             services_status["forensics"] = {"status": "unavailable"}
-        
+
         # Calculate overall platform health
-        healthy_services = sum(1 for s in services_status.values() 
+        healthy_services = sum(1 for s in services_status.values()
                              if getattr(s, 'status', {}).get('value') == 'healthy')
         total_services = len(services_status)
-        
+
         platform_health = "healthy" if healthy_services == total_services else "degraded"
         if healthy_services == 0:
             platform_health = "unhealthy"
-        
+
         return {
             "platform_health": platform_health,
             "services_healthy": f"{healthy_services}/{total_services}",
@@ -579,7 +579,7 @@ async def get_platform_status():
             },
             "capabilities": [
                 "ai_threat_intelligence",
-                "network_microsegmentation", 
+                "network_microsegmentation",
                 "quantum_safe_cryptography",
                 "digital_forensics",
                 "red_team_operations",
@@ -588,7 +588,7 @@ async def get_platform_status():
             ],
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Platform status check failed: {e}")
         raise HTTPException(status_code=500, detail="Platform status check failed")

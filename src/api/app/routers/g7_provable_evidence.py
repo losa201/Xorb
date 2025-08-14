@@ -100,27 +100,27 @@ async def create_evidence(
     evidence_service: ProvableEvidenceService = Depends(get_provable_evidence_service)
 ):
     """Create new cryptographically signed provable evidence."""
-    
+
     try:
         # Read uploaded content
         content = await content_file.read()
-        
+
         if len(content) == 0:
             raise HTTPException(status_code=400, detail="Evidence content cannot be empty")
-        
+
         if len(content) > 100 * 1024 * 1024:  # 100MB limit
             raise HTTPException(status_code=400, detail="Evidence content too large (max 100MB)")
-        
+
         # Validate evidence type and format
         try:
             evidence_type = EvidenceType(request.evidence_type)
         except ValueError:
             valid_types = [t.value for t in EvidenceType]
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Invalid evidence_type. Must be one of: {valid_types}"
             )
-        
+
         try:
             format = EvidenceFormat(request.format)
         except ValueError:
@@ -129,7 +129,7 @@ async def create_evidence(
                 status_code=400,
                 detail=f"Invalid format. Must be one of: {valid_formats}"
             )
-        
+
         # Create provable evidence
         evidence = await evidence_service.create_evidence(
             tenant_id=tenant_id,
@@ -142,7 +142,7 @@ async def create_evidence(
             source_user=request.source_user,
             tags=request.tags or []
         )
-        
+
         # Schedule background verification
         background_tasks.add_task(
             _background_verification,
@@ -150,7 +150,7 @@ async def create_evidence(
             evidence.metadata.evidence_id,
             tenant_id
         )
-        
+
         # Return response
         return EvidenceResponse(
             evidence_id=evidence.metadata.evidence_id,
@@ -167,7 +167,7 @@ async def create_evidence(
             storage_references=evidence.storage_references,
             tags=evidence.metadata.tags
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -181,14 +181,14 @@ async def get_evidence(
     evidence_service: ProvableEvidenceService = Depends(get_provable_evidence_service)
 ):
     """Get evidence metadata and verification status."""
-    
+
     evidence = await evidence_service.get_evidence(tenant_id, evidence_id)
     if not evidence:
         raise HTTPException(status_code=404, detail="Evidence not found")
-    
+
     # Verify evidence integrity
     verification = await evidence_service.verify_evidence(evidence)
-    
+
     return EvidenceResponse(
         evidence_id=evidence.metadata.evidence_id,
         tenant_id=evidence.metadata.tenant_id,
@@ -215,27 +215,27 @@ async def download_evidence_content(
     evidence_service: ProvableEvidenceService = Depends(get_provable_evidence_service)
 ):
     """Download the actual evidence content."""
-    
+
     evidence = await evidence_service.get_evidence(tenant_id, evidence_id)
     if not evidence:
         raise HTTPException(status_code=404, detail="Evidence not found")
-    
+
     # Create file-like object for streaming
     content_stream = io.BytesIO(evidence.content)
-    
+
     # Determine media type based on format
     media_type_map = {
         EvidenceFormat.JSON: "application/json",
-        EvidenceFormat.XML: "application/xml", 
+        EvidenceFormat.XML: "application/xml",
         EvidenceFormat.PCAP: "application/vnd.tcpdump.pcap",
         EvidenceFormat.TAR_GZ: "application/gzip",
         EvidenceFormat.PDF: "application/pdf",
         EvidenceFormat.BINARY: "application/octet-stream"
     }
-    
+
     media_type = media_type_map.get(evidence.metadata.format, "application/octet-stream")
     filename = f"{evidence_id}.{evidence.metadata.format.value}"
-    
+
     return StreamingResponse(
         io.BytesIO(evidence.content),
         media_type=media_type,
@@ -255,13 +255,13 @@ async def verify_evidence(
     evidence_service: ProvableEvidenceService = Depends(get_provable_evidence_service)
 ):
     """Verify cryptographic integrity of evidence."""
-    
+
     evidence = await evidence_service.get_evidence(tenant_id, evidence_id)
     if not evidence:
         raise HTTPException(status_code=404, detail="Evidence not found")
-    
+
     verification = await evidence_service.verify_evidence(evidence)
-    
+
     return VerificationResponse(
         evidence_id=verification["evidence_id"],
         tenant_id=verification["tenant_id"],
@@ -278,11 +278,11 @@ async def get_chain_of_custody(
     evidence_service: ProvableEvidenceService = Depends(get_provable_evidence_service)
 ):
     """Get complete chain of custody for evidence."""
-    
+
     evidence = await evidence_service.get_evidence(tenant_id, evidence_id)
     if not evidence:
         raise HTTPException(status_code=404, detail="Evidence not found")
-    
+
     return [
         ChainOfCustodyResponse(
             timestamp=entry.timestamp,
@@ -304,28 +304,28 @@ async def export_evidence_package(
     evidence_service: ProvableEvidenceService = Depends(get_provable_evidence_service)
 ):
     """Export complete evidence package for legal proceedings."""
-    
+
     evidence = await evidence_service.get_evidence(tenant_id, evidence_id)
     if not evidence:
         raise HTTPException(status_code=404, detail="Evidence not found")
-    
+
     # Create exportable package
     package = evidence.to_dict()
-    
+
     if include_content:
         # Include base64-encoded content for complete package
         import base64
         package["content_base64"] = base64.b64encode(evidence.content).decode('utf-8')
-    
+
     # Add verification at export time
     verification = await evidence_service.verify_evidence(evidence)
     package["export_verification"] = verification
     package["exported_at"] = datetime.utcnow().isoformat()
     package["exported_by"] = f"tenant_{tenant_id}"
-    
+
     # Convert to JSON
     package_json = json.dumps(package, indent=2, default=str)
-    
+
     return StreamingResponse(
         io.BytesIO(package_json.encode('utf-8')),
         media_type="application/json",
@@ -346,35 +346,35 @@ async def list_tenant_evidence(
     evidence_service: ProvableEvidenceService = Depends(get_provable_evidence_service)
 ):
     """List all evidence for a tenant."""
-    
+
     # Authorization check - can only list own evidence
     if tenant_id != current_tenant:
         raise HTTPException(status_code=403, detail="Cannot access other tenant's evidence")
-    
+
     # In a real implementation, this would query a database
     # For now, scan filesystem (not efficient for production)
     import os
     from pathlib import Path
-    
+
     evidence_dir = evidence_service.storage_path / tenant_id
     if not evidence_dir.exists():
         return {"evidence": [], "total": 0}
-    
+
     evidence_files = list(evidence_dir.glob("*_evidence.json"))
-    
+
     # Apply filtering and pagination (basic implementation)
     evidence_list = []
     for evidence_file in evidence_files[skip:skip+limit]:
         try:
             with open(evidence_file, 'r') as f:
                 evidence_data = json.load(f)
-            
+
             metadata = evidence_data.get("metadata", {})
-            
+
             # Filter by evidence type if specified
             if evidence_type and metadata.get("evidence_type") != evidence_type:
                 continue
-            
+
             evidence_list.append({
                 "evidence_id": metadata.get("evidence_id"),
                 "evidence_type": metadata.get("evidence_type"),
@@ -383,10 +383,10 @@ async def list_tenant_evidence(
                 "size_bytes": metadata.get("size_bytes"),
                 "source_system": metadata.get("source_system")
             })
-            
+
         except Exception:
             continue
-    
+
     return {
         "evidence": evidence_list,
         "total": len(evidence_files),
@@ -417,7 +417,7 @@ async def provable_evidence_health():
     """Health check for provable evidence service."""
     try:
         service = get_provable_evidence_service()
-        
+
         # Basic service checks
         checks = {
             "service_initialized": service is not None,
@@ -426,9 +426,9 @@ async def provable_evidence_health():
             "storage_path_exists": service.storage_path.exists(),
             "ipfs_available": service.ipfs_client is not None
         }
-        
+
         all_healthy = all(checks.values())
-        
+
         return {
             "status": "healthy" if all_healthy else "degraded",
             "service": "G7 Provable Evidence",
@@ -436,7 +436,7 @@ async def provable_evidence_health():
             "checks": checks,
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         return {
             "status": "unhealthy",

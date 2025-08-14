@@ -92,7 +92,7 @@ security_bearer = HTTPBearer()
 
 class AdvancedSecurityHardening:
     """Advanced zero-trust security hardening system"""
-    
+
     def __init__(self):
         self.security_rules: Dict[str, SecurityRule] = {}
         self.active_policies: Set[SecurityPolicy] = set()
@@ -100,13 +100,13 @@ class AdvancedSecurityHardening:
         self.security_assessments: List[SecurityAssessment] = []
         self.applied_remediations: List[RemediationAction] = []
         self.api_keys: Dict[str, Dict] = {}
-        
+
         # Initialize security rules
         self._initialize_security_rules()
-        
+
         # Apply default hardening
         self._apply_default_hardening()
-        
+
     def _initialize_security_rules(self):
         """Initialize comprehensive security rules"""
         rules_data = [
@@ -120,7 +120,7 @@ class AdvancedSecurityHardening:
                 "compliance_mappings": ["SOC2", "ISO27001", "NIST"]
             },
             {
-                "rule_id": "AC-002", 
+                "rule_id": "AC-002",
                 "name": "Password Complexity Requirements",
                 "description": "Enforce strong password policies with minimum complexity",
                 "policy_type": SecurityPolicy.ACCESS_CONTROL,
@@ -135,7 +135,7 @@ class AdvancedSecurityHardening:
                 "severity": "MEDIUM",
                 "compliance_mappings": ["SOC2"]
             },
-            
+
             # Encryption Rules
             {
                 "rule_id": "EN-001",
@@ -161,7 +161,7 @@ class AdvancedSecurityHardening:
                 "severity": "HIGH",
                 "compliance_mappings": ["SOC2", "ISO27001"]
             },
-            
+
             # Network Security Rules
             {
                 "rule_id": "NS-001",
@@ -187,7 +187,7 @@ class AdvancedSecurityHardening:
                 "severity": "MEDIUM",
                 "compliance_mappings": ["SOC2", "ISO27001"]
             },
-            
+
             # Endpoint Protection Rules
             {
                 "rule_id": "EP-001",
@@ -213,7 +213,7 @@ class AdvancedSecurityHardening:
                 "severity": "HIGH",
                 "compliance_mappings": ["NIST"]
             },
-            
+
             # Data Protection Rules
             {
                 "rule_id": "DP-001",
@@ -239,7 +239,7 @@ class AdvancedSecurityHardening:
                 "severity": "HIGH",
                 "compliance_mappings": ["SOC2", "ISO27001"]
             },
-            
+
             # Monitoring Rules
             {
                 "rule_id": "MN-001",
@@ -266,7 +266,7 @@ class AdvancedSecurityHardening:
                 "compliance_mappings": ["NIST"]
             }
         ]
-        
+
         for rule_data in rules_data:
             rule = SecurityRule(
                 rule_id=rule_data["rule_id"],
@@ -279,7 +279,7 @@ class AdvancedSecurityHardening:
                 compliance_mappings=rule_data["compliance_mappings"]
             )
             self.security_rules[rule.rule_id] = rule
-    
+
     def _apply_default_hardening(self):
         """Apply default hardening configuration"""
         default_config = HardeningConfig(
@@ -294,13 +294,13 @@ class AdvancedSecurityHardening:
             auto_remediation=True,
             notification_channels=["email", "webhook"]
         )
-        
+
         self.hardening_config = default_config
         self.active_policies = set(default_config.policies)
-        
+
         # Apply basic system hardening
         self._apply_system_hardening()
-    
+
     def _apply_system_hardening(self):
         """Apply system-level security hardening"""
         hardening_commands = [
@@ -308,22 +308,22 @@ class AdvancedSecurityHardening:
             ("systemctl disable --now telnet.socket", "Disable Telnet service"),
             ("systemctl disable --now rsh.socket", "Disable RSH service"),
             ("systemctl disable --now rlogin.socket", "Disable RLogin service"),
-            
+
             # Configure SSH hardening
             ("sed -i 's/#PermitRootLogin yes/PermitRootLogin no/' /etc/ssh/sshd_config", "Disable SSH root login"),
             ("sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config", "Disable SSH password auth"),
-            
+
             # Set secure file permissions
             ("chmod 600 /etc/ssh/sshd_config", "Secure SSH config permissions"),
             ("chmod 644 /etc/passwd", "Secure passwd file permissions"),
             ("chmod 640 /etc/shadow", "Secure shadow file permissions"),
-            
+
             # Configure firewall
             ("ufw --force enable", "Enable UFW firewall"),
             ("ufw default deny incoming", "Set default deny incoming"),
             ("ufw default allow outgoing", "Set default allow outgoing"),
         ]
-        
+
         applied_hardenings = []
         for command, description in hardening_commands:
             try:
@@ -342,13 +342,13 @@ class AdvancedSecurityHardening:
                     "error": str(e),
                     "timestamp": datetime.now().isoformat()
                 })
-        
+
         return applied_hardenings
-    
+
     async def perform_security_assessment(self) -> SecurityAssessment:
         """Perform comprehensive security assessment"""
         assessment_start = time.time()
-        
+
         # Calculate policy scores
         policy_scores = {}
         for policy in SecurityPolicy:
@@ -357,22 +357,22 @@ class AdvancedSecurityHardening:
             if not policy_rules:
                 policy_scores[policy.value] = 0.0
                 continue
-            
+
             # Calculate score based on enabled rules and severity
             total_weight = 0
             achieved_score = 0
-            
+
             for rule in policy_rules:
                 weight = 3 if rule.severity == "HIGH" else 2 if rule.severity == "MEDIUM" else 1
                 total_weight += weight
                 if rule.enabled:
                     achieved_score += weight
-            
+
             policy_scores[policy.value] = (achieved_score / total_weight) * 100 if total_weight > 0 else 0
-        
+
         # Calculate overall score
         overall_score = sum(policy_scores.values()) / len(policy_scores) if policy_scores else 0
-        
+
         # Identify vulnerabilities
         vulnerabilities = []
         for rule in self.security_rules.values():
@@ -384,7 +384,7 @@ class AdvancedSecurityHardening:
                     "description": rule.description,
                     "impact": "High security risk if not addressed"
                 })
-        
+
         # Generate recommendations
         recommendations = []
         if overall_score < 80:
@@ -395,23 +395,23 @@ class AdvancedSecurityHardening:
             recommendations.append("Enhance encryption standards - upgrade to latest cryptographic protocols")
         if policy_scores.get("monitoring", 0) < 75:
             recommendations.append("Improve security monitoring - deploy additional detection capabilities")
-        
+
         # Check compliance status
         compliance_status = {}
         for standard in ComplianceStandard:
             # Count compliant rules for this standard
             total_rules = 0
             compliant_rules = 0
-            
+
             for rule in self.security_rules.values():
                 if standard.value.upper() in [cm.upper() for cm in rule.compliance_mappings]:
                     total_rules += 1
                     if rule.enabled:
                         compliant_rules += 1
-            
+
             compliance_percentage = (compliant_rules / total_rules) * 100 if total_rules > 0 else 100
             compliance_status[standard.value] = compliance_percentage >= 85
-        
+
         assessment = SecurityAssessment(
             assessment_id=f"assessment_{int(time.time())}_{len(self.security_assessments)}",
             timestamp=datetime.now().isoformat(),
@@ -421,31 +421,31 @@ class AdvancedSecurityHardening:
             recommendations=recommendations,
             compliance_status=compliance_status
         )
-        
+
         self.security_assessments.append(assessment)
         return assessment
-    
+
     async def generate_remediation_plan(self, assessment_id: str) -> List[RemediationAction]:
         """Generate automated remediation plan"""
         assessment = next((a for a in self.security_assessments if a.assessment_id == assessment_id), None)
         if not assessment:
             raise HTTPException(status_code=404, detail="Assessment not found")
-        
+
         remediation_actions = []
-        
+
         # Generate actions for identified vulnerabilities
         for vuln in assessment.vulnerabilities:
             rule = self.security_rules.get(vuln["rule_id"])
             if not rule:
                 continue
-            
+
             action_type = "enable_rule"
             description = f"Enable security rule: {rule.name}"
             auto_apply = self.hardening_config.auto_remediation if self.hardening_config else False
             requires_restart = rule.policy_type in [SecurityPolicy.NETWORK_SECURITY, SecurityPolicy.ENDPOINT_PROTECTION]
             risk_level = "LOW" if rule.severity == "LOW" else "MEDIUM" if rule.severity == "MEDIUM" else "HIGH"
             estimated_time = 5 if rule.severity == "LOW" else 15 if rule.severity == "MEDIUM" else 30
-            
+
             action = RemediationAction(
                 action_id=f"remediation_{int(time.time())}_{len(remediation_actions)}",
                 rule_id=rule.rule_id,
@@ -456,9 +456,9 @@ class AdvancedSecurityHardening:
                 risk_level=risk_level,
                 estimated_time=estimated_time
             )
-            
+
             remediation_actions.append(action)
-        
+
         # Add policy-specific remediations based on low scores
         for policy, score in assessment.policy_scores.items():
             if score < 70:
@@ -475,7 +475,7 @@ class AdvancedSecurityHardening:
                         estimated_time=60
                     )
                     remediation_actions.append(action)
-                
+
                 if policy == "encryption" and score < 70:
                     action = RemediationAction(
                         action_id=f"remediation_{int(time.time())}_{len(remediation_actions)}",
@@ -488,9 +488,9 @@ class AdvancedSecurityHardening:
                         estimated_time=120
                     )
                     remediation_actions.append(action)
-        
+
         return remediation_actions
-    
+
     async def apply_remediation_action(self, action_id: str, force: bool = False) -> Dict:
         """Apply specific remediation action"""
         # Find the action (this would typically be stored)
@@ -504,14 +504,14 @@ class AdvancedSecurityHardening:
             risk_level="MEDIUM",
             estimated_time=15
         )
-        
+
         if not action.auto_apply and not force:
             return {
                 "status": "manual_approval_required",
                 "message": "This action requires manual approval due to its risk level",
                 "action": action.dict()
             }
-        
+
         # Apply the remediation
         try:
             # Simulate applying the action
@@ -520,28 +520,28 @@ class AdvancedSecurityHardening:
                 if rule:
                     rule.enabled = True
                     rule.last_updated = datetime.now()
-            
+
             self.applied_remediations.append(action)
-            
+
             return {
                 "status": "applied",
                 "message": f"Remediation action {action_id} applied successfully",
                 "requires_restart": action.requires_restart,
                 "applied_at": datetime.now().isoformat()
             }
-            
+
         except Exception as e:
             return {
                 "status": "failed",
                 "message": f"Failed to apply remediation: {str(e)}",
                 "error": str(e)
             }
-    
+
     def generate_api_key(self, description: str, permissions: List[str]) -> Dict:
         """Generate secure API key"""
         key_id = f"xorb_key_{int(time.time())}"
         api_key = hashlib.sha256(f"{key_id}_{description}_{time.time()}".encode()).hexdigest()
-        
+
         key_data = {
             "key_id": key_id,
             "api_key": api_key,
@@ -552,27 +552,27 @@ class AdvancedSecurityHardening:
             "usage_count": 0,
             "active": True
         }
-        
+
         self.api_keys[api_key] = key_data
         return key_data
-    
+
     def validate_api_key(self, api_key: str) -> Optional[Dict]:
         """Validate API key"""
         key_data = self.api_keys.get(api_key)
         if not key_data or not key_data["active"]:
             return None
-        
+
         # Update usage statistics
         key_data["last_used"] = datetime.now().isoformat()
         key_data["usage_count"] += 1
-        
+
         return key_data
-    
+
     def get_hardening_summary(self) -> Dict:
         """Get comprehensive hardening summary"""
         enabled_rules = sum(1 for rule in self.security_rules.values() if rule.enabled)
         total_rules = len(self.security_rules)
-        
+
         policy_status = {}
         for policy in SecurityPolicy:
             policy_rules = [rule for rule in self.security_rules.values() if rule.policy_type == policy]
@@ -582,7 +582,7 @@ class AdvancedSecurityHardening:
                 "enabled_rules": len(enabled_policy_rules),
                 "compliance_percentage": (len(enabled_policy_rules) / len(policy_rules)) * 100 if policy_rules else 0
             }
-        
+
         return {
             "hardening_level": self.hardening_config.hardening_level.value if self.hardening_config else "none",
             "overall_compliance": (enabled_rules / total_rules) * 100 if total_rules > 0 else 0,
@@ -603,11 +603,11 @@ async def verify_api_key(credentials: HTTPAuthorizationCredentials = Security(se
     """Verify API key for secure endpoints"""
     if not credentials:
         raise HTTPException(status_code=401, detail="Authentication required")
-    
+
     key_data = hardening_system.validate_api_key(credentials.credentials)
     if not key_data:
         raise HTTPException(status_code=401, detail="Invalid or expired API key")
-    
+
     return key_data
 
 @app.post("/hardening/configure")
@@ -615,7 +615,7 @@ async def configure_hardening(config: HardeningConfig, key_data: Dict = Depends(
     """Configure security hardening settings"""
     hardening_system.hardening_config = config
     hardening_system.active_policies = set(config.policies)
-    
+
     # Apply configuration changes
     for rule in hardening_system.security_rules.values():
         if rule.policy_type in config.policies:
@@ -624,9 +624,9 @@ async def configure_hardening(config: HardeningConfig, key_data: Dict = Depends(
             rule.enabled = True
         elif config.hardening_level == HardeningLevel.BASIC and rule.severity == "HIGH":
             rule.enabled = True
-        
+
         rule.last_updated = datetime.now()
-    
+
     return {
         "status": "configured",
         "hardening_level": config.hardening_level,
@@ -670,10 +670,10 @@ async def apply_remediation(action_id: str, force: bool = False, key_data: Dict 
 async def get_security_rules(policy: Optional[SecurityPolicy] = None, key_data: Dict = Depends(verify_api_key)):
     """Get security rules"""
     rules = list(hardening_system.security_rules.values())
-    
+
     if policy:
         rules = [rule for rule in rules if rule.policy_type == policy]
-    
+
     return {
         "total_rules": len(hardening_system.security_rules),
         "filtered_rules": len(rules),
@@ -697,7 +697,7 @@ async def create_api_key(description: str, permissions: List[str], key_data: Dic
     """Create new API key"""
     if "admin" not in key_data.get("permissions", []):
         raise HTTPException(status_code=403, detail="Admin permissions required")
-    
+
     new_key = hardening_system.generate_api_key(description, permissions)
     return {
         "message": "API key created successfully",
@@ -765,7 +765,7 @@ async def hardening_dashboard():
         <p>Zero-Trust Security Implementation & Automated Hardening</p>
         <div id="status">Loading security hardening system...</div>
     </div>
-    
+
     <!-- Authentication Form -->
     <div id="auth-form" class="auth-form">
         <h3>🔐 Secure Access Required</h3>
@@ -774,7 +774,7 @@ async def hardening_dashboard():
         <button onclick="authenticate()" class="auth-button">Authenticate</button>
         <div id="auth-status" style="margin-top: 10px; color: #8b949e;"></div>
     </div>
-    
+
     <!-- Main Dashboard (hidden until authenticated) -->
     <div id="main-dashboard" style="display: none;">
         <div class="dashboard-grid">
@@ -803,7 +803,7 @@ async def hardening_dashboard():
                     </div>
                 </div>
             </div>
-            
+
             <!-- Policy Compliance Card -->
             <div class="hardening-card">
                 <div class="card-header">
@@ -813,7 +813,7 @@ async def hardening_dashboard():
                     <div class="loading">Loading policy status...</div>
                 </div>
             </div>
-            
+
             <!-- Security Actions Card -->
             <div class="hardening-card">
                 <div class="card-header">
@@ -826,7 +826,7 @@ async def hardening_dashboard():
                 </div>
                 <div id="action-status" style="margin-top: 15px; color: #8b949e;"></div>
             </div>
-            
+
             <!-- Security Rules Card -->
             <div class="hardening-card">
                 <div class="card-header">
@@ -847,23 +847,23 @@ async def hardening_dashboard():
             </div>
         </div>
     </div>
-    
+
     <script>
         let apiKey = null;
         let currentRules = [];
-        
+
         async function authenticate() {
             const keyInput = document.getElementById('api-key-input');
             const statusDiv = document.getElementById('auth-status');
-            
+
             apiKey = keyInput.value.trim();
-            
+
             if (!apiKey) {
                 statusDiv.textContent = 'Please enter an API key';
                 statusDiv.style.color = '#f85149';
                 return;
             }
-            
+
             try {
                 // Test API key with a simple request
                 const response = await fetch('/hardening/summary', {
@@ -871,15 +871,15 @@ async def hardening_dashboard():
                         'Authorization': `Bearer ${apiKey}`
                     }
                 });
-                
+
                 if (response.ok) {
                     statusDiv.textContent = '✅ Authentication successful';
                     statusDiv.style.color = '#2ea043';
-                    
+
                     // Hide auth form and show dashboard
                     document.getElementById('auth-form').style.display = 'none';
                     document.getElementById('main-dashboard').style.display = 'block';
-                    
+
                     // Load dashboard data
                     await loadDashboardData();
                 } else {
@@ -890,30 +890,30 @@ async def hardening_dashboard():
                 // For demo, accept any key
                 statusDiv.textContent = '✅ Demo mode - Authentication bypassed';
                 statusDiv.style.color = '#d29922';
-                
+
                 document.getElementById('auth-form').style.display = 'none';
                 document.getElementById('main-dashboard').style.display = 'block';
-                
+
                 await loadDashboardData();
             }
         }
-        
+
         async function loadDashboardData() {
             try {
                 // Load hardening summary
                 const summaryResponse = await fetch('/hardening/summary');
                 const summary = await summaryResponse.json();
-                
+
                 document.getElementById('enabled-rules').textContent = summary.enabled_rules;
                 document.getElementById('total-rules').textContent = summary.total_rules;
                 document.getElementById('active-policies').textContent = summary.active_policies;
                 document.getElementById('assessments-count').textContent = summary.recent_assessments;
-                
+
                 // Update security score
                 const score = Math.round(summary.overall_compliance);
                 const scoreElement = document.getElementById('security-score');
                 scoreElement.textContent = score + '%';
-                
+
                 if (score >= 85) {
                     scoreElement.className = 'security-score score-excellent';
                 } else if (score >= 70) {
@@ -921,31 +921,31 @@ async def hardening_dashboard():
                 } else {
                     scoreElement.className = 'security-score score-poor';
                 }
-                
+
                 // Load policy compliance
                 updatePolicyCharts(summary.policy_status);
-                
+
                 // Load security rules
                 await loadSecurityRules();
-                
+
                 document.getElementById('status').textContent = `✅ Security Hardening Online - ${summary.hardening_level.toUpperCase()} Level`;
                 document.getElementById('status').style.color = '#2ea043';
-                
+
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
                 document.getElementById('status').textContent = '❌ Error Loading Data';
                 document.getElementById('status').style.color = '#f85149';
             }
         }
-        
+
         function updatePolicyCharts(policyStatus) {
             const container = document.getElementById('policy-charts');
             container.innerHTML = '';
-            
+
             Object.keys(policyStatus).forEach(policy => {
                 const status = policyStatus[policy];
                 const percentage = Math.round(status.compliance_percentage);
-                
+
                 const policyDiv = document.createElement('div');
                 policyDiv.className = 'policy-chart';
                 policyDiv.innerHTML = `
@@ -957,22 +957,22 @@ async def hardening_dashboard():
                         <div class="policy-fill" style="width: ${percentage}%"></div>
                     </div>
                 `;
-                
+
                 container.appendChild(policyDiv);
             });
         }
-        
+
         async function loadSecurityRules() {
             try {
                 const response = await fetch('/hardening/rules');
                 if (!response.ok) {
                     throw new Error('Failed to load rules');
                 }
-                
+
                 const data = await response.json();
                 currentRules = data.rules;
                 displayRules(currentRules);
-                
+
             } catch (error) {
                 // Demo data fallback
                 currentRules = [
@@ -1004,20 +1004,20 @@ async def hardening_dashboard():
                 displayRules(currentRules);
             }
         }
-        
+
         function displayRules(rules) {
             const container = document.getElementById('rules-list');
             container.innerHTML = '';
-            
+
             if (rules.length === 0) {
                 container.innerHTML = '<div class="loading">No rules found</div>';
                 return;
             }
-            
+
             rules.forEach(rule => {
                 const ruleDiv = document.createElement('div');
                 ruleDiv.className = `rule-item ${rule.enabled ? 'rule-enabled' : 'rule-disabled'}`;
-                
+
                 ruleDiv.innerHTML = `
                     <div class="rule-header">
                         <span class="rule-name">${rule.name}</span>
@@ -1029,51 +1029,51 @@ async def hardening_dashboard():
                         ${rule.description}
                     </div>
                     <div style="font-size: 0.8em; color: #6e7681;">
-                        Policy: ${rule.policy_type.replace('_', ' ').toUpperCase()} | 
-                        Severity: ${rule.severity} | 
+                        Policy: ${rule.policy_type.replace('_', ' ').toUpperCase()} |
+                        Severity: ${rule.severity} |
                         Rule ID: ${rule.rule_id}
                     </div>
                 `;
-                
+
                 container.appendChild(ruleDiv);
             });
         }
-        
+
         function filterRules() {
             const filter = document.getElementById('policy-filter').value;
-            
+
             if (!filter) {
                 displayRules(currentRules);
                 return;
             }
-            
+
             const filteredRules = currentRules.filter(rule => rule.policy_type === filter);
             displayRules(filteredRules);
         }
-        
+
         async function performAssessment() {
             const statusDiv = document.getElementById('action-status');
             statusDiv.innerHTML = '🔄 Running security assessment...';
-            
+
             try {
                 // Simulate assessment
                 await new Promise(resolve => setTimeout(resolve, 2000));
-                
+
                 statusDiv.innerHTML = `
                     <strong>✅ Assessment Complete</strong><br>
                     Overall Score: 87% | Vulnerabilities: 3 | Recommendations: 5<br>
                     <button onclick="viewAssessmentDetails()" style="background: #0969da; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin-top: 5px;">View Details</button>
                 `;
-                
+
                 // Refresh dashboard
                 setTimeout(loadDashboardData, 1000);
-                
+
             } catch (error) {
                 statusDiv.innerHTML = '❌ Assessment failed: ' + error.message;
                 statusDiv.style.color = '#f85149';
             }
         }
-        
+
         function showHardeningConfig() {
             const statusDiv = document.getElementById('action-status');
             statusDiv.innerHTML = `
@@ -1088,44 +1088,44 @@ async def hardening_dashboard():
                 <button onclick="applyHardeningConfig()" style="background: #238636; border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; margin: 5px;">Apply</button>
             `;
         }
-        
+
         async function emergencyHardening() {
             if (!confirm('Emergency hardening will apply maximum security settings and may require system restart. Continue?')) {
                 return;
             }
-            
+
             const statusDiv = document.getElementById('action-status');
             statusDiv.innerHTML = '🚨 Applying emergency hardening...';
-            
+
             try {
                 // Simulate emergency hardening
                 await new Promise(resolve => setTimeout(resolve, 3000));
-                
+
                 statusDiv.innerHTML = `
                     <strong>🛡️ Emergency Hardening Applied</strong><br>
                     Security Level: MAXIMUM | Rules Enabled: 18/20<br>
                     <span style="color: #d29922;">⚠️ System restart recommended</span>
                 `;
-                
+
                 // Refresh dashboard
                 setTimeout(loadDashboardData, 1000);
-                
+
             } catch (error) {
                 statusDiv.innerHTML = '❌ Emergency hardening failed: ' + error.message;
                 statusDiv.style.color = '#f85149';
             }
         }
-        
+
         function applyHardeningConfig() {
             const statusDiv = document.getElementById('action-status');
             statusDiv.innerHTML = '✅ Hardening configuration applied successfully';
             setTimeout(loadDashboardData, 1000);
         }
-        
+
         function viewAssessmentDetails() {
             alert('Assessment Details:\\n\\nOverall Score: 87%\\nVulnerabilities: 3 high-risk items\\nRecommendations: 5 priority actions\\n\\nTop Issues:\\n- Network segmentation not fully implemented\\n- Some endpoints missing latest patches\\n- Backup encryption needs enhancement');
         }
-        
+
         // Auto-refresh dashboard every 30 seconds
         setInterval(() => {
             if (document.getElementById('main-dashboard').style.display !== 'none') {
@@ -1143,7 +1143,7 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "xorb_security_hardening",
-        "version": "7.0.0", 
+        "version": "7.0.0",
         "capabilities": [
             "Zero-Trust Security",
             "Automated Hardening",
@@ -1167,5 +1167,5 @@ if __name__ == "__main__":
     # Create default admin API key
     admin_key = hardening_system.generate_api_key("Default Admin Key", ["admin", "assess", "remediate"])
     print(f"Admin API Key: {admin_key['api_key']}")
-    
+
     uvicorn.run(app, host="0.0.0.0", port=9008)

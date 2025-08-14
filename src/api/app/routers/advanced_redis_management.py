@@ -32,7 +32,7 @@ class RedisHealthResponse(BaseModel):
     cache_hit_rate: float
     operations_per_second: float
     latency_ms: float
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -54,7 +54,7 @@ class CacheOptimizationRequest(BaseModel):
     optimization_strategy: str = Field("performance", description="Optimization strategy")
     time_horizon_hours: int = Field(24, ge=1, le=168, description="Analysis time horizon")
     dry_run: bool = Field(True, description="Whether to perform dry run")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -94,7 +94,7 @@ class PerformancePredictionRequest(BaseModel):
     time_horizon_hours: int = Field(24, ge=1, le=168)
     confidence_threshold: float = Field(0.7, ge=0.1, le=1.0)
     include_recommendations: bool = Field(True)
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -111,7 +111,7 @@ class CacheWarmupRequest(BaseModel):
     patterns: List[str] = Field(..., description="Key patterns to warm up")
     priority: int = Field(5, ge=1, le=10, description="Warmup priority")
     batch_size: int = Field(100, ge=1, le=1000, description="Batch size for warmup")
-    
+
     class Config:
         schema_extra = {
             "example": {
@@ -133,7 +133,7 @@ async def get_redis_health(
     try:
         cluster_status = await orchestrator.get_cluster_status()
         metrics = orchestrator.metrics
-        
+
         return RedisHealthResponse(
             status="healthy" if cluster_status["healthy_nodes"] > 0 else "unhealthy",
             cluster_nodes=cluster_status["cluster_size"],
@@ -144,7 +144,7 @@ async def get_redis_health(
             operations_per_second=metrics.operations_per_second,
             latency_ms=2.1  # Would measure actual latency
         )
-        
+
     except Exception as e:
         logger.error(f"Error getting Redis health: {e}")
         raise HTTPException(
@@ -162,7 +162,7 @@ async def get_cluster_status(
     try:
         cluster_status = await orchestrator.get_cluster_status()
         return JSONResponse(content=cluster_status)
-        
+
     except Exception as e:
         logger.error(f"Error getting cluster status: {e}")
         raise HTTPException(
@@ -182,10 +182,10 @@ async def get_performance_metrics(
     try:
         # Get current metrics
         current_metrics = orchestrator.metrics
-        
+
         # Get performance history
         performance_history = orchestrator.performance_history[-time_range_hours:]
-        
+
         metrics_data = {
             "current": {
                 "operations_per_second": current_metrics.operations_per_second,
@@ -208,9 +208,9 @@ async def get_performance_metrics(
             "time_range_hours": time_range_hours,
             "granularity": granularity
         }
-        
+
         return JSONResponse(content=metrics_data)
-        
+
     except Exception as e:
         logger.error(f"Error getting performance metrics: {e}")
         raise HTTPException(
@@ -229,7 +229,7 @@ async def get_intelligence_report(
     try:
         report = await intelligence_engine.get_intelligence_report()
         return JSONResponse(content=report)
-        
+
     except Exception as e:
         logger.error(f"Error getting intelligence report: {e}")
         raise HTTPException(
@@ -247,14 +247,14 @@ async def analyze_cache_optimization(
     """Analyze cache optimization opportunities (Admin only)"""
     try:
         recommendations = await intelligence_engine.analyze_cache_optimization()
-        
+
         # Filter by namespace if specified
         if request.namespace:
             recommendations = [
-                rec for rec in recommendations 
+                rec for rec in recommendations
                 if request.namespace in rec.key_pattern
             ]
-        
+
         optimization_analysis = {
             "optimization_strategy": request.optimization_strategy,
             "time_horizon_hours": request.time_horizon_hours,
@@ -276,9 +276,9 @@ async def analyze_cache_optimization(
             "high_confidence_count": len([r for r in recommendations if r.confidence_score > 0.8]),
             "estimated_total_improvement": sum(r.predicted_improvement for r in recommendations)
         }
-        
+
         return JSONResponse(content=optimization_analysis)
-        
+
     except Exception as e:
         logger.error(f"Error analyzing cache optimization: {e}")
         raise HTTPException(
@@ -299,7 +299,7 @@ async def predict_cache_performance(
             time_horizon_hours=request.time_horizon_hours,
             confidence_threshold=request.confidence_threshold
         )
-        
+
         if request.include_recommendations:
             # Add optimization recommendations based on predictions
             recommendations = await intelligence_engine.analyze_cache_optimization()
@@ -311,9 +311,9 @@ async def predict_cache_performance(
                 }
                 for rec in recommendations[:5]  # Top 5 recommendations
             ]
-        
+
         return JSONResponse(content=predictions)
-        
+
     except Exception as e:
         logger.error(f"Error predicting cache performance: {e}")
         raise HTTPException(
@@ -332,7 +332,7 @@ async def get_security_status(
     try:
         security_status = await security_engine.get_security_status()
         return JSONResponse(content=security_status)
-        
+
     except Exception as e:
         logger.error(f"Error getting security status: {e}")
         raise HTTPException(
@@ -354,25 +354,25 @@ async def get_security_events(
     try:
         # Get recent security events
         all_events = list(security_engine.security_events)
-        
+
         # Apply filters
         filtered_events = all_events
-        
+
         if threat_level:
             filtered_events = [e for e in filtered_events if e.threat_level.value == threat_level]
-        
+
         if event_type:
             filtered_events = [e for e in filtered_events if e.event_type.value == event_type]
-        
+
         if source_ip:
             filtered_events = [e for e in filtered_events if e.source_ip == source_ip]
-        
+
         # Sort by timestamp (most recent first)
         filtered_events.sort(key=lambda x: x.timestamp, reverse=True)
-        
+
         # Limit results
         limited_events = filtered_events[:limit]
-        
+
         events_data = {
             "events": [
                 {
@@ -400,9 +400,9 @@ async def get_security_events(
                 "source_ip": source_ip
             }
         }
-        
+
         return JSONResponse(content=events_data)
-        
+
     except Exception as e:
         logger.error(f"Error getting security events: {e}")
         raise HTTPException(
@@ -420,15 +420,15 @@ async def investigate_security_event(
     """Investigate specific security event (Security Analyst+)"""
     try:
         investigation_data = await security_engine.investigate_security_event(event_id)
-        
+
         if "error" in investigation_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=investigation_data["error"]
             )
-        
+
         return JSONResponse(content=investigation_data)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -448,13 +448,13 @@ async def get_active_threats(
     """Get active threats (Security Analyst+)"""
     try:
         active_threats = security_engine.active_threats
-        
+
         # Filter by confidence threshold
         filtered_threats = {
             ip: threat for ip, threat in active_threats.items()
             if threat.confidence_score >= confidence_threshold
         }
-        
+
         threats_data = {
             "active_threats": [
                 {
@@ -477,9 +477,9 @@ async def get_active_threats(
             "blocked_ips_count": len(security_engine.blocked_ips),
             "rate_limited_clients_count": len(security_engine.rate_limited_clients)
         }
-        
+
         return JSONResponse(content=threats_data)
-        
+
     except Exception as e:
         logger.error(f"Error getting active threats: {e}")
         raise HTTPException(
@@ -503,17 +503,17 @@ async def warmup_cache(
             "compression": True,
             "priority": request.priority
         }
-        
+
         cache = await orchestrator.create_intelligent_cache(request.namespace, cache_config)
-        
+
         # Perform cache warmup (simplified implementation)
         warmup_data = {}
         for pattern in request.patterns:
             # In practice, this would fetch data based on patterns
             warmup_data[f"{pattern}_example"] = f"warmed_data_{pattern}"
-        
+
         await cache.set_multi(warmup_data)
-        
+
         warmup_result = {
             "namespace": request.namespace,
             "patterns": request.patterns,
@@ -523,9 +523,9 @@ async def warmup_cache(
             "status": "completed",
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
         return JSONResponse(content=warmup_result)
-        
+
     except Exception as e:
         logger.error(f"Error warming up cache: {e}")
         raise HTTPException(
@@ -545,7 +545,7 @@ async def invalidate_cache_pattern(
     try:
         # Get cache manager
         cache = await orchestrator.create_intelligent_cache(namespace, {})
-        
+
         # Invalidate pattern (simplified implementation)
         client = await orchestrator.get_optimal_client("write")
         deleted_count = await client.eval(
@@ -561,7 +561,7 @@ async def invalidate_cache_pattern(
             0,
             f"{namespace}:{pattern}"
         )
-        
+
         invalidation_result = {
             "pattern": pattern,
             "namespace": namespace,
@@ -569,9 +569,9 @@ async def invalidate_cache_pattern(
             "status": "completed",
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
         return JSONResponse(content=invalidation_result)
-        
+
     except Exception as e:
         logger.error(f"Error invalidating cache pattern: {e}")
         raise HTTPException(
@@ -596,7 +596,7 @@ async def get_cache_info(
             # Get general Redis info
             client = await orchestrator.get_optimal_client("read")
             info = await client.info()
-            
+
             cache_info = {
                 "general": {
                     "used_memory_human": info.get("used_memory_human", "unknown"),
@@ -612,14 +612,14 @@ async def get_cache_info(
                     "connected_slaves": info.get("connected_slaves", 0)
                 }
             }
-            
+
             # Get keyspace info
             for key, value in info.items():
                 if key.startswith("db"):
                     cache_info["keyspace"][key] = value
-        
+
         return JSONResponse(content=cache_info)
-        
+
     except Exception as e:
         logger.error(f"Error getting cache info: {e}")
         raise HTTPException(
@@ -638,10 +638,10 @@ async def emergency_shutdown(
     """Emergency Redis shutdown (Admin only)"""
     try:
         logger.critical(f"Emergency Redis shutdown initiated by {current_user.username}: {reason}")
-        
+
         # Graceful shutdown
         await orchestrator.shutdown()
-        
+
         shutdown_result = {
             "status": "shutdown_initiated",
             "reason": reason,
@@ -649,9 +649,9 @@ async def emergency_shutdown(
             "timestamp": datetime.utcnow().isoformat(),
             "message": "Redis orchestrator shutdown completed"
         }
-        
+
         return JSONResponse(content=shutdown_result)
-        
+
     except Exception as e:
         logger.error(f"Error during emergency shutdown: {e}")
         raise HTTPException(
@@ -673,7 +673,7 @@ async def get_system_diagnostics(
         cluster_status = await orchestrator.get_cluster_status()
         intelligence_report = await intelligence_engine.get_intelligence_report()
         security_status = await security_engine.get_security_status()
-        
+
         diagnostics = {
             "timestamp": datetime.utcnow().isoformat(),
             "system_overview": {
@@ -702,9 +702,9 @@ async def get_system_diagnostics(
             },
             "recommendations": intelligence_report.get("optimization_recommendations", [])[:3]
         }
-        
+
         return JSONResponse(content=diagnostics)
-        
+
     except Exception as e:
         logger.error(f"Error getting system diagnostics: {e}")
         raise HTTPException(

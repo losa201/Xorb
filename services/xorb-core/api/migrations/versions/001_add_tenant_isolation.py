@@ -1,7 +1,7 @@
 """Add tenant isolation with RLS policies
 
 Revision ID: 001_tenant_isolation
-Revises: 
+Revises:
 Create Date: 2024-08-09 12:00:00.000000
 
 """
@@ -18,7 +18,7 @@ depends_on = None
 
 def upgrade() -> None:
     """Apply tenant isolation changes."""
-    
+
     # Create tenants table
     op.create_table(
         'tenants',
@@ -39,7 +39,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.Column('updated_at', sa.DateTime(timezone=True), onupdate=sa.func.now()),
     )
-    
+
     # Create tenant_users table
     op.create_table(
         'tenant_users',
@@ -57,7 +57,7 @@ def upgrade() -> None:
         sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
         sa.UniqueConstraint('tenant_id', 'user_id', name='uq_tenant_user'),
     )
-    
+
     # Create evidence table with tenant isolation
     op.create_table(
         'evidence',
@@ -76,7 +76,7 @@ def upgrade() -> None:
         sa.Column('updated_at', sa.DateTime(timezone=True), onupdate=sa.func.now()),
         sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
     )
-    
+
     # Create findings table with tenant isolation
     op.create_table(
         'findings',
@@ -98,7 +98,7 @@ def upgrade() -> None:
         sa.Column('resolved_at', sa.DateTime(timezone=True)),
         sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
     )
-    
+
     # Create embedding vectors table with tenant isolation
     op.create_table(
         'embedding_vectors',
@@ -112,7 +112,7 @@ def upgrade() -> None:
         sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.func.now()),
         sa.ForeignKeyConstraint(['tenant_id'], ['tenants.id'], ondelete='CASCADE'),
     )
-    
+
     # Add indexes for performance
     op.create_index('idx_tenant_users_tenant_id', 'tenant_users', ['tenant_id'])
     op.create_index('idx_tenant_users_user_id', 'tenant_users', ['user_id'])
@@ -127,7 +127,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Remove tenant isolation changes."""
-    
+
     # Drop indexes
     op.drop_index('idx_embedding_vectors_source')
     op.drop_index('idx_embedding_vectors_tenant_id')
@@ -138,7 +138,7 @@ def downgrade() -> None:
     op.drop_index('idx_evidence_tenant_id')
     op.drop_index('idx_tenant_users_user_id')
     op.drop_index('idx_tenant_users_tenant_id')
-    
+
     # Drop tables
     op.drop_table('embedding_vectors')
     op.drop_table('findings')

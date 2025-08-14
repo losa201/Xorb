@@ -64,7 +64,7 @@ class OrchestrationWorkflow:
     compliance_framework: Optional[str] = None
     threat_modeling: bool = True
     created_at: datetime = None
-    
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = datetime.utcnow()
@@ -82,7 +82,7 @@ class WorkflowExecution:
     results: Dict[str, Any] = None
     ai_insights: Dict[str, Any] = None
     threat_assessment: Dict[str, Any] = None
-    
+
     def __post_init__(self):
         if self.results is None:
             self.results = {}
@@ -94,7 +94,7 @@ class WorkflowExecution:
 class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
     """
     Advanced PTaaS Orchestration Engine with AI-powered capabilities
-    
+
     Features:
     - Multi-phase scan orchestration
     - AI-enhanced vulnerability correlation
@@ -103,24 +103,24 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
     - Real-time progress tracking
     - Advanced reporting with business impact
     """
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="enhanced_ptaas_orchestrator",
             dependencies=["scanner_service", "threat_intelligence", "database", "cache"],
             **kwargs
         )
-        
+
         self.workflows: Dict[str, OrchestrationWorkflow] = {}
         self.executions: Dict[str, WorkflowExecution] = {}
         self.active_executions: Dict[str, asyncio.Task] = {}
         self.scanner_service: Optional[SecurityScannerService] = None
-        
+
         # AI/ML components
         self.ml_available = ML_AVAILABLE
         self.vulnerability_clusterer = None
         self.threat_predictor = None
-        
+
         # Compliance frameworks
         self.compliance_frameworks = {
             "PCI-DSS": {
@@ -156,7 +156,7 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 ]
             }
         }
-        
+
         # Default workflow templates
         self.workflow_templates = {
             "comprehensive_assessment": {
@@ -187,46 +187,46 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 "duration_estimate": timedelta(hours=2)
             }
         }
-    
+
     async def initialize(self) -> bool:
         """Initialize the enhanced orchestrator"""
         try:
             logger.info("Initializing Enhanced PTaaS Orchestrator...")
-            
+
             # Initialize ML components if available
             if self.ml_available:
                 await self._initialize_ml_components()
-            
+
             # Load workflow templates
             await self._load_workflow_templates()
-            
+
             # Start execution monitor
             asyncio.create_task(self._monitor_executions())
-            
+
             logger.info("Enhanced PTaaS Orchestrator initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize Enhanced PTaaS Orchestrator: {e}")
             return False
-    
+
     async def _initialize_ml_components(self):
         """Initialize machine learning components"""
         if not self.ml_available:
             logger.warning("ML libraries not available, using fallback implementations")
             return
-        
+
         try:
             # Initialize vulnerability clustering
             self.vulnerability_clusterer = cluster.DBSCAN(eps=0.5, min_samples=3)
-            
+
             # Initialize threat predictor (simplified)
             logger.info("ML components initialized for vulnerability clustering and threat prediction")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize ML components: {e}")
             self.ml_available = False
-    
+
     async def create_workflow(
         self,
         workflow_definition: Dict[str, Any],
@@ -236,7 +236,7 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
         """Create a new orchestration workflow"""
         try:
             workflow_id = str(uuid.uuid4())
-            
+
             workflow = OrchestrationWorkflow(
                 workflow_id=workflow_id,
                 name=workflow_definition.get("name", f"Workflow_{workflow_id[:8]}"),
@@ -248,11 +248,11 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 compliance_framework=workflow_definition.get("compliance_framework"),
                 threat_modeling=workflow_definition.get("threat_modeling", True)
             )
-            
+
             self.workflows[workflow_id] = workflow
-            
+
             logger.info(f"Created workflow {workflow_id}: {workflow.name}")
-            
+
             return {
                 "workflow_id": workflow_id,
                 "status": "created",
@@ -261,11 +261,11 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 "ai_enhanced": workflow.ai_enhanced,
                 "compliance_framework": workflow.compliance_framework
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to create workflow: {e}")
             raise
-    
+
     async def execute_workflow(
         self,
         workflow_id: str,
@@ -276,10 +276,10 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
         try:
             if workflow_id not in self.workflows:
                 raise ValueError(f"Workflow {workflow_id} not found")
-            
+
             workflow = self.workflows[workflow_id]
             execution_id = str(uuid.uuid4())
-            
+
             # Create execution
             execution = WorkflowExecution(
                 execution_id=execution_id,
@@ -288,23 +288,23 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 current_phase=workflow.phases[0],
                 start_time=datetime.utcnow()
             )
-            
+
             # Estimate completion time
             template_name = parameters.get("template", "comprehensive_assessment")
             if template_name in self.workflow_templates:
                 duration = self.workflow_templates[template_name]["duration_estimate"]
                 execution.estimated_completion = execution.start_time + duration
-            
+
             self.executions[execution_id] = execution
-            
+
             # Start execution task
             task = asyncio.create_task(
                 self._execute_workflow_phases(execution, workflow, parameters)
             )
             self.active_executions[execution_id] = task
-            
+
             logger.info(f"Started workflow execution {execution_id} for workflow {workflow_id}")
-            
+
             return {
                 "execution_id": execution_id,
                 "workflow_id": workflow_id,
@@ -313,11 +313,11 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 "estimated_completion": execution.estimated_completion.isoformat() if execution.estimated_completion else None,
                 "phases": [phase.value for phase in workflow.phases]
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to execute workflow: {e}")
             raise
-    
+
     async def _execute_workflow_phases(
         self,
         execution: WorkflowExecution,
@@ -328,39 +328,39 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
         try:
             execution.status = "running"
             total_phases = len(workflow.phases)
-            
+
             for i, phase in enumerate(workflow.phases):
                 execution.current_phase = phase
                 execution.progress = (i / total_phases) * 100
-                
+
                 logger.info(f"Executing phase {phase.value} for execution {execution.execution_id}")
-                
+
                 # Execute phase
                 phase_results = await self._execute_phase(phase, workflow, parameters)
                 execution.results[phase.value] = phase_results
-                
+
                 # AI enhancement
                 if workflow.ai_enhanced:
                     ai_insights = await self._generate_ai_insights(phase, phase_results)
                     execution.ai_insights[phase.value] = ai_insights
-                
+
                 # Progress update
                 execution.progress = ((i + 1) / total_phases) * 100
-            
+
             # Final analysis
             if workflow.threat_modeling:
                 execution.threat_assessment = await self._perform_threat_assessment(
                     execution.results, workflow.compliance_framework
                 )
-            
+
             execution.status = "completed"
             logger.info(f"Workflow execution {execution.execution_id} completed successfully")
-            
+
         except Exception as e:
             execution.status = "failed"
             execution.results["error"] = str(e)
             logger.error(f"Workflow execution {execution.execution_id} failed: {e}")
-    
+
     async def _execute_phase(
         self,
         phase: ScanPhase,
@@ -368,7 +368,7 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
         parameters: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Execute a specific workflow phase"""
-        
+
         if phase == ScanPhase.RECONNAISSANCE:
             return await self._execute_reconnaissance(workflow.targets, parameters)
         elif phase == ScanPhase.DISCOVERY:
@@ -385,7 +385,7 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             return await self._execute_cleanup(workflow.targets, parameters)
         else:
             return {"status": "skipped", "reason": f"Unknown phase: {phase}"}
-    
+
     async def _execute_reconnaissance(
         self,
         targets: List[ScanTarget],
@@ -399,19 +399,19 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "osint_findings": [],
             "infrastructure_mapping": {}
         }
-        
+
         for target in targets:
             # DNS enumeration
             dns_info = await self._perform_dns_enumeration(target.host)
             results["infrastructure_mapping"][target.host] = dns_info
-            
+
             # OSINT gathering
             osint_data = await self._gather_osint(target.host)
             if osint_data:
                 results["osint_findings"].append(osint_data)
-        
+
         return results
-    
+
     async def _execute_discovery(
         self,
         targets: List[ScanTarget],
@@ -425,7 +425,7 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "open_ports": {},
             "service_fingerprints": {}
         }
-        
+
         # If scanner service is available, use it
         if self.scanner_service:
             for target in targets:
@@ -436,9 +436,9 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 if port_scan_results:
                     results["open_ports"][target.host] = port_scan_results.get("open_ports", [])
                     results["services_discovered"].extend(port_scan_results.get("services", []))
-        
+
         return results
-    
+
     async def _execute_vulnerability_scan(
         self,
         targets: List[ScanTarget],
@@ -452,11 +452,11 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "risk_assessment": {},
             "compliance_issues": []
         }
-        
+
         total_vulnerabilities = 0
         critical_count = 0
         high_count = 0
-        
+
         # If scanner service is available, perform comprehensive scans
         if self.scanner_service:
             for target in targets:
@@ -465,20 +465,20 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 if vuln_results and "vulnerabilities" in vuln_results:
                     vulnerabilities = vuln_results["vulnerabilities"]
                     results["vulnerabilities_found"].extend(vulnerabilities)
-                    
+
                     for vuln in vulnerabilities:
                         total_vulnerabilities += 1
                         if vuln.get("severity") == "critical":
                             critical_count += 1
                         elif vuln.get("severity") == "high":
                             high_count += 1
-                
+
                 # Web application scanning
                 if target.ports and (80 in target.ports or 443 in target.ports):
                     web_results = await self.scanner_service._run_nikto_scan(target.host)
                     if web_results:
                         results["vulnerabilities_found"].extend(web_results.get("findings", []))
-        
+
         # Risk assessment
         results["risk_assessment"] = {
             "total_vulnerabilities": total_vulnerabilities,
@@ -486,9 +486,9 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "high_vulnerabilities": high_count,
             "overall_risk_score": await self._calculate_risk_score(results["vulnerabilities_found"])
         }
-        
+
         return results
-    
+
     async def _execute_exploitation(
         self,
         targets: List[ScanTarget],
@@ -502,12 +502,12 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "exploitability_assessment": {},
             "security_note": "All exploitation tests are simulated and non-destructive"
         }
-        
+
         # This phase would include safe exploitation attempts
         # For demonstration, we'll simulate findings
-        
+
         return results
-    
+
     async def _execute_post_exploitation(
         self,
         targets: List[ScanTarget],
@@ -521,11 +521,11 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "data_access_assessment": {},
             "persistence_mechanisms": []
         }
-        
+
         # Post-exploitation analysis would be performed here
-        
+
         return results
-    
+
     async def _execute_reporting(
         self,
         workflow: OrchestrationWorkflow,
@@ -540,16 +540,16 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "technical_details": {},
             "compliance_status": {}
         }
-        
+
         # Generate comprehensive reports
         if workflow.compliance_framework:
             compliance_report = await self._generate_compliance_report(
                 workflow.compliance_framework, workflow
             )
             results["compliance_status"] = compliance_report
-        
+
         return results
-    
+
     async def _execute_cleanup(
         self,
         targets: List[ScanTarget],
@@ -563,11 +563,11 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "temporary_files_deleted": [],
             "cleanup_status": "completed"
         }
-        
+
         # Cleanup operations would be performed here
-        
+
         return results
-    
+
     async def _generate_ai_insights(
         self,
         phase: ScanPhase,
@@ -581,28 +581,28 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "recommendations": [],
             "confidence_score": 0.0
         }
-        
+
         if not self.ml_available:
             insights["note"] = "ML analysis not available, using rule-based insights"
             return await self._generate_rule_based_insights(phase, phase_results)
-        
+
         try:
             # Perform ML analysis based on phase
             if phase == ScanPhase.VULNERABILITY_SCAN:
                 insights["ml_analysis"] = await self._analyze_vulnerabilities_ml(phase_results)
             elif phase == ScanPhase.DISCOVERY:
                 insights["pattern_recognition"] = await self._analyze_service_patterns(phase_results)
-            
+
             # Generate recommendations
             insights["recommendations"] = await self._generate_ml_recommendations(phase, phase_results)
             insights["confidence_score"] = 0.85  # Simulated confidence
-            
+
         except Exception as e:
             logger.error(f"ML analysis failed: {e}")
             return await self._generate_rule_based_insights(phase, phase_results)
-        
+
         return insights
-    
+
     async def _generate_rule_based_insights(
         self,
         phase: ScanPhase,
@@ -615,11 +615,11 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "risk_factors": [],
             "compliance_notes": []
         }
-        
+
         # Rule-based analysis logic here
-        
+
         return insights
-    
+
     async def _perform_threat_assessment(
         self,
         execution_results: Dict[str, Any],
@@ -633,15 +633,15 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "remediation_priority": [],
             "compliance_gaps": []
         }
-        
+
         # Analyze results for threat indicators
         if "vulnerability_scan" in execution_results:
             vuln_results = execution_results["vulnerability_scan"]
-            
+
             # Calculate threat level based on vulnerabilities
             critical_vulns = vuln_results.get("risk_assessment", {}).get("critical_vulnerabilities", 0)
             high_vulns = vuln_results.get("risk_assessment", {}).get("high_vulnerabilities", 0)
-            
+
             if critical_vulns > 0:
                 assessment["overall_threat_level"] = ThreatLevel.CRITICAL.value
             elif high_vulns > 3:
@@ -650,16 +650,16 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 assessment["overall_threat_level"] = ThreatLevel.MEDIUM.value
             else:
                 assessment["overall_threat_level"] = ThreatLevel.LOW.value
-        
+
         # Compliance assessment
         if compliance_framework and compliance_framework in self.compliance_frameworks:
             framework = self.compliance_frameworks[compliance_framework]
             assessment["compliance_gaps"] = await self._assess_compliance_gaps(
                 execution_results, framework
             )
-        
+
         return assessment
-    
+
     async def get_workflow_status(
         self,
         execution_id: str,
@@ -668,9 +668,9 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
         """Get status of workflow execution"""
         if execution_id not in self.executions:
             raise ValueError(f"Execution {execution_id} not found")
-        
+
         execution = self.executions[execution_id]
-        
+
         return {
             "execution_id": execution_id,
             "workflow_id": execution.workflow_id,
@@ -683,7 +683,7 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "ai_insights_available": len(execution.ai_insights) > 0,
             "threat_assessment_available": len(execution.threat_assessment) > 0
         }
-    
+
     async def schedule_recurring_scan(
         self,
         targets: List[str],
@@ -693,10 +693,10 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
     ) -> Dict[str, Any]:
         """Schedule recurring security scans"""
         schedule_id = str(uuid.uuid4())
-        
+
         # Parse schedule (simplified cron-like format)
         schedule_info = self._parse_schedule(schedule)
-        
+
         scheduled_scan = {
             "schedule_id": schedule_id,
             "targets": targets,
@@ -707,11 +707,11 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "next_execution": self._calculate_next_execution(schedule_info),
             "status": "active"
         }
-        
+
         logger.info(f"Scheduled recurring scan {schedule_id} for {len(targets)} targets")
-        
+
         return scheduled_scan
-    
+
     def _parse_schedule(self, schedule: str) -> Dict[str, Any]:
         """Parse schedule string (simplified cron format)"""
         # Basic cron parsing - would be more sophisticated in production
@@ -720,18 +720,18 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "type": "cron",
             "valid": True
         }
-    
+
     def _calculate_next_execution(self, schedule_info: Dict[str, Any]) -> str:
         """Calculate next execution time"""
         # Simplified - would use proper cron calculation
         next_time = datetime.utcnow() + timedelta(hours=24)
         return next_time.isoformat()
-    
+
     async def _calculate_risk_score(self, vulnerabilities: List[Dict[str, Any]]) -> float:
         """Calculate overall risk score based on vulnerabilities"""
         if not vulnerabilities:
             return 0.0
-        
+
         total_score = 0.0
         for vuln in vulnerabilities:
             severity = vuln.get("severity", "low")
@@ -743,61 +743,61 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
                 total_score += 4.0
             elif severity == "low":
                 total_score += 1.0
-        
+
         # Normalize to 0-10 scale
         max_possible = len(vulnerabilities) * 10.0
         normalized_score = (total_score / max_possible) * 10.0 if max_possible > 0 else 0.0
-        
+
         return min(normalized_score, 10.0)
-    
+
     async def _monitor_executions(self):
         """Monitor and clean up completed executions"""
         while True:
             try:
                 completed_executions = []
-                
+
                 for execution_id, task in self.active_executions.items():
                     if task.done():
                         completed_executions.append(execution_id)
-                
+
                 # Clean up completed executions
                 for execution_id in completed_executions:
                     del self.active_executions[execution_id]
                     logger.info(f"Cleaned up completed execution: {execution_id}")
-                
+
                 await asyncio.sleep(30)  # Check every 30 seconds
-                
+
             except Exception as e:
                 logger.error(f"Error in execution monitor: {e}")
                 await asyncio.sleep(60)  # Wait longer on error
-    
+
     # Additional helper methods would be implemented here...
-    
+
     async def _perform_dns_enumeration(self, host: str) -> Dict[str, Any]:
         """Perform DNS enumeration"""
         return {"host": host, "dns_records": [], "subdomains": []}
-    
+
     async def _gather_osint(self, host: str) -> Dict[str, Any]:
         """Gather OSINT information"""
         return {"host": host, "public_info": [], "social_media": [], "breach_data": []}
-    
+
     async def _analyze_vulnerabilities_ml(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """ML-based vulnerability analysis"""
         return {"clusters": [], "patterns": [], "anomalies": []}
-    
+
     async def _analyze_service_patterns(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze service patterns using ML"""
         return {"service_clusters": [], "unusual_services": [], "fingerprints": []}
-    
+
     async def _generate_ml_recommendations(self, phase: ScanPhase, results: Dict[str, Any]) -> List[str]:
         """Generate ML-based recommendations"""
         return ["Implement network segmentation", "Update vulnerable services", "Enable security monitoring"]
-    
+
     async def _generate_compliance_report(self, framework: str, workflow: OrchestrationWorkflow) -> Dict[str, Any]:
         """Generate compliance report for specified framework"""
         if framework not in self.compliance_frameworks:
             return {"error": f"Unknown compliance framework: {framework}"}
-        
+
         framework_info = self.compliance_frameworks[framework]
         return {
             "framework": framework,
@@ -808,19 +808,19 @@ class EnhancedPTaaSOrchestrator(SecurityService, SecurityOrchestrationService):
             "gaps": ["access_control", "monitoring"],
             "recommendations": ["Implement MFA", "Enable audit logging"]
         }
-    
+
     async def _assess_compliance_gaps(self, results: Dict[str, Any], framework: Dict[str, Any]) -> List[str]:
         """Assess compliance gaps based on scan results"""
         gaps = []
-        
+
         # Simplified gap analysis
         if "vulnerability_scan" in results:
             vuln_count = results["vulnerability_scan"].get("risk_assessment", {}).get("total_vulnerabilities", 0)
             if vuln_count > 10:
                 gaps.append("vulnerability_management")
-        
+
         return gaps
-    
+
     async def _load_workflow_templates(self):
         """Load predefined workflow templates"""
         # Templates are already defined in __init__

@@ -67,17 +67,17 @@ app_info = Info(
 
 class PerformanceConfig:
     """Performance configuration settings."""
-    
+
     def __init__(self):
         self.enable_uvloop = os.getenv("ENABLE_UVLOOP", "true").lower() == "true"
         self.enable_orjson = os.getenv("ENABLE_ORJSON", "true").lower() == "true"
         self.enable_metrics = os.getenv("ENABLE_METRICS", "true").lower() == "true"
         self.enable_request_logging = os.getenv("ENABLE_REQUEST_LOGGING", "false").lower() == "true"
-        
+
         # HTTP optimizations
         self.http_keepalive = int(os.getenv("HTTP_KEEPALIVE", "60"))
         self.http_max_requests = int(os.getenv("HTTP_MAX_REQUESTS", "1000"))
-        
+
         # AsyncIO optimizations
         self.asyncio_debug = os.getenv("ASYNCIO_DEBUG", "false").lower() == "true"
 
@@ -106,43 +106,43 @@ def setup_json_encoder():
 
 class PerformanceMiddleware(BaseHTTPMiddleware):
     """Middleware for performance monitoring and optimization."""
-    
+
     def __init__(self, app, enable_metrics: bool = True):
         super().__init__(app)
         self.enable_metrics = enable_metrics
-    
+
     async def dispatch(self, request: Request, call_next) -> Response:
         """Process request with performance monitoring."""
         start_time = time.time()
-        
+
         # Extract endpoint info
         method = request.method
         endpoint = self._get_endpoint_name(request)
-        
+
         try:
             # Process request
             response = await call_next(request)
-            
+
             # Record metrics
             if self.enable_metrics:
                 duration = time.time() - start_time
-                
+
                 request_count.labels(
                     method=method,
                     endpoint=endpoint,
                     status_code=response.status_code
                 ).inc()
-                
+
                 request_duration.labels(
                     method=method,
                     endpoint=endpoint
                 ).observe(duration)
-            
+
             # Add performance headers
             response.headers["X-Process-Time"] = str(time.time() - start_time)
-            
+
             return response
-        
+
         except Exception as e:
             # Record error metrics
             if self.enable_metrics:
@@ -151,15 +151,15 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
                     endpoint=endpoint,
                     status_code=500
                 ).inc()
-            
+
             raise
-    
+
     def _get_endpoint_name(self, request: Request) -> str:
         """Extract endpoint name from request."""
         if hasattr(request, 'url') and request.url.path:
             # Normalize path patterns
             path = request.url.path
-            
+
             # Replace UUIDs with placeholder
             import re
             path = re.sub(
@@ -167,23 +167,23 @@ class PerformanceMiddleware(BaseHTTPMiddleware):
                 '/{uuid}',
                 path
             )
-            
+
             # Replace other dynamic segments
             path = re.sub(r'/\d+', '/{id}', path)
-            
+
             return path
-        
+
         return "unknown"
 
 
 class DatabaseMetrics:
     """Database performance metrics collector."""
-    
+
     @staticmethod
     async def record_query_time(query_type: str, duration: float):
         """Record database query execution time."""
         database_query_duration.labels(query_type=query_type).observe(duration)
-    
+
     @staticmethod
     async def update_connection_count(count: int):
         """Update active database connection count."""
@@ -192,16 +192,16 @@ class DatabaseMetrics:
 
 class MemoryMonitor:
     """Memory usage monitoring."""
-    
+
     @staticmethod
     def get_memory_usage() -> Dict[str, Any]:
         """Get current memory usage statistics."""
         import psutil
         import gc
-        
+
         process = psutil.Process()
         memory_info = process.memory_info()
-        
+
         return {
             "rss": memory_info.rss,  # Resident Set Size
             "vms": memory_info.vms,  # Virtual Memory Size
@@ -209,7 +209,7 @@ class MemoryMonitor:
             "available": psutil.virtual_memory().available,
             "gc_objects": len(gc.get_objects())
         }
-    
+
     @staticmethod
     async def update_memory_metrics():
         """Update memory usage metrics."""
@@ -222,11 +222,11 @@ class MemoryMonitor:
 
 class CacheManager:
     """Application-level caching for performance."""
-    
+
     def __init__(self):
         self._cache: Dict[str, Any] = {}
         self._cache_ttl: Dict[str, float] = {}
-    
+
     def get(self, key: str) -> Optional[Any]:
         """Get cached value."""
         if key in self._cache:
@@ -235,28 +235,28 @@ class CacheManager:
                 if time.time() > self._cache_ttl[key]:
                     self.delete(key)
                     return None
-            
+
             return self._cache[key]
-        
+
         return None
-    
+
     def set(self, key: str, value: Any, ttl: Optional[int] = None):
         """Set cached value with optional TTL."""
         self._cache[key] = value
-        
+
         if ttl:
             self._cache_ttl[key] = time.time() + ttl
-    
+
     def delete(self, key: str):
         """Delete cached value."""
         self._cache.pop(key, None)
         self._cache_ttl.pop(key, None)
-    
+
     def clear(self):
         """Clear all cached values."""
         self._cache.clear()
         self._cache_ttl.clear()
-    
+
     def size(self) -> int:
         """Get cache size."""
         return len(self._cache)
@@ -274,11 +274,11 @@ def get_cache_manager() -> CacheManager:
 @asynccontextmanager
 async def performance_monitor():
     """Performance monitoring context manager."""
-    
+
     # Setup performance optimizations
     setup_uvloop()
     json_encoder = setup_json_encoder()
-    
+
     # Set application info
     app_info.info({
         'version': '1.0.0',
@@ -286,10 +286,10 @@ async def performance_monitor():
         'orjson_enabled': str(ORJSON_AVAILABLE and PerformanceConfig().enable_orjson),
         'python_version': sys.version
     })
-    
+
     # Start background monitoring
     monitor_task = asyncio.create_task(_background_monitor())
-    
+
     try:
         yield
     finally:
@@ -307,7 +307,7 @@ async def _background_monitor():
         try:
             # Update memory metrics
             await MemoryMonitor.update_memory_metrics()
-            
+
             # Update database connection metrics
             try:
                 from .database import get_database_stats
@@ -315,10 +315,10 @@ async def _background_monitor():
                 await DatabaseMetrics.update_connection_count(db_stats["pool_size"])
             except Exception as e:
                 logger.debug(f"Could not update database metrics: {e}")
-            
+
             # Sleep for monitoring interval
             await asyncio.sleep(30)  # 30 seconds
-        
+
         except asyncio.CancelledError:
             break
         except Exception as e:
@@ -328,17 +328,17 @@ async def _background_monitor():
 
 class AsyncProfiler:
     """Async function profiler for performance analysis."""
-    
+
     def __init__(self, enabled: bool = False):
         self.enabled = enabled
         self.profiles: Dict[str, list] = {}
-    
+
     def profile(self, func_name: str):
         """Decorator to profile async function execution time."""
         def decorator(func):
             if not self.enabled:
                 return func
-            
+
             async def wrapper(*args, **kwargs):
                 start_time = time.time()
                 try:
@@ -346,28 +346,28 @@ class AsyncProfiler:
                     return result
                 finally:
                     duration = time.time() - start_time
-                    
+
                     if func_name not in self.profiles:
                         self.profiles[func_name] = []
-                    
+
                     self.profiles[func_name].append(duration)
-                    
+
                     # Keep only last 100 measurements
                     if len(self.profiles[func_name]) > 100:
                         self.profiles[func_name] = self.profiles[func_name][-100:]
-            
+
             return wrapper
         return decorator
-    
+
     def get_stats(self, func_name: str) -> Optional[Dict[str, float]]:
         """Get performance statistics for a function."""
         if func_name not in self.profiles:
             return None
-        
+
         durations = self.profiles[func_name]
         if not durations:
             return None
-        
+
         return {
             "count": len(durations),
             "min": min(durations),

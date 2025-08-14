@@ -47,7 +47,7 @@ class ServiceInfo:
 
 class PlatformSummary:
     """Complete XORB platform summary and status service"""
-    
+
     def __init__(self):
         self.services: Dict[str, ServiceInfo] = {}
         self.platform_metrics = {
@@ -58,10 +58,10 @@ class PlatformSummary:
             "deployment_date": "2025-01-29",
             "last_updated": datetime.now()
         }
-        
+
         # Initialize service registry
         self._initialize_service_registry()
-    
+
     def _initialize_service_registry(self):
         """Initialize comprehensive service registry"""
         services_config = [
@@ -158,7 +158,7 @@ class PlatformSummary:
                 "key_features": [
                     "Qwen3-235B (235B parameters)",
                     "8 specialized AI task types",
-                    "Real-time streaming responses",  
+                    "Real-time streaming responses",
                     "Expert cybersecurity prompts",
                     "Conversation memory and context"
                 ]
@@ -178,7 +178,7 @@ class PlatformSummary:
                 ]
             }
         ]
-        
+
         for config in services_config:
             base_url = f"http://188.245.101.102:{config['port']}"
             service = ServiceInfo(
@@ -194,26 +194,26 @@ class PlatformSummary:
                 last_check=datetime.now()
             )
             self.services[service.service_id] = service
-        
+
         # Update platform metrics
         self.platform_metrics["total_services"] = len(self.services)
         self.platform_metrics["total_capabilities"] = sum(len(s.capabilities) for s in self.services.values())
-    
+
     async def check_all_services(self):
         """Check status of all services"""
         tasks = []
         for service in self.services.values():
             tasks.append(self._check_service_status(service))
-        
+
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         # Update platform metrics
         healthy_count = sum(1 for s in self.services.values() if s.status == "healthy")
         self.platform_metrics["healthy_services"] = healthy_count
         self.platform_metrics["last_updated"] = datetime.now()
-        
+
         return results
-    
+
     async def _check_service_status(self, service: ServiceInfo):
         """Check individual service status"""
         try:
@@ -228,9 +228,9 @@ class PlatformSummary:
                         service.status = "error"
         except Exception:
             service.status = "offline"
-        
+
         service.last_check = datetime.now()
-    
+
     def get_platform_overview(self) -> Dict:
         """Get comprehensive platform overview"""
         return {
@@ -275,13 +275,13 @@ class PlatformSummary:
                 "orchestration": ["Centralized control", "Service coordination", "Health monitoring"]
             }
         }
-    
+
     def get_service_details(self, service_id: str) -> Optional[Dict]:
         """Get detailed information about specific service"""
         service = self.services.get(service_id)
         if not service:
             return None
-        
+
         return {
             "service_info": {
                 "service_id": service.service_id,
@@ -334,21 +334,21 @@ async def get_all_services():
 async def get_service_details(service_id: str):
     """Get detailed information about specific service"""
     await platform_summary.check_all_services()
-    
+
     details = platform_summary.get_service_details(service_id)
     if not details:
         raise HTTPException(status_code=404, detail="Service not found")
-    
+
     return details
 
 @app.get("/platform/status")
 async def get_platform_status():
     """Get current platform status"""
     await platform_summary.check_all_services()
-    
+
     healthy_services = sum(1 for s in platform_summary.services.values() if s.status == "healthy")
     total_services = len(platform_summary.services)
-    
+
     return {
         "overall_status": "operational" if healthy_services == total_services else "degraded" if healthy_services > 0 else "critical",
         "healthy_services": healthy_services,
@@ -421,12 +421,12 @@ async def platform_dashboard():
             </div>
         </div>
     </div>
-    
+
     <!-- Platform Statistics -->
     <div class="platform-stats" id="platform-stats">
         <div class="loading">Loading platform statistics...</div>
     </div>
-    
+
     <!-- Services Grid -->
     <div class="services-grid" id="services-grid">
         <div class="loading">
@@ -434,28 +434,28 @@ async def platform_dashboard():
             <p>Loading XORB services...</p>
         </div>
     </div>
-    
+
     <script>
         async function loadPlatformData() {
             try {
                 // Load platform overview
                 const overviewResponse = await fetch('/platform/overview');
                 const overview = await overviewResponse.json();
-                
+
                 updatePlatformHealth(overview.platform_info, overview.services_summary);
                 updatePlatformStats(overview.services_summary, overview.platform_info);
                 updateServicesGrid(overview.service_details, overview.platform_capabilities);
-                
+
             } catch (error) {
                 console.error('Error loading platform data:', error);
                 document.getElementById('platform-health').innerHTML = '<span style="color: #f85149;">❌ Error loading platform data</span>';
             }
         }
-        
+
         function updatePlatformHealth(platformInfo, servicesSummary) {
             const healthDiv = document.getElementById('platform-health');
             const healthPercentage = servicesSummary.service_health_percentage;
-            
+
             let healthStatus, healthClass, healthIcon;
             if (healthPercentage >= 90) {
                 healthStatus = 'OPERATIONAL';
@@ -470,23 +470,23 @@ async def platform_dashboard():
                 healthClass = 'health-critical';
                 healthIcon = '❌';
             }
-            
+
             healthDiv.innerHTML = `
                 <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
                     <span class="health-indicator ${healthClass}"></span>
                     <span style="font-size: 1.2em; font-weight: 600;">${healthIcon} Platform Status: ${healthStatus}</span>
                 </div>
                 <div style="margin-top: 10px; color: #8b949e;">
-                    ${servicesSummary.healthy_services}/${servicesSummary.total_services} services healthy (${healthPercentage}%) • 
-                    External IP: ${platformInfo.external_ip} • 
+                    ${servicesSummary.healthy_services}/${servicesSummary.total_services} services healthy (${healthPercentage}%) •
+                    External IP: ${platformInfo.external_ip} •
                     Version: ${platformInfo.version}
                 </div>
             `;
         }
-        
+
         function updatePlatformStats(servicesSummary, platformInfo) {
             const statsDiv = document.getElementById('platform-stats');
-            
+
             statsDiv.innerHTML = `
                 <div class="stat-card">
                     <div class="stat-value">${servicesSummary.total_services}</div>
@@ -506,19 +506,19 @@ async def platform_dashboard():
                 </div>
             `;
         }
-        
+
         function updateServicesGrid(services, capabilities) {
             const gridDiv = document.getElementById('services-grid');
             gridDiv.innerHTML = '';
-            
+
             services.forEach(service => {
                 const statusClass = `status-${service.status}`;
                 const serviceDiv = document.createElement('div');
                 serviceDiv.className = 'service-card';
-                
+
                 // Get service capabilities from the capabilities object
                 const serviceCapabilities = getServiceCapabilities(service.service_id, capabilities);
-                
+
                 serviceDiv.innerHTML = `
                     <div class="service-header">
                         <div class="service-title">${service.name}</div>
@@ -538,11 +538,11 @@ async def platform_dashboard():
                         </a>
                     </div>
                 `;
-                
+
                 gridDiv.appendChild(serviceDiv);
             });
         }
-        
+
         function getServiceCapabilities(serviceId, capabilities) {
             const capabilityMap = {
                 'threat_intelligence': capabilities.threat_intelligence || [],
@@ -554,16 +554,16 @@ async def platform_dashboard():
                 'nvidia_ai': capabilities.ai_integration || [],
                 'orchestration': capabilities.orchestration || []
             };
-            
+
             return capabilityMap[serviceId] || ['General cybersecurity capabilities'];
         }
-        
+
         // Load platform data on page load
         loadPlatformData();
-        
+
         // Auto-refresh every 60 seconds
         setInterval(loadPlatformData, 60000);
-        
+
         // Add some visual enhancements
         document.addEventListener('DOMContentLoaded', function() {
             // Add fade-in animation

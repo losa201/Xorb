@@ -54,12 +54,12 @@ class ComplianceReport:
 
 class SOC2ComplianceDashboard:
     """Real-time SOC2 compliance monitoring and reporting"""
-    
+
     def __init__(self):
         self.evidence_collector = EvidenceCollector()
         self.controls = self._load_soc2_controls()
         self.metrics = {}
-        
+
     def _load_soc2_controls(self) -> List[SOC2Control]:
         """Load SOC2 control definitions"""
         return [
@@ -78,7 +78,7 @@ class SOC2ComplianceDashboard:
                 automated=True
             ),
             SOC2Control(
-                control_id="SEC-002", 
+                control_id="SEC-002",
                 criteria=TrustServicesCriteria.SECURITY,
                 title="Multi-Factor Authentication",
                 description="MFA is required for all privileged accounts",
@@ -103,7 +103,7 @@ class SOC2ComplianceDashboard:
                 ],
                 automated=True
             ),
-            
+
             # Availability Controls
             SOC2Control(
                 control_id="AVL-001",
@@ -131,7 +131,7 @@ class SOC2ComplianceDashboard:
                 ],
                 automated=True
             ),
-            
+
             # Processing Integrity Controls
             SOC2Control(
                 control_id="PI-001",
@@ -159,7 +159,7 @@ class SOC2ComplianceDashboard:
                 ],
                 automated=True
             ),
-            
+
             # Confidentiality Controls
             SOC2Control(
                 control_id="CONF-001",
@@ -174,7 +174,7 @@ class SOC2ComplianceDashboard:
                 ],
                 automated=False
             ),
-            
+
             # Privacy Controls
             SOC2Control(
                 control_id="PRIV-001",
@@ -190,31 +190,31 @@ class SOC2ComplianceDashboard:
                 automated=False
             )
         ]
-        
+
     async def collect_real_time_metrics(self) -> Dict[str, ComplianceMetric]:
         """Collect real-time compliance metrics"""
         metrics = {}
-        
+
         # Security Metrics
         metrics["access_control_violations"] = await self._get_access_control_metric()
         metrics["mfa_adoption_rate"] = await self._get_mfa_adoption_metric()
         metrics["encryption_coverage"] = await self._get_encryption_coverage_metric()
-        
+
         # Availability Metrics
         metrics["system_uptime"] = await self._get_uptime_metric()
         metrics["backup_success_rate"] = await self._get_backup_success_metric()
-        
+
         # Processing Integrity Metrics
         metrics["input_validation_failures"] = await self._get_input_validation_metric()
         metrics["change_approval_rate"] = await self._get_change_approval_metric()
-        
+
         return metrics
-        
+
     async def _get_access_control_metric(self) -> ComplianceMetric:
         """Get access control violations metric"""
         # This would query actual audit logs
         current_value = 0.0  # Simulated - would be actual violation count
-        
+
         return ComplianceMetric(
             metric_id="access_control_violations",
             name="Access Control Violations",
@@ -227,12 +227,12 @@ class SOC2ComplianceDashboard:
             last_updated=datetime.utcnow(),
             trend="stable"
         )
-        
+
     async def _get_mfa_adoption_metric(self) -> ComplianceMetric:
         """Get MFA adoption rate metric"""
         # This would query actual user database
         current_value = 95.8  # Simulated percentage
-        
+
         return ComplianceMetric(
             metric_id="mfa_adoption_rate",
             name="MFA Adoption Rate",
@@ -245,11 +245,11 @@ class SOC2ComplianceDashboard:
             last_updated=datetime.utcnow(),
             trend="improving"
         )
-        
+
     async def _get_encryption_coverage_metric(self) -> ComplianceMetric:
         """Get encryption coverage metric"""
         current_value = 100.0  # Simulated percentage
-        
+
         return ComplianceMetric(
             metric_id="encryption_coverage",
             name="Data Encryption Coverage",
@@ -262,11 +262,11 @@ class SOC2ComplianceDashboard:
             last_updated=datetime.utcnow(),
             trend="stable"
         )
-        
+
     async def _get_uptime_metric(self) -> ComplianceMetric:
         """Get system uptime metric"""
         current_value = 99.95  # Simulated uptime percentage
-        
+
         return ComplianceMetric(
             metric_id="system_uptime",
             name="System Uptime",
@@ -279,11 +279,11 @@ class SOC2ComplianceDashboard:
             last_updated=datetime.utcnow(),
             trend="stable"
         )
-        
+
     async def _get_backup_success_metric(self) -> ComplianceMetric:
         """Get backup success rate metric"""
         current_value = 100.0  # Simulated success rate
-        
+
         return ComplianceMetric(
             metric_id="backup_success_rate",
             name="Backup Success Rate",
@@ -296,11 +296,11 @@ class SOC2ComplianceDashboard:
             last_updated=datetime.utcnow(),
             trend="stable"
         )
-        
+
     async def _get_input_validation_metric(self) -> ComplianceMetric:
         """Get input validation failures metric"""
         current_value = 0.0  # Simulated failure count
-        
+
         return ComplianceMetric(
             metric_id="input_validation_failures",
             name="Input Validation Failures",
@@ -313,11 +313,11 @@ class SOC2ComplianceDashboard:
             last_updated=datetime.utcnow(),
             trend="stable"
         )
-        
+
     async def _get_change_approval_metric(self) -> ComplianceMetric:
         """Get change approval rate metric"""
         current_value = 100.0  # Simulated approval rate
-        
+
         return ComplianceMetric(
             metric_id="change_approval_rate",
             name="Change Approval Rate",
@@ -330,19 +330,19 @@ class SOC2ComplianceDashboard:
             last_updated=datetime.utcnow(),
             trend="stable"
         )
-        
+
     async def generate_compliance_report(
-        self, 
+        self,
         period_days: int = 30
     ) -> ComplianceReport:
         """Generate comprehensive compliance report"""
-        
+
         end_date = datetime.utcnow()
         start_date = end_date - timedelta(days=period_days)
-        
+
         # Collect metrics
         metrics = await self.collect_real_time_metrics()
-        
+
         # Calculate scores by criteria
         criteria_scores = {}
         for criteria in TrustServicesCriteria:
@@ -353,14 +353,14 @@ class SOC2ComplianceDashboard:
                 criteria_scores[criteria.value] = (compliant_count / len(criteria_metrics)) * 100
             else:
                 criteria_scores[criteria.value] = 100.0
-                
+
         # Calculate overall score
         overall_score = sum(criteria_scores.values()) / len(criteria_scores)
-        
+
         # Count controls
         controls_tested = len([c for c in self.controls if c.automated])
         controls_passed = int(controls_tested * (overall_score / 100))
-        
+
         # Generate recommendations
         recommendations = []
         if criteria_scores.get("security", 100) < 100:
@@ -369,7 +369,7 @@ class SOC2ComplianceDashboard:
             recommendations.append("Improve backup procedures and system monitoring")
         if overall_score < 95:
             recommendations.append("Implement additional automated controls")
-            
+
         return ComplianceReport(
             report_id=str(uuid.uuid4()),
             report_type="SOC2_Type_II",
@@ -383,13 +383,13 @@ class SOC2ComplianceDashboard:
             recommendations=recommendations,
             generated_at=datetime.utcnow()
         )
-        
+
     async def get_compliance_dashboard_data(self) -> Dict[str, Any]:
         """Get real-time dashboard data for compliance monitoring"""
-        
+
         metrics = await self.collect_real_time_metrics()
         report = await self.generate_compliance_report(period_days=7)  # Weekly report
-        
+
         # Control status summary
         control_status = {}
         for criteria in TrustServicesCriteria:
@@ -399,7 +399,7 @@ class SOC2ComplianceDashboard:
                 "automated": len([c for c in criteria_controls if c.automated]),
                 "manual": len([c for c in criteria_controls if not c.automated])
             }
-            
+
         return {
             "overview": {
                 "overall_compliance_score": report.overall_score,

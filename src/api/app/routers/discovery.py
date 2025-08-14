@@ -36,13 +36,13 @@ async def start_discovery(
     try:
         container = get_container()
         discovery_service = container.get(DiscoveryService)
-        
+
         workflow = await discovery_service.start_discovery(
             domain=request.domain,
             user=current_user,
             org=current_org
         )
-        
+
         return {
             "status": "workflow_started",
             "workflow_id": workflow.workflow_id,
@@ -50,7 +50,7 @@ async def start_discovery(
             "domain": workflow.domain,
             "created_at": workflow.created_at.isoformat()
         }
-        
+
     except DomainException as e:
         from fastapi import HTTPException
         raise HTTPException(status_code=400, detail=str(e))
@@ -68,12 +68,12 @@ async def get_discovery_results(
     try:
         container = get_container()
         discovery_service = container.get(DiscoveryService)
-        
+
         workflow = await discovery_service.get_discovery_results(
             workflow_id=workflow_id,
             user=current_user
         )
-        
+
         return DiscoveryWorkflowResponse(
             id=str(workflow.id),
             domain=workflow.domain,
@@ -83,7 +83,7 @@ async def get_discovery_results(
             completed_at=workflow.completed_at.isoformat() if workflow.completed_at else None,
             findings=workflow.findings or []
         )
-        
+
     except DomainException as e:
         from fastapi import HTTPException
         raise HTTPException(status_code=404 if "not found" in str(e).lower() else 400, detail=str(e))

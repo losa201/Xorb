@@ -19,7 +19,7 @@ provider "nats" {
 /*
 resource "nats_account" "tenant_account" {
   name = "tenant-${var.tenant_id}"
-  
+
   # Users within the account
   users = [
     {
@@ -27,17 +27,17 @@ resource "nats_account" "tenant_account" {
       pass = var.scanner_password
     }
   ]
-  
+
   # Account limits
   limits {
     max_connections = var.max_connections
     max_subscriptions = var.max_subscriptions
     max_payload = var.max_payload
   }
-  
+
   # JetStream enabled
   jetstream_enabled = true
-  
+
   # JetStream limits
   jetstream {
     max_memory = var.max_memory
@@ -56,7 +56,7 @@ resource "nats_stream" "tenant_stream" {
     "xorb.${var.tenant_id}.compliance.>",
     "xorb.${var.tenant_id}.control.>"
   ]
-  
+
   # Stream configuration
   storage = "file"  # or "memory"
   replicas = 3
@@ -64,13 +64,13 @@ resource "nats_stream" "tenant_stream" {
   max_bytes = 1073741824  # 1GB
   max_age = "720h"  # 30 days
   max_msg_size = 1048576  # 1MB
-  
+
   # Retention policy
   retention = "limits"  # or "interest" or "workqueue"
-  
+
   # Discard policy
   discard = "old"
-  
+
   # Duplicate tracking
   duplicate_window = "2m"
 }
@@ -81,7 +81,7 @@ resource "nats_stream" "tenant_stream" {
 resource "nats_consumer" "tenant_consumer" {
   stream_name = nats_stream.tenant_stream.name
   name = "tenant-${var.tenant_id}-consumer"
-  
+
   # Consumer configuration
   durable_name = "tenant-${var.tenant_id}-durable"
   deliver_subject = "xorb.${var.tenant_id}.deliver.>"
@@ -89,10 +89,10 @@ resource "nats_consumer" "tenant_consumer" {
   ack_wait = "30s"
   max_deliver = 5
   replay_policy = "instant"
-  
+
   # Rate limiting
   rate_limit = var.rate_limit  # messages per second
-  
+
   # Sampling for observability
   sample_freq = "100"
 }

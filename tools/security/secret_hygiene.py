@@ -71,14 +71,14 @@ def generate_markdown_report(all_matches: List[Dict[str, Any]]) -> None:
 
     with open(REPORT_MD, 'w') as f:
         f.write("# XORB Secret Hygiene Report\n\n")
-        
+
         # Summary table
         f.write("## Summary\n\n")
         f.write("| Category | Count |\n")
         f.write("|---------|-------|\n")
         for category, count in sorted_categories:
             f.write(f"| {category} | {count} |\n")
-        
+
         # Detailed findings
         f.write("\n## Detailed Findings\n\n")
         for category, _ in sorted_categories:
@@ -103,12 +103,12 @@ def main() -> None:
     for root, dirs, files in os.walk("."):
         # Remove ignored directories
         dirs[:] = [d for d in dirs if d not in IGNORE_DIRS]
-        
+
         for file in files:
             file_path = os.path.join(root, file)
             if should_ignore(file_path):
                 continue
-            
+
             matches = scan_file(file_path, patterns)
             all_matches.extend(matches)
 

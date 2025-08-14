@@ -102,46 +102,46 @@ class ComplianceReport:
 
 class ComplianceFrameworkValidator:
     """Production compliance framework validation system"""
-    
+
     def __init__(self, data_path: str = "./data/compliance"):
         self.data_path = Path(data_path)
         self.db_path = self.data_path / "compliance.db"
         self.controls: Dict[str, ComplianceControl] = {}
         self.assessments: List[ControlAssessment] = []
         self.frameworks: Dict[ComplianceFramework, Dict[str, Any]] = {}
-        
+
         # Initialize compliance framework definitions
         self._initialize_framework_controls()
-        
+
     async def initialize(self) -> bool:
         """Initialize the compliance validation system"""
         try:
             logger.info("Initializing Enterprise Compliance Framework Validator...")
-            
+
             # Create data directory
             self.data_path.mkdir(parents=True, exist_ok=True)
-            
+
             # Initialize database
             await self._initialize_database()
-            
+
             # Load compliance framework definitions
             await self._load_framework_definitions()
-            
+
             # Load historical assessments
             await self._load_assessment_history()
-            
+
             logger.info(f"Compliance validator initialized with {len(self.controls)} controls across {len(self.frameworks)} frameworks")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize compliance validator: {e}")
             return False
-    
+
     async def _initialize_database(self):
         """Initialize SQLite database for compliance data"""
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Create tables
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS compliance_controls (
@@ -163,7 +163,7 @@ class ComplianceFrameworkValidator:
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS control_assessments (
                 assessment_id TEXT PRIMARY KEY,
@@ -182,7 +182,7 @@ class ComplianceFrameworkValidator:
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
-        
+
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS compliance_reports (
                 report_id TEXT PRIMARY KEY,
@@ -203,21 +203,21 @@ class ComplianceFrameworkValidator:
                 valid_until TIMESTAMP
             )
         """)
-        
+
         # Create indexes
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_controls_framework ON compliance_controls(framework)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_assessments_control ON control_assessments(control_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_assessments_date ON control_assessments(assessment_date)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_reports_framework ON compliance_reports(framework)")
-        
+
         conn.commit()
         conn.close()
-        
+
         logger.info("Compliance database initialized")
-    
+
     def _initialize_framework_controls(self):
         """Initialize comprehensive compliance framework controls"""
-        
+
         # PCI-DSS Controls
         pci_controls = [
             ComplianceControl(
@@ -230,7 +230,7 @@ class ComplianceFrameworkValidator:
                 subcategory="Firewall Management",
                 implementation_guidance=[
                     "Document firewall and router standards",
-                    "Implement change control processes", 
+                    "Implement change control processes",
                     "Regular review and updates",
                     "Testing of all network connections"
                 ],
@@ -326,7 +326,7 @@ class ComplianceFrameworkValidator:
                 references=["PCI DSS v4.0"]
             )
         ]
-        
+
         # HIPAA Controls
         hipaa_controls = [
             ComplianceControl(
@@ -399,7 +399,7 @@ class ComplianceFrameworkValidator:
                 references=["45 CFR 164.312(a)(1)"]
             )
         ]
-        
+
         # SOX Controls
         sox_controls = [
             ComplianceControl(
@@ -471,7 +471,7 @@ class ComplianceFrameworkValidator:
                 references=["SOX Section 404"]
             )
         ]
-        
+
         # ISO 27001 Controls
         iso_controls = [
             ComplianceControl(
@@ -509,7 +509,7 @@ class ComplianceFrameworkValidator:
                 references=["ISO/IEC 27001:2022"]
             )
         ]
-        
+
         # GDPR Controls
         gdpr_controls = [
             ComplianceControl(
@@ -548,14 +548,14 @@ class ComplianceFrameworkValidator:
                 references=["GDPR Article 32"]
             )
         ]
-        
+
         # Add all controls to the main dictionary
         all_controls = pci_controls + hipaa_controls + sox_controls + iso_controls + gdpr_controls
         for control in all_controls:
             self.controls[control.control_id] = control
-        
+
         logger.info(f"Initialized {len(all_controls)} compliance controls")
-    
+
     async def _load_framework_definitions(self):
         """Load comprehensive framework definitions"""
         self.frameworks = {
@@ -567,7 +567,7 @@ class ComplianceFrameworkValidator:
                 "assessment_frequency": "Annual",
                 "categories": [
                     "Build and Maintain a Secure Network",
-                    "Protect Cardholder Data", 
+                    "Protect Cardholder Data",
                     "Maintain a Vulnerability Management Program",
                     "Implement Strong Access Control Measures",
                     "Regularly Monitor and Test Networks",
@@ -582,7 +582,7 @@ class ComplianceFrameworkValidator:
                 "assessment_frequency": "Ongoing",
                 "categories": [
                     "Administrative Safeguards",
-                    "Physical Safeguards", 
+                    "Physical Safeguards",
                     "Technical Safeguards"
                 ]
             },
@@ -638,13 +638,13 @@ class ComplianceFrameworkValidator:
                 ]
             }
         }
-    
+
     async def _load_assessment_history(self):
         """Load historical assessment data from database"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
+
             cursor.execute("""
                 SELECT assessment_id, control_id, framework, status, compliance_score,
                        findings, evidence_collected, gaps_identified, remediation_steps,
@@ -652,7 +652,7 @@ class ComplianceFrameworkValidator:
                 FROM control_assessments
                 ORDER BY assessment_date DESC
             """)
-            
+
             rows = cursor.fetchall()
             for row in rows:
                 assessment = ControlAssessment(
@@ -671,13 +671,13 @@ class ComplianceFrameworkValidator:
                     notes=row[12] or ""
                 )
                 self.assessments.append(assessment)
-            
+
             conn.close()
             logger.info(f"Loaded {len(self.assessments)} historical assessments")
-            
+
         except Exception as e:
             logger.error(f"Error loading assessment history: {e}")
-    
+
     async def assess_compliance_control(self, control_id: str, assessor: str,
                                       evidence: List[str] = None,
                                       automated_test_results: Dict[str, Any] = None) -> ControlAssessment:
@@ -686,33 +686,33 @@ class ComplianceFrameworkValidator:
             control = self.controls.get(control_id)
             if not control:
                 raise ValueError(f"Control {control_id} not found")
-            
+
             assessment_id = str(uuid.uuid4())
             findings = []
             gaps_identified = []
             remediation_steps = []
             evidence_collected = evidence or []
-            
+
             # Perform automated tests if available
             automated_score = 0.0
             if automated_test_results:
                 automated_score = await self._evaluate_automated_tests(control, automated_test_results)
-                
+
                 # Add automated findings
                 for test_name, result in automated_test_results.items():
                     if result.get("status") == "fail":
                         findings.append(f"Automated test '{test_name}' failed: {result.get('message', '')}")
                         gaps_identified.append(f"Failed automated test: {test_name}")
-            
+
             # Manual assessment scoring
             manual_score = await self._perform_manual_assessment(control, evidence_collected)
-            
+
             # Calculate overall compliance score
             if control.manual_validation_required:
                 compliance_score = (automated_score * 0.4) + (manual_score * 0.6)
             else:
                 compliance_score = automated_score
-            
+
             # Determine status
             if compliance_score >= 0.9:
                 status = ControlStatus.COMPLIANT
@@ -722,11 +722,11 @@ class ComplianceFrameworkValidator:
                 status = ControlStatus.REMEDIATION_REQUIRED
             else:
                 status = ControlStatus.NON_COMPLIANT
-            
+
             # Generate remediation steps for non-compliant controls
             if status in [ControlStatus.NON_COMPLIANT, ControlStatus.REMEDIATION_REQUIRED]:
                 remediation_steps = await self._generate_remediation_steps(control, gaps_identified)
-            
+
             # Create assessment
             assessment = ControlAssessment(
                 assessment_id=assessment_id,
@@ -743,27 +743,27 @@ class ComplianceFrameworkValidator:
                 next_assessment_due=datetime.now() + timedelta(days=365),
                 notes=""
             )
-            
+
             # Store assessment
             await self._store_assessment(assessment)
             self.assessments.append(assessment)
-            
+
             logger.info(f"Assessed control {control_id}: {status.value} (score: {compliance_score:.2f})")
             return assessment
-            
+
         except Exception as e:
             logger.error(f"Control assessment failed: {e}")
             raise
-    
-    async def _evaluate_automated_tests(self, control: ComplianceControl, 
+
+    async def _evaluate_automated_tests(self, control: ComplianceControl,
                                        test_results: Dict[str, Any]) -> float:
         """Evaluate automated test results for a control"""
         if not control.automated_tests:
             return 1.0  # No automated tests means full score for this component
-        
+
         total_tests = len(control.automated_tests)
         passed_tests = 0
-        
+
         for test_name in control.automated_tests:
             if test_name in test_results:
                 result = test_results[test_name]
@@ -772,41 +772,41 @@ class ComplianceFrameworkValidator:
             else:
                 # Test not run - partial credit
                 passed_tests += 0.5
-        
+
         return passed_tests / total_tests if total_tests > 0 else 1.0
-    
-    async def _perform_manual_assessment(self, control: ComplianceControl, 
+
+    async def _perform_manual_assessment(self, control: ComplianceControl,
                                        evidence: List[str]) -> float:
         """Perform manual assessment based on evidence"""
         if not control.manual_validation_required:
             return 1.0
-        
+
         required_evidence = len(control.evidence_requirements)
         provided_evidence = len(evidence)
-        
+
         # Basic scoring based on evidence provision
         evidence_score = min(1.0, provided_evidence / required_evidence) if required_evidence > 0 else 1.0
-        
+
         # Additional scoring based on evidence quality (simplified)
         quality_score = 1.0
         if evidence:
             # Check for key documents and artifacts
             key_documents = ["policy", "procedure", "documentation", "report", "log", "certificate"]
             evidence_text = " ".join(evidence).lower()
-            
+
             found_documents = sum(1 for doc in key_documents if doc in evidence_text)
             quality_score = min(1.0, found_documents / len(key_documents))
-        
+
         return (evidence_score * 0.7) + (quality_score * 0.3)
-    
-    async def _generate_remediation_steps(self, control: ComplianceControl, 
+
+    async def _generate_remediation_steps(self, control: ComplianceControl,
                                         gaps: List[str]) -> List[str]:
         """Generate specific remediation steps for control gaps"""
         remediation_steps = []
-        
+
         # Add control-specific remediation guidance
         remediation_steps.extend(control.implementation_guidance)
-        
+
         # Add gap-specific remediation
         for gap in gaps:
             if "documentation" in gap.lower():
@@ -821,7 +821,7 @@ class ComplianceFrameworkValidator:
                 remediation_steps.append("Review and update access controls")
             elif "encryption" in gap.lower():
                 remediation_steps.append("Implement or strengthen encryption measures")
-        
+
         # Add framework-specific remediation
         if control.framework == ComplianceFramework.PCI_DSS:
             remediation_steps.append("Engage QSA for formal assessment")
@@ -832,17 +832,17 @@ class ComplianceFrameworkValidator:
         elif control.framework == ComplianceFramework.SOX:
             remediation_steps.append("Engage external auditor")
             remediation_steps.append("Review PCAOB guidance")
-        
+
         return list(set(remediation_steps))  # Remove duplicates
-    
+
     async def _store_assessment(self, assessment: ControlAssessment):
         """Store assessment in database"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
+
             cursor.execute("""
-                INSERT INTO control_assessments 
+                INSERT INTO control_assessments
                 (assessment_id, control_id, framework, status, compliance_score,
                  findings, evidence_collected, gaps_identified, remediation_steps,
                  assessor, assessment_date, next_assessment_due, notes)
@@ -862,13 +862,13 @@ class ComplianceFrameworkValidator:
                 assessment.next_assessment_due.isoformat(),
                 assessment.notes
             ))
-            
+
             conn.commit()
             conn.close()
-            
+
         except Exception as e:
             logger.error(f"Error storing assessment: {e}")
-    
+
     async def assess_framework_compliance(self, framework: ComplianceFramework,
                                         assessor: str,
                                         organization: str = "Organization",
@@ -876,84 +876,84 @@ class ComplianceFrameworkValidator:
         """Assess compliance across an entire framework"""
         try:
             logger.info(f"Starting comprehensive {framework.value} compliance assessment")
-            
+
             # Get all controls for the framework
             framework_controls = [c for c in self.controls.values() if c.framework == framework]
-            
+
             if not framework_controls:
                 raise ValueError(f"No controls found for framework {framework.value}")
-            
+
             # Assess each control
             control_assessments = []
             for control in framework_controls:
                 try:
                     # Get existing assessment or create new one
                     existing_assessment = self._get_latest_assessment(control.control_id)
-                    
+
                     if existing_assessment and self._is_assessment_current(existing_assessment):
                         assessment = existing_assessment
                     else:
                         # Perform new assessment
                         assessment = await self.assess_compliance_control(
-                            control.control_id, 
+                            control.control_id,
                             assessor,
                             evidence=[],  # In production, evidence would be collected
                             automated_test_results={}  # In production, automated tests would run
                         )
-                    
+
                     control_assessments.append(assessment)
-                    
+
                 except Exception as e:
                     logger.error(f"Error assessing control {control.control_id}: {e}")
-            
+
             # Generate compliance report
             report = await self._generate_compliance_report(
                 framework, control_assessments, organization, scope
             )
-            
+
             # Store report
             await self._store_compliance_report(report)
-            
+
             logger.info(f"{framework.value} compliance assessment completed: {report.overall_compliance_score:.1%} compliant")
             return report
-            
+
         except Exception as e:
             logger.error(f"Framework compliance assessment failed: {e}")
             raise
-    
+
     def _get_latest_assessment(self, control_id: str) -> Optional[ControlAssessment]:
         """Get the latest assessment for a control"""
         control_assessments = [a for a in self.assessments if a.control_id == control_id]
         if control_assessments:
             return max(control_assessments, key=lambda a: a.assessment_date)
         return None
-    
+
     def _is_assessment_current(self, assessment: ControlAssessment) -> bool:
         """Check if an assessment is still current"""
         return datetime.now() < assessment.next_assessment_due
-    
+
     async def _generate_compliance_report(self, framework: ComplianceFramework,
                                         assessments: List[ControlAssessment],
                                         organization: str,
                                         scope: str) -> ComplianceReport:
         """Generate comprehensive compliance report"""
-        
+
         report_id = str(uuid.uuid4())
         total_controls = len(assessments)
-        
+
         # Count controls by status
         compliant_controls = len([a for a in assessments if a.status == ControlStatus.COMPLIANT])
         non_compliant_controls = len([a for a in assessments if a.status == ControlStatus.NON_COMPLIANT])
         partially_compliant_controls = len([a for a in assessments if a.status == ControlStatus.PARTIALLY_COMPLIANT])
-        
+
         # Calculate overall compliance score
         total_score = sum(a.compliance_score for a in assessments)
         overall_compliance_score = total_score / total_controls if total_controls > 0 else 0.0
-        
+
         # Identify critical and high findings
         critical_findings = []
         high_findings = []
-        
+
         for assessment in assessments:
             control = self.controls.get(assessment.control_id)
             if control and assessment.status in [ControlStatus.NON_COMPLIANT, ControlStatus.REMEDIATION_REQUIRED]:
@@ -961,10 +961,10 @@ class ComplianceFrameworkValidator:
                     critical_findings.extend(assessment.findings)
                 elif control.severity == SeverityLevel.HIGH:
                     high_findings.extend(assessment.findings)
-        
+
         # Generate remediation priorities
         remediation_priorities = await self._prioritize_remediation(assessments)
-        
+
         # Create report
         report = ComplianceReport(
             report_id=report_id,
@@ -987,18 +987,18 @@ class ComplianceFrameworkValidator:
             generated_at=datetime.now(),
             valid_until=datetime.now() + timedelta(days=365)
         )
-        
+
         return report
-    
+
     async def _prioritize_remediation(self, assessments: List[ControlAssessment]) -> List[str]:
         """Prioritize remediation efforts based on risk and compliance impact"""
         priorities = []
-        
+
         # Group by severity and compliance status
         critical_non_compliant = []
         high_non_compliant = []
         medium_non_compliant = []
-        
+
         for assessment in assessments:
             if assessment.status in [ControlStatus.NON_COMPLIANT, ControlStatus.REMEDIATION_REQUIRED]:
                 control = self.controls.get(assessment.control_id)
@@ -1009,7 +1009,7 @@ class ComplianceFrameworkValidator:
                         high_non_compliant.append(assessment)
                     else:
                         medium_non_compliant.append(assessment)
-        
+
         # Generate prioritized remediation plan
         if critical_non_compliant:
             priorities.append(f"IMMEDIATE: Address {len(critical_non_compliant)} critical control deficiencies")
@@ -1017,27 +1017,27 @@ class ComplianceFrameworkValidator:
                 control = self.controls.get(assessment.control_id)
                 if control:
                     priorities.append(f"- {control.control_id}: {control.title}")
-        
+
         if high_non_compliant:
             priorities.append(f"HIGH PRIORITY: Address {len(high_non_compliant)} high-priority control deficiencies")
             for assessment in high_non_compliant[:5]:  # Top 5
                 control = self.controls.get(assessment.control_id)
                 if control:
                     priorities.append(f"- {control.control_id}: {control.title}")
-        
+
         if medium_non_compliant:
             priorities.append(f"MEDIUM PRIORITY: Address {len(medium_non_compliant)} medium-priority control deficiencies")
-        
+
         return priorities
-    
+
     async def _store_compliance_report(self, report: ComplianceReport):
         """Store compliance report in database"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
+
             cursor.execute("""
-                INSERT INTO compliance_reports 
+                INSERT INTO compliance_reports
                 (report_id, framework, organization, assessment_scope,
                  start_date, end_date, overall_compliance_score,
                  total_controls, compliant_controls, non_compliant_controls,
@@ -1062,19 +1062,19 @@ class ComplianceFrameworkValidator:
                 report.generated_at.isoformat(),
                 report.valid_until.isoformat()
             ))
-            
+
             conn.commit()
             conn.close()
-            
+
         except Exception as e:
             logger.error(f"Error storing compliance report: {e}")
-    
+
     async def generate_compliance_dashboard(self, frameworks: List[ComplianceFramework] = None) -> Dict[str, Any]:
         """Generate compliance dashboard with key metrics"""
         try:
             if not frameworks:
                 frameworks = list(self.frameworks.keys())
-            
+
             dashboard_data = {
                 "compliance_summary": {},
                 "framework_scores": {},
@@ -1083,25 +1083,25 @@ class ComplianceFrameworkValidator:
                 "trending_metrics": {},
                 "generated_at": datetime.now().isoformat()
             }
-            
+
             for framework in frameworks:
                 # Get latest assessments for framework
                 framework_assessments = [
-                    a for a in self.assessments 
+                    a for a in self.assessments
                     if a.framework == framework
                 ]
-                
+
                 if not framework_assessments:
                     continue
-                
+
                 # Calculate framework metrics
                 total_assessments = len(framework_assessments)
                 compliant = len([a for a in framework_assessments if a.status == ControlStatus.COMPLIANT])
                 non_compliant = len([a for a in framework_assessments if a.status == ControlStatus.NON_COMPLIANT])
-                
+
                 compliance_rate = compliant / total_assessments if total_assessments > 0 else 0
                 avg_score = sum(a.compliance_score for a in framework_assessments) / total_assessments if total_assessments > 0 else 0
-                
+
                 dashboard_data["framework_scores"][framework.value] = {
                     "compliance_rate": compliance_rate,
                     "average_score": avg_score,
@@ -1109,14 +1109,14 @@ class ComplianceFrameworkValidator:
                     "compliant_controls": compliant,
                     "non_compliant_controls": non_compliant
                 }
-                
+
                 # Identify critical gaps
                 critical_gaps = [
-                    a for a in framework_assessments 
-                    if a.status == ControlStatus.NON_COMPLIANT and 
+                    a for a in framework_assessments
+                    if a.status == ControlStatus.NON_COMPLIANT and
                     self.controls.get(a.control_id, {}).severity == SeverityLevel.CRITICAL
                 ]
-                
+
                 for gap in critical_gaps:
                     control = self.controls.get(gap.control_id)
                     if control:
@@ -1127,13 +1127,13 @@ class ComplianceFrameworkValidator:
                             "severity": control.severity.value,
                             "assessment_date": gap.assessment_date.isoformat()
                         })
-                
+
                 # Upcoming assessments
                 upcoming = [
-                    a for a in framework_assessments 
+                    a for a in framework_assessments
                     if a.next_assessment_due <= datetime.now() + timedelta(days=30)
                 ]
-                
+
                 for assessment in upcoming:
                     control = self.controls.get(assessment.control_id)
                     if control:
@@ -1144,13 +1144,13 @@ class ComplianceFrameworkValidator:
                             "due_date": assessment.next_assessment_due.isoformat(),
                             "days_until_due": (assessment.next_assessment_due - datetime.now()).days
                         })
-            
+
             # Overall compliance summary
             all_assessments = [a for a in self.assessments]
             if all_assessments:
                 total_compliant = len([a for a in all_assessments if a.status == ControlStatus.COMPLIANT])
                 total_assessments = len(all_assessments)
-                
+
                 dashboard_data["compliance_summary"] = {
                     "overall_compliance_rate": total_compliant / total_assessments if total_assessments > 0 else 0,
                     "total_frameworks": len(frameworks),
@@ -1158,14 +1158,14 @@ class ComplianceFrameworkValidator:
                     "critical_gaps_count": len(dashboard_data["critical_gaps"]),
                     "upcoming_assessments_count": len(dashboard_data["upcoming_assessments"])
                 }
-            
+
             return dashboard_data
-            
+
         except Exception as e:
             logger.error(f"Dashboard generation failed: {e}")
             return {"error": str(e)}
-    
-    async def export_compliance_data(self, format_type: str = "json", 
+
+    async def export_compliance_data(self, format_type: str = "json",
                                    framework: ComplianceFramework = None) -> str:
         """Export compliance data in various formats"""
         try:
@@ -1173,7 +1173,7 @@ class ComplianceFrameworkValidator:
             assessments_to_export = self.assessments
             if framework:
                 assessments_to_export = [a for a in self.assessments if a.framework == framework]
-            
+
             if format_type.lower() == "json":
                 export_data = {
                     "framework": framework.value if framework else "all",
@@ -1182,7 +1182,7 @@ class ComplianceFrameworkValidator:
                     "controls": [asdict(c) for c in self.controls.values() if not framework or c.framework == framework]
                 }
                 return json.dumps(export_data, indent=2, default=str)
-            
+
             elif format_type.lower() == "csv":
                 # Generate CSV export
                 csv_data = []
@@ -1190,7 +1190,7 @@ class ComplianceFrameworkValidator:
                     "Control ID", "Framework", "Title", "Status", "Compliance Score",
                     "Assessment Date", "Assessor", "Findings Count", "Gaps Count"
                 ])
-                
+
                 for assessment in assessments_to_export:
                     control = self.controls.get(assessment.control_id)
                     csv_data.append([
@@ -1204,17 +1204,17 @@ class ComplianceFrameworkValidator:
                         len(assessment.findings),
                         len(assessment.gaps_identified)
                     ])
-                
+
                 # Convert to CSV string
                 import io
                 output = io.StringIO()
                 writer = csv.writer(output)
                 writer.writerows(csv_data)
                 return output.getvalue()
-            
+
             else:
                 raise ValueError(f"Unsupported export format: {format_type}")
-                
+
         except Exception as e:
             logger.error(f"Export failed: {e}")
             return f"Export error: {e}"
@@ -1225,9 +1225,9 @@ _compliance_validator: Optional[ComplianceFrameworkValidator] = None
 async def get_compliance_validator() -> ComplianceFrameworkValidator:
     """Get global compliance validator instance"""
     global _compliance_validator
-    
+
     if _compliance_validator is None:
         _compliance_validator = ComplianceFrameworkValidator()
         await _compliance_validator.initialize()
-    
+
     return _compliance_validator

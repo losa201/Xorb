@@ -29,7 +29,7 @@ class EvidenceMetadata:
     collection_method: str
     collector: str
     timestamp: str = datetime.now().isoformat()
-    
+
 @dataclass
 class ChainOfCustodyEntry:
     """Record of evidence handling in the chain of custody"""
@@ -39,7 +39,7 @@ class ChainOfCustodyEntry:
     location: str
     timestamp: str = datetime.now().isoformat()
     next_custodian: Optional[str] = None
-    
+
     def to_dict(self):
         return {
             "evidence_id": self.evidence_id,
@@ -57,17 +57,17 @@ class EvidenceChain:
         self.chain: List[Dict[str, Any]] = []
         self.current_custodian = None
         self.locked = False
-        
+
     def add_entry(self, entry: ChainOfCustodyEntry) -> bool:
         """Add a new entry to the chain of custody"""
         if self.locked:
             logger.error(f"Chain of custody for {self.evidence_id} is locked")
             return False
-            
+
         if entry.evidence_id != self.evidence_id:
             logger.error(f"Entry evidence ID {entry.evidence_id} does not match chain ID {self.evidence_id}")
             return False
-            
+
         # Add hash of previous entry for integrity verification
         entry_dict = entry.to_dict()
         if self.chain:
@@ -75,51 +75,51 @@ class EvidenceChain:
             entry_dict["previous_hash"] = last_hash
         else:
             entry_dict["previous_hash"] = "genesis"
-            
+
         # Calculate hash of current entry
         entry_json = json.dumps(entry_dict, sort_keys=True)
         current_hash = hashlib.sha256(entry_json.encode()).hexdigest()
         entry_dict["hash"] = current_hash
-        
+
         self.chain.append(entry_dict)
         self.current_custodian = entry.next_custodian
         return True
-        
+
     def lock_chain(self) -> str:
         """Lock the chain of custody with a final hash"""
         if not self.chain:
             logger.error("Cannot lock empty chain")
             return ""
-            
+
         final_hash = self.chain[-1]["hash"]
         self.locked = True
         return final_hash
-        
+
     def verify_chain(self) -> bool:
         """Verify the integrity of the chain of custody"""
         if not self.chain:
             return False
-            
+
         # Verify each entry in the chain
         previous_hash = "genesis"
-        
+
         for entry in self.chain:
             if entry["previous_hash"] != previous_hash:
                 logger.error(f"Chain integrity violation at {entry['timestamp']}")
                 return False
-                
+
             # Recalculate hash
             entry_copy = entry.copy()
             current_hash = entry_copy.pop("hash", "")
             entry_json = json.dumps(entry_copy, sort_keys=True)
             calculated_hash = hashlib.sha256(entry_json.encode()).hexdigest()
-            
+
             if calculated_hash != current_hash:
                 logger.error(f"Hash mismatch at {entry['timestamp']}")
                 return False
-                
+
             previous_hash = current_hash
-            
+
         return True
 
 class ForensicsEngine(SecurityService if SecurityService else object):
@@ -134,16 +134,16 @@ class ForensicsEngine(SecurityService if SecurityService else object):
             self.logger = super().logger
         else:
             self.logger = logging.getLogger("ForensicsEngine")
-        
+
     def set_storage_backend(self, backend):
         """Set the persistent storage backend"""
         self.storage_backend = backend
-        
+
     def collect_evidence(self, metadata: EvidenceMetadata, data: Dict[str, Any]) -> str:
         """Collect new evidence and store it with proper metadata"""
         # Generate unique evidence ID
         evidence_id = f"EVID-{datetime.now().strftime('%Y%m%d-%H%M%S')}-{metadata.case_id[:4]}"
-        
+
         # Create evidence record
         evidence_record = {
             "id": evidence_id,
@@ -152,10 +152,10 @@ class ForensicsEngine(SecurityService if SecurityService else object):
             "timestamp": metadata.timestamp,
             "status": "collected"
         }
-        
+
         # Store in memory
         self.evidence_store[evidence_id] = evidence_record
-        
+
         # Store persistently if backend is available
         if self.storage_backend:
             try:
@@ -163,27 +163,27 @@ class ForensicsEngine(SecurityService if SecurityService else object):
             except Exception as e:
                 self.logger.error(f"Failed to store evidence persistently: {e}")
                 return ""
-                
+
         self.logger.info(f"Collected evidence {evidence_id}")
         return evidence_id
-        
+
     def create_chain_of_custody(self, evidence_id: str, initial_entry: ChainOfCustodyEntry) -> bool:
         """Create a new chain of custody for evidence"""
         if evidence_id not in self.evidence_store:
             self.logger.error(f"Evidence {evidence_id} not found")
             return False
-            
+
         if evidence_id in self.chain_store:
             self.logger.error(f"Chain of custody already exists for {evidence_id}")
             return False
-            
+
         # Create new chain
         chain = EvidenceChain(evidence_id)
         if not chain.add_entry(initial_entry):
             return False
-            
+
         self.chain_store[evidence_id] = chain
-        
+
         # Store persistently if backend available
         if self.storage_backend:
             try:
@@ -191,34 +191,34 @@ class ForensicsEngine(SecurityService if SecurityService else object):
             except Exception as e:
                 self.logger.error(f"Failed to store chain of custody: {e}")
                 return False
-                
+
         self.logger.info(f"Created chain of custody for {evidence_id}")
         return True
-        
+
     def add_to_chain_of_custody(self, evidence_id: str, entry: ChainOfCustodyEntry) -> bool:
         """Add a new entry to an existing chain of custody"""
         if evidence_id not in self.evidence_store:
             self.logger.error(f"Evidence {evidence_id} not found")
             return False
-            
+
         if evidence_id not in self.chain_store:
             self.logger.error(f"Chain of custody not found for {evidence_id}")
             return False
-            
+
         chain = self.chain_store[evidence_id]
         if chain.locked:
             self.logger.error(f"Chain of custody for {evidence_id} is locked")
             return False
-            
+
         if entry.evidence_id != evidence_id:
             self.logger.error(f"Evidence ID mismatch: {entry.evidence_id} vs {evidence_id}")
             return False
-            
+
         # Add entry to chain
         success = chain.add_entry(entry)
         if not success:
             return False
-            
+
         # Update persistent storage
         if self.storage_backend:
             try:
@@ -226,19 +226,19 @@ class ForensicsEngine(SecurityService if SecurityService else object):
             except Exception as e:
                 self.logger.error(f"Failed to update chain of custody: {e}")
                 return False
-                
+
         self.logger.info(f"Added entry to chain of custody for {evidence_id}")
         return True
-        
+
     def lock_chain(self, evidence_id: str) -> bool:
         """Lock a chain of custody to prevent further modifications"""
         if evidence_id not in self.chain_store:
             self.logger.error(f"Chain of custody not found for {evidence_id}")
             return False
-            
+
         chain = self.chain_store[evidence_id]
         final_hash = chain.lock_chain()
-        
+
         # Update persistent storage
         if self.storage_backend:
             try:
@@ -246,10 +246,10 @@ class ForensicsEngine(SecurityService if SecurityService else object):
             except Exception as e:
                 self.logger.error(f"Failed to lock chain of custody: {e}")
                 return False
-                
+
         self.logger.info(f"Locked chain of custody for {evidence_id} with final hash {final_hash}")
         return True
-        
+
     def verify_evidence(self, evidence_id: str) -> Dict[str, Any]:
         """Verify the integrity of evidence and its chain of custody"""
         result = {
@@ -259,23 +259,23 @@ class ForensicsEngine(SecurityService if SecurityService else object):
             "chain_valid": False,
             "chain_locked": False
         }
-        
+
         # Check if evidence exists
         if evidence_id in self.evidence_store:
             result["evidence_exists"] = True
-            
+
         # Check chain of custody
         if evidence_id in self.chain_store:
             result["chain_exists"] = True
             result["chain_locked"] = self.chain_store[evidence_id].locked
             result["chain_valid"] = self.chain_store[evidence_id].verify_chain()
-            
+
         return result
-        
+
     def get_evidence(self, evidence_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve evidence by ID"""
         return self.evidence_store.get(evidence_id)
-        
+
     async def initialize(self) -> bool:
         """Initialize the forensics engine"""
         try:
@@ -284,7 +284,7 @@ class ForensicsEngine(SecurityService if SecurityService else object):
         except Exception as e:
             self.logger.error(f"Failed to initialize ForensicsEngine: {e}")
             return False
-    
+
     async def shutdown(self) -> bool:
         """Shutdown the forensics engine"""
         try:
@@ -296,7 +296,7 @@ class ForensicsEngine(SecurityService if SecurityService else object):
         except Exception as e:
             self.logger.error(f"Failed to shutdown ForensicsEngine: {e}")
             return False
-    
+
     async def health_check(self) -> 'ServiceHealth':
         """Perform health check"""
         try:
@@ -305,7 +305,7 @@ class ForensicsEngine(SecurityService if SecurityService else object):
                 "chain_count": len(self.chain_store),
                 "storage_backend_available": self.storage_backend is not None
             }
-            
+
             status = ServiceStatus.HEALTHY if ServiceStatus else "healthy"
             health = ServiceHealth(
                 status=status,
@@ -318,7 +318,7 @@ class ForensicsEngine(SecurityService if SecurityService else object):
                 "timestamp": datetime.utcnow(),
                 "checks": checks
             }
-            
+
             return health
         except Exception as e:
             status = ServiceStatus.UNHEALTHY if ServiceStatus else "unhealthy"
@@ -333,13 +333,13 @@ class ForensicsEngine(SecurityService if SecurityService else object):
                 "timestamp": datetime.utcnow(),
                 "checks": {"error": str(e)}
             }
-    
+
     async def process_security_event(self, event: Dict[str, Any]) -> Dict[str, Any]:
         """Process a security event for forensic evidence collection"""
         try:
             if "incident_id" not in event or "evidence_data" not in event:
                 return {"error": "Missing required fields: incident_id, evidence_data"}
-            
+
             # Create metadata from event
             metadata = EvidenceMetadata(
                 case_id=event["incident_id"],
@@ -348,10 +348,10 @@ class ForensicsEngine(SecurityService if SecurityService else object):
                 collection_method="automated",
                 collector="forensics_engine"
             )
-            
+
             # Collect evidence
             evidence_id = self.collect_evidence(metadata, event["evidence_data"])
-            
+
             # Create chain of custody
             initial_entry = ChainOfCustodyEntry(
                 evidence_id=evidence_id,
@@ -360,9 +360,9 @@ class ForensicsEngine(SecurityService if SecurityService else object):
                 location="automated_collection",
                 next_custodian="security_analyst"
             )
-            
+
             self.create_chain_of_custody(evidence_id, initial_entry)
-            
+
             return {
                 "evidence_id": evidence_id,
                 "status": "collected",
@@ -371,7 +371,7 @@ class ForensicsEngine(SecurityService if SecurityService else object):
         except Exception as e:
             self.logger.error(f"Failed to process security event: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
-    
+
     async def get_security_metrics(self) -> Dict[str, Any]:
         """Get security-specific metrics"""
         try:
@@ -379,7 +379,7 @@ class ForensicsEngine(SecurityService if SecurityService else object):
             total_chains = len(self.chain_store)
             valid_chains = sum(1 for chain in self.chain_store.values() if chain.verify_chain())
             locked_chains = sum(1 for chain in self.chain_store.values() if chain.locked)
-            
+
             return {
                 "total_evidence": len(self.evidence_store),
                 "total_chains": total_chains,
@@ -391,7 +391,7 @@ class ForensicsEngine(SecurityService if SecurityService else object):
         except Exception as e:
             self.logger.error(f"Failed to get security metrics: {e}")
             return {"error": str(e), "timestamp": datetime.utcnow().isoformat()}
-        
+
     def get_chain_of_custody(self, evidence_id: str) -> Optional[List[Dict[str, Any]]]:
         """Retrieve chain of custody for evidence"""
         if evidence_id in self.chain_store:
@@ -402,7 +402,7 @@ class ForensicsEngine(SecurityService if SecurityService else object):
 if __name__ == "__main__":
     # Initialize forensics engine
     engine = ForensicsEngine()
-    
+
     # Collect evidence
     metadata = EvidenceMetadata(
         case_id="CASE-2023-001",
@@ -411,17 +411,17 @@ if __name__ == "__main__":
         collection_method="pcap",
         collector="analyst_john"
     )
-    
+
     data = {
         "pcap_file": "base64_encoded_data",
         "start_time": "2023-01-01T10:00:00",
         "end_time": "2023-01-01T10:05:00",
         "size_bytes": 1048576
     }
-    
+
     evidence_id = engine.collect_evidence(metadata, data)
     print(f"Collected evidence ID: {evidence_id}")
-    
+
     # Create chain of custody
     initial_entry = ChainOfCustodyEntry(
         evidence_id=evidence_id,
@@ -431,10 +431,10 @@ if __name__ == "__main__":
         location="HQ-Forensics-Lab",
         next_custodian="supervisor_mary"
     )
-    
+
     engine.create_chain_of_custody(evidence_id, initial_entry)
     print("Chain of custody created")
-    
+
     # Add to chain of custody
     analysis_entry = ChainOfCustodyEntry(
         evidence_id=evidence_id,
@@ -444,30 +444,29 @@ if __name__ == "__main__":
         location="HQ-Forensics-Lab",
         next_custodian="analyst_john"
     )
-    
+
     engine.add_to_chain_of_custody(evidence_id, analysis_entry)
     print("Added analysis entry to chain of custody")
-    
+
     # Lock chain
     engine.lock_chain(evidence_id)
     print("Chain of custody locked")
-    
+
     # Verify evidence
     verification = engine.verify_evidence(evidence_id)
     print("\nEvidence Verification:")
     for key, value in verification.items():
         print(f"{key}: {value}")
-    
+
     # Get chain of custody
     chain = engine.get_chain_of_custody(evidence_id)
     print("\nChain of Custody:")
     for entry in chain:
         print(f"{entry['timestamp']} - {entry['action']} by {entry['actor']}")
-    
+
     # Get evidence
     evidence = engine.get_evidence(evidence_id)
     print("\nEvidence Metadata:")
     print(json.dumps(evidence["metadata"], indent=2))
-    
+
     print("\nForensics engine test completed")
-    

@@ -155,7 +155,7 @@ if [[ ! -f "/var/www/verteidiq.com/index.html" ]]; then
         <div class="logo">🚀 XORB</div>
         <div class="tagline">Ultimate Autonomous Cybersecurity Platform</div>
         <div class="ssl-badge">🔐 Secured with SSL/TLS</div>
-        
+
         <div class="features">
             <div class="feature">
                 <h3>🧠 Autonomous Learning</h3>
@@ -174,7 +174,7 @@ if [[ ! -f "/var/www/verteidiq.com/index.html" ]]; then
                 <p>Advanced monitoring and alerting across all system components</p>
             </div>
         </div>
-        
+
         <p style="margin-top: 2rem; opacity: 0.7;">
             Advancing Cybersecurity Through Autonomous Intelligence
         </p>

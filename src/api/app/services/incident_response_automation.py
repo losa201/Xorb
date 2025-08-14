@@ -82,7 +82,7 @@ class IncidentEvidence:
     hash_value: Optional[str] = None
     chain_of_custody: List[str] = None
     metadata: Dict[str, Any] = None
-    
+
     def __post_init__(self):
         if self.chain_of_custody is None:
             self.chain_of_custody = ["Automated Collection System"]
@@ -124,7 +124,7 @@ class SecurityIncident:
     estimated_impact: Dict[str, Any] = None
     remediation_steps: List[str] = None
     lessons_learned: List[str] = None
-    
+
     def __post_init__(self):
         if self.source_events is None:
             self.source_events = []
@@ -146,7 +146,7 @@ class SecurityIncident:
             self.remediation_steps = []
         if self.lessons_learned is None:
             self.lessons_learned = []
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
         data = asdict(self)
@@ -155,14 +155,14 @@ class SecurityIncident:
         data['status'] = self.status.value
         data['created_at'] = self.created_at.isoformat()
         data['updated_at'] = self.updated_at.isoformat()
-        
+
         # Convert evidence
         data['evidence'] = []
         for evidence in self.evidence:
             evidence_dict = asdict(evidence)
             evidence_dict['collected_at'] = evidence.collected_at.isoformat()
             data['evidence'].append(evidence_dict)
-        
+
         # Convert response actions
         data['response_actions'] = []
         for action in self.response_actions:
@@ -170,7 +170,7 @@ class SecurityIncident:
             action_dict['action_type'] = action.action_type.value
             action_dict['executed_at'] = action.executed_at.isoformat()
             data['response_actions'].append(action_dict)
-        
+
         return data
 
 @dataclass
@@ -187,7 +187,7 @@ class PlaybookRule:
 
 class IncidentResponseOrchestrator:
     """Automated incident response and orchestration engine"""
-    
+
     def __init__(self):
         self.active_incidents = {}
         self.incident_history = deque(maxlen=10000)
@@ -196,15 +196,15 @@ class IncidentResponseOrchestrator:
         self.evidence_collectors = {}
         self.notification_channels = {}
         self.escalation_rules = {}
-        
+
         # Initialize response capabilities
         self._initialize_playbooks()
         self._initialize_automation_rules()
         self._initialize_response_actions()
-    
+
     def _initialize_playbooks(self):
         """Initialize incident response playbooks"""
-        
+
         # Malware Infection Playbook
         self.response_playbooks["malware_infection"] = PlaybookRule(
             rule_id="pb_malware_001",
@@ -223,7 +223,7 @@ class IncidentResponseOrchestrator:
             automation_level=AutomationLevel.FULLY_AUTOMATED,
             priority=1
         )
-        
+
         # Unauthorized Access Playbook
         self.response_playbooks["unauthorized_access"] = PlaybookRule(
             rule_id="pb_unauth_001",
@@ -242,7 +242,7 @@ class IncidentResponseOrchestrator:
             automation_level=AutomationLevel.SEMI_AUTOMATED,
             priority=2
         )
-        
+
         # Data Breach Playbook
         self.response_playbooks["data_breach"] = PlaybookRule(
             rule_id="pb_breach_001",
@@ -260,7 +260,7 @@ class IncidentResponseOrchestrator:
             automation_level=AutomationLevel.SEMI_AUTOMATED,
             priority=1
         )
-        
+
         # DDoS Attack Playbook
         self.response_playbooks["ddos_attack"] = PlaybookRule(
             rule_id="pb_ddos_001",
@@ -277,10 +277,10 @@ class IncidentResponseOrchestrator:
             automation_level=AutomationLevel.FULLY_AUTOMATED,
             priority=2
         )
-    
+
     def _initialize_automation_rules(self):
         """Initialize automation rules for incident classification"""
-        
+
         self.automation_rules = {
             # Security event patterns
             "multiple_failed_logins": {
@@ -308,10 +308,10 @@ class IncidentResponseOrchestrator:
                 "confidence": 0.8
             }
         }
-    
+
     def _initialize_response_actions(self):
         """Initialize automated response action handlers"""
-        
+
         self.response_handlers = {
             ResponseAction.BLOCK_IP: self._block_ip_address,
             ResponseAction.QUARANTINE_USER: self._quarantine_user_account,
@@ -326,8 +326,8 @@ class IncidentResponseOrchestrator:
             ResponseAction.PATCH_SYSTEM: self._apply_security_patches,
             ResponseAction.SCAN_SYSTEM: self._scan_affected_system
         }
-    
-    async def create_incident(self, 
+
+    async def create_incident(self,
                             title: str,
                             description: str,
                             category: IncidentCategory,
@@ -336,10 +336,10 @@ class IncidentResponseOrchestrator:
                             affected_systems: List[str] = None,
                             detected_by: str = "Automated Detection") -> SecurityIncident:
         """Create new security incident"""
-        
+
         try:
             incident_id = f"INC-{datetime.utcnow().strftime('%Y%m%d')}-{uuid.uuid4().hex[:8].upper()}"
-            
+
             incident = SecurityIncident(
                 incident_id=incident_id,
                 title=title,
@@ -353,7 +353,7 @@ class IncidentResponseOrchestrator:
                 source_events=source_events or [],
                 affected_systems=affected_systems or []
             )
-            
+
             # Add to timeline
             incident.timeline.append({
                 "timestamp": datetime.utcnow().isoformat(),
@@ -361,37 +361,37 @@ class IncidentResponseOrchestrator:
                 "details": f"Incident {incident_id} created by {detected_by}",
                 "actor": detected_by
             })
-            
+
             # Store incident
             self.active_incidents[incident_id] = incident
-            
+
             # Trigger automated response
             await self._trigger_automated_response(incident)
-            
+
             logger.info(f"Security incident created: {incident_id} - {title}")
-            
+
             return incident
-            
+
         except Exception as e:
             logger.error(f"Error creating incident: {e}")
             raise
-    
+
     async def _trigger_automated_response(self, incident: SecurityIncident):
         """Trigger automated response based on incident characteristics"""
-        
+
         try:
             # Find matching playbooks
             matching_playbooks = self._find_matching_playbooks(incident)
-            
+
             if not matching_playbooks:
                 logger.info(f"No automated playbooks match incident {incident.incident_id}")
                 return
-            
+
             # Execute highest priority playbook
             playbook = max(matching_playbooks, key=lambda p: p.priority)
-            
+
             logger.info(f"Executing playbook {playbook.name} for incident {incident.incident_id}")
-            
+
             # Update incident status
             incident.status = IncidentStatus.TRIAGED
             incident.updated_at = datetime.utcnow()
@@ -401,42 +401,42 @@ class IncidentResponseOrchestrator:
                 "details": f"Executing playbook: {playbook.name}",
                 "actor": "Automation Engine"
             })
-            
+
             # Execute response actions
             for action_config in playbook.response_actions:
                 action_type = action_config["action"]
                 delay = action_config.get("delay", 0)
                 approval_required = action_config.get("approval_required", False)
-                
+
                 if delay > 0:
                     await asyncio.sleep(delay)
-                
+
                 if approval_required and playbook.automation_level != AutomationLevel.FULLY_AUTOMATED:
                     # Queue for manual approval
                     await self._queue_for_approval(incident, action_type, action_config)
                 else:
                     # Execute immediately
                     await self._execute_response_action(incident, action_type, action_config)
-            
+
         except Exception as e:
             logger.error(f"Error in automated response: {e}")
-    
+
     def _find_matching_playbooks(self, incident: SecurityIncident) -> List[PlaybookRule]:
         """Find playbooks that match incident characteristics"""
-        
+
         matching_playbooks = []
-        
+
         for playbook in self.response_playbooks.values():
             if not playbook.enabled:
                 continue
-            
+
             conditions = playbook.trigger_conditions
-            
+
             # Check category match
             if "category" in conditions:
                 if conditions["category"] != incident.category:
                     continue
-            
+
             # Check severity match
             if "severity" in conditions:
                 if isinstance(conditions["severity"], list):
@@ -445,37 +445,37 @@ class IncidentResponseOrchestrator:
                 else:
                     if conditions["severity"] != incident.severity:
                         continue
-            
+
             # Check other conditions (could be extended)
             # For now, basic category and severity matching
-            
+
             matching_playbooks.append(playbook)
-        
+
         return matching_playbooks
-    
-    async def _execute_response_action(self, 
-                                     incident: SecurityIncident, 
-                                     action_type: ResponseAction, 
+
+    async def _execute_response_action(self,
+                                     incident: SecurityIncident,
+                                     action_type: ResponseAction,
                                      config: Dict[str, Any]):
         """Execute automated response action"""
-        
+
         try:
             action_id = f"ACT-{datetime.utcnow().strftime('%H%M%S')}-{uuid.uuid4().hex[:4]}"
             start_time = datetime.utcnow()
-            
+
             logger.info(f"Executing response action {action_type.value} for incident {incident.incident_id}")
-            
+
             # Get action handler
             handler = self.response_handlers.get(action_type)
             if not handler:
                 raise ValueError(f"No handler found for action {action_type.value}")
-            
+
             # Execute action
             result = await handler(incident, config)
-            
+
             # Calculate duration
             duration = (datetime.utcnow() - start_time).total_seconds()
-            
+
             # Create action result
             action_result = ResponseActionResult(
                 action_id=action_id,
@@ -487,7 +487,7 @@ class IncidentResponseOrchestrator:
                 error_message=result.get("error"),
                 rollback_info=result.get("rollback_info")
             )
-            
+
             # Add to incident
             incident.response_actions.append(action_result)
             incident.updated_at = datetime.utcnow()
@@ -497,12 +497,12 @@ class IncidentResponseOrchestrator:
                 "details": f"{action_type.value}: {action_result.status}",
                 "actor": "Automation Engine"
             })
-            
+
             logger.info(f"Response action {action_type.value} completed with status: {action_result.status}")
-            
+
         except Exception as e:
             logger.error(f"Error executing response action {action_type.value}: {e}")
-            
+
             # Record failed action
             action_result = ResponseActionResult(
                 action_id=f"ACT-{datetime.utcnow().strftime('%H%M%S')}-ERR",
@@ -513,17 +513,17 @@ class IncidentResponseOrchestrator:
                 output="",
                 error_message=str(e)
             )
-            
+
             incident.response_actions.append(action_result)
-    
-    async def _queue_for_approval(self, 
-                                incident: SecurityIncident, 
-                                action_type: ResponseAction, 
+
+    async def _queue_for_approval(self,
+                                incident: SecurityIncident,
+                                action_type: ResponseAction,
                                 config: Dict[str, Any]):
         """Queue response action for manual approval"""
-        
+
         logger.info(f"Queuing action {action_type.value} for approval on incident {incident.incident_id}")
-        
+
         # In a real implementation, this would integrate with approval workflow system
         incident.timeline.append({
             "timestamp": datetime.utcnow().isoformat(),
@@ -531,22 +531,22 @@ class IncidentResponseOrchestrator:
             "details": f"{action_type.value} requires manual approval",
             "actor": "Automation Engine"
         })
-    
+
     # Response Action Handlers (Mock implementations)
-    
+
     async def _block_ip_address(self, incident: SecurityIncident, config: Dict[str, Any]) -> Dict[str, Any]:
         """Block IP address at firewall"""
-        
+
         # Extract IP addresses from incident indicators
         ip_addresses = []
         for indicator in incident.indicators:
             if indicator.get("type") == "ip_address":
                 ip_addresses.append(indicator.get("value"))
-        
+
         if not ip_addresses:
             # Extract from source events or use default
             ip_addresses = ["192.168.1.100"]  # Mock IP
-        
+
         try:
             # Mock firewall API call
             blocked_ips = []
@@ -555,7 +555,7 @@ class IncidentResponseOrchestrator:
                 await asyncio.sleep(0.1)  # Simulate API call
                 blocked_ips.append(ip)
                 logger.info(f"Blocked IP address: {ip}")
-            
+
             return {
                 "success": True,
                 "output": f"Successfully blocked {len(blocked_ips)} IP addresses: {', '.join(blocked_ips)}",
@@ -565,19 +565,19 @@ class IncidentResponseOrchestrator:
                     "rule_ids": [f"rule_{ip.replace('.', '_')}" for ip in blocked_ips]
                 }
             }
-            
+
         except Exception as e:
             return {
                 "success": False,
                 "error": f"Failed to block IP addresses: {str(e)}",
                 "output": ""
             }
-    
+
     async def _isolate_system(self, incident: SecurityIncident, config: Dict[str, Any]) -> Dict[str, Any]:
         """Isolate affected system from network"""
-        
+
         systems = incident.affected_systems or ["unknown-system"]
-        
+
         try:
             isolated_systems = []
             for system in systems:
@@ -585,7 +585,7 @@ class IncidentResponseOrchestrator:
                 await asyncio.sleep(0.2)
                 isolated_systems.append(system)
                 logger.info(f"Isolated system from network: {system}")
-            
+
             return {
                 "success": True,
                 "output": f"Successfully isolated {len(isolated_systems)} systems: {', '.join(isolated_systems)}",
@@ -594,19 +594,19 @@ class IncidentResponseOrchestrator:
                     "isolated_systems": isolated_systems
                 }
             }
-            
+
         except Exception as e:
             return {
                 "success": False,
                 "error": f"Failed to isolate systems: {str(e)}",
                 "output": ""
             }
-    
+
     async def _disable_user_account(self, incident: SecurityIncident, config: Dict[str, Any]) -> Dict[str, Any]:
         """Disable user account"""
-        
+
         users = incident.affected_users or ["unknown-user"]
-        
+
         try:
             disabled_accounts = []
             for user in users:
@@ -614,7 +614,7 @@ class IncidentResponseOrchestrator:
                 await asyncio.sleep(0.1)
                 disabled_accounts.append(user)
                 logger.info(f"Disabled user account: {user}")
-            
+
             return {
                 "success": True,
                 "output": f"Successfully disabled {len(disabled_accounts)} accounts: {', '.join(disabled_accounts)}",
@@ -623,20 +623,20 @@ class IncidentResponseOrchestrator:
                     "disabled_accounts": disabled_accounts
                 }
             }
-            
+
         except Exception as e:
             return {
                 "success": False,
                 "error": f"Failed to disable accounts: {str(e)}",
                 "output": ""
             }
-    
+
     async def _collect_digital_evidence(self, incident: SecurityIncident, config: Dict[str, Any]) -> Dict[str, Any]:
         """Collect digital evidence"""
-        
+
         try:
             evidence_items = []
-            
+
             # Collect system logs
             log_evidence = IncidentEvidence(
                 evidence_id=f"LOG-{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
@@ -648,7 +648,7 @@ class IncidentResponseOrchestrator:
                 metadata={"log_entries": 1500, "time_range": "last_24_hours"}
             )
             evidence_items.append(log_evidence)
-            
+
             # Collect network captures
             if incident.category in [IncidentCategory.DENIAL_OF_SERVICE, IncidentCategory.UNAUTHORIZED_ACCESS]:
                 network_evidence = IncidentEvidence(
@@ -661,107 +661,107 @@ class IncidentResponseOrchestrator:
                     metadata={"packets": 25000, "duration": "30_minutes"}
                 )
                 evidence_items.append(network_evidence)
-            
+
             # Add evidence to incident
             incident.evidence.extend(evidence_items)
-            
+
             return {
                 "success": True,
                 "output": f"Collected {len(evidence_items)} pieces of digital evidence",
                 "evidence_collected": len(evidence_items)
             }
-            
+
         except Exception as e:
             return {
                 "success": False,
                 "error": f"Failed to collect evidence: {str(e)}",
                 "output": ""
             }
-    
+
     async def _alert_security_team(self, incident: SecurityIncident, config: Dict[str, Any]) -> Dict[str, Any]:
         """Alert security team"""
-        
+
         try:
             # Mock notification system
             notification_channels = ["email", "slack", "sms"]
-            
+
             alert_message = f"""
             SECURITY INCIDENT ALERT
-            
+
             Incident ID: {incident.incident_id}
             Severity: {incident.severity.value.upper()}
             Category: {incident.category.value.replace('_', ' ').title()}
-            
+
             Title: {incident.title}
             Description: {incident.description}
-            
+
             Affected Systems: {', '.join(incident.affected_systems) if incident.affected_systems else 'Unknown'}
-            
+
             Time: {incident.created_at.strftime('%Y-%m-%d %H:%M:%S UTC')}
-            
+
             Please review and take appropriate action.
             """
-            
+
             sent_notifications = []
             for channel in notification_channels:
                 await asyncio.sleep(0.1)  # Simulate notification sending
                 sent_notifications.append(channel)
                 logger.info(f"Sent security alert via {channel}")
-            
+
             return {
                 "success": True,
                 "output": f"Security team alerted via {len(sent_notifications)} channels: {', '.join(sent_notifications)}",
                 "notifications_sent": len(sent_notifications)
             }
-            
+
         except Exception as e:
             return {
                 "success": False,
                 "error": f"Failed to alert security team: {str(e)}",
                 "output": ""
             }
-    
+
     # Additional response action handlers (mock implementations)
-    
+
     async def _quarantine_user_account(self, incident, config):
         return {"success": True, "output": "User account quarantined"}
-    
+
     async def _reset_user_password(self, incident, config):
         return {"success": True, "output": "User password reset and user notified"}
-    
+
     async def _revoke_user_access(self, incident, config):
         return {"success": True, "output": "User access tokens revoked"}
-    
+
     async def _escalate_incident(self, incident, config):
         incident.severity = IncidentSeverity.CRITICAL
         return {"success": True, "output": "Incident escalated to CRITICAL severity"}
-    
+
     async def _backup_system_state(self, incident, config):
         return {"success": True, "output": "System state backed up successfully"}
-    
+
     async def _apply_security_patches(self, incident, config):
         return {"success": True, "output": "Security patches applied to affected systems"}
-    
+
     async def _scan_affected_system(self, incident, config):
         return {"success": True, "output": "Security scan completed on affected systems"}
-    
+
     # Incident Management Methods
-    
+
     async def get_incident(self, incident_id: str) -> Optional[SecurityIncident]:
         """Get incident by ID"""
         return self.active_incidents.get(incident_id)
-    
+
     async def update_incident_status(self, incident_id: str, status: IncidentStatus, notes: str = None):
         """Update incident status"""
-        
+
         incident = self.active_incidents.get(incident_id)
         if not incident:
             raise ValueError(f"Incident {incident_id} not found")
-        
+
         old_status = incident.status
         incident.status = status
         incident.updated_at = datetime.utcnow()
-        
+
         incident.timeline.append({
             "timestamp": datetime.utcnow().isoformat(),
             "event": "Status Changed",
@@ -769,23 +769,23 @@ class IncidentResponseOrchestrator:
             "notes": notes,
             "actor": "System"
         })
-        
+
         # Move to history if closed
         if status == IncidentStatus.CLOSED:
             self.incident_history.append(incident)
             del self.active_incidents[incident_id]
-        
+
         logger.info(f"Incident {incident_id} status updated to {status.value}")
-    
+
     async def get_incident_statistics(self, days: int = 30) -> Dict[str, Any]:
         """Get incident statistics"""
-        
+
         cutoff_date = datetime.utcnow() - timedelta(days=days)
-        
+
         # Include both active and historical incidents
         all_incidents = list(self.active_incidents.values()) + list(self.incident_history)
         recent_incidents = [i for i in all_incidents if i.created_at >= cutoff_date]
-        
+
         if not recent_incidents:
             return {
                 "total_incidents": 0,
@@ -795,7 +795,7 @@ class IncidentResponseOrchestrator:
                 "average_resolution_time": 0,
                 "incidents_per_day": 0
             }
-        
+
         # Calculate statistics
         stats = {
             "total_incidents": len(recent_incidents),
@@ -804,30 +804,30 @@ class IncidentResponseOrchestrator:
             "by_status": defaultdict(int),
             "incidents_per_day": len(recent_incidents) / days
         }
-        
+
         resolution_times = []
-        
+
         for incident in recent_incidents:
             stats["by_severity"][incident.severity.value] += 1
             stats["by_category"][incident.category.value] += 1
             stats["by_status"][incident.status.value] += 1
-            
+
             # Calculate resolution time for closed incidents
             if incident.status == IncidentStatus.CLOSED:
                 resolution_time = (incident.updated_at - incident.created_at).total_seconds() / 3600  # hours
                 resolution_times.append(resolution_time)
-        
+
         # Calculate average resolution time
         if resolution_times:
             stats["average_resolution_time"] = sum(resolution_times) / len(resolution_times)
         else:
             stats["average_resolution_time"] = 0
-        
+
         # Convert defaultdicts to regular dicts
         stats["by_severity"] = dict(stats["by_severity"])
         stats["by_category"] = dict(stats["by_category"])
         stats["by_status"] = dict(stats["by_status"])
-        
+
         return stats
 
 # Global incident response orchestrator

@@ -41,7 +41,7 @@ class SecurityScanner:
     def run_gitleaks(self) -> ScanResult:
         """Run gitleaks secret detection."""
         print("🔍 Running gitleaks secret detection...")
-        
+
         try:
             # Check if gitleaks is installed
             subprocess.run(["gitleaks", "version"], capture_output=True, check=True)
@@ -64,10 +64,10 @@ class SecurityScanner:
                 text=True,
                 cwd=self.root_path
             )
-            
+
             issues = result.stdout.count("Secret found")
             passed = result.returncode == 0
-            
+
             recommendations = []
             if issues > 0:
                 recommendations = [
@@ -102,7 +102,7 @@ class SecurityScanner:
     def run_bandit(self) -> ScanResult:
         """Run bandit Python security linting."""
         print("🔍 Running bandit Python security analysis...")
-        
+
         try:
             # Check if bandit is installed
             subprocess.run(["bandit", "--version"], capture_output=True, check=True)
@@ -127,20 +127,20 @@ class SecurityScanner:
                 "--skip", "B101,B601",  # Skip assert and shell usage (common in tests)
                 "-ll"  # Low confidence level
             ], capture_output=True, text=True, cwd=self.root_path)
-            
+
             # Parse JSON output
             if result.stdout.strip():
                 try:
                     bandit_data = json.loads(result.stdout)
                     results = bandit_data.get("results", [])
-                    
+
                     high_severity = len([r for r in results if r.get("issue_severity") == "HIGH"])
                     medium_severity = len([r for r in results if r.get("issue_severity") == "MEDIUM"])
                     low_severity = len([r for r in results if r.get("issue_severity") == "LOW"])
                     total_issues = len(results)
-                    
+
                     passed = high_severity == 0 and medium_severity == 0
-                    
+
                     recommendations = []
                     if high_severity > 0:
                         recommendations.append("Fix high severity security issues immediately")
@@ -162,7 +162,7 @@ class SecurityScanner:
                 except json.JSONDecodeError:
                     # Fall back to non-JSON parsing
                     pass
-            
+
             # If JSON parsing failed or no output, assume success
             return ScanResult(
                 tool="bandit",
@@ -190,7 +190,7 @@ class SecurityScanner:
     def run_ruff_security(self) -> ScanResult:
         """Run ruff with security-focused rules."""
         print("🔍 Running ruff security checks...")
-        
+
         try:
             result = subprocess.run([
                 "python3", "-m", "ruff", "check",
@@ -198,15 +198,15 @@ class SecurityScanner:
                 "--output-format", "json",
                 "src/", "tools/", "tests/"
             ], capture_output=True, text=True, cwd=self.root_path)
-            
+
             if result.stdout.strip():
                 try:
                     ruff_data = json.loads(result.stdout)
                     issues = len(ruff_data)
-                    
+
                     # Ruff doesn't categorize severity, so we'll consider all as medium
                     passed = issues == 0
-                    
+
                     recommendations = []
                     if issues > 0:
                         recommendations = [
@@ -227,7 +227,7 @@ class SecurityScanner:
                     )
                 except json.JSONDecodeError:
                     pass
-            
+
             return ScanResult(
                 tool="ruff-security",
                 passed=True,
@@ -255,9 +255,9 @@ class SecurityScanner:
     def run_dockerfile_scan(self) -> ScanResult:
         """Scan Dockerfiles for security issues."""
         print("🔍 Scanning Dockerfiles for security issues...")
-        
+
         dockerfiles = list(self.root_path.rglob("*Dockerfile*"))
-        
+
         if not dockerfiles:
             return ScanResult(
                 tool="dockerfile-scan",
@@ -277,16 +277,16 @@ class SecurityScanner:
         for dockerfile in dockerfiles:
             try:
                 content = dockerfile.read_text()
-                
+
                 # Check for common security issues
                 if "FROM" in content and ":latest" in content:
                     issues += 1
                     findings.append(f"{dockerfile}: Uses :latest tag (security risk)")
-                
+
                 if "RUN" in content and any(cmd in content for cmd in ["curl", "wget"]) and "https://" not in content:
                     issues += 1
                     findings.append(f"{dockerfile}: Downloads over HTTP (security risk)")
-                
+
                 if "USER root" in content or ("USER" not in content and "FROM" in content):
                     issues += 1
                     findings.append(f"{dockerfile}: Runs as root user")
@@ -332,15 +332,15 @@ class SecurityScanner:
 
         # Text format
         report = ["=" * 60, "🔒 XORB Security Scan Report", "=" * 60, ""]
-        
+
         total_issues = sum(r.issues for r in self.results.values())
         total_high = sum(r.high_severity for r in self.results.values())
         total_medium = sum(r.medium_severity for r in self.results.values())
         total_low = sum(r.low_severity for r in self.results.values())
-        
+
         all_passed = all(r.passed for r in self.results.values())
         status_icon = "✅" if all_passed else "❌"
-        
+
         report.extend([
             f"{status_icon} Overall Status: {'PASSED' if all_passed else 'FAILED'}",
             f"📊 Total Issues: {total_issues}",
@@ -387,7 +387,7 @@ class SecurityScanner:
         self.results["bandit"] = self.run_bandit()
         self.results["ruff-security"] = self.run_ruff_security()
         self.results["dockerfile-scan"] = self.run_dockerfile_scan()
-        
+
         return all(result.passed for result in self.results.values())
 
 
@@ -396,29 +396,29 @@ def main():
     parser.add_argument("--format", choices=["text", "json"], default="text", help="Output format")
     parser.add_argument("--output", help="Output file path")
     parser.add_argument("--fail-on-issues", action="store_true", help="Exit with error code if issues found")
-    
+
     args = parser.parse_args()
-    
+
     scanner = SecurityScanner(Path.cwd())
-    
+
     print("🔒 Starting XORB security scan...")
     print()
-    
+
     passed = scanner.run_all_scans()
-    
+
     print()
     report = scanner.generate_report(args.format)
-    
+
     if args.output:
         Path(args.output).write_text(report)
         print(f"📄 Report saved to: {args.output}")
     else:
         print(report)
-    
+
     if args.fail_on_issues and not passed:
         print("❌ Security issues detected!")
         return 1
-    
+
     print("✅ Security scan completed")
     return 0
 

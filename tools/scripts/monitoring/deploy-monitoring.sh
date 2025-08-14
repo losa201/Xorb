@@ -36,22 +36,22 @@ info() {
 # Check prerequisites
 check_prerequisites() {
     log "Checking prerequisites..."
-    
+
     # Check kubectl
     if ! command -v kubectl &> /dev/null; then
         error "kubectl is not installed or not in PATH"
     fi
-    
+
     # Check helm
     if ! command -v helm &> /dev/null; then
         error "helm is not installed or not in PATH"
     fi
-    
+
     # Check cluster connectivity
     if ! kubectl cluster-info &> /dev/null; then
         error "Cannot connect to Kubernetes cluster"
     fi
-    
+
     log "Prerequisites check passed"
 }
 
@@ -59,12 +59,12 @@ check_prerequisites() {
 create_namespaces() {
     log "Creating monitoring namespaces..."
     kubectl apply -f "${K8S_DIR}/namespace.yaml"
-    
+
     # Wait for namespaces to be ready
     kubectl wait --for=condition=Active namespace/xorb-monitoring --timeout=30s
     kubectl wait --for=condition=Active namespace/xorb-logging --timeout=30s
     kubectl wait --for=condition=Active namespace/xorb-tracing --timeout=30s
-    
+
     log "Namespaces created successfully"
 }
 
@@ -73,10 +73,10 @@ deploy_prometheus() {
     log "Deploying Prometheus..."
     kubectl apply -f "${K8S_DIR}/prometheus/configmap.yaml"
     kubectl apply -f "${K8S_DIR}/prometheus/deployment.yaml"
-    
+
     # Wait for Prometheus to be ready
     kubectl wait --for=condition=Available deployment/prometheus -n xorb-monitoring --timeout=300s
-    
+
     log "Prometheus deployed successfully"
 }
 
@@ -85,10 +85,10 @@ deploy_grafana() {
     log "Deploying Grafana..."
     kubectl apply -f "${K8S_DIR}/grafana/configmap.yaml"
     kubectl apply -f "${K8S_DIR}/grafana/deployment.yaml"
-    
+
     # Wait for Grafana to be ready
     kubectl wait --for=condition=Available deployment/grafana -n xorb-monitoring --timeout=300s
-    
+
     log "Grafana deployed successfully"
 }
 
@@ -97,10 +97,10 @@ deploy_alertmanager() {
     log "Deploying Alertmanager..."
     kubectl apply -f "${K8S_DIR}/alertmanager/configmap.yaml"
     kubectl apply -f "${K8S_DIR}/alertmanager/deployment.yaml"
-    
+
     # Wait for Alertmanager to be ready
     kubectl wait --for=condition=Available deployment/alertmanager -n xorb-monitoring --timeout=300s
-    
+
     log "Alertmanager deployed successfully"
 }
 
@@ -108,10 +108,10 @@ deploy_alertmanager() {
 deploy_loki() {
     log "Deploying Loki..."
     kubectl apply -f "${K8S_DIR}/loki/deployment.yaml"
-    
+
     # Wait for Loki to be ready
     kubectl wait --for=condition=Available deployment/loki -n xorb-logging --timeout=300s
-    
+
     log "Loki deployed successfully"
 }
 
@@ -119,10 +119,10 @@ deploy_loki() {
 deploy_promtail() {
     log "Deploying Promtail..."
     kubectl apply -f "${K8S_DIR}/promtail/daemonset.yaml"
-    
+
     # Wait for Promtail DaemonSet to be ready
     kubectl rollout status daemonset/promtail -n xorb-logging --timeout=300s
-    
+
     log "Promtail deployed successfully"
 }
 
@@ -130,10 +130,10 @@ deploy_promtail() {
 deploy_jaeger() {
     log "Deploying Jaeger..."
     kubectl apply -f "${K8S_DIR}/jaeger/deployment.yaml"
-    
+
     # Wait for Jaeger to be ready
     kubectl wait --for=condition=Available deployment/jaeger-all-in-one -n xorb-tracing --timeout=300s
-    
+
     log "Jaeger deployed successfully"
 }
 
@@ -141,70 +141,70 @@ deploy_jaeger() {
 deploy_node_exporter() {
     log "Deploying Node Exporter..."
     kubectl apply -f "${K8S_DIR}/node-exporter/daemonset.yaml"
-    
+
     # Wait for Node Exporter DaemonSet to be ready
     kubectl rollout status daemonset/node-exporter -n xorb-monitoring --timeout=300s
-    
+
     log "Node Exporter deployed successfully"
 }
 
 # Deploy ingress controllers
 deploy_ingress() {
     log "Deploying monitoring ingress resources..."
-    
+
     # Check if SSL certificate ARN is provided
     if [[ -z "${SSL_CERTIFICATE_ARN:-}" ]]; then
         warn "SSL_CERTIFICATE_ARN not set, using placeholder in ingress"
         export SSL_CERTIFICATE_ARN="arn:aws:acm:us-west-2:123456789012:certificate/12345678-1234-1234-1234-123456789012"
     fi
-    
+
     # Apply ingress with environment variable substitution
     envsubst < "${K8S_DIR}/ingress.yaml" | kubectl apply -f -
-    
+
     log "Ingress resources deployed successfully"
 }
 
 # Verify deployment
 verify_deployment() {
     log "Verifying monitoring stack deployment..."
-    
+
     info "Checking Prometheus..."
     kubectl get pods -n xorb-monitoring -l app=prometheus
-    
+
     info "Checking Grafana..."
     kubectl get pods -n xorb-monitoring -l app=grafana
-    
+
     info "Checking Alertmanager..."
     kubectl get pods -n xorb-monitoring -l app=alertmanager
-    
+
     info "Checking Loki..."
     kubectl get pods -n xorb-logging -l app=loki
-    
+
     info "Checking Promtail..."
     kubectl get pods -n xorb-logging -l app=promtail
-    
+
     info "Checking Jaeger..."
     kubectl get pods -n xorb-tracing -l app=jaeger
-    
+
     info "Checking Node Exporter..."
     kubectl get pods -n xorb-monitoring -l app=node-exporter
-    
+
     log "Deployment verification completed"
 }
 
 # Display access information
 display_access_info() {
     log "Monitoring stack deployed successfully!"
-    
+
     echo ""
     echo "Access Information:"
     echo "=================="
-    
+
     # Get LoadBalancer IPs/hostnames
     local prometheus_lb=$(kubectl get ingress xorb-monitoring-ingress -n xorb-monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "Pending...")
     local loki_lb=$(kubectl get ingress xorb-logging-ingress -n xorb-logging -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "Pending...")
     local jaeger_lb=$(kubectl get ingress xorb-tracing-ingress -n xorb-tracing -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || echo "Pending...")
-    
+
     echo "Prometheus: http://prometheus.xorb.local (${prometheus_lb})"
     echo "Grafana: http://grafana.xorb.local (${prometheus_lb})"
     echo "  - Username: admin"
@@ -212,7 +212,7 @@ display_access_info() {
     echo "Alertmanager: http://alertmanager.xorb.local (${prometheus_lb})"
     echo "Loki: http://loki.xorb.local (${loki_lb})"
     echo "Jaeger: http://jaeger.xorb.local (${jaeger_lb})"
-    
+
     echo ""
     echo "Port Forwarding (for local access):"
     echo "==================================="
@@ -221,7 +221,7 @@ display_access_info() {
     echo "kubectl port-forward -n xorb-monitoring svc/alertmanager 9093:9093"
     echo "kubectl port-forward -n xorb-logging svc/loki 3100:3100"
     echo "kubectl port-forward -n xorb-tracing svc/jaeger-query 16686:16686"
-    
+
     echo ""
     echo "Next Steps:"
     echo "==========="
@@ -234,7 +234,7 @@ display_access_info() {
 # Main deployment function
 main() {
     log "Starting XORB monitoring stack deployment..."
-    
+
     check_prerequisites
     create_namespaces
     deploy_prometheus
@@ -247,7 +247,7 @@ main() {
     deploy_ingress
     verify_deployment
     display_access_info
-    
+
     log "XORB monitoring stack deployment completed successfully!"
 }
 

@@ -34,7 +34,7 @@ cd src/services/worker && source ../../venv/bin/activate && python worker.py
 # Enterprise deployment with all services
 docker-compose -f docker-compose.enterprise.yml up -d
 
-# Development environment  
+# Development environment
 docker-compose -f docker-compose.development.yml up -d
 
 # Production deployment
@@ -75,14 +75,14 @@ pytest
 
 # Run specific test directories
 pytest tests/unit/                    # Unit tests
-pytest tests/integration/             # Integration tests  
+pytest tests/integration/             # Integration tests
 pytest tests/e2e/                     # End-to-end tests
 pytest tests/security/                # Security tests
 
 # Run specific test file
 pytest tests/unit/test_auth.py
 
-# Run tests by category using markers  
+# Run tests by category using markers
 pytest -m unit          # Unit tests only
 pytest -m integration   # Integration tests only
 pytest -m e2e           # End-to-end tests only
@@ -114,13 +114,13 @@ The repository follows enterprise microservices architecture with clear service 
 
 - **src/** - Main application source code
   - **api/** - FastAPI REST API with clean architecture (main entry at `app/main.py`)
-  - **orchestrator/** - Temporal workflow orchestration service  
+  - **orchestrator/** - Temporal workflow orchestration service
   - **xorb/** - Core platform modules and services
   - **common/** - Shared utilities, encryption, and configurations
   - **services/worker/** - Background worker service for job execution
 - **services/** - Microservices architecture
   - **ptaas/** - PTaaS Frontend Service (React + TypeScript web interface)
-  - **xorb-core/** - XORB Backend Platform (FastAPI, orchestration, AI services)  
+  - **xorb-core/** - XORB Backend Platform (FastAPI, orchestration, AI services)
   - **infrastructure/** - Shared infrastructure services (monitoring, vault, databases)
 - **packages/** - Shared libraries and configurations
   - **common/** - Shared utilities, encryption, and configurations
@@ -342,7 +342,7 @@ XORB includes comprehensive HashiCorp Vault integration for secure secret manage
 
 **Vault Infrastructure** (Located in `infra/vault/`):
 - `vault-config.hcl` - Production Vault configuration with KV, database, transit engines
-- `vault-dev-config.hcl` - Development Vault configuration  
+- `vault-dev-config.hcl` - Development Vault configuration
 - `init-vault.sh` - Production initialization script with policies and roles
 - `setup-vault-dev.sh` - Development setup with auto-generated secrets
 
@@ -405,7 +405,7 @@ XORB includes a comprehensive DevSecOps pipeline with multiple security scanning
 # Main CI workflow
 .github/workflows/ci.yml                    # Basic CI/CD pipeline
 
-# Comprehensive security pipeline  
+# Comprehensive security pipeline
 .github/workflows/security-scan.yml         # Multi-stage security scanning
 .github/workflows/devsecops-pipeline.yml    # Full DevSecOps workflow
 .github/workflows/infrastructure-security.yml # Infrastructure security scanning
@@ -418,7 +418,7 @@ XORB includes a comprehensive DevSecOps pipeline with multiple security scanning
 
 # Run specific security scans
 ./tools/scripts/security-scan.sh secrets      # Secret detection
-./tools/scripts/security-scan.sh sast         # Static analysis  
+./tools/scripts/security-scan.sh sast         # Static analysis
 ./tools/scripts/security-scan.sh dependencies # Dependency vulnerabilities
 ./tools/scripts/security-scan.sh container    # Container security
 ./tools/scripts/security-scan.sh infrastructure # Infrastructure scanning
@@ -549,7 +549,7 @@ curl http://localhost:8000/api/v1/ptaas/profiles
 ### Middleware Stack (FastAPI)
 The API service uses a carefully ordered middleware stack in `app/main.py`:
 1. **GlobalErrorHandler** (outermost) - Comprehensive error handling and logging
-2. **APISecurityMiddleware** - Security headers, request validation  
+2. **APISecurityMiddleware** - Security headers, request validation
 3. **AdvancedRateLimitingMiddleware** - Redis-backed rate limiting with tenant support
 4. **TenantContextMiddleware** - Multi-tenant request context
 5. **RequestLoggingMiddleware** - Structured request/response logging

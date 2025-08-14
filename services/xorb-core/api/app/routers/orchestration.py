@@ -23,7 +23,7 @@ from ..security import (
 class TaskType(str, Enum):
     """Types of orchestrated tasks"""
     VULNERABILITY_SCAN = "vulnerability_scan"
-    THREAT_HUNT = "threat_hunt" 
+    THREAT_HUNT = "threat_hunt"
     SECURITY_ASSESSMENT = "security_assessment"
     COMPLIANCE_CHECK = "compliance_check"
     INCIDENT_RESPONSE = "incident_response"
@@ -115,24 +115,24 @@ class Task(BaseModel):
     priority: TaskPriority
     parameters: TaskParameters
     description: Optional[str] = None
-    
+
     # Assignment and execution
     assigned_agent_id: Optional[str] = None
     orchestration_strategy: OrchestrationStrategy
     dependencies: List[str] = Field(default_factory=list)
-    
+
     # Timing
     created_at: datetime
     updated_at: datetime
     scheduled_at: Optional[datetime] = None
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
-    
+
     # Results and tracking
     result: Optional[TaskResult] = None
     progress_percentage: float = 0.0
     execution_log: List[Dict[str, Any]] = Field(default_factory=list)
-    
+
     # Metadata
     created_by: str
     tags: Dict[str, str] = Field(default_factory=dict)
@@ -209,10 +209,10 @@ async def list_tasks(
     per_page: int = Query(100, ge=1, le=1000, description="Items per page"),
 ) -> TasksListResponse:
     """List tasks with filtering and pagination"""
-    
+
     if Permission.TASK_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: task:read")
-    
+
     # Filter tasks
     filtered_tasks = []
     for task in tasks_store.values():
@@ -227,21 +227,21 @@ async def list_tasks(
             continue
         if created_by and task.created_by != created_by:
             continue
-            
+
         filtered_tasks.append(task)
-    
+
     # Sort by priority and creation time
     filtered_tasks.sort(key=lambda t: (
         _priority_value(t.priority),
         t.created_at
     ), reverse=True)
-    
+
     # Apply pagination
     total = len(filtered_tasks)
     start_idx = (page - 1) * per_page
     end_idx = start_idx + per_page
     page_tasks = filtered_tasks[start_idx:end_idx]
-    
+
     return TasksListResponse(
         tasks=page_tasks,
         total=total,
@@ -258,10 +258,10 @@ async def create_task(
     context: SecurityContext = Depends(require_orchestrator)
 ) -> Task:
     """Create and orchestrate a new task"""
-    
+
     task_id = str(uuid.uuid4())
     current_time = datetime.utcnow()
-    
+
     # Create task
     task = Task(
         id=task_id,
@@ -279,19 +279,19 @@ async def create_task(
         created_by=context.user_id,
         tags=request.tags
     )
-    
+
     # Store task
     tasks_store[task_id] = task
-    
+
     # Add to orchestration queue
     orchestration_queue.append(task_id)
-    
+
     # Log task creation
     _add_execution_log(task, "Task created", {"created_by": context.user_id})
-    
+
     # Start orchestration process
     background_tasks.add_task(_orchestrate_task, task_id)
-    
+
     return task
 
 
@@ -301,14 +301,14 @@ async def get_task(
     context: SecurityContext = Depends(get_security_context)
 ) -> Task:
     """Get detailed task information"""
-    
+
     if Permission.TASK_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: task:read")
-    
+
     task = tasks_store.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     return task
 
 
@@ -319,15 +319,15 @@ async def update_task(
     context: SecurityContext = Depends(require_permission(Permission.TASK_PRIORITY))
 ) -> Task:
     """Update task configuration"""
-    
+
     task = tasks_store.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     # Check if task can be updated
     if task.status in [TaskStatus.COMPLETED, TaskStatus.CANCELLED]:
         raise HTTPException(status_code=409, detail="Cannot update completed or cancelled task")
-    
+
     # Update fields
     updated = False
     if request.priority and request.priority != task.priority:
@@ -339,23 +339,23 @@ async def update_task(
             "updated_by": context.user_id
         })
         updated = True
-    
+
     if request.parameters:
         task.parameters = request.parameters
         _add_execution_log(task, "Parameters updated", {"updated_by": context.user_id})
         updated = True
-    
+
     if request.description is not None:
         task.description = request.description
         updated = True
-    
+
     if request.tags is not None:
         task.tags.update(request.tags)
         updated = True
-    
+
     if updated:
         task.updated_at = datetime.utcnow()
-    
+
     return task
 
 
@@ -365,25 +365,25 @@ async def cancel_task(
     context: SecurityContext = Depends(require_permission(Permission.TASK_CANCEL))
 ) -> Dict[str, str]:
     """Cancel a pending or running task"""
-    
+
     task = tasks_store.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     # Check if task can be cancelled
     if task.status in [TaskStatus.COMPLETED, TaskStatus.CANCELLED]:
         raise HTTPException(status_code=409, detail="Task already completed or cancelled")
-    
+
     # Cancel task
     task.status = TaskStatus.CANCELLED
     task.updated_at = datetime.utcnow()
-    
+
     _add_execution_log(task, "Task cancelled", {"cancelled_by": context.user_id})
-    
+
     # Remove from queue if pending
     if task_id in orchestration_queue:
         orchestration_queue.remove(task_id)
-    
+
     return {"message": "Task cancelled successfully", "task_id": task_id}
 
 
@@ -392,23 +392,23 @@ async def get_orchestration_metrics(
     context: SecurityContext = Depends(get_security_context)
 ) -> OrchestrationMetrics:
     """Get orchestration system metrics"""
-    
+
     if Permission.TELEMETRY_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: telemetry:read")
-    
+
     # Calculate metrics
     total_tasks = len(tasks_store)
     pending_tasks = sum(1 for t in tasks_store.values() if t.status == TaskStatus.PENDING)
     running_tasks = sum(1 for t in tasks_store.values() if t.status == TaskStatus.RUNNING)
     completed_tasks = sum(1 for t in tasks_store.values() if t.status == TaskStatus.COMPLETED)
     failed_tasks = sum(1 for t in tasks_store.values() if t.status == TaskStatus.FAILED)
-    
+
     # Calculate average execution time
     completed_with_times = [
-        t for t in tasks_store.values() 
+        t for t in tasks_store.values()
         if t.status == TaskStatus.COMPLETED and t.started_at and t.completed_at
     ]
-    
+
     if completed_with_times:
         total_execution_time = sum(
             (t.completed_at - t.started_at).total_seconds() / 60
@@ -417,12 +417,12 @@ async def get_orchestration_metrics(
         avg_execution_time = total_execution_time / len(completed_with_times)
     else:
         avg_execution_time = 0.0
-    
+
     # Simulate other metrics
     queue_depth = len(orchestration_queue)
     active_agents = 3  # This would come from agent registry
     system_load = min(queue_depth / 10, 1.0)  # Simplified load calculation
-    
+
     return OrchestrationMetrics(
         total_tasks=total_tasks,
         pending_tasks=pending_tasks,
@@ -442,16 +442,16 @@ async def optimize_orchestration(
     context: SecurityContext = Depends(require_orchestrator)
 ) -> OrchestrationDecision:
     """Get AI-optimized orchestration decisions"""
-    
+
     # Simulate AI brain decision making
     await asyncio.sleep(1)  # Simulate processing time
-    
+
     # Get tasks to optimize
     tasks_to_optimize = [tasks_store[tid] for tid in request.tasks if tid in tasks_store]
-    
+
     if not tasks_to_optimize:
         raise HTTPException(status_code=400, detail="No valid tasks provided for optimization")
-    
+
     # Simulate AI decision
     decision = OrchestrationDecision(
         strategy=OrchestrationStrategy.AI_OPTIMIZED,
@@ -465,17 +465,17 @@ async def optimize_orchestration(
             "Considered historical performance data"
         ]
     )
-    
+
     # Generate recommendations for each task
     for i, task in enumerate(tasks_to_optimize):
         # Simulate agent assignment logic
         agent_id = f"agent_{i % 3 + 1}"  # Round-robin for demo
         decision.agent_assignments[task.id] = agent_id
-        
+
         # Generate scheduling recommendation
         start_time = datetime.utcnow() + timedelta(minutes=i * 5)
         duration = _estimate_task_duration(task)
-        
+
         recommendation = SchedulingRecommendation(
             task_id=task.id,
             recommended_agent_id=agent_id,
@@ -488,9 +488,9 @@ async def optimize_orchestration(
                 "No resource conflicts detected"
             ]
         )
-        
+
         decision.schedule_recommendations.append(recommendation)
-    
+
     return decision
 
 
@@ -500,19 +500,19 @@ async def pause_task(
     context: SecurityContext = Depends(require_orchestrator)
 ) -> Dict[str, str]:
     """Pause a running task"""
-    
+
     task = tasks_store.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     if task.status != TaskStatus.RUNNING:
         raise HTTPException(status_code=409, detail="Task is not running")
-    
+
     task.status = TaskStatus.PAUSED
     task.updated_at = datetime.utcnow()
-    
+
     _add_execution_log(task, "Task paused", {"paused_by": context.user_id})
-    
+
     return {"message": "Task paused successfully", "task_id": task_id}
 
 
@@ -523,22 +523,22 @@ async def resume_task(
     context: SecurityContext = Depends(require_orchestrator)
 ) -> Dict[str, str]:
     """Resume a paused task"""
-    
+
     task = tasks_store.get(task_id)
     if not task:
         raise HTTPException(status_code=404, detail="Task not found")
-    
+
     if task.status != TaskStatus.PAUSED:
         raise HTTPException(status_code=409, detail="Task is not paused")
-    
+
     task.status = TaskStatus.RUNNING
     task.updated_at = datetime.utcnow()
-    
+
     _add_execution_log(task, "Task resumed", {"resumed_by": context.user_id})
-    
+
     # Continue task execution
     background_tasks.add_task(_continue_task_execution, task_id)
-    
+
     return {"message": "Task resumed successfully", "task_id": task_id}
 
 
@@ -579,15 +579,15 @@ def _estimate_task_duration(task: Task) -> int:
         TaskType.INTELLIGENCE_GATHERING: 40,
         TaskType.CUSTOM_WORKFLOW: 60
     }
-    
+
     base = base_durations.get(task.task_type, 30)
-    
+
     # Adjust for priority
     if task.priority in [TaskPriority.CRITICAL, TaskPriority.EMERGENCY]:
         base = int(base * 0.8)  # Faster processing for critical tasks
     elif task.priority == TaskPriority.LOW:
         base = int(base * 1.2)  # Slower processing for low priority
-    
+
     return base
 
 
@@ -596,28 +596,28 @@ async def _orchestrate_task(task_id: str):
     task = tasks_store.get(task_id)
     if not task:
         return
-    
+
     try:
         # Wait for dependencies
         await _wait_for_dependencies(task)
-        
+
         # Find suitable agent
         agent_id = await _assign_agent(task)
         if not agent_id:
             task.status = TaskStatus.FAILED
             _add_execution_log(task, "No suitable agent available")
             return
-        
+
         # Update task status
         task.status = TaskStatus.ASSIGNED
         task.assigned_agent_id = agent_id
         task.updated_at = datetime.utcnow()
-        
+
         _add_execution_log(task, "Agent assigned", {"agent_id": agent_id})
-        
+
         # Start execution
         await _execute_task(task)
-        
+
     except Exception as e:
         task.status = TaskStatus.FAILED
         _add_execution_log(task, "Orchestration failed", {"error": str(e)})
@@ -627,10 +627,10 @@ async def _wait_for_dependencies(task: Task):
     """Wait for task dependencies to complete"""
     if not task.dependencies:
         return
-    
+
     task.status = TaskStatus.QUEUED
     _add_execution_log(task, "Waiting for dependencies")
-    
+
     while task.dependencies:
         # Check if dependencies are completed
         completed_deps = []
@@ -640,11 +640,11 @@ async def _wait_for_dependencies(task: Task):
                 completed_deps.append(dep_id)
             elif dep_task and dep_task.status == TaskStatus.FAILED:
                 raise Exception(f"Dependency task {dep_id} failed")
-        
+
         # Remove completed dependencies
         for dep_id in completed_deps:
             task.dependencies.remove(dep_id)
-        
+
         if task.dependencies:
             await asyncio.sleep(5)  # Check every 5 seconds
 
@@ -653,7 +653,7 @@ async def _assign_agent(task: Task) -> Optional[str]:
     """Assign suitable agent to task"""
     # This would integrate with the agent management system
     # For now, simulate agent assignment
-    
+
     if task.orchestration_strategy == OrchestrationStrategy.AI_OPTIMIZED:
         # Simulate AI-based agent selection
         await asyncio.sleep(0.5)
@@ -668,26 +668,26 @@ async def _execute_task(task: Task):
     task.status = TaskStatus.RUNNING
     task.started_at = datetime.utcnow()
     task.updated_at = datetime.utcnow()
-    
+
     _add_execution_log(task, "Task execution started")
-    
+
     try:
         # Simulate task execution
         duration = _estimate_task_duration(task)
-        
+
         # Update progress periodically
         for progress in [25, 50, 75, 100]:
             await asyncio.sleep(duration * 0.6 / 4)  # 60% of estimated time
             task.progress_percentage = progress
             task.updated_at = datetime.utcnow()
-            
+
             _add_execution_log(task, f"Progress update: {progress}%")
-        
+
         # Simulate task completion
         task.status = TaskStatus.COMPLETED
         task.completed_at = datetime.utcnow()
         task.progress_percentage = 100.0
-        
+
         # Generate mock results
         task.result = TaskResult(
             status="success",
@@ -704,24 +704,24 @@ async def _execute_task(task: Task):
                 "memory_usage_mb": 128.0
             }
         )
-        
+
         _add_execution_log(task, "Task completed successfully")
-        
+
         # Remove from orchestration queue
         if task.id in orchestration_queue:
             orchestration_queue.remove(task.id)
-            
+
     except Exception as e:
         task.status = TaskStatus.FAILED
         task.completed_at = datetime.utcnow()
-        
+
         task.result = TaskResult(
             status="failed",
             errors=[str(e)]
         )
-        
+
         _add_execution_log(task, "Task execution failed", {"error": str(e)})
-        
+
         # Remove from orchestration queue
         if task.id in orchestration_queue:
             orchestration_queue.remove(task.id)
@@ -732,5 +732,5 @@ async def _continue_task_execution(task_id: str):
     task = tasks_store.get(task_id)
     if not task:
         return
-    
+
     await _execute_task(task)

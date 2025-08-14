@@ -156,7 +156,7 @@ class ThreatDetection:
 class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService):
     """
     Advanced Network Microsegmentation Service
-    
+
     Provides zero-trust network security with:
     - Dynamic microsegmentation
     - AI-powered traffic analysis
@@ -164,7 +164,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
     - Policy enforcement
     - Behavioral analytics
     """
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(
             service_name="network_microsegmentation",
@@ -172,28 +172,28 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
             dependencies=["threat_intelligence", "behavioral_analytics"],
             config=config or {}
         )
-        
+
         # Core components
         self.segments: Dict[str, SecuritySegment] = {}
         self.policies: Dict[str, MicrosegmentationPolicy] = {}
         self.active_flows: Dict[str, NetworkFlow] = {}
         self.threat_detections: deque = deque(maxlen=10000)
-        
+
         # AI/ML components
         self.traffic_analyzer: Optional[Any] = None
         self.anomaly_detector: Optional[Any] = None
         self.threat_classifier: Optional[Any] = None
-        
+
         # Network topology
         self.network_topology: Dict[str, Any] = {}
         self.asset_inventory: Dict[str, Dict[str, Any]] = {}
         self.zone_mappings: Dict[str, NetworkZone] = {}
-        
+
         # Policy engine
         self.policy_engine_enabled = True
         self.enforcement_mode = config.get("enforcement_mode", "monitor")  # monitor, enforce
         self.default_action = TrafficAction.DENY
-        
+
         # Performance metrics
         self.metrics = {
             "flows_analyzed": 0,
@@ -203,7 +203,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
             "false_positives": 0,
             "processing_latency_ms": 0.0
         }
-        
+
         # Configuration
         self.max_concurrent_flows = config.get("max_concurrent_flows", 100000)
         self.threat_detection_threshold = config.get("threat_detection_threshold", 0.7)
@@ -213,26 +213,26 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
         """Initialize the microsegmentation service"""
         try:
             logger.info("Initializing Advanced Network Microsegmentation Service...")
-            
+
             # Initialize ML components
             if ML_AVAILABLE:
                 await self._initialize_ml_components()
-            
+
             # Load default network segments
             await self._create_default_segments()
-            
+
             # Load default policies
             await self._create_default_policies()
-            
+
             # Initialize network topology discovery
             await self._initialize_topology_discovery()
-            
+
             # Start background processing
             await self._start_background_tasks()
-            
+
             logger.info("Network Microsegmentation Service initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize microsegmentation service: {e}")
             return False
@@ -247,22 +247,22 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                     random_state=42,
                     n_estimators=100
                 )
-                
+
                 # Threat classification
                 self.threat_classifier = RandomForestClassifier(
                     n_estimators=200,
                     random_state=42,
                     max_depth=15
                 )
-                
+
                 # Traffic clustering for pattern analysis
                 self.traffic_clusterer = DBSCAN(eps=0.3, min_samples=10)
-                
+
                 # Feature scaler
                 self.feature_scaler = StandardScaler()
-                
+
                 logger.info("ML components for network analysis initialized")
-                
+
         except Exception as e:
             logger.warning(f"ML component initialization failed: {e}")
 
@@ -277,7 +277,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
         """Create a new security segment"""
         try:
             segment_id = str(uuid.uuid4())
-            
+
             # Validate networks
             validated_networks = []
             for network in networks:
@@ -285,10 +285,10 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                     validated_networks.append(network)
                 else:
                     logger.warning(f"Invalid network specification: {network}")
-            
+
             if not validated_networks:
                 raise ValueError("No valid networks specified")
-            
+
             segment = SecuritySegment(
                 segment_id=segment_id,
                 name=name,
@@ -300,20 +300,20 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 isolation_level=isolation_level,
                 monitoring_level="high" if security_level >= 4 else "medium"
             )
-            
+
             self.segments[segment_id] = segment
             self.metrics["segments_created"] += 1
-            
+
             # Create default policies for the segment
             await self._create_segment_policies(segment)
-            
+
             # Update zone mappings
             for network in validated_networks:
                 self.zone_mappings[network] = zone
-            
+
             logger.info(f"Created security segment '{name}' with {len(validated_networks)} networks")
             return segment
-            
+
         except Exception as e:
             logger.error(f"Failed to create security segment: {e}")
             raise
@@ -330,7 +330,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
         """Create a new microsegmentation policy"""
         try:
             policy_id = str(uuid.uuid4())
-            
+
             policy = MicrosegmentationPolicy(
                 policy_id=policy_id,
                 name=name,
@@ -346,15 +346,15 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 conditions=kwargs.get("conditions", {}),
                 tags=kwargs.get("tags", [])
             )
-            
+
             self.policies[policy_id] = policy
-            
+
             # Apply policy to relevant segments
             await self._apply_policy_to_segments(policy)
-            
+
             logger.info(f"Created microsegmentation policy: {name}")
             return policy
-            
+
         except Exception as e:
             logger.error(f"Failed to create policy: {e}")
             raise
@@ -373,11 +373,11 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 bytes_sent=flow_data.get("bytes_sent", 0),
                 bytes_received=flow_data.get("bytes_received", 0)
             )
-            
+
             # Store active flow
             self.active_flows[flow.flow_id] = flow
             self.metrics["flows_analyzed"] += 1
-            
+
             analysis_results = {
                 "flow_id": flow.flow_id,
                 "policy_evaluation": {},
@@ -385,30 +385,30 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 "recommendations": [],
                 "action": "allow"
             }
-            
+
             # Policy evaluation
             policy_result = await self._evaluate_policies(flow)
             analysis_results["policy_evaluation"] = policy_result
-            
+
             # Threat detection
             threat_result = await self._detect_threats(flow)
             analysis_results["threat_detection"] = threat_result
-            
+
             # Determine final action
             final_action = await self._determine_action(policy_result, threat_result)
             analysis_results["action"] = final_action.value
-            
+
             # Generate recommendations
             recommendations = await self._generate_flow_recommendations(flow, policy_result, threat_result)
             analysis_results["recommendations"] = recommendations
-            
+
             # Enforcement
             if self.enforcement_mode == "enforce" and final_action != TrafficAction.ALLOW:
                 await self._enforce_action(flow, final_action)
                 self.metrics["policies_enforced"] += 1
-            
+
             return analysis_results
-            
+
         except Exception as e:
             logger.error(f"Flow analysis failed: {e}")
             return {
@@ -421,16 +421,16 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
         try:
             matching_policies = []
             policy_violations = []
-            
+
             # Determine source and destination zones
             source_zone = self._get_zone_for_ip(flow.source_ip)
             dest_zone = self._get_zone_for_ip(flow.destination_ip)
-            
+
             # Evaluate each policy
             for policy in self.policies.values():
                 if not policy.enabled:
                     continue
-                
+
                 # Check zone matching
                 if source_zone in policy.source_zones and dest_zone in policy.destination_zones:
                     # Check protocol matching
@@ -445,17 +445,17 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                                     "action": policy.action.value,
                                     "priority": policy.priority
                                 })
-                                
+
                                 if policy.action == TrafficAction.DENY:
                                     policy_violations.append({
                                         "policy_id": policy.policy_id,
                                         "violation_type": "explicit_deny",
                                         "description": f"Traffic denied by policy: {policy.name}"
                                     })
-            
+
             # Sort by priority
             matching_policies.sort(key=lambda x: x["priority"])
-            
+
             return {
                 "source_zone": source_zone.value if source_zone else "unknown",
                 "destination_zone": dest_zone.value if dest_zone else "unknown",
@@ -463,7 +463,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 "policy_violations": policy_violations,
                 "default_action": self.default_action.value
             }
-            
+
         except Exception as e:
             logger.error(f"Policy evaluation failed: {e}")
             return {"error": str(e)}
@@ -473,27 +473,27 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
         try:
             threats = []
             threat_indicators = []
-            
+
             # Check for suspicious patterns
             suspicious_patterns = await self._check_suspicious_patterns(flow)
             threats.extend(suspicious_patterns)
-            
+
             # ML-based anomaly detection
             if ML_AVAILABLE and self.anomaly_detector:
                 ml_threats = await self._ml_threat_detection(flow)
                 threats.extend(ml_threats)
-            
+
             # Behavioral analysis
             behavioral_threats = await self._behavioral_threat_analysis(flow)
             threats.extend(behavioral_threats)
-            
+
             # Known threat intelligence
             intel_threats = await self._check_threat_intelligence(flow)
             threats.extend(intel_threats)
-            
+
             # Calculate overall threat score
             threat_score = self._calculate_threat_score(threats)
-            
+
             return {
                 "threat_score": threat_score,
                 "threat_level": self._categorize_threat_level(threat_score),
@@ -501,7 +501,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 "threats": threats,
                 "indicators": threat_indicators
             }
-            
+
         except Exception as e:
             logger.error(f"Threat detection failed: {e}")
             return {"error": str(e)}
@@ -510,7 +510,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
         """Determine network zone for IP address"""
         try:
             ip = ipaddress.ip_address(ip_address)
-            
+
             # Check each segment
             for segment in self.segments.values():
                 for network in segment.networks:
@@ -519,13 +519,13 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                             return segment.zone
                     except ValueError:
                         continue
-            
+
             # Default zone assignment
             if ip.is_private:
                 return NetworkZone.INTERNAL
             else:
                 return NetworkZone.DMZ
-                
+
         except ValueError:
             logger.warning(f"Invalid IP address: {ip_address}")
             return None
@@ -541,7 +541,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 security_level=2,
                 isolation_level="moderate"
             )
-            
+
             # Internal segment
             await self.create_security_segment(
                 "Internal",
@@ -550,7 +550,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 security_level=3,
                 isolation_level="flexible"
             )
-            
+
             # Critical systems segment
             await self.create_security_segment(
                 "Critical",
@@ -559,7 +559,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 security_level=5,
                 isolation_level="strict"
             )
-            
+
             # Guest network
             await self.create_security_segment(
                 "Guest",
@@ -568,9 +568,9 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 security_level=1,
                 isolation_level="strict"
             )
-            
+
             logger.info("Default network segments created")
-            
+
         except Exception as e:
             logger.error(f"Failed to create default segments: {e}")
 
@@ -586,7 +586,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 TrafficAction.ALLOW,
                 priority=50
             )
-            
+
             # Deny guest-to-internal
             await self.create_microsegmentation_policy(
                 "Block Guest to Internal",
@@ -596,7 +596,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 TrafficAction.DENY,
                 priority=10
             )
-            
+
             # Strict critical zone protection
             await self.create_microsegmentation_policy(
                 "Critical Zone Protection",
@@ -606,7 +606,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 TrafficAction.DENY,
                 priority=5
             )
-            
+
             # Allow HTTPS from DMZ to internal
             await self.create_microsegmentation_policy(
                 "DMZ Web Access",
@@ -617,9 +617,9 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 ports=[443],
                 priority=30
             )
-            
+
             logger.info("Default microsegmentation policies created")
-            
+
         except Exception as e:
             logger.error(f"Failed to create default policies: {e}")
 
@@ -635,17 +635,17 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
         """Get status of a security segment"""
         if segment_id not in self.segments:
             raise ValueError(f"Segment not found: {segment_id}")
-        
+
         segment = self.segments[segment_id]
-        
+
         # Calculate metrics
-        active_flows = [f for f in self.active_flows.values() 
-                       if self._get_zone_for_ip(f.source_ip) == segment.zone or 
+        active_flows = [f for f in self.active_flows.values()
+                       if self._get_zone_for_ip(f.source_ip) == segment.zone or
                           self._get_zone_for_ip(f.destination_ip) == segment.zone]
-        
-        recent_threats = [t for t in self.threat_detections 
+
+        recent_threats = [t for t in self.threat_detections
                          if t.detected_at > datetime.utcnow() - timedelta(hours=24)]
-        
+
         return {
             "segment": asdict(segment),
             "active_flows": len(active_flows),
@@ -663,9 +663,9 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 "flow_processing": len(self.active_flows) < self.max_concurrent_flows,
                 "ml_components": ML_AVAILABLE and self.anomaly_detector is not None
             }
-            
+
             healthy = all(checks.values())
-            
+
             return ServiceHealth(
                 service_name=self.service_name,
                 status=ServiceStatus.HEALTHY if healthy else ServiceStatus.DEGRADED,
@@ -673,7 +673,7 @@ class AdvancedNetworkMicrosegmentation(XORBService, SecurityOrchestrationService
                 metrics=self.metrics,
                 timestamp=datetime.utcnow()
             )
-            
+
         except Exception as e:
             return ServiceHealth(
                 service_name=self.service_name,
@@ -689,9 +689,9 @@ _microsegmentation_service: Optional[AdvancedNetworkMicrosegmentation] = None
 async def get_microsegmentation_service(config: Dict[str, Any] = None) -> AdvancedNetworkMicrosegmentation:
     """Get or create microsegmentation service instance"""
     global _microsegmentation_service
-    
+
     if _microsegmentation_service is None:
         _microsegmentation_service = AdvancedNetworkMicrosegmentation(config)
         await _microsegmentation_service.initialize()
-    
+
     return _microsegmentation_service

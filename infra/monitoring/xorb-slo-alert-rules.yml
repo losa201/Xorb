@@ -212,7 +212,7 @@ groups:
               slo_error_budget_remaining_percent{sli_name="bus_publish_to_deliver_p95_ms"} < 98
             )
           or
-            # 6 hour window: 6x burn rate  
+            # 6 hour window: 6x burn rate
             (
               avg_over_time(slo_error_budget_burn_rate{sli_name="bus_publish_to_deliver_p95_ms"}[6h]) > 6.0
             and

@@ -63,7 +63,7 @@ fi
 log_info "Testing HTTPS request to ptaas.verteidiq.com..."
 if curl -k -s --connect-timeout 10 --max-time 30 -I https://ptaas.verteidiq.com >/dev/null 2>&1; then
     log_success "HTTPS request: Successfully connected to ptaas.verteidiq.com"
-    
+
     # Get response details
     response=$(curl -k -s --connect-timeout 10 --max-time 30 -I https://ptaas.verteidiq.com | head -1)
     log_info "Response: $response"
@@ -108,7 +108,7 @@ containers=(
 for container_port in "${containers[@]}"; do
     container=$(echo $container_port | cut -d: -f1)
     port=$(echo $container_port | cut -d: -f2)
-    
+
     if docker ps | grep -q "$container"; then
         if docker exec "$container" sh -c "nc -z localhost $port" 2>/dev/null; then
             log_success "Container $container is running and port $port is accessible"
@@ -134,7 +134,7 @@ local_ports=(
 for port_desc in "${local_ports[@]}"; do
     port=$(echo $port_desc | cut -d: -f1)
     desc=$(echo $port_desc | cut -d: -f2)
-    
+
     if nc -z localhost $port 2>/dev/null; then
         log_success "Port $port ($desc) is accessible locally"
     else
@@ -149,13 +149,13 @@ log_info "Testing firewall configuration..."
 if command -v ufw >/dev/null 2>&1; then
     ufw_status=$(ufw status | grep Status | awk '{print $2}')
     log_info "UFW status: $ufw_status"
-    
+
     if ufw status | grep -q "80/tcp"; then
         log_success "Firewall: Port 80 is allowed"
     else
         log_warning "Firewall: Port 80 may not be explicitly allowed"
     fi
-    
+
     if ufw status | grep -q "443/tcp"; then
         log_success "Firewall: Port 443 is allowed"
     else

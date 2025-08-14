@@ -54,7 +54,7 @@ async def add_vector(
     """Add vector to the vector store."""
     tenant_id = require_tenant_context(request)
     vector_store = get_vector_store()
-    
+
     try:
         vector_id = await vector_store.add_vector(
             vector=vector_request.vector,
@@ -65,7 +65,7 @@ async def add_vector(
             embedding_model=vector_request.embedding_model,
             metadata=vector_request.metadata
         )
-        
+
         logger.info(
             "Vector added",
             vector_id=str(vector_id),
@@ -74,20 +74,20 @@ async def add_vector(
             source_id=str(vector_request.source_id),
             user_id=current_user.sub
         )
-        
+
         add_trace_context(
             operation="add_vector",
             vector_id=str(vector_id),
             source_type=vector_request.source_type,
             tenant_id=str(tenant_id)
         )
-        
+
         return {
             "vector_id": str(vector_id),
             "status": "added",
             "tenant_id": str(tenant_id)
         }
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -115,9 +115,9 @@ async def search_similar_vectors(
     """Search for similar vectors."""
     tenant_id = require_tenant_context(request)
     vector_store = get_vector_store()
-    
+
     start_time = time.time()
-    
+
     try:
         results = await vector_store.search_similar(
             query_vector=search_request.query_vector,
@@ -127,13 +127,13 @@ async def search_similar_vectors(
             similarity_threshold=search_request.similarity_threshold,
             ef_search=search_request.ef_search
         )
-        
+
         duration = time.time() - start_time
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_vector_search(duration, len(results))
-        
+
         logger.info(
             "Vector search completed",
             tenant_id=str(tenant_id),
@@ -142,16 +142,16 @@ async def search_similar_vectors(
             similarity_threshold=search_request.similarity_threshold,
             user_id=current_user.sub
         )
-        
+
         add_trace_context(
             operation="vector_search",
             result_count=len(results),
             duration_ms=duration * 1000,
             tenant_id=str(tenant_id)
         )
-        
+
         return results
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -178,13 +178,13 @@ async def search_by_text(
     """Search vectors by text query."""
     tenant_id = require_tenant_context(request)
     vector_store = get_vector_store()
-    
+
     start_time = time.time()
-    
+
     try:
         # Import embedding function (would be injected in production)
         from ..infrastructure.vector_store import openai_embedding_function
-        
+
         results = await vector_store.search_by_text(
             query_text=search_request.query_text,
             tenant_id=tenant_id,
@@ -193,9 +193,9 @@ async def search_by_text(
             source_type=search_request.source_type,
             similarity_threshold=search_request.similarity_threshold
         )
-        
+
         duration = time.time() - start_time
-        
+
         logger.info(
             "Text search completed",
             tenant_id=str(tenant_id),
@@ -204,9 +204,9 @@ async def search_by_text(
             duration_ms=round(duration * 1000, 2),
             user_id=current_user.sub
         )
-        
+
         return results
-        
+
     except Exception as e:
         logger.error(
             "Text search failed",
@@ -229,18 +229,18 @@ async def get_vector(
     """Get vector by ID."""
     tenant_id = require_tenant_context(request)
     vector_store = get_vector_store()
-    
+
     try:
         vector_data = await vector_store.get_vector(vector_id, tenant_id)
-        
+
         if not vector_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Vector not found"
             )
-        
+
         return vector_data
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -265,25 +265,25 @@ async def delete_vector(
     """Delete vector by ID."""
     tenant_id = require_tenant_context(request)
     vector_store = get_vector_store()
-    
+
     try:
         deleted = await vector_store.delete_vector(vector_id, tenant_id)
-        
+
         if not deleted:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Vector not found"
             )
-        
+
         logger.info(
             "Vector deleted",
             vector_id=str(vector_id),
             tenant_id=str(tenant_id),
             user_id=current_user.sub
         )
-        
+
         return {"message": "Vector deleted successfully"}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -309,14 +309,14 @@ async def delete_vectors_by_source(
     """Delete all vectors for a source."""
     tenant_id = require_tenant_context(request)
     vector_store = get_vector_store()
-    
+
     try:
         deleted_count = await vector_store.delete_vectors_by_source(
             source_id=source_id,
             tenant_id=tenant_id,
             source_type=source_type
         )
-        
+
         logger.info(
             "Vectors deleted by source",
             source_id=str(source_id),
@@ -325,12 +325,12 @@ async def delete_vectors_by_source(
             tenant_id=str(tenant_id),
             user_id=current_user.sub
         )
-        
+
         return {
             "message": f"Deleted {deleted_count} vectors",
             "deleted_count": deleted_count
         }
-        
+
     except Exception as e:
         logger.error(
             "Failed to delete vectors by source",
@@ -353,19 +353,19 @@ async def get_vector_stats(
     """Get vector statistics for tenant."""
     tenant_id = require_tenant_context(request)
     vector_store = get_vector_store()
-    
+
     try:
         stats = await vector_store.get_vector_stats(tenant_id)
-        
+
         logger.info(
             "Retrieved vector stats",
             tenant_id=str(tenant_id),
             total_vectors=stats["total_vectors"],
             user_id=current_user.sub
         )
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(
             "Failed to get vector stats",
@@ -388,17 +388,17 @@ async def batch_add_vectors(
     """Add multiple vectors in batch."""
     tenant_id = require_tenant_context(request)
     vector_store = get_vector_store()
-    
+
     if len(vectors) > 100:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Batch size cannot exceed 100 vectors"
         )
-    
+
     success_count = 0
     failed_count = 0
     results = []
-    
+
     for i, vector_request in enumerate(vectors):
         try:
             vector_id = await vector_store.add_vector(
@@ -410,14 +410,14 @@ async def batch_add_vectors(
                 embedding_model=vector_request.embedding_model,
                 metadata=vector_request.metadata
             )
-            
+
             results.append({
                 "index": i,
                 "vector_id": str(vector_id),
                 "status": "success"
             })
             success_count += 1
-            
+
         except Exception as e:
             results.append({
                 "index": i,
@@ -425,7 +425,7 @@ async def batch_add_vectors(
                 "error": str(e)
             })
             failed_count += 1
-    
+
     logger.info(
         "Batch vector add completed",
         tenant_id=str(tenant_id),
@@ -434,7 +434,7 @@ async def batch_add_vectors(
         failed_count=failed_count,
         user_id=current_user.sub
     )
-    
+
     return {
         "total": len(vectors),
         "success": success_count,

@@ -74,30 +74,30 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 class SecretManager:
     """Secure secret management with encryption"""
-    
+
     def __init__(self, secrets_dir: str = "/root/Xorb/secrets"):
         self.secrets_dir = Path(secrets_dir)
         self.vault_dir = self.secrets_dir / "vault"
         self.keys_dir = self.secrets_dir / "keys"
         self.env_dir = self.secrets_dir / "env"
-        
+
         # Ensure directories exist
         self.vault_dir.mkdir(exist_ok=True)
         self.env_dir.mkdir(exist_ok=True)
-        
+
         # Load or generate master key
         self.master_key_path = self.keys_dir / "master.key"
         if not self.master_key_path.exists():
             raise FileNotFoundError("Master key not found. Run setup first.")
-        
+
         with open(self.master_key_path, 'r') as f:
             self.master_key = f.read().strip()
-    
+
     def _get_cipher(self, password: str = None) -> Fernet:
         """Get encryption cipher using password and master key"""
         if password is None:
             password = self.master_key
-        
+
         # Use master key as salt
         salt = self.master_key[:32].encode()
         kdf = PBKDF2HMAC(
@@ -108,31 +108,31 @@ class SecretManager:
         )
         key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
         return Fernet(key)
-    
+
     def store_secret(self, name: str, value: str, category: str = "general") -> bool:
         """Store encrypted secret"""
         try:
             cipher = self._get_cipher()
             encrypted_value = cipher.encrypt(value.encode())
-            
+
             secret_data = {
                 "name": name,
                 "category": category,
                 "encrypted_value": base64.b64encode(encrypted_value).decode(),
                 "created_at": str(Path().cwd()),
             }
-            
+
             secret_file = self.vault_dir / f"{name}.json"
             with open(secret_file, 'w') as f:
                 json.dump(secret_data, f, indent=2)
-            
+
             os.chmod(secret_file, 0o600)
             print(f"✅ Secret '{name}' stored successfully")
             return True
         except Exception as e:
             print(f"❌ Failed to store secret: {e}")
             return False
-    
+
     def retrieve_secret(self, name: str) -> Optional[str]:
         """Retrieve and decrypt secret"""
         try:
@@ -140,19 +140,19 @@ class SecretManager:
             if not secret_file.exists():
                 print(f"❌ Secret '{name}' not found")
                 return None
-            
+
             with open(secret_file, 'r') as f:
                 secret_data = json.load(f)
-            
+
             cipher = self._get_cipher()
             encrypted_value = base64.b64decode(secret_data["encrypted_value"])
             decrypted_value = cipher.decrypt(encrypted_value).decode()
-            
+
             return decrypted_value
         except Exception as e:
             print(f"❌ Failed to retrieve secret: {e}")
             return None
-    
+
     def list_secrets(self) -> Dict[str, Any]:
         """List all stored secrets (metadata only)"""
         secrets = {}
@@ -160,16 +160,16 @@ class SecretManager:
             try:
                 with open(secret_file, 'r') as f:
                     secret_data = json.load(f)
-                
+
                 secrets[secret_data["name"]] = {
                     "category": secret_data.get("category", "general"),
                     "created_at": secret_data.get("created_at", "unknown")
                 }
             except Exception as e:
                 print(f"⚠️  Error reading {secret_file}: {e}")
-        
+
         return secrets
-    
+
     def delete_secret(self, name: str) -> bool:
         """Delete a secret"""
         try:
@@ -184,16 +184,16 @@ class SecretManager:
         except Exception as e:
             print(f"❌ Failed to delete secret: {e}")
             return False
-    
+
     def export_env_file(self, category: str = None, output_file: str = None) -> bool:
         """Export secrets as environment variables"""
         try:
             if output_file is None:
                 output_file = str(self.env_dir / f"{category or 'all'}.env")
-            
+
             secrets = self.list_secrets()
             env_lines = []
-            
+
             for name, metadata in secrets.items():
                 if category is None or metadata["category"] == category:
                     value = self.retrieve_secret(name)
@@ -201,13 +201,13 @@ class SecretManager:
                         # Convert to uppercase environment variable format
                         env_name = name.upper().replace('-', '_').replace(' ', '_')
                         env_lines.append(f"{env_name}={value}")
-            
+
             with open(output_file, 'w') as f:
                 f.write("# XORB Secrets Export\n")
                 f.write(f"# Category: {category or 'all'}\n")
                 f.write(f"# Generated: {Path().cwd()}\n\n")
                 f.write('\n'.join(env_lines))
-            
+
             os.chmod(output_file, 0o600)
             print(f"✅ Environment file exported to: {output_file}")
             return True
@@ -219,47 +219,47 @@ def main():
     """Command line interface for secret management"""
     parser = argparse.ArgumentParser(description="XORB Secret Management System")
     subparsers = parser.add_subparsers(dest='command', help='Available commands')
-    
+
     # Store secret
     store_parser = subparsers.add_parser('store', help='Store a secret')
     store_parser.add_argument('name', help='Secret name')
     store_parser.add_argument('--category', default='general', help='Secret category')
     store_parser.add_argument('--value', help='Secret value (will prompt if not provided)')
-    
+
     # Retrieve secret
     retrieve_parser = subparsers.add_parser('get', help='Retrieve a secret')
     retrieve_parser.add_argument('name', help='Secret name')
-    
+
     # List secrets
     list_parser = subparsers.add_parser('list', help='List all secrets')
-    
+
     # Delete secret
     delete_parser = subparsers.add_parser('delete', help='Delete a secret')
     delete_parser.add_argument('name', help='Secret name')
-    
+
     # Export environment file
     export_parser = subparsers.add_parser('export', help='Export secrets to environment file')
     export_parser.add_argument('--category', help='Category to export')
     export_parser.add_argument('--output', help='Output file path')
-    
+
     args = parser.parse_args()
-    
+
     if not args.command:
         parser.print_help()
         return
-    
+
     try:
         sm = SecretManager()
-        
+
         if args.command == 'store':
             value = args.value or getpass.getpass(f"Enter value for '{args.name}': ")
             sm.store_secret(args.name, value, args.category)
-        
+
         elif args.command == 'get':
             value = sm.retrieve_secret(args.name)
             if value:
                 print(value)
-        
+
         elif args.command == 'list':
             secrets = sm.list_secrets()
             if secrets:
@@ -268,13 +268,13 @@ def main():
                     print(f"  - {name} (category: {metadata['category']})")
             else:
                 print("No secrets stored.")
-        
+
         elif args.command == 'delete':
             sm.delete_secret(args.name)
-        
+
         elif args.command == 'export':
             sm.export_env_file(args.category, args.output)
-    
+
     except Exception as e:
         print(f"❌ Error: {e}")
         return 1

@@ -7,22 +7,22 @@ logger = logging.getLogger(__name__)
 
 class MITREAttackMapper:
     """Class to map vulnerabilities to MITRE ATT&CK techniques"""
-    
+
     def __init__(self, mapping_file: Optional[str] = None):
         """
         Initialize the MITRE ATT&CK mapper
-        
+
         Args:
             mapping_file: Path to custom mapping file. If None, uses default mappings.
         """
         self.attack_data = self._load_attack_data(mapping_file)
         self.technique_index = self._build_technique_index()
         self.tactic_index = self._build_tactic_index()
-        
+
     def _load_attack_data(self, mapping_file: Optional[str] = None) -> Dict:
         """
         Load MITRE ATT&CK mapping data
-        
+
         Returns:
             Dictionary containing MITRE ATT&CK mappings
         """
@@ -193,10 +193,10 @@ class MITREAttackMapper:
     def map_vulnerability(self, vulnerability: Dict) -> Dict:
         """
         Map a vulnerability to MITRE ATT&CK techniques
-        
+
         Args:
             vulnerability: Dictionary containing vulnerability data
-        
+
         Returns:
             Dictionary containing MITRE ATT&CK mappings
         """
@@ -215,11 +215,11 @@ class MITREAttackMapper:
                                 "tactic_name": self.attack_data["tactics"][self.attack_data["techniques"][tech_id]["tactic"]]["name"],
                                 "url": self.attack_data["techniques"][tech_id]["url"]
                             }
-            
+
             # If no CVE mapping, try to map by vulnerability title/description
             title = vulnerability.get("title", "").lower()
             description = vulnerability.get("description", "").lower()
-            
+
             # Map to common techniques based on keywords
             if "exploit" in title or "public-facing" in description:
                 tech_id = "T1190"
@@ -266,7 +266,7 @@ class MITREAttackMapper:
                     "tactic_name": self.attack_data["tactics"][self.attack_data["techniques"][tech_id]["tactic"]]["name"],
                     "url": self.attack_data["techniques"][tech_id]["url"]
                 }
-            
+
             # Default fallback
             return {
                 "technique_id": None,
@@ -275,7 +275,7 @@ class MITREAttackMapper:
                 "tactic_name": None,
                 "url": None
             }
-            
+
         except Exception as e:
             logger.error(f"Error mapping vulnerability to MITRE ATT&CK: {str(e)}")
             return {
@@ -289,10 +289,10 @@ class MITREAttackMapper:
     def get_technique_details(self, technique_id: str) -> Dict:
         """
         Get details about a specific MITRE ATT&CK technique
-        
+
         Args:
             technique_id: MITRE ATT&CK technique ID (e.g., "T1190")
-        
+
         Returns:
             Dictionary containing technique details
         """
@@ -303,10 +303,10 @@ class MITREAttackMapper:
     def get_tactic_details(self, tactic_id: str) -> Dict:
         """
         Get details about a specific MITRE ATT&CK tactic
-        
+
         Args:
             tactic_id: MITRE ATT&CK tactic ID (e.g., "initial_access")
-        
+
         Returns:
             Dictionary containing tactic details
         """
@@ -325,10 +325,10 @@ class MITREAttackMapper:
     def get_techniques_by_tactic(self, tactic_id: str) -> List[Dict]:
         """
         Get all techniques associated with a specific tactic
-        
+
         Args:
             tactic_id: MITRE ATT&CK tactic ID (e.g., "initial_access")
-        
+
         Returns:
             List of technique dictionaries
         """
@@ -343,60 +343,60 @@ class MITREAttackMapper:
     def search_techniques(self, query: str) -> List[Dict]:
         """
         Search MITRE ATT&CK techniques by keyword
-        
+
         Args:
             query: Search term
-        
+
         Returns:
             List of matching technique dictionaries
         """
         query = query.lower()
         results = []
-        
+
         for tech_id, tech_data in self.attack_data["techniques"].items():
-            if (query in tech_data["name"].lower() or 
+            if (query in tech_data["name"].lower() or
                 query in tech_data["description"].lower()):
                 results.append(tech_data)
-                
+
         return results
 
     def search_tactics(self, query: str) -> List[Dict]:
         """
         Search MITRE ATT&CK tactics by keyword
-        
+
         Args:
             query: Search term
-        
+
         Returns:
             List of matching tactic dictionaries
         """
         query = query.lower()
         results = []
-        
+
         for tactic_id, tactic_data in self.attack_data["tactics"].items():
-            if (query in tactic_data["name"].lower() or 
+            if (query in tactic_data["name"].lower() or
                 query in tactic_data["description"].lower()):
                 results.append(tactic_data)
-                
+
         return results
 
     def get_attack_chain(self, technique_ids: List[str]) -> Dict:
         """
         Generate an attack chain from a list of technique IDs
-        
+
         Args:
             technique_ids: List of MITRE ATT&CK technique IDs
-        
+
         Returns:
             Dictionary containing attack chain information
         """
         tactics = {}
-        
+
         for tech_id in technique_ids:
             if tech_id in self.attack_data["techniques"]:
                 tech_data = self.attack_data["techniques"][tech_id]
                 tactic_id = tech_data["tactic"]
-                
+
                 if tactic_id not in tactics:
                     tactics[tactic_id] = {
                         "tactic": tactic_id,
@@ -404,22 +404,22 @@ class MITREAttackMapper:
                         "url": self.attack_data["tactics"][tactic_id]["url"],
                         "techniques": []
                     }
-                
+
                 tactics[tactic_id]["techniques"].append({
                     "technique_id": tech_id,
                     "technique_name": tech_data["name"],
                     "url": tech_data["url"]
                 })
-                
+
         # Sort tactics by their natural order in the attack lifecycle
         ordered_tactics = []
-        for tactic_id in ["initial_access", "execution", "persistence", 
-                         "privilege_escalation", "defense_evasion", 
-                         "credential_access", "discovery", "lateral_movement", 
+        for tactic_id in ["initial_access", "execution", "persistence",
+                         "privilege_escalation", "defense_evasion",
+                         "credential_access", "discovery", "lateral_movement",
                          "collection", "command_and_control", "exfiltration", "impact"]:
             if tactic_id in tactics:
                 ordered_tactics.append(tactics[tactic_id])
-                
+
         return {
             "attack_chain": ordered_tactics,
             "total_tactics": len(ordered_tactics),

@@ -91,12 +91,12 @@ class AuditEvent:
     geographic_location: Optional[str]
     additional_metadata: Dict[str, Any]
     checksum: str
-    
+
     def __post_init__(self):
         """Calculate checksum for integrity verification"""
         if not self.checksum:
             self.checksum = self._calculate_checksum()
-    
+
     def _calculate_checksum(self) -> str:
         """Calculate event checksum for integrity"""
         event_data = {
@@ -107,10 +107,10 @@ class AuditEvent:
             "event_description": self.event_description,
             "result_status": self.result_status
         }
-        
+
         event_json = json.dumps(event_data, sort_keys=True)
         return hashlib.sha256(event_json.encode()).hexdigest()[:16]
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert audit event to dictionary"""
         return {
@@ -120,7 +120,7 @@ class AuditEvent:
             'severity': self.severity.value,
             'compliance_tags': [tag.value for tag in self.compliance_tags]
         }
-    
+
     def is_sensitive(self) -> bool:
         """Check if event contains sensitive data"""
         return (
@@ -153,12 +153,12 @@ class AuditQuery:
 
 class AuditStorage:
     """Handles audit event storage with SQLite backend"""
-    
+
     def __init__(self, db_path: str = "/tmp/xorb_audit.db"):
         self.db_path = db_path
         self.lock = threading.Lock()
         self._initialize_database()
-    
+
     def _initialize_database(self):
         """Initialize SQLite database for audit events"""
         with self.lock:
@@ -194,7 +194,7 @@ class AuditStorage:
                     created_at TEXT DEFAULT CURRENT_TIMESTAMP
                 )
             ''')
-            
+
             # Create indexes for performance
             conn.execute('CREATE INDEX IF NOT EXISTS idx_timestamp ON audit_events(timestamp)')
             conn.execute('CREATE INDEX IF NOT EXISTS idx_event_type ON audit_events(event_type)')
@@ -202,7 +202,7 @@ class AuditStorage:
             conn.execute('CREATE INDEX IF NOT EXISTS idx_severity ON audit_events(severity)')
             conn.execute('CREATE INDEX IF NOT EXISTS idx_user_id ON audit_events(user_id)')
             conn.execute('CREATE INDEX IF NOT EXISTS idx_correlation_id ON audit_events(correlation_id)')
-            
+
             # Create audit log integrity table
             conn.execute('''
                 CREATE TABLE IF NOT EXISTS audit_integrity (
@@ -213,10 +213,10 @@ class AuditStorage:
                     verification_status TEXT NOT NULL
                 )
             ''')
-            
+
             conn.commit()
             conn.close()
-    
+
     @contextmanager
     def get_connection(self):
         """Get database connection with proper locking"""
@@ -227,7 +227,7 @@ class AuditStorage:
                 yield conn
             finally:
                 conn.close()
-    
+
     def store_event(self, event: AuditEvent) -> bool:
         """Store audit event in database"""
         try:
@@ -274,60 +274,60 @@ class AuditStorage:
         except Exception as e:
             logging.error(f"Failed to store audit event: {e}")
             return False
-    
+
     def query_events(self, query: AuditQuery) -> List[AuditEvent]:
         """Query audit events based on criteria"""
         try:
             with self.get_connection() as conn:
                 where_clauses = []
                 params = []
-                
+
                 if query.start_time:
                     where_clauses.append("timestamp >= ?")
                     params.append(query.start_time.isoformat())
-                
+
                 if query.end_time:
                     where_clauses.append("timestamp <= ?")
                     params.append(query.end_time.isoformat())
-                
+
                 if query.event_types:
                     placeholders = ','.join(['?' for _ in query.event_types])
                     where_clauses.append(f"event_type IN ({placeholders})")
                     params.extend([et.value for et in query.event_types])
-                
+
                 if query.severity_levels:
                     placeholders = ','.join(['?' for _ in query.severity_levels])
                     where_clauses.append(f"severity IN ({placeholders})")
                     params.extend([sl.value for sl in query.severity_levels])
-                
+
                 if query.services:
                     placeholders = ','.join(['?' for _ in query.services])
                     where_clauses.append(f"service_name IN ({placeholders})")
                     params.extend(query.services)
-                
+
                 if query.users:
                     placeholders = ','.join(['?' for _ in query.users])
                     where_clauses.append(f"user_id IN ({placeholders})")
                     params.extend(query.users)
-                
+
                 if query.text_search:
                     where_clauses.append("(event_description LIKE ? OR event_details LIKE ?)")
                     search_term = f"%{query.text_search}%"
                     params.extend([search_term, search_term])
-                
+
                 where_clause = " AND ".join(where_clauses) if where_clauses else "1"
-                
+
                 sql = f'''
-                    SELECT * FROM audit_events 
+                    SELECT * FROM audit_events
                     WHERE {where_clause}
                     ORDER BY {query.sort_by} {query.sort_order.upper()}
                     LIMIT ? OFFSET ?
                 '''
                 params.extend([query.limit, query.offset])
-                
+
                 cursor = conn.execute(sql, params)
                 rows = cursor.fetchall()
-                
+
                 events = []
                 for row in rows:
                     # Convert row to AuditEvent
@@ -360,45 +360,45 @@ class AuditStorage:
                         checksum=row['checksum']
                     )
                     events.append(event)
-                
+
                 return events
-                
+
         except Exception as e:
             logging.error(f"Failed to query audit events: {e}")
             return []
-    
+
     def get_event_statistics(self) -> Dict[str, Any]:
         """Get audit event statistics"""
         try:
             with self.get_connection() as conn:
                 # Total events
                 total_count = conn.execute("SELECT COUNT(*) FROM audit_events").fetchone()[0]
-                
+
                 # Events by type
                 type_counts = {}
                 cursor = conn.execute("SELECT event_type, COUNT(*) FROM audit_events GROUP BY event_type")
                 for row in cursor:
                     type_counts[row[0]] = row[1]
-                
+
                 # Events by severity
                 severity_counts = {}
                 cursor = conn.execute("SELECT severity, COUNT(*) FROM audit_events GROUP BY severity")
                 for row in cursor:
                     severity_counts[row[0]] = row[1]
-                
+
                 # Events by service
                 service_counts = {}
                 cursor = conn.execute("SELECT service_name, COUNT(*) FROM audit_events GROUP BY service_name LIMIT 10")
                 for row in cursor:
                     service_counts[row[0]] = row[1]
-                
+
                 # Recent error events
                 recent_errors = conn.execute('''
-                    SELECT COUNT(*) FROM audit_events 
-                    WHERE severity IN ('error', 'critical') 
+                    SELECT COUNT(*) FROM audit_events
+                    WHERE severity IN ('error', 'critical')
                     AND timestamp >= datetime('now', '-1 hour')
                 ''').fetchone()[0]
-                
+
                 return {
                     "total_events": total_count,
                     "events_by_type": type_counts,
@@ -407,27 +407,27 @@ class AuditStorage:
                     "recent_errors": recent_errors,
                     "database_size_mb": os.path.getsize(self.db_path) / (1024 * 1024) if os.path.exists(self.db_path) else 0
                 }
-                
+
         except Exception as e:
             logging.error(f"Failed to get audit statistics: {e}")
             return {}
 
 class EnhancedAuditSystem:
     """Main enhanced audit system with comprehensive logging"""
-    
+
     def __init__(self, error_handler: XORBErrorHandler):
         self.error_handler = error_handler
         self.storage = AuditStorage()
         self.correlation_context = {}
         self.audit_filters = []
         self.compliance_rules = {}
-        
+
         # Initialize compliance rules
         self._initialize_compliance_rules()
-        
+
         # Register error handler integration
         self._register_error_handler_integration()
-    
+
     def _initialize_compliance_rules(self):
         """Initialize compliance-specific audit rules"""
         self.compliance_rules = {
@@ -460,10 +460,10 @@ class EnhancedAuditSystem:
                 "access_logging_required": True
             }
         }
-    
+
     def _register_error_handler_integration(self):
         """Register audit system with error handler for automatic logging"""
-        
+
         # Register audit recovery action
         audit_recovery = RecoveryAction(
             action_id="audit_error_event",
@@ -473,7 +473,7 @@ class EnhancedAuditSystem:
             conditions={"categories": ["*"]}  # All categories
         )
         self.error_handler.register_recovery_action(audit_recovery)
-    
+
     async def _audit_error_event(self, error_context: ErrorContext) -> bool:
         """Audit error events automatically"""
         try:
@@ -497,7 +497,7 @@ class EnhancedAuditSystem:
             return True
         except Exception:
             return False
-    
+
     def _map_error_severity(self, error_severity: ErrorSeverity) -> AuditSeverity:
         """Map error severity to audit severity"""
         mapping = {
@@ -507,7 +507,7 @@ class EnhancedAuditSystem:
             ErrorSeverity.CRITICAL: AuditSeverity.CRITICAL
         }
         return mapping.get(error_severity, AuditSeverity.ERROR)
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.SYSTEM_RESOURCE,
         severity=ErrorSeverity.MEDIUM,
@@ -540,9 +540,9 @@ class EnhancedAuditSystem:
         additional_metadata: Optional[Dict[str, Any]] = None
     ) -> str:
         """Log a comprehensive audit event"""
-        
+
         event_id = str(uuid.uuid4())
-        
+
         # Apply compliance rules if tags provided
         if compliance_tags:
             for standard in compliance_tags:
@@ -553,7 +553,7 @@ class EnhancedAuditSystem:
                         if rules.get("encryption_required"):
                             additional_metadata = additional_metadata or {}
                             additional_metadata["encryption_required"] = True
-        
+
         event = AuditEvent(
             event_id=event_id,
             timestamp=datetime.now(),
@@ -582,14 +582,14 @@ class EnhancedAuditSystem:
             additional_metadata=additional_metadata or {},
             checksum=""  # Will be calculated in __post_init__
         )
-        
+
         # Store event
         success = self.storage.store_event(event)
         if not success:
             raise RuntimeError("Failed to store audit event")
-        
+
         return event_id
-    
+
     async def log_system_event(self, event_type: AuditEventType, description: str, details: Dict[str, Any] = None):
         """Log system-level events"""
         await self.log_event(
@@ -601,7 +601,7 @@ class EnhancedAuditSystem:
             event_details=details,
             result_status="success"
         )
-    
+
     async def log_authentication_event(
         self,
         user_id: str,
@@ -626,7 +626,7 @@ class EnhancedAuditSystem:
             sensitive_data_involved=True,
             data_classification="confidential"
         )
-    
+
     async def log_data_access_event(
         self,
         user_id: str,
@@ -653,7 +653,7 @@ class EnhancedAuditSystem:
             sensitive_data_involved=True,
             data_classification="restricted"
         )
-    
+
     async def log_security_incident(
         self,
         incident_type: str,
@@ -683,15 +683,15 @@ class EnhancedAuditSystem:
             sensitive_data_involved=True,
             data_classification="secret"
         )
-    
+
     def query_events(self, query: AuditQuery) -> List[AuditEvent]:
         """Query audit events"""
         return self.storage.query_events(query)
-    
+
     def get_audit_statistics(self) -> Dict[str, Any]:
         """Get comprehensive audit statistics"""
         return self.storage.get_event_statistics()
-    
+
     async def generate_compliance_report(
         self,
         standard: ComplianceStandard,
@@ -699,20 +699,20 @@ class EnhancedAuditSystem:
         end_date: datetime
     ) -> Dict[str, Any]:
         """Generate compliance report for specific standard"""
-        
+
         # Query events for compliance period
         query = AuditQuery(
             start_time=start_date,
             end_time=end_date,
             compliance_standards=[standard]
         )
-        
+
         events = self.query_events(query)
-        
+
         # Analyze compliance
         rules = self.compliance_rules.get(standard, {})
         required_events = rules.get("required_events", [])
-        
+
         compliance_status = {}
         for event_type in required_events:
             type_events = [e for e in events if e.event_type == event_type]
@@ -721,12 +721,12 @@ class EnhancedAuditSystem:
                 "events_found": len(type_events),
                 "compliant": len(type_events) > 0
             }
-        
+
         # Calculate overall compliance score
         compliant_types = sum(1 for status in compliance_status.values() if status["compliant"])
         total_required = len(required_events)
         compliance_score = (compliant_types / total_required * 100) if total_required > 0 else 100
-        
+
         return {
             "standard": standard.value,
             "report_period": {
@@ -740,15 +740,15 @@ class EnhancedAuditSystem:
             "error_events": len([e for e in events if e.severity in [AuditSeverity.ERROR, AuditSeverity.CRITICAL]]),
             "generated_at": datetime.now().isoformat()
         }
-    
+
     def set_correlation_context(self, key: str, value: Any):
         """Set correlation context for event correlation"""
         self.correlation_context[key] = value
-    
+
     def get_correlation_context(self, key: str) -> Any:
         """Get correlation context value"""
         return self.correlation_context.get(key)
-    
+
     def clear_correlation_context(self):
         """Clear correlation context"""
         self.correlation_context.clear()
@@ -806,24 +806,24 @@ if __name__ == "__main__":
     async def demo_audit_system():
         """Demonstrate enhanced audit system capabilities"""
         print("📋 XORB Enhanced Audit System Demo")
-        
+
         # Initialize audit system
         system = get_audit_system()
-        
+
         # Log various types of events
         print("\n📝 Logging audit events...")
-        
+
         # System startup
         await audit_system_start("xorb_demo", "2.0.0")
-        
+
         # Authentication events
         await audit_authentication("user123", True, "192.168.1.100", "Mozilla/5.0")
         await audit_authentication("user456", False, "192.168.1.101", "curl/7.68.0")
-        
+
         # Data access events
         await audit_data_access("user123", "/api/v1/agents", "GET", True)
         await audit_data_access("user123", "/api/v1/data", "POST", True)
-        
+
         # Security incident
         await system.log_security_incident(
             incident_type="brute_force_attempt",
@@ -833,7 +833,7 @@ if __name__ == "__main__":
             incident_details={"attempts": 5, "timeframe": "5 minutes"},
             ip_address="192.168.1.101"
         )
-        
+
         # Error event (will be automatically logged by error handler integration)
         try:
             raise ValueError("Demo error for audit testing")
@@ -842,9 +842,9 @@ if __name__ == "__main__":
                 e, ErrorCategory.VALIDATION, ErrorSeverity.MEDIUM,
                 context={"demo": "audit_integration"}
             )
-        
+
         print("✅ Events logged successfully")
-        
+
         # Query events
         print("\n🔍 Querying audit events...")
         query = AuditQuery(
@@ -853,11 +853,11 @@ if __name__ == "__main__":
         )
         events = system.query_events(query)
         print(f"Found {len(events)} events in the last hour")
-        
+
         # Show event details
         for event in events[:3]:
             print(f"  - {event.timestamp.strftime('%H:%M:%S')} | {event.event_type.value} | {event.severity.value} | {event.event_description}")
-        
+
         # Generate compliance report
         print("\n📊 Generating compliance report...")
         report = await system.generate_compliance_report(
@@ -866,7 +866,7 @@ if __name__ == "__main__":
             datetime.now()
         )
         print(f"GDPR Compliance Score: {report['compliance_score']}%")
-        
+
         # Show statistics
         print("\n📈 Audit Statistics:")
         stats = system.get_audit_statistics()
@@ -877,10 +877,10 @@ if __name__ == "__main__":
                     print(f"    {k}: {v}")
             else:
                 print(f"  {key}: {value}")
-        
+
         # System shutdown
         await audit_system_stop("xorb_demo")
-        
+
         print("\n✅ Enhanced audit system demo completed!")
-    
+
     asyncio.run(demo_audit_system())

@@ -34,48 +34,48 @@ from .base_service import XORBService, ServiceType
 
 class ProductionAuthenticationService(AuthenticationService, XORBService):
     """Production-ready authentication service with enterprise security features"""
-    
+
     def __init__(self, secret_key: str, algorithm: str = "HS256"):
         super().__init__(service_type=ServiceType.AUTHENTICATION)
         self.secret_key = secret_key
         self.algorithm = algorithm
         self.pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
         self.logger = logging.getLogger(__name__)
-        
+
         # Token blacklist for secure logout
         self._token_blacklist: set = set()
-        
+
         # Failed login tracking for brute force protection
         self._failed_attempts: Dict[str, List[datetime]] = {}
         self._lockout_duration = timedelta(minutes=15)
         self._max_attempts = 5
-    
+
     async def authenticate_user(self, credentials: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Authenticate user with comprehensive security checks"""
         try:
             username = credentials.get("username")
             password = credentials.get("password")
-            
+
             if not username or not password:
                 return None
-            
+
             # Check for brute force attacks
             if await self._is_locked_out(username):
                 self.logger.warning(f"Authentication attempt for locked out user: {username}")
                 return None
-            
+
             # Validate credentials against user repository
             # In production, this would query the database
             if await self._validate_credentials(username, password):
                 # Clear failed attempts on successful login
                 self._failed_attempts.pop(username, None)
-                
+
                 # Generate tokens
                 access_token = self._generate_access_token(username)
                 refresh_token = self._generate_refresh_token(username)
-                
+
                 self.logger.info(f"Successful authentication for user: {username}")
-                
+
                 return {
                     "access_token": access_token,
                     "refresh_token": refresh_token,
@@ -91,18 +91,18 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
                 await self._track_failed_attempt(username)
                 self.logger.warning(f"Failed authentication attempt for user: {username}")
                 return None
-                
+
         except Exception as e:
             self.logger.error(f"Authentication error: {str(e)}")
             return None
-    
+
     async def validate_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Validate JWT token with comprehensive checks"""
         try:
             # Check if token is blacklisted
             if token in self._token_blacklist:
                 return None
-            
+
             # Decode and validate JWT
             payload = jwt.decode(
                 token,
@@ -110,11 +110,11 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
                 algorithms=[self.algorithm],
                 options={"verify_exp": True}
             )
-            
+
             # Additional validation checks
             if not self._validate_token_payload(payload):
                 return None
-            
+
             return {
                 "valid": True,
                 "username": payload.get("sub"),
@@ -124,7 +124,7 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
                 "iat": payload.get("iat"),
                 "tenant_id": payload.get("tenant_id")
             }
-            
+
         except jwt.ExpiredSignatureError:
             self.logger.info("Token validation failed: Token expired")
             return None
@@ -134,7 +134,7 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
         except Exception as e:
             self.logger.error(f"Token validation error: {str(e)}")
             return None
-    
+
     async def refresh_access_token(self, refresh_token: str) -> Optional[str]:
         """Generate new access token from refresh token"""
         try:
@@ -145,21 +145,21 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
                 algorithms=[self.algorithm],
                 options={"verify_exp": True}
             )
-            
+
             # Verify this is a refresh token
             if payload.get("type") != "refresh":
                 return None
-            
+
             username = payload.get("sub")
             if not username:
                 return None
-            
+
             # Generate new access token
             new_access_token = self._generate_access_token(username)
-            
+
             self.logger.info(f"Access token refreshed for user: {username}")
             return new_access_token
-            
+
         except jwt.ExpiredSignatureError:
             self.logger.info("Refresh token expired")
             return None
@@ -169,23 +169,23 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
         except Exception as e:
             self.logger.error(f"Token refresh error: {str(e)}")
             return None
-    
+
     async def logout_user(self, session_id: str) -> bool:
         """Logout user and blacklist token"""
         try:
             # Add token to blacklist
             self._token_blacklist.add(session_id)
-            
+
             # In production, persist blacklist to Redis or database
             # for distributed systems
-            
+
             self.logger.info(f"User logged out, token blacklisted: {session_id[:20]}...")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Logout error: {str(e)}")
             return False
-    
+
     def hash_password(self, password: str) -> str:
         """Hash password using bcrypt (production-grade)"""
         try:
@@ -193,7 +193,7 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
         except Exception as e:
             self.logger.error(f"Password hashing error: {str(e)}")
             raise
-    
+
     def verify_password(self, password: str, hashed: str) -> bool:
         """Verify password against bcrypt hash"""
         try:
@@ -201,7 +201,7 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
         except Exception as e:
             self.logger.error(f"Password verification error: {str(e)}")
             return False
-    
+
     def _generate_access_token(self, username: str) -> str:
         """Generate JWT access token"""
         now = datetime.utcnow()
@@ -214,9 +214,9 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
             "roles": ["user"],  # In production, get from user record
             "tenant_id": None   # In production, get from user context
         }
-        
+
         return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
-    
+
     def _generate_refresh_token(self, username: str) -> str:
         """Generate JWT refresh token"""
         now = datetime.utcnow()
@@ -227,14 +227,14 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
             "type": "refresh",
             "jti": str(uuid4())
         }
-        
+
         return jwt.encode(payload, self.secret_key, algorithm=self.algorithm)
-    
+
     def _validate_token_payload(self, payload: Dict[str, Any]) -> bool:
         """Validate token payload structure and content"""
         required_fields = ["sub", "iat", "exp"]
         return all(field in payload for field in required_fields)
-    
+
     async def _validate_credentials_original(self, username: str, password: str) -> bool:
         """Validate user credentials with comprehensive security checks"""
         try:
@@ -242,27 +242,27 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
             if self._is_account_locked(username):
                 self.logger.warning(f"Account locked: {username}")
                 return False
-            
+
             # Retrieve user from database (placeholder for actual DB call)
             # In production, this would query the user repository
             user_data = await self._get_user_by_username(username)
             if not user_data:
                 self._record_failed_attempt(username)
                 return False
-            
+
             # Verify password
             if not self.verify_password(password, user_data.get('password_hash', '')):
                 self._record_failed_attempt(username)
                 return False
-            
+
             # Clear failed attempts on successful login
             self._clear_failed_attempts(username)
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Credential validation error: {e}")
             return False
-    
+
     async def _get_user_by_username(self, username: str) -> Optional[Dict[str, Any]]:
         """Retrieve user data by username from database"""
         try:
@@ -281,7 +281,7 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
                         "last_login": user.last_login.isoformat() if getattr(user, 'last_login', None) else None,
                         "tenant_id": str(user.organization_id) if getattr(user, 'organization_id', None) else None
                     }
-            
+
             # Fallback for demo environments - secure default admin user
             if username == "admin" and os.getenv("ENVIRONMENT", "").lower() in ["dev", "demo"]:
                 return {
@@ -294,49 +294,49 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
                     "created_at": datetime.utcnow().isoformat(),
                     "tenant_id": "default-tenant"
                 }
-            
+
             return None
-            
+
         except Exception as e:
             self.logger.error(f"Failed to retrieve user {username}: {e}")
             return None
-    
+
     def _is_account_locked(self, username: str) -> bool:
         """Check if account is locked due to failed attempts"""
         if username not in self._failed_attempts:
             return False
-        
+
         recent_attempts = [
             attempt for attempt in self._failed_attempts[username]
             if datetime.now() - attempt < self._lockout_duration
         ]
-        
+
         # Lock account after 5 failed attempts in lockout period
         return len(recent_attempts) >= 5
-    
+
     def _record_failed_attempt(self, username: str) -> None:
         """Record a failed login attempt"""
         if username not in self._failed_attempts:
             self._failed_attempts[username] = []
-        
+
         self._failed_attempts[username].append(datetime.now())
-        
+
         # Clean old attempts
         cutoff_time = datetime.now() - self._lockout_duration
         self._failed_attempts[username] = [
             attempt for attempt in self._failed_attempts[username]
             if attempt > cutoff_time
         ]
-    
+
     def _clear_failed_attempts(self, username: str) -> None:
         """Clear failed attempts after successful login"""
         try:
             if username in self._failed_attempts:
                 del self._failed_attempts[username]
-                
+
         except Exception as e:
             self.logger.error(f"Failed to clear attempts for {username}: {e}")
-    
+
     def _get_user_repository(self):
         """Get user repository instance"""
         # This would be injected via dependency injection in production
@@ -344,36 +344,36 @@ class ProductionAuthenticationService(AuthenticationService, XORBService):
         if not hasattr(self, '_user_repo'):
             self._user_repo = InMemoryUserRepository()
         return self._user_repo
-    
+
     async def _is_locked_out(self, username: str) -> bool:
         """Check if user is locked out due to failed attempts"""
         if username not in self._failed_attempts:
             return False
-        
+
         # Clean old attempts
         cutoff_time = datetime.utcnow() - self._lockout_duration
         self._failed_attempts[username] = [
             attempt for attempt in self._failed_attempts[username]
             if attempt > cutoff_time
         ]
-        
+
         return len(self._failed_attempts[username]) >= self._max_attempts
-    
+
     async def _track_failed_attempt(self, username: str):
         """Track failed login attempt"""
         if username not in self._failed_attempts:
             self._failed_attempts[username] = []
-        
+
         self._failed_attempts[username].append(datetime.utcnow())
 
 
 class ProductionAuthorizationService(AuthorizationService, XORBService):
     """Production-ready authorization service with RBAC and fine-grained permissions"""
-    
+
     def __init__(self):
         super().__init__(service_type=ServiceType.AUTHORIZATION)
         self.logger = logging.getLogger(__name__)
-        
+
         # Role-based permissions matrix
         self.role_permissions = {
             "admin": ["*"],  # Admin has all permissions
@@ -392,60 +392,60 @@ class ProductionAuthorizationService(AuthorizationService, XORBService):
             ],
             "user": ["ptaas:view", "intelligence:view"]
         }
-    
+
     async def check_permission(self, user: User, resource: str, action: str) -> bool:
         """Check if user has permission for resource action"""
         try:
             permission_key = f"{resource}:{action}"
-            
+
             # Check user roles
             for role in user.roles:
                 role_perms = self.role_permissions.get(role, [])
-                
+
                 # Admin has all permissions
                 if "*" in role_perms:
                     return True
-                
+
                 # Check specific permission
                 if permission_key in role_perms:
                     return True
-                
+
                 # Check wildcard permissions
                 resource_wildcard = f"{resource}:*"
                 if resource_wildcard in role_perms:
                     return True
-            
+
             return False
-            
+
         except Exception as e:
             self.logger.error(f"Permission check failed for user {user.id}: {e}")
             return False
-    
+
     async def get_user_permissions(self, user: User) -> Dict[str, List[str]]:
         """Get all permissions for user organized by resource"""
         try:
             all_permissions = set()
-            
+
             # Collect permissions from all user roles
             for role in user.roles:
                 role_perms = self.role_permissions.get(role, [])
                 all_permissions.update(role_perms)
-            
+
             # Organize by resource
             permissions_by_resource = {}
             for permission in all_permissions:
                 if permission == "*":
                     permissions_by_resource["all"] = ["*"]
                     continue
-                
+
                 if ":" in permission:
                     resource, action = permission.split(":", 1)
                     if resource not in permissions_by_resource:
                         permissions_by_resource[resource] = []
                     permissions_by_resource[resource].append(action)
-            
+
             return permissions_by_resource
-            
+
         except Exception as e:
             self.logger.error(f"Failed to get permissions for user {user.id}: {e}")
             return {}
@@ -453,13 +453,13 @@ class ProductionAuthorizationService(AuthorizationService, XORBService):
 
 class ProductionEmbeddingService(EmbeddingService, XORBService):
     """Production-ready embedding service with multiple model support"""
-    
+
     def __init__(self, api_keys: Dict[str, str] = None):
         super().__init__(service_type=ServiceType.EMBEDDING)
         self.logger = logging.getLogger(__name__)
         self.api_keys = api_keys or {}
         self.default_model = "text-embedding-3-small"
-        
+
         # Model configurations
         self.model_configs = {
             "text-embedding-3-small": {
@@ -478,7 +478,7 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
                 "provider": "openai"
             }
         }
-    
+
     async def generate_embeddings(
         self,
         texts: List[str],
@@ -492,15 +492,15 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
             # Validate model
             if model not in self.model_configs:
                 raise ValueError(f"Unsupported model: {model}")
-            
+
             model_config = self.model_configs[model]
-            
+
             # Generate embeddings based on provider
             if model_config["provider"] == "openai":
                 embeddings = await self._generate_openai_embeddings(texts, model)
             else:
                 raise ValueError(f"Unsupported provider: {model_config['provider']}")
-            
+
             # Create result
             result = EmbeddingResult(
                 embeddings=embeddings,
@@ -515,13 +515,13 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
                     "timestamp": datetime.utcnow().isoformat()
                 }
             )
-            
+
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Embedding generation failed: {e}")
             raise
-    
+
     async def compute_similarity(
         self,
         text1: str,
@@ -535,18 +535,18 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
             embedding_result = await self.generate_embeddings(
                 [text1, text2], model, "similarity", user, user.organization
             )
-            
+
             # Compute cosine similarity
             vec1 = embedding_result.embeddings[0]
             vec2 = embedding_result.embeddings[1]
-            
+
             similarity = self._cosine_similarity(vec1, vec2)
             return similarity
-            
+
         except Exception as e:
             self.logger.error(f"Similarity computation failed: {e}")
             return 0.0
-    
+
     async def batch_embeddings(
         self,
         texts: List[str],
@@ -561,19 +561,19 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
             all_embeddings = []
             total_tokens = 0
             total_time = 0.0
-            
+
             # Process in batches
             for i in range(0, len(texts), batch_size):
                 batch = texts[i:i + batch_size]
-                
+
                 batch_result = await self.generate_embeddings(
                     batch, model, input_type, user, org
                 )
-                
+
                 all_embeddings.extend(batch_result.embeddings)
                 total_tokens += batch_result.tokens_used
                 total_time += batch_result.processing_time
-            
+
             # Return combined result
             return EmbeddingResult(
                 embeddings=all_embeddings,
@@ -589,11 +589,11 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
                     "org_id": str(org.id)
                 }
             )
-            
+
         except Exception as e:
             self.logger.error(f"Batch embedding failed: {e}")
             raise
-    
+
     async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available embedding models"""
         return [
@@ -605,43 +605,43 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
             }
             for model, config in self.model_configs.items()
         ]
-    
+
     async def _generate_openai_embeddings(self, texts: List[str], model: str) -> List[List[float]]:
         """Generate embeddings using OpenAI API"""
         # Placeholder implementation - in production would call OpenAI API
         self.logger.info(f"Generating embeddings for {len(texts)} texts using {model}")
-        
+
         # Return mock embeddings for demonstration
         dimensions = self.model_configs[model]["dimensions"]
         return [[0.1] * dimensions for _ in texts]
-    
+
     def _cosine_similarity(self, vec1: List[float], vec2: List[float]) -> float:
         """Compute cosine similarity between two vectors"""
         import math
-        
+
         # Dot product
         dot_product = sum(a * b for a, b in zip(vec1, vec2))
-        
+
         # Magnitudes
         magnitude1 = math.sqrt(sum(a * a for a in vec1))
         magnitude2 = math.sqrt(sum(a * a for a in vec2))
-        
+
         if magnitude1 == 0 or magnitude2 == 0:
             return 0.0
-        
+
         return dot_product / (magnitude1 * magnitude2)
 
 
 class ProductionPTaaSService(PTaaSService, XORBService):
     """Production-ready PTaaS service with real security scanner integration"""
-    
+
     def __init__(self):
         super().__init__(service_type=ServiceType.SECURITY)
         self.logger = logging.getLogger(__name__)
-        
+
         # Active scan sessions
         self._active_sessions: Dict[str, Dict[str, Any]] = {}
-        
+
         # Scan profiles with real-world configurations
         self.scan_profiles = {
             "quick": {
@@ -672,7 +672,7 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                 "description": "Specialized web application security testing"
             }
         }
-    
+
     async def create_scan_session(
         self,
         targets: List[Dict[str, Any]],
@@ -684,13 +684,13 @@ class ProductionPTaaSService(PTaaSService, XORBService):
         """Create a new PTaaS scan session with real scanner integration"""
         try:
             session_id = str(uuid4())
-            
+
             # Validate scan profile
             if scan_type not in self.scan_profiles:
                 raise ValueError(f"Invalid scan type: {scan_type}")
-            
+
             profile = self.scan_profiles[scan_type]
-            
+
             # Create session
             session = {
                 "session_id": session_id,
@@ -705,12 +705,12 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                 "results": {},
                 "metadata": metadata or {}
             }
-            
+
             self._active_sessions[session_id] = session
-            
+
             # Start scan asynchronously
             asyncio.create_task(self._execute_scan(session_id))
-            
+
             return {
                 "session_id": session_id,
                 "status": "created",
@@ -718,11 +718,11 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                 "estimated_duration": profile["duration_minutes"],
                 "scan_profile": profile["name"]
             }
-            
+
         except Exception as e:
             self.logger.error(f"Failed to create scan session: {e}")
             raise
-    
+
     async def get_scan_status(
         self,
         session_id: str,
@@ -732,13 +732,13 @@ class ProductionPTaaSService(PTaaSService, XORBService):
         try:
             if session_id not in self._active_sessions:
                 raise ValueError(f"Session not found: {session_id}")
-            
+
             session = self._active_sessions[session_id]
-            
+
             # Verify user access
             if session["user_id"] != str(user.id):
                 raise PermissionError("Access denied to scan session")
-            
+
             return {
                 "session_id": session_id,
                 "status": session["status"],
@@ -748,11 +748,11 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                 "scan_type": session["scan_type"],
                 "profile_name": session["profile"]["name"]
             }
-            
+
         except Exception as e:
             self.logger.error(f"Failed to get scan status: {e}")
             raise
-    
+
     async def get_scan_results(
         self,
         session_id: str,
@@ -762,13 +762,13 @@ class ProductionPTaaSService(PTaaSService, XORBService):
         try:
             if session_id not in self._active_sessions:
                 raise ValueError(f"Session not found: {session_id}")
-            
+
             session = self._active_sessions[session_id]
-            
+
             # Verify user access
             if session["user_id"] != str(user.id):
                 raise PermissionError("Access denied to scan session")
-            
+
             return {
                 "session_id": session_id,
                 "status": session["status"],
@@ -777,11 +777,11 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                 "completed_at": session.get("completed_at"),
                 "vulnerability_count": self._count_vulnerabilities(session["results"])
             }
-            
+
         except Exception as e:
             self.logger.error(f"Failed to get scan results: {e}")
             raise
-    
+
     async def cancel_scan(
         self,
         session_id: str,
@@ -791,24 +791,24 @@ class ProductionPTaaSService(PTaaSService, XORBService):
         try:
             if session_id not in self._active_sessions:
                 return False
-            
+
             session = self._active_sessions[session_id]
-            
+
             # Verify user access
             if session["user_id"] != str(user.id):
                 raise PermissionError("Access denied to scan session")
-            
+
             if session["status"] in ["running", "created"]:
                 session["status"] = "cancelled"
                 session["cancelled_at"] = datetime.utcnow().isoformat()
                 return True
-            
+
             return False
-            
+
         except Exception as e:
             self.logger.error(f"Failed to cancel scan: {e}")
             return False
-    
+
     async def get_available_scan_profiles(self) -> List[Dict[str, Any]]:
         """Get available scan profiles and their configurations"""
         return [
@@ -821,7 +821,7 @@ class ProductionPTaaSService(PTaaSService, XORBService):
             }
             for profile_id, profile in self.scan_profiles.items()
         ]
-    
+
     async def create_compliance_scan(
         self,
         targets: List[str],
@@ -849,18 +849,18 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                     "required_checks": ["change_management", "segregation_duties", "monitoring"]
                 }
             }
-            
+
             if compliance_framework not in compliance_configs:
                 raise ValueError(f"Unsupported compliance framework: {compliance_framework}")
-            
+
             config = compliance_configs[compliance_framework]
-            
+
             # Create targets in the expected format
             formatted_targets = [
                 {"host": target, "compliance_framework": compliance_framework}
                 for target in targets
             ]
-            
+
             # Create scan session with compliance metadata
             return await self.create_scan_session(
                 targets=formatted_targets,
@@ -874,32 +874,32 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                     "compliance_scan": True
                 }
             )
-            
+
         except Exception as e:
             self.logger.error(f"Failed to create compliance scan: {e}")
             raise
-    
+
     async def _execute_scan(self, session_id: str):
         """Execute the actual security scan (placeholder for real implementation)"""
         try:
             session = self._active_sessions[session_id]
             session["status"] = "running"
             session["started_at"] = datetime.utcnow().isoformat()
-            
+
             profile = session["profile"]
             targets = session["targets"]
-            
+
             # Simulate scan execution with progress updates
             total_steps = len(targets) * len(profile["tools"])
             current_step = 0
-            
+
             for target in targets:
                 target_results = {}
-                
+
                 for tool in profile["tools"]:
                     # Simulate tool execution
                     await asyncio.sleep(1)  # Simulate scan time
-                    
+
                     # Generate mock results based on tool
                     if tool == "nmap":
                         target_results["nmap"] = await self._mock_nmap_scan(target)
@@ -909,21 +909,21 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                         target_results["nikto"] = await self._mock_nikto_scan(target)
                     elif tool == "sslscan":
                         target_results["sslscan"] = await self._mock_sslscan(target)
-                    
+
                     current_step += 1
                     session["progress"] = int((current_step / total_steps) * 100)
-                
+
                 session["results"][target.get("host", "unknown")] = target_results
-            
+
             session["status"] = "completed"
             session["completed_at"] = datetime.utcnow().isoformat()
             session["progress"] = 100
-            
+
         except Exception as e:
             self.logger.error(f"Scan execution failed for session {session_id}: {e}")
             session["status"] = "failed"
             session["error"] = str(e)
-    
+
     async def _mock_nmap_scan(self, target: Dict[str, Any]) -> Dict[str, Any]:
         """Mock nmap scan results"""
         return {
@@ -937,7 +937,7 @@ class ProductionPTaaSService(PTaaSService, XORBService):
             "os_detection": "Linux 3.2 - 4.9",
             "scan_time": "2.5s"
         }
-    
+
     async def _mock_nuclei_scan(self, target: Dict[str, Any]) -> Dict[str, Any]:
         """Mock nuclei vulnerability scan results"""
         return {
@@ -954,7 +954,7 @@ class ProductionPTaaSService(PTaaSService, XORBService):
             "templates_matched": 1,
             "scan_time": "15.2s"
         }
-    
+
     async def _mock_nikto_scan(self, target: Dict[str, Any]) -> Dict[str, Any]:
         """Mock nikto web scan results"""
         return {
@@ -969,7 +969,7 @@ class ProductionPTaaSService(PTaaSService, XORBService):
             ],
             "scan_time": "45.7s"
         }
-    
+
     async def _mock_sslscan(self, target: Dict[str, Any]) -> Dict[str, Any]:
         """Mock SSL/TLS scan results"""
         return {
@@ -984,12 +984,12 @@ class ProductionPTaaSService(PTaaSService, XORBService):
             "vulnerabilities": [],
             "scan_time": "8.1s"
         }
-    
+
     def _generate_scan_summary(self, session: Dict[str, Any]) -> Dict[str, Any]:
         """Generate a summary of scan results"""
         results = session["results"]
         total_vulnerabilities = self._count_vulnerabilities(results)
-        
+
         return {
             "targets_scanned": len(results),
             "total_vulnerabilities": total_vulnerabilities,
@@ -997,7 +997,7 @@ class ProductionPTaaSService(PTaaSService, XORBService):
             "tools_used": session["profile"]["tools"],
             "scan_duration": session["profile"]["duration_minutes"]
         }
-    
+
     def _count_vulnerabilities(self, results: Dict[str, Any]) -> int:
         """Count total vulnerabilities across all results"""
         count = 0
@@ -1008,11 +1008,11 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                 if "findings" in tool_results:
                     count += len(tool_results["findings"])
         return count
-    
+
     def _get_severity_breakdown(self, results: Dict[str, Any]) -> Dict[str, int]:
         """Get breakdown of vulnerabilities by severity"""
         breakdown = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
-        
+
         for target_results in results.values():
             for tool_results in target_results.values():
                 if "vulnerabilities" in tool_results:
@@ -1025,9 +1025,9 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                         severity = finding.get("severity", "unknown").lower()
                         if severity in breakdown:
                             breakdown[severity] += 1
-        
+
         return breakdown
-        
+
         # Role-based permissions matrix
         self._permissions = {
             "admin": {
@@ -1054,12 +1054,12 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                 "reports": ["read"]
             }
         }
-    
+
     async def check_permission(self, user: User, resource: str, action: str) -> bool:
         """Check if user has permission for resource action"""
         try:
             user_roles = getattr(user, 'roles', ['user'])
-            
+
             for role in user_roles:
                 if role in self._permissions:
                     role_permissions = self._permissions[role]
@@ -1069,36 +1069,36 @@ class ProductionPTaaSService(PTaaSService, XORBService):
                                 f"Permission granted: {user.username} can {action} {resource}"
                             )
                             return True
-            
+
             self.logger.warning(
                 f"Permission denied: {user.username} cannot {action} {resource}"
             )
             return False
-            
+
         except Exception as e:
             self.logger.error(f"Permission check error: {str(e)}")
             return False
-    
+
     async def get_user_permissions(self, user: User) -> Dict[str, List[str]]:
         """Get all permissions for user"""
         try:
             user_roles = getattr(user, 'roles', ['user'])
             all_permissions = {}
-            
+
             for role in user_roles:
                 if role in self._permissions:
                     role_permissions = self._permissions[role]
                     for resource, actions in role_permissions.items():
                         if resource not in all_permissions:
                             all_permissions[resource] = []
-                        
+
                         # Add actions if not already present
                         for action in actions:
                             if action not in all_permissions[resource]:
                                 all_permissions[resource].append(action)
-            
+
             return all_permissions
-            
+
         except Exception as e:
             self.logger.error(f"Error getting user permissions: {str(e)}")
             return {}
@@ -1106,12 +1106,12 @@ class ProductionPTaaSService(PTaaSService, XORBService):
 
 class ProductionEmbeddingService(EmbeddingService, XORBService):
     """Production-ready embedding service with multiple AI providers"""
-    
+
     def __init__(self, api_keys: Dict[str, str]):
         super().__init__(service_type=ServiceType.AI_ML)
         self.api_keys = api_keys
         self.logger = logging.getLogger(__name__)
-        
+
         # Model configurations
         self._model_configs = {
             "nvidia/nv-embedqa-e5-v5": {
@@ -1127,7 +1127,7 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
                 "cost_per_1k": 0.0001
             }
         }
-    
+
     async def generate_embeddings(
         self,
         texts: List[str],
@@ -1141,7 +1141,7 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
             model_config = self._model_configs.get(model)
             if not model_config:
                 raise ValueError(f"Unsupported model: {model}")
-            
+
             # Process based on provider
             if model_config["provider"] == "nvidia":
                 embeddings = await self._generate_nvidia_embeddings(texts, model)
@@ -1149,7 +1149,7 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
                 embeddings = await self._generate_openai_embeddings(texts, model)
             else:
                 raise ValueError(f"Unknown provider: {model_config['provider']}")
-            
+
             # Create result
             result = EmbeddingResult(
                 id=uuid4(),
@@ -1163,14 +1163,14 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
                 },
                 created_at=datetime.utcnow()
             )
-            
+
             self.logger.info(f"Generated embeddings for {len(texts)} texts using {model}")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Embedding generation error: {str(e)}")
             raise
-    
+
     async def compute_similarity(
         self,
         text1: str,
@@ -1184,24 +1184,24 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
             result = await self.generate_embeddings(
                 [text1, text2], model, "similarity", user, None
             )
-            
+
             if len(result.embeddings) < 2:
                 raise ValueError("Failed to generate embeddings for both texts")
-            
+
             # Compute cosine similarity
             import numpy as np
-            
+
             vec1 = np.array(result.embeddings[0])
             vec2 = np.array(result.embeddings[1])
-            
+
             similarity = np.dot(vec1, vec2) / (np.linalg.norm(vec1) * np.linalg.norm(vec2))
-            
+
             return float(similarity)
-            
+
         except Exception as e:
             self.logger.error(f"Similarity computation error: {str(e)}")
             return 0.0
-    
+
     async def batch_embeddings(
         self,
         texts: List[str],
@@ -1216,22 +1216,22 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
             all_embeddings = []
             total_cost = 0
             total_tokens = 0
-            
+
             # Process in batches
             for i in range(0, len(texts), batch_size):
                 batch = texts[i:i + batch_size]
-                
+
                 result = await self.generate_embeddings(
                     batch, model, input_type, user, org
                 )
-                
+
                 all_embeddings.extend(result.embeddings)
                 total_cost += result.usage.get("cost", 0)
                 total_tokens += result.usage.get("total_tokens", 0)
-                
+
                 # Rate limiting between batches
                 await asyncio.sleep(0.1)
-            
+
             # Combine results
             combined_result = EmbeddingResult(
                 id=uuid4(),
@@ -1246,18 +1246,18 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
                 },
                 created_at=datetime.utcnow()
             )
-            
+
             self.logger.info(f"Processed {len(texts)} texts in batches of {batch_size}")
             return combined_result
-            
+
         except Exception as e:
             self.logger.error(f"Batch embedding error: {str(e)}")
             raise
-    
+
     async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available embedding models"""
         models = []
-        
+
         for model_name, config in self._model_configs.items():
             models.append({
                 "name": model_name,
@@ -1267,27 +1267,27 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
                 "cost_per_1k_tokens": config["cost_per_1k"],
                 "available": self.api_keys.get(config["provider"]) is not None
             })
-        
+
         return models
-    
+
     async def _generate_nvidia_embeddings(self, texts: List[str], model: str) -> List[List[float]]:
         """Generate embeddings using NVIDIA API"""
         try:
             api_key = self.api_keys.get("nvidia")
             if not api_key:
                 raise ValueError("NVIDIA API key not configured")
-            
+
             headers = {
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json"
             }
-            
+
             payload = {
                 "model": model,
                 "input": texts,
                 "input_type": "passage"
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     "https://integrate.api.nvidia.com/v1/embeddings",
@@ -1301,24 +1301,24 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
                     else:
                         error_text = await response.text()
                         raise Exception(f"NVIDIA API error {response.status}: {error_text}")
-        
+
         except Exception as e:
             self.logger.error(f"NVIDIA embedding error: {str(e)}")
             # Fallback to mock embeddings for development
             return [[0.1] * 1024 for _ in texts]
-    
+
     async def _generate_openai_embeddings(self, texts: List[str], model: str) -> List[List[float]]:
         """Generate embeddings using OpenAI API"""
         try:
             api_key = self.api_keys.get("openai")
             if not api_key:
                 raise ValueError("OpenAI API key not configured")
-            
+
             # OpenAI implementation would go here
             # For now, return mock embeddings
             self.logger.info(f"Generated OpenAI embeddings for {len(texts)} texts")
             return [[0.1] * 1536 for _ in texts]
-            
+
         except Exception as e:
             self.logger.error(f"OpenAI embedding error: {str(e)}")
             return [[0.1] * 1536 for _ in texts]
@@ -1326,12 +1326,12 @@ class ProductionEmbeddingService(EmbeddingService, XORBService):
 
 class ProductionDiscoveryService(DiscoveryService, XORBService):
     """Production-ready discovery service with real network analysis"""
-    
+
     def __init__(self):
         super().__init__(service_type=ServiceType.DISCOVERY)
         self.logger = logging.getLogger(__name__)
         self._active_workflows: Dict[str, DiscoveryWorkflow] = {}
-    
+
     async def start_discovery(
         self,
         domain: str,
@@ -1341,7 +1341,7 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
         """Start comprehensive domain discovery workflow"""
         try:
             workflow_id = str(uuid4())
-            
+
             workflow = DiscoveryWorkflow(
                 id=uuid4(),
                 workflow_id=workflow_id,
@@ -1352,20 +1352,20 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
                 created_at=datetime.utcnow(),
                 results={}
             )
-            
+
             # Store workflow
             self._active_workflows[workflow_id] = workflow
-            
+
             # Start discovery tasks asynchronously
             asyncio.create_task(self._execute_discovery(workflow))
-            
+
             self.logger.info(f"Started discovery workflow {workflow_id} for domain: {domain}")
             return workflow
-            
+
         except Exception as e:
             self.logger.error(f"Discovery start error: {str(e)}")
             raise
-    
+
     async def get_discovery_results(
         self,
         workflow_id: str,
@@ -1373,7 +1373,7 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
     ) -> Optional[DiscoveryWorkflow]:
         """Get discovery workflow results"""
         return self._active_workflows.get(workflow_id)
-    
+
     async def get_user_workflows(
         self,
         user: User,
@@ -1385,10 +1385,10 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
             workflow for workflow in self._active_workflows.values()
             if workflow.user_id == user.id
         ]
-        
+
         # Apply pagination
         return user_workflows[offset:offset + limit]
-    
+
     async def _execute_discovery(self, workflow: DiscoveryWorkflow):
         """Execute comprehensive discovery tasks"""
         try:
@@ -1399,19 +1399,19 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
                 "certificate_analysis": await self._analyze_certificates(workflow.domain),
                 "dns_analysis": await self._analyze_dns(workflow.domain)
             }
-            
+
             # Update workflow with results
             workflow.results = results
             workflow.status = "completed"
             workflow.completed_at = datetime.utcnow()
-            
+
             self.logger.info(f"Discovery workflow {workflow.workflow_id} completed")
-            
+
         except Exception as e:
             workflow.status = "failed"
             workflow.error_message = str(e)
             self.logger.error(f"Discovery workflow {workflow.workflow_id} failed: {str(e)}")
-    
+
     async def _enumerate_subdomains(self, domain: str) -> Dict[str, Any]:
         """Enumerate subdomains using multiple techniques"""
         # In production, integrate with tools like subfinder, amass, etc.
@@ -1422,19 +1422,19 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
             f"admin.{domain}",
             f"api.{domain}"
         ]
-        
+
         return {
             "found_subdomains": subdomains,
             "count": len(subdomains),
             "methods_used": ["dns_bruteforce", "certificate_transparency", "search_engines"]
         }
-    
+
     async def _scan_ports(self, domain: str) -> Dict[str, Any]:
         """Scan common ports on target domain"""
         # In production, integrate with nmap or similar tools
         common_ports = [21, 22, 23, 25, 53, 80, 110, 143, 443, 993, 995]
         open_ports = [80, 443, 22]  # Mock open ports
-        
+
         return {
             "scanned_ports": common_ports,
             "open_ports": open_ports,
@@ -1444,7 +1444,7 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
                 "443": "https"
             }
         }
-    
+
     async def _detect_technologies(self, domain: str) -> Dict[str, Any]:
         """Detect web technologies used by target"""
         # In production, integrate with Wappalyzer, WhatWeb, etc.
@@ -1455,7 +1455,7 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
             "databases": ["PostgreSQL"],
             "cdn": "Cloudflare"
         }
-    
+
     async def _analyze_certificates(self, domain: str) -> Dict[str, Any]:
         """Analyze SSL/TLS certificates"""
         # In production, perform actual certificate analysis
@@ -1467,7 +1467,7 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
             "san_domains": [domain, f"www.{domain}"],
             "signature_algorithm": "SHA256withRSA"
         }
-    
+
     async def _analyze_dns(self, domain: str) -> Dict[str, Any]:
         """Analyze DNS configuration"""
         # In production, perform actual DNS queries
@@ -1488,17 +1488,17 @@ class ProductionDiscoveryService(DiscoveryService, XORBService):
 
 class ProductionNotificationService(NotificationService, XORBService):
     """Production-ready notification service with multiple channels"""
-    
+
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(service_type=ServiceType.INTEGRATION)
         self.config = config or {}
         self.logger = logging.getLogger(__name__)
-        
+
         # Notification queue for async processing
         self._notification_queue: asyncio.Queue = asyncio.Queue()
         self._worker_task: Optional[asyncio.Task] = None
         self._running = False
-    
+
     async def send_notification(
         self,
         recipient: str,
@@ -1513,7 +1513,7 @@ class ProductionNotificationService(NotificationService, XORBService):
         """Send notification through specified channel"""
         try:
             notification_id = str(uuid4())
-            
+
             notification_data = {
                 "id": notification_id,
                 "recipient": recipient,
@@ -1526,21 +1526,21 @@ class ProductionNotificationService(NotificationService, XORBService):
                 "metadata": metadata or {},
                 "created_at": datetime.utcnow().isoformat()
             }
-            
+
             # Queue notification for processing
             await self._notification_queue.put(notification_data)
-            
+
             # Start worker if not running
             if not self._running:
                 await self._start_worker()
-            
+
             self.logger.info(f"Queued notification {notification_id} for {recipient}")
             return notification_id
-            
+
         except Exception as e:
             self.logger.error(f"Error queueing notification: {str(e)}")
             raise
-    
+
     async def send_webhook(
         self,
         url: str,
@@ -1555,10 +1555,10 @@ class ProductionNotificationService(NotificationService, XORBService):
                 "Content-Type": "application/json",
                 "User-Agent": "XORB-Webhook/1.0"
             }
-            
+
             if headers:
                 webhook_headers.update(headers)
-            
+
             # Add signature if secret provided
             if secret:
                 payload_str = json.dumps(payload, sort_keys=True)
@@ -1568,7 +1568,7 @@ class ProductionNotificationService(NotificationService, XORBService):
                     hashlib.sha256
                 ).hexdigest()
                 webhook_headers["X-XORB-Signature"] = f"sha256={signature}"
-            
+
             # Retry logic
             for attempt in range(retry_count):
                 try:
@@ -1586,30 +1586,30 @@ class ProductionNotificationService(NotificationService, XORBService):
                                 self.logger.warning(
                                     f"Webhook attempt {attempt + 1} failed: {response.status}"
                                 )
-                                
+
                 except aiohttp.ClientError as e:
                     self.logger.warning(f"Webhook attempt {attempt + 1} error: {str(e)}")
-                
+
                 # Wait before retry (exponential backoff)
                 if attempt < retry_count - 1:
                     await asyncio.sleep(2 ** attempt)
-            
+
             self.logger.error(f"All webhook attempts failed for {url}")
             return False
-            
+
         except Exception as e:
             self.logger.error(f"Webhook error: {str(e)}")
             return False
-    
+
     async def _start_worker(self):
         """Start notification processing worker"""
         if self._running:
             return
-        
+
         self._running = True
         self._worker_task = asyncio.create_task(self._notification_worker())
         self.logger.info("Started notification worker")
-    
+
     async def _notification_worker(self):
         """Process notifications from queue"""
         while self._running:
@@ -1622,29 +1622,29 @@ class ProductionNotificationService(NotificationService, XORBService):
                     )
                 except asyncio.TimeoutError:
                     continue
-                
+
                 # Process notification based on channel
                 success = await self._process_notification(notification)
-                
+
                 if success:
                     self.logger.info(f"Notification {notification['id']} delivered successfully")
                 else:
                     self.logger.error(f"Failed to deliver notification {notification['id']}")
-                
+
                 # Mark task as done
                 self._notification_queue.task_done()
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 self.logger.error(f"Notification worker error: {str(e)}")
                 await asyncio.sleep(1)
-    
+
     async def _process_notification(self, notification: Dict[str, Any]) -> bool:
         """Process individual notification"""
         try:
             channel = notification["channel"]
-            
+
             if channel == "email":
                 return await self._send_email(notification)
             elif channel == "webhook":
@@ -1657,38 +1657,38 @@ class ProductionNotificationService(NotificationService, XORBService):
             else:
                 self.logger.warning(f"Unsupported notification channel: {channel}")
                 return False
-                
+
         except Exception as e:
             self.logger.error(f"Error processing notification: {str(e)}")
             return False
-    
+
     async def _send_email(self, notification: Dict[str, Any]) -> bool:
         """Send email notification"""
         try:
             # Email configuration from environment
             smtp_config = self.config.get("email", {})
-            
+
             if not smtp_config.get("smtp_host"):
                 self.logger.info(f"[DEV MODE] Email to {notification['recipient']}: {notification['subject']}")
                 return True
-            
+
             # In production, use actual SMTP
             # For now, log the email
             self.logger.info(
                 f"Email sent to {notification['recipient']}: {notification['subject']}"
             )
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Email sending error: {str(e)}")
             return False
-    
+
     async def _send_slack(self, notification: Dict[str, Any]) -> bool:
         """Send Slack notification"""
         try:
             # Slack webhook URL should be in recipient field
             webhook_url = notification["recipient"]
-            
+
             slack_payload = {
                 "text": notification["message"],
                 "username": "XORB Security Bot",
@@ -1706,13 +1706,13 @@ class ProductionNotificationService(NotificationService, XORBService):
                     }
                 ]
             }
-            
+
             return await self.send_webhook(webhook_url, slack_payload)
-            
+
         except Exception as e:
             self.logger.error(f"Slack notification error: {str(e)}")
             return False
-    
+
     async def stop_worker(self):
         """Stop notification worker"""
         self._running = False
@@ -1727,12 +1727,12 @@ class ProductionNotificationService(NotificationService, XORBService):
 
 class ProductionRateLimitingService(RateLimitingService, XORBService):
     """Production-ready rate limiting service with Redis backend"""
-    
+
     def __init__(self, redis_url: str = None):
         super().__init__(service_type=ServiceType.INFRASTRUCTURE)
         self.redis_url = redis_url or "redis://localhost:6379/0"
         self.logger = logging.getLogger(__name__)
-        
+
         # Rate limiting rules
         self._rules = {
             "api_global": {"limit": 1000, "window": 3600},  # 1000 requests per hour
@@ -1740,10 +1740,10 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
             "scan_requests": {"limit": 10, "window": 3600}, # 10 scans per hour
             "login_attempts": {"limit": 5, "window": 900}   # 5 login attempts per 15 minutes
         }
-        
+
         # In-memory fallback for development
         self._memory_store: Dict[str, Dict] = {}
-    
+
     async def check_rate_limit(
         self,
         key: str,
@@ -1756,19 +1756,19 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
             rule = self._rules.get(rule_name)
             if not rule:
                 raise ValueError(f"Unknown rate limiting rule: {rule_name}")
-            
+
             # Create composite key
             cache_key = self._create_cache_key(key, rule_name, tenant_id)
-            
+
             # Get current usage
             current_usage = await self._get_usage(cache_key, rule["window"])
-            
+
             # Check if limit exceeded
             limit_exceeded = current_usage >= rule["limit"]
-            
+
             # Calculate reset time
             reset_time = int(time.time()) + rule["window"]
-            
+
             return RateLimitInfo(
                 allowed=not limit_exceeded,
                 limit=rule["limit"],
@@ -1776,7 +1776,7 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
                 reset_time=reset_time,
                 retry_after=rule["window"] if limit_exceeded else None
             )
-            
+
         except Exception as e:
             self.logger.error(f"Rate limit check error: {str(e)}")
             # Default to allow on error
@@ -1786,7 +1786,7 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
                 remaining=999,
                 reset_time=int(time.time()) + 3600
             )
-    
+
     async def increment_usage(
         self,
         key: str,
@@ -1798,19 +1798,19 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
         try:
             cache_key = self._create_cache_key(key, rule_name, tenant_id)
             rule = self._rules.get(rule_name, {"window": 3600})
-            
+
             # Try Redis first, fallback to memory
             try:
                 await self._increment_redis(cache_key, rule["window"], cost)
             except Exception:
                 await self._increment_memory(cache_key, rule["window"], cost)
-            
+
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Error incrementing usage: {str(e)}")
             return False
-    
+
     async def get_usage_stats(
         self,
         key: str,
@@ -1821,12 +1821,12 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
         try:
             # Aggregate usage across different rules
             total_requests = 0
-            
+
             for rule_name in self._rules.keys():
                 cache_key = self._create_cache_key(key, rule_name, tenant_id)
                 usage = await self._get_usage(cache_key, time_range_hours * 3600)
                 total_requests += usage
-            
+
             return UsageStats(
                 total_requests=total_requests,
                 time_range_hours=time_range_hours,
@@ -1834,7 +1834,7 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
                 peak_hour_usage=total_requests,  # Simplified for now
                 timestamp=datetime.utcnow()
             )
-            
+
         except Exception as e:
             self.logger.error(f"Error getting usage stats: {str(e)}")
             return UsageStats(
@@ -1844,14 +1844,14 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
                 peak_hour_usage=0,
                 timestamp=datetime.utcnow()
             )
-    
+
     def _create_cache_key(self, key: str, rule_name: str, tenant_id: Optional[UUID]) -> str:
         """Create composite cache key"""
         parts = ["rate_limit", rule_name, key]
         if tenant_id:
             parts.append(str(tenant_id))
         return ":".join(parts)
-    
+
     async def _get_usage(self, cache_key: str, window: int) -> int:
         """Get current usage from cache"""
         try:
@@ -1860,68 +1860,68 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
         except Exception:
             # Fallback to memory store
             return self._get_memory_usage(cache_key, window)
-    
+
     async def _get_redis_usage(self, cache_key: str) -> int:
         """Get usage from Redis"""
         # Placeholder for Redis implementation
         # In production, use redis.asyncio
         return 0
-    
+
     def _get_memory_usage(self, cache_key: str, window: int) -> int:
         """Get usage from memory store"""
         if cache_key not in self._memory_store:
             return 0
-        
+
         store_data = self._memory_store[cache_key]
-        
+
         # Clean expired entries
         current_time = time.time()
         store_data["timestamps"] = [
             ts for ts in store_data.get("timestamps", [])
             if current_time - ts < window
         ]
-        
+
         return len(store_data["timestamps"])
-    
+
     async def _increment_redis(self, cache_key: str, window: int, cost: int):
         """Increment usage in Redis using sliding window counter"""
         try:
             import redis.asyncio as redis
-            
+
             # Connect to Redis
             redis_client = redis.from_url(self.redis_url)
-            
+
             current_time = time.time()
             cutoff_time = current_time - window
-            
+
             async with redis_client.pipeline() as pipe:
                 # Remove expired entries
                 await pipe.zremrangebyscore(cache_key, 0, cutoff_time)
-                
+
                 # Add new entries with current timestamp
                 for i in range(cost):
                     # Use microseconds to ensure uniqueness
                     timestamp = current_time + (i / 1000000)
                     await pipe.zadd(cache_key, {str(timestamp): timestamp})
-                
+
                 # Set expiration on the key
                 await pipe.expire(cache_key, window + 60)  # Add buffer for cleanup
-                
+
                 # Execute pipeline
                 await pipe.execute()
-            
+
             await redis_client.close()
-            
+
         except Exception as e:
             self.logger.error(f"Redis rate limiting error: {e}")
             # Fall back to memory-based rate limiting
             await self._increment_memory(cache_key, window, cost)
-    
+
     async def _increment_memory(self, cache_key: str, window: int, cost: int):
         """Increment usage in memory store"""
         if cache_key not in self._memory_store:
             self._memory_store[cache_key] = {"timestamps": []}
-        
+
         # Add timestamps for the cost
         current_time = time.time()
         for _ in range(cost):
@@ -1930,16 +1930,16 @@ class ProductionRateLimitingService(RateLimitingService, XORBService):
 
 class ProductionHealthService(HealthService, XORBService):
     """Production-ready health service with comprehensive monitoring"""
-    
+
     def __init__(self, services: List[Any] = None):
         super().__init__(service_type=ServiceType.MONITORING)
         self.services = services or []
         self.logger = logging.getLogger(__name__)
-        
+
         # Health check cache
         self._health_cache: Dict[str, Dict[str, Any]] = {}
         self._cache_ttl = 30  # 30 seconds
-    
+
     async def check_service_health(self, service_name: str) -> Dict[str, Any]:
         """Check health of a specific service"""
         try:
@@ -1947,15 +1947,15 @@ class ProductionHealthService(HealthService, XORBService):
             cached_result = self._get_cached_health(service_name)
             if cached_result:
                 return cached_result
-            
+
             # Perform actual health check
             health_result = await self._perform_health_check(service_name)
-            
+
             # Cache result
             self._cache_health(service_name, health_result)
-            
+
             return health_result
-            
+
         except Exception as e:
             self.logger.error(f"Health check error for {service_name}: {str(e)}")
             return {
@@ -1964,7 +1964,7 @@ class ProductionHealthService(HealthService, XORBService):
                 "error": str(e),
                 "timestamp": datetime.utcnow().isoformat()
             }
-    
+
     async def get_system_health(self) -> Dict[str, Any]:
         """Get overall system health"""
         try:
@@ -1979,7 +1979,7 @@ class ProductionHealthService(HealthService, XORBService):
                     "unknown_services": 0
                 }
             }
-            
+
             # Define critical services to check
             critical_services = [
                 "database",
@@ -1988,15 +1988,15 @@ class ProductionHealthService(HealthService, XORBService):
                 "rate_limiting",
                 "notification"
             ]
-            
+
             # Check each service
             for service_name in critical_services:
                 service_health = await self.check_service_health(service_name)
                 system_health["services"][service_name] = service_health
-                
+
                 # Update summary
                 system_health["summary"]["total_services"] += 1
-                
+
                 status = service_health.get("status", "unknown")
                 if status == "healthy":
                     system_health["summary"]["healthy_services"] += 1
@@ -2004,15 +2004,15 @@ class ProductionHealthService(HealthService, XORBService):
                     system_health["summary"]["unhealthy_services"] += 1
                 else:
                     system_health["summary"]["unknown_services"] += 1
-            
+
             # Determine overall system status
             if system_health["summary"]["unhealthy_services"] > 0:
                 system_health["status"] = "unhealthy"
             elif system_health["summary"]["unknown_services"] > 0:
                 system_health["status"] = "degraded"
-            
+
             return system_health
-            
+
         except Exception as e:
             self.logger.error(f"System health check error: {str(e)}")
             return {
@@ -2020,7 +2020,7 @@ class ProductionHealthService(HealthService, XORBService):
                 "error": str(e),
                 "timestamp": datetime.utcnow().isoformat()
             }
-    
+
     async def _perform_health_check(self, service_name: str) -> Dict[str, Any]:
         """Perform actual health check for service"""
         health_result = {
@@ -2030,9 +2030,9 @@ class ProductionHealthService(HealthService, XORBService):
             "response_time_ms": 0,
             "details": {}
         }
-        
+
         start_time = time.time()
-        
+
         try:
             if service_name == "database":
                 # Check database connectivity
@@ -2044,7 +2044,7 @@ class ProductionHealthService(HealthService, XORBService):
                     "active_connections": 5,
                     "max_connections": 100
                 }
-                
+
             elif service_name == "cache":
                 # Check Redis connectivity
                 await asyncio.sleep(0.005)  # Simulate check
@@ -2054,7 +2054,7 @@ class ProductionHealthService(HealthService, XORBService):
                     "memory_usage": "45MB",
                     "hit_ratio": "94.2%"
                 }
-                
+
             elif service_name == "authentication":
                 # Check authentication service
                 await asyncio.sleep(0.002)  # Simulate check
@@ -2063,7 +2063,7 @@ class ProductionHealthService(HealthService, XORBService):
                     "jwt_validation": "operational",
                     "token_cache": "active"
                 }
-                
+
             elif service_name == "rate_limiting":
                 # Check rate limiting service
                 await asyncio.sleep(0.001)  # Simulate check
@@ -2072,7 +2072,7 @@ class ProductionHealthService(HealthService, XORBService):
                     "rules_loaded": len(getattr(self, '_rules', {})),
                     "cache_backend": "memory"
                 }
-                
+
             elif service_name == "notification":
                 # Check notification service
                 await asyncio.sleep(0.003)  # Simulate check
@@ -2082,36 +2082,36 @@ class ProductionHealthService(HealthService, XORBService):
                     "workers_active": 1,
                     "channels_available": ["email", "webhook", "slack"]
                 }
-                
+
             else:
                 health_result["status"] = "unknown"
                 health_result["details"] = {"error": f"Unknown service: {service_name}"}
-            
+
         except Exception as e:
             health_result["status"] = "unhealthy"
             health_result["details"] = {"error": str(e)}
-        
+
         # Calculate response time
         end_time = time.time()
         health_result["response_time_ms"] = round((end_time - start_time) * 1000, 2)
-        
+
         return health_result
-    
+
     def _get_cached_health(self, service_name: str) -> Optional[Dict[str, Any]]:
         """Get cached health result if still valid"""
         if service_name not in self._health_cache:
             return None
-        
+
         cached_data = self._health_cache[service_name]
         cache_time = cached_data.get("cached_at", 0)
-        
+
         if time.time() - cache_time > self._cache_ttl:
             # Cache expired
             del self._health_cache[service_name]
             return None
-        
+
         return cached_data["result"]
-    
+
     def _cache_health(self, service_name: str, result: Dict[str, Any]):
         """Cache health check result"""
         self._health_cache[service_name] = {

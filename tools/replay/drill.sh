@@ -1,10 +1,10 @@
 #!/bin/bash
 #
 # XORB Phase G4 Replay-Safe Streaming Chaos Drill
-# 
-# Purpose: 
+#
+# Purpose:
 # - Generate live load while triggering 10x replay volume
-# - Measure live stream p95 publish→deliver latency 
+# - Measure live stream p95 publish→deliver latency
 # - Validate replay success rate under load
 # - Prove SLO compliance with bounded replay windows
 #
@@ -62,32 +62,32 @@ echo ""
 # Validation functions
 check_prerequisites() {
     echo "🔍 Checking prerequisites..."
-    
+
     # Check Python dependencies
     if ! python3 -c "import nats, asyncio, json, time, statistics" >/dev/null 2>&1; then
         echo "❌ Missing Python dependencies. Install: pip install nats-py"
         exit 3
     fi
-    
+
     # Check NATS connectivity
     if ! curl -f "$NATS_URL/healthz" >/dev/null 2>&1; then
         echo "❌ NATS server not accessible at $NATS_URL"
         exit 3
     fi
-    
+
     # Check Prometheus connectivity
     if ! curl -f "$PROMETHEUS_URL/api/v1/query?query=up" >/dev/null 2>&1; then
         echo "❌ Prometheus not accessible at $PROMETHEUS_URL"
         exit 3
     fi
-    
+
     echo "✅ Prerequisites validated"
 }
 
 # Live load generator
 generate_live_load() {
     echo "🔥 Starting live load generator..."
-    
+
     python3 << 'EOF' &
 import asyncio
 import json
@@ -105,17 +105,17 @@ async def live_load_generator():
     tenant_id = os.getenv('TENANT_ID', 't-qa')
     servers = [os.getenv('NATS_URL', 'nats://localhost:4222')]
     duration = int(os.getenv('DRILL_DURATION_SECONDS', '300'))
-    
+
     client = create_nats_client(tenant_id, servers)
-    
+
     # Metrics tracking
     messages_sent = 0
     latencies = []
     errors = 0
-    
+
     start_time = time.time()
     end_time = start_time + duration
-    
+
     async with client.connection():
         # Create live stream if needed
         try:
@@ -123,11 +123,11 @@ async def live_load_generator():
             await client.create_stream(Domain.EVIDENCE, "live")
         except Exception:
             pass  # Stream might already exist
-        
+
         while time.time() < end_time:
             try:
                 message_start = time.time()
-                
+
                 # Publish live message
                 await client.publish(
                     Domain.SCAN,
@@ -140,24 +140,24 @@ async def live_load_generator():
                         "load_test": True
                     }
                 )
-                
+
                 message_end = time.time()
                 latency_ms = (message_end - message_start) * 1000
                 latencies.append(latency_ms)
                 messages_sent += 1
-                
+
                 # Log progress every 100 messages
                 if messages_sent % 100 == 0:
                     avg_latency = sum(latencies[-100:]) / min(100, len(latencies))
                     print(f"LIVE: {messages_sent} messages, avg latency: {avg_latency:.2f}ms")
-                
+
                 # Throttle to ~10 msgs/sec
                 await asyncio.sleep(0.1)
-                
+
             except Exception as e:
                 errors += 1
                 print(f"LIVE ERROR: {e}")
-    
+
     # Save metrics
     metrics = {
         "type": "live",
@@ -169,10 +169,10 @@ async def live_load_generator():
         "p95_latency_ms": sorted(latencies)[int(len(latencies) * 0.95)] if latencies else 0,
         "p99_latency_ms": sorted(latencies)[int(len(latencies) * 0.99)] if latencies else 0
     }
-    
+
     with open(f"/root/Xorb/tools/replay/output/metrics/live-metrics.json", "w") as f:
         json.dump(metrics, f, indent=2)
-    
+
     print(f"✅ LIVE LOAD COMPLETE: {messages_sent} messages, p95: {metrics['p95_latency_ms']:.2f}ms")
 
 if __name__ == "__main__":
@@ -187,7 +187,7 @@ EOF
 # Replay load generator (10x volume)
 generate_replay_load() {
     echo "📼 Starting 10x replay load generator..."
-    
+
     python3 << 'EOF' &
 import asyncio
 import json
@@ -206,7 +206,7 @@ async def replay_load_generator():
     servers = [os.getenv('NATS_URL', 'nats://localhost:4222')]
     duration = int(os.getenv('DRILL_DURATION_SECONDS', '300'))
     multiplier = int(os.getenv('REPLAY_MULTIPLIER', '10'))
-    
+
     # Replay-specific settings with lower priority
     replay_settings = ReplaySettings(
         time_window_hours=24,
@@ -215,32 +215,32 @@ async def replay_load_generator():
         concurrency_cap=5,
         storage_isolation=True
     )
-    
+
     client = create_nats_client(tenant_id, servers, replay_settings=replay_settings)
-    
+
     # Metrics tracking
     messages_sent = 0
     replay_requests = 0
     replay_success = 0
     replay_failures = 0
     errors = 0
-    
+
     start_time = time.time()
     end_time = start_time + duration
-    
+
     async with client.connection():
         # Create replay streams if needed
         try:
             await client.create_stream(Domain.SCAN, "replay")
-            await client.create_stream(Domain.EVIDENCE, "replay") 
+            await client.create_stream(Domain.EVIDENCE, "replay")
         except Exception:
             pass  # Stream might already exist
-        
+
         # Generate replay requests at 10x the live rate
         while time.time() < end_time:
             try:
                 for _ in range(multiplier):  # 10x multiplier
-                    
+
                     # Publish replay message
                     await client.publish(
                         Domain.SCAN,
@@ -256,10 +256,10 @@ async def replay_load_generator():
                         },
                         replay=True
                     )
-                    
+
                     messages_sent += 1
                     replay_requests += 1
-                
+
                 # Simulate bounded replay consumer
                 try:
                     # Start bounded replay (this would normally be handled by workers)
@@ -267,23 +267,23 @@ async def replay_load_generator():
                 except Exception as e:
                     replay_failures += 1
                     print(f"REPLAY ERROR: {e}")
-                
+
                 # Log progress
                 if replay_requests % 500 == 0:
                     success_rate = replay_success / (replay_success + replay_failures) if (replay_success + replay_failures) > 0 else 0
                     print(f"REPLAY: {replay_requests} requests, success rate: {success_rate:.3f}")
-                
+
                 # Apply rate limiting (slower than live)
                 await asyncio.sleep(0.05)  # 20 msgs/sec with 10x multiplier = 200 total/sec
-                
+
             except Exception as e:
                 errors += 1
                 print(f"REPLAY ERROR: {e}")
-    
+
     # Calculate final success rate
     total_attempts = replay_success + replay_failures
     success_rate = replay_success / total_attempts if total_attempts > 0 else 0
-    
+
     # Save metrics
     metrics = {
         "type": "replay",
@@ -298,10 +298,10 @@ async def replay_load_generator():
         "rate_limited": True,
         "bounded_window_hours": 24
     }
-    
+
     with open(f"/root/Xorb/tools/replay/output/metrics/replay-metrics.json", "w") as f:
         json.dump(metrics, f, indent=2)
-    
+
     print(f"✅ REPLAY LOAD COMPLETE: {replay_requests} requests, success rate: {success_rate:.3f}")
 
 if __name__ == "__main__":
@@ -316,46 +316,46 @@ EOF
 # Metrics collection
 collect_metrics() {
     echo "📊 Collecting metrics snapshots..."
-    
+
     # Pre-test snapshot
     curl -s "$PROMETHEUS_URL/api/v1/query?query=nats_jetstream_stream_messages" > "$METRICS_DIR/pre-stream-messages.json"
     curl -s "$PROMETHEUS_URL/api/v1/query?query=nats_jetstream_consumer_delivered" > "$METRICS_DIR/pre-consumer-delivered.json"
     curl -s "$PROMETHEUS_URL/api/v1/query?query=nats_jetstream_consumer_ack_pending" > "$METRICS_DIR/pre-ack-pending.json"
-    
+
     # Wait for drill to run
     echo "⏰ Running chaos drill for ${DRILL_DURATION_SECONDS} seconds..."
     sleep $DRILL_DURATION_SECONDS
-    
+
     # Post-test snapshot
     curl -s "$PROMETHEUS_URL/api/v1/query?query=nats_jetstream_stream_messages" > "$METRICS_DIR/post-stream-messages.json"
     curl -s "$PROMETHEUS_URL/api/v1/query?query=nats_jetstream_consumer_delivered" > "$METRICS_DIR/post-consumer-delivered.json"
     curl -s "$PROMETHEUS_URL/api/v1/query?query=nats_jetstream_consumer_ack_pending" > "$METRICS_DIR/post-ack-pending.json"
-    
+
     # Query p95 latencies
     curl -s "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.95,nats_request_duration_seconds_bucket)" > "$METRICS_DIR/p95-latency.json"
     curl -s "$PROMETHEUS_URL/api/v1/query?query=histogram_quantile(0.99,nats_request_duration_seconds_bucket)" > "$METRICS_DIR/p99-latency.json"
-    
+
     echo "✅ Metrics collected"
 }
 
 # Results analysis
 analyze_results() {
     echo "🔍 Analyzing results..."
-    
+
     # Extract metrics from generated files
     LIVE_METRICS_FILE="$METRICS_DIR/live-metrics.json"
     REPLAY_METRICS_FILE="$METRICS_DIR/replay-metrics.json"
-    
+
     if [[ ! -f "$LIVE_METRICS_FILE" ]]; then
         echo "❌ Live metrics file not found: $LIVE_METRICS_FILE"
         return 1
     fi
-    
+
     if [[ ! -f "$REPLAY_METRICS_FILE" ]]; then
         echo "❌ Replay metrics file not found: $REPLAY_METRICS_FILE"
         return 2
     fi
-    
+
     # Extract key metrics using Python
     python3 << 'EOF'
 import json
@@ -367,23 +367,23 @@ def analyze_metrics():
         # Load metrics
         with open('/root/Xorb/tools/replay/output/metrics/live-metrics.json') as f:
             live_metrics = json.load(f)
-        
+
         with open('/root/Xorb/tools/replay/output/metrics/replay-metrics.json') as f:
             replay_metrics = json.load(f)
-        
+
         # Extract key values
         live_p95 = live_metrics.get('p95_latency_ms', 0)
         live_p99 = live_metrics.get('p99_latency_ms', 0)
         live_avg = live_metrics.get('average_latency_ms', 0)
         live_messages = live_metrics.get('messages_sent', 0)
         live_errors = live_metrics.get('errors', 0)
-        
+
         replay_success_rate = replay_metrics.get('success_rate', 0)
         replay_requests = replay_metrics.get('replay_requests', 0)
         replay_success = replay_metrics.get('replay_success', 0)
         replay_failures = replay_metrics.get('replay_failures', 0)
         replay_errors = replay_metrics.get('errors', 0)
-        
+
         # Generate analysis report
         analysis = {
             "drill_summary": {
@@ -414,11 +414,11 @@ def analyze_metrics():
                 "error_rate_replay": replay_errors / replay_requests if replay_requests > 0 else 0
             }
         }
-        
+
         # Save analysis
         with open('/root/Xorb/tools/replay/output/analysis.json', 'w') as f:
             json.dump(analysis, f, indent=2)
-        
+
         # Print summary
         print("\n" + "="*60)
         print("📊 CHAOS DRILL ANALYSIS SUMMARY")
@@ -429,15 +429,15 @@ def analyze_metrics():
         print(f"Replay Requests: {replay_requests:,}")
         print(f"Replay Success Rate: {replay_success_rate:.3f} (target: {analysis['slo_compliance']['replay_success_target']})")
         print(f"Replay Multiplier: {analysis['performance_impact']['replay_multiplier']}x")
-        
+
         # SLO compliance
         live_slo_pass = analysis['slo_compliance']['live_p95_compliant']
         replay_slo_pass = analysis['slo_compliance']['replay_success_compliant']
-        
+
         print("\n📋 SLO COMPLIANCE:")
         print(f"Live P95 < {analysis['slo_compliance']['live_p95_target_ms']}ms: {'✅ PASS' if live_slo_pass else '❌ FAIL'}")
         print(f"Replay Success > {analysis['slo_compliance']['replay_success_target']}: {'✅ PASS' if replay_slo_pass else '❌ FAIL'}")
-        
+
         # Overall result
         if live_slo_pass and replay_slo_pass:
             print("\n🎉 OVERALL RESULT: ✅ PASS")
@@ -449,7 +449,7 @@ def analyze_metrics():
         else:
             print("\n💥 OVERALL RESULT: ❌ FAIL (Replay Success Rate SLO Violation)")
             sys.exit(2)
-            
+
     except Exception as e:
         print(f"❌ Analysis failed: {e}")
         sys.exit(3)
@@ -464,14 +464,14 @@ EOF
 # Generate Grafana snapshot URLs
 generate_dashboard_links() {
     echo "📊 Generating dashboard links..."
-    
+
     local start_time=$(date -d "-${DRILL_DURATION_SECONDS} seconds" +%s)000
     local end_time=$(date +%s)000
-    
+
     echo "📊 View results in Grafana:"
     echo "🔗 XORB Replay Dashboard: ${GRAFANA_URL}/d/xorb-replay/xorb-replay-safe-streaming?from=${start_time}&to=${end_time}"
     echo "🔗 NATS JetStream: ${GRAFANA_URL}/d/nats-jetstream/nats-jetstream?from=${start_time}&to=${end_time}"
-    
+
     # Save dashboard URLs
     cat > "$OUTPUT_DIR/dashboard-links.txt" << EOF
 Chaos Drill Dashboard Links
@@ -499,7 +499,7 @@ EOF
 # Cleanup function
 cleanup() {
     echo "🧹 Cleaning up..."
-    
+
     # Kill background processes
     if [[ -n "${LIVE_PID:-}" ]]; then
         kill $LIVE_PID 2>/dev/null || true
@@ -507,10 +507,10 @@ cleanup() {
     if [[ -n "${REPLAY_PID:-}" ]]; then
         kill $REPLAY_PID 2>/dev/null || true
     fi
-    
+
     # Wait a moment for graceful shutdown
     sleep 2
-    
+
     echo "✅ Cleanup complete"
 }
 
@@ -520,45 +520,45 @@ trap cleanup EXIT INT TERM
 # Main execution
 main() {
     local exit_code=0
-    
+
     # Check prerequisites
     check_prerequisites
-    
+
     # Export environment variables for Python scripts
     export TENANT_ID NATS_URL DRILL_DURATION_SECONDS REPLAY_MULTIPLIER
     export LIVE_P95_TARGET_MS REPLAY_SUCCESS_RATE_TARGET
-    
+
     # Start load generators in parallel
     generate_live_load
     LIVE_PID=$!
-    
+
     sleep 2  # Brief delay to let live load stabilize
-    
-    generate_replay_load  
+
+    generate_replay_load
     REPLAY_PID=$!
-    
+
     # Collect metrics during the test
     collect_metrics &
     METRICS_PID=$!
-    
+
     # Wait for test completion
     wait $LIVE_PID
     wait $REPLAY_PID
     wait $METRICS_PID
-    
+
     # Generate dashboard links
     generate_dashboard_links
-    
+
     # Analyze results and determine exit code
     analyze_results
     exit_code=$?
-    
+
     echo ""
     echo "📁 Results saved to: $OUTPUT_DIR"
     echo "📊 Metrics: $METRICS_DIR"
     echo "📝 Logs: $LOGS_DIR"
     echo "⏰ End time: $(date -u +"%Y-%m-%d %H:%M:%S UTC")"
-    
+
     exit $exit_code
 }
 

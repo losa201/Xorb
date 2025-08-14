@@ -14,22 +14,22 @@ from .vault_client import get_jwt_secret
 
 class JWTManager:
     """Centralized JWT token management"""
-    
+
     def __init__(self, algorithm: str = "HS256"):
         self.algorithm = algorithm
         self._secret_cache: Optional[str] = None
-    
+
     @property
     async def secret_key(self) -> str:
         """Get JWT secret key with caching"""
         if not self._secret_cache:
             self._secret_cache = await get_jwt_secret()
         return self._secret_cache
-    
+
     def get_secret_key_sync(self) -> str:
         """Get JWT secret key synchronously (for non-async contexts)"""
         return os.getenv("JWT_SECRET", "dev-secret-change-in-production")
-    
+
     async def create_token(
         self,
         payload: Dict[str, Any],
@@ -43,15 +43,15 @@ class JWTManager:
             exp = datetime.utcnow() + timedelta(days=expires_days)
         else:
             exp = datetime.utcnow() + timedelta(minutes=30)  # Default 30 minutes
-        
+
         payload.update({
             "exp": exp,
             "iat": datetime.utcnow()
         })
-        
+
         secret = await self.secret_key
         return jwt.encode(payload, secret, algorithm=self.algorithm)
-    
+
     def create_token_sync(
         self,
         payload: Dict[str, Any],
@@ -65,15 +65,15 @@ class JWTManager:
             exp = datetime.utcnow() + timedelta(days=expires_days)
         else:
             exp = datetime.utcnow() + timedelta(minutes=30)
-        
+
         payload.update({
             "exp": exp,
             "iat": datetime.utcnow()
         })
-        
+
         secret = self.get_secret_key_sync()
         return jwt.encode(payload, secret, algorithm=self.algorithm)
-    
+
     async def verify_token(self, token: str) -> Optional[Dict[str, Any]]:
         """Verify JWT token and return payload"""
         try:
@@ -84,7 +84,7 @@ class JWTManager:
             raise ValueError("Token has expired")
         except jwt.JWTError:
             return None
-    
+
     def verify_token_sync(self, token: str) -> Optional[Dict[str, Any]]:
         """Verify JWT token synchronously"""
         try:
@@ -95,7 +95,7 @@ class JWTManager:
             raise ValueError("Token has expired")
         except jwt.JWTError:
             return None
-    
+
     async def create_access_token(
         self,
         user_id: str,
@@ -111,7 +111,7 @@ class JWTManager:
             "type": "access"
         }
         return await self.create_token(payload, expires_minutes=expires_minutes)
-    
+
     async def create_refresh_token(
         self,
         user_id: str,
@@ -123,7 +123,7 @@ class JWTManager:
             "type": "refresh"
         }
         return await self.create_token(payload, expires_days=expires_days)
-    
+
     def create_access_token_sync(
         self,
         user_id: str,
@@ -139,7 +139,7 @@ class JWTManager:
             "type": "access"
         }
         return self.create_token_sync(payload, expires_minutes=expires_minutes)
-    
+
     def create_refresh_token_sync(
         self,
         user_id: str,
