@@ -108,7 +108,7 @@ async def test_two_tier_bus_mtls_jwt_evidence(
 
     # --- 6. Publish to Tier-2 (NATS JetStream) with mTLS and JWT ---
     logger.info(f"Publishing DiscoveryJobRequest to NATS topic: {test_topic}")
-
+    
     # Publish with headers for authentication context
     headers = {
         "Authorization": f"Bearer {jwt_token}",
@@ -188,18 +188,18 @@ async def test_two_tier_bus_mtls_jwt_evidence(
         try:
             # --- ADR-004 Validation ---
             evidence_pb = load_evidence_from_bytes(msg.data)
-
+            
             # 1. Schema Compliance (basic checks)
             assert evidence_pb.evidence_id.startswith("evidence-"), "Evidence ID format is incorrect"
             assert evidence_pb.tenant_id == test_tenant_id, "Tenant ID mismatch in evidence"
             assert len(evidence_pb.chain_of_custody.records) > 0, "Chain of custody is empty"
-
+            
             # 2. Signature Validation
             # Load the public key corresponding to our test signing key
             from tests.integration.proto_helpers import load_test_public_key
             public_key_pem = load_test_public_key()
             public_key = serialization.load_pem_public_key(public_key_pem)
-
+            
             # Get the signature and data to verify
             # Assuming the last record in chain_of_custody holds the signature for simplicity
             # A real implementation would be more robust.
@@ -209,7 +209,7 @@ async def test_two_tier_bus_mtls_jwt_evidence(
                 # For this test, we sign the serialized evidence payload.
                 # This is a simplification; real-world signing would be more complex.
                 data_to_verify = evidence_pb.payload.value # This is the raw bytes of the Any payload
-
+                
                 # Perform signature verification
                 public_key.verify(signature_bytes, data_to_verify, ec.ECDSA(hashes.SHA256()))
                 logger.info("Evidence digital signature is valid.")

@@ -1,0 +1,388 @@
+syntax = "proto3";
+
+package xorb.compliance.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/struct.proto";
+import "audit/v1/evidence.proto";
+
+option go_package = "github.com/xorb/proto/compliance/v1;compliancev1";
+
+// ComplianceEvidence represents compliance assessment findings with chain of custody
+message ComplianceEvidence {
+  // Core evidence metadata
+  xorb.audit.v1.ChainOfCustody chain_of_custody = 1;
+  string evidence_id = 2;
+  string tenant_id = 3;
+  google.protobuf.Timestamp created_at = 4;
+  
+  // Compliance data
+  ComplianceAssessment assessment = 5;
+  ComplianceContext context = 6;
+  repeated ComplianceControl controls = 7;
+  repeated ComplianceFinding findings = 8;
+  
+  // Evidence integrity
+  string digital_signature = 9;
+  string hash_chain = 10;
+  repeated string witness_signatures = 11;
+}
+
+// Compliance assessment overview
+message ComplianceAssessment {
+  string assessment_id = 1;
+  string assessment_name = 2;
+  ComplianceFramework framework = 3;
+  string framework_version = 4;
+  AssessmentScope scope = 5;
+  AssessmentType assessment_type = 6;
+  google.protobuf.Timestamp start_date = 7;
+  google.protobuf.Timestamp end_date = 8;
+  string assessor_id = 9;
+  string assessor_name = 10;
+  AssessmentStatus status = 11;
+  float overall_score = 12; // 0.0 - 100.0
+  ComplianceLevel compliance_level = 13;
+  google.protobuf.Struct metadata = 14;
+}
+
+// Assessment context and environment
+message ComplianceContext {
+  string organization_id = 1;
+  string organization_name = 2;
+  repeated string business_units = 3;
+  repeated string assessed_systems = 4;
+  repeated string assessed_processes = 5;
+  string regulatory_jurisdiction = 6;
+  repeated string applicable_regulations = 7;
+  string risk_tolerance = 8;
+  string business_criticality = 9;
+  google.protobuf.Struct environment_details = 10;
+}
+
+// Individual compliance control
+message ComplianceControl {
+  string control_id = 1;
+  string control_number = 2;
+  string control_title = 3;
+  string control_description = 4;
+  ControlFamily control_family = 5;
+  ControlType control_type = 6;
+  ControlImplementationStatus implementation_status = 7;
+  ControlEffectiveness effectiveness = 8;
+  float maturity_level = 9; // 0.0 - 5.0 (CMM scale)
+  repeated string evidence_artifacts = 10;
+  repeated string responsible_parties = 11;
+  google.protobuf.Timestamp last_tested = 12;
+  google.protobuf.Timestamp next_test_due = 13;
+  google.protobuf.Struct control_details = 14;
+}
+
+// Compliance finding (gap or issue)
+message ComplianceFinding {
+  string finding_id = 1;
+  string finding_title = 2;
+  string finding_description = 3;
+  FindingType finding_type = 4;
+  FindingSeverity severity = 5;
+  FindingStatus status = 6;
+  string affected_control_id = 7;
+  repeated string affected_systems = 8;
+  RiskImpact risk_impact = 9;
+  string root_cause = 10;
+  repeated string recommendations = 11;
+  repeated string remediation_actions = 12;
+  string assigned_to = 13;
+  google.protobuf.Timestamp due_date = 14;
+  google.protobuf.Timestamp identified_date = 15;
+  string auditor_id = 16;
+  google.protobuf.Struct finding_details = 17;
+}
+
+// Enumerations
+enum ComplianceFramework {
+  COMPLIANCE_FRAMEWORK_UNSPECIFIED = 0;
+  COMPLIANCE_FRAMEWORK_SOC2_TYPE1 = 1;
+  COMPLIANCE_FRAMEWORK_SOC2_TYPE2 = 2;
+  COMPLIANCE_FRAMEWORK_ISO27001 = 3;
+  COMPLIANCE_FRAMEWORK_PCI_DSS = 4;
+  COMPLIANCE_FRAMEWORK_HIPAA = 5;
+  COMPLIANCE_FRAMEWORK_GDPR = 6;
+  COMPLIANCE_FRAMEWORK_SOX = 7;
+  COMPLIANCE_FRAMEWORK_NIST_CSF = 8;
+  COMPLIANCE_FRAMEWORK_NIST_800_53 = 9;
+  COMPLIANCE_FRAMEWORK_CIS_CONTROLS = 10;
+  COMPLIANCE_FRAMEWORK_COBIT = 11;
+  COMPLIANCE_FRAMEWORK_FISMA = 12;
+  COMPLIANCE_FRAMEWORK_FedRAMP = 13;
+  COMPLIANCE_FRAMEWORK_CCPA = 14;
+}
+
+enum AssessmentScope {
+  ASSESSMENT_SCOPE_UNSPECIFIED = 0;
+  ASSESSMENT_SCOPE_ORGANIZATION_WIDE = 1;
+  ASSESSMENT_SCOPE_BUSINESS_UNIT = 2;
+  ASSESSMENT_SCOPE_SYSTEM_SPECIFIC = 3;
+  ASSESSMENT_SCOPE_PROCESS_SPECIFIC = 4;
+  ASSESSMENT_SCOPE_LIMITED = 5;
+}
+
+enum AssessmentType {
+  ASSESSMENT_TYPE_UNSPECIFIED = 0;
+  ASSESSMENT_TYPE_SELF_ASSESSMENT = 1;
+  ASSESSMENT_TYPE_INTERNAL_AUDIT = 2;
+  ASSESSMENT_TYPE_EXTERNAL_AUDIT = 3;
+  ASSESSMENT_TYPE_CERTIFICATION = 4;
+  ASSESSMENT_TYPE_SURVEILLANCE = 5;
+  ASSESSMENT_TYPE_GAP_ANALYSIS = 6;
+  ASSESSMENT_TYPE_READINESS = 7;
+}
+
+enum AssessmentStatus {
+  ASSESSMENT_STATUS_UNSPECIFIED = 0;
+  ASSESSMENT_STATUS_PLANNED = 1;
+  ASSESSMENT_STATUS_IN_PROGRESS = 2;
+  ASSESSMENT_STATUS_DRAFT = 3;
+  ASSESSMENT_STATUS_REVIEW = 4;
+  ASSESSMENT_STATUS_FINAL = 5;
+  ASSESSMENT_STATUS_APPROVED = 6;
+  ASSESSMENT_STATUS_ARCHIVED = 7;
+}
+
+enum ComplianceLevel {
+  COMPLIANCE_LEVEL_UNSPECIFIED = 0;
+  COMPLIANCE_LEVEL_NON_COMPLIANT = 1;
+  COMPLIANCE_LEVEL_PARTIALLY_COMPLIANT = 2;
+  COMPLIANCE_LEVEL_LARGELY_COMPLIANT = 3;
+  COMPLIANCE_LEVEL_COMPLIANT = 4;
+  COMPLIANCE_LEVEL_EXCEEDS_REQUIREMENTS = 5;
+}
+
+enum ControlFamily {
+  CONTROL_FAMILY_UNSPECIFIED = 0;
+  CONTROL_FAMILY_ACCESS_CONTROL = 1;
+  CONTROL_FAMILY_AWARENESS_TRAINING = 2;
+  CONTROL_FAMILY_AUDIT_ACCOUNTABILITY = 3;
+  CONTROL_FAMILY_ASSESSMENT_AUTHORIZATION = 4;
+  CONTROL_FAMILY_CONFIGURATION_MANAGEMENT = 5;
+  CONTROL_FAMILY_CONTINGENCY_PLANNING = 6;
+  CONTROL_FAMILY_IDENTIFICATION_AUTHENTICATION = 7;
+  CONTROL_FAMILY_INCIDENT_RESPONSE = 8;
+  CONTROL_FAMILY_MAINTENANCE = 9;
+  CONTROL_FAMILY_MEDIA_PROTECTION = 10;
+  CONTROL_FAMILY_PHYSICAL_ENVIRONMENTAL = 11;
+  CONTROL_FAMILY_PLANNING = 12;
+  CONTROL_FAMILY_PERSONNEL_SECURITY = 13;
+  CONTROL_FAMILY_RISK_ASSESSMENT = 14;
+  CONTROL_FAMILY_SYSTEM_SERVICES_ACQUISITION = 15;
+  CONTROL_FAMILY_SYSTEM_COMMUNICATIONS_PROTECTION = 16;
+  CONTROL_FAMILY_SYSTEM_INFORMATION_INTEGRITY = 17;
+}
+
+enum ControlType {
+  CONTROL_TYPE_UNSPECIFIED = 0;
+  CONTROL_TYPE_PREVENTIVE = 1;
+  CONTROL_TYPE_DETECTIVE = 2;
+  CONTROL_TYPE_CORRECTIVE = 3;
+  CONTROL_TYPE_COMPENSATING = 4;
+  CONTROL_TYPE_ADMINISTRATIVE = 5;
+  CONTROL_TYPE_TECHNICAL = 6;
+  CONTROL_TYPE_PHYSICAL = 7;
+}
+
+enum ControlImplementationStatus {
+  CONTROL_IMPLEMENTATION_STATUS_UNSPECIFIED = 0;
+  CONTROL_IMPLEMENTATION_STATUS_NOT_IMPLEMENTED = 1;
+  CONTROL_IMPLEMENTATION_STATUS_PLANNED = 2;
+  CONTROL_IMPLEMENTATION_STATUS_PARTIALLY_IMPLEMENTED = 3;
+  CONTROL_IMPLEMENTATION_STATUS_IMPLEMENTED = 4;
+  CONTROL_IMPLEMENTATION_STATUS_NOT_APPLICABLE = 5;
+}
+
+enum ControlEffectiveness {
+  CONTROL_EFFECTIVENESS_UNSPECIFIED = 0;
+  CONTROL_EFFECTIVENESS_INEFFECTIVE = 1;
+  CONTROL_EFFECTIVENESS_PARTIALLY_EFFECTIVE = 2;
+  CONTROL_EFFECTIVENESS_LARGELY_EFFECTIVE = 3;
+  CONTROL_EFFECTIVENESS_EFFECTIVE = 4;
+}
+
+enum FindingType {
+  FINDING_TYPE_UNSPECIFIED = 0;
+  FINDING_TYPE_CONTROL_GAP = 1;
+  FINDING_TYPE_CONTROL_DEFICIENCY = 2;
+  FINDING_TYPE_PROCESS_WEAKNESS = 3;
+  FINDING_TYPE_DOCUMENTATION_MISSING = 4;
+  FINDING_TYPE_EVIDENCE_INSUFFICIENT = 5;
+  FINDING_TYPE_POLICY_VIOLATION = 6;
+  FINDING_TYPE_REGULATORY_VIOLATION = 7;
+  FINDING_TYPE_OBSERVATION = 8;
+}
+
+enum FindingSeverity {
+  FINDING_SEVERITY_UNSPECIFIED = 0;
+  FINDING_SEVERITY_INFORMATIONAL = 1;
+  FINDING_SEVERITY_LOW = 2;
+  FINDING_SEVERITY_MEDIUM = 3;
+  FINDING_SEVERITY_HIGH = 4;
+  FINDING_SEVERITY_CRITICAL = 5;
+}
+
+enum FindingStatus {
+  FINDING_STATUS_UNSPECIFIED = 0;
+  FINDING_STATUS_OPEN = 1;
+  FINDING_STATUS_IN_PROGRESS = 2;
+  FINDING_STATUS_RESOLVED = 3;
+  FINDING_STATUS_VERIFIED = 4;
+  FINDING_STATUS_CLOSED = 5;
+  FINDING_STATUS_DEFERRED = 6;
+  FINDING_STATUS_ACCEPTED_RISK = 7;
+}
+
+enum RiskImpact {
+  RISK_IMPACT_UNSPECIFIED = 0;
+  RISK_IMPACT_VERY_LOW = 1;
+  RISK_IMPACT_LOW = 2;
+  RISK_IMPACT_MODERATE = 3;
+  RISK_IMPACT_HIGH = 4;
+  RISK_IMPACT_VERY_HIGH = 5;
+}
+
+// Service definitions
+service ComplianceManagementService {
+  rpc CreateComplianceEvidence(CreateComplianceEvidenceRequest) returns (CreateComplianceEvidenceResponse);
+  rpc GetComplianceEvidence(GetComplianceEvidenceRequest) returns (GetComplianceEvidenceResponse);
+  rpc ListComplianceEvidence(ListComplianceEvidenceRequest) returns (ListComplianceEvidenceResponse);
+  rpc UpdateComplianceAssessment(UpdateComplianceAssessmentRequest) returns (UpdateComplianceAssessmentResponse);
+  rpc UpdateComplianceFinding(UpdateComplianceFindingRequest) returns (UpdateComplianceFindingResponse);
+  rpc SearchCompliance(SearchComplianceRequest) returns (SearchComplianceResponse);
+  rpc ValidateEvidenceChain(ValidateEvidenceChainRequest) returns (ValidateEvidenceChainResponse);
+  rpc GenerateComplianceReport(GenerateComplianceReportRequest) returns (GenerateComplianceReportResponse);
+  rpc GetFrameworkMapping(GetFrameworkMappingRequest) returns (GetFrameworkMappingResponse);
+}
+
+// Request/Response messages
+message CreateComplianceEvidenceRequest {
+  ComplianceEvidence evidence = 1;
+  string auditor_id = 2;
+  string source_system = 3;
+}
+
+message CreateComplianceEvidenceResponse {
+  string evidence_id = 1;
+  string hash_chain = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+message GetComplianceEvidenceRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+}
+
+message GetComplianceEvidenceResponse {
+  ComplianceEvidence evidence = 1;
+}
+
+message ListComplianceEvidenceRequest {
+  string tenant_id = 1;
+  int32 page_size = 2;
+  string page_token = 3;
+  ComplianceFramework filter_framework = 4;
+  AssessmentStatus filter_status = 5;
+}
+
+message ListComplianceEvidenceResponse {
+  repeated ComplianceEvidence evidence_list = 1;
+  string next_page_token = 2;
+  int32 total_count = 3;
+}
+
+message UpdateComplianceAssessmentRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+  ComplianceAssessment assessment = 3;
+  string auditor_id = 4;
+}
+
+message UpdateComplianceAssessmentResponse {
+  string updated_evidence_id = 1;
+  string new_hash_chain = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+message UpdateComplianceFindingRequest {
+  string evidence_id = 1;
+  string finding_id = 2;
+  string tenant_id = 3;
+  ComplianceFinding finding = 4;
+  string auditor_id = 5;
+}
+
+message UpdateComplianceFindingResponse {
+  string updated_evidence_id = 1;
+  string new_hash_chain = 2;
+  google.protobuf.Timestamp updated_at = 3;
+}
+
+message SearchComplianceRequest {
+  string tenant_id = 1;
+  string query = 2;
+  repeated ComplianceFramework frameworks = 3;
+  repeated FindingSeverity severities = 4;
+  int32 limit = 5;
+}
+
+message SearchComplianceResponse {
+  repeated ComplianceEvidence matches = 1;
+  int32 total_matches = 2;
+}
+
+message ValidateEvidenceChainRequest {
+  string evidence_id = 1;
+  string tenant_id = 2;
+}
+
+message ValidateEvidenceChainResponse {
+  bool is_valid = 1;
+  string validation_result = 2;
+  repeated string chain_violations = 3;
+}
+
+message GenerateComplianceReportRequest {
+  string tenant_id = 1;
+  repeated string evidence_ids = 2;
+  ComplianceFramework framework = 3;
+  ReportFormat format = 4;
+  bool include_remediation = 5;
+}
+
+message GenerateComplianceReportResponse {
+  string report_id = 1;
+  bytes report_data = 2;
+  string download_url = 3;
+}
+
+message GetFrameworkMappingRequest {
+  ComplianceFramework source_framework = 1;
+  ComplianceFramework target_framework = 2;
+}
+
+message GetFrameworkMappingResponse {
+  repeated ControlMapping mappings = 1;
+}
+
+message ControlMapping {
+  string source_control_id = 1;
+  repeated string target_control_ids = 2;
+  float mapping_confidence = 3;
+  string mapping_notes = 4;
+}
+
+enum ReportFormat {
+  REPORT_FORMAT_UNSPECIFIED = 0;
+  REPORT_FORMAT_PDF = 1;
+  REPORT_FORMAT_JSON = 2;
+  REPORT_FORMAT_XML = 3;
+  REPORT_FORMAT_XLSX = 4;
+  REPORT_FORMAT_DOCX = 5;
+}
