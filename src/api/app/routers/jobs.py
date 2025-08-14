@@ -9,7 +9,7 @@ from ..auth.models import Permission, UserClaims
 from ..middleware.tenant_context import require_tenant_context
 from ..jobs.service import JobService
 from ..jobs.models import (
-    JobScheduleRequest, BulkJobRequest, JobCancelRequest, 
+    JobScheduleRequest, BulkJobRequest, JobCancelRequest,
     JobFilter, JobType, JobStatus, JobPriority
 )
 from ..security.input_validation import validate_pagination
@@ -35,14 +35,14 @@ async def schedule_job(
 ):
     """Schedule a new job for execution."""
     tenant_id = require_tenant_context(request)
-    
+
     # Set tenant context in job request
     job_request.tenant_id = tenant_id
     job_request.user_id = current_user.sub
-    
+
     try:
         result = await job_service.schedule_job(job_request)
-        
+
         logger.info(
             "Job scheduled",
             job_id=result["job_id"],
@@ -50,15 +50,15 @@ async def schedule_job(
             tenant_id=str(tenant_id),
             user_id=current_user.sub
         )
-        
+
         add_trace_context(
             operation="schedule_job",
             job_type=job_request.job_type.value,
             tenant_id=str(tenant_id)
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(
             "Failed to schedule job",
@@ -80,15 +80,15 @@ async def schedule_bulk_jobs(
 ):
     """Schedule multiple jobs as a batch."""
     tenant_id = require_tenant_context(request)
-    
+
     # Set tenant context for all jobs
     for job_req in bulk_request.jobs:
         job_req.tenant_id = tenant_id
         job_req.user_id = current_user.sub
-    
+
     try:
         result = await job_service.schedule_bulk_jobs(bulk_request)
-        
+
         logger.info(
             "Bulk jobs scheduled",
             batch_id=bulk_request.batch_id,
@@ -98,9 +98,9 @@ async def schedule_bulk_jobs(
             tenant_id=str(tenant_id),
             user_id=current_user.sub
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(
             "Failed to schedule bulk jobs",
@@ -122,10 +122,10 @@ async def cancel_jobs(
 ):
     """Cancel one or more jobs."""
     tenant_id = require_tenant_context(request)
-    
+
     try:
         result = await job_service.cancel_jobs(cancel_request)
-        
+
         logger.info(
             "Jobs cancellation requested",
             job_count=len(cancel_request.job_ids),
@@ -133,9 +133,9 @@ async def cancel_jobs(
             tenant_id=str(tenant_id),
             user_id=current_user.sub
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(
             "Failed to cancel jobs",
@@ -157,25 +157,25 @@ async def get_job_status(
 ):
     """Get job status and execution details."""
     tenant_id = require_tenant_context(request)
-    
+
     try:
         job_status = await job_service.get_job_status(job_id)
-        
+
         if not job_status:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Job not found"
             )
-        
+
         # Verify tenant access
         if job_status.get("tenant_id") != str(tenant_id) and not current_user.is_super_admin():
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Job not found"
             )
-        
+
         return job_status
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -203,10 +203,10 @@ async def list_jobs(
 ):
     """List jobs with filtering and pagination."""
     tenant_id = require_tenant_context(request)
-    
+
     # Validate pagination
     limit, offset = validate_pagination(limit, offset, max_limit=100)
-    
+
     # Create filter
     job_filter = JobFilter(
         job_types=job_types,
@@ -214,14 +214,14 @@ async def list_jobs(
         priorities=priorities,
         tenant_id=tenant_id if not current_user.is_super_admin() else None
     )
-    
+
     try:
         result = await job_service.list_jobs(
             job_filter=job_filter,
             limit=limit,
             offset=offset
         )
-        
+
         logger.info(
             "Listed jobs",
             tenant_id=str(tenant_id),
@@ -229,9 +229,9 @@ async def list_jobs(
             total=result["total"],
             user_id=current_user.sub
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(
             "Failed to list jobs",
@@ -252,7 +252,7 @@ async def get_queue_stats(
     """Get queue statistics."""
     try:
         stats = await job_service.get_queue_stats(queue_name)
-        
+
         logger.info(
             "Retrieved queue stats",
             queue_name=queue_name,
@@ -260,9 +260,9 @@ async def get_queue_stats(
             running_jobs=stats["running_jobs"],
             user_id=current_user.sub
         )
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(
             "Failed to get queue stats",
@@ -282,15 +282,15 @@ async def get_worker_stats(
     """Get statistics for all active workers."""
     try:
         stats = await job_service.get_worker_stats()
-        
+
         logger.info(
             "Retrieved worker stats",
             worker_count=len(stats),
             user_id=current_user.sub
         )
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(
             "Failed to get worker stats",
@@ -315,7 +315,7 @@ async def retry_failed_jobs(
             job_ids=job_ids,
             max_age_hours=max_age_hours
         )
-        
+
         logger.info(
             "Retried failed jobs",
             retried_count=result["retried"],
@@ -323,9 +323,9 @@ async def retry_failed_jobs(
             max_age_hours=max_age_hours,
             user_id=current_user.sub
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(
             "Failed to retry jobs",
@@ -349,19 +349,19 @@ async def cleanup_old_jobs(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Super admin access required for cleanup operations"
         )
-    
+
     try:
         result = await job_service.cleanup_old_jobs(older_than_days)
-        
+
         logger.info(
             "Cleaned up old jobs",
             cleaned_count=result["cleaned_jobs"],
             older_than_days=older_than_days,
             user_id=current_user.sub
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(
             "Failed to cleanup jobs",
@@ -384,7 +384,7 @@ async def schedule_evidence_processing(
 ):
     """Schedule evidence processing job."""
     tenant_id = require_tenant_context(request)
-    
+
     job_request = JobScheduleRequest(
         job_type=JobType.EVIDENCE_PROCESSING,
         payload={"evidence_id": str(evidence_id)},
@@ -393,7 +393,7 @@ async def schedule_evidence_processing(
         user_id=current_user.sub,
         tags=["evidence", "processing"]
     )
-    
+
     return await schedule_job(request, job_request, current_user)
 
 
@@ -406,7 +406,7 @@ async def schedule_malware_scan(
 ):
     """Schedule malware scanning job."""
     tenant_id = require_tenant_context(request)
-    
+
     job_request = JobScheduleRequest(
         job_type=JobType.MALWARE_SCAN,
         payload={"evidence_id": str(evidence_id)},
@@ -415,5 +415,5 @@ async def schedule_malware_scan(
         user_id=current_user.sub,
         tags=["malware", "security"]
     )
-    
+
     return await schedule_job(request, job_request, current_user)

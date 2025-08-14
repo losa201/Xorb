@@ -102,23 +102,23 @@ class ThreatActorProfile:
     origin_country: Optional[str] = None
     target_sectors: List[str] = field(default_factory=list)
     target_countries: List[str] = field(default_factory=list)
-    
+
     # Technical characteristics
     preferred_tools: List[str] = field(default_factory=list)
     attack_patterns: List[str] = field(default_factory=list)
     mitre_techniques: List[str] = field(default_factory=list)
     infrastructure_patterns: List[str] = field(default_factory=list)
-    
+
     # Behavioral characteristics
     operational_schedule: Dict[str, Any] = field(default_factory=dict)
     language_patterns: List[str] = field(default_factory=list)
     communication_style: Dict[str, Any] = field(default_factory=dict)
-    
+
     # Campaign history
     known_campaigns: List[str] = field(default_factory=list)
     first_observed: Optional[datetime] = None
     last_observed: Optional[datetime] = None
-    
+
     # Confidence and metadata
     confidence_score: float = 0.0
     evidence_quality: str = "medium"
@@ -158,7 +158,7 @@ class AttributionResult:
 class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
     """
     Advanced Threat Attribution Engine
-    
+
     Provides AI-powered threat actor attribution through:
     - Machine learning classification models
     - Behavioral pattern analysis
@@ -166,7 +166,7 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
     - Multi-factor attribution scoring
     - Graph-based relationship modeling
     """
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(
             service_name="threat_attribution_engine",
@@ -174,32 +174,32 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
             dependencies=["mitre_attack_engine", "threat_intelligence"],
             config=config or {}
         )
-        
+
         # Threat actor database
         self.threat_actors: Dict[str, ThreatActorProfile] = {}
         self.actor_campaigns: Dict[str, List[str]] = defaultdict(list)
         self.campaign_graph: Optional[Any] = None
-        
+
         # ML models
         self.attribution_classifier: Optional[Any] = None
         self.behavior_clusterer: Optional[Any] = None
         self.feature_extractor: Optional[Any] = None
         self.text_analyzer: Optional[Any] = None
-        
+
         # Feature engineering
         self.feature_cache: Dict[str, np.ndarray] = {}
         self.vectorizers: Dict[str, Any] = {}
         self.scalers: Dict[str, Any] = {}
-        
+
         # Attribution history
         self.attribution_history: List[AttributionResult] = []
         self.evidence_database: Dict[str, AttributionEvidence] = {}
-        
+
         # Configuration
         self.min_confidence_threshold = config.get("min_confidence_threshold", 0.3)
         self.max_attribution_candidates = config.get("max_candidates", 10)
         self.evidence_retention_days = config.get("evidence_retention_days", 365)
-        
+
         # Performance metrics
         self.attribution_metrics = {
             "total_attributions": 0,
@@ -215,31 +215,31 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
         """Initialize the threat attribution engine"""
         try:
             logger.info("Initializing Advanced Threat Attribution Engine...")
-            
+
             # Initialize ML components
             if ML_AVAILABLE:
                 await self._initialize_ml_models()
-            
+
             # Load threat actor profiles
             await self._load_threat_actor_database()
-            
+
             # Initialize campaign graph
             if NETWORKX_AVAILABLE:
                 await self._initialize_campaign_graph()
-            
+
             # Load MITRE ATT&CK integration
             await self._initialize_mitre_integration()
-            
+
             # Initialize NLP components
             if NLP_AVAILABLE:
                 await self._initialize_nlp_components()
-            
+
             # Load historical attribution data
             await self._load_attribution_history()
-            
+
             logger.info(f"Attribution engine initialized with {len(self.threat_actors)} threat actors")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize attribution engine: {e}")
             return False
@@ -257,30 +257,30 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
                     random_state=42,
                     class_weight='balanced'
                 )
-                
+
                 # Behavioral clustering for campaign analysis
                 self.behavior_clusterer = DBSCAN(
                     eps=0.3,
                     min_samples=3,
                     metric='cosine'
                 )
-                
+
                 # Feature scaling
                 self.scalers['attribution'] = StandardScaler()
                 self.scalers['behavioral'] = StandardScaler()
-                
+
                 # Text vectorization for linguistic analysis
                 self.vectorizers['tfidf'] = TfidfVectorizer(
                     max_features=10000,
                     ngram_range=(1, 3),
                     stop_words='english'
                 )
-                
+
                 # Dimensionality reduction
                 self.dimension_reducer = PCA(n_components=50)
-                
+
                 logger.info("ML models for attribution initialized")
-                
+
         except Exception as e:
             logger.warning(f"ML model initialization failed: {e}")
 
@@ -294,49 +294,49 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
         try:
             attribution_id = str(uuid.uuid4())
             start_time = datetime.utcnow()
-            
+
             logger.info(f"Starting attribution analysis {attribution_id} for {len(indicators)} indicators")
-            
+
             # Extract features from indicators and context
             features = await self._extract_attribution_features(indicators, context, attack_data)
-            
+
             # Collect evidence from multiple sources
             evidence = await self._collect_attribution_evidence(indicators, context, attack_data)
-            
+
             # Perform ML-based classification if available
             ml_candidates = []
             if ML_AVAILABLE and self.attribution_classifier:
                 ml_candidates = await self._ml_attribution_analysis(features, evidence)
-            
+
             # Rule-based attribution analysis
             rule_candidates = await self._rule_based_attribution(indicators, evidence, context)
-            
+
             # Behavioral pattern matching
             behavioral_candidates = await self._behavioral_pattern_analysis(indicators, evidence)
-            
+
             # Campaign correlation analysis
             campaign_analysis = await self._campaign_correlation_analysis(indicators, evidence)
-            
+
             # Timeline analysis
             timeline_analysis = await self._timeline_analysis(indicators, context)
-            
+
             # Combine all attribution candidates
             all_candidates = self._combine_attribution_candidates(
                 ml_candidates, rule_candidates, behavioral_candidates
             )
-            
+
             # Score and rank candidates
             ranked_candidates = await self._score_attribution_candidates(all_candidates, evidence)
-            
+
             # Calculate overall confidence
             confidence_score = self._calculate_overall_confidence(ranked_candidates, evidence)
             confidence_level = self._determine_confidence_level(confidence_score)
-            
+
             # Generate recommendations
             recommendations = await self._generate_attribution_recommendations(
                 ranked_candidates, evidence, confidence_score
             )
-            
+
             # Create attribution result
             result = AttributionResult(
                 attribution_id=attribution_id,
@@ -357,17 +357,17 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
                     "nlp_analysis_used": NLP_AVAILABLE
                 }
             )
-            
+
             # Store attribution result
             self.attribution_history.append(result)
             await self._store_attribution_evidence(evidence)
-            
+
             # Update metrics
             self._update_attribution_metrics(result)
-            
+
             logger.info(f"Attribution analysis completed: {confidence_level.value} confidence")
             return result
-            
+
         except Exception as e:
             logger.error(f"Attribution analysis failed: {e}")
             raise
@@ -386,28 +386,28 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
             "linguistic_features": {},
             "infrastructure_features": {}
         }
-        
+
         try:
             # Technical features from indicators
             features["technical_features"] = await self._extract_technical_features(indicators)
-            
+
             # Behavioral features from attack patterns
             if attack_data:
                 features["behavioral_features"] = await self._extract_behavioral_features(attack_data)
-            
+
             # Temporal features
             features["temporal_features"] = await self._extract_temporal_features(context)
-            
+
             # Linguistic features from text data
             text_data = context.get("text_data", [])
             if text_data and NLP_AVAILABLE:
                 features["linguistic_features"] = await self._extract_linguistic_features(text_data)
-            
+
             # Infrastructure features
             features["infrastructure_features"] = await self._extract_infrastructure_features(indicators)
-            
+
             return features
-            
+
         except Exception as e:
             logger.error(f"Feature extraction failed: {e}")
             return features
@@ -420,23 +420,23 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
             "malware_signatures": {},
             "infrastructure_patterns": {}
         }
-        
+
         for indicator in indicators:
             # IP address analysis
             if self._is_ip_address(indicator):
                 geo_info = await self._get_ip_geolocation(indicator)
                 features["ip_geolocation"][indicator] = geo_info
-            
+
             # Domain analysis
             elif self._is_domain(indicator):
                 domain_info = await self._analyze_domain_characteristics(indicator)
                 features["domain_characteristics"][indicator] = domain_info
-            
+
             # File hash analysis
             elif self._is_file_hash(indicator):
                 malware_info = await self._analyze_malware_signature(indicator)
                 features["malware_signatures"][indicator] = malware_info
-        
+
         return features
 
     async def _behavioral_pattern_analysis(
@@ -446,23 +446,23 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
     ) -> List[Dict[str, Any]]:
         """Analyze behavioral patterns for attribution"""
         candidates = []
-        
+
         try:
             # Extract behavioral features
             behavioral_features = []
             for ev in evidence:
                 if ev.evidence_type == "behavioral":
                     behavioral_features.append(ev.evidence_data)
-            
+
             if not behavioral_features:
                 return candidates
-            
+
             # Compare with known actor behaviors
             for actor_id, actor in self.threat_actors.items():
                 similarity_score = self._calculate_behavioral_similarity(
                     behavioral_features, actor
                 )
-                
+
                 if similarity_score > 0.3:  # Threshold for consideration
                     candidates.append({
                         "actor_id": actor_id,
@@ -473,12 +473,12 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
                         ),
                         "attribution_type": "behavioral"
                     })
-            
+
             # Sort by similarity score
             candidates.sort(key=lambda x: x["similarity_score"], reverse=True)
-            
+
             return candidates
-            
+
         except Exception as e:
             logger.error(f"Behavioral pattern analysis failed: {e}")
             return candidates
@@ -495,38 +495,38 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
             "timeline_patterns": {},
             "infrastructure_overlap": {}
         }
-        
+
         try:
             if not NETWORKX_AVAILABLE:
                 return analysis
-            
+
             # Build indicator correlation graph
             correlation_graph = nx.Graph()
-            
+
             # Add indicators as nodes
             for indicator in indicators:
                 correlation_graph.add_node(indicator, type="indicator")
-            
+
             # Add edges based on co-occurrence in campaigns
             for campaign_id, campaign_indicators in self.actor_campaigns.items():
                 common_indicators = set(indicators) & set(campaign_indicators)
                 if len(common_indicators) > 1:
                     # Add campaign node
                     correlation_graph.add_node(campaign_id, type="campaign")
-                    
+
                     # Connect indicators to campaign
                     for indicator in common_indicators:
                         correlation_graph.add_edge(indicator, campaign_id)
-            
+
             # Find connected components (related campaigns)
             components = list(nx.connected_components(correlation_graph))
-            
+
             for component in components:
-                campaigns_in_component = [node for node in component 
+                campaigns_in_component = [node for node in component
                                         if correlation_graph.nodes[node].get("type") == "campaign"]
                 if campaigns_in_component:
                     analysis["related_campaigns"].extend(campaigns_in_component)
-            
+
             # Cluster analysis
             if len(correlation_graph.nodes) > 3:
                 try:
@@ -534,9 +534,9 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
                     analysis["campaign_clusters"] = [list(cluster) for cluster in clusters]
                 except:
                     pass  # Clustering failed, continue without it
-            
+
             return analysis
-            
+
         except Exception as e:
             logger.error(f"Campaign correlation analysis failed: {e}")
             return analysis
@@ -549,39 +549,39 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
         """Calculate behavioral similarity between observations and known actor"""
         if not observed_behaviors:
             return 0.0
-        
+
         similarity_scores = []
-        
+
         # Check tool preferences
         observed_tools = set()
         for behavior in observed_behaviors:
             observed_tools.update(behavior.get("tools_used", []))
-        
+
         if observed_tools and actor.preferred_tools:
             tool_overlap = len(observed_tools & set(actor.preferred_tools))
             tool_similarity = tool_overlap / max(len(observed_tools), len(actor.preferred_tools))
             similarity_scores.append(tool_similarity * 0.3)  # Weight: 30%
-        
+
         # Check MITRE techniques
         observed_techniques = set()
         for behavior in observed_behaviors:
             observed_techniques.update(behavior.get("mitre_techniques", []))
-        
+
         if observed_techniques and actor.mitre_techniques:
             technique_overlap = len(observed_techniques & set(actor.mitre_techniques))
             technique_similarity = technique_overlap / max(len(observed_techniques), len(actor.mitre_techniques))
             similarity_scores.append(technique_similarity * 0.4)  # Weight: 40%
-        
+
         # Check attack patterns
         observed_patterns = set()
         for behavior in observed_behaviors:
             observed_patterns.update(behavior.get("attack_patterns", []))
-        
+
         if observed_patterns and actor.attack_patterns:
             pattern_overlap = len(observed_patterns & set(actor.attack_patterns))
             pattern_similarity = pattern_overlap / max(len(observed_patterns), len(actor.attack_patterns))
             similarity_scores.append(pattern_similarity * 0.3)  # Weight: 30%
-        
+
         return sum(similarity_scores) if similarity_scores else 0.0
 
     def _combine_attribution_candidates(
@@ -592,7 +592,7 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
     ) -> List[Dict[str, Any]]:
         """Combine attribution candidates from different analysis methods"""
         combined = {}
-        
+
         # Process ML candidates
         for candidate in ml_candidates:
             actor_id = candidate["actor_id"]
@@ -605,7 +605,7 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
                 new_score = candidate.get("confidence_score", 0)
                 combined[actor_id]["confidence_score"] = (existing_score + new_score) / 2
                 combined[actor_id]["evidence_sources"].append("ml")
-        
+
         # Process rule-based candidates
         for candidate in rule_candidates:
             actor_id = candidate["actor_id"]
@@ -617,7 +617,7 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
                 boost_factor = 1.2
                 combined[actor_id]["confidence_score"] *= boost_factor
                 combined[actor_id]["evidence_sources"].append("rules")
-        
+
         # Process behavioral candidates
         for candidate in behavioral_candidates:
             actor_id = candidate["actor_id"]
@@ -629,7 +629,7 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
                 boost_factor = 1.15
                 combined[actor_id]["confidence_score"] *= boost_factor
                 combined[actor_id]["evidence_sources"].append("behavioral")
-        
+
         return list(combined.values())
 
     def _determine_confidence_level(self, confidence_score: float) -> AttributionConfidence:
@@ -648,16 +648,16 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
     def _update_attribution_metrics(self, result: AttributionResult):
         """Update attribution performance metrics"""
         self.attribution_metrics["total_attributions"] += 1
-        
+
         if result.confidence_level in [AttributionConfidence.HIGH, AttributionConfidence.VERY_HIGH]:
             self.attribution_metrics["high_confidence_attributions"] += 1
-        
+
         # Update average confidence
         total = self.attribution_metrics["total_attributions"]
         current_avg = self.attribution_metrics["average_confidence"]
         new_avg = ((current_avg * (total - 1)) + result.confidence_score) / total
         self.attribution_metrics["average_confidence"] = new_avg
-        
+
         self.attribution_metrics["evidence_pieces"] += len(result.evidence)
 
     async def health_check(self) -> ServiceHealth:
@@ -670,9 +670,9 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
                 "nlp_available": NLP_AVAILABLE,
                 "attribution_history": len(self.attribution_history) > 0
             }
-            
+
             healthy = checks["threat_actors_loaded"]
-            
+
             return ServiceHealth(
                 service_name=self.service_name,
                 status=ServiceStatus.HEALTHY if healthy else ServiceStatus.DEGRADED,
@@ -680,7 +680,7 @@ class AdvancedThreatAttributionEngine(XORBService, ThreatIntelligenceService):
                 metrics=self.attribution_metrics,
                 timestamp=datetime.utcnow()
             )
-            
+
         except Exception as e:
             return ServiceHealth(
                 service_name=self.service_name,
@@ -696,9 +696,9 @@ _attribution_engine: Optional[AdvancedThreatAttributionEngine] = None
 async def get_threat_attribution_engine(config: Dict[str, Any] = None) -> AdvancedThreatAttributionEngine:
     """Get or create threat attribution engine instance"""
     global _attribution_engine
-    
+
     if _attribution_engine is None:
         _attribution_engine = AdvancedThreatAttributionEngine(config)
         await _attribution_engine.initialize()
-    
+
     return _attribution_engine

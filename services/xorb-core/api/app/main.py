@@ -63,15 +63,15 @@ async def lifespan(app: FastAPI):
             # Startup
             container = get_container()
             await container.initialize()
-            
+
             # Initialize cache
             init_cache(redis_client)
-            
+
             log.info("Xorb API starting up with enhanced architecture")
             log.info("Features enabled: OIDC auth, RLS multi-tenancy, vector search, job orchestration")
-            
+
             yield
-            
+
             # Shutdown
             log.info("Xorb API shutting down gracefully")
 
@@ -333,7 +333,7 @@ async def _db_query_ok(dsn: str, timeout: float = 1.5) -> bool:
         return False
 
 
-@app.get("/readiness", tags=["Health"]) 
+@app.get("/readiness", tags=["Health"])
 async def readiness_check():
     """Readiness probe: checks Redis and TCP-level connectivity to Postgres and Temporal."""
     status = "ready"

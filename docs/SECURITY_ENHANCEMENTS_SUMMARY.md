@@ -198,7 +198,7 @@ async def get_security_stats():
     auth_service = container.auth_security_service()
     rate_limiter = container.rate_limiter()
     mfa_service = container.mfa_service()
-    
+
     return {
         "security_stats": await auth_service.get_security_stats(),
         "rate_limit_stats": await rate_limiter.get_rate_limit_stats(),
@@ -244,16 +244,16 @@ LRANGE mfa_events:2024-01-15 0 -1
 
 ```sql
 -- Top security events by type
-SELECT event_type, COUNT(*) as count 
-FROM audit_logs 
+SELECT event_type, COUNT(*) as count
+FROM audit_logs
 WHERE timestamp >= NOW() - INTERVAL '24 hours'
-GROUP BY event_type 
+GROUP BY event_type
 ORDER BY count DESC;
 
 -- Failed authentication attempts
 SELECT user_id, client_ip, COUNT(*) as attempts
-FROM audit_logs 
-WHERE event_type = 'authentication' 
+FROM audit_logs
+WHERE event_type = 'authentication'
   AND outcome = 'failure'
   AND timestamp >= NOW() - INTERVAL '1 hour'
 GROUP BY user_id, client_ip

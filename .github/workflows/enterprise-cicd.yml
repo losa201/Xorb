@@ -281,21 +281,21 @@ jobs:
           # Check if bundle sizes are within limits
           MAIN_JS_SIZE=$(stat -f%z dist/assets/index-*.js 2>/dev/null || stat -c%s dist/assets/index-*.js)
           MAIN_CSS_SIZE=$(stat -f%z dist/assets/index-*.css 2>/dev/null || stat -c%s dist/assets/index-*.css)
-          
+
           echo "Main JS size: $(($MAIN_JS_SIZE / 1024))KB"
           echo "Main CSS size: $(($MAIN_CSS_SIZE / 1024))KB"
-          
+
           # Fail if bundle is too large (>250KB for JS, >100KB for CSS)
           if [ $MAIN_JS_SIZE -gt 256000 ]; then
             echo "❌ Main JS bundle too large: $(($MAIN_JS_SIZE / 1024))KB > 250KB"
             exit 1
           fi
-          
+
           if [ $MAIN_CSS_SIZE -gt 102400 ]; then
             echo "❌ Main CSS bundle too large: $(($MAIN_CSS_SIZE / 1024))KB > 100KB"
             exit 1
           fi
-          
+
           echo "✅ Performance budget check passed"
 
   # Container Security Scanning
@@ -329,7 +329,7 @@ jobs:
           curl -LO https://storage.googleapis.com/container-structure-test/latest/container-structure-test-linux-amd64
           chmod +x container-structure-test-linux-amd64
           sudo mv container-structure-test-linux-amd64 /usr/local/bin/container-structure-test
-          
+
           # Create test configuration
           cat > container-test.yaml << EOF
           schemaVersion: 2.0.0
@@ -343,7 +343,7 @@ jobs:
             path: "/etc/nginx/nginx.conf"
             shouldExist: true
           EOF
-          
+
           container-structure-test test --image ptaas-test:${{ github.sha }} --config container-test.yaml
 
   # Build and Push Images
@@ -439,7 +439,7 @@ jobs:
           wget https://github.com/instrumenta/kubeval/releases/latest/download/kubeval-linux-amd64.tar.gz
           tar xf kubeval-linux-amd64.tar.gz
           sudo cp kubeval /usr/local/bin
-          
+
           # Validate Kubernetes manifests
           kubeval deploy/kubernetes/*.yaml
 
@@ -448,7 +448,7 @@ jobs:
           # Install Helm
           curl https://get.helm.sh/helm-v3.12.0-linux-amd64.tar.gz | tar xz
           sudo mv linux-amd64/helm /usr/local/bin/helm
-          
+
           # Validate Helm charts if they exist
           if [ -d "deploy/helm" ]; then
             helm lint deploy/helm/ptaas/
@@ -495,7 +495,7 @@ jobs:
         run: |
           # Wait for deployment to be ready
           kubectl wait --for=condition=available --timeout=300s deployment/ptaas-frontend -n ptaas-staging
-          
+
           # Run smoke tests
           curl -f https://staging.ptaas.example.com/health
           curl -f https://staging.ptaas.example.com/api/health
@@ -540,7 +540,7 @@ jobs:
           # Validate cluster health
           kubectl cluster-info
           kubectl get nodes
-          
+
           # Check resource availability
           kubectl top nodes
           kubectl top pods -A
@@ -562,7 +562,7 @@ jobs:
         run: |
           # Wait for deployment
           kubectl wait --for=condition=available --timeout=600s deployment/ptaas-frontend -n ptaas-production
-          
+
           # Extended health checks
           for i in {1..5}; do
             curl -f https://ptaas.example.com/health
@@ -606,34 +606,34 @@ jobs:
         run: |
           cat > compliance-report.md << EOF
           # PTaaS Security Compliance Report
-          
+
           **Deployment**: ${{ github.sha }}
           **Date**: $(date)
           **Environment**: Production
-          
+
           ## Security Scans Completed
           - ✅ SAST (CodeQL)
           - ✅ Dependency Scanning (Snyk)
           - ✅ Secret Detection (TruffleHog)
           - ✅ Container Scanning (Trivy)
           - ✅ Infrastructure Validation
-          
+
           ## Compliance Frameworks
           - SOC 2 Type II: Compliant
           - ISO 27001: Compliant
           - GDPR: Compliant
           - PCI DSS: N/A
-          
+
           ## Performance Metrics
           - Lighthouse Score: 95+
           - Bundle Size: Within limits
           - Response Time: <2s
-          
+
           ## Deployment Verification
           - Health Checks: Passed
           - Smoke Tests: Passed
           - Load Testing: Passed
-          
+
           EOF
 
       - name: Upload compliance report
@@ -649,7 +649,7 @@ jobs:
           script: |
             const fs = require('fs');
             const report = fs.readFileSync('compliance-report.md', 'utf8');
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
@@ -668,7 +668,7 @@ jobs:
         run: |
           # This would typically clean up old container images
           echo "Cleaning up old images and artifacts..."
-          
+
       - name: Update deployment metrics
         run: |
           echo "Updating deployment metrics and dashboards..."

@@ -94,7 +94,7 @@ class QuantumKeyPair:
 
 class QuantumSecurityService(XORBService, SecurityOrchestrationService):
     """Advanced quantum security service for post-quantum cryptography"""
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="quantum_security_service",
@@ -104,7 +104,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
         self.quantum_keys = {}
         self.threat_assessments = {}
         self.cryptographic_inventory = {}
-        
+
         # Initialize quantum-safe algorithms
         self.supported_algorithms = {
             PostQuantumAlgorithm.KYBER_512: {
@@ -140,7 +140,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 "signature_size": 3293
             }
         }
-    
+
     async def assess_quantum_security(
         self,
         target_systems: List[Dict[str, Any]],
@@ -150,9 +150,9 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
         try:
             assessment_id = str(uuid4())
             start_time = datetime.utcnow()
-            
+
             assessment_options = assessment_options or {}
-            
+
             # Initialize assessment
             assessment = QuantumSecurityAssessment(
                 assessment_id=assessment_id,
@@ -165,42 +165,42 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 risk_factors={},
                 metadata={}
             )
-            
+
             # Analyze each target system
             total_score = 0.0
             for system in target_systems:
                 system_score = await self._assess_system_quantum_readiness(system)
                 total_score += system_score
-                
+
                 # Identify cryptographic vulnerabilities
                 vulnerabilities = await self._identify_crypto_vulnerabilities(system)
                 assessment.cryptographic_vulnerabilities.extend(vulnerabilities)
-            
+
             # Calculate overall quantum readiness score
             if target_systems:
                 assessment.quantum_readiness_score = total_score / len(target_systems)
-            
+
             # Determine threat level
             assessment.threat_level = self._determine_quantum_threat_level(assessment.quantum_readiness_score)
-            
+
             # Generate recommendations
             assessment.post_quantum_recommendations = await self._generate_post_quantum_recommendations(
                 assessment.cryptographic_vulnerabilities,
                 assessment.quantum_readiness_score
             )
-            
+
             # Create migration timeline
             assessment.migration_timeline = await self._create_migration_timeline(
                 assessment.cryptographic_vulnerabilities,
                 assessment.threat_level
             )
-            
+
             # Calculate risk factors
             assessment.risk_factors = await self._calculate_risk_factors(
                 target_systems,
                 assessment.cryptographic_vulnerabilities
             )
-            
+
             # Add metadata
             assessment.metadata = {
                 "assessment_duration": (datetime.utcnow() - start_time).total_seconds(),
@@ -208,17 +208,17 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 "vulnerabilities_found": len(assessment.cryptographic_vulnerabilities),
                 "recommendations_generated": len(assessment.post_quantum_recommendations)
             }
-            
+
             # Store assessment
             self.threat_assessments[assessment_id] = assessment
-            
+
             logger.info(f"Quantum security assessment completed: {assessment_id}")
             return assessment
-            
+
         except Exception as e:
             logger.error(f"Quantum security assessment failed: {e}")
             raise
-    
+
     async def generate_post_quantum_keys(
         self,
         algorithm: PostQuantumAlgorithm,
@@ -227,12 +227,12 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
         """Generate post-quantum cryptographic key pair"""
         try:
             key_id = str(uuid4())
-            
+
             if algorithm not in self.supported_algorithms:
                 raise ValueError(f"Unsupported algorithm: {algorithm}")
-            
+
             algorithm_info = self.supported_algorithms[algorithm]
-            
+
             # Generate quantum-safe key pair
             if QUANTUM_CRYPTO_AVAILABLE:
                 # Use real post-quantum crypto library
@@ -241,7 +241,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             else:
                 # Fallback to simulated post-quantum keys for development
                 public_key, private_key = await self._generate_simulated_pq_keys(algorithm, algorithm_info)
-            
+
             # Create key pair object
             key_pair = QuantumKeyPair(
                 key_id=key_id,
@@ -256,17 +256,17 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                     "generated_by": "quantum_security_service"
                 }
             )
-            
+
             # Store key pair
             self.quantum_keys[key_id] = key_pair
-            
+
             logger.info(f"Generated post-quantum key pair: {key_id} using {algorithm.value}")
             return key_pair
-            
+
         except Exception as e:
             logger.error(f"Post-quantum key generation failed: {e}")
             raise
-    
+
     async def quantum_safe_encrypt(
         self,
         data: bytes,
@@ -285,7 +285,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 encrypted_data, encapsulated_key = await self._simulated_pq_encrypt(
                     data, recipient_public_key, algorithm
                 )
-            
+
             return {
                 "encrypted_data": base64.b64encode(encrypted_data).decode(),
                 "encapsulated_key": base64.b64encode(encapsulated_key).decode(),
@@ -297,11 +297,11 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                     "quantum_safe": True
                 }
             }
-            
+
         except Exception as e:
             logger.error(f"Quantum-safe encryption failed: {e}")
             raise
-    
+
     async def quantum_safe_decrypt(
         self,
         encrypted_package: Dict[str, Any],
@@ -312,7 +312,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             encrypted_data = base64.b64decode(encrypted_package["encrypted_data"])
             encapsulated_key = base64.b64decode(encrypted_package["encapsulated_key"])
             algorithm = PostQuantumAlgorithm(encrypted_package["algorithm"])
-            
+
             if QUANTUM_CRYPTO_AVAILABLE:
                 # Use real post-quantum decryption
                 decrypted_data = await self._real_pq_decrypt(
@@ -323,13 +323,13 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 decrypted_data = await self._simulated_pq_decrypt(
                     encrypted_data, encapsulated_key, private_key, algorithm
                 )
-            
+
             return decrypted_data
-            
+
         except Exception as e:
             logger.error(f"Quantum-safe decryption failed: {e}")
             raise
-    
+
     async def detect_quantum_threats(
         self,
         network_traffic: List[Dict[str, Any]],
@@ -339,7 +339,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
         try:
             detection_options = detection_options or {}
             threats_detected = []
-            
+
             # Analyze network traffic for quantum attack signatures
             for traffic_sample in network_traffic:
                 # Check for quantum algorithm signatures
@@ -351,7 +351,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                         "source": traffic_sample.get("source"),
                         "details": "Potential quantum algorithm usage detected in traffic"
                     })
-                
+
                 # Check for classical cryptography breaking attempts
                 if await self._check_crypto_breaking_attempts(traffic_sample):
                     threats_detected.append({
@@ -361,7 +361,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                         "source": traffic_sample.get("source"),
                         "details": "Potential cryptographic breaking attempt detected"
                     })
-                
+
                 # Check for quantum key distribution interference
                 if await self._check_qkd_interference(traffic_sample):
                     threats_detected.append({
@@ -371,7 +371,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                         "source": traffic_sample.get("source"),
                         "details": "Quantum key distribution interference detected"
                     })
-            
+
             # Assess overall threat level
             if threats_detected:
                 max_severity = max(threat["severity"] for threat in threats_detected)
@@ -383,7 +383,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                     overall_threat = QuantumThreatLevel.HIGH
             else:
                 overall_threat = QuantumThreatLevel.MINIMAL
-            
+
             return {
                 "assessment_id": str(uuid4()),
                 "timestamp": datetime.utcnow().isoformat(),
@@ -392,43 +392,43 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 "traffic_samples_analyzed": len(network_traffic),
                 "recommendations": await self._generate_quantum_threat_response(threats_detected)
             }
-            
+
         except Exception as e:
             logger.error(f"Quantum threat detection failed: {e}")
             raise
-    
+
     # Private helper methods
     async def _assess_system_quantum_readiness(self, system: Dict[str, Any]) -> float:
         """Assess a single system's quantum readiness"""
         score = 0.0
-        
+
         # Check for post-quantum algorithms
         crypto_algorithms = system.get("cryptographic_algorithms", [])
         pq_algorithms = [alg for alg in crypto_algorithms if "quantum" in alg.lower() or "pq" in alg.lower()]
         if pq_algorithms:
             score += 0.4
-        
+
         # Check for quantum key distribution
         if system.get("quantum_key_distribution", False):
             score += 0.3
-        
+
         # Check for quantum random number generators
         if system.get("quantum_rng", False):
             score += 0.2
-        
+
         # Check for legacy crypto dependency
         legacy_crypto = [alg for alg in crypto_algorithms if alg.lower() in ["rsa", "dsa", "ecdsa", "dh", "ecdh"]]
         if legacy_crypto:
             score -= 0.2 * len(legacy_crypto) / len(crypto_algorithms)
-        
+
         return max(0.0, min(1.0, score))
-    
+
     async def _identify_crypto_vulnerabilities(self, system: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Identify cryptographic vulnerabilities in a system"""
         vulnerabilities = []
-        
+
         crypto_algorithms = system.get("cryptographic_algorithms", [])
-        
+
         # Check for quantum-vulnerable algorithms
         vulnerable_algorithms = {
             "rsa": {"severity": "critical", "quantum_vulnerable": True},
@@ -437,7 +437,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             "dh": {"severity": "critical", "quantum_vulnerable": True},
             "ecdh": {"severity": "critical", "quantum_vulnerable": True},
         }
-        
+
         for algorithm in crypto_algorithms:
             alg_lower = algorithm.lower()
             if alg_lower in vulnerable_algorithms:
@@ -451,9 +451,9 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                     "recommendation": f"Migrate to post-quantum alternative",
                     "system": system.get("name", "unknown")
                 })
-        
+
         return vulnerabilities
-    
+
     async def _generate_post_quantum_recommendations(
         self,
         vulnerabilities: List[Dict[str, Any]],
@@ -461,7 +461,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
     ) -> List[Dict[str, Any]]:
         """Generate post-quantum migration recommendations"""
         recommendations = []
-        
+
         # Algorithm migration recommendations
         algorithm_migrations = {
             "rsa": PostQuantumAlgorithm.KYBER_768,
@@ -470,7 +470,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             "dh": PostQuantumAlgorithm.KYBER_768,
             "ecdh": PostQuantumAlgorithm.KYBER_768
         }
-        
+
         for vuln in vulnerabilities:
             if vuln["quantum_vulnerable"]:
                 recommended_alg = algorithm_migrations.get(vuln["algorithm"].lower())
@@ -485,7 +485,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                         "estimated_effort": "medium",
                         "timeline": "6-12 months"
                     })
-        
+
         # Infrastructure recommendations
         if readiness_score < 0.5:
             recommendations.append({
@@ -496,7 +496,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 "estimated_effort": "high",
                 "timeline": "12-18 months"
             })
-        
+
         # Training and awareness recommendations
         recommendations.append({
             "recommendation_id": str(uuid4()),
@@ -506,9 +506,9 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             "estimated_effort": "low",
             "timeline": "1-3 months"
         })
-        
+
         return recommendations
-    
+
     async def _create_migration_timeline(
         self,
         vulnerabilities: List[Dict[str, Any]],
@@ -519,7 +519,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             "total_duration": "24 months",
             "phases": []
         }
-        
+
         # Immediate phase (0-6 months)
         immediate_actions = []
         if threat_level in [QuantumThreatLevel.CRITICAL, QuantumThreatLevel.QUANTUM_BREACH]:
@@ -528,14 +528,14 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 "Upgrade most critical systems",
                 "Enable quantum threat monitoring"
             ])
-        
+
         if immediate_actions:
             timeline["phases"].append({
                 "phase": "immediate",
                 "duration": "0-6 months",
                 "actions": immediate_actions
             })
-        
+
         # Short-term phase (6-12 months)
         timeline["phases"].append({
             "phase": "short_term",
@@ -546,7 +546,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 "Implement post-quantum key management"
             ]
         })
-        
+
         # Long-term phase (12-24 months)
         timeline["phases"].append({
             "phase": "long_term",
@@ -557,9 +557,9 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 "Full quantum-safe deployment"
             ]
         })
-        
+
         return timeline
-    
+
     async def _calculate_risk_factors(
         self,
         systems: List[Dict[str, Any]],
@@ -567,7 +567,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
     ) -> Dict[str, float]:
         """Calculate quantum security risk factors"""
         risk_factors = {}
-        
+
         # Algorithm risk
         total_algorithms = sum(len(system.get("cryptographic_algorithms", [])) for system in systems)
         vulnerable_algorithms = len([v for v in vulnerabilities if v["quantum_vulnerable"]])
@@ -575,30 +575,30 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             risk_factors["algorithm_risk"] = vulnerable_algorithms / total_algorithms
         else:
             risk_factors["algorithm_risk"] = 0.0
-        
+
         # Infrastructure risk
         systems_with_pq = sum(1 for system in systems if system.get("quantum_ready", False))
         if systems:
             risk_factors["infrastructure_risk"] = 1.0 - (systems_with_pq / len(systems))
         else:
             risk_factors["infrastructure_risk"] = 1.0
-        
+
         # Time risk (quantum computer development)
         # Based on current estimates of when large-scale quantum computers will be available
         current_year = datetime.utcnow().year
         estimated_quantum_threat_year = 2030  # Conservative estimate
         years_remaining = max(0, estimated_quantum_threat_year - current_year)
         risk_factors["time_risk"] = max(0.0, 1.0 - (years_remaining / 10))  # 10-year window
-        
+
         # Overall risk
         risk_factors["overall_risk"] = (
             risk_factors["algorithm_risk"] * 0.4 +
             risk_factors["infrastructure_risk"] * 0.3 +
             risk_factors["time_risk"] * 0.3
         )
-        
+
         return risk_factors
-    
+
     def _determine_quantum_threat_level(self, readiness_score: float) -> QuantumThreatLevel:
         """Determine quantum threat level based on readiness score"""
         if readiness_score >= 0.8:
@@ -611,7 +611,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             return QuantumThreatLevel.HIGH
         else:
             return QuantumThreatLevel.CRITICAL
-    
+
     async def _generate_real_pq_keys(self, algorithm: PostQuantumAlgorithm) -> Tuple[bytes, bytes]:
         """Generate real post-quantum keys using production cryptography"""
         try:
@@ -620,7 +620,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 from cryptography.hazmat.primitives.asymmetric import rsa
                 from cryptography.hazmat.primitives import hashes
                 from cryptography.hazmat.backends import default_backend
-                
+
                 # Generate RSA key as interim solution until Kyber is available
                 private_key = rsa.generate_private_key(
                     public_exponent=65537,
@@ -628,7 +628,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                     backend=default_backend()
                 )
                 public_key = private_key.public_key()
-                
+
                 # Serialize keys
                 from cryptography.hazmat.primitives import serialization
                 private_bytes = private_key.private_bytes(
@@ -640,17 +640,17 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                     encoding=serialization.Encoding.PEM,
                     format=serialization.PublicFormat.SubjectPublicKeyInfo
                 )
-                
+
                 return public_bytes, private_bytes
-                
+
             elif algorithm == PostQuantumAlgorithm.DILITHIUM:
                 # Dilithium digital signature algorithm simulation
                 # Using Ed25519 as quantum-resistant alternative
                 from cryptography.hazmat.primitives.asymmetric import ed25519
-                
+
                 private_key = ed25519.Ed25519PrivateKey.generate()
                 public_key = private_key.public_key()
-                
+
                 private_bytes = private_key.private_bytes(
                     encoding=serialization.Encoding.Raw,
                     format=serialization.PrivateFormat.Raw,
@@ -660,20 +660,20 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                     encoding=serialization.Encoding.Raw,
                     format=serialization.PublicFormat.Raw
                 )
-                
+
                 return public_bytes, private_bytes
-                
+
             else:
                 # Fallback to simulation for other algorithms
                 return await self._generate_simulated_pq_keys(algorithm, self.supported_algorithms[algorithm])
-                
+
         except ImportError:
             logger.warning(f"Production cryptography not available for {algorithm}, using simulation")
             return await self._generate_simulated_pq_keys(algorithm, self.supported_algorithms[algorithm])
         except Exception as e:
             logger.error(f"Error generating real PQ keys for {algorithm}: {e}")
             return await self._generate_simulated_pq_keys(algorithm, self.supported_algorithms[algorithm])
-    
+
     async def _generate_simulated_pq_keys(
         self,
         algorithm: PostQuantumAlgorithm,
@@ -683,12 +683,12 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
         # Generate random keys of appropriate sizes
         public_key_size = algorithm_info.get("public_key_size", algorithm_info.get("key_size", 1024))
         private_key_size = algorithm_info.get("private_key_size", algorithm_info.get("key_size", 2048))
-        
+
         public_key = secrets.token_bytes(public_key_size)
         private_key = secrets.token_bytes(private_key_size)
-        
+
         return public_key, private_key
-    
+
     async def _real_pq_encrypt(
         self,
         data: bytes,
@@ -701,13 +701,13 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 # Use RSA-OAEP with quantum-resistant key size
                 from cryptography.hazmat.primitives import serialization, hashes
                 from cryptography.hazmat.primitives.asymmetric import padding
-                
+
                 # Load public key
                 public_key_obj = serialization.load_pem_public_key(public_key)
-                
+
                 # Generate symmetric key for hybrid encryption
                 symmetric_key = secrets.token_bytes(32)
-                
+
                 # Encrypt symmetric key with public key
                 encapsulated_key = public_key_obj.encrypt(
                     symmetric_key,
@@ -717,34 +717,34 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                         label=None
                     )
                 )
-                
+
                 # Encrypt data with symmetric key
                 if CRYPTO_AVAILABLE:
                     from cryptography.fernet import Fernet
                     import base64
-                    
+
                     # Use ChaCha20-Poly1305 for better performance
                     from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
-                    
+
                     aead = ChaCha20Poly1305(symmetric_key)
                     nonce = secrets.token_bytes(12)  # ChaCha20Poly1305 nonce
                     ciphertext = aead.encrypt(nonce, data, None)
-                    
+
                     encrypted_data = nonce + ciphertext
                 else:
                     # Fallback encryption
                     encrypted_data = bytes(a ^ b for a, b in zip(data, (symmetric_key * (len(data) // len(symmetric_key) + 1))[:len(data)]))
-                
+
                 return encrypted_data, encapsulated_key
-                
+
             else:
                 # Fallback to simulation
                 return await self._simulated_pq_encrypt(data, public_key, algorithm)
-                
+
         except Exception as e:
             logger.error(f"Error in real PQ encryption for {algorithm}: {e}")
             return await self._simulated_pq_encrypt(data, public_key, algorithm)
-    
+
     async def _simulated_pq_encrypt(
         self,
         data: bytes,
@@ -757,20 +757,20 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             # Generate a random symmetric key
             symmetric_key = Fernet.generate_key()
             fernet = Fernet(symmetric_key)
-            
+
             # Encrypt data with symmetric key
             encrypted_data = fernet.encrypt(data)
-            
+
             # "Encapsulate" the symmetric key (in real PQ crypto, this would use the public key)
             encapsulated_key = symmetric_key + secrets.token_bytes(32)  # Add padding to simulate
-            
+
             return encrypted_data, encapsulated_key
         else:
             # Very basic simulation without cryptography library
             key = secrets.token_bytes(32)
             encrypted_data = bytes(a ^ b for a, b in zip(data, (key * (len(data) // len(key) + 1))[:len(data)]))
             return encrypted_data, key
-    
+
     async def _real_pq_decrypt(
         self,
         encrypted_data: bytes,
@@ -784,10 +784,10 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 # Use RSA-OAEP decryption
                 from cryptography.hazmat.primitives import serialization, hashes
                 from cryptography.hazmat.primitives.asymmetric import padding
-                
+
                 # Load private key
                 private_key_obj = serialization.load_pem_private_key(private_key, password=None)
-                
+
                 # Decrypt symmetric key
                 symmetric_key = private_key_obj.decrypt(
                     encapsulated_key,
@@ -797,30 +797,30 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                         label=None
                     )
                 )
-                
+
                 # Decrypt data with symmetric key
                 if CRYPTO_AVAILABLE and len(encrypted_data) > 12:
                     from cryptography.hazmat.primitives.ciphers.aead import ChaCha20Poly1305
-                    
+
                     aead = ChaCha20Poly1305(symmetric_key)
                     nonce = encrypted_data[:12]
                     ciphertext = encrypted_data[12:]
-                    
+
                     plaintext = aead.decrypt(nonce, ciphertext, None)
                 else:
                     # Fallback decryption
                     plaintext = bytes(a ^ b for a, b in zip(encrypted_data, (symmetric_key * (len(encrypted_data) // len(symmetric_key) + 1))[:len(encrypted_data)]))
-                
+
                 return plaintext
-                
+
             else:
                 # Fallback to simulation
                 return await self._simulated_pq_decrypt(encrypted_data, encapsulated_key, private_key, algorithm)
-                
+
         except Exception as e:
             logger.error(f"Error in real PQ decryption for {algorithm}: {e}")
             return await self._simulated_pq_decrypt(encrypted_data, encapsulated_key, private_key, algorithm)
-    
+
     async def _simulated_pq_decrypt(
         self,
         encrypted_data: bytes,
@@ -834,7 +834,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             # Extract symmetric key from encapsulated key
             symmetric_key = encapsulated_key[:44]  # Fernet key length
             fernet = Fernet(symmetric_key)
-            
+
             # Decrypt data
             decrypted_data = fernet.decrypt(encrypted_data)
             return decrypted_data
@@ -843,55 +843,55 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             key = encapsulated_key[:32]
             decrypted_data = bytes(a ^ b for a, b in zip(encrypted_data, (key * (len(encrypted_data) // len(key) + 1))[:len(encrypted_data)]))
             return decrypted_data
-    
+
     async def _check_quantum_algorithm_signatures(self, traffic: Dict[str, Any]) -> bool:
         """Check for quantum algorithm usage signatures in network traffic"""
         # Look for patterns that might indicate quantum algorithms
         payload = traffic.get("payload", "").lower()
         quantum_indicators = ["quantum", "shor", "grover", "qkd", "post-quantum", "kyber", "dilithium"]
         return any(indicator in payload for indicator in quantum_indicators)
-    
+
     async def _check_crypto_breaking_attempts(self, traffic: Dict[str, Any]) -> bool:
         """Check for cryptographic breaking attempts"""
         # Look for patterns indicating attempts to break cryptography
         payload = traffic.get("payload", "").lower()
         breaking_indicators = ["factor", "discrete_log", "crypto_break", "rsa_break"]
         return any(indicator in payload for indicator in breaking_indicators)
-    
+
     async def _check_qkd_interference(self, traffic: Dict[str, Any]) -> bool:
         """Check for quantum key distribution interference"""
         # Look for QKD interference patterns
         return "qkd_interference" in traffic.get("flags", [])
-    
+
     async def _generate_quantum_threat_response(self, threats: List[Dict[str, Any]]) -> List[str]:
         """Generate response recommendations for quantum threats"""
         recommendations = []
-        
+
         threat_types = {threat["type"] for threat in threats}
-        
+
         if "quantum_algorithm_detected" in threat_types:
             recommendations.extend([
                 "Enable enhanced quantum monitoring",
                 "Verify post-quantum algorithm implementations",
                 "Consider quantum key distribution"
             ])
-        
+
         if "crypto_breaking_attempt" in threat_types:
             recommendations.extend([
                 "Immediately implement hybrid cryptographic solutions",
                 "Increase security monitoring sensitivity",
                 "Consider emergency migration to post-quantum algorithms"
             ])
-        
+
         if "qkd_interference" in threat_types:
             recommendations.extend([
                 "Investigate quantum communication channels",
                 "Implement quantum error correction",
                 "Verify quantum key distribution integrity"
             ])
-        
+
         return recommendations
-    
+
     # SecurityOrchestrationService interface methods
     async def create_workflow(
         self,
@@ -901,10 +901,10 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
     ) -> Dict[str, Any]:
         """Create quantum security workflow"""
         workflow_id = str(uuid4())
-        
+
         # Quantum-specific workflow types
         workflow_type = workflow_definition.get("type", "quantum_assessment")
-        
+
         workflow = {
             "workflow_id": workflow_id,
             "type": workflow_type,
@@ -914,9 +914,9 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             "created_by": getattr(user, 'id', 'system'),
             "organization": getattr(org, 'id', 'default')
         }
-        
+
         return workflow
-    
+
     async def execute_workflow(
         self,
         workflow_id: str,
@@ -925,7 +925,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
     ) -> Dict[str, Any]:
         """Execute quantum security workflow"""
         execution_id = str(uuid4())
-        
+
         # Execute quantum security operations based on workflow type
         execution = {
             "execution_id": execution_id,
@@ -935,19 +935,19 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             "started_at": datetime.utcnow().isoformat(),
             "executed_by": getattr(user, 'id', 'system')
         }
-        
+
         # Simulate workflow execution
         await asyncio.sleep(1)
-        
+
         execution["status"] = "completed"
         execution["completed_at"] = datetime.utcnow().isoformat()
         execution["results"] = {
             "quantum_security_check": "passed",
             "post_quantum_readiness": "partial"
         }
-        
+
         return execution
-    
+
     async def get_workflow_status(
         self,
         execution_id: str,
@@ -962,7 +962,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             "quantum_operations_completed": 5,
             "total_quantum_operations": 5
         }
-    
+
     async def schedule_recurring_scan(
         self,
         targets: List[str],
@@ -972,7 +972,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
     ) -> Dict[str, Any]:
         """Schedule recurring quantum security scans"""
         schedule_id = str(uuid4())
-        
+
         return {
             "schedule_id": schedule_id,
             "targets": targets,
@@ -982,49 +982,49 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
             "status": "scheduled",
             "next_run": (datetime.utcnow() + timedelta(hours=24)).isoformat()
         }
-    
+
     # XORBService interface methods
     async def initialize(self) -> bool:
         """Initialize quantum security service"""
         try:
             self.start_time = datetime.utcnow()
             self.status = ServiceStatus.HEALTHY
-            
+
             # Initialize quantum-safe cryptographic components
             logger.info("Initializing quantum security service")
-            
+
             # Check for quantum crypto library availability
             if QUANTUM_CRYPTO_AVAILABLE:
                 logger.info("Post-quantum cryptography libraries available")
             else:
                 logger.warning("Post-quantum cryptography libraries not available - using simulation mode")
-            
+
             logger.info(f"Quantum security service {self.service_id} initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Quantum security service initialization failed: {e}")
             self.status = ServiceStatus.UNHEALTHY
             return False
-    
+
     async def shutdown(self) -> bool:
         """Shutdown quantum security service"""
         try:
             self.status = ServiceStatus.SHUTTING_DOWN
-            
+
             # Clear sensitive quantum key material
             self.quantum_keys.clear()
             self.threat_assessments.clear()
             self.cryptographic_inventory.clear()
-            
+
             self.status = ServiceStatus.STOPPED
             logger.info(f"Quantum security service {self.service_id} shutdown complete")
             return True
-            
+
         except Exception as e:
             logger.error(f"Quantum security service shutdown failed: {e}")
             return False
-    
+
     async def health_check(self) -> ServiceHealth:
         """Perform quantum security service health check"""
         try:
@@ -1034,14 +1034,14 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                 "crypto_libraries": CRYPTO_AVAILABLE,
                 "quantum_crypto_libraries": QUANTUM_CRYPTO_AVAILABLE
             }
-            
+
             all_healthy = all(checks.values())
             status = ServiceStatus.HEALTHY if all_healthy else ServiceStatus.DEGRADED
-            
+
             uptime = 0.0
             if hasattr(self, 'start_time') and self.start_time:
                 uptime = (datetime.utcnow() - self.start_time).total_seconds()
-            
+
             return ServiceHealth(
                 status=status,
                 message="Quantum security service operational",
@@ -1054,7 +1054,7 @@ class QuantumSecurityService(XORBService, SecurityOrchestrationService):
                     "supported_algorithms": len(self.supported_algorithms)
                 }
             )
-            
+
         except Exception as e:
             logger.error(f"Quantum security health check failed: {e}")
             return ServiceHealth(

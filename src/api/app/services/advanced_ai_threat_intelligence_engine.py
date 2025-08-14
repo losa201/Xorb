@@ -121,13 +121,13 @@ class BehavioralProfile:
 
 class NeuralThreatDetector(nn.Module):
     """PyTorch neural network for threat detection"""
-    
+
     def __init__(self, input_size: int, hidden_sizes: List[int], num_classes: int):
         super(NeuralThreatDetector, self).__init__()
-        
+
         layers = []
         prev_size = input_size
-        
+
         for hidden_size in hidden_sizes:
             layers.extend([
                 nn.Linear(prev_size, hidden_size),
@@ -136,19 +136,19 @@ class NeuralThreatDetector(nn.Module):
                 nn.BatchNorm1d(hidden_size)
             ])
             prev_size = hidden_size
-        
+
         layers.append(nn.Linear(prev_size, num_classes))
         layers.append(nn.Softmax(dim=1))
-        
+
         self.network = nn.Sequential(*layers)
-    
+
     def forward(self, x):
         return self.network(x)
 
 class AdvancedAIThreatIntelligenceEngine:
     """
     Advanced AI-powered threat intelligence engine with enterprise-grade ML capabilities
-    
+
     Features:
     - Multi-algorithm threat detection with 87%+ accuracy
     - Real-time behavioral analytics
@@ -166,16 +166,16 @@ class AdvancedAIThreatIntelligenceEngine:
         self.encoders: Dict[str, LabelEncoder] = {}
         self.threat_indicators: Dict[str, ThreatIndicator] = {}
         self.behavioral_profiles: Dict[str, BehavioralProfile] = {}
-        
+
         # Model performance tracking
         self.model_metrics: Dict[str, Dict[str, float]] = {}
         self.prediction_history: List[Dict[str, Any]] = []
-        
+
         # Threat intelligence databases
         self.threat_feeds: Dict[str, Any] = {}
         self.malware_signatures: Dict[str, Any] = {}
         self.attack_patterns: Dict[str, Any] = {}
-        
+
         # AI model configurations
         self.model_configs = {
             "anomaly_detection": {
@@ -199,7 +199,7 @@ class AdvancedAIThreatIntelligenceEngine:
                 "batch_size": 32
             }
         }
-        
+
         logger.info("Advanced AI Threat Intelligence Engine initialized")
 
     async def initialize(self):
@@ -207,21 +207,21 @@ class AdvancedAIThreatIntelligenceEngine:
         try:
             # Load pre-trained models
             await self._load_pretrained_models()
-            
+
             # Initialize threat feeds
             await self._initialize_threat_feeds()
-            
+
             # Load MITRE ATT&CK framework
             await self._load_mitre_framework()
-            
+
             # Setup continuous learning
             asyncio.create_task(self._continuous_learning_loop())
-            
+
             # Initialize performance monitoring
             asyncio.create_task(self._performance_monitoring_loop())
-            
+
             logger.info("AI Threat Intelligence Engine initialization complete")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize AI engine: {e}")
             raise
@@ -238,46 +238,46 @@ class AdvancedAIThreatIntelligenceEngine:
             analysis_id = hashlib.sha256(
                 f"{indicators}_{start_time.isoformat()}".encode()
             ).hexdigest()[:16]
-            
+
             if analysis_types is None:
                 analysis_types = [
                     AnalysisType.THREAT_CORRELATION,
                     AnalysisType.ANOMALY_DETECTION,
                     AnalysisType.ATTRIBUTION
                 ]
-            
+
             # Extract and normalize features
             features = await self._extract_indicator_features(indicators, context)
-            
+
             # Run ensemble analysis
             findings = []
             confidence_scores = []
             risk_scores = []
-            
+
             for analysis_type in analysis_types:
                 result = await self._run_analysis_type(analysis_type, features, indicators)
                 if result:
                     findings.extend(result.get("findings", []))
                     confidence_scores.append(result.get("confidence", 0.5))
                     risk_scores.append(result.get("risk_score", 50))
-            
+
             # Calculate overall metrics
             overall_confidence = np.mean(confidence_scores) if confidence_scores else 0.5
             overall_risk_score = int(np.max(risk_scores)) if risk_scores else 50
             threat_level = self._calculate_threat_level(overall_risk_score)
-            
+
             # Generate attribution analysis
             attribution = await self._generate_attribution_analysis(indicators, findings)
-            
+
             # Generate recommendations
             recommendations = await self._generate_recommendations(findings, threat_level)
-            
+
             # Map to MITRE ATT&CK
             mitre_techniques = await self._map_to_mitre_attack(findings)
-            
+
             # Calculate execution time
             execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
-            
+
             result = AIAnalysisResult(
                 analysis_id=analysis_id,
                 analysis_type=AnalysisType.THREAT_CORRELATION,
@@ -294,12 +294,12 @@ class AdvancedAIThreatIntelligenceEngine:
                 execution_time_ms=execution_time,
                 metadata={"analysis_types": [at.value for at in analysis_types]}
             )
-            
+
             # Store analysis for learning
             await self._store_analysis_result(result)
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Threat indicator analysis failed: {e}")
             raise
@@ -315,22 +315,22 @@ class AdvancedAIThreatIntelligenceEngine:
         try:
             # Get or create behavioral profile
             profile = await self._get_or_create_behavioral_profile(entity_id, entity_type)
-            
+
             # Extract behavioral features
             current_features = await self._extract_behavioral_features(activity_data)
-            
+
             # Detect anomalies using multiple algorithms
             anomalies = await self._detect_behavioral_anomalies(profile, current_features)
-            
+
             # Calculate risk score
             risk_score = await self._calculate_behavioral_risk_score(anomalies, profile)
-            
+
             # Update profile
             await self._update_behavioral_profile(profile, current_features, anomalies)
-            
+
             # Generate insights
             insights = await self._generate_behavioral_insights(profile, anomalies)
-            
+
             return {
                 "entity_id": entity_id,
                 "entity_type": entity_type,
@@ -344,7 +344,7 @@ class AdvancedAIThreatIntelligenceEngine:
                 "confidence": profile.model_confidence,
                 "analysis_timestamp": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Behavioral analysis failed: {e}")
             raise
@@ -358,27 +358,27 @@ class AdvancedAIThreatIntelligenceEngine:
         try:
             if not SKLEARN_AVAILABLE:
                 return await self._fallback_vulnerability_prediction(system_data)
-            
+
             # Extract features from system data
             features = await self._extract_system_features(system_data)
-            
+
             # Load vulnerability prediction model
             model = self.models.get("vulnerability_prediction")
             if not model:
                 model = await self._train_vulnerability_prediction_model(historical_data)
-            
+
             # Make predictions
             if isinstance(features, np.ndarray) and len(features.shape) == 1:
                 features = features.reshape(1, -1)
-            
+
             # Scale features
             scaler = self.scalers.get("vulnerability_prediction")
             if scaler:
                 features = scaler.transform(features)
-            
+
             vulnerability_probabilities = model.predict_proba(features)[0]
             vulnerability_classes = model.classes_
-            
+
             # Generate detailed predictions
             predictions = []
             for i, prob in enumerate(vulnerability_probabilities):
@@ -389,13 +389,13 @@ class AdvancedAIThreatIntelligenceEngine:
                         "severity": self._map_vulnerability_severity(vulnerability_classes[i]),
                         "confidence": min(prob * 1.2, 1.0)  # Adjusted confidence
                     })
-            
+
             # Sort by probability
             predictions.sort(key=lambda x: x["probability"], reverse=True)
-            
+
             # Calculate overall risk
             overall_risk = min(sum(p["probability"] for p in predictions) * 100, 100)
-            
+
             return {
                 "system_id": system_data.get("system_id", "unknown"),
                 "predictions": predictions,
@@ -406,7 +406,7 @@ class AdvancedAIThreatIntelligenceEngine:
                 "model_version": "vulnerability_prediction_v1.0",
                 "analysis_timestamp": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Vulnerability prediction failed: {e}")
             return await self._fallback_vulnerability_prediction(system_data)
@@ -420,15 +420,15 @@ class AdvancedAIThreatIntelligenceEngine:
         try:
             if time_range is None:
                 time_range = timedelta(days=30)
-            
+
             # Get historical threat data
             historical_indicators = await self._get_historical_indicators(time_range)
-            
+
             # Perform clustering analysis
             campaign_clusters = await self._cluster_threat_indicators(
                 indicators + [ind.value for ind in historical_indicators]
             )
-            
+
             # Identify potential campaigns
             campaigns = []
             for cluster_id, cluster_indicators in campaign_clusters.items():
@@ -436,10 +436,10 @@ class AdvancedAIThreatIntelligenceEngine:
                     campaign = await self._analyze_campaign_cluster(cluster_indicators)
                     if campaign:
                         campaigns.append(campaign)
-            
+
             # Generate campaign intelligence
             campaign_intelligence = await self._generate_campaign_intelligence(campaigns)
-            
+
             return {
                 "analysis_timestamp": datetime.utcnow().isoformat(),
                 "input_indicators": len(indicators),
@@ -450,7 +450,7 @@ class AdvancedAIThreatIntelligenceEngine:
                 "confidence": self._calculate_campaign_confidence(campaigns),
                 "recommendations": await self._generate_campaign_recommendations(campaigns)
             }
-            
+
         except Exception as e:
             logger.error(f"Threat campaign correlation failed: {e}")
             return {
@@ -469,22 +469,22 @@ class AdvancedAIThreatIntelligenceEngine:
         try:
             # Extract attribution features
             features = await self._extract_attribution_features(attack_data, context)
-            
+
             # Analyze TTPs (Tactics, Techniques, Procedures)
             ttps = await self._analyze_ttps(attack_data)
-            
+
             # Compare against known threat actors
             actor_matches = await self._match_threat_actors(features, ttps)
-            
+
             # Generate confidence scores
             for match in actor_matches:
                 match["confidence"] = await self._calculate_attribution_confidence(
                     match, features, ttps
                 )
-            
+
             # Sort by confidence
             actor_matches.sort(key=lambda x: x["confidence"], reverse=True)
-            
+
             # Generate detailed attribution report
             attribution_report = {
                 "analysis_timestamp": datetime.utcnow().isoformat(),
@@ -496,9 +496,9 @@ class AdvancedAIThreatIntelligenceEngine:
                 "geopolitical_context": await self._analyze_geopolitical_context(actor_matches),
                 "recommendations": await self._generate_attribution_recommendations(actor_matches)
             }
-            
+
             return attribution_report
-            
+
         except Exception as e:
             logger.error(f"Threat attribution failed: {e}")
             return {
@@ -517,10 +517,10 @@ class AdvancedAIThreatIntelligenceEngine:
         """Extract ML features from threat indicators"""
         try:
             features = []
-            
+
             for indicator in indicators:
                 indicator_features = []
-                
+
                 # Basic features
                 indicator_features.extend([
                     len(indicator),
@@ -532,33 +532,33 @@ class AdvancedAIThreatIntelligenceEngine:
                     1 if self._is_hash(indicator) else 0,
                     1 if self._is_url(indicator) else 0
                 ])
-                
+
                 # Character distribution features
                 char_counts = self._analyze_character_distribution(indicator)
                 indicator_features.extend(char_counts)
-                
+
                 # Entropy calculation
                 entropy = self._calculate_entropy(indicator)
                 indicator_features.append(entropy)
-                
+
                 # Domain reputation features (if applicable)
                 if self._is_domain(indicator) or self._is_ip_address(indicator):
                     rep_features = await self._get_reputation_features(indicator)
                     indicator_features.extend(rep_features)
                 else:
                     indicator_features.extend([0.0, 0.0, 0.0])  # Padding
-                
+
                 # Context features
                 if context:
                     context_features = self._extract_context_features(context)
                     indicator_features.extend(context_features)
                 else:
                     indicator_features.extend([0.0] * 5)  # Padding
-                
+
                 features.append(indicator_features)
-            
+
             return np.array(features)
-            
+
         except Exception as e:
             logger.error(f"Feature extraction failed: {e}")
             # Return default feature vector
@@ -581,7 +581,7 @@ class AdvancedAIThreatIntelligenceEngine:
             else:
                 logger.warning(f"Unsupported analysis type: {analysis_type}")
                 return None
-                
+
         except Exception as e:
             logger.error(f"Analysis type {analysis_type} failed: {e}")
             return None
@@ -591,7 +591,7 @@ class AdvancedAIThreatIntelligenceEngine:
         try:
             if not SKLEARN_AVAILABLE:
                 return await self._fallback_anomaly_detection(indicators)
-            
+
             # Load or train anomaly detection model
             model = self.models.get("anomaly_detection")
             if not model:
@@ -602,11 +602,11 @@ class AdvancedAIThreatIntelligenceEngine:
                 else:
                     model.fit(features)  # Train on current data
                 self.models["anomaly_detection"] = model
-            
+
             # Predict anomalies
             anomaly_scores = model.decision_function(features)
             is_anomaly = model.predict(features)
-            
+
             findings = []
             for i, (indicator, score, anomaly) in enumerate(zip(indicators, anomaly_scores, is_anomaly)):
                 if anomaly == -1:  # Anomaly detected
@@ -617,14 +617,14 @@ class AdvancedAIThreatIntelligenceEngine:
                         "description": f"Anomalous pattern detected in indicator {indicator}",
                         "severity": "high" if score < -0.5 else "medium"
                     })
-            
+
             return {
                 "findings": findings,
                 "confidence": 0.8,
                 "risk_score": len(findings) * 20,
                 "model_type": "isolation_forest"
             }
-            
+
         except Exception as e:
             logger.error(f"Anomaly detection failed: {e}")
             return await self._fallback_anomaly_detection(indicators)
@@ -633,7 +633,7 @@ class AdvancedAIThreatIntelligenceEngine:
         """Run threat correlation analysis"""
         try:
             findings = []
-            
+
             # Check against known threat indicators
             for indicator in indicators:
                 threat_info = await self._lookup_threat_intelligence(indicator)
@@ -645,19 +645,19 @@ class AdvancedAIThreatIntelligenceEngine:
                         "description": f"Indicator matches known threat: {threat_info.get('threat_type', 'unknown')}",
                         "severity": threat_info.get("severity", "medium")
                     })
-            
+
             # Correlation analysis
             if len(indicators) > 1:
                 correlations = await self._analyze_indicator_correlations(indicators)
                 findings.extend(correlations)
-            
+
             return {
                 "findings": findings,
                 "confidence": 0.85,
                 "risk_score": len(findings) * 15,
                 "model_type": "threat_correlation"
             }
-            
+
         except Exception as e:
             logger.error(f"Threat correlation failed: {e}")
             return {"findings": [], "confidence": 0.5, "risk_score": 0}
@@ -666,7 +666,7 @@ class AdvancedAIThreatIntelligenceEngine:
         """Run attribution analysis"""
         try:
             findings = []
-            
+
             # Analyze for known attack patterns
             for indicator in indicators:
                 patterns = await self._match_attack_patterns(indicator)
@@ -678,14 +678,14 @@ class AdvancedAIThreatIntelligenceEngine:
                         "description": f"Indicator matches attack pattern: {pattern.get('name', 'unknown')}",
                         "severity": "medium"
                     })
-            
+
             return {
                 "findings": findings,
                 "confidence": 0.75,
                 "risk_score": len(findings) * 10,
                 "model_type": "attribution_analysis"
             }
-            
+
         except Exception as e:
             logger.error(f"Attribution analysis failed: {e}")
             return {"findings": [], "confidence": 0.5, "risk_score": 0}
@@ -696,7 +696,7 @@ class AdvancedAIThreatIntelligenceEngine:
         """Get existing or create new behavioral profile"""
         if entity_id in self.behavioral_profiles:
             return self.behavioral_profiles[entity_id]
-        
+
         profile = BehavioralProfile(
             profile_id=f"{entity_type}_{entity_id}",
             entity_id=entity_id,
@@ -709,7 +709,7 @@ class AdvancedAIThreatIntelligenceEngine:
             last_updated=datetime.utcnow(),
             model_confidence=0.5
         )
-        
+
         self.behavioral_profiles[entity_id] = profile
         return profile
 
@@ -726,47 +726,47 @@ class AdvancedAIThreatIntelligenceEngine:
                 "device_variance": 0,
                 "privilege_usage": 0
             }
-            
+
             if not activity_data:
                 return features
-            
+
             # Calculate login frequency
             logins = [a for a in activity_data if a.get("action") == "login"]
             features["login_frequency"] = len(logins)
-            
+
             # Calculate access patterns
             access_events = [a for a in activity_data if a.get("action") in ["access", "read", "write"]]
             features["access_patterns"] = len(access_events)
-            
+
             # Calculate data transfer volume
             transfer_events = [a for a in activity_data if "data_size" in a]
             features["data_transfer_volume"] = sum(a.get("data_size", 0) for a in transfer_events)
-            
+
             # Calculate unique resources
             resources = set(a.get("resource", "") for a in activity_data if a.get("resource"))
             features["unique_resources_accessed"] = len(resources)
-            
+
             # Calculate time variance
             timestamps = [a.get("timestamp") for a in activity_data if a.get("timestamp")]
             if len(timestamps) > 1:
-                time_diffs = [abs((timestamps[i] - timestamps[i-1]).total_seconds()) 
+                time_diffs = [abs((timestamps[i] - timestamps[i-1]).total_seconds())
                              for i in range(1, len(timestamps))]
                 features["time_variance"] = np.std(time_diffs) if time_diffs else 0
-            
+
             # Calculate geographic variance
             locations = [a.get("location") for a in activity_data if a.get("location")]
             features["geographic_variance"] = len(set(locations))
-            
+
             # Calculate device variance
             devices = [a.get("device_id") for a in activity_data if a.get("device_id")]
             features["device_variance"] = len(set(devices))
-            
+
             # Calculate privilege usage
             privilege_events = [a for a in activity_data if a.get("requires_privilege")]
             features["privilege_usage"] = len(privilege_events)
-            
+
             return features
-            
+
         except Exception as e:
             logger.error(f"Behavioral feature extraction failed: {e}")
             return {}
@@ -779,19 +779,19 @@ class AdvancedAIThreatIntelligenceEngine:
         """Detect behavioral anomalies using ML"""
         try:
             anomalies = []
-            
+
             if not profile.baseline_behavior:
                 # First time analysis - establish baseline
                 profile.baseline_behavior = current_features.copy()
                 return anomalies
-            
+
             # Compare current behavior with baseline
             for feature, current_value in current_features.items():
                 baseline_value = profile.baseline_behavior.get(feature, 0)
-                
+
                 if baseline_value > 0:
                     deviation = abs(current_value - baseline_value) / baseline_value
-                    
+
                     # Threshold-based anomaly detection
                     if deviation > 2.0:  # 200% deviation
                         anomalies.append({
@@ -802,14 +802,14 @@ class AdvancedAIThreatIntelligenceEngine:
                             "deviation": deviation,
                             "severity": "high" if deviation > 5.0 else "medium"
                         })
-            
+
             # ML-based anomaly detection if sklearn available
             if SKLEARN_AVAILABLE and len(profile.baseline_behavior) > 5:
                 ml_anomalies = await self._ml_behavioral_anomaly_detection(profile, current_features)
                 anomalies.extend(ml_anomalies)
-            
+
             return anomalies
-            
+
         except Exception as e:
             logger.error(f"Behavioral anomaly detection failed: {e}")
             return []
@@ -869,7 +869,7 @@ class AdvancedAIThreatIntelligenceEngine:
         total_chars = len(text)
         if total_chars == 0:
             return [0.0] * 5
-        
+
         return [
             sum(1 for c in text if c.islower()) / total_chars,
             sum(1 for c in text if c.isupper()) / total_chars,
@@ -882,12 +882,12 @@ class AdvancedAIThreatIntelligenceEngine:
         """Calculate Shannon entropy of text"""
         if not text:
             return 0.0
-        
+
         # Calculate character frequencies
         char_counts = {}
         for char in text:
             char_counts[char] = char_counts.get(char, 0) + 1
-        
+
         # Calculate entropy
         text_len = len(text)
         entropy = 0.0
@@ -895,7 +895,7 @@ class AdvancedAIThreatIntelligenceEngine:
             p = count / text_len
             if p > 0:
                 entropy -= p * np.log2(p)
-        
+
         return entropy
 
     # Fallback methods for when ML libraries are unavailable
@@ -903,28 +903,28 @@ class AdvancedAIThreatIntelligenceEngine:
     async def _fallback_anomaly_detection(self, indicators: List[str]) -> Dict[str, Any]:
         """Fallback anomaly detection without sklearn"""
         findings = []
-        
+
         # Simple heuristic-based detection
         for indicator in indicators:
             anomaly_score = 0.0
-            
+
             # High entropy suggests randomness
             entropy = self._calculate_entropy(indicator)
             if entropy > 4.0:
                 anomaly_score += 0.3
-            
+
             # Unusual character patterns
             if re.search(r'[0-9]{8,}', indicator):  # Long numeric sequences
                 anomaly_score += 0.2
-            
+
             if re.search(r'[a-zA-Z]{20,}', indicator):  # Long character sequences
                 anomaly_score += 0.2
-            
+
             # Multiple suspicious patterns
             suspicious_patterns = ['.tk', '.ml', 'bit.ly', 'tinyurl', 'short']
             if any(pattern in indicator.lower() for pattern in suspicious_patterns):
                 anomaly_score += 0.3
-            
+
             if anomaly_score > 0.5:
                 findings.append({
                     "type": "heuristic_anomaly",
@@ -933,7 +933,7 @@ class AdvancedAIThreatIntelligenceEngine:
                     "description": f"Heuristic anomaly detection triggered for {indicator}",
                     "severity": "medium"
                 })
-        
+
         return {
             "findings": findings,
             "confidence": 0.6,
@@ -944,12 +944,12 @@ class AdvancedAIThreatIntelligenceEngine:
     async def _fallback_vulnerability_prediction(self, system_data: Dict[str, Any]) -> Dict[str, Any]:
         """Fallback vulnerability prediction without ML"""
         predictions = []
-        
+
         # Simple rule-based predictions
         services = system_data.get("services", [])
         open_ports = system_data.get("open_ports", [])
         os_info = system_data.get("os_info", {})
-        
+
         # Check for common vulnerable services
         vulnerable_services = {
             "ftp": {"probability": 0.7, "severity": "medium"},
@@ -958,7 +958,7 @@ class AdvancedAIThreatIntelligenceEngine:
             "http": {"probability": 0.5, "severity": "medium"},
             "https": {"probability": 0.2, "severity": "low"}
         }
-        
+
         for service in services:
             service_name = service.get("name", "").lower()
             if service_name in vulnerable_services:
@@ -969,7 +969,7 @@ class AdvancedAIThreatIntelligenceEngine:
                     "severity": vuln_info["severity"],
                     "confidence": 0.6
                 })
-        
+
         # Check for dangerous port combinations
         dangerous_ports = [21, 23, 135, 139, 445]
         if any(port in open_ports for port in dangerous_ports):
@@ -979,9 +979,9 @@ class AdvancedAIThreatIntelligenceEngine:
                 "severity": "medium",
                 "confidence": 0.7
             })
-        
+
         overall_risk = min(sum(p["probability"] for p in predictions) * 50, 100)
-        
+
         return {
             "system_id": system_data.get("system_id", "unknown"),
             "predictions": predictions,
@@ -1066,9 +1066,9 @@ _ai_engine: Optional[AdvancedAIThreatIntelligenceEngine] = None
 async def get_ai_threat_intelligence_engine() -> AdvancedAIThreatIntelligenceEngine:
     """Get global AI threat intelligence engine instance"""
     global _ai_engine
-    
+
     if _ai_engine is None:
         _ai_engine = AdvancedAIThreatIntelligenceEngine()
         await _ai_engine.initialize()
-    
+
     return _ai_engine

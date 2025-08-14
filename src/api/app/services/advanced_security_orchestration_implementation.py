@@ -67,7 +67,7 @@ class WorkflowAction:
     retry_count: int
     on_failure: str  # "stop", "continue", "retry"
     condition: Optional[str] = None  # Conditional execution
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -88,7 +88,7 @@ class WorkflowTrigger:
     trigger_type: TriggerType
     configuration: Dict[str, Any]
     enabled: bool = True
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "trigger_type": self.trigger_type.value,
@@ -113,7 +113,7 @@ class SecurityWorkflow:
     variables: Dict[str, Any]
     tags: List[str]
     priority: int
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -146,7 +146,7 @@ class WorkflowExecution:
     action_results: Dict[str, Any]
     error_message: Optional[str]
     duration_seconds: float
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "id": self.id,
@@ -165,10 +165,10 @@ class WorkflowExecution:
 
 class SecurityActionExecutor:
     """Executes individual security actions"""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        
+
         # Action handlers
         self._action_handlers = {
             ActionType.SCAN: self._execute_scan_action,
@@ -182,12 +182,12 @@ class SecurityActionExecutor:
             ActionType.MONITOR: self._execute_monitor_action,
             ActionType.BACKUP: self._execute_backup_action
         }
-    
+
     async def execute_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a security action"""
         try:
             start_time = time.time()
-            
+
             # Check if action should be executed based on condition
             if action.condition and not self._evaluate_condition(action.condition, context):
                 return {
@@ -195,21 +195,21 @@ class SecurityActionExecutor:
                     "reason": "Condition not met",
                     "duration": 0.0
                 }
-            
+
             # Get action handler
             handler = self._action_handlers.get(action.action_type)
             if not handler:
                 raise ValueError(f"No handler for action type: {action.action_type}")
-            
+
             # Execute action with retry logic
             result = await self._execute_with_retry(handler, action, context)
-            
+
             duration = time.time() - start_time
             result["duration"] = duration
-            
+
             self.logger.info(f"Action {action.name} completed in {duration:.2f}s")
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Error executing action {action.name}: {str(e)}")
             return {
@@ -217,85 +217,85 @@ class SecurityActionExecutor:
                 "error": str(e),
                 "duration": time.time() - start_time
             }
-    
+
     async def _execute_with_retry(self, handler: Callable, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute action with retry logic"""
         last_error = None
-        
+
         for attempt in range(action.retry_count + 1):
             try:
                 if attempt > 0:
                     self.logger.info(f"Retrying action {action.name}, attempt {attempt + 1}")
-                
+
                 # Execute with timeout
                 result = await asyncio.wait_for(
                     handler(action, context),
                     timeout=action.timeout_seconds
                 )
-                
+
                 return result
-                
+
             except asyncio.TimeoutError:
                 last_error = f"Action timed out after {action.timeout_seconds} seconds"
                 self.logger.warning(f"Action {action.name} timed out")
-                
+
             except Exception as e:
                 last_error = str(e)
                 self.logger.warning(f"Action {action.name} failed: {str(e)}")
-                
+
                 if attempt < action.retry_count:
                     # Exponential backoff
                     await asyncio.sleep(2 ** attempt)
-        
+
         # All retries failed
         raise Exception(f"Action failed after {action.retry_count + 1} attempts: {last_error}")
-    
+
     def _evaluate_condition(self, condition: str, context: Dict[str, Any]) -> bool:
         """Evaluate action condition"""
         try:
             # Simple condition evaluation (in production, use a proper expression evaluator)
             # Format: "variable operator value" (e.g., "threat_score > 0.7")
-            
+
             if ">" in condition:
                 var, value = condition.split(">")
                 var_value = context.get(var.strip(), 0)
                 return float(var_value) > float(value.strip())
-            
+
             elif "<" in condition:
                 var, value = condition.split("<")
                 var_value = context.get(var.strip(), 0)
                 return float(var_value) < float(value.strip())
-            
+
             elif "==" in condition:
                 var, value = condition.split("==")
                 var_value = context.get(var.strip(), "")
                 return str(var_value).strip() == value.strip().strip('"\'')
-            
+
             elif "!=" in condition:
                 var, value = condition.split("!=")
                 var_value = context.get(var.strip(), "")
                 return str(var_value).strip() != value.strip().strip('"\'')
-            
+
             else:
                 # Boolean variable
                 return bool(context.get(condition.strip(), False))
-                
+
         except Exception as e:
             self.logger.error(f"Error evaluating condition '{condition}': {str(e)}")
             return False
-    
+
     async def _execute_scan_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute security scan action"""
         parameters = action.parameters
         scan_type = parameters.get("scan_type", "comprehensive")
         targets = parameters.get("targets", [])
-        
+
         # In production, integrate with actual PTaaS service
         self.logger.info(f"Executing {scan_type} scan on {len(targets)} targets")
-        
+
         # Simulate scan execution
         await asyncio.sleep(2)  # Simulate scan time
-        
+
         return {
             "status": "completed",
             "scan_id": str(uuid.uuid4()),
@@ -303,73 +303,73 @@ class SecurityActionExecutor:
             "vulnerabilities_found": 3,  # Mock result
             "scan_type": scan_type
         }
-    
+
     async def _execute_block_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute block action (IP, domain, etc.)"""
         parameters = action.parameters
         indicators = parameters.get("indicators", [])
         block_type = parameters.get("type", "ip")
-        
+
         self.logger.info(f"Blocking {len(indicators)} {block_type} indicators")
-        
+
         # Simulate blocking
         await asyncio.sleep(0.5)
-        
+
         return {
             "status": "completed",
             "blocked_indicators": indicators,
             "block_type": block_type,
             "rules_created": len(indicators)
         }
-    
+
     async def _execute_isolate_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute system isolation action"""
         parameters = action.parameters
         systems = parameters.get("systems", [])
         isolation_type = parameters.get("type", "network")
-        
+
         self.logger.info(f"Isolating {len(systems)} systems ({isolation_type})")
-        
+
         # Simulate isolation
         await asyncio.sleep(1)
-        
+
         return {
             "status": "completed",
             "isolated_systems": systems,
             "isolation_type": isolation_type,
             "isolation_time": datetime.utcnow().isoformat()
         }
-    
+
     async def _execute_notify_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute notification action"""
         parameters = action.parameters
         recipients = parameters.get("recipients", [])
         message = parameters.get("message", "Security alert")
         channel = parameters.get("channel", "email")
-        
+
         self.logger.info(f"Sending {channel} notifications to {len(recipients)} recipients")
-        
+
         # Simulate notification
         await asyncio.sleep(0.3)
-        
+
         return {
             "status": "completed",
             "notifications_sent": len(recipients),
             "channel": channel,
             "message_id": str(uuid.uuid4())
         }
-    
+
     async def _execute_analyze_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute analysis action"""
         parameters = action.parameters
         data_source = parameters.get("data_source", "logs")
         analysis_type = parameters.get("type", "threat_analysis")
-        
+
         self.logger.info(f"Performing {analysis_type} on {data_source}")
-        
+
         # Simulate analysis
         await asyncio.sleep(3)
-        
+
         return {
             "status": "completed",
             "analysis_type": analysis_type,
@@ -378,36 +378,36 @@ class SecurityActionExecutor:
             "indicators_found": 5,
             "analysis_id": str(uuid.uuid4())
         }
-    
+
     async def _execute_remediate_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute remediation action"""
         parameters = action.parameters
         remediation_type = parameters.get("type", "patch")
         targets = parameters.get("targets", [])
-        
+
         self.logger.info(f"Executing {remediation_type} remediation on {len(targets)} targets")
-        
+
         # Simulate remediation
         await asyncio.sleep(5)
-        
+
         return {
             "status": "completed",
             "remediation_type": remediation_type,
             "targets_remediated": len(targets),
             "success_rate": 0.95  # Mock result
         }
-    
+
     async def _execute_investigate_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute investigation action"""
         parameters = action.parameters
         investigation_type = parameters.get("type", "forensic")
         scope = parameters.get("scope", [])
-        
+
         self.logger.info(f"Starting {investigation_type} investigation")
-        
+
         # Simulate investigation
         await asyncio.sleep(4)
-        
+
         return {
             "status": "completed",
             "investigation_type": investigation_type,
@@ -415,18 +415,18 @@ class SecurityActionExecutor:
             "evidence_collected": 15,  # Mock result
             "timeline_events": 23
         }
-    
+
     async def _execute_report_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute report generation action"""
         parameters = action.parameters
         report_type = parameters.get("type", "incident")
         format_type = parameters.get("format", "pdf")
-        
+
         self.logger.info(f"Generating {report_type} report in {format_type} format")
-        
+
         # Simulate report generation
         await asyncio.sleep(2)
-        
+
         return {
             "status": "completed",
             "report_type": report_type,
@@ -434,15 +434,15 @@ class SecurityActionExecutor:
             "report_id": str(uuid.uuid4()),
             "report_url": f"/reports/{uuid.uuid4()}.{format_type}"
         }
-    
+
     async def _execute_monitor_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute monitoring action"""
         parameters = action.parameters
         monitor_type = parameters.get("type", "continuous")
         duration = parameters.get("duration_hours", 24)
-        
+
         self.logger.info(f"Setting up {monitor_type} monitoring for {duration} hours")
-        
+
         return {
             "status": "completed",
             "monitor_type": monitor_type,
@@ -450,18 +450,18 @@ class SecurityActionExecutor:
             "duration_hours": duration,
             "monitoring_started": datetime.utcnow().isoformat()
         }
-    
+
     async def _execute_backup_action(self, action: WorkflowAction, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute backup action"""
         parameters = action.parameters
         backup_type = parameters.get("type", "incremental")
         systems = parameters.get("systems", [])
-        
+
         self.logger.info(f"Creating {backup_type} backup of {len(systems)} systems")
-        
+
         # Simulate backup
         await asyncio.sleep(3)
-        
+
         return {
             "status": "completed",
             "backup_type": backup_type,
@@ -473,23 +473,23 @@ class SecurityActionExecutor:
 
 class WorkflowEngine:
     """Core workflow execution engine"""
-    
+
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         self.executor = SecurityActionExecutor()
-        
+
         # Active executions
         self._active_executions: Dict[str, WorkflowExecution] = {}
-        
+
         # Workflow scheduler
         self._scheduler_running = False
         self._scheduler_task: Optional[asyncio.Task] = None
-    
+
     async def execute_workflow(self, workflow: SecurityWorkflow, trigger_data: Dict[str, Any], user: User) -> WorkflowExecution:
         """Execute a security workflow"""
         try:
             execution_id = str(uuid.uuid4())
-            
+
             # Create execution instance
             execution = WorkflowExecution(
                 id=execution_id,
@@ -504,43 +504,43 @@ class WorkflowEngine:
                 error_message=None,
                 duration_seconds=0.0
             )
-            
+
             # Store execution
             self._active_executions[execution_id] = execution
-            
+
             # Start execution asynchronously
             asyncio.create_task(self._execute_workflow_async(execution, workflow))
-            
+
             self.logger.info(f"Started workflow execution {execution_id} for workflow {workflow.name}")
             return execution
-            
+
         except Exception as e:
             self.logger.error(f"Error starting workflow execution: {str(e)}")
             raise
-    
+
     async def _execute_workflow_async(self, execution: WorkflowExecution, workflow: SecurityWorkflow):
         """Execute workflow asynchronously"""
         try:
             execution.status = WorkflowStatus.RUNNING
             start_time = time.time()
-            
+
             # Build action dependency graph
             action_graph = self._build_action_graph(workflow.actions)
-            
+
             # Execute actions in dependency order
             executed_actions = set()
-            
+
             while len(executed_actions) < len(workflow.actions):
                 # Find actions ready to execute
                 ready_actions = self._find_ready_actions(action_graph, executed_actions)
-                
+
                 if not ready_actions:
                     # Check for circular dependencies or missing dependencies
                     remaining_actions = [a for a in workflow.actions if a.id not in executed_actions]
                     if remaining_actions:
                         raise Exception("Circular dependency or missing dependency detected")
                     break
-                
+
                 # Execute ready actions in parallel
                 action_tasks = []
                 for action in ready_actions:
@@ -548,98 +548,98 @@ class WorkflowEngine:
                         self.executor.execute_action(action, execution.execution_context)
                     )
                     action_tasks.append((action, task))
-                
+
                 # Wait for all actions to complete
                 for action, task in action_tasks:
                     try:
                         result = await task
                         execution.action_results[action.id] = result
                         executed_actions.add(action.id)
-                        
+
                         # Update execution context with action results
                         if result.get("status") == "completed":
                             self._update_execution_context(execution, action, result)
-                        
+
                         # Handle action failure
                         elif result.get("status") == "failed" and action.on_failure == "stop":
                             raise Exception(f"Action {action.name} failed and configured to stop workflow")
-                        
+
                     except Exception as e:
                         self.logger.error(f"Action {action.name} failed: {str(e)}")
                         execution.action_results[action.id] = {
                             "status": "failed",
                             "error": str(e)
                         }
-                        
+
                         if action.on_failure == "stop":
                             raise
                         else:
                             executed_actions.add(action.id)  # Continue execution
-            
+
             # Mark as completed
             execution.status = WorkflowStatus.COMPLETED
             execution.completed_at = datetime.utcnow()
             execution.duration_seconds = time.time() - start_time
-            
+
             self.logger.info(f"Workflow execution {execution.id} completed in {execution.duration_seconds:.2f}s")
-            
+
         except Exception as e:
             execution.status = WorkflowStatus.FAILED
             execution.error_message = str(e)
             execution.completed_at = datetime.utcnow()
             execution.duration_seconds = time.time() - start_time
-            
+
             self.logger.error(f"Workflow execution {execution.id} failed: {str(e)}")
-    
+
     def _build_action_graph(self, actions: List[WorkflowAction]) -> Dict[str, List[str]]:
         """Build action dependency graph"""
         graph = {}
-        
+
         for action in actions:
             graph[action.id] = action.dependencies
-        
+
         return graph
-    
+
     def _find_ready_actions(self, graph: Dict[str, List[str]], executed_actions: set) -> List[WorkflowAction]:
         """Find actions ready to execute (all dependencies satisfied)"""
         ready_action_ids = []
-        
+
         for action_id, dependencies in graph.items():
             if action_id not in executed_actions:
                 # Check if all dependencies are satisfied
                 if all(dep in executed_actions for dep in dependencies):
                     ready_action_ids.append(action_id)
-        
+
         # Return actual action objects
         return [action for action in self._workflow_actions if action.id in ready_action_ids]
-    
+
     def _update_execution_context(self, execution: WorkflowExecution, action: WorkflowAction, result: Dict[str, Any]):
         """Update execution context with action results"""
         # Add action results to context for use by subsequent actions
         execution.execution_context[f"{action.id}_result"] = result
-        
+
         # Extract specific values based on action type
         if action.action_type == ActionType.SCAN:
             execution.execution_context["last_scan_id"] = result.get("scan_id")
             execution.execution_context["vulnerabilities_found"] = result.get("vulnerabilities_found", 0)
-        
+
         elif action.action_type == ActionType.ANALYZE:
             execution.execution_context["threat_score"] = result.get("threat_score", 0.0)
             execution.execution_context["indicators_found"] = result.get("indicators_found", 0)
-        
+
         elif action.action_type == ActionType.INVESTIGATE:
             execution.execution_context["investigation_id"] = result.get("investigation_id")
             execution.execution_context["evidence_collected"] = result.get("evidence_collected", 0)
-    
+
     async def start_scheduler(self):
         """Start workflow scheduler for scheduled workflows"""
         if self._scheduler_running:
             return
-        
+
         self._scheduler_running = True
         self._scheduler_task = asyncio.create_task(self._scheduler_loop())
         self.logger.info("Workflow scheduler started")
-    
+
     async def stop_scheduler(self):
         """Stop workflow scheduler"""
         self._scheduler_running = False
@@ -650,14 +650,14 @@ class WorkflowEngine:
             except asyncio.CancelledError:
                 pass
         self.logger.info("Workflow scheduler stopped")
-    
+
     async def _scheduler_loop(self):
         """Main scheduler loop"""
         while self._scheduler_running:
             try:
                 # Check for scheduled workflows (placeholder)
                 await asyncio.sleep(60)  # Check every minute
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
@@ -667,21 +667,21 @@ class WorkflowEngine:
 
 class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, XORBService):
     """Advanced security orchestration and automation service"""
-    
+
     def __init__(self):
         super().__init__(service_type=ServiceType.ORCHESTRATION)
         self.logger = logging.getLogger(__name__)
-        
+
         # Core components
         self.workflow_engine = WorkflowEngine()
-        
+
         # Workflow storage
         self._workflows: Dict[str, SecurityWorkflow] = {}
         self._executions: Dict[str, WorkflowExecution] = {}
-        
+
         # Initialize built-in workflows
         self._initialize_builtin_workflows()
-    
+
     def _initialize_builtin_workflows(self):
         """Initialize built-in security workflows"""
         try:
@@ -751,7 +751,7 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 tags=["incident_response", "automated"],
                 priority=1
             )
-            
+
             # Vulnerability Management Workflow
             vulnerability_management = SecurityWorkflow(
                 id="vulnerability_management_workflow",
@@ -832,7 +832,7 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 tags=["vulnerability_management", "scheduled"],
                 priority=2
             )
-            
+
             # Threat Hunting Workflow
             threat_hunting = SecurityWorkflow(
                 id="threat_hunting_workflow",
@@ -896,17 +896,17 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 tags=["threat_hunting", "proactive"],
                 priority=3
             )
-            
+
             # Store built-in workflows
             self._workflows[incident_response.id] = incident_response
             self._workflows[vulnerability_management.id] = vulnerability_management
             self._workflows[threat_hunting.id] = threat_hunting
-            
+
             self.logger.info(f"Initialized {len(self._workflows)} built-in workflows")
-            
+
         except Exception as e:
             self.logger.error(f"Error initializing built-in workflows: {str(e)}")
-    
+
     async def create_workflow(
         self,
         workflow_definition: Dict[str, Any],
@@ -916,10 +916,10 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
         """Create security automation workflow"""
         try:
             workflow_id = str(uuid.uuid4())
-            
+
             # Parse workflow definition
             workflow = self._parse_workflow_definition(workflow_definition, workflow_id, user.username)
-            
+
             # Validate workflow
             validation_result = self._validate_workflow(workflow)
             if not validation_result["valid"]:
@@ -927,12 +927,12 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                     "error": "Workflow validation failed",
                     "validation_errors": validation_result["errors"]
                 }
-            
+
             # Store workflow
             self._workflows[workflow_id] = workflow
-            
+
             self.logger.info(f"Created workflow {workflow.name} ({workflow_id}) by user {user.username}")
-            
+
             return {
                 "workflow_id": workflow_id,
                 "name": workflow.name,
@@ -940,11 +940,11 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 "validation": validation_result,
                 "created_at": workflow.created_at.isoformat()
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error creating workflow: {str(e)}")
             return {"error": str(e)}
-    
+
     async def execute_workflow(
         self,
         workflow_id: str,
@@ -955,18 +955,18 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
         try:
             if workflow_id not in self._workflows:
                 return {"error": f"Workflow {workflow_id} not found"}
-            
+
             workflow = self._workflows[workflow_id]
-            
+
             # Merge parameters with workflow variables
             trigger_data = {**workflow.variables, **parameters}
-            
+
             # Execute workflow
             execution = await self.workflow_engine.execute_workflow(workflow, trigger_data, user)
-            
+
             # Store execution
             self._executions[execution.id] = execution
-            
+
             return {
                 "execution_id": execution.id,
                 "workflow_id": workflow_id,
@@ -974,11 +974,11 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 "started_at": execution.started_at.isoformat(),
                 "triggered_by": execution.triggered_by
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error executing workflow: {str(e)}")
             return {"error": str(e)}
-    
+
     async def get_workflow_status(
         self,
         execution_id: str,
@@ -994,10 +994,10 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                     return {"error": f"Execution {execution_id} not found"}
             else:
                 execution = self._executions[execution_id]
-            
+
             # Calculate progress
             progress = self._calculate_execution_progress(execution)
-            
+
             return {
                 "execution_id": execution_id,
                 "workflow_id": execution.workflow_id,
@@ -1010,11 +1010,11 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 "action_results": execution.action_results,
                 "error_message": execution.error_message
             }
-            
+
         except Exception as e:
             self.logger.error(f"Error getting workflow status: {str(e)}")
             return {"error": str(e)}
-    
+
     async def schedule_recurring_scan(
         self,
         targets: List[str],
@@ -1067,21 +1067,21 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 "variables": {"scan_targets": targets},
                 "tags": ["scheduled", "recurring", "scan"]
             }
-            
+
             # Create workflow
             result = await self.create_workflow(workflow_definition, user, None)
-            
+
             if "error" not in result:
                 result["schedule"] = schedule
                 result["targets"] = targets
                 result["scan_config"] = scan_config
-            
+
             return result
-            
+
         except Exception as e:
             self.logger.error(f"Error scheduling recurring scan: {str(e)}")
             return {"error": str(e)}
-    
+
     def _parse_workflow_definition(self, definition: Dict[str, Any], workflow_id: str, created_by: str) -> SecurityWorkflow:
         """Parse workflow definition into SecurityWorkflow object"""
         # Parse triggers
@@ -1093,7 +1093,7 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 enabled=trigger_def.get("enabled", True)
             )
             triggers.append(trigger)
-        
+
         # Parse actions
         actions = []
         for action_def in definition.get("actions", []):
@@ -1109,7 +1109,7 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 condition=action_def.get("condition")
             )
             actions.append(action)
-        
+
         # Create workflow
         workflow = SecurityWorkflow(
             id=workflow_id,
@@ -1126,93 +1126,93 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
             tags=definition.get("tags", []),
             priority=definition.get("priority", 5)
         )
-        
+
         # Store actions reference for dependency resolution
         self._workflow_actions = actions
-        
+
         return workflow
-    
+
     def _validate_workflow(self, workflow: SecurityWorkflow) -> Dict[str, Any]:
         """Validate workflow definition"""
         errors = []
-        
+
         # Check for duplicate action IDs
         action_ids = [action.id for action in workflow.actions]
         if len(action_ids) != len(set(action_ids)):
             errors.append("Duplicate action IDs found")
-        
+
         # Check for circular dependencies
         if self._has_circular_dependencies(workflow.actions):
             errors.append("Circular dependencies detected")
-        
+
         # Check for invalid dependencies
         for action in workflow.actions:
             for dep in action.dependencies:
                 if dep not in action_ids:
                     errors.append(f"Action {action.id} depends on non-existent action {dep}")
-        
+
         # Check trigger configurations
         for trigger in workflow.triggers:
             if trigger.trigger_type == TriggerType.SCHEDULED:
                 if "schedule" not in trigger.configuration:
                     errors.append("Scheduled trigger missing schedule configuration")
-        
+
         return {
             "valid": len(errors) == 0,
             "errors": errors
         }
-    
+
     def _has_circular_dependencies(self, actions: List[WorkflowAction]) -> bool:
         """Check for circular dependencies in workflow actions"""
         # Build dependency graph
         graph = {}
         for action in actions:
             graph[action.id] = action.dependencies
-        
+
         # DFS to detect cycles
         visited = set()
         rec_stack = set()
-        
+
         def has_cycle(node):
             if node in rec_stack:
                 return True
             if node in visited:
                 return False
-            
+
             visited.add(node)
             rec_stack.add(node)
-            
+
             for neighbor in graph.get(node, []):
                 if has_cycle(neighbor):
                     return True
-            
+
             rec_stack.remove(node)
             return False
-        
+
         for action_id in graph:
             if action_id not in visited:
                 if has_cycle(action_id):
                     return True
-        
+
         return False
-    
+
     def _calculate_execution_progress(self, execution: WorkflowExecution) -> Dict[str, Any]:
         """Calculate workflow execution progress"""
         if execution.status == WorkflowStatus.PENDING:
             return {"percentage": 0, "current_phase": "Initializing"}
-        
+
         elif execution.status == WorkflowStatus.RUNNING:
             # Calculate based on completed actions
             workflow = self._workflows.get(execution.workflow_id)
             if not workflow:
                 return {"percentage": 50, "current_phase": "Running"}
-            
+
             total_actions = len(workflow.actions)
-            completed_actions = len([r for r in execution.action_results.values() 
+            completed_actions = len([r for r in execution.action_results.values()
                                   if r.get("status") in ["completed", "skipped"]])
-            
+
             percentage = (completed_actions / total_actions * 100) if total_actions > 0 else 0
-            
+
             # Determine current phase
             current_phase = "Executing Actions"
             if execution.action_results:
@@ -1220,27 +1220,27 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 last_action = next((a for a in workflow.actions if a.id == last_action_id), None)
                 if last_action:
                     current_phase = f"Executing: {last_action.name}"
-            
+
             return {
                 "percentage": min(95, percentage),  # Cap at 95% until complete
                 "current_phase": current_phase,
                 "completed_actions": completed_actions,
                 "total_actions": total_actions
             }
-        
+
         elif execution.status == WorkflowStatus.COMPLETED:
             return {"percentage": 100, "current_phase": "Completed"}
-        
+
         elif execution.status == WorkflowStatus.FAILED:
             return {"percentage": 0, "current_phase": "Failed"}
-        
+
         else:
             return {"percentage": 0, "current_phase": execution.status.value.title()}
-    
+
     async def get_available_workflows(self, user: User) -> List[Dict[str, Any]]:
         """Get list of available workflows"""
         workflows = []
-        
+
         for workflow in self._workflows.values():
             workflows.append({
                 "id": workflow.id,
@@ -1255,17 +1255,17 @@ class AdvancedSecurityOrchestrationImplementation(SecurityOrchestrationService, 
                 "created_at": workflow.created_at.isoformat(),
                 "updated_at": workflow.updated_at.isoformat()
             })
-        
+
         # Sort by priority and name
         workflows.sort(key=lambda w: (w["priority"], w["name"]))
-        
+
         return workflows
-    
+
     async def start_services(self):
         """Start orchestration services"""
         await self.workflow_engine.start_scheduler()
         self.logger.info("Security orchestration services started")
-    
+
     async def stop_services(self):
         """Stop orchestration services"""
         await self.workflow_engine.stop_scheduler()

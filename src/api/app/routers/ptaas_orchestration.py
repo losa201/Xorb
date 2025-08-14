@@ -84,14 +84,14 @@ async def create_automated_workflow(
 ):
     """
     Create an automated PTaaS workflow
-    
+
     Creates a new automated workflow that can be triggered by schedule,
     events, or manual execution. Workflows can include multiple scan types,
     target validation, and automated reporting.
     """
     try:
         workflow_id = f"workflow_{tenant_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        
+
         workflow = OrchestrationWorkflow(
             workflow_id=workflow_id,
             name=request.name,
@@ -102,15 +102,15 @@ async def create_automated_workflow(
             triggers=request.triggers,
             execution_count=0
         )
-        
+
         # Store workflow configuration (would typically use database)
         # For now, log the creation
         logger.info(f"Created automated workflow {workflow_id} for tenant {tenant_id}")
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_workflow_created", 1)
-        
+
         # Add tracing
         add_trace_context(
             operation="ptaas_workflow_created",
@@ -119,9 +119,9 @@ async def create_automated_workflow(
             targets_count=len(request.targets),
             triggers_count=len(request.triggers)
         )
-        
+
         return workflow
-        
+
     except Exception as e:
         logger.error(f"Failed to create automated workflow: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -134,7 +134,7 @@ async def list_workflows(
 ):
     """
     List automated workflows for the tenant
-    
+
     Returns a list of configured automated workflows with their current
     status and execution history.
     """
@@ -142,10 +142,10 @@ async def list_workflows(
         # This would typically query a database
         # For now, return empty list with proper structure
         workflows = []
-        
+
         logger.info(f"Listed {len(workflows)} workflows for tenant {tenant_id}")
         return workflows
-        
+
     except Exception as e:
         logger.error(f"Failed to list workflows: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -160,13 +160,13 @@ async def execute_workflow(
 ):
     """
     Execute a workflow manually
-    
+
     Triggers immediate execution of the specified workflow with optional
     trigger data for parameterization.
     """
     try:
         execution_id = f"exec_{workflow_id}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        
+
         execution = WorkflowExecution(
             execution_id=execution_id,
             workflow_id=workflow_id,
@@ -179,18 +179,18 @@ async def execute_workflow(
                 "percentage": 0
             }
         )
-        
+
         # Start workflow execution in background
         background_tasks.add_task(_execute_workflow_background, execution, trigger_data or {})
-        
+
         logger.info(f"Started workflow execution {execution_id}")
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_workflow_executed", 1)
-        
+
         return execution
-        
+
     except Exception as e:
         logger.error(f"Failed to execute workflow {workflow_id}: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -203,16 +203,16 @@ async def get_workflow_executions(
 ):
     """
     Get execution history for a workflow
-    
+
     Returns the execution history for the specified workflow including
     status, timing, and results.
     """
     try:
         # This would typically query execution history from database
         executions = []
-        
+
         return executions
-        
+
     except Exception as e:
         logger.error(f"Failed to get workflow executions: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -226,24 +226,24 @@ async def initiate_compliance_scan(
 ):
     """
     Initiate compliance-focused security assessment
-    
+
     Performs specialized scanning and assessment tailored to specific
     compliance frameworks with automated report generation.
     """
     try:
         scan_id = f"compliance_{request.compliance_framework}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        
+
         # Validate compliance framework
         supported_frameworks = ["PCI-DSS", "HIPAA", "SOX", "ISO-27001", "GDPR", "NIST", "CIS"]
         if request.compliance_framework not in supported_frameworks:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Unsupported compliance framework. Supported: {', '.join(supported_frameworks)}"
             )
-        
+
         # Configure compliance-specific scan parameters
         compliance_config = _get_compliance_scan_config(request.compliance_framework)
-        
+
         scan_result = {
             "scan_id": scan_id,
             "compliance_framework": request.compliance_framework,
@@ -255,18 +255,18 @@ async def initiate_compliance_scan(
             "estimated_completion": (datetime.utcnow() + timedelta(hours=2)).isoformat(),
             "compliance_config": compliance_config
         }
-        
+
         # Start compliance scan in background
         background_tasks.add_task(_execute_compliance_scan, scan_result)
-        
+
         logger.info(f"Initiated compliance scan {scan_id} for framework {request.compliance_framework}")
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_compliance_scan_initiated", 1)
-        
+
         return scan_result
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -282,29 +282,29 @@ async def initiate_threat_simulation(
 ):
     """
     Initiate advanced threat simulation
-    
+
     Performs sophisticated attack simulation to test defense capabilities
     and incident response procedures.
     """
     try:
         simulation_id = f"sim_{request.simulation_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        
+
         # Validate simulation type
         supported_simulations = [
             "apt_simulation", "ransomware_simulation", "insider_threat",
             "phishing_campaign", "lateral_movement", "data_exfiltration",
             "cloud_attack", "supply_chain_attack"
         ]
-        
+
         if request.simulation_type not in supported_simulations:
             raise HTTPException(
                 status_code=400,
                 detail=f"Unsupported simulation type. Supported: {', '.join(supported_simulations)}"
             )
-        
+
         # Configure simulation parameters
         simulation_config = _get_simulation_config(request.simulation_type)
-        
+
         simulation_result = {
             "simulation_id": simulation_id,
             "simulation_type": request.simulation_type,
@@ -322,18 +322,18 @@ async def initiate_threat_simulation(
                 "emergency_stop": True
             }
         }
-        
+
         # Start threat simulation in background
         background_tasks.add_task(_execute_threat_simulation, simulation_result)
-        
+
         logger.info(f"Initiated threat simulation {simulation_id} of type {request.simulation_type}")
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_threat_simulation_initiated", 1)
-        
+
         return simulation_result
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -347,7 +347,7 @@ async def get_orchestration_metrics(
 ):
     """
     Get orchestration metrics and analytics
-    
+
     Returns comprehensive metrics about workflow executions, compliance
     scans, and threat simulations.
     """
@@ -355,7 +355,7 @@ async def get_orchestration_metrics(
         # Parse time range
         time_delta = _parse_time_range(time_range)
         start_time = datetime.utcnow() - time_delta
-        
+
         # Calculate metrics (would typically query from database/metrics store)
         metrics = {
             "time_range": time_range,
@@ -386,9 +386,9 @@ async def get_orchestration_metrics(
                 "processing_capacity": 100
             }
         }
-        
+
         return metrics
-        
+
     except Exception as e:
         logger.error(f"Failed to get orchestration metrics: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -404,30 +404,30 @@ async def create_advanced_scan_workflow(
 ):
     """
     Create advanced multi-stage scan workflow
-    
+
     Creates a sophisticated scan workflow with multiple stages, parallel
     execution, and intelligent result correlation.
     """
     try:
         workflow_id = f"advanced_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
-        
+
         # Validate scan types
         valid_scan_types = [
             "network_discovery", "port_scan", "service_enumeration",
             "vulnerability_scan", "web_application_scan", "ssl_analysis",
             "database_scan", "compliance_check", "configuration_audit"
         ]
-        
+
         invalid_types = [st for st in scan_types if st not in valid_scan_types]
         if invalid_types:
             raise HTTPException(
                 status_code=400,
                 detail=f"Invalid scan types: {', '.join(invalid_types)}"
             )
-        
+
         # Create workflow stages
         workflow_stages = _create_scan_workflow_stages(scan_types, targets, constraints or {})
-        
+
         workflow_config = {
             "workflow_id": workflow_id,
             "type": "advanced_scan",
@@ -441,15 +441,15 @@ async def create_advanced_scan_workflow(
             "parallelization": True,
             "result_correlation": True
         }
-        
+
         logger.info(f"Created advanced scan workflow {workflow_id} with {len(workflow_stages)} stages")
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("ptaas_advanced_scan_created", 1)
-        
+
         return workflow_config
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -462,17 +462,17 @@ async def _execute_workflow_background(execution: WorkflowExecution, trigger_dat
     try:
         # Simulate workflow execution stages
         stages = ["initialization", "target_validation", "scanning", "analysis", "reporting"]
-        
+
         for i, stage in enumerate(stages):
             execution.progress["current_stage"] = stage
             execution.progress["completed_stages"].append(stage)
             execution.progress["percentage"] = int((i + 1) / len(stages) * 100)
-            
+
             # Simulate stage processing time
             await asyncio.sleep(2)
-            
+
             logger.debug(f"Workflow {execution.execution_id} completed stage: {stage}")
-        
+
         execution.status = "completed"
         execution.completed_at = datetime.utcnow().isoformat()
         execution.results = {
@@ -481,9 +481,9 @@ async def _execute_workflow_background(execution: WorkflowExecution, trigger_dat
             "total_duration": "10 minutes",
             "findings_generated": True
         }
-        
+
         logger.info(f"Workflow {execution.execution_id} completed successfully")
-        
+
     except Exception as e:
         execution.status = "failed"
         execution.error_message = str(e)
@@ -495,15 +495,15 @@ async def _execute_compliance_scan(scan_config: Dict[str, Any]):
     try:
         scan_id = scan_config["scan_id"]
         framework = scan_config["compliance_framework"]
-        
+
         logger.info(f"Executing compliance scan {scan_id} for {framework}")
-        
+
         # Simulate compliance scan execution
         await asyncio.sleep(5)
-        
+
         # Update scan status (would typically update database)
         logger.info(f"Compliance scan {scan_id} completed")
-        
+
     except Exception as e:
         logger.error(f"Compliance scan failed: {e}")
 
@@ -512,15 +512,15 @@ async def _execute_threat_simulation(simulation_config: Dict[str, Any]):
     try:
         sim_id = simulation_config["simulation_id"]
         sim_type = simulation_config["simulation_type"]
-        
+
         logger.info(f"Executing threat simulation {sim_id} of type {sim_type}")
-        
+
         # Simulate threat simulation execution
         await asyncio.sleep(10)
-        
+
         # Update simulation status (would typically update database)
         logger.info(f"Threat simulation {sim_id} completed")
-        
+
     except Exception as e:
         logger.error(f"Threat simulation failed: {e}")
 
@@ -543,7 +543,7 @@ def _get_compliance_scan_config(framework: str) -> Dict[str, Any]:
             "reporting_format": "sox_compliance"
         }
     }
-    
+
     return configs.get(framework, {
         "focus_areas": ["general_security"],
         "required_scans": ["vulnerability"],
@@ -569,7 +569,7 @@ def _get_simulation_config(simulation_type: str) -> Dict[str, Any]:
             "user_personas": ["disgruntled_employee", "compromised_credentials"]
         }
     }
-    
+
     return configs.get(simulation_type, {
         "phases": ["generic_attack"],
         "duration_hours": 2,
@@ -584,13 +584,13 @@ def _parse_time_range(time_range: str) -> timedelta:
         "7d": timedelta(days=7),
         "30d": timedelta(days=30)
     }
-    
+
     return range_map.get(time_range, timedelta(hours=24))
 
 def _create_scan_workflow_stages(scan_types: List[str], targets: List[str], constraints: Dict[str, Any]) -> List[Dict[str, Any]]:
     """Create workflow stages based on scan types"""
     stages = []
-    
+
     # Stage 1: Discovery and reconnaissance
     if "network_discovery" in scan_types or "port_scan" in scan_types:
         stages.append({
@@ -600,7 +600,7 @@ def _create_scan_workflow_stages(scan_types: List[str], targets: List[str], cons
             "tasks": ["network_discovery", "port_scan"],
             "estimated_duration": 300
         })
-    
+
     # Stage 2: Service enumeration
     if "service_enumeration" in scan_types:
         stages.append({
@@ -610,7 +610,7 @@ def _create_scan_workflow_stages(scan_types: List[str], targets: List[str], cons
             "tasks": ["service_enumeration"],
             "estimated_duration": 600
         })
-    
+
     # Stage 3: Vulnerability scanning
     if "vulnerability_scan" in scan_types:
         stages.append({
@@ -620,7 +620,7 @@ def _create_scan_workflow_stages(scan_types: List[str], targets: List[str], cons
             "tasks": ["vulnerability_scan"],
             "estimated_duration": 1200
         })
-    
+
     # Stage 4: Specialized scans
     specialized_scans = []
     if "web_application_scan" in scan_types:
@@ -629,7 +629,7 @@ def _create_scan_workflow_stages(scan_types: List[str], targets: List[str], cons
         specialized_scans.append("ssl_analysis")
     if "database_scan" in scan_types:
         specialized_scans.append("database_scan")
-    
+
     if specialized_scans:
         stages.append({
             "stage_id": "specialized_scans",
@@ -638,14 +638,14 @@ def _create_scan_workflow_stages(scan_types: List[str], targets: List[str], cons
             "tasks": specialized_scans,
             "estimated_duration": 900
         })
-    
+
     # Stage 5: Compliance and configuration
     compliance_scans = []
     if "compliance_check" in scan_types:
         compliance_scans.append("compliance_check")
     if "configuration_audit" in scan_types:
         compliance_scans.append("configuration_audit")
-    
+
     if compliance_scans:
         stages.append({
             "stage_id": "compliance",
@@ -654,13 +654,13 @@ def _create_scan_workflow_stages(scan_types: List[str], targets: List[str], cons
             "tasks": compliance_scans,
             "estimated_duration": 600
         })
-    
+
     return stages
 
 def _estimate_workflow_duration(stages: List[Dict[str, Any]]) -> int:
     """Estimate total workflow duration in seconds"""
     total_duration = 0
-    
+
     for stage in stages:
         stage_duration = stage.get("estimated_duration", 300)
         if stage.get("type") == "parallel":
@@ -669,5 +669,5 @@ def _estimate_workflow_duration(stages: List[Dict[str, Any]]) -> int:
         else:
             # Sequential tasks add up
             total_duration += stage_duration
-    
+
     return total_duration

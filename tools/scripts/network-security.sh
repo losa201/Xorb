@@ -474,7 +474,7 @@ echo "🔍 Starting XORB network monitoring..."
 # Function to monitor suspicious activity
 monitor_connections() {
     echo "📡 Monitoring network connections..."
-    
+
     # Monitor for port scanning
     netstat -tuln | grep LISTEN | while read line; do
         port=$(echo "$line" | awk '{print $4}' | cut -d: -f2)
@@ -482,7 +482,7 @@ monitor_connections() {
             echo "$(date): Listening on port $port" >> /var/log/xorb/network-monitor.log
         fi
     done
-    
+
     # Monitor for unusual traffic patterns
     ss -tuln | grep -E "(8000|8080|9000|5432|6379)" | while read line; do
         echo "$(date): XORB service connection: $line" >> /var/log/xorb/network-monitor.log
@@ -492,13 +492,13 @@ monitor_connections() {
 # Function to detect anomalies
 detect_anomalies() {
     echo "🚨 Detecting network anomalies..."
-    
+
     # Check for excessive connections
     CONN_COUNT=$(netstat -an | grep ESTABLISHED | wc -l)
     if [ "$CONN_COUNT" -gt 1000 ]; then
         echo "$(date): WARNING: High connection count: $CONN_COUNT" >> /var/log/xorb/security-alerts.log
     fi
-    
+
     # Check for suspicious IPs
     netstat -an | grep ESTABLISHED | awk '{print $5}' | cut -d: -f1 | sort | uniq -c | sort -nr | head -10 | while read count ip; do
         if [ "$count" -gt 50 ]; then
@@ -510,7 +510,7 @@ detect_anomalies() {
 # Function to analyze traffic
 analyze_traffic() {
     echo "📊 Analyzing network traffic..."
-    
+
     # Monitor XORB service ports
     for port in 8000 8080 9000; do
         connections=$(netstat -an | grep ":$port " | grep ESTABLISHED | wc -l)
@@ -552,62 +552,62 @@ ENVIRONMENT="${2:-development}"
 case "$ACTION" in
     "deploy")
         echo "🚀 Deploying security policies..."
-        
+
         # Deploy Kubernetes network policies
         if command -v kubectl &> /dev/null; then
             echo "📋 Applying Kubernetes network policies..."
             kubectl apply -f /root/Xorb/security/policies/kubernetes/ -n "xorb-$ENVIRONMENT" || echo "⚠️  Kubernetes not available"
         fi
-        
+
         # Configure Docker network security
         echo "🐳 Configuring Docker network security..."
         /root/Xorb/security/policies/docker/docker-network-security.sh
-        
+
         # Apply iptables rules (only in production)
         if [ "$ENVIRONMENT" = "production" ]; then
             echo "🔥 Applying firewall rules..."
             /root/Xorb/security/firewall/iptables-rules.sh
         fi
-        
+
         # Start network monitoring
         echo "🔍 Starting network monitoring..."
         nohup /root/Xorb/security/monitoring/network-monitoring.sh > /var/log/xorb/network-monitor.out 2>&1 &
-        
+
         echo "✅ Security automation deployed"
         ;;
-        
+
     "status")
         echo "📊 Security Status Report"
         echo "========================"
-        
+
         # Check Kubernetes network policies
         if command -v kubectl &> /dev/null; then
             echo "📋 Kubernetes Network Policies:"
             kubectl get networkpolicy -n "xorb-$ENVIRONMENT" 2>/dev/null || echo "No network policies found"
         fi
-        
+
         # Check Docker networks
         echo ""
         echo "🐳 Docker Networks:"
         docker network ls | grep xorb
-        
+
         # Check iptables rules
         echo ""
         echo "🔥 Active Firewall Rules:"
         iptables -L INPUT -n | head -10
-        
+
         # Check monitoring processes
         echo ""
         echo "🔍 Security Monitoring:"
         ps aux | grep network-monitoring || echo "Network monitoring not running"
         ;;
-        
+
     "stop")
         echo "🛑 Stopping security monitoring..."
         pkill -f network-monitoring.sh || echo "No monitoring processes found"
         echo "✅ Security monitoring stopped"
         ;;
-        
+
     *)
         echo "Usage: $0 {deploy|status|stop} [environment]"
         echo "Available environments: development, staging, production"

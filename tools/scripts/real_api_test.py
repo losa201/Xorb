@@ -24,13 +24,13 @@ import requests
 
 class RealXORBAPITester:
     """Real XORB API testing with actual responses"""
-    
+
     def __init__(self):
         self.token = None
         self.test_results = []
         self.base_url = "http://127.0.0.1:8088"
         self.server_thread = None
-        
+
     def start_server(self):
         """Start the real API server"""
         print("🚀 Starting XORB API server...")
@@ -41,11 +41,11 @@ class RealXORBAPITester:
             daemon=True
         )
         self.server_thread.start()
-        
+
         # Wait for server to be ready
         import time
         time.sleep(3)
-        
+
         # Test server is ready
         try:
             response = requests.get(f"{self.base_url}/health", timeout=5)
@@ -54,35 +54,35 @@ class RealXORBAPITester:
                 return True
         except:
             pass
-            
+
         print("❌ Failed to start API server")
         return False
-        
+
     def setup_auth(self):
         """Setup real authentication"""
         self.token = authenticator.generate_jwt(
             user_id="test_admin",
-            client_id="test_client", 
+            client_id="test_client",
             roles=[Role.ADMIN]
         )
         print("✅ Authentication token generated")
-        
+
     def make_request(self, method: str, url: str, **kwargs) -> Dict[str, Any]:
         """Make real API request"""
         headers = kwargs.get('headers', {})
         headers['Authorization'] = f'Bearer {self.token}'
-        
+
         full_url = f"{self.base_url}{url}"
-        
+
         try:
             response = requests.request(method, full_url, headers=headers, timeout=30, **kwargs)
             print(f"📡 {method} {url} -> {response.status_code}")
-            
+
             try:
                 data = response.json() if response.status_code != 204 else None
             except:
                 data = None
-                
+
             return {
                 'status_code': response.status_code,
                 'data': data,
@@ -95,15 +95,15 @@ class RealXORBAPITester:
                 'data': None,
                 'headers': {}
             }
-    
+
     def test_all_endpoints(self) -> bool:
         """Test all API endpoints with real implementation"""
         print("🚀 REAL XORB API COMPREHENSIVE TEST")
         print("=" * 60)
-        
+
         total_tests = 0
         passed_tests = 0
-        
+
         # Test 1: Health Check
         print("\n1️⃣ HEALTH CHECK")
         total_tests += 1
@@ -113,10 +113,10 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ Health check failed: {response}")
-        
+
         # Test 2: Agent Management
         print("\n2️⃣ AGENT MANAGEMENT")
-        
+
         # List agents
         total_tests += 1
         response = self.make_request('GET', '/v1/agents')
@@ -125,7 +125,7 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ List agents failed: {response['status_code']}")
-        
+
         # Create agent
         total_tests += 1
         agent_data = {
@@ -139,7 +139,7 @@ class RealXORBAPITester:
             agent_id = response['data']['id']
             print(f"✅ Created agent: {agent_id}")
             passed_tests += 1
-            
+
             # Get agent details
             total_tests += 1
             response = self.make_request('GET', f'/v1/agents/{agent_id}')
@@ -148,7 +148,7 @@ class RealXORBAPITester:
                 passed_tests += 1
             else:
                 print(f"❌ Get agent failed: {response['status_code']}")
-            
+
             # Agent status
             total_tests += 1
             response = self.make_request('GET', f'/v1/agents/{agent_id}/status')
@@ -157,17 +157,17 @@ class RealXORBAPITester:
                 passed_tests += 1
             else:
                 print(f"❌ Agent status failed: {response['status_code']}")
-                
+
             # Send command (wait for agent to be active first)
             print("⏳ Waiting for agent initialization...")
             time.sleep(3)  # Wait for agent to transition to active
-            
+
             # Check status again
             response = self.make_request('GET', f'/v1/agents/{agent_id}/status')
             if response['status_code'] == 200:
                 current_status = response['data']['status']
                 print(f"✅ Agent status after init: {current_status}")
-            
+
             total_tests += 1
             cmd_data = {"command": "status_check", "parameters": {}}
             response = self.make_request('POST', f'/v1/agents/{agent_id}/commands', json=cmd_data)
@@ -180,13 +180,13 @@ class RealXORBAPITester:
                 passed_tests += 1
             else:
                 print(f"❌ Agent command failed: {response['status_code']}")
-                
+
         else:
             print(f"❌ Create agent failed: {response['status_code']}")
-        
+
         # Test 3: Task Orchestration
         print("\n3️⃣ TASK ORCHESTRATION")
-        
+
         # List tasks
         total_tests += 1
         response = self.make_request('GET', '/v1/orchestration/tasks')
@@ -195,7 +195,7 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ List tasks failed: {response['status_code']}")
-        
+
         # Create task
         total_tests += 1
         task_data = {
@@ -212,7 +212,7 @@ class RealXORBAPITester:
             task_id = response['data']['id']
             print(f"✅ Created task: {task_id}")
             passed_tests += 1
-            
+
             # Get task details
             total_tests += 1
             response = self.make_request('GET', f'/v1/orchestration/tasks/{task_id}')
@@ -223,7 +223,7 @@ class RealXORBAPITester:
                 print(f"❌ Get task failed: {response['status_code']}")
         else:
             print(f"❌ Create task failed: {response['status_code']}")
-        
+
         # Orchestration metrics
         total_tests += 1
         response = self.make_request('GET', '/v1/orchestration/metrics')
@@ -233,10 +233,10 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ Orchestration metrics failed: {response['status_code']}")
-        
+
         # Test 4: Security Operations
         print("\n4️⃣ SECURITY OPERATIONS")
-        
+
         # List threats
         total_tests += 1
         response = self.make_request('GET', '/v1/security/threats')
@@ -245,7 +245,7 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ List threats failed: {response['status_code']}")
-        
+
         # Create threat
         total_tests += 1
         threat_data = {
@@ -269,7 +269,7 @@ class RealXORBAPITester:
             threat_id = response['data']['id']
             print(f"✅ Created threat: {threat_id}")
             passed_tests += 1
-            
+
             # Update threat status
             total_tests += 1
             response = self.make_request('PUT', f'/v1/security/threats/{threat_id}/status?status=investigating')
@@ -280,7 +280,7 @@ class RealXORBAPITester:
                 print(f"❌ Update threat failed: {response['status_code']}")
         else:
             print(f"❌ Create threat failed: {response['status_code']}")
-        
+
         # Security metrics
         total_tests += 1
         response = self.make_request('GET', '/v1/security/metrics')
@@ -289,10 +289,10 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ Security metrics failed: {response['status_code']}")
-        
+
         # Test 5: Intelligence Integration
         print("\n5️⃣ INTELLIGENCE INTEGRATION")
-        
+
         # AI decision
         total_tests += 1
         decision_data = {
@@ -308,7 +308,7 @@ class RealXORBAPITester:
             decision_id = response['data']['decision_id']
             print(f"✅ AI decision: {response['data']['recommendation']} (confidence: {response['data']['confidence_score']:.2f})")
             passed_tests += 1
-            
+
             # Get decision
             total_tests += 1
             response = self.make_request('GET', f'/v1/intelligence/decisions/{decision_id}')
@@ -317,7 +317,7 @@ class RealXORBAPITester:
                 passed_tests += 1
             else:
                 print(f"❌ Get decision failed: {response['status_code']}")
-                
+
             # Provide feedback
             total_tests += 1
             feedback_data = {
@@ -334,7 +334,7 @@ class RealXORBAPITester:
                 print(f"❌ Learning feedback failed: {response['status_code']}")
         else:
             print(f"❌ AI decision failed: {response['status_code']}")
-        
+
         # List models
         total_tests += 1
         response = self.make_request('GET', '/v1/intelligence/models')
@@ -343,7 +343,7 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ List models failed: {response['status_code']}")
-        
+
         # Intelligence metrics
         total_tests += 1
         response = self.make_request('GET', '/v1/intelligence/metrics')
@@ -353,10 +353,10 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ Intelligence metrics failed: {response['status_code']}")
-        
+
         # Test 6: Telemetry & Monitoring
         print("\n6️⃣ TELEMETRY & MONITORING")
-        
+
         # System health
         total_tests += 1
         response = self.make_request('GET', '/v1/telemetry/health')
@@ -365,7 +365,7 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ System health failed: {response['status_code']}")
-        
+
         # System metrics
         total_tests += 1
         response = self.make_request('GET', '/v1/telemetry/metrics')
@@ -374,7 +374,7 @@ class RealXORBAPITester:
             passed_tests += 1
         else:
             print(f"❌ System metrics failed: {response['status_code']}")
-        
+
         # Generate final report
         print("\n" + "=" * 60)
         print("📊 REAL API TEST RESULTS")
@@ -383,29 +383,29 @@ class RealXORBAPITester:
         print(f"Passed: {passed_tests} ✅")
         print(f"Failed: {total_tests - passed_tests} ❌")
         print(f"Success Rate: {(passed_tests/total_tests)*100:.1f}%")
-        
+
         if passed_tests == total_tests:
             print("\n🎉 ALL TESTS PASSED! XORB API IS FULLY OPERATIONAL!")
         elif passed_tests > total_tests * 0.8:
             print(f"\n✅ API is mostly functional ({passed_tests}/{total_tests} tests passed)")
         else:
             print(f"\n⚠️ API has issues ({total_tests - passed_tests} tests failed)")
-        
+
         return passed_tests == total_tests
 
 def main():
     """Run real API tests"""
     tester = RealXORBAPITester()
-    
+
     # Start the server
     if not tester.start_server():
         print("❌ Could not start API server")
         return 1
-        
+
     tester.setup_auth()
-    
+
     success = tester.test_all_endpoints()
-    
+
     return 0 if success else 1
 
 if __name__ == "__main__":

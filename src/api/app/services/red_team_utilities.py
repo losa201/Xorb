@@ -92,13 +92,13 @@ class ThreatHuntingQuery:
 
 class RedTeamUtilities:
     """Comprehensive utilities for red team operations"""
-    
+
     def __init__(self):
         self.detection_rules_db: Dict[str, DetectionRule] = {}
         self.training_exercises_db: Dict[str, TrainingExercise] = {}
         self.hunting_queries_db: Dict[str, ThreatHuntingQuery] = {}
         self.technique_mappings: Dict[str, Dict[str, Any]] = {}
-        
+
         # Statistical models for analysis
         self.technique_effectiveness_data: Dict[str, List[float]] = defaultdict(list)
         self.detection_success_rates: Dict[str, float] = {}
@@ -111,9 +111,9 @@ class RedTeamUtilities:
             await self._load_training_exercises()
             await self._load_hunting_queries()
             await self._build_technique_mappings()
-            
+
             logger.info("Red team utilities initialized successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize red team utilities: {e}")
 
@@ -146,7 +146,7 @@ logsource:
 detection:
     selection:
         EventID: 1
-        ParentImage|endswith: 
+        ParentImage|endswith:
             - '\\\\outlook.exe'
             - '\\\\thunderbird.exe'
         Image|endswith:
@@ -167,7 +167,7 @@ level: medium
                     data_sources=['Process Creation', 'Email Logs'],
                     tags=['initial_access', 'email_attack']
                 ),
-                
+
                 'T1059.001': DetectionRule(
                     rule_id="sigma_t1059_001_001",
                     name="PowerShell Script Execution Detection",
@@ -212,7 +212,7 @@ level: high
                     data_sources=['PowerShell Logs', 'Process Creation'],
                     tags=['execution', 'powershell']
                 ),
-                
+
                 'T1055': DetectionRule(
                     rule_id="sigma_t1055_001",
                     name="Process Injection Detection",
@@ -260,7 +260,7 @@ level: high
                     tags=['privilege_escalation', 'injection']
                 )
             }
-            
+
             # YARA rules for malware detection
             yara_rules = {
                 'T1204.002': DetectionRule(
@@ -276,7 +276,7 @@ rule Suspicious_User_Execution {
         author = "Red Team Utilities"
         date = "2025-01-01"
         technique_id = "T1204.002"
-        
+
     strings:
         $icon_masquerade1 = { 00 00 01 00 01 00 20 20 00 00 01 00 08 00 } // ICO header
         $icon_masquerade2 = { 00 00 02 00 01 00 } // ICO header variant
@@ -286,9 +286,9 @@ rule Suspicious_User_Execution {
         $social_eng1 = "URGENT" ascii nocase
         $social_eng2 = "CONFIDENTIAL" ascii nocase
         $social_eng3 = "INVOICE" ascii nocase
-        
+
     condition:
-        (($icon_masquerade1 or $icon_masquerade2) and 
+        (($icon_masquerade1 or $icon_masquerade2) and
          ($double_extension1 or $double_extension2 or $double_extension3)) or
         (2 of ($social_eng*) and ($double_extension1 or $double_extension2 or $double_extension3))
 }
@@ -300,13 +300,13 @@ rule Suspicious_User_Execution {
                     tags=['user_execution', 'social_engineering']
                 )
             }
-            
+
             # Combine all rules
             self.detection_rules_db.update(sigma_rules)
             self.detection_rules_db.update(yara_rules)
-            
+
             logger.info(f"Loaded {len(self.detection_rules_db)} detection rules")
-            
+
         except Exception as e:
             logger.error(f"Failed to load detection rules database: {e}")
 
@@ -409,7 +409,7 @@ rule Suspicious_User_Execution {
                         "Detection rule optimization"
                     ]
                 ),
-                
+
                 'lateral_movement': TrainingExercise(
                     exercise_id="exercise_lateral_001",
                     name="Lateral Movement Detection Exercise",
@@ -504,11 +504,11 @@ rule Suspicious_User_Execution {
                     ]
                 )
             }
-            
+
             self.training_exercises_db.update(exercises)
-            
+
             logger.info(f"Loaded {len(self.training_exercises_db)} training exercises")
-            
+
         except Exception as e:
             logger.error(f"Failed to load training exercises: {e}")
 
@@ -528,7 +528,7 @@ SecurityEvent
 | where TimeGenerated > ago(7d)
 | where EventID == 4688
 | where Process has "powershell.exe"
-| where CommandLine has_any ("IEX", "Invoke-Expression", "DownloadString", 
+| where CommandLine has_any ("IEX", "Invoke-Expression", "DownloadString",
                             "FromBase64String", "-EncodedCommand", "-enc")
 | extend SuspiciousScore = case(
     CommandLine has "IEX" and CommandLine has "DownloadString", 3,
@@ -536,7 +536,7 @@ SecurityEvent
     CommandLine has "-EncodedCommand", 2,
     1)
 | where SuspiciousScore >= 2
-| summarize Count = count(), 
+| summarize Count = count(),
           UniqueCommands = dcount(CommandLine),
           FirstSeen = min(TimeGenerated),
           LastSeen = max(TimeGenerated)
@@ -548,7 +548,7 @@ SecurityEvent
                     hunting_hypothesis="Adversaries use PowerShell for post-exploitation activities with obfuscated commands",
                     expected_results="Identify potential malicious PowerShell usage with encoded or suspicious commands"
                 ),
-                
+
                 'lateral_movement_hunting': ThreatHuntingQuery(
                     query_id="hunt_lateral_001",
                     name="Lateral Movement Detection Hunt",
@@ -579,7 +579,7 @@ SecurityEvent
                     hunting_hypothesis="Lateral movement involves authentication to multiple systems in short timeframes",
                     expected_results="Identify accounts authenticating to unusually high numbers of systems"
                 ),
-                
+
                 'persistence_hunting': ThreatHuntingQuery(
                     query_id="hunt_persistence_001",
                     name="Persistence Mechanism Hunt",
@@ -589,7 +589,7 @@ SecurityEvent
                     query_content="""
 index=windows source="WinEventLog:Microsoft-Windows-Sysmon/Operational"
 EventCode=13
-(TargetObject="*\\Run\\*" OR TargetObject="*\\RunOnce\\*" OR 
+(TargetObject="*\\Run\\*" OR TargetObject="*\\RunOnce\\*" OR
  TargetObject="*\\Winlogon\\*" OR TargetObject="*\\Services\\*")
 | eval persistence_type=case(
     match(TargetObject, ".*\\\\Run\\\\.*"), "Registry Run Key",
@@ -607,11 +607,11 @@ EventCode=13
                     expected_results="Identify unusual registry modifications that could indicate persistence"
                 )
             }
-            
+
             self.hunting_queries_db.update(queries)
-            
+
             logger.info(f"Loaded {len(self.hunting_queries_db)} hunting queries")
-            
+
         except Exception as e:
             logger.error(f"Failed to load hunting queries: {e}")
 
@@ -713,9 +713,9 @@ EventCode=13
                     ]
                 }
             }
-            
+
             logger.info(f"Built technique mappings for {len(self.technique_mappings)} techniques")
-            
+
         except Exception as e:
             logger.error(f"Failed to build technique mappings: {e}")
 
@@ -725,18 +725,18 @@ EventCode=13
             if technique_id not in self.technique_mappings:
                 logger.warning(f"No mapping found for technique {technique_id}")
                 return None
-            
+
             technique_info = self.technique_mappings[technique_id]
-            
+
             # Check if rule already exists
             existing_rules = [
                 rule_id for rule_id in technique_info.get('detection_rules', [])
                 if self.detection_rules_db.get(rule_id, {}).rule_type == rule_type
             ]
-            
+
             if existing_rules:
                 return self.detection_rules_db[existing_rules[0]]
-            
+
             # Generate new rule based on technique characteristics
             if rule_type == DetectionRuleType.SIGMA:
                 return await self._generate_sigma_rule(technique_id, technique_info)
@@ -745,7 +745,7 @@ EventCode=13
             else:
                 logger.warning(f"Rule generation not implemented for type {rule_type}")
                 return None
-                
+
         except Exception as e:
             logger.error(f"Failed to generate detection rule for {technique_id}: {e}")
             return None
@@ -755,7 +755,7 @@ EventCode=13
         try:
             technique_name = technique_info.get('technique_name', 'Unknown')
             data_sources = technique_info.get('data_sources', [])
-            
+
             # Template-based rule generation
             rule_content = f"""
 title: {technique_name} Detection
@@ -781,7 +781,7 @@ falsepositives:
     - Normal software operations
 level: medium
 """
-            
+
             return DetectionRule(
                 rule_id=f"auto_gen_{technique_id}_{datetime.now().strftime('%Y%m%d')}",
                 name=f"{technique_name} Auto-Generated Detection",
@@ -795,7 +795,7 @@ level: medium
                 data_sources=data_sources,
                 tags=['auto_generated', technique_id.lower()]
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to generate Sigma rule: {e}")
             raise
@@ -807,14 +807,14 @@ level: medium
             covered_techniques = []
             learning_objectives = []
             defensive_focus_areas = set()
-            
+
             for technique_id in technique_ids:
                 if technique_id in self.technique_mappings:
                     technique_info = self.technique_mappings[technique_id]
                     covered_techniques.append(technique_id)
                     learning_objectives.append(f"Understand and detect {technique_info.get('technique_name', technique_id)}")
                     defensive_focus_areas.update(technique_info.get('countermeasures', []))
-            
+
             # Generate exercise steps
             exercise_steps = [
                 {
@@ -864,7 +864,7 @@ level: medium
                     ]
                 }
             ]
-            
+
             return TrainingExercise(
                 exercise_id=f"auto_gen_exercise_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
                 name=f"Multi-Technique Training: {', '.join(covered_techniques[:2])}{'...' if len(covered_techniques) > 2 else ''}",
@@ -886,7 +886,7 @@ level: medium
                 ],
                 defensive_focus_areas=list(defensive_focus_areas)[:5]  # Limit for readability
             )
-            
+
         except Exception as e:
             logger.error(f"Failed to generate training exercise: {e}")
             raise
@@ -903,22 +903,22 @@ level: medium
                 'defensive_recommendations': [],
                 'improvement_opportunities': []
             }
-            
+
             # Calculate success rate
             if 'success_indicators' in execution_results:
                 successful_attempts = len(execution_results['success_indicators'])
                 total_attempts = execution_results.get('total_attempts', 1)
                 analysis['success_rate'] = successful_attempts / total_attempts
-            
+
             # Calculate detection rate
             if 'detection_events' in execution_results:
                 detected_attempts = len(execution_results['detection_events'])
                 total_attempts = execution_results.get('total_attempts', 1)
                 analysis['detection_rate'] = detected_attempts / total_attempts
-            
+
             # Calculate evasion effectiveness
             analysis['evasion_effectiveness'] = 1.0 - analysis['detection_rate']
-            
+
             # Generate recommendations based on results
             if analysis['detection_rate'] < 0.5:
                 analysis['defensive_recommendations'].append({
@@ -931,7 +931,7 @@ level: medium
                         'Review data source collection'
                     ]
                 })
-            
+
             if analysis['success_rate'] > 0.8:
                 analysis['improvement_opportunities'].append({
                     'type': 'prevention_enhancement',
@@ -943,13 +943,13 @@ level: medium
                         'Review access controls'
                     ]
                 })
-            
+
             # Store historical data for trend analysis
             self.technique_effectiveness_data[technique_id].append(analysis['success_rate'])
             self.detection_success_rates[technique_id] = analysis['detection_rate']
-            
+
             return analysis
-            
+
         except Exception as e:
             logger.error(f"Failed to analyze technique effectiveness: {e}")
             return {'error': str(e)}
@@ -967,12 +967,12 @@ level: medium
                 'metrics': {},
                 'next_steps': []
             }
-            
+
             # Executive Summary
             techniques_executed = len(operation_results.get('techniques_used', []))
             successful_techniques = len([t for t in operation_results.get('techniques_used', []) if t.get('success', False)])
             detected_techniques = len([t for t in operation_results.get('techniques_used', []) if t.get('detection_triggered', False)])
-            
+
             report['executive_summary'] = {
                 'operation_overview': f"Executed {techniques_executed} techniques with {successful_techniques} successes and {detected_techniques} detections",
                 'key_findings': [
@@ -982,7 +982,7 @@ level: medium
                 ],
                 'overall_security_posture': self._assess_security_posture(successful_techniques, detected_techniques, techniques_executed)
             }
-            
+
             # Technical Analysis
             report['technical_analysis'] = {
                 'technique_breakdown': operation_results.get('techniques_used', []),
@@ -992,13 +992,13 @@ level: medium
                     if t.get('success', False) and not t.get('detection_triggered', False)
                 ]
             }
-            
+
             # Defensive Improvements
             undetected_techniques = [
                 t for t in operation_results.get('techniques_used', [])
                 if t.get('success', False) and not t.get('detection_triggered', False)
             ]
-            
+
             for technique in undetected_techniques:
                 technique_id = technique.get('technique_id', 'Unknown')
                 if technique_id in self.technique_mappings:
@@ -1012,10 +1012,10 @@ level: medium
                         'implementation_effort': 'medium'
                     }
                     report['defensive_improvements'].append(improvement)
-            
+
             # Training Recommendations
             report['training_recommendations'] = await self._generate_training_recommendations(operation_results)
-            
+
             # Metrics
             report['metrics'] = {
                 'techniques_executed': techniques_executed,
@@ -1024,7 +1024,7 @@ level: medium
                 'mean_time_to_detection': self._calculate_mean_time_to_detection(operation_results),
                 'false_positive_rate': self._estimate_false_positive_rate(operation_results)
             }
-            
+
             # Next Steps
             report['next_steps'] = [
                 'Implement high-priority defensive improvements',
@@ -1033,9 +1033,9 @@ level: medium
                 'Review and update detection rules',
                 'Enhance monitoring capabilities'
             ]
-            
+
             return report
-            
+
         except Exception as e:
             logger.error(f"Failed to generate purple team report: {e}")
             return {'error': str(e)}
@@ -1044,10 +1044,10 @@ level: medium
         """Assess overall security posture based on metrics"""
         if total == 0:
             return "Unable to assess - no techniques executed"
-        
+
         detection_rate = detected / total
         success_rate = successful / total
-        
+
         if detection_rate >= 0.8 and success_rate <= 0.3:
             return "Strong - High detection rate with low attack success"
         elif detection_rate >= 0.6 and success_rate <= 0.5:
@@ -1060,14 +1060,14 @@ level: medium
     async def _generate_training_recommendations(self, operation_results: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Generate training recommendations based on operation results"""
         recommendations = []
-        
+
         try:
             # Analyze which techniques were most successful
             successful_techniques = [
                 t.get('technique_id') for t in operation_results.get('techniques_used', [])
                 if t.get('success', False) and not t.get('detection_triggered', False)
             ]
-            
+
             # Group by technique categories
             technique_categories = defaultdict(list)
             for technique_id in successful_techniques:
@@ -1081,7 +1081,7 @@ level: medium
                         technique_categories['Defense Evasion'].append(technique_id)
                     else:
                         technique_categories['Other'].append(technique_id)
-            
+
             # Generate category-specific recommendations
             for category, techniques in technique_categories.items():
                 if len(techniques) >= 2:  # Focus on categories with multiple gaps
@@ -1099,9 +1099,9 @@ level: medium
                         ]
                     }
                     recommendations.append(recommendation)
-            
+
             return recommendations
-            
+
         except Exception as e:
             logger.error(f"Failed to generate training recommendations: {e}")
             return []
@@ -1110,18 +1110,18 @@ level: medium
         """Calculate mean time to detection for detected techniques"""
         try:
             detection_times = []
-            
+
             for event in operation_results.get('detection_events', []):
                 if 'timestamp' in event:
                     # In a real implementation, this would calculate the time difference
                     # between technique execution and detection
                     detection_times.append(300)  # Placeholder: 5 minutes
-            
+
             if detection_times:
                 return sum(detection_times) / len(detection_times)
-            
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Failed to calculate mean time to detection: {e}")
             return None
@@ -1131,15 +1131,15 @@ level: medium
         try:
             # In a real implementation, this would analyze actual vs expected detections
             # For now, return a reasonable estimate based on detection complexity
-            
+
             detection_events = operation_results.get('detection_events', [])
             if not detection_events:
                 return 0.0
-            
+
             # Estimate based on number of detection events vs expected
             # This is a simplified calculation for demonstration
             return min(0.15, len(detection_events) * 0.02)  # Cap at 15%
-            
+
         except Exception as e:
             logger.error(f"Failed to estimate false positive rate: {e}")
             return 0.0
@@ -1157,7 +1157,7 @@ level: medium
                 'most_effective_techniques': [],
                 'hardest_to_detect_techniques': []
             }
-            
+
             # Calculate technique effectiveness statistics
             for technique_id, data in self.technique_effectiveness_data.items():
                 if data:
@@ -1166,13 +1166,13 @@ level: medium
                         'std_success_rate': np.std(data),
                         'execution_count': len(data)
                     }
-            
+
             # Calculate detection coverage
             for technique_id, mapping in self.technique_mappings.items():
                 detection_rules = len(mapping.get('detection_rules', []))
                 hunting_queries = len(mapping.get('hunting_queries', []))
                 training_exercises = len(mapping.get('training_exercises', []))
-                
+
                 coverage_score = (detection_rules * 0.4 + hunting_queries * 0.3 + training_exercises * 0.3)
                 stats['detection_coverage'][technique_id] = {
                     'coverage_score': coverage_score,
@@ -1180,7 +1180,7 @@ level: medium
                     'hunting_queries': hunting_queries,
                     'training_exercises': training_exercises
                 }
-            
+
             # Identify most effective and hardest to detect techniques
             if self.detection_success_rates:
                 sorted_by_detection = sorted(
@@ -1191,9 +1191,9 @@ level: medium
                     {'technique_id': tid, 'detection_rate': rate}
                     for tid, rate in sorted_by_detection[:5]
                 ]
-            
+
             return stats
-            
+
         except Exception as e:
             logger.error(f"Failed to get technique statistics: {e}")
             return {'error': str(e)}
@@ -1205,9 +1205,9 @@ _red_team_utilities: Optional[RedTeamUtilities] = None
 async def get_red_team_utilities() -> RedTeamUtilities:
     """Get singleton instance of red team utilities"""
     global _red_team_utilities
-    
+
     if _red_team_utilities is None:
         _red_team_utilities = RedTeamUtilities()
         await _red_team_utilities.initialize()
-    
+
     return _red_team_utilities

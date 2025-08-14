@@ -1,0 +1,34 @@
+name: Protection Checks
+
+on:
+  push:
+    branches: [ integration/clean-trunk ]
+  pull_request:
+    branches: [ integration/clean-trunk ]
+
+jobs:
+  redis-ban:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check for Redis pub/sub usage
+        run: |
+          chmod +x tools/hooks/redis_pubsub_block.sh
+          tools/hooks/redis_pubsub_block.sh
+
+  adr-locked-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Run ADR locked guard
+        run: |
+          python tools/hooks/adr_locked_guard.py

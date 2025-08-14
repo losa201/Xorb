@@ -575,7 +575,7 @@ Generated: {optimization_results['timestamp']}
 
 ## Enhancement Modes Applied
 - **Incremental**: {optimization_results['enhancement_modes']['incremental']} agents
-- **Aggressive**: {optimization_results['enhancement_modes']['aggressive']} agents  
+- **Aggressive**: {optimization_results['enhancement_modes']['aggressive']} agents
 - **Adaptive**: {optimization_results['enhancement_modes']['adaptive']} agents
 
 ## Swarm Clusters

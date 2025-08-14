@@ -1,0 +1,26 @@
+{
+  "timestamp": "2025-08-10T19:29:08.843169",
+  "overall_status": "FAILED",
+  "tests_passed": 77,
+  "tests_failed": 0,
+  "service_validation": {
+    "ptaas_implementation": "PASSED"
+  },
+  "interface_validation": {
+    "PTaaSService": "PASSED",
+    "ThreatIntelligenceService": "PASSED",
+    "SecurityOrchestrationService": "PASSED",
+    "ComplianceService": "PASSED",
+    "SecurityMonitoringService": "PASSED",
+    "AuthenticationService": "PASSED",
+    "EmbeddingService": "PASSED"
+  },
+  "architecture_validation": {
+    "service_architecture": "PASSED",
+    "service_factory": "FAILED: SecurityScannerService.__init__() got an unexpected keyword argument 'service_id'"
+  },
+  "integration_tests": {},
+  "performance_tests": {},
+  "security_tests": {},
+  "fatal_error": "SecurityScannerService.__init__() got an unexpected keyword argument 'service_id'"
+}

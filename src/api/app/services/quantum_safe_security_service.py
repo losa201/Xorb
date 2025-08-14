@@ -101,7 +101,7 @@ class QuantumKeyDistribution:
 class QuantumSafeSecurityService(XORBService):
     """
     Advanced Quantum-Safe Security Service
-    
+
     Provides comprehensive post-quantum cryptographic capabilities:
     - NIST-approved post-quantum algorithms
     - Hybrid classical-quantum security protocols
@@ -110,25 +110,25 @@ class QuantumSafeSecurityService(XORBService):
     - Quantum key distribution simulation
     - Quantum-resistant digital signatures and encryption
     """
-    
+
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(
             service_id="quantum_safe_security",
             dependencies=["vault", "database"],
             config=config or {}
         )
-        
+
         # Post-quantum algorithm configurations
         self.pq_algorithms = self._initialize_pq_algorithms()
         self.current_threat_level = QuantumThreatLevel.LOW
         self.crypto_agility_plans: Dict[str, CryptoAgilityPlan] = {}
         self.qkd_sessions: Dict[str, QuantumKeyDistribution] = {}
-        
+
         # Algorithm instances
         self.pq_kem_instances = {}  # Key Encapsulation Mechanisms
         self.pq_sig_instances = {}  # Digital Signatures
         self.hybrid_protocols = {}  # Hybrid classical-quantum protocols
-        
+
         # Performance metrics
         self.algorithm_benchmarks = {}
         self.migration_statistics = {}
@@ -147,7 +147,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="standardized",
                 quantum_security=128
             ),
-            
+
             "kyber768": PostQuantumAlgorithm(
                 name="CRYSTALS-Kyber-768",
                 category="kem",
@@ -158,7 +158,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="standardized",
                 quantum_security=192
             ),
-            
+
             "kyber1024": PostQuantumAlgorithm(
                 name="CRYSTALS-Kyber-1024",
                 category="kem",
@@ -169,7 +169,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="standardized",
                 quantum_security=256
             ),
-            
+
             "dilithium2": PostQuantumAlgorithm(
                 name="CRYSTALS-Dilithium2",
                 category="signature",
@@ -180,7 +180,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="standardized",
                 quantum_security=128
             ),
-            
+
             "dilithium3": PostQuantumAlgorithm(
                 name="CRYSTALS-Dilithium3",
                 category="signature",
@@ -191,7 +191,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="standardized",
                 quantum_security=192
             ),
-            
+
             "dilithium5": PostQuantumAlgorithm(
                 name="CRYSTALS-Dilithium5",
                 category="signature",
@@ -202,7 +202,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="standardized",
                 quantum_security=256
             ),
-            
+
             "falcon512": PostQuantumAlgorithm(
                 name="Falcon-512",
                 category="signature",
@@ -213,7 +213,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="standardized",
                 quantum_security=128
             ),
-            
+
             "falcon1024": PostQuantumAlgorithm(
                 name="Falcon-1024",
                 category="signature",
@@ -224,7 +224,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="standardized",
                 quantum_security=256
             ),
-            
+
             # Round 4 Candidates
             "bike": PostQuantumAlgorithm(
                 name="BIKE",
@@ -236,7 +236,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="draft",
                 quantum_security=128
             ),
-            
+
             "hqc": PostQuantumAlgorithm(
                 name="HQC",
                 category="kem",
@@ -247,7 +247,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="draft",
                 quantum_security=128
             ),
-            
+
             "sphincs_sha256_128s": PostQuantumAlgorithm(
                 name="SPHINCS+-SHA256-128s",
                 category="signature",
@@ -258,7 +258,7 @@ class QuantumSafeSecurityService(XORBService):
                 standardization_status="standardized",
                 quantum_security=128
             ),
-            
+
             "sphincs_shake256_192f": PostQuantumAlgorithm(
                 name="SPHINCS+-SHAKE256-192f",
                 category="signature",
@@ -275,26 +275,26 @@ class QuantumSafeSecurityService(XORBService):
         """Initialize quantum-safe security service"""
         try:
             logger.info("Initializing Quantum-Safe Security Service...")
-            
+
             if not CRYPTO_AVAILABLE:
                 logger.warning("Cryptography library not available, limited functionality")
                 return False
-            
+
             # Initialize post-quantum algorithm instances
             await self._initialize_pq_instances()
-            
+
             # Assess current quantum threat level
             await self._assess_quantum_threat_level()
-            
+
             # Load existing crypto-agility plans
             await self._load_crypto_agility_plans()
-            
+
             # Benchmark algorithms
             await self._benchmark_algorithms()
-            
+
             logger.info("Quantum-Safe Security Service initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize Quantum-Safe Security Service: {e}")
             return False
@@ -306,7 +306,7 @@ class QuantumSafeSecurityService(XORBService):
                 logger.warning("Post-quantum cryptography library not available, using simulation")
                 await self._initialize_pq_simulation()
                 return
-            
+
             # Initialize KEM instances
             for alg_name, alg_spec in self.pq_algorithms.items():
                 if alg_spec.category == "kem":
@@ -316,7 +316,7 @@ class QuantumSafeSecurityService(XORBService):
                         logger.info(f"Initialized KEM: {alg_name}")
                     except Exception as e:
                         logger.warning(f"Failed to initialize KEM {alg_name}: {e}")
-            
+
             # Initialize signature instances
             for alg_name, alg_spec in self.pq_algorithms.items():
                 if alg_spec.category == "signature":
@@ -326,7 +326,7 @@ class QuantumSafeSecurityService(XORBService):
                         logger.info(f"Initialized signature: {alg_name}")
                     except Exception as e:
                         logger.warning(f"Failed to initialize signature {alg_name}: {e}")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize PQ instances: {e}")
 
@@ -339,9 +339,9 @@ class QuantumSafeSecurityService(XORBService):
                     self.pq_kem_instances[alg_name] = self._create_kem_simulation(alg_spec)
                 elif alg_spec.category == "signature":
                     self.pq_sig_instances[alg_name] = self._create_signature_simulation(alg_spec)
-            
+
             logger.info("Initialized post-quantum algorithm simulations")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize PQ simulation: {e}")
 
@@ -350,14 +350,14 @@ class QuantumSafeSecurityService(XORBService):
         try:
             if algorithm not in self.pq_algorithms:
                 raise ValueError(f"Unknown post-quantum algorithm: {algorithm}")
-            
+
             alg_spec = self.pq_algorithms[algorithm]
-            
+
             if alg_spec.security_level < security_level:
                 # Suggest higher security level algorithm
                 suggested = self._suggest_algorithm(alg_spec.category, security_level)
                 logger.warning(f"Algorithm {algorithm} provides security level {alg_spec.security_level}, suggested: {suggested}")
-            
+
             if algorithm in self.pq_kem_instances and alg_spec.category == "kem":
                 return await self._generate_kem_keypair(algorithm)
             elif algorithm in self.pq_sig_instances and alg_spec.category == "signature":
@@ -365,7 +365,7 @@ class QuantumSafeSecurityService(XORBService):
             else:
                 # Use simulation
                 return await self._generate_simulated_keypair(algorithm)
-            
+
         except Exception as e:
             logger.error(f"Failed to generate quantum-safe keypair: {e}")
             raise
@@ -376,7 +376,7 @@ class QuantumSafeSecurityService(XORBService):
             if PQC_AVAILABLE and algorithm in self.pq_kem_instances:
                 kem = self.pq_kem_instances[algorithm]
                 public_key = kem.generate_keypair()
-                
+
                 return {
                     "algorithm": algorithm,
                     "category": "kem",
@@ -389,7 +389,7 @@ class QuantumSafeSecurityService(XORBService):
                 }
             else:
                 return await self._simulate_kem_keypair(algorithm)
-            
+
         except Exception as e:
             logger.error(f"Failed to generate KEM keypair: {e}")
             raise
@@ -400,7 +400,7 @@ class QuantumSafeSecurityService(XORBService):
             if PQC_AVAILABLE and algorithm in self.pq_sig_instances:
                 sig = self.pq_sig_instances[algorithm]
                 public_key = sig.generate_keypair()
-                
+
                 return {
                     "algorithm": algorithm,
                     "category": "signature",
@@ -414,7 +414,7 @@ class QuantumSafeSecurityService(XORBService):
                 }
             else:
                 return await self._simulate_signature_keypair(algorithm)
-            
+
         except Exception as e:
             logger.error(f"Failed to generate signature keypair: {e}")
             raise
@@ -424,22 +424,22 @@ class QuantumSafeSecurityService(XORBService):
         try:
             if algorithm not in self.pq_algorithms:
                 raise ValueError(f"Unknown algorithm: {algorithm}")
-            
+
             alg_spec = self.pq_algorithms[algorithm]
             if alg_spec.category != "kem":
                 raise ValueError(f"Algorithm {algorithm} is not a KEM")
-            
+
             # Encapsulate shared secret using post-quantum KEM
             encapsulation_result = await self._encapsulate_secret(public_key, algorithm)
             shared_secret = encapsulation_result["shared_secret"]
             encapsulated_key = encapsulation_result["encapsulated_key"]
-            
+
             # Derive encryption key from shared secret
             derived_key = await self._derive_encryption_key(shared_secret)
-            
+
             # Encrypt plaintext with AES-256-GCM (quantum-safe symmetric encryption)
             encryption_result = await self._symmetric_encrypt(plaintext, derived_key)
-            
+
             return {
                 "algorithm": algorithm,
                 "encapsulated_key": base64.b64encode(encapsulated_key).decode(),
@@ -450,7 +450,7 @@ class QuantumSafeSecurityService(XORBService):
                 "quantum_security": alg_spec.quantum_security,
                 "encrypted_at": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to perform quantum-safe encryption: {e}")
             raise
@@ -461,19 +461,19 @@ class QuantumSafeSecurityService(XORBService):
             # Decapsulate shared secret
             encapsulated_key = base64.b64decode(encrypted_data["encapsulated_key"])
             shared_secret = await self._decapsulate_secret(encapsulated_key, private_key, algorithm)
-            
+
             # Derive decryption key
             derived_key = await self._derive_encryption_key(shared_secret)
-            
+
             # Decrypt ciphertext
             ciphertext = base64.b64decode(encrypted_data["ciphertext"])
             nonce = base64.b64decode(encrypted_data["nonce"])
             tag = base64.b64decode(encrypted_data["tag"])
-            
+
             plaintext = await self._symmetric_decrypt(ciphertext, derived_key, nonce, tag)
-            
+
             return plaintext
-            
+
         except Exception as e:
             logger.error(f"Failed to perform quantum-safe decryption: {e}")
             raise
@@ -483,11 +483,11 @@ class QuantumSafeSecurityService(XORBService):
         try:
             if algorithm not in self.pq_algorithms:
                 raise ValueError(f"Unknown algorithm: {algorithm}")
-            
+
             alg_spec = self.pq_algorithms[algorithm]
             if alg_spec.category != "signature":
                 raise ValueError(f"Algorithm {algorithm} is not a signature scheme")
-            
+
             # Create signature
             if PQC_AVAILABLE and algorithm in self.pq_sig_instances:
                 sig_instance = self.pq_sig_instances[algorithm]
@@ -495,7 +495,7 @@ class QuantumSafeSecurityService(XORBService):
             else:
                 # Use simulation
                 signature = await self._simulate_signature(message, private_key, algorithm)
-            
+
             return {
                 "algorithm": algorithm,
                 "signature": base64.b64encode(signature).decode(),
@@ -505,7 +505,7 @@ class QuantumSafeSecurityService(XORBService):
                 "quantum_security": alg_spec.quantum_security,
                 "signed_at": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to create quantum-safe signature: {e}")
             raise
@@ -515,14 +515,14 @@ class QuantumSafeSecurityService(XORBService):
         try:
             algorithm = signature_data["algorithm"]
             signature = base64.b64decode(signature_data["signature"])
-            
+
             if PQC_AVAILABLE and algorithm in self.pq_sig_instances:
                 sig_instance = self.pq_sig_instances[algorithm]
                 return sig_instance.verify(message, signature, base64.b64decode(public_key))
             else:
                 # Use simulation
                 return await self._simulate_verify(message, signature, public_key, algorithm)
-            
+
         except Exception as e:
             logger.error(f"Failed to verify quantum-safe signature: {e}")
             return False
@@ -531,11 +531,11 @@ class QuantumSafeSecurityService(XORBService):
         """Create hybrid classical-quantum security protocol"""
         try:
             protocol_id = f"hybrid_{classical_algorithm}_{quantum_algorithm}"
-            
+
             # Generate both classical and quantum key pairs
             classical_keypair = await self._generate_classical_keypair(classical_algorithm)
             quantum_keypair = await self.generate_quantum_safe_keypair(quantum_algorithm)
-            
+
             hybrid_protocol = {
                 "protocol_id": protocol_id,
                 "classical_component": {
@@ -553,11 +553,11 @@ class QuantumSafeSecurityService(XORBService):
                 },
                 "created_at": datetime.utcnow().isoformat()
             }
-            
+
             self.hybrid_protocols[protocol_id] = hybrid_protocol
-            
+
             return hybrid_protocol
-            
+
         except Exception as e:
             logger.error(f"Failed to create hybrid protocol: {e}")
             raise
@@ -566,10 +566,10 @@ class QuantumSafeSecurityService(XORBService):
         """Simulate Quantum Key Distribution (QKD) protocol"""
         try:
             session_id = f"qkd_{secrets.token_hex(8)}"
-            
+
             # Simulate BB84 protocol
             qkd_result = await self._simulate_bb84_protocol(participants, key_length)
-            
+
             qkd_session = QuantumKeyDistribution(
                 session_id=session_id,
                 participants=participants,
@@ -581,11 +581,11 @@ class QuantumSafeSecurityService(XORBService):
                 timestamp=datetime.utcnow(),
                 protocol="BB84"
             )
-            
+
             self.qkd_sessions[session_id] = qkd_session
-            
+
             return qkd_session
-            
+
         except Exception as e:
             logger.error(f"Failed to simulate QKD: {e}")
             raise
@@ -595,13 +595,13 @@ class QuantumSafeSecurityService(XORBService):
         try:
             # Analyze current cryptographic infrastructure
             crypto_inventory = await self._analyze_crypto_inventory(organization_id)
-            
+
             # Calculate threat timeline
             threat_timeline = await self._calculate_quantum_threat_timeline()
-            
+
             # Assess migration urgency
             migration_urgency = await self._assess_migration_urgency(crypto_inventory, threat_timeline)
-            
+
             # Generate risk assessment
             risk_assessment = {
                 "organization_id": organization_id,
@@ -615,9 +615,9 @@ class QuantumSafeSecurityService(XORBService):
                 "compliance_impact": await self._assess_compliance_impact(organization_id),
                 "assessed_at": datetime.utcnow().isoformat()
             }
-            
+
             return risk_assessment
-            
+
         except Exception as e:
             logger.error(f"Failed to assess quantum threat: {e}")
             raise
@@ -627,19 +627,19 @@ class QuantumSafeSecurityService(XORBService):
         try:
             # Assess current state
             quantum_assessment = await self.assess_quantum_threat(organization_id)
-            
+
             # Identify current and target algorithms
             current_algorithms = list(quantum_assessment["cryptographic_inventory"].keys())
             target_algorithms = await self._recommend_target_algorithms(current_algorithms)
-            
+
             # Create migration phases
             migration_phases = await self._create_migration_phases(
                 current_algorithms, target_algorithms, timeline_years
             )
-            
+
             # Calculate timeline
             migration_timeline = await self._calculate_migration_timeline(migration_phases)
-            
+
             # Create agility plan
             agility_plan = CryptoAgilityPlan(
                 organization_id=organization_id,
@@ -651,11 +651,11 @@ class QuantumSafeSecurityService(XORBService):
                 cost_estimate=quantum_assessment["cost_estimate"],
                 compliance_requirements=await self._identify_compliance_requirements(organization_id)
             )
-            
+
             self.crypto_agility_plans[organization_id] = agility_plan
-            
+
             return agility_plan
-            
+
         except Exception as e:
             logger.error(f"Failed to create crypto-agility plan: {e}")
             raise
@@ -670,28 +670,28 @@ class QuantumSafeSecurityService(XORBService):
                 "signature_benchmarks": {},
                 "hybrid_benchmarks": {}
             }
-            
+
             # Benchmark KEM algorithms
             for alg_name, alg_spec in self.pq_algorithms.items():
                 if alg_spec.category == "kem":
                     benchmark = await self._benchmark_kem_algorithm(alg_name)
                     benchmark_results["kem_benchmarks"][alg_name] = benchmark
-            
+
             # Benchmark signature algorithms
             for alg_name, alg_spec in self.pq_algorithms.items():
                 if alg_spec.category == "signature":
                     benchmark = await self._benchmark_signature_algorithm(alg_name)
                     benchmark_results["signature_benchmarks"][alg_name] = benchmark
-            
+
             # Benchmark hybrid protocols
             for protocol_id in self.hybrid_protocols:
                 benchmark = await self._benchmark_hybrid_protocol(protocol_id)
                 benchmark_results["hybrid_benchmarks"][protocol_id] = benchmark
-            
+
             self.algorithm_benchmarks = benchmark_results
-            
+
             return benchmark_results
-            
+
         except Exception as e:
             logger.error(f"Failed to benchmark quantum algorithms: {e}")
             raise
@@ -702,18 +702,18 @@ class QuantumSafeSecurityService(XORBService):
         class KEMSimulation:
             def __init__(self, spec):
                 self.spec = spec
-            
+
             def generate_keypair(self):
                 return secrets.token_bytes(self.spec.key_size)
-            
+
             def encapsulate(self, public_key):
                 shared_secret = secrets.token_bytes(32)  # 256-bit shared secret
                 encapsulated_key = secrets.token_bytes(self.spec.ciphertext_overhead or self.spec.key_size)
                 return shared_secret, encapsulated_key
-            
+
             def decapsulate(self, encapsulated_key, private_key):
                 return secrets.token_bytes(32)  # 256-bit shared secret
-        
+
         return KEMSimulation(alg_spec)
 
     def _create_signature_simulation(self, alg_spec: PostQuantumAlgorithm):
@@ -721,16 +721,16 @@ class QuantumSafeSecurityService(XORBService):
         class SignatureSimulation:
             def __init__(self, spec):
                 self.spec = spec
-            
+
             def generate_keypair(self):
                 return secrets.token_bytes(self.spec.key_size)
-            
+
             def sign(self, message):
                 return secrets.token_bytes(self.spec.signature_size or 1024)
-            
+
             def verify(self, message, signature, public_key):
                 return len(signature) == (self.spec.signature_size or 1024)
-        
+
         return SignatureSimulation(alg_spec)
 
     # Helper methods (implementations would be quite extensive)
@@ -741,7 +741,7 @@ class QuantumSafeSecurityService(XORBService):
         error_rate = 0.01  # 1% error rate (typical for QKD)
         security_parameter = 0.95  # 95% security parameter
         auth_tag = hmac.new(key_material, b"BB84_AUTH", hashlib.sha256).digest()
-        
+
         return {
             "key_material": key_material,
             "error_rate": error_rate,
@@ -772,34 +772,34 @@ class QuantumSafeSecurityService(XORBService):
     async def health_check(self) -> ServiceHealth:
         """Comprehensive health check for quantum-safe security service"""
         checks = {}
-        
+
         # Check cryptographic libraries
         checks["crypto_libraries"] = {
             "status": "healthy" if CRYPTO_AVAILABLE else "degraded",
             "cryptography_available": CRYPTO_AVAILABLE,
             "pqc_available": PQC_AVAILABLE
         }
-        
+
         # Check algorithm availability
-        available_algorithms = len([alg for alg in self.pq_algorithms.values() 
+        available_algorithms = len([alg for alg in self.pq_algorithms.values()
                                   if alg.standardization_status == "standardized"])
         checks["algorithms"] = {
             "status": "healthy" if available_algorithms >= 4 else "degraded",
             "standardized_algorithms": available_algorithms,
             "total_algorithms": len(self.pq_algorithms)
         }
-        
+
         # Check hybrid protocols
         checks["hybrid_protocols"] = {
             "status": "healthy" if len(self.hybrid_protocols) >= 0 else "degraded",
             "active_protocols": len(self.hybrid_protocols)
         }
-        
+
         # Overall status
         overall_status = ServiceStatus.HEALTHY
         if any(check["status"] == "degraded" for check in checks.values()):
             overall_status = ServiceStatus.DEGRADED
-        
+
         return ServiceHealth(
             service_id=self.service_id,
             status=overall_status,

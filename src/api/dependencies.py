@@ -37,7 +37,7 @@ async def get_sso_service(redis_client: aioredis.Redis = Depends(get_redis_clien
     global _sso_service
     if _sso_service is None:
         settings = get_settings()
-        
+
         # SSO configuration
         sso_config = {
             "sso_azure": {
@@ -63,7 +63,7 @@ async def get_sso_service(redis_client: aioredis.Redis = Depends(get_redis_clien
                 "client_secret": getattr(settings, 'github_client_secret', '')
             }
         }
-        
+
         _sso_service = SSOService(redis_client, sso_config)
     return _sso_service
 
@@ -87,7 +87,7 @@ async def get_current_user(
             detail="Authentication required",
             headers={"WWW-Authenticate": "Bearer"}
         )
-        
+
     user = await auth_service.validate_jwt_token(credentials.credentials)
     if not user:
         raise HTTPException(
@@ -95,7 +95,7 @@ async def get_current_user(
             detail="Invalid or expired token",
             headers={"WWW-Authenticate": "Bearer"}
         )
-        
+
     return user
 
 
@@ -108,7 +108,7 @@ async def get_current_user_optional(
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             return None
-            
+
         token = auth_header.split(" ")[1]
         user = await auth_service.validate_jwt_token(token)
         return user

@@ -137,13 +137,13 @@ class WorkflowExecution:
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 class ProductionEnterpriseSecurityPlatform(
-    XORBService, 
-    SecurityMonitoringService, 
+    XORBService,
+    SecurityMonitoringService,
     ComplianceService,
     SecurityOrchestrationService
 ):
     """Unified enterprise security platform with all production features"""
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="enterprise_security_platform",
@@ -151,52 +151,52 @@ class ProductionEnterpriseSecurityPlatform(
             dependencies=["database", "redis", "ml_models", "threat_intel"],
             **kwargs
         )
-        
+
         # Security monitoring components
         self.active_monitors = {}
         self.security_alerts = {}
         self.alert_rules = {}
         self.monitoring_sessions = {}
-        
+
         # Compliance management
         self.compliance_frameworks = {}
         self.assessment_history = {}
         self.compliance_controls = {}
         self.evidence_repository = {}
-        
+
         # Workflow orchestration
         self.workflows = {}
         self.workflow_executions = {}
         self.active_executions = {}
         self.scheduled_workflows = {}
-        
+
         # Enterprise features
         self.tenant_configurations = {}
         self.enterprise_policies = {}
         self.audit_logs = []
         self.performance_metrics = {}
-        
+
         # Redis client for caching and pub/sub
         self.redis_client: Optional[aioredis.Redis] = None
-        
+
         # Machine learning components
         self.ml_available = ML_AVAILABLE
         self.anomaly_detectors = {}
         self.behavioral_models = {}
-        
+
         # Real-time monitoring
         self.monitoring_queues = {}
         self.alert_processors = {}
-        
+
         # Initialize framework mappings
         self._initialize_compliance_frameworks()
         self._initialize_default_workflows()
-    
+
     async def initialize(self) -> bool:
         """Initialize the enterprise security platform"""
         try:
             logger.info("Initializing Enterprise Security Platform...")
-            
+
             # Initialize Redis connection if available
             if REDIS_AVAILABLE and self.config.get("redis_url"):
                 self.redis_client = aioredis.from_url(
@@ -206,33 +206,33 @@ class ProductionEnterpriseSecurityPlatform(
                 )
                 await self.redis_client.ping()
                 logger.info("Redis connection established")
-            
+
             # Initialize ML models
             if self.ml_available:
                 await self._initialize_ml_models()
-            
+
             # Load compliance frameworks
             await self._load_compliance_data()
-            
+
             # Start background services
             asyncio.create_task(self._alert_processor())
             asyncio.create_task(self._monitoring_engine())
             asyncio.create_task(self._compliance_monitor())
             asyncio.create_task(self._workflow_scheduler())
             asyncio.create_task(self._metrics_collector())
-            
+
             # Load enterprise configurations
             await self._load_enterprise_configurations()
-            
+
             self.status = ServiceStatus.HEALTHY
             logger.info("Enterprise Security Platform initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize enterprise platform: {e}")
             self.status = ServiceStatus.UNHEALTHY
             return False
-    
+
     # SecurityMonitoringService implementation
     async def start_real_time_monitoring(
         self,
@@ -243,12 +243,12 @@ class ProductionEnterpriseSecurityPlatform(
         """Start real-time security monitoring"""
         try:
             monitor_id = str(uuid4())
-            
+
             # Validate monitoring configuration
             monitoring_level = MonitoringLevel(monitoring_config.get("level", "medium"))
             alert_thresholds = monitoring_config.get("alert_thresholds", {})
             detection_rules = monitoring_config.get("detection_rules", [])
-            
+
             # Create monitoring session
             monitor_session = {
                 "monitor_id": monitor_id,
@@ -263,17 +263,17 @@ class ProductionEnterpriseSecurityPlatform(
                 "alerts_generated": 0,
                 "last_activity": datetime.utcnow()
             }
-            
+
             self.active_monitors[monitor_id] = monitor_session
-            
+
             # Start monitoring tasks
             asyncio.create_task(self._monitor_targets(monitor_id, targets, monitoring_config))
-            
+
             # Create alert rules for this monitoring session
             await self._create_monitoring_alert_rules(monitor_id, monitoring_config)
-            
+
             logger.info(f"Real-time monitoring started: {monitor_id} for {len(targets)} targets")
-            
+
             return {
                 "monitor_id": monitor_id,
                 "status": "started",
@@ -283,11 +283,11 @@ class ProductionEnterpriseSecurityPlatform(
                 "alert_rules_created": len(detection_rules),
                 "started_at": monitor_session["started_at"].isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to start real-time monitoring: {e}")
             raise
-    
+
     async def get_security_alerts(
         self,
         organization: Organization,
@@ -298,24 +298,24 @@ class ProductionEnterpriseSecurityPlatform(
         try:
             # Filter alerts by organization and severity
             filtered_alerts = []
-            
+
             for alert in self.security_alerts.values():
                 # Check organization access
                 if not self._has_alert_access(alert, organization):
                     continue
-                
+
                 # Apply severity filter
                 if severity_filter and alert.severity.value != severity_filter.lower():
                     continue
-                
+
                 filtered_alerts.append(alert)
-            
+
             # Sort by creation time (newest first)
             filtered_alerts.sort(key=lambda x: x.created_at, reverse=True)
-            
+
             # Apply limit
             filtered_alerts = filtered_alerts[:limit]
-            
+
             # Convert to API format
             alert_list = []
             for alert in filtered_alerts:
@@ -323,13 +323,13 @@ class ProductionEnterpriseSecurityPlatform(
                 alert_dict["created_at"] = alert.created_at.isoformat()
                 alert_dict["updated_at"] = alert.updated_at.isoformat()
                 alert_list.append(alert_dict)
-            
+
             return alert_list
-            
+
         except Exception as e:
             logger.error(f"Failed to get security alerts: {e}")
             raise
-    
+
     async def create_alert_rule(
         self,
         rule_definition: Dict[str, Any],
@@ -339,13 +339,13 @@ class ProductionEnterpriseSecurityPlatform(
         """Create custom security alert rule"""
         try:
             rule_id = str(uuid4())
-            
+
             # Validate rule definition
             rule_name = rule_definition.get("name", f"Custom Rule {rule_id[:8]}")
             conditions = rule_definition.get("conditions", [])
             actions = rule_definition.get("actions", [])
             severity = AlertSeverity(rule_definition.get("severity", "medium"))
-            
+
             # Create alert rule
             alert_rule = {
                 "rule_id": rule_id,
@@ -363,18 +363,18 @@ class ProductionEnterpriseSecurityPlatform(
                 "last_triggered": None,
                 "metadata": rule_definition.get("metadata", {})
             }
-            
+
             self.alert_rules[rule_id] = alert_rule
-            
+
             # Persist rule if Redis available
             if self.redis_client:
                 await self.redis_client.hset(
                     f"alert_rule:{rule_id}",
                     mapping={k: json.dumps(v, default=str) for k, v in alert_rule.items()}
                 )
-            
+
             logger.info(f"Alert rule created: {rule_name} ({rule_id})")
-            
+
             return {
                 "rule_id": rule_id,
                 "name": rule_name,
@@ -384,11 +384,11 @@ class ProductionEnterpriseSecurityPlatform(
                 "actions_count": len(actions),
                 "severity": severity.value
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to create alert rule: {e}")
             raise
-    
+
     async def investigate_incident(
         self,
         incident_id: str,
@@ -398,12 +398,12 @@ class ProductionEnterpriseSecurityPlatform(
         """Perform automated incident investigation"""
         try:
             investigation_id = str(uuid4())
-            
+
             # Get incident details
             incident = await self._get_incident_details(incident_id)
             if not incident:
                 raise ValueError(f"Incident {incident_id} not found")
-            
+
             # Initialize investigation
             investigation = {
                 "investigation_id": investigation_id,
@@ -418,20 +418,20 @@ class ProductionEnterpriseSecurityPlatform(
                 "related_incidents": [],
                 "confidence_score": 0.0
             }
-            
+
             # Run investigation tasks
             await self._run_investigation_tasks(investigation, incident, investigation_parameters)
-            
+
             # Generate investigation report
             investigation_report = await self._generate_investigation_report(investigation)
-            
+
             # Store investigation results
             investigation["status"] = "completed"
             investigation["completed_at"] = datetime.utcnow()
             investigation["report"] = investigation_report
-            
+
             logger.info(f"Incident investigation completed: {investigation_id}")
-            
+
             return {
                 "investigation_id": investigation_id,
                 "incident_id": incident_id,
@@ -442,11 +442,11 @@ class ProductionEnterpriseSecurityPlatform(
                 "report": investigation_report,
                 "duration_minutes": (investigation["completed_at"] - investigation["started_at"]).total_seconds() / 60
             }
-            
+
         except Exception as e:
             logger.error(f"Incident investigation failed: {e}")
             raise
-    
+
     # ComplianceService implementation
     async def validate_compliance(
         self,
@@ -457,12 +457,12 @@ class ProductionEnterpriseSecurityPlatform(
         """Validate compliance against specific framework"""
         try:
             validation_id = str(uuid4())
-            
+
             # Get framework configuration
             framework_config = self.compliance_frameworks.get(framework)
             if not framework_config:
                 raise ValueError(f"Unsupported compliance framework: {framework}")
-            
+
             # Initialize compliance assessment
             assessment = ComplianceAssessment(
                 assessment_id=validation_id,
@@ -482,20 +482,20 @@ class ProductionEnterpriseSecurityPlatform(
                 next_assessment_due=datetime.utcnow() + timedelta(days=365),
                 certification_status="in_progress"
             )
-            
+
             # Test each control
             for control_id, control_config in framework_config["controls"].items():
                 control_result = await self._test_compliance_control(
                     control_id, control_config, scan_results
                 )
-                
+
                 assessment.controls_tested.append(control_result)
-                
+
                 if control_result["status"] == "passed":
                     assessment.controls_passed += 1
                 else:
                     assessment.controls_failed += 1
-                    
+
                     # Add to findings
                     assessment.findings.append({
                         "control_id": control_id,
@@ -505,12 +505,12 @@ class ProductionEnterpriseSecurityPlatform(
                         "evidence": control_result.get("evidence", []),
                         "risk_level": control_result.get("risk_level", "medium")
                     })
-            
+
             # Calculate compliance score
             total_controls = len(assessment.controls_tested)
             if total_controls > 0:
                 assessment.compliance_score = (assessment.controls_passed / total_controls) * 100
-            
+
             # Determine certification status
             if assessment.compliance_score >= 95:
                 assessment.certification_status = "compliant"
@@ -518,17 +518,17 @@ class ProductionEnterpriseSecurityPlatform(
                 assessment.certification_status = "partially_compliant"
             else:
                 assessment.certification_status = "non_compliant"
-            
+
             # Generate recommendations
             assessment.recommendations = await self._generate_compliance_recommendations(
                 framework, assessment
             )
-            
+
             # Store assessment
             self.assessment_history[validation_id] = assessment
-            
+
             logger.info(f"Compliance validation completed: {framework} - {assessment.compliance_score:.1f}%")
-            
+
             return {
                 "validation_id": validation_id,
                 "framework": framework,
@@ -542,11 +542,11 @@ class ProductionEnterpriseSecurityPlatform(
                 "assessment_date": assessment.assessment_date.isoformat(),
                 "next_assessment_due": assessment.next_assessment_due.isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Compliance validation failed: {e}")
             raise
-    
+
     async def generate_compliance_report(
         self,
         framework: str,
@@ -556,15 +556,15 @@ class ProductionEnterpriseSecurityPlatform(
         """Generate compliance report for specified period"""
         try:
             report_id = str(uuid4())
-            
+
             # Parse time period
             start_date, end_date = self._parse_time_period(time_period)
-            
+
             # Get relevant assessments
             assessments = self._get_assessments_in_period(
                 framework, organization, start_date, end_date
             )
-            
+
             # Generate report sections
             report_sections = {
                 "executive_summary": await self._generate_compliance_executive_summary(
@@ -578,10 +578,10 @@ class ProductionEnterpriseSecurityPlatform(
                 "evidence_inventory": self._compile_evidence(assessments),
                 "action_plan": await self._generate_action_plan(framework, assessments)
             }
-            
+
             # Calculate overall metrics
             metrics = self._calculate_compliance_metrics(assessments)
-            
+
             compliance_report = {
                 "report_id": report_id,
                 "framework": framework,
@@ -595,15 +595,15 @@ class ProductionEnterpriseSecurityPlatform(
                 "sections": report_sections,
                 "certification_recommendation": self._get_certification_recommendation(metrics)
             }
-            
+
             logger.info(f"Compliance report generated: {framework} for {time_period}")
-            
+
             return compliance_report
-            
+
         except Exception as e:
             logger.error(f"Compliance report generation failed: {e}")
             raise
-    
+
     async def get_compliance_gaps(
         self,
         framework: str,
@@ -614,15 +614,15 @@ class ProductionEnterpriseSecurityPlatform(
             framework_config = self.compliance_frameworks.get(framework)
             if not framework_config:
                 raise ValueError(f"Unsupported compliance framework: {framework}")
-            
+
             gaps = []
-            
+
             # Analyze each control
             for control_id, control_config in framework_config["controls"].items():
                 gap_analysis = await self._analyze_control_gap(
                     control_id, control_config, current_state
                 )
-                
+
                 if gap_analysis["has_gap"]:
                     gaps.append({
                         "control_id": control_id,
@@ -638,21 +638,21 @@ class ProductionEnterpriseSecurityPlatform(
                         "dependencies": gap_analysis.get("dependencies", []),
                         "cost_estimate": gap_analysis.get("cost_estimate", "unknown")
                     })
-            
+
             # Sort by priority and severity
             gaps.sort(key=lambda x: (
                 {"high": 0, "medium": 1, "low": 2}[x["priority"]],
                 {"critical": 0, "high": 1, "medium": 2, "low": 3}[x["severity"]]
             ))
-            
+
             logger.info(f"Identified {len(gaps)} compliance gaps for {framework}")
-            
+
             return gaps
-            
+
         except Exception as e:
             logger.error(f"Compliance gap analysis failed: {e}")
             raise
-    
+
     async def track_remediation_progress(
         self,
         compliance_issues: List[str],
@@ -661,7 +661,7 @@ class ProductionEnterpriseSecurityPlatform(
         """Track progress of compliance remediation efforts"""
         try:
             tracking_id = str(uuid4())
-            
+
             # Initialize progress tracking
             progress_data = {
                 "tracking_id": tracking_id,
@@ -677,55 +677,55 @@ class ProductionEnterpriseSecurityPlatform(
                 "cost_tracking": {},
                 "risk_reduction": 0.0
             }
-            
+
             # Track each issue
             for issue_id in compliance_issues:
                 issue_status = await self._get_issue_status(issue_id, organization)
                 progress_data["issues_status"][issue_id] = issue_status
-                
+
                 # Update counters
                 if issue_status["status"] == "resolved":
                     progress_data["resolved_issues"] += 1
                 elif issue_status["status"] == "in_progress":
                     progress_data["in_progress_issues"] += 1
-                
+
                 # Add to timeline
                 if issue_status.get("timeline"):
                     progress_data["timeline"].extend(issue_status["timeline"])
-            
+
             # Update pending count
             progress_data["pending_issues"] = (
-                progress_data["total_issues"] - 
-                progress_data["resolved_issues"] - 
+                progress_data["total_issues"] -
+                progress_data["resolved_issues"] -
                 progress_data["in_progress_issues"]
             )
-            
+
             # Calculate overall progress
             if progress_data["total_issues"] > 0:
                 progress_data["overall_progress_percentage"] = (
                     (progress_data["resolved_issues"] + progress_data["in_progress_issues"] * 0.5) /
                     progress_data["total_issues"] * 100
                 )
-            
+
             # Calculate risk reduction
             progress_data["risk_reduction"] = await self._calculate_risk_reduction(
                 compliance_issues, progress_data["resolved_issues"]
             )
-            
+
             # Generate progress insights
             progress_data["insights"] = await self._generate_progress_insights(progress_data)
-            
+
             # Forecast completion
             progress_data["completion_forecast"] = await self._forecast_completion(progress_data)
-            
+
             logger.info(f"Remediation progress tracked: {progress_data['overall_progress_percentage']:.1f}%")
-            
+
             return progress_data
-            
+
         except Exception as e:
             logger.error(f"Remediation progress tracking failed: {e}")
             raise
-    
+
     # SecurityOrchestrationService implementation
     async def create_workflow(
         self,
@@ -736,7 +736,7 @@ class ProductionEnterpriseSecurityPlatform(
         """Create security automation workflow"""
         try:
             workflow_id = str(uuid4())
-            
+
             # Parse workflow definition
             workflow = {
                 "workflow_id": workflow_id,
@@ -757,20 +757,20 @@ class ProductionEnterpriseSecurityPlatform(
                 "last_executed": None,
                 "metadata": workflow_definition.get("metadata", {})
             }
-            
+
             # Validate workflow
             validation_result = await self._validate_workflow(workflow)
             if not validation_result["valid"]:
                 raise ValueError(f"Invalid workflow: {validation_result['errors']}")
-            
+
             # Store workflow
             self.workflows[workflow_id] = workflow
-            
+
             # Setup triggers
             await self._setup_workflow_triggers(workflow_id, workflow["triggers"])
-            
+
             logger.info(f"Security workflow created: {workflow['name']} ({workflow_id})")
-            
+
             return {
                 "workflow_id": workflow_id,
                 "name": workflow["name"],
@@ -780,11 +780,11 @@ class ProductionEnterpriseSecurityPlatform(
                 "triggers_count": len(workflow["triggers"]),
                 "validation": validation_result
             }
-            
+
         except Exception as e:
             logger.error(f"Workflow creation failed: {e}")
             raise
-    
+
     async def execute_workflow(
         self,
         workflow_id: str,
@@ -794,12 +794,12 @@ class ProductionEnterpriseSecurityPlatform(
         """Execute a security workflow"""
         try:
             execution_id = str(uuid4())
-            
+
             # Get workflow
             workflow = self.workflows.get(workflow_id)
             if not workflow:
                 raise ValueError(f"Workflow {workflow_id} not found")
-            
+
             # Create execution tracking
             execution = WorkflowExecution(
                 execution_id=execution_id,
@@ -815,17 +815,17 @@ class ProductionEnterpriseSecurityPlatform(
                 triggered_by=user.username,
                 metadata=parameters
             )
-            
+
             self.workflow_executions[execution_id] = execution
-            
+
             # Execute workflow in background
             execution_task = asyncio.create_task(
                 self._execute_workflow_tasks(execution, workflow, parameters)
             )
             self.active_executions[execution_id] = execution_task
-            
+
             logger.info(f"Workflow execution started: {workflow['name']} ({execution_id})")
-            
+
             return {
                 "execution_id": execution_id,
                 "workflow_id": workflow_id,
@@ -834,11 +834,11 @@ class ProductionEnterpriseSecurityPlatform(
                 "tasks_count": len(workflow["tasks"]),
                 "started_at": execution.started_at.isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Workflow execution failed: {e}")
             raise
-    
+
     async def get_workflow_status(
         self,
         execution_id: str,
@@ -853,10 +853,10 @@ class ProductionEnterpriseSecurityPlatform(
                     "status": "not_found",
                     "error": "Execution not found"
                 }
-            
+
             # Check if execution is still active
             is_active = execution_id in self.active_executions
-            
+
             return {
                 "execution_id": execution_id,
                 "workflow_id": execution.workflow_id,
@@ -875,7 +875,7 @@ class ProductionEnterpriseSecurityPlatform(
                 "error_message": execution.error_message,
                 "results_summary": self._summarize_execution_results(execution)
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to get workflow status: {e}")
             return {
@@ -883,7 +883,7 @@ class ProductionEnterpriseSecurityPlatform(
                 "status": "error",
                 "error": str(e)
             }
-    
+
     async def schedule_recurring_scan(
         self,
         targets: List[str],
@@ -894,7 +894,7 @@ class ProductionEnterpriseSecurityPlatform(
         """Schedule recurring security scans"""
         try:
             schedule_id = str(uuid4())
-            
+
             # Create workflow for recurring scan
             workflow_definition = {
                 "name": f"Recurring Scan - {schedule}",
@@ -938,12 +938,12 @@ class ProductionEnterpriseSecurityPlatform(
                     "schedule_id": schedule_id
                 }
             }
-            
+
             # Create workflow
             workflow_result = await self.create_workflow(
                 workflow_definition, user, user.organization if hasattr(user, 'organization') else None
             )
-            
+
             # Store schedule mapping
             self.scheduled_workflows[schedule_id] = {
                 "schedule_id": schedule_id,
@@ -957,9 +957,9 @@ class ProductionEnterpriseSecurityPlatform(
                 "execution_count": 0,
                 "enabled": True
             }
-            
+
             logger.info(f"Recurring scan scheduled: {schedule} for {len(targets)} targets")
-            
+
             return {
                 "schedule_id": schedule_id,
                 "workflow_id": workflow_result["workflow_id"],
@@ -968,11 +968,11 @@ class ProductionEnterpriseSecurityPlatform(
                 "targets_count": len(targets),
                 "next_run": self.scheduled_workflows[schedule_id]["next_run"].isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to schedule recurring scan: {e}")
             raise
-    
+
     # Helper methods and background tasks
     async def _initialize_ml_models(self):
         """Initialize machine learning models"""
@@ -982,19 +982,19 @@ class ProductionEnterpriseSecurityPlatform(
                 contamination=0.1,
                 random_state=42
             )
-            
+
             # Threat classification
             self.behavioral_models["threat_classifier"] = RandomForestClassifier(
                 n_estimators=100,
                 random_state=42
             )
-            
+
             logger.info("ML models initialized successfully")
-            
+
         except Exception as e:
             logger.error(f"ML model initialization failed: {e}")
             self.ml_available = False
-    
+
     def _initialize_compliance_frameworks(self):
         """Initialize compliance framework configurations"""
         self.compliance_frameworks = {
@@ -1029,7 +1029,7 @@ class ProductionEnterpriseSecurityPlatform(
                 }
             }
         }
-    
+
     def _initialize_default_workflows(self):
         """Initialize default security workflows"""
         self.workflows["incident_response"] = {
@@ -1046,76 +1046,76 @@ class ProductionEnterpriseSecurityPlatform(
             ],
             "enabled": True
         }
-    
+
     # Background service methods
     async def _alert_processor(self):
         """Background task to process security alerts"""
         while True:
             try:
                 await asyncio.sleep(10)  # Process every 10 seconds
-                
+
                 # Process pending alerts
                 for alert_id, alert in self.security_alerts.items():
                     if alert.status == "new":
                         await self._process_new_alert(alert)
-                
+
             except Exception as e:
                 logger.error(f"Alert processor error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _monitoring_engine(self):
         """Background monitoring engine"""
         while True:
             try:
                 await asyncio.sleep(30)  # Monitor every 30 seconds
-                
+
                 # Update monitoring sessions
                 for monitor_id, session in self.active_monitors.items():
                     if session["status"] == "active":
                         session["last_activity"] = datetime.utcnow()
                         await self._process_monitoring_data(monitor_id, session)
-                
+
             except Exception as e:
                 logger.error(f"Monitoring engine error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _compliance_monitor(self):
         """Background compliance monitoring"""
         while True:
             try:
                 await asyncio.sleep(3600)  # Check hourly
-                
+
                 # Check for compliance deadlines
                 for assessment_id, assessment in self.assessment_history.items():
                     if assessment.next_assessment_due <= datetime.utcnow():
                         await self._trigger_compliance_assessment(assessment)
-                
+
             except Exception as e:
                 logger.error(f"Compliance monitor error: {e}")
                 await asyncio.sleep(3600)
-    
+
     async def _workflow_scheduler(self):
         """Background workflow scheduler"""
         while True:
             try:
                 await asyncio.sleep(60)  # Check every minute
-                
+
                 # Check scheduled workflows
                 for schedule_id, schedule in self.scheduled_workflows.items():
-                    if (schedule["enabled"] and 
+                    if (schedule["enabled"] and
                         schedule["next_run"] <= datetime.utcnow()):
                         await self._execute_scheduled_workflow(schedule_id, schedule)
-                
+
             except Exception as e:
                 logger.error(f"Workflow scheduler error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _metrics_collector(self):
         """Background metrics collection"""
         while True:
             try:
                 await asyncio.sleep(300)  # Collect every 5 minutes
-                
+
                 # Collect performance metrics
                 metrics = {
                     "timestamp": datetime.utcnow().isoformat(),
@@ -1124,47 +1124,47 @@ class ProductionEnterpriseSecurityPlatform(
                     "workflow_executions": len(self.workflow_executions),
                     "compliance_assessments": len(self.assessment_history)
                 }
-                
+
                 self.performance_metrics[datetime.utcnow().isoformat()] = metrics
-                
+
                 # Keep only last 24 hours of metrics
                 cutoff = datetime.utcnow() - timedelta(hours=24)
                 self.performance_metrics = {
                     k: v for k, v in self.performance_metrics.items()
                     if datetime.fromisoformat(k) > cutoff
                 }
-                
+
             except Exception as e:
                 logger.error(f"Metrics collector error: {e}")
                 await asyncio.sleep(300)
-    
+
     # XORBService implementation
     async def shutdown(self) -> bool:
         """Shutdown enterprise security platform"""
         try:
             self.status = ServiceStatus.SHUTTING_DOWN
-            
+
             # Cancel active executions
             for execution_id, task in self.active_executions.items():
                 task.cancel()
-            
+
             # Cleanup resources
             self.active_monitors.clear()
             self.security_alerts.clear()
             self.workflow_executions.clear()
-            
+
             # Close Redis connection
             if self.redis_client:
                 await self.redis_client.close()
-            
+
             self.status = ServiceStatus.STOPPED
             logger.info("Enterprise Security Platform shutdown complete")
             return True
-            
+
         except Exception as e:
             logger.error(f"Shutdown failed: {e}")
             return False
-    
+
     async def health_check(self) -> ServiceHealth:
         """Perform comprehensive health check"""
         try:
@@ -1175,7 +1175,7 @@ class ProductionEnterpriseSecurityPlatform(
                 "ml_models_available": self.ml_available,
                 "redis_connected": self.redis_client is not None
             }
-            
+
             # Test Redis connection
             if self.redis_client:
                 try:
@@ -1184,17 +1184,17 @@ class ProductionEnterpriseSecurityPlatform(
                 except:
                     checks["redis_ping"] = False
                     checks["redis_connected"] = False
-            
+
             all_healthy = all(checks.values())
             status = ServiceStatus.HEALTHY if all_healthy else ServiceStatus.DEGRADED
-            
+
             return ServiceHealth(
                 status=status,
                 message="Enterprise Security Platform operational",
                 timestamp=datetime.utcnow(),
                 checks=checks
             )
-            
+
         except Exception as e:
             return ServiceHealth(
                 status=ServiceStatus.UNHEALTHY,
@@ -1202,7 +1202,7 @@ class ProductionEnterpriseSecurityPlatform(
                 timestamp=datetime.utcnow(),
                 checks={}
             )
-    
+
     # Production implementations for enterprise methods
     async def _load_enterprise_configurations(self):
         """Load enterprise-specific configurations with security hardening"""
@@ -1218,7 +1218,7 @@ class ProductionEnterpriseSecurityPlatform(
                 },
                 "monitoring_levels": {
                     "network": "high",
-                    "application": "high", 
+                    "application": "high",
                     "database": "critical",
                     "infrastructure": "high"
                 },
@@ -1231,12 +1231,12 @@ class ProductionEnterpriseSecurityPlatform(
             }
             self._enterprise_config = enterprise_config
             self.logger.info("Enterprise configurations loaded successfully")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to load enterprise configurations: {e}")
             # Use secure defaults
             self._enterprise_config = {"security_mode": "maximum", "compliance_level": "strict"}
-    
+
     async def _load_compliance_data(self):
         """Load compliance framework data and requirements"""
         try:
@@ -1256,7 +1256,7 @@ class ProductionEnterpriseSecurityPlatform(
                 "HIPAA": {
                     "requirements": [
                         "Administrative safeguards",
-                        "Physical safeguards", 
+                        "Physical safeguards",
                         "Technical safeguards",
                         "Privacy rule compliance",
                         "Security rule compliance"
@@ -1278,11 +1278,11 @@ class ProductionEnterpriseSecurityPlatform(
             }
             self._compliance_data = compliance_data
             self.logger.info("Compliance data loaded successfully")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to load compliance data: {e}")
             self._compliance_data = {}
-    
+
     async def _monitor_targets(self, monitor_id: str, targets: List[str], config: Dict[str, Any]):
         """Advanced target monitoring with real-time analysis"""
         try:
@@ -1301,15 +1301,15 @@ class ProductionEnterpriseSecurityPlatform(
                         "security_events": 0
                     }
                 }
-                
+
                 # Start background monitoring task
                 asyncio.create_task(self._continuous_target_monitoring(monitoring_session))
-                
+
                 self.logger.info(f"Started monitoring for target: {target}")
-                
+
         except Exception as e:
             self.logger.error(f"Failed to start target monitoring: {e}")
-    
+
     async def _create_monitoring_alert_rules(self, monitor_id: str, config: Dict[str, Any]):
         """Create sophisticated alert rules for monitoring"""
         try:
@@ -1339,13 +1339,13 @@ class ProductionEnterpriseSecurityPlatform(
                     "notification_channels": ["email"]
                 }
             ]
-            
+
             # Store alert rules
             for rule in alert_rules:
                 await self._store_alert_rule(rule)
-                
+
             self.logger.info(f"Created {len(alert_rules)} alert rules for monitor: {monitor_id}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to create alert rules: {e}")
     def _estimate_monitoring_cost(self, targets: List[str], level: MonitoringLevel) -> float: return 10.0
@@ -1355,7 +1355,7 @@ class ProductionEnterpriseSecurityPlatform(
         """Execute comprehensive investigation tasks with AI assistance"""
         try:
             investigation_tasks = []
-            
+
             # Evidence collection
             evidence_task = {
                 "task_id": f"evidence_{investigation['investigation_id']}",
@@ -1363,15 +1363,15 @@ class ProductionEnterpriseSecurityPlatform(
                 "status": "running",
                 "artifacts": []
             }
-            
+
             # Network analysis
             network_task = {
                 "task_id": f"network_{investigation['investigation_id']}",
-                "type": "network_analysis", 
+                "type": "network_analysis",
                 "status": "running",
                 "findings": []
             }
-            
+
             # Timeline reconstruction
             timeline_task = {
                 "task_id": f"timeline_{investigation['investigation_id']}",
@@ -1379,7 +1379,7 @@ class ProductionEnterpriseSecurityPlatform(
                 "status": "running",
                 "events": []
             }
-            
+
             # Impact assessment
             impact_task = {
                 "task_id": f"impact_{investigation['investigation_id']}",
@@ -1387,25 +1387,25 @@ class ProductionEnterpriseSecurityPlatform(
                 "status": "running",
                 "affected_systems": []
             }
-            
+
             investigation_tasks.extend([evidence_task, network_task, timeline_task, impact_task])
-            
+
             # Execute tasks in parallel
             await asyncio.gather(*[
                 self._execute_investigation_task(task) for task in investigation_tasks
             ])
-            
+
             # Update investigation with results
             investigation["tasks"] = investigation_tasks
             investigation["status"] = "analysis_complete"
-            
+
             self.logger.info(f"Investigation tasks completed for: {investigation['investigation_id']}")
-            
+
         except Exception as e:
             self.logger.error(f"Investigation tasks failed: {e}")
             investigation["status"] = "failed"
             investigation["error"] = str(e)
-    
+
     async def _generate_investigation_report(self, investigation: Dict) -> Dict[str, Any]:
         """Generate comprehensive investigation report with executive summary"""
         try:
@@ -1460,10 +1460,10 @@ class ProductionEnterpriseSecurityPlatform(
                     "process_enhancements": investigation.get("process_updates", [])
                 }
             }
-            
+
             self.logger.info(f"Investigation report generated for: {investigation['investigation_id']}")
             return report
-            
+
         except Exception as e:
             self.logger.error(f"Failed to generate investigation report: {e}")
             return {
@@ -1471,26 +1471,26 @@ class ProductionEnterpriseSecurityPlatform(
                 "error": f"Report generation failed: {e}",
                 "created_at": datetime.utcnow().isoformat()
             }
-    
+
     async def _execute_investigation_task(self, task: Dict[str, Any]):
         """Execute individual investigation task"""
         try:
             task_type = task["type"]
-            
+
             if task_type == "evidence_collection":
                 # Simulate evidence collection
                 task["artifacts"] = [
                     "system_logs", "network_traffic", "process_dumps",
                     "registry_analysis", "file_system_changes"
                 ]
-                
+
             elif task_type == "network_analysis":
                 # Simulate network analysis
                 task["findings"] = [
                     "suspicious_connections", "data_exfiltration_patterns",
                     "lateral_movement_indicators", "c2_communications"
                 ]
-                
+
             elif task_type == "timeline_reconstruction":
                 # Simulate timeline reconstruction
                 task["events"] = [
@@ -1500,34 +1500,34 @@ class ProductionEnterpriseSecurityPlatform(
                     {"time": "T-1h", "event": "Data access"},
                     {"time": "T-0", "event": "Detection and response"}
                 ]
-                
+
             elif task_type == "impact_assessment":
                 # Simulate impact assessment
                 task["affected_systems"] = [
                     "web_servers", "database_servers", "user_workstations",
                     "network_infrastructure"
                 ]
-            
+
             task["status"] = "completed"
             task["completed_at"] = datetime.utcnow().isoformat()
-            
+
         except Exception as e:
             task["status"] = "failed"
             task["error"] = str(e)
-    
+
     async def _store_alert_rule(self, rule: Dict[str, Any]):
         """Store alert rule in configuration system"""
         try:
             # In production, this would store in database or configuration management system
             rule["created_at"] = datetime.utcnow().isoformat()
             rule["active"] = True
-            
+
             # Store rule (placeholder for actual storage implementation)
             self.logger.debug(f"Stored alert rule: {rule['rule_id']}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to store alert rule: {e}")
-    
+
     async def _continuous_target_monitoring(self, session: Dict[str, Any]):
         """Continuous monitoring task for target"""
         try:
@@ -1537,40 +1537,40 @@ class ProductionEnterpriseSecurityPlatform(
                 session["metrics"]["response_time_ms"] = 150
                 session["metrics"]["error_rate"] = 0.1
                 session["metrics"]["security_events"] = 0
-                
+
                 # Check for alerts
                 await self._check_monitoring_alerts(session)
-                
+
                 # Wait before next check
                 await asyncio.sleep(30)
-                
+
         except asyncio.CancelledError:
             session["status"] = "cancelled"
         except Exception as e:
             session["status"] = "error"
             session["error"] = str(e)
             self.logger.error(f"Monitoring task failed for {session['target']}: {e}")
-    
+
     async def _check_monitoring_alerts(self, session: Dict[str, Any]):
         """Check monitoring metrics against alert rules"""
         try:
             metrics = session["metrics"]
-            
+
             # Check availability
             if metrics["availability"] < 95:
                 await self._trigger_alert(session, "availability", "critical")
-            
+
             # Check response time
             if metrics["response_time_ms"] > 5000:
                 await self._trigger_alert(session, "response_time", "high")
-            
+
             # Check security events
             if metrics["security_events"] > 10:
                 await self._trigger_alert(session, "security_events", "critical")
-                
+
         except Exception as e:
             self.logger.error(f"Alert checking failed: {e}")
-    
+
     async def _trigger_alert(self, session: Dict[str, Any], metric: str, severity: str):
         """Trigger monitoring alert"""
         try:
@@ -1584,10 +1584,10 @@ class ProductionEnterpriseSecurityPlatform(
                 "timestamp": datetime.utcnow().isoformat(),
                 "message": f"Alert: {metric} threshold exceeded for {session['target']}"
             }
-            
+
             # In production, this would send notifications
             self.logger.warning(f"Alert triggered: {alert['message']}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to trigger alert: {e}")
     async def _test_compliance_control(self, control_id: str, config: Dict, scan_results: Dict) -> Dict[str, Any]:
@@ -1627,39 +1627,39 @@ class ProductionEnterpriseSecurityPlatform(
         for trigger in triggers:
             trigger_type = trigger.get("trigger_type")
             trigger_id = f"trigger_{workflow_id}_{trigger_type}_{uuid4().hex[:8]}"
-            
+
             if trigger_type == "scheduled":
                 # Setup scheduled trigger
                 schedule = trigger.get("schedule", "0 0 * * *")  # Default: daily at midnight
                 await self._schedule_workflow_execution(workflow_id, schedule, trigger_id)
                 self.logger.info(f"Setup scheduled trigger {trigger_id} for workflow {workflow_id}")
-                
+
             elif trigger_type == "alert":
                 # Setup alert-based trigger
                 alert_conditions = trigger.get("conditions", {})
                 await self._setup_alert_trigger(workflow_id, alert_conditions, trigger_id)
                 self.logger.info(f"Setup alert trigger {trigger_id} for workflow {workflow_id}")
-                
+
             elif trigger_type == "threat_level":
                 # Setup threat level trigger
                 threshold = trigger.get("threshold", "high")
                 await self._setup_threat_level_trigger(workflow_id, threshold, trigger_id)
                 self.logger.info(f"Setup threat level trigger {trigger_id} for workflow {workflow_id}")
-    
+
     async def _execute_workflow_tasks(self, execution: WorkflowExecution, workflow: Dict, params: Dict):
         """Execute workflow tasks in sequence"""
         tasks = workflow.get("tasks", [])
         results = {}
-        
+
         for i, task in enumerate(tasks):
             task_id = f"task_{i+1}"
             task_type = task.get("type")
-            
+
             try:
                 execution.current_task = task_id
                 execution.status = WorkflowStatus.RUNNING
                 await self._update_execution_status(execution)
-                
+
                 # Execute task based on type
                 if task_type == "reconnaissance":
                     result = await self._execute_reconnaissance_task(task, params)
@@ -1673,32 +1673,32 @@ class ProductionEnterpriseSecurityPlatform(
                     result = await self._execute_report_generation_task(task, params)
                 else:
                     result = {"status": "skipped", "reason": f"Unknown task type: {task_type}"}
-                
+
                 results[task_id] = result
                 execution.results[task_id] = result
-                
+
                 self.logger.info(f"Completed task {task_id} of type {task_type}")
-                
+
                 # Check if task failed and should stop execution
                 if result.get("status") == "failed" and task.get("critical", False):
                     execution.status = WorkflowStatus.FAILED
                     execution.error_message = f"Critical task {task_id} failed: {result.get('error')}"
                     break
-                    
+
             except Exception as e:
                 self.logger.error(f"Task {task_id} execution failed: {e}")
                 results[task_id] = {"status": "failed", "error": str(e)}
                 execution.results[task_id] = results[task_id]
-                
+
                 if task.get("critical", False):
                     execution.status = WorkflowStatus.FAILED
                     execution.error_message = f"Critical task {task_id} failed: {str(e)}"
                     break
-        
+
         # Update final execution status
         if execution.status != WorkflowStatus.FAILED:
             execution.status = WorkflowStatus.COMPLETED
-        
+
         execution.completed_at = datetime.utcnow()
         await self._update_execution_status(execution)
     def _estimate_workflow_duration(self, workflow: Dict[str, Any]) -> int: return 300
@@ -1710,10 +1710,10 @@ class ProductionEnterpriseSecurityPlatform(
         try:
             # Enrich alert with additional context
             enriched_alert = await self._enrich_alert_data(alert)
-            
+
             # Calculate alert severity and risk score
             risk_score = await self._calculate_alert_risk_score(enriched_alert)
-            
+
             # Determine escalation path based on severity
             if risk_score >= 8.0:  # Critical alerts
                 await self._trigger_critical_alert_response(enriched_alert)
@@ -1723,29 +1723,29 @@ class ProductionEnterpriseSecurityPlatform(
                 await self._trigger_medium_severity_response(enriched_alert)
             else:  # Low severity
                 await self._log_low_severity_alert(enriched_alert)
-            
+
             # Check for correlation with existing incidents
             correlated_incidents = await self._correlate_alert_with_incidents(enriched_alert)
             if correlated_incidents:
                 await self._update_related_incidents(enriched_alert, correlated_incidents)
-            
+
             # Update threat intelligence with new indicators
             if enriched_alert.indicators:
                 await self._update_threat_intelligence(enriched_alert.indicators)
-            
+
             self.logger.info(f"Processed alert {alert.id} with risk score {risk_score}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to process alert {alert.id}: {e}")
-    
+
     async def _process_monitoring_data(self, monitor_id: str, session: Dict):
         """Process real-time monitoring data with ML-powered analysis"""
         try:
             monitoring_data = session.get("monitoring_data", {})
-            
+
             # Apply anomaly detection algorithms
             anomalies = await self._detect_monitoring_anomalies(monitoring_data)
-            
+
             # Generate alerts for detected anomalies
             for anomaly in anomalies:
                 alert = SecurityAlert(
@@ -1763,18 +1763,18 @@ class ProductionEnterpriseSecurityPlatform(
                     }
                 )
                 await self._process_new_alert(alert)
-            
+
             # Update monitoring metrics
             await self._update_monitoring_metrics(monitor_id, monitoring_data)
-            
+
             # Store processed data for historical analysis
             await self._store_monitoring_history(monitor_id, monitoring_data, anomalies)
-            
+
             self.logger.debug(f"Processed monitoring data for monitor {monitor_id}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to process monitoring data for {monitor_id}: {e}")
-    
+
     async def _trigger_compliance_assessment(self, assessment: ComplianceAssessment):
         """Trigger automated compliance assessment"""
         try:
@@ -1782,20 +1782,20 @@ class ProductionEnterpriseSecurityPlatform(
             if not await self._validate_compliance_config(assessment):
                 self.logger.error(f"Invalid compliance assessment configuration: {assessment.id}")
                 return
-            
+
             # Collect compliance evidence
             evidence = await self._collect_compliance_evidence(assessment)
-            
+
             # Run compliance checks based on framework
             framework = assessment.framework
             compliance_results = await self._run_compliance_checks(framework, evidence)
-            
+
             # Calculate compliance score
             compliance_score = await self._calculate_compliance_score(compliance_results)
-            
+
             # Generate compliance report
             report = await self._generate_compliance_report(assessment, compliance_results, compliance_score)
-            
+
             # Store assessment results
             await self._store_compliance_assessment(assessment.id, {
                 "results": compliance_results,
@@ -1804,16 +1804,16 @@ class ProductionEnterpriseSecurityPlatform(
                 "evidence": evidence,
                 "completed_at": datetime.utcnow().isoformat()
             })
-            
+
             # Trigger remediation workflows if non-compliant
             if compliance_score < assessment.minimum_score:
                 await self._trigger_compliance_remediation(assessment, compliance_results)
-            
+
             self.logger.info(f"Completed compliance assessment {assessment.id} with score {compliance_score}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to trigger compliance assessment {assessment.id}: {e}")
-    
+
     async def _execute_scheduled_workflow(self, schedule_id: str, schedule: Dict):
         """Execute scheduled workflow with proper error handling"""
         try:
@@ -1821,19 +1821,19 @@ class ProductionEnterpriseSecurityPlatform(
             if not workflow_id:
                 self.logger.error(f"Schedule {schedule_id} missing workflow_id")
                 return
-            
+
             # Get workflow definition
             workflow = await self._get_workflow_definition(workflow_id)
             if not workflow:
                 self.logger.error(f"Workflow {workflow_id} not found for schedule {schedule_id}")
                 return
-            
+
             # Check if workflow is currently running
             active_executions = await self._get_active_workflow_executions(workflow_id)
             if active_executions and not schedule.get("allow_concurrent", False):
                 self.logger.info(f"Skipping scheduled execution of {workflow_id} - already running")
                 return
-            
+
             # Execute workflow with schedule context
             execution_params = {
                 "triggered_by": "schedule",
@@ -1841,18 +1841,18 @@ class ProductionEnterpriseSecurityPlatform(
                 "scheduled_time": schedule.get("scheduled_time"),
                 "workflow_params": schedule.get("params", {})
             }
-            
+
             execution_result = await self.execute_workflow(workflow_id, execution_params)
-            
+
             # Update schedule metadata
             await self._update_schedule_execution_history(schedule_id, execution_result)
-            
+
             # Calculate next execution time
             next_run = self._calculate_next_run(schedule.get("cron_expression", "0 0 * * *"))
             await self._update_schedule_next_run(schedule_id, next_run)
-            
+
             self.logger.info(f"Executed scheduled workflow {workflow_id} from schedule {schedule_id}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to execute scheduled workflow {schedule_id}: {e}")
             await self._record_schedule_failure(schedule_id, str(e))

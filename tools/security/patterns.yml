@@ -1,0 +1,30 @@
+# Secret Hygiene Scanner Patterns
+# Each category contains regex patterns to detect potential secrets
+
+passwords:
+  - "(?i)password\s*[=:\s]\s*[\"\']?([^\s\"\']{8,})[\"\']?"  # Passwords in key=value format
+  - "(?i)pwd\s*[=:\s]\s*[\"\']?([^\s\"\']{8,})[\"\']?"      # Common password abbreviations
+
+tokens:
+  - "ghp_[A-Za-z0-9]{40}"                # GitHub personal access tokens
+  - "[\"\']?Bearer\s+([A-Za-z0-9\-_=]+\.[A-Za-z0-9\-_=]+\.?[A-Za-z0-9\-_.+/=]*)[\"\']?"  # JWT tokens
+  - "[\"\']?ey[A-Za-z0-9\-_=]+\.[A-Za-z0-9\-_=]+\.?[A-Za-z0-9\-_.+/=]*[\"\']?"  # JWT tokens without Bearer prefix
+
+cloud_keys:
+  - "AKIA[0-9A-Z]{16}"  # AWS access keys
+  - "-----BEGIN\s+RSA\s+PRIVATE\s+KEY-----"  # RSA private keys
+  - "-----BEGIN\s+PRIVATE\s+KEY-----"  # Private keys
+
+env_vars:
+  - "(?i)AWS_SECRET_ACCESS_KEY\s*[=:\s]\s*[\"\']?([^\s\"\']{16,})[\"\']?"  # AWS secrets
+  - "(?i)SECRET_KEY\s*[=:\s]\s*[\"\']?([^\s\"\']{16,})[\"\']?"  # Generic secret keys
+
+# Add more patterns as needed
+# Patterns should be case-sensitive where appropriate
+# Use negative lookaheads to exclude false positives if needed
+# Example: "(?!false_positive)pattern" to exclude specific matches
+# Remember to escape backslashes in YAML strings
+# Use https://regex101.com/ to test patterns before adding them here
+# For JWT patterns, consider using: "ey[A-Za-z0-9\-_=]+\.[A-Za-z0-9\-_=]+\.?[A-Za-z0-9\-_.+/=]*"
+# For AWS keys: "AKIA[0-9A-Z]{16}"
+# For private keys: "-----BEGIN\s+[A-Z\s]+KEY-----"

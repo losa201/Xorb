@@ -10,7 +10,7 @@ Content: YOUR_SERVER_IP
 TTL: Auto
 Proxy: Enabled (Orange Cloud)
 
-Type: A  
+Type: A
 Name: www
 Content: YOUR_SERVER_IP
 TTL: Auto
@@ -68,7 +68,7 @@ Proxy: Enabled (Orange Cloud)
 ### WAF Rules
 ```javascript
 // Block known attack patterns
-(http.request.uri.path contains "/wp-admin" or 
+(http.request.uri.path contains "/wp-admin" or
  http.request.uri.path contains "/xmlrpc.php" or
  http.request.uri.path contains "/.env" or
  http.request.uri.path contains "/.git" or
@@ -78,7 +78,7 @@ Proxy: Enabled (Orange Cloud)
 (http.request.uri.path contains "/api/auth" and http.request.method eq "POST")
 
 // Block malicious user agents
-(http.user_agent contains "sqlmap" or 
+(http.user_agent contains "sqlmap" or
  http.user_agent contains "nikto" or
  http.user_agent contains "gobuster" or
  http.user_agent contains "dirbuster")
@@ -228,7 +228,7 @@ Settings:
 
 // Backup origin (if available)
 {
-  "name": "backup", 
+  "name": "backup",
   "address": "BACKUP_SERVER_IP",
   "enabled": true,
   "weight": 0
@@ -264,20 +264,20 @@ addEventListener('fetch', event => {
 
 async function handleRequest(request) {
   const url = new URL(request.url)
-  
+
   // Block suspicious paths
   const blockedPaths = ['/wp-admin', '/.env', '/.git', '/node_modules']
   if (blockedPaths.some(path => url.pathname.startsWith(path))) {
     return new Response('Forbidden', { status: 403 })
   }
-  
+
   // Add security headers
   const response = await fetch(request)
   const newResponse = new Response(response.body, response)
-  
+
   newResponse.headers.set('X-Security-Worker', 'Active')
   newResponse.headers.set('X-Timestamp', new Date().toISOString())
-  
+
   return newResponse
 }
 ```

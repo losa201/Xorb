@@ -42,55 +42,55 @@ logger = logging.getLogger(__name__)
 
 class ProductionUserRepository(UserRepository):
     """Production PostgreSQL-backed user repository"""
-    
+
     def __init__(self, session: AsyncSession):
         self.session = session
-    
+
     async def get_by_id(self, user_id: UUID) -> Optional[User]:
         """Get user by ID with full profile data"""
         try:
             stmt = select(UserModel).where(UserModel.id == user_id)
             result = await self.session.execute(stmt)
             user_model = result.scalar_one_or_none()
-            
+
             if user_model:
                 return self._model_to_entity(user_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting user by ID {user_id}: {e}")
             return None
-    
+
     async def get_by_username(self, username: str) -> Optional[User]:
         """Get user by username with case-insensitive search"""
         try:
             stmt = select(UserModel).where(func.lower(UserModel.username) == username.lower())
             result = await self.session.execute(stmt)
             user_model = result.scalar_one_or_none()
-            
+
             if user_model:
                 return self._model_to_entity(user_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting user by username {username}: {e}")
             return None
-    
+
     async def get_by_email(self, email: str) -> Optional[User]:
         """Get user by email with case-insensitive search"""
         try:
             stmt = select(UserModel).where(func.lower(UserModel.email) == email.lower())
             result = await self.session.execute(stmt)
             user_model = result.scalar_one_or_none()
-            
+
             if user_model:
                 return self._model_to_entity(user_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting user by email {email}: {e}")
             return None
-    
+
     async def create(self, user: User) -> User:
         """Create new user with validation and security measures"""
         try:
@@ -109,13 +109,13 @@ class ProductionUserRepository(UserRepository):
                 created_at=user.created_at or datetime.utcnow(),
                 updated_at=datetime.utcnow()
             )
-            
+
             self.session.add(user_model)
             await self.session.commit()
             await self.session.refresh(user_model)
-            
+
             return self._model_to_entity(user_model)
-            
+
         except IntegrityError as e:
             await self.session.rollback()
             logger.error(f"User creation failed - integrity error: {e}")
@@ -124,7 +124,7 @@ class ProductionUserRepository(UserRepository):
             await self.session.rollback()
             logger.error(f"Error creating user: {e}")
             raise
-    
+
     async def update(self, user: User) -> User:
         """Update user with optimistic locking"""
         try:
@@ -144,22 +144,22 @@ class ProductionUserRepository(UserRepository):
                     updated_at=datetime.utcnow()
                 )
             )
-            
+
             result = await self.session.execute(stmt)
-            
+
             if result.rowcount == 0:
                 raise ValueError("User not found or no changes made")
-            
+
             await self.session.commit()
-            
+
             # Return updated user
             return await self.get_by_id(user.id)
-            
+
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Error updating user {user.id}: {e}")
             raise
-    
+
     async def delete(self, user_id: UUID) -> bool:
         """Soft delete user (mark as inactive)"""
         try:
@@ -172,17 +172,17 @@ class ProductionUserRepository(UserRepository):
                     updated_at=datetime.utcnow()
                 )
             )
-            
+
             result = await self.session.execute(stmt)
             await self.session.commit()
-            
+
             return result.rowcount > 0
-            
+
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Error deleting user {user_id}: {e}")
             return False
-    
+
     def _model_to_entity(self, model: UserModel) -> User:
         """Convert database model to domain entity"""
         return User(
@@ -204,40 +204,40 @@ class ProductionUserRepository(UserRepository):
 
 class ProductionOrganizationRepository(OrganizationRepository):
     """Production PostgreSQL-backed organization repository"""
-    
+
     def __init__(self, session: AsyncSession):
         self.session = session
-    
+
     async def get_by_id(self, organization_id: UUID) -> Optional[Organization]:
         """Get organization by ID with full details"""
         try:
             stmt = select(OrganizationModel).where(OrganizationModel.id == organization_id)
             result = await self.session.execute(stmt)
             org_model = result.scalar_one_or_none()
-            
+
             if org_model:
                 return self._model_to_entity(org_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting organization by ID {organization_id}: {e}")
             return None
-    
+
     async def get_by_name(self, name: str) -> Optional[Organization]:
         """Get organization by name"""
         try:
             stmt = select(OrganizationModel).where(OrganizationModel.name == name)
             result = await self.session.execute(stmt)
             org_model = result.scalar_one_or_none()
-            
+
             if org_model:
                 return self._model_to_entity(org_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting organization by name {name}: {e}")
             return None
-    
+
     async def create(self, organization: Organization) -> Organization:
         """Create new organization"""
         try:
@@ -250,13 +250,13 @@ class ProductionOrganizationRepository(OrganizationRepository):
                 created_at=organization.created_at or datetime.utcnow(),
                 updated_at=datetime.utcnow()
             )
-            
+
             self.session.add(org_model)
             await self.session.commit()
             await self.session.refresh(org_model)
-            
+
             return self._model_to_entity(org_model)
-            
+
         except IntegrityError as e:
             await self.session.rollback()
             logger.error(f"Organization creation failed - integrity error: {e}")
@@ -265,7 +265,7 @@ class ProductionOrganizationRepository(OrganizationRepository):
             await self.session.rollback()
             logger.error(f"Error creating organization: {e}")
             raise
-    
+
     async def update(self, organization: Organization) -> Organization:
         """Update organization"""
         try:
@@ -280,21 +280,21 @@ class ProductionOrganizationRepository(OrganizationRepository):
                     updated_at=datetime.utcnow()
                 )
             )
-            
+
             result = await self.session.execute(stmt)
-            
+
             if result.rowcount == 0:
                 raise ValueError("Organization not found or no changes made")
-            
+
             await self.session.commit()
-            
+
             return await self.get_by_id(organization.id)
-            
+
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Error updating organization {organization.id}: {e}")
             raise
-    
+
     async def get_user_organizations(self, user_id: UUID) -> List[Organization]:
         """Get all organizations for a user"""
         try:
@@ -304,16 +304,16 @@ class ProductionOrganizationRepository(OrganizationRepository):
                 .where(UserOrganizationModel.user_id == user_id)
                 .where(OrganizationModel.is_active == True)
             )
-            
+
             result = await self.session.execute(stmt)
             org_models = result.scalars().all()
-            
+
             return [self._model_to_entity(model) for model in org_models]
-            
+
         except Exception as e:
             logger.error(f"Error getting user organizations for {user_id}: {e}")
             return []
-    
+
     def _model_to_entity(self, model: OrganizationModel) -> Organization:
         """Convert database model to domain entity"""
         return Organization(
@@ -329,11 +329,11 @@ class ProductionOrganizationRepository(OrganizationRepository):
 
 class ProductionCacheRepository(CacheRepository):
     """Production Redis-backed cache repository with clustering support"""
-    
+
     def __init__(self, redis_client: Optional[aioredis.Redis] = None):
         self.redis = redis_client
         self._fallback_cache = {}  # In-memory fallback
-    
+
     async def get(self, key: str) -> Optional[str]:
         """Get value from cache with fallback"""
         try:
@@ -343,11 +343,11 @@ class ProductionCacheRepository(CacheRepository):
             else:
                 # Fallback to in-memory cache
                 return self._fallback_cache.get(key)
-                
+
         except Exception as e:
             logger.warning(f"Cache get error for key {key}: {e}")
             return self._fallback_cache.get(key)
-    
+
     async def set(self, key: str, value: str, expire: Optional[int] = None) -> bool:
         """Set value in cache with expiration"""
         try:
@@ -364,12 +364,12 @@ class ProductionCacheRepository(CacheRepository):
                     # Simple expiration simulation
                     asyncio.create_task(self._expire_key(key, expire))
                 return True
-                
+
         except Exception as e:
             logger.warning(f"Cache set error for key {key}: {e}")
             self._fallback_cache[key] = value
             return False
-    
+
     async def delete(self, key: str) -> bool:
         """Delete key from cache"""
         try:
@@ -378,12 +378,12 @@ class ProductionCacheRepository(CacheRepository):
                 return result > 0
             else:
                 return self._fallback_cache.pop(key, None) is not None
-                
+
         except Exception as e:
             logger.warning(f"Cache delete error for key {key}: {e}")
             self._fallback_cache.pop(key, None)
             return False
-    
+
     async def exists(self, key: str) -> bool:
         """Check if key exists in cache"""
         try:
@@ -391,11 +391,11 @@ class ProductionCacheRepository(CacheRepository):
                 return bool(await self.redis.exists(key))
             else:
                 return key in self._fallback_cache
-                
+
         except Exception as e:
             logger.warning(f"Cache exists error for key {key}: {e}")
             return key in self._fallback_cache
-    
+
     async def expire(self, key: str, seconds: int) -> bool:
         """Set expiration for existing key"""
         try:
@@ -406,11 +406,11 @@ class ProductionCacheRepository(CacheRepository):
                     asyncio.create_task(self._expire_key(key, seconds))
                     return True
                 return False
-                
+
         except Exception as e:
             logger.warning(f"Cache expire error for key {key}: {e}")
             return False
-    
+
     async def sadd(self, key: str, *values: str) -> int:
         """Add values to a set"""
         try:
@@ -424,11 +424,11 @@ class ProductionCacheRepository(CacheRepository):
                     self._fallback_cache[key] = set()
                 self._fallback_cache[key].update(values)
                 return len(values)
-                
+
         except Exception as e:
             logger.warning(f"Cache sadd error for key {key}: {e}")
             return 0
-    
+
     async def smembers(self, key: str) -> List[str]:
         """Get all members of a set"""
         try:
@@ -438,11 +438,11 @@ class ProductionCacheRepository(CacheRepository):
             else:
                 value = self._fallback_cache.get(key, set())
                 return list(value) if isinstance(value, set) else []
-                
+
         except Exception as e:
             logger.warning(f"Cache smembers error for key {key}: {e}")
             return []
-    
+
     async def _expire_key(self, key: str, seconds: int) -> None:
         """Helper to expire keys in fallback cache"""
         await asyncio.sleep(seconds)
@@ -451,10 +451,10 @@ class ProductionCacheRepository(CacheRepository):
 
 class ProductionScanSessionRepository(ScanSessionRepository):
     """Production PostgreSQL-backed scan session repository"""
-    
+
     def __init__(self, session: AsyncSession):
         self.session = session
-    
+
     async def create_session(self, session_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new scan session with comprehensive validation"""
         try:
@@ -475,13 +475,13 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                 completed_at=session_data.get("completed_at"),
                 results=json.dumps(session_data.get("results", {})) if session_data.get("results") else None
             )
-            
+
             self.session.add(session_model)
             await self.session.commit()
             await self.session.refresh(session_model)
-            
+
             return self._model_to_dict(session_model)
-            
+
         except IntegrityError as e:
             await self.session.rollback()
             logger.error(f"Scan session creation failed - integrity error: {e}")
@@ -490,22 +490,22 @@ class ProductionScanSessionRepository(ScanSessionRepository):
             await self.session.rollback()
             logger.error(f"Error creating scan session: {e}")
             raise
-    
+
     async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get scan session with full details"""
         try:
             stmt = select(ScanSessionModel).where(ScanSessionModel.session_id == session_id)
             result = await self.session.execute(stmt)
             session_model = result.scalar_one_or_none()
-            
+
             if session_model:
                 return self._model_to_dict(session_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting scan session {session_id}: {e}")
             return None
-    
+
     async def update_session_status(self, session_id: str, status: str, metadata: Optional[Dict[str, Any]] = None) -> bool:
         """Update session status with metadata"""
         try:
@@ -513,31 +513,31 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                 "status": status,
                 "updated_at": datetime.utcnow()
             }
-            
+
             if status == "running" and not metadata:
                 update_data["started_at"] = datetime.utcnow()
             elif status in ["completed", "failed"]:
                 update_data["completed_at"] = datetime.utcnow()
-            
+
             if metadata:
                 update_data["metadata"] = json.dumps(metadata)
-            
+
             stmt = (
                 update(ScanSessionModel)
                 .where(ScanSessionModel.session_id == session_id)
                 .values(**update_data)
             )
-            
+
             result = await self.session.execute(stmt)
             await self.session.commit()
-            
+
             return result.rowcount > 0
-            
+
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Error updating scan session status {session_id}: {e}")
             return False
-    
+
     async def save_scan_results(self, session_id: str, results: Dict[str, Any]) -> bool:
         """Save comprehensive scan results"""
         try:
@@ -551,17 +551,17 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                     status="completed"
                 )
             )
-            
+
             result = await self.session.execute(stmt)
             await self.session.commit()
-            
+
             return result.rowcount > 0
-            
+
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Error saving scan results for {session_id}: {e}")
             return False
-    
+
     async def get_user_sessions(self, user_id: UUID, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         """Get user's scan sessions with pagination"""
         try:
@@ -572,16 +572,16 @@ class ProductionScanSessionRepository(ScanSessionRepository):
                 .limit(limit)
                 .offset(offset)
             )
-            
+
             result = await self.session.execute(stmt)
             session_models = result.scalars().all()
-            
+
             return [self._model_to_dict(model) for model in session_models]
-            
+
         except Exception as e:
             logger.error(f"Error getting user sessions for {user_id}: {e}")
             return []
-    
+
     def _model_to_dict(self, model: ScanSessionModel) -> Dict[str, Any]:
         """Convert model to dictionary"""
         return {

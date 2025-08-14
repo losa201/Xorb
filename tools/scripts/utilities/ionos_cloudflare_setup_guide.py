@@ -39,20 +39,20 @@ class SetupStep:
 
 class XORBWebsiteSetupOrchestrator:
     """Comprehensive website setup orchestrator for IONOS + Cloudflare"""
-    
+
     def __init__(self):
         self.setup_phases = {}
         self.domain_config = {}
         self.hosting_config = {}
         self.cloudflare_config = {}
-        
+
     def generate_setup_guide(self) -> Dict[str, Any]:
         """Generate comprehensive setup guide"""
         logger.info("🌐 Generating XORB Website Setup Guide")
         logger.info("=" * 80)
-        
+
         setup_start = time.time()
-        
+
         # Initialize setup guide
         setup_guide = {
             'guide_id': f"XORB_SETUP_{int(time.time())}",
@@ -69,18 +69,18 @@ class XORBWebsiteSetupOrchestrator:
             'troubleshooting_guide': self._create_troubleshooting_guide(),
             'maintenance_procedures': self._create_maintenance_procedures()
         }
-        
+
         setup_duration = time.time() - setup_start
-        
+
         # Save comprehensive setup guide
         report_filename = f'/root/Xorb/IONOS_CLOUDFLARE_SETUP_GUIDE_{int(time.time())}.json'
         with open(report_filename, 'w') as f:
             json.dump(setup_guide, f, indent=2, default=str)
-        
+
         # Create markdown version for easy reading
         markdown_filename = f'/root/Xorb/XORB_WEBSITE_SETUP_GUIDE.md'
         self._create_markdown_guide(setup_guide, markdown_filename)
-        
+
         logger.info("=" * 80)
         logger.info("✅ Website Setup Guide Complete!")
         logger.info(f"⏱️ Generation Duration: {setup_duration:.1f} seconds")
@@ -88,9 +88,9 @@ class XORBWebsiteSetupOrchestrator:
         logger.info(f"📝 Setup Steps: {sum(len(phase['steps']) for phase in setup_guide['setup_phases'].values())} total steps")
         logger.info(f"💾 Setup Guide: {report_filename}")
         logger.info(f"📖 Markdown Guide: {markdown_filename}")
-        
+
         return setup_guide
-    
+
     def _create_overview(self) -> Dict[str, Any]:
         """Create setup overview"""
         return {
@@ -118,7 +118,7 @@ class XORBWebsiteSetupOrchestrator:
                 'Analytics and monitoring integration'
             ]
         }
-    
+
     def _define_prerequisites(self) -> Dict[str, Any]:
         """Define setup prerequisites"""
         return {
@@ -152,7 +152,7 @@ class XORBWebsiteSetupOrchestrator:
                 ]
             }
         }
-    
+
     def _create_setup_phases(self) -> Dict[str, Any]:
         """Create detailed setup phases"""
         setup_phases = {
@@ -188,7 +188,7 @@ class XORBWebsiteSetupOrchestrator:
                         ],
                         tools_required=["Web browser", "Notepad for record keeping"]
                     ),
-                    
+
                     SetupStep(
                         step_id="DOMAIN-002",
                         title="Prepare Subdomain Structure",
@@ -222,7 +222,7 @@ class XORBWebsiteSetupOrchestrator:
                     )
                 ]
             },
-            
+
             'phase_2_hosting': {
                 'name': 'IONOS Hosting Setup',
                 'duration': '45-60 minutes',
@@ -262,7 +262,7 @@ class XORBWebsiteSetupOrchestrator:
                         ],
                         tools_required=["Web browser", "Password manager"]
                     ),
-                    
+
                     SetupStep(
                         step_id="HOST-002",
                         title="Upload Website Files",
@@ -303,7 +303,7 @@ class XORBWebsiteSetupOrchestrator:
                     )
                 ]
             },
-            
+
             'phase_3_cloudflare': {
                 'name': 'Cloudflare Integration',
                 'duration': '30-45 minutes',
@@ -344,7 +344,7 @@ class XORBWebsiteSetupOrchestrator:
                         ],
                         tools_required=["Web browser", "DNS record documentation"]
                     ),
-                    
+
                     SetupStep(
                         step_id="CF-002",
                         title="Configure Subdomain DNS Records",
@@ -391,7 +391,7 @@ class XORBWebsiteSetupOrchestrator:
                     )
                 ]
             },
-            
+
             'phase_4_ssl': {
                 'name': 'SSL/TLS Security Configuration',
                 'duration': '20-30 minutes',
@@ -444,7 +444,7 @@ class XORBWebsiteSetupOrchestrator:
                     )
                 ]
             },
-            
+
             'phase_5_performance': {
                 'name': 'Performance Optimization',
                 'duration': '25-35 minutes',
@@ -471,7 +471,7 @@ class XORBWebsiteSetupOrchestrator:
                             "",
                             "4. Enable Auto Minify:",
                             "   - JavaScript: ON",
-                            "   - CSS: ON", 
+                            "   - CSS: ON",
                             "   - HTML: ON (test first)",
                             "",
                             "5. Configure Page Rules for different subdomains:",
@@ -500,9 +500,9 @@ class XORBWebsiteSetupOrchestrator:
                 ]
             }
         }
-        
+
         return setup_phases
-    
+
     def _configure_domain_setup(self) -> Dict[str, Any]:
         """Configure domain-specific setup instructions"""
         return {
@@ -558,7 +558,7 @@ class XORBWebsiteSetupOrchestrator:
                 ]
             }
         }
-    
+
     def _configure_hosting_setup(self) -> Dict[str, Any]:
         """Configure hosting-specific setup instructions"""
         return {
@@ -606,7 +606,7 @@ class XORBWebsiteSetupOrchestrator:
                 ]
             }
         }
-    
+
     def _configure_cloudflare_setup(self) -> Dict[str, Any]:
         """Configure Cloudflare-specific setup instructions"""
         return {
@@ -665,7 +665,7 @@ class XORBWebsiteSetupOrchestrator:
                 }
             ]
         }
-    
+
     def _configure_ssl_security(self) -> Dict[str, Any]:
         """Configure SSL and security setup"""
         return {
@@ -702,7 +702,7 @@ class XORBWebsiteSetupOrchestrator:
                 'ddos_protection': 'Automatic DDoS mitigation (All plans)'
             }
         }
-    
+
     def _configure_performance_optimization(self) -> Dict[str, Any]:
         """Configure performance optimization settings"""
         return {
@@ -746,7 +746,7 @@ class XORBWebsiteSetupOrchestrator:
                 ]
             }
         }
-    
+
     def _create_testing_procedures(self) -> Dict[str, Any]:
         """Create testing and validation procedures"""
         return {
@@ -800,7 +800,7 @@ class XORBWebsiteSetupOrchestrator:
                 ]
             }
         }
-    
+
     def _create_troubleshooting_guide(self) -> Dict[str, Any]:
         """Create comprehensive troubleshooting guide"""
         return {
@@ -889,7 +889,7 @@ class XORBWebsiteSetupOrchestrator:
                 ]
             }
         }
-    
+
     def _create_maintenance_procedures(self) -> Dict[str, Any]:
         """Create ongoing maintenance procedures"""
         return {
@@ -943,7 +943,7 @@ class XORBWebsiteSetupOrchestrator:
                 ]
             }
         }
-    
+
     def _create_markdown_guide(self, setup_guide: Dict[str, Any], filename: str):
         """Create markdown version of setup guide"""
         markdown_content = f"""# XORB Platform - IONOS & Cloudflare Setup Guide
@@ -951,32 +951,32 @@ class XORBWebsiteSetupOrchestrator:
 ## Overview
 {setup_guide['overview']['project_name']}
 
-**Domain:** {setup_guide['overview']['domain_example']}  
-**Estimated Duration:** {setup_guide['overview']['estimated_duration']}  
+**Domain:** {setup_guide['overview']['domain_example']}
+**Estimated Duration:** {setup_guide['overview']['estimated_duration']}
 **Technical Level:** {setup_guide['overview']['technical_level']}
 
 ### Subdomains to Configure:
 """
-        
+
         for subdomain in setup_guide['overview']['subdomains_to_configure']:
             markdown_content += f"- {subdomain}\n"
-        
+
         markdown_content += "\n## Prerequisites\n\n"
-        
+
         # Add prerequisites
         prereqs = setup_guide['prerequisites']
         markdown_content += "### Required Accounts:\n"
         for account, details in prereqs['accounts_required'].items():
             markdown_content += f"- **{account.upper()}**: {details['service']} - {details['plan_recommendation']} ({details['estimated_cost']})\n"
-        
+
         markdown_content += "\n## Setup Phases\n\n"
-        
+
         # Add each phase
         for phase_id, phase in setup_guide['setup_phases'].items():
             markdown_content += f"### {phase['name']}\n"
             markdown_content += f"**Duration:** {phase['duration']}  \n"
             markdown_content += f"**Description:** {phase['description']}\n\n"
-            
+
             for step in phase['steps']:
                 markdown_content += f"#### {step.title}\n"
                 markdown_content += f"**Duration:** {step.duration_minutes} minutes\n\n"
@@ -984,26 +984,26 @@ class XORBWebsiteSetupOrchestrator:
                 for instruction in step.instructions:
                     markdown_content += f"{instruction}\n"
                 markdown_content += "\n"
-                
+
                 markdown_content += "**Verification:**\n"
                 for verification in step.verification:
                     markdown_content += f"- {verification}\n"
                 markdown_content += "\n"
-        
+
         markdown_content += "\n## Testing & Validation\n\n"
         testing = setup_guide['testing_validation']
-        
+
         markdown_content += "### DNS Resolution Testing\n"
         for test in testing['functionality_testing']['dns_resolution']:
             markdown_content += f"- {test}\n"
-        
+
         markdown_content += "\n### SSL Validation\n"
         for test in testing['functionality_testing']['ssl_validation']:
             markdown_content += f"- {test}\n"
-        
+
         markdown_content += "\n## Troubleshooting\n\n"
         troubleshooting = setup_guide['troubleshooting_guide']
-        
+
         for issue, details in troubleshooting['common_issues'].items():
             markdown_content += f"### {issue.replace('_', ' ').title()}\n"
             markdown_content += f"**Symptoms:** {', '.join(details['symptoms'])}\n\n"
@@ -1011,17 +1011,17 @@ class XORBWebsiteSetupOrchestrator:
             for solution in details['solutions']:
                 markdown_content += f"- {solution}\n"
             markdown_content += "\n"
-        
+
         markdown_content += "\n## Maintenance\n\n"
         maintenance = setup_guide['maintenance_procedures']
-        
+
         markdown_content += "### Regular Tasks\n"
         for frequency, tasks in maintenance['regular_maintenance'].items():
             markdown_content += f"**{frequency.replace('_', ' ').title()}:**\n"
             for task in tasks:
                 markdown_content += f"- {task}\n"
             markdown_content += "\n"
-        
+
         # Write markdown file
         with open(filename, 'w') as f:
             f.write(markdown_content)
@@ -1030,13 +1030,13 @@ def main():
     """Main function to generate website setup guide"""
     logger.info("🚀 XORB Website Setup Guide Generator")
     logger.info("=" * 90)
-    
+
     # Initialize setup orchestrator
     setup_orchestrator = XORBWebsiteSetupOrchestrator()
-    
+
     # Generate comprehensive setup guide
     setup_guide = setup_orchestrator.generate_setup_guide()
-    
+
     # Display key setup statistics
     logger.info("=" * 90)
     logger.info("📋 SETUP GUIDE SUMMARY:")
@@ -1045,11 +1045,11 @@ def main():
     logger.info(f"  📋 Setup Phases: {len(setup_guide['setup_phases'])} phases")
     logger.info(f"  🔧 Total Steps: {sum(len(phase['steps']) for phase in setup_guide['setup_phases'].values())} steps")
     logger.info(f"  🌍 Subdomains: {len(setup_guide['overview']['subdomains_to_configure'])} configured")
-    
+
     logger.info("=" * 90)
     logger.info("🌐 WEBSITE SETUP GUIDE READY!")
     logger.info("📖 Follow the markdown guide for step-by-step instructions!")
-    
+
     return setup_guide
 
 if __name__ == "__main__":

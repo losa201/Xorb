@@ -68,10 +68,10 @@ async def lifespan(app: FastAPI):
     """Enhanced application lifespan with dependency injection container"""
     """Enhanced application lifespan manager with advanced service orchestration"""
     global _enhanced_container
-    
+
     # Startup
     logger.info("🚀 Starting XORB Enterprise API with Enhanced PTaaS Platform...")
-    
+
     try:
         # Initialize enhanced dependency injection container
         logger.info("📦 Initializing Enhanced Container with AI-Powered Services...")
@@ -86,15 +86,15 @@ async def lifespan(app: FastAPI):
                 "environment": "production"
             }
         )
-        
+
         # Store container in app state for access in routes
         app.state.container = _enhanced_container
-        
+
         # Initialize legacy infrastructure for compatibility
         logger.info("🔧 Initializing Infrastructure Components...")
         await init_database()
         await init_cache()
-        
+
         # Initialize Redis manager
         logger.info("🔧 Initializing Redis Manager...")
         redis_config = RedisConfig(
@@ -108,9 +108,9 @@ async def lifespan(app: FastAPI):
             logger.info("✅ Redis Manager initialized successfully")
         else:
             logger.warning("⚠️ Redis Manager initialization failed - using fallback mode")
-        
+
         # await init_observability()
-        
+
         # Initialize advanced security components
         logger.info("🛡️ Initializing Advanced Security Components...")
         try:
@@ -119,41 +119,41 @@ async def lifespan(app: FastAPI):
             from .services.advanced_threat_hunting_engine import get_advanced_threat_hunting_engine
             from .services.advanced_mitre_attack_engine import get_advanced_mitre_engine
             from .infrastructure.production_repositories import get_repository_factory
-            
+
             # Initialize advanced components
             orchestration_controller = await get_orchestration_controller()
             auth_service = await get_production_auth_service()
             threat_hunting_engine = await get_advanced_threat_hunting_engine()
             mitre_engine = await get_advanced_mitre_engine()
             repository_factory = await get_repository_factory()
-            
+
             # Store in app state for access
             app.state.orchestration_controller = orchestration_controller
             app.state.advanced_auth_service = auth_service
             app.state.threat_hunting_engine = threat_hunting_engine
             app.state.mitre_engine = mitre_engine
             app.state.repository_factory = repository_factory
-            
+
             logger.info("✅ Advanced security components initialized successfully")
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to initialize advanced security components: {e}")
             logger.warning("⚠️ Continuing with reduced functionality")
-        
+
         # Perform health checks on all enhanced services
         logger.info("🏥 Performing Enhanced Service Health Checks...")
         health_results = await _enhanced_container.health_check_all_services()
-        
+
         healthy_services = sum(1 for s in health_results["services"].values() if s["status"] == "healthy")
         total_services = health_results["total_services"]
-        
+
         logger.info(f"✅ Enhanced Services Health: {healthy_services}/{total_services} services healthy")
-        
+
         if health_results["overall_status"] == "healthy":
             logger.info("🎯 All Critical Enhanced Services Operational")
         else:
             logger.warning(f"⚠️ Service Health Status: {health_results['overall_status']}")
-        
+
         # Log enabled features
         service_status = _enhanced_container.get_service_status()
         logger.info(f"📊 Enhanced Features Status:")
@@ -162,9 +162,9 @@ async def lifespan(app: FastAPI):
         logger.info(f"   • Workflow Orchestration: {'✅' if 'orchestration_service' in service_status['services'] else '❌'}")
         logger.info(f"   • Advanced Reporting: {'✅' if 'reporting_service' in service_status['services'] else '❌'}")
         logger.info(f"   • Enhanced Caching: {'✅' if 'cache_repository' in service_status['services'] else '❌'}")
-        
+
         logger.info("🎉 XORB Enterprise API startup complete with Enhanced AI-Powered Capabilities")
-        
+
         # Start performance optimizer background tasks
         try:
             from .services.performance_optimizer import get_performance_optimizer
@@ -173,31 +173,31 @@ async def lifespan(app: FastAPI):
             logger.info("✅ Performance optimizer background tasks started")
         except Exception as e:
             logger.warning(f"Performance optimizer initialization warning: {e}")
-        
+
         # Store startup metrics
         app.state.startup_time = logger.info("Startup completed successfully")
         app.state.enhanced_services_count = service_status["initialized_services"]
-        
+
         yield
-        
+
     except Exception as e:
         logger.error(f"❌ Failed to start Enhanced XORB Platform: {e}")
         raise
     finally:
         # Shutdown
         logger.info("🛑 Shutting down XORB Enterprise API with Enhanced Services...")
-        
+
         try:
             # Shutdown Redis manager
             await shutdown_redis()
-            
+
             if _enhanced_container:
                 shutdown_result = await _enhanced_container.shutdown_all_services()
                 logger.info(f"📦 Enhanced Container Shutdown: {shutdown_result['shutdown']} services stopped")
-                
+
                 if shutdown_result["failed"] > 0:
                     logger.warning(f"⚠️ {shutdown_result['failed']} services failed to shutdown properly")
-            
+
             logger.info("✅ XORB Enterprise API shutdown complete")
         except Exception as e:
             logger.error(f"❌ Error during enhanced services shutdown: {e}")
@@ -207,7 +207,7 @@ app = FastAPI(
     title="XORB Enterprise Cybersecurity Platform",
     description="""
     **The World's Most Advanced AI-Powered Cybersecurity Operations Platform**
-    
+
     XORB provides comprehensive cybersecurity services including:
     - **PTaaS**: Penetration Testing as a Service with real-world security scanners
     - **Threat Intelligence**: AI-powered threat detection and correlation
@@ -215,20 +215,20 @@ app = FastAPI(
     - **Compliance Automation**: Automated compliance checking and reporting
     - **Behavioral Analytics**: ML-powered user and entity behavior analysis
     - **Orchestration**: Advanced workflow automation and response
-    
+
     ## Authentication
-    
+
     All endpoints require valid JWT authentication unless otherwise specified.
     Use the `/auth/login` endpoint to obtain access tokens.
-    
+
     ## Rate Limiting
-    
+
     API requests are rate limited per tenant:
     - **Default**: 60 requests/minute, 1000 requests/hour
     - **Enterprise**: Custom limits based on subscription
-    
+
     ## Multi-tenancy
-    
+
     All API operations are scoped to the authenticated tenant.
     Data isolation is enforced at the database level.
     """,
@@ -374,7 +374,7 @@ def custom_openapi():
     """Generate custom OpenAPI schema with enhanced information"""
     if app.openapi_schema:
         return app.openapi_schema
-    
+
     openapi_schema = get_openapi(
         title="XORB Enterprise Cybersecurity Platform API",
         version="3.0.0",
@@ -383,7 +383,7 @@ def custom_openapi():
         contact=app.contact,
         license_info=app.license_info
     )
-    
+
     # Add custom security schemes
     openapi_schema["components"]["securitySchemes"] = {
         "BearerAuth": {
@@ -399,13 +399,13 @@ def custom_openapi():
             "description": "API Key authentication for service-to-service communication"
         }
     }
-    
+
     # Add global security requirement
     openapi_schema["security"] = [
         {"BearerAuth": []},
         {"ApiKeyAuth": []}
     ]
-    
+
     # Add server information
     openapi_schema["servers"] = [
         {
@@ -417,7 +417,7 @@ def custom_openapi():
             "description": "Production server"
         }
     ]
-    
+
     # Add tags with descriptions
     openapi_schema["tags"] = [
         {
@@ -465,7 +465,7 @@ def custom_openapi():
             "description": "Background job management and processing"
         }
     ]
-    
+
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
@@ -538,7 +538,7 @@ async def api_info():
             "description": "Enterprise cybersecurity platform API",
             "capabilities": [
                 "penetration_testing",
-                "threat_intelligence", 
+                "threat_intelligence",
                 "security_orchestration",
                 "compliance_automation",
                 "behavioral_analytics"
@@ -584,11 +584,11 @@ async def enhanced_health_check(request: Request):
                     "timestamp": datetime.utcnow().isoformat()
                 }
             )
-        
+
         # Get comprehensive health status
         health_results = await container.health_check_all_services()
         service_status = container.get_service_status()
-        
+
         # Enhanced capabilities check
         capabilities = {
             "advanced_security_scanner": {
@@ -617,7 +617,7 @@ async def enhanced_health_check(request: Request):
                 "features": ["Redis clustering", "Automatic failover", "Performance optimization"]
             }
         }
-        
+
         # Performance metrics
         performance_metrics = {
             "service_initialization_time": "< 30 seconds",
@@ -626,11 +626,11 @@ async def enhanced_health_check(request: Request):
             "report_generation_time": "< 60 seconds for comprehensive reports",
             "cache_hit_ratio": "> 95%"
         }
-        
+
         # Overall platform status
         overall_healthy = health_results["overall_status"] == "healthy"
         enhanced_features_count = sum(1 for cap in capabilities.values() if cap["enabled"] and cap["status"] == "healthy")
-        
+
         return {
             "platform": {
                 "name": "XORB Enhanced PTaaS Platform",
@@ -656,7 +656,7 @@ async def enhanced_health_check(request: Request):
                 "advanced_reporting_enabled": container._config.get("enable_advanced_reporting", False)
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Enhanced health check failed: {e}")
         return JSONResponse(
@@ -670,7 +670,7 @@ async def enhanced_health_check(request: Request):
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     # Development server configuration
     uvicorn.run(
         "app.main:app",

@@ -54,88 +54,88 @@ check_root() {
 # Check prerequisites
 check_prerequisites() {
     log "🔍 Checking prerequisites..."
-    
+
     # Check if Node.js is installed
     if ! command -v node &> /dev/null; then
         error "Node.js is not installed. Please install Node.js first."
     fi
-    
+
     # Check if npm is installed
     if ! command -v npm &> /dev/null; then
         error "npm is not installed. Please install npm first."
     fi
-    
+
     # Check if nginx is installed
     if ! command -v nginx &> /dev/null; then
         warn "Nginx is not installed. Installing nginx..."
         apt update && apt install -y nginx
     fi
-    
+
     # Check if PM2 is installed globally
     if ! command -v pm2 &> /dev/null; then
         log "Installing PM2 process manager..."
         npm install -g pm2
     fi
-    
+
     # Check frontend directory exists
     if [[ ! -d "$FRONTEND_DIR" ]]; then
         error "Frontend directory not found: $FRONTEND_DIR"
     fi
-    
+
     # Check SSL certificates exist
     if [[ ! -f "$SSL_CERT" ]] || [[ ! -f "$SSL_KEY" ]]; then
         error "SSL certificates not found. Expected: $SSL_CERT and $SSL_KEY"
     fi
-    
+
     info "✅ All prerequisites met"
 }
 
 # Stop existing services
 stop_existing_services() {
     log "🛑 Stopping existing services..."
-    
+
     # Stop PM2 processes
     pm2 stop "$SERVICE_NAME" 2>/dev/null || true
     pm2 delete "$SERVICE_NAME" 2>/dev/null || true
-    
+
     # Kill any processes on production port
     if lsof -ti:$PRODUCTION_PORT > /dev/null 2>&1; then
         warn "Killing existing process on port $PRODUCTION_PORT"
         kill -9 $(lsof -ti:$PRODUCTION_PORT) 2>/dev/null || true
     fi
-    
+
     info "✅ Services stopped"
 }
 
 # Build frontend application
 build_frontend() {
     log "🏗️ Building frontend application..."
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Clean install with legacy peer deps
     info "Installing dependencies..."
     rm -rf node_modules package-lock.json
     npm install --legacy-peer-deps
-    
+
     # Build for production
     info "Building for production..."
     npm run build
-    
+
     # Check if build was successful
     if [[ ! -d ".next" ]]; then
         error "Build failed - .next directory not found"
     fi
-    
+
     info "✅ Frontend built successfully"
 }
 
 # Configure environment
 configure_environment() {
     log "⚙️ Configuring environment..."
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Create or update .env.production
     cat > .env.production <<EOF
 NODE_ENV=production
@@ -155,7 +155,7 @@ NEXTAUTH_SECRET=$(openssl rand -base64 32)
 NEXT_PUBLIC_APP_ENV=production
 NEXT_PUBLIC_DOMAIN=$DOMAIN
 EOF
-    
+
     # Create PM2 ecosystem file
     cat > ecosystem.config.js <<EOF
 module.exports = {
@@ -180,81 +180,81 @@ module.exports = {
   }]
 };
 EOF
-    
+
     info "✅ Environment configured"
 }
 
 # Configure Nginx
 configure_nginx() {
     log "🌐 Configuring Nginx..."
-    
+
     # Backup existing nginx config
     if [[ -f "/etc/nginx/sites-available/$DOMAIN" ]]; then
         cp "/etc/nginx/sites-available/$DOMAIN" "/etc/nginx/sites-available/$DOMAIN.backup.$(date +%s)"
     fi
-    
+
     # Add rate limiting to nginx.conf if not present
     if ! grep -q "limit_req_zone.*frontend" /etc/nginx/nginx.conf; then
         sed -i '/http {/a\\tlimit_req_zone $binary_remote_addr zone=frontend:10m rate=30r/s;' /etc/nginx/nginx.conf
     fi
-    
+
     # Copy nginx configuration
     cp "$NGINX_CONFIG" "/etc/nginx/sites-available/$DOMAIN"
-    
+
     # Enable site
     ln -sf "/etc/nginx/sites-available/$DOMAIN" "/etc/nginx/sites-enabled/$DOMAIN"
-    
+
     # Remove default site if it exists
     rm -f /etc/nginx/sites-enabled/default
-    
+
     # Test nginx configuration
     if ! nginx -t; then
         error "Nginx configuration test failed"
     fi
-    
+
     info "✅ Nginx configured"
 }
 
 # Start services
 start_services() {
     log "🚀 Starting services..."
-    
+
     cd "$FRONTEND_DIR"
-    
+
     # Start application with PM2
     pm2 start ecosystem.config.js
-    
+
     # Save PM2 configuration
     pm2 save
-    
+
     # Setup PM2 startup script
     pm2 startup systemd -u root --hp /root
-    
+
     # Restart nginx
     systemctl restart nginx
     systemctl enable nginx
-    
+
     # Wait for application to start
     info "Waiting for application to start..."
     sleep 5
-    
+
     # Check if application is running
     if ! pm2 show "$SERVICE_NAME" | grep -q "online"; then
         error "Application failed to start"
     fi
-    
+
     info "✅ Services started"
 }
 
 # Setup SSL and security
 setup_ssl() {
     log "🔒 Setting up SSL and security..."
-    
+
     # Ensure SSL certificates have correct permissions
     chmod 644 "$SSL_CERT"
     chmod 600 "$SSL_KEY"
     chown root:root "$SSL_CERT" "$SSL_KEY"
-    
+
     # Setup firewall rules
     if command -v ufw &> /dev/null; then
         ufw allow 80/tcp
@@ -262,49 +262,49 @@ setup_ssl() {
         ufw allow 22/tcp
         ufw --force enable
     fi
-    
+
     info "✅ SSL and security configured"
 }
 
 # Health checks
 perform_health_checks() {
     log "🏥 Performing health checks..."
-    
+
     # Check if port is listening
     if ! netstat -tuln | grep -q ":$PRODUCTION_PORT "; then
         error "Application not listening on port $PRODUCTION_PORT"
     fi
-    
+
     # Check nginx status
     if ! systemctl is-active --quiet nginx; then
         error "Nginx is not running"
     fi
-    
+
     # Check PM2 process
     if ! pm2 show "$SERVICE_NAME" | grep -q "online"; then
         error "PM2 process is not online"
     fi
-    
+
     # Test HTTP redirect
     info "Testing HTTP redirect..."
     if ! curl -s -o /dev/null -w "%{http_code}" "http://$DOMAIN" | grep -q "301"; then
         warn "HTTP redirect test failed"
     fi
-    
+
     # Test HTTPS
     info "Testing HTTPS connection..."
     sleep 2
     if ! curl -k -s -o /dev/null "https://$DOMAIN/health"; then
         warn "HTTPS health check failed"
     fi
-    
+
     info "✅ Health checks completed"
 }
 
 # Setup monitoring
 setup_monitoring() {
     log "📊 Setting up monitoring..."
-    
+
     # Create monitoring script
     cat > /root/Xorb/scripts/monitor-frontend.sh <<EOF
 #!/bin/bash
@@ -330,19 +330,19 @@ if openssl x509 -in "$SSL_CERT" -noout -checkend 604800; then
     echo "SSL certificate expires within 7 days" | logger -t frontend-monitor
 fi
 EOF
-    
+
     chmod +x /root/Xorb/scripts/monitor-frontend.sh
-    
+
     # Add cron job for monitoring
     (crontab -l 2>/dev/null; echo "*/5 * * * * /root/Xorb/scripts/monitor-frontend.sh") | crontab -
-    
+
     info "✅ Monitoring configured"
 }
 
 # Create systemd service as backup
 create_systemd_service() {
     log "🔧 Creating systemd service..."
-    
+
     cat > /etc/systemd/system/${SERVICE_NAME}.service <<EOF
 [Unit]
 Description=PTaaS Frontend Application
@@ -361,19 +361,19 @@ Environment=PORT=$PRODUCTION_PORT
 [Install]
 WantedBy=multi-user.target
 EOF
-    
+
     systemctl daemon-reload
     systemctl enable ${SERVICE_NAME}.service
-    
+
     info "✅ Systemd service created"
 }
 
 # Generate deployment report
 generate_report() {
     log "📋 Generating deployment report..."
-    
+
     REPORT_FILE="/root/Xorb/logs/verteidiq-deployment-report-$(date +%Y%m%d_%H%M%S).json"
-    
+
     cat > "$REPORT_FILE" <<EOF
 {
   "deployment": {
@@ -404,7 +404,7 @@ generate_report() {
   }
 }
 EOF
-    
+
     log "📋 Deployment report saved to: $REPORT_FILE"
 }
 
@@ -433,7 +433,7 @@ display_status() {
 main() {
     log "🚀 Starting Verteidiq.com PTaaS Frontend Deployment"
     log "=================================================="
-    
+
     check_root
     check_prerequisites
     stop_existing_services
@@ -447,7 +447,7 @@ main() {
     perform_health_checks
     generate_report
     display_status
-    
+
     log "🎉 Deployment completed successfully!"
 }
 

@@ -170,7 +170,7 @@ output "node_groups" {
 output "cloudwatch_log_groups" {
   description = "CloudWatch log groups"
   value = {
-    for service, log_group in aws_cloudwatch_log_group.xorb_logs : 
+    for service, log_group in aws_cloudwatch_log_group.xorb_logs :
     service => {
       name = log_group.name
       arn  = log_group.arn

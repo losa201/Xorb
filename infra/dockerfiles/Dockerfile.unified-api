@@ -49,27 +49,27 @@ class XORBUnifiedAPI:
         self.postgres_pool: Optional[asyncpg.Pool] = None
         self.app = web.Application()
         self.setup_routes()
-        
+
     def setup_routes(self):
         """Setup all API routes"""
         # Health and status
         self.app.router.add_get('/health', self.health_check)
         self.app.router.add_get('/api/v1/status', self.get_platform_status)
         self.app.router.add_get('/metrics', self.get_metrics)
-        
+
         # Security API endpoints
         self.app.router.add_get('/api/v1/security/threats', self.get_threats)
         self.app.router.add_get('/api/v1/security/incidents', self.get_incidents)
         self.app.router.add_get('/api/v1/security/agents', self.get_agents)
         self.app.router.add_get('/api/v1/security/network', self.get_network_status)
-        
+
         # Analytics endpoints
         self.app.router.add_get('/api/v1/analytics/metrics', self.get_analytics_metrics)
         self.app.router.add_get('/api/v1/analytics/trends', self.get_trend_data)
-        
+
         # CORS middleware
         self.app.middlewares.append(self.cors_middleware)
-    
+
     @web.middleware
     async def cors_middleware(self, request, handler):
         """CORS middleware for web requests"""
@@ -78,7 +78,7 @@ class XORBUnifiedAPI:
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         return response
-    
+
     async def init_connections(self):
         """Initialize database connections"""
         try:
@@ -86,21 +86,21 @@ class XORBUnifiedAPI:
             redis_host = os.getenv('REDIS_HOST', 'xorb-redis')
             redis_port = int(os.getenv('REDIS_PORT', 6379))
             redis_password = os.getenv('REDIS_PASSWORD', 'xorb_redis_2024')
-            
+
             self.redis = await aioredis.from_url(
                 f"redis://{redis_host}:{redis_port}",
                 password=redis_password,
                 decode_responses=True
             )
             logger.info("✅ Connected to Redis")
-            
+
             # PostgreSQL connection
             postgres_host = os.getenv('POSTGRES_HOST', 'xorb-postgres')
             postgres_port = int(os.getenv('POSTGRES_PORT', 5432))
             postgres_db = os.getenv('POSTGRES_DB', 'xorb_platform')
             postgres_user = os.getenv('POSTGRES_USER', 'xorb_user')
             postgres_password = os.getenv('POSTGRES_PASSWORD', 'xorb_secure_2024')
-            
+
             self.postgres_pool = await asyncpg.create_pool(
                 host=postgres_host,
                 port=postgres_port,
@@ -111,11 +111,11 @@ class XORBUnifiedAPI:
                 max_size=20
             )
             logger.info("✅ Connected to PostgreSQL")
-            
+
         except Exception as e:
             logger.error(f"❌ Database connection failed: {e}")
             raise
-    
+
     async def health_check(self, request: web_request) -> web_response:
         """Health check endpoint"""
         health_status = {
@@ -125,7 +125,7 @@ class XORBUnifiedAPI:
             "timestamp": datetime.now().isoformat(),
             "dependencies": {}
         }
-        
+
         # Check Redis
         try:
             if self.redis:
@@ -135,7 +135,7 @@ class XORBUnifiedAPI:
                 health_status["dependencies"]["redis"] = "disconnected"
         except Exception:
             health_status["dependencies"]["redis"] = "unhealthy"
-        
+
         # Check PostgreSQL
         try:
             if self.postgres_pool:
@@ -146,9 +146,9 @@ class XORBUnifiedAPI:
                 health_status["dependencies"]["postgres"] = "disconnected"
         except Exception:
             health_status["dependencies"]["postgres"] = "unhealthy"
-        
+
         return web.json_response(health_status)
-    
+
     async def get_platform_status(self, request: web_request) -> web_response:
         """Get comprehensive platform status"""
         status = {
@@ -165,9 +165,9 @@ class XORBUnifiedAPI:
             "health_score": 0.89,
             "last_update": datetime.now().isoformat()
         }
-        
+
         return web.json_response({"success": True, "data": status})
-    
+
     async def get_metrics(self, request: web_request) -> web_response:
         """Prometheus metrics endpoint"""
         metrics = """# HELP xorb_requests_total Total number of requests
@@ -186,7 +186,7 @@ xorb_response_time_seconds_bucket{le="+Inf"} 350
 xorb_active_connections 45
 """
         return web.Response(text=metrics, content_type='text/plain')
-    
+
     async def get_threats(self, request: web_request) -> web_response:
         """Get threat data"""
         threats = [
@@ -200,9 +200,9 @@ xorb_active_connections 45
             }
             for i in range(20)
         ]
-        
+
         return web.json_response({"success": True, "data": threats})
-    
+
     async def get_incidents(self, request: web_request) -> web_response:
         """Get incident data"""
         incidents = [
@@ -216,9 +216,9 @@ xorb_active_connections 45
             }
             for i in range(15)
         ]
-        
+
         return web.json_response({"success": True, "data": incidents})
-    
+
     async def get_agents(self, request: web_request) -> web_response:
         """Get agent status"""
         agents = {
@@ -229,16 +229,16 @@ xorb_active_connections 45
             "agents": [
                 {
                     "id": f"agent-{i:03d}",
-                    "status": ["active", "idle"][i % 10 == 0], 
+                    "status": ["active", "idle"][i % 10 == 0],
                     "task": f"monitoring-zone-{i % 8 + 1}",
                     "last_heartbeat": datetime.now().isoformat()
                 }
                 for i in range(64)
             ]
         }
-        
+
         return web.json_response({"success": True, "data": agents})
-    
+
     async def get_network_status(self, request: web_request) -> web_response:
         """Get network status"""
         network = {
@@ -253,9 +253,9 @@ xorb_active_connections 45
                 "clusters": 6
             }
         }
-        
+
         return web.json_response({"success": True, "data": network})
-    
+
     async def get_analytics_metrics(self, request: web_request) -> web_response:
         """Get analytics metrics"""
         metrics = {
@@ -268,9 +268,9 @@ xorb_active_connections 45
             "accuracy": 0.952,
             "false_positive_rate": 0.048
         }
-        
+
         return web.json_response({"success": True, "data": metrics})
-    
+
     async def get_trend_data(self, request: web_request) -> web_response:
         """Get trend analysis data"""
         trends = {
@@ -287,7 +287,7 @@ xorb_active_connections 45
                 "confidence": 0.85
             }
         }
-        
+
         return web.json_response({"success": True, "data": trends})
 
 async def create_app():

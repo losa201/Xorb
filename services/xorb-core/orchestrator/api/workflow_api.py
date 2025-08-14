@@ -104,13 +104,13 @@ async def get_workflow_details(
     try:
         workflow_def = await orchestrator.get_workflow(workflow_id)
         executions = await orchestrator.get_workflow_executions(workflow_id)
-        
+
         # Convert executions to response format
         execution_responses = [
             WorkflowExecutionResponse(**execution.__dict__)
             for execution in executions
         ]
-        
+
         # Convert tasks to response format
         task_responses = []
         for task in workflow_def.tasks:
@@ -118,12 +118,12 @@ async def get_workflow_details(
             latest_execution = execution_responses[-1] if execution_responses else None
             task_status = "unknown"
             error_message = None
-            
+
             if latest_execution and latest_execution.id in latest_execution.task_results:
                 task_result = latest_execution.task_results[latest_execution.id]
                 task_status = task_result.get('status', 'unknown')
                 error_message = task_result.get('error')
-            
+
             task_responses.append(WorkflowTaskResponse(
                 id=task.id,
                 name=task.name,
@@ -132,7 +132,7 @@ async def get_workflow_details(
                 completed_at=datetime.now() if task_status == 'completed' else None,
                 error_message=error_message
             ))
-        
+
         return WorkflowDetailsResponse(
             workflow_id=workflow_def.id,
             name=workflow_def.name,

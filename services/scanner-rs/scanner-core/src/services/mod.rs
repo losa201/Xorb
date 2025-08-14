@@ -18,10 +18,10 @@ use uuid::Uuid;
 pub trait ScannerService: Send + Sync {
     /// Process discovery job
     async fn process_discovery_job(&self, job: &crate::bus::DiscoveryJob) -> Result<crate::bus::DiscoveryResult>;
-    
+
     /// Get service health status
     async fn health_check(&self) -> Result<ServiceHealth>;
-    
+
     /// Get service metrics
     async fn get_metrics(&self) -> Result<HashMap<String, f64>>;
 }
@@ -65,7 +65,7 @@ impl DefaultScannerService {
         let metrics = crate::metrics::ScannerMetrics::new(
             format!("scanner-{}", config.tenant_id)
         );
-        
+
         Self {
             config,
             metrics,
@@ -78,36 +78,36 @@ impl DefaultScannerService {
 impl ScannerService for DefaultScannerService {
     async fn process_discovery_job(&self, job: &crate::bus::DiscoveryJob) -> Result<crate::bus::DiscoveryResult> {
         let start_time = std::time::Instant::now();
-        
+
         tracing::info!(
             job_id = %job.job_id,
             tenant_id = %job.tenant_id,
             targets_count = %job.targets.len(),
             "Processing discovery job"
         );
-        
+
         // Process each target
         let mut all_findings = Vec::new();
         let mut fingerprint = None;
         let mut risk_tags = Vec::new();
-        
+
         for target in &job.targets {
             // Simulate tool execution
             let findings = self.scan_target(target).await?;
             all_findings.extend(findings);
-            
+
             // Generate fingerprint
             if fingerprint.is_none() {
                 fingerprint = Some(self.generate_fingerprint(target).await?);
             }
-            
+
             // Generate risk tags
             let target_risk_tags = self.assess_risk(target, &all_findings).await?;
             risk_tags.extend(target_risk_tags);
         }
-        
+
         let duration = start_time.elapsed();
-        
+
         // Record metrics
         self.metrics.record_scan_job(
             &job.tenant_id,
@@ -115,7 +115,7 @@ impl ScannerService for DefaultScannerService {
             "success",
             duration
         );
-        
+
         let result = crate::bus::DiscoveryResult {
             job_id: job.job_id.clone(),
             tenant_id: job.tenant_id.clone(),
@@ -132,7 +132,7 @@ impl ScannerService for DefaultScannerService {
             },
             created_at: chrono::Utc::now(),
         };
-        
+
         tracing::info!(
             job_id = %job.job_id,
             findings_count = %result.findings.len(),
@@ -140,13 +140,13 @@ impl ScannerService for DefaultScannerService {
             duration_ms = %duration.as_millis(),
             "Discovery job completed"
         );
-        
+
         Ok(result)
     }
-    
+
     async fn health_check(&self) -> Result<ServiceHealth> {
         let mut checks = HashMap::new();
-        
+
         // Check tool availability
         checks.insert("tools".to_string(), HealthCheck {
             status: HealthStatus::Healthy,
@@ -154,25 +154,25 @@ impl ScannerService for DefaultScannerService {
             last_checked: chrono::Utc::now(),
             response_time_ms: Some(10),
         });
-        
+
         // Check configuration
         checks.insert("config".to_string(), HealthCheck {
-            status: if self.config.validate().is_ok() { 
-                HealthStatus::Healthy 
-            } else { 
-                HealthStatus::Unhealthy 
+            status: if self.config.validate().is_ok() {
+                HealthStatus::Healthy
+            } else {
+                HealthStatus::Unhealthy
             },
             message: "Configuration valid".to_string(),
             last_checked: chrono::Utc::now(),
             response_time_ms: Some(1),
         });
-        
+
         let overall_status = if checks.values().all(|c| matches!(c.status, HealthStatus::Healthy)) {
             HealthStatus::Healthy
         } else {
             HealthStatus::Degraded
         };
-        
+
         Ok(ServiceHealth {
             status: overall_status,
             version: env!("CARGO_PKG_VERSION").to_string(),
@@ -180,7 +180,7 @@ impl ScannerService for DefaultScannerService {
             checks,
         })
     }
-    
+
     async fn get_metrics(&self) -> Result<HashMap<String, f64>> {
         let mut metrics = HashMap::new();
         metrics.insert("uptime_seconds".to_string(), self.start_time.elapsed().as_secs_f64());
@@ -206,10 +206,10 @@ impl DefaultScannerService {
                 metadata: HashMap::new(),
             }
         ];
-        
+
         Ok(findings)
     }
-    
+
     async fn generate_fingerprint(&self, target: &crate::bus::ScanTarget) -> Result<crate::bus::AssetFingerprint> {
         Ok(crate::bus::AssetFingerprint {
             asset_id: Uuid::new_v4().to_string(),
@@ -229,10 +229,10 @@ impl DefaultScannerService {
             last_updated: chrono::Utc::now(),
         })
     }
-    
+
     async fn assess_risk(&self, target: &crate::bus::ScanTarget, findings: &[crate::bus::ScanFinding]) -> Result<Vec<crate::bus::RiskTag>> {
         let mut risk_tags = Vec::new();
-        
+
         // Risk based on open ports
         if !target.ports.is_empty() {
             risk_tags.push(crate::bus::RiskTag {
@@ -242,7 +242,7 @@ impl DefaultScannerService {
                 compliance_frameworks: vec!["PCI-DSS".to_string()],
             });
         }
-        
+
         // Risk based on findings
         if !findings.is_empty() {
             risk_tags.push(crate::bus::RiskTag {
@@ -252,7 +252,7 @@ impl DefaultScannerService {
                 compliance_frameworks: vec!["ISO-27001".to_string()],
             });
         }
-        
+
         Ok(risk_tags)
     }
 }
@@ -260,26 +260,26 @@ impl DefaultScannerService {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[tokio::test]
     async fn test_scanner_service() {
         let config = crate::config::ScannerConfig::default();
         let service = DefaultScannerService::new(config);
-        
+
         // Test health check
         let health = service.health_check().await.expect("Health check failed");
         assert!(matches!(health.status, HealthStatus::Healthy | HealthStatus::Degraded));
-        
+
         // Test metrics
         let metrics = service.get_metrics().await.expect("Metrics failed");
         assert!(metrics.contains_key("uptime_seconds"));
     }
-    
+
     #[tokio::test]
     async fn test_process_discovery_job() {
         let config = crate::config::ScannerConfig::default();
         let service = DefaultScannerService::new(config);
-        
+
         let job = crate::bus::DiscoveryJob {
             job_id: "test-job".to_string(),
             tenant_id: "test-tenant".to_string(),
@@ -293,9 +293,9 @@ mod tests {
             created_at: chrono::Utc::now(),
             deadline: None,
         };
-        
+
         let result = service.process_discovery_job(&job).await.expect("Job processing failed");
-        
+
         assert_eq!(result.job_id, job.job_id);
         assert_eq!(result.tenant_id, job.tenant_id);
         assert!(!result.findings.is_empty());

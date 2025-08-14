@@ -111,7 +111,7 @@ class AdvancedThreatIntelligenceEngine:
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self.logger = logging.getLogger(__name__)
-        
+
         # Threat feed sources
         self.threat_feeds = {
             "internal": {"enabled": True, "priority": 1},
@@ -120,28 +120,28 @@ class AdvancedThreatIntelligenceEngine:
             "malware_bazaar": {"enabled": True, "priority": 4},
             "urlhaus": {"enabled": True, "priority": 5}
         }
-        
+
         # MITRE ATT&CK technique mappings
         self.mitre_techniques = self._load_mitre_techniques()
-        
+
         # Threat actor profiles
         self.threat_actors = self._load_threat_actors()
-        
+
         # ML models for threat scoring
         self.scoring_models = self._initialize_scoring_models()
-        
+
         # Cache for performance
         self.analysis_cache = {}
         self.cache_ttl = 3600  # 1 hour
-        
+
         # Rate limiting
         self.rate_limits = {
             "osint_apis": {"calls_per_minute": 60, "current_calls": 0, "reset_time": 0}
         }
 
     async def analyze_indicators(
-        self, 
-        indicators: List[str], 
+        self,
+        indicators: List[str],
         context: Dict[str, Any] = None,
         deep_analysis: bool = True
     ) -> List[ThreatAnalysisResult]:
@@ -151,50 +151,50 @@ class AdvancedThreatIntelligenceEngine:
         try:
             self.logger.info(f"Analyzing {len(indicators)} threat indicators")
             results = []
-            
+
             for indicator in indicators:
                 # Check cache first
                 cache_key = hashlib.sha256(f"{indicator}:{deep_analysis}".encode()).hexdigest()
                 cached_result = self._get_cached_analysis(cache_key)
-                
+
                 if cached_result:
                     results.append(cached_result)
                     continue
-                
+
                 # Perform comprehensive analysis
                 analysis = await self._analyze_single_indicator(indicator, context, deep_analysis)
-                
+
                 # Cache result
                 self._cache_analysis(cache_key, analysis)
                 results.append(analysis)
-                
+
                 # Rate limiting
                 await asyncio.sleep(0.1)
-            
+
             # Perform correlation analysis
             if len(results) > 1:
                 correlation_insights = await self._correlate_indicators(results)
                 for result in results:
                     result.behavioral_patterns.update(correlation_insights)
-            
+
             self.logger.info(f"Completed analysis of {len(indicators)} indicators")
             return results
-            
+
         except Exception as e:
             self.logger.error(f"Indicator analysis failed: {e}")
             raise
 
     async def _analyze_single_indicator(
-        self, 
-        indicator: str, 
+        self,
+        indicator: str,
         context: Dict[str, Any] = None,
         deep_analysis: bool = True
     ) -> ThreatAnalysisResult:
         """Analyze single indicator with comprehensive intelligence gathering"""
-        
+
         # Determine indicator type
         indicator_type = self._classify_indicator_type(indicator)
-        
+
         # Initialize analysis result
         analysis = ThreatAnalysisResult(
             indicator=indicator,
@@ -213,7 +213,7 @@ class AdvancedThreatIntelligenceEngine:
             analysis_timestamp=datetime.utcnow(),
             sources_consulted=[]
         )
-        
+
         # Multi-source intelligence gathering
         intelligence_tasks = [
             self._query_threat_feeds(indicator, indicator_type),
@@ -222,35 +222,35 @@ class AdvancedThreatIntelligenceEngine:
             self._check_reputation_sources(indicator, indicator_type),
             self._analyze_network_infrastructure(indicator) if indicator_type in ["ip", "domain"] else None
         ]
-        
+
         # Execute intelligence gathering concurrently
         intelligence_results = await asyncio.gather(
             *[task for task in intelligence_tasks if task is not None],
             return_exceptions=True
         )
-        
+
         # Process intelligence results
         for result in intelligence_results:
             if isinstance(result, Exception):
                 self.logger.warning(f"Intelligence gathering failed: {result}")
                 continue
-            
+
             if result:
                 self._integrate_intelligence(analysis, result)
-        
+
         # Perform deep analysis if requested
         if deep_analysis:
             await self._perform_deep_analysis(analysis, indicator, indicator_type)
-        
+
         # Calculate final threat score using ML models
         analysis.threat_score = await self._calculate_threat_score(analysis)
-        
+
         # Determine severity based on score
         analysis.severity = self._score_to_severity(analysis.threat_score)
-        
+
         # Generate recommendations
         analysis.recommendations = self._generate_recommendations(analysis)
-        
+
         return analysis
 
     async def _query_threat_feeds(self, indicator: str, indicator_type: str) -> Dict[str, Any]:
@@ -265,7 +265,7 @@ class AdvancedThreatIntelligenceEngine:
             "associated_malware": [],
             "campaign_attributions": []
         }
-        
+
         # AlienVault OTX (Open Threat Exchange)
         if self.threat_feeds["alienvault"]["enabled"]:
             try:
@@ -275,7 +275,7 @@ class AdvancedThreatIntelligenceEngine:
                     self._merge_threat_feed_result(results, otx_result)
             except Exception as e:
                 self.logger.warning(f"AlienVault OTX query failed: {e}")
-        
+
         # ThreatFox
         if self.threat_feeds["threatfox"]["enabled"]:
             try:
@@ -285,7 +285,7 @@ class AdvancedThreatIntelligenceEngine:
                     self._merge_threat_feed_result(results, threatfox_result)
             except Exception as e:
                 self.logger.warning(f"ThreatFox query failed: {e}")
-        
+
         # URLhaus for URL indicators
         if indicator_type == "url" and self.threat_feeds["urlhaus"]["enabled"]:
             try:
@@ -295,7 +295,7 @@ class AdvancedThreatIntelligenceEngine:
                     self._merge_threat_feed_result(results, urlhaus_result)
             except Exception as e:
                 self.logger.warning(f"URLhaus query failed: {e}")
-        
+
         # MalwareBazaar for hash indicators
         if indicator_type == "hash" and self.threat_feeds["malware_bazaar"]["enabled"]:
             try:
@@ -305,7 +305,7 @@ class AdvancedThreatIntelligenceEngine:
                     self._merge_threat_feed_result(results, bazaar_result)
             except Exception as e:
                 self.logger.warning(f"MalwareBazaar query failed: {e}")
-        
+
         return results
 
     async def _query_alienvault_otx(self, indicator: str, indicator_type: str) -> Optional[Dict[str, Any]]:
@@ -314,7 +314,7 @@ class AdvancedThreatIntelligenceEngine:
             # Rate limiting check
             if not await self._check_rate_limit("osint_apis"):
                 return None
-            
+
             base_url = "https://otx.alienvault.com/api/v1/indicators"
             url_map = {
                 "ip": f"{base_url}/IPv4/{indicator}/general",
@@ -322,16 +322,16 @@ class AdvancedThreatIntelligenceEngine:
                 "hash": f"{base_url}/file/{indicator}/general",
                 "url": f"{base_url}/url/{indicator}/general"
             }
-            
+
             url = url_map.get(indicator_type)
             if not url:
                 return None
-            
+
             headers = {
                 "X-OTX-API-KEY": self.config.get("otx_api_key", ""),
                 "User-Agent": "XORB-ThreatIntel/1.0"
             }
-            
+
             timeout = aiohttp.ClientTimeout(total=30)
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.get(url, headers=headers) as response:
@@ -343,7 +343,7 @@ class AdvancedThreatIntelligenceEngine:
                     else:
                         self.logger.warning(f"OTX API error: {response.status}")
                         return None
-        
+
         except Exception as e:
             self.logger.error(f"OTX query error: {e}")
             return None
@@ -353,9 +353,9 @@ class AdvancedThreatIntelligenceEngine:
         try:
             if not await self._check_rate_limit("osint_apis"):
                 return None
-            
+
             url = "https://threatfox-api.abuse.ch/api/v1/"
-            
+
             # Different query types based on indicator
             if indicator_type == "hash":
                 data = {"query": "search_hash", "hash": indicator}
@@ -365,10 +365,10 @@ class AdvancedThreatIntelligenceEngine:
                 data = {"query": "search_ioc", "search_term": indicator}
             else:
                 return None
-            
+
             headers = {"Content-Type": "application/json"}
             timeout = aiohttp.ClientTimeout(total=30)
-            
+
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(url, json=data, headers=headers) as response:
                     if response.status == 200:
@@ -377,7 +377,7 @@ class AdvancedThreatIntelligenceEngine:
                     else:
                         self.logger.warning(f"ThreatFox API error: {response.status}")
                         return None
-        
+
         except Exception as e:
             self.logger.error(f"ThreatFox query error: {e}")
             return None
@@ -387,10 +387,10 @@ class AdvancedThreatIntelligenceEngine:
         try:
             if not await self._check_rate_limit("osint_apis"):
                 return None
-            
+
             api_url = "https://urlhaus-api.abuse.ch/v1/url/"
             data = {"url": url}
-            
+
             timeout = aiohttp.ClientTimeout(total=30)
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(api_url, data=data) as response:
@@ -400,7 +400,7 @@ class AdvancedThreatIntelligenceEngine:
                     else:
                         self.logger.warning(f"URLhaus API error: {response.status}")
                         return None
-        
+
         except Exception as e:
             self.logger.error(f"URLhaus query error: {e}")
             return None
@@ -410,10 +410,10 @@ class AdvancedThreatIntelligenceEngine:
         try:
             if not await self._check_rate_limit("osint_apis"):
                 return None
-            
+
             api_url = "https://mb-api.abuse.ch/api/v1/"
             data = {"query": "get_info", "hash": file_hash}
-            
+
             timeout = aiohttp.ClientTimeout(total=30)
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(api_url, json=data) as response:
@@ -423,7 +423,7 @@ class AdvancedThreatIntelligenceEngine:
                     else:
                         self.logger.warning(f"MalwareBazaar API error: {response.status}")
                         return None
-        
+
         except Exception as e:
             self.logger.error(f"MalwareBazaar query error: {e}")
             return None
@@ -436,12 +436,12 @@ class AdvancedThreatIntelligenceEngine:
             "associated_domains": [],
             "infrastructure_analysis": {}
         }
-        
+
         try:
             # Simulate passive DNS analysis
             # In production, integrate with services like:
             # - PassiveTotal, SecurityTrails, Farsight DNSDB, etc.
-            
+
             if self._is_ip_address(indicator):
                 # For IP addresses, find associated domains
                 results["associated_domains"] = [
@@ -466,10 +466,10 @@ class AdvancedThreatIntelligenceEngine:
                     "creation_date": "2020-01-01",
                     "nameservers": ["ns1.example.com", "ns2.example.com"]
                 }
-        
+
         except Exception as e:
             self.logger.error(f"Passive DNS analysis failed: {e}")
-        
+
         return results
 
     async def _analyze_malware_samples(self, file_hash: str) -> Dict[str, Any]:
@@ -480,12 +480,12 @@ class AdvancedThreatIntelligenceEngine:
             "attribution_indicators": {},
             "mitre_techniques": []
         }
-        
+
         try:
             # Simulate malware analysis
             # In production, integrate with:
             # - VirusTotal, Hybrid Analysis, Joe Sandbox, etc.
-            
+
             results["sample_analysis"] = {
                 "file_type": "PE32 executable",
                 "file_size": 1048576,
@@ -495,7 +495,7 @@ class AdvancedThreatIntelligenceEngine:
                 "sections": [".text", ".data", ".rsrc"],
                 "entropy": 7.2
             }
-            
+
             results["behavioral_patterns"] = {
                 "network_behavior": {
                     "dns_queries": ["malicious-c2.com", "update-server.net"],
@@ -513,14 +513,14 @@ class AdvancedThreatIntelligenceEngine:
                     "injects_into": ["explorer.exe", "winlogon.exe"]
                 }
             }
-            
+
             results["attribution_indicators"] = {
                 "code_similarities": ["APT29_toolkit", "Cobalt_Strike"],
                 "infrastructure_overlap": ["shared_c2_infrastructure"],
                 "compilation_timezone": "UTC+3",
                 "language_artifacts": ["Russian_strings", "Cyrillic_comments"]
             }
-            
+
             results["mitre_techniques"] = [
                 "T1055",  # Process Injection
                 "T1547.001",  # Registry Run Keys
@@ -528,10 +528,10 @@ class AdvancedThreatIntelligenceEngine:
                 "T1041",  # Exfiltration Over C2 Channel
                 "T1059.001"  # PowerShell
             ]
-        
+
         except Exception as e:
             self.logger.error(f"Malware analysis failed: {e}")
-        
+
         return results
 
     async def _check_reputation_sources(self, indicator: str, indicator_type: str) -> Dict[str, Any]:
@@ -544,11 +544,11 @@ class AdvancedThreatIntelligenceEngine:
             "total_verdicts": 0,
             "reputation_score": 0.0
         }
-        
+
         try:
             # Simulate reputation checks
             # In production, integrate with multiple reputation services
-            
+
             reputation_sources = [
                 {"source": "VirusTotal", "verdict": "malicious", "confidence": 0.95},
                 {"source": "IBM X-Force", "verdict": "suspicious", "confidence": 0.75},
@@ -556,27 +556,27 @@ class AdvancedThreatIntelligenceEngine:
                 {"source": "ReversingLabs", "verdict": "malicious", "confidence": 0.90},
                 {"source": "Hybrid Analysis", "verdict": "suspicious", "confidence": 0.85}
             ]
-            
+
             for check in reputation_sources:
                 results["reputation_checks"].append(check)
                 results["total_verdicts"] += 1
-                
+
                 if check["verdict"] == "malicious":
                     results["malicious_verdicts"] += 1
                 elif check["verdict"] == "suspicious":
                     results["suspicious_verdicts"] += 1
                 elif check["verdict"] == "clean":
                     results["clean_verdicts"] += 1
-            
+
             # Calculate reputation score (0-100, higher = more malicious)
             if results["total_verdicts"] > 0:
                 malicious_ratio = results["malicious_verdicts"] / results["total_verdicts"]
                 suspicious_ratio = results["suspicious_verdicts"] / results["total_verdicts"]
                 results["reputation_score"] = (malicious_ratio * 100) + (suspicious_ratio * 50)
-        
+
         except Exception as e:
             self.logger.error(f"Reputation check failed: {e}")
-        
+
         return results
 
     async def _analyze_network_infrastructure(self, indicator: str) -> Dict[str, Any]:
@@ -588,7 +588,7 @@ class AdvancedThreatIntelligenceEngine:
             "infrastructure_patterns": {},
             "threat_associations": []
         }
-        
+
         try:
             # Simulate infrastructure analysis
             if self._is_ip_address(indicator):
@@ -598,7 +598,7 @@ class AdvancedThreatIntelligenceEngine:
                     "abuse_contacts": ["abuse@example.com"],
                     "reputation": "poor"
                 }
-                
+
                 results["geolocation"] = {
                     "country": "RU",
                     "region": "Moscow",
@@ -606,21 +606,21 @@ class AdvancedThreatIntelligenceEngine:
                     "coordinates": {"lat": 55.7558, "lon": 37.6176},
                     "accuracy": "city"
                 }
-                
+
                 results["asn_information"] = {
                     "asn": "AS64512",
                     "organization": "Suspicious Networks LLC",
                     "country": "RU",
                     "registry": "RIPE"
                 }
-                
+
                 results["infrastructure_patterns"] = {
                     "shared_hosting": False,
                     "fast_flux": True,
                     "domain_generation_algorithm": False,
                     "bulletproof_hosting": True
                 }
-            
+
             else:  # Domain analysis
                 results["hosting_analysis"] = {
                     "registrar": "NameCheap Inc.",
@@ -629,7 +629,7 @@ class AdvancedThreatIntelligenceEngine:
                     "privacy_protection": True,
                     "nameservers": ["ns1.suspicious-dns.com", "ns2.suspicious-dns.com"]
                 }
-                
+
                 results["infrastructure_patterns"] = {
                     "typosquatting": True,
                     "homograph_attack": False,
@@ -637,37 +637,37 @@ class AdvancedThreatIntelligenceEngine:
                     "recently_registered": True,
                     "short_lived": True
                 }
-        
+
         except Exception as e:
             self.logger.error(f"Infrastructure analysis failed: {e}")
-        
+
         return results
 
     async def _perform_deep_analysis(
-        self, 
-        analysis: ThreatAnalysisResult, 
-        indicator: str, 
+        self,
+        analysis: ThreatAnalysisResult,
+        indicator: str,
         indicator_type: str
     ):
         """Perform deep analysis with ML models and advanced correlation"""
-        
+
         # Campaign attribution analysis
         campaign_analysis = await self._attribute_to_campaigns(analysis)
         analysis.attributed_campaigns.extend(campaign_analysis.get("campaigns", []))
         analysis.threat_actors.extend(campaign_analysis.get("actors", []))
-        
+
         # MITRE ATT&CK technique mapping
         technique_analysis = await self._map_mitre_techniques(analysis)
         analysis.mitre_techniques.extend(technique_analysis)
-        
+
         # Behavioral pattern analysis
         behavioral_analysis = await self._analyze_behavioral_patterns(analysis, indicator)
         analysis.behavioral_patterns.update(behavioral_analysis)
-        
+
         # Risk assessment
         risk_analysis = await self._assess_risk_level(analysis)
         analysis.risk_assessment.update(risk_analysis)
-        
+
         # Confidence scoring
         confidence_analysis = await self._calculate_confidence(analysis)
         analysis.confidence = confidence_analysis
@@ -675,30 +675,30 @@ class AdvancedThreatIntelligenceEngine:
     async def _attribute_to_campaigns(self, analysis: ThreatAnalysisResult) -> Dict[str, Any]:
         """Attribute threat indicators to known campaigns and actors"""
         attribution = {"campaigns": [], "actors": [], "confidence_scores": {}}
-        
+
         try:
             # Analyze patterns against known campaign signatures
             for campaign_id, campaign in self.threat_actors.items():
                 similarity_score = self._calculate_campaign_similarity(analysis, campaign)
-                
+
                 if similarity_score > 0.7:  # High confidence threshold
                     attribution["campaigns"].append(campaign_id)
                     attribution["actors"].append(campaign.get("primary_actor", "unknown"))
                     attribution["confidence_scores"][campaign_id] = similarity_score
-        
+
         except Exception as e:
             self.logger.error(f"Campaign attribution failed: {e}")
-        
+
         return attribution
 
     async def _map_mitre_techniques(self, analysis: ThreatAnalysisResult) -> List[str]:
         """Map observed behaviors to MITRE ATT&CK techniques"""
         techniques = []
-        
+
         try:
             # Analyze behavioral patterns and infrastructure for technique indicators
             behavioral_patterns = analysis.behavioral_patterns
-            
+
             # Network communication patterns
             if "network_behavior" in behavioral_patterns:
                 network = behavioral_patterns["network_behavior"]
@@ -708,7 +708,7 @@ class AdvancedThreatIntelligenceEngine:
                     techniques.append("T1071.001")  # Web Protocols
                 if "unusual_ports" in network:
                     techniques.append("T1571")  # Non-Standard Port
-            
+
             # File system operations
             if "file_system" in behavioral_patterns:
                 fs = behavioral_patterns["file_system"]
@@ -716,7 +716,7 @@ class AdvancedThreatIntelligenceEngine:
                     techniques.append("T1105")  # Ingress Tool Transfer
                 if "modifies_registry" in fs:
                     techniques.append("T1112")  # Modify Registry
-            
+
             # Process behaviors
             if "process_behavior" in behavioral_patterns:
                 proc = behavioral_patterns["process_behavior"]
@@ -724,15 +724,15 @@ class AdvancedThreatIntelligenceEngine:
                     techniques.append("T1059")  # Command and Scripting Interpreter
                 if "injects_into" in proc:
                     techniques.append("T1055")  # Process Injection
-        
+
         except Exception as e:
             self.logger.error(f"MITRE technique mapping failed: {e}")
-        
+
         return techniques
 
     async def _analyze_behavioral_patterns(
-        self, 
-        analysis: ThreatAnalysisResult, 
+        self,
+        analysis: ThreatAnalysisResult,
         indicator: str
     ) -> Dict[str, Any]:
         """Analyze advanced behavioral patterns using ML models"""
@@ -742,7 +742,7 @@ class AdvancedThreatIntelligenceEngine:
             "evasion_techniques": {},
             "persistence_mechanisms": []
         }
-        
+
         try:
             # Temporal analysis
             patterns["temporal_patterns"] = {
@@ -751,7 +751,7 @@ class AdvancedThreatIntelligenceEngine:
                 "burst_patterns": True,
                 "dormancy_periods": ["2024-01-15", "2024-01-30"]
             }
-            
+
             # Communication pattern analysis
             patterns["communication_patterns"] = {
                 "c2_architecture": "centralized",
@@ -760,7 +760,7 @@ class AdvancedThreatIntelligenceEngine:
                 "beacon_interval": "300-600 seconds",
                 "data_exfiltration_methods": ["DNS_tunneling", "HTTPS_POST"]
             }
-            
+
             # Evasion technique detection
             patterns["evasion_techniques"] = {
                 "domain_generation": False,
@@ -769,10 +769,10 @@ class AdvancedThreatIntelligenceEngine:
                 "anti_analysis": ["vm_detection", "sandbox_evasion"],
                 "polymorphic_behavior": False
             }
-        
+
         except Exception as e:
             self.logger.error(f"Behavioral pattern analysis failed: {e}")
-        
+
         return patterns
 
     async def _assess_risk_level(self, analysis: ThreatAnalysisResult) -> Dict[str, Any]:
@@ -784,7 +784,7 @@ class AdvancedThreatIntelligenceEngine:
             "threat_landscape_context": {},
             "business_risk_factors": []
         }
-        
+
         try:
             # Calculate impact score (0-100)
             impact_factors = {
@@ -794,14 +794,14 @@ class AdvancedThreatIntelligenceEngine:
                 "reputation_damage": 80,
                 "regulatory_compliance": 90
             }
-            
+
             impact_score = sum(impact_factors.values()) / len(impact_factors)
             risk_assessment["impact_assessment"] = {
                 "score": impact_score,
                 "factors": impact_factors,
                 "critical_assets_at_risk": ["customer_data", "financial_systems", "intellectual_property"]
             }
-            
+
             # Calculate likelihood score
             likelihood_factors = {
                 "threat_actor_sophistication": 80,
@@ -809,16 +809,16 @@ class AdvancedThreatIntelligenceEngine:
                 "control_effectiveness": 60,
                 "environmental_factors": 50
             }
-            
+
             likelihood_score = sum(likelihood_factors.values()) / len(likelihood_factors)
             risk_assessment["likelihood_assessment"] = {
                 "score": likelihood_score,
                 "factors": likelihood_factors
             }
-            
+
             # Overall risk calculation
             risk_assessment["overall_risk_score"] = (impact_score * likelihood_score) / 100
-            
+
             # Business risk factors
             risk_assessment["business_risk_factors"] = [
                 "Customer data exposure",
@@ -827,17 +827,17 @@ class AdvancedThreatIntelligenceEngine:
                 "Intellectual property theft",
                 "Reputational damage"
             ]
-        
+
         except Exception as e:
             self.logger.error(f"Risk assessment failed: {e}")
-        
+
         return risk_assessment
 
     async def _calculate_confidence(self, analysis: ThreatAnalysisResult) -> ConfidenceLevel:
         """Calculate confidence level based on data quality and source reliability"""
         try:
             confidence_factors = []
-            
+
             # Source diversity and reliability
             source_count = len(analysis.sources_consulted)
             if source_count >= 5:
@@ -846,7 +846,7 @@ class AdvancedThreatIntelligenceEngine:
                 confidence_factors.append(0.7)
             else:
                 confidence_factors.append(0.5)
-            
+
             # Data freshness
             analysis_age_hours = (datetime.utcnow() - analysis.analysis_timestamp).total_seconds() / 3600
             if analysis_age_hours < 24:
@@ -855,7 +855,7 @@ class AdvancedThreatIntelligenceEngine:
                 confidence_factors.append(0.7)
             else:
                 confidence_factors.append(0.5)
-            
+
             # Corroboration across sources
             if analysis.threat_score > 70:
                 confidence_factors.append(0.8)
@@ -863,17 +863,17 @@ class AdvancedThreatIntelligenceEngine:
                 confidence_factors.append(0.6)
             else:
                 confidence_factors.append(0.4)
-            
+
             # Calculate average confidence
             avg_confidence = sum(confidence_factors) / len(confidence_factors)
-            
+
             if avg_confidence >= 0.8:
                 return ConfidenceLevel.HIGH
             elif avg_confidence >= 0.6:
                 return ConfidenceLevel.MEDIUM
             else:
                 return ConfidenceLevel.LOW
-        
+
         except Exception as e:
             self.logger.error(f"Confidence calculation failed: {e}")
             return ConfidenceLevel.LOW
@@ -882,31 +882,31 @@ class AdvancedThreatIntelligenceEngine:
         """Calculate comprehensive threat score using ML models"""
         try:
             score_components = []
-            
+
             # Reputation-based scoring
             if "reputation_score" in analysis.infrastructure_analysis:
                 score_components.append(analysis.infrastructure_analysis["reputation_score"])
-            
+
             # Behavioral pattern scoring
             behavioral_score = self._score_behavioral_patterns(analysis.behavioral_patterns)
             score_components.append(behavioral_score)
-            
+
             # Infrastructure risk scoring
             infrastructure_score = self._score_infrastructure_risk(analysis.infrastructure_analysis)
             score_components.append(infrastructure_score)
-            
+
             # Attribution confidence scoring
             attribution_score = len(analysis.attributed_campaigns) * 20  # Max 100 for 5+ campaigns
             score_components.append(min(attribution_score, 100))
-            
+
             # Calculate weighted average
             if score_components:
                 weights = [0.3, 0.3, 0.2, 0.2]  # Adjust based on component importance
                 weighted_score = sum(s * w for s, w in zip(score_components, weights))
                 return min(max(weighted_score, 0), 100)  # Clamp between 0-100
-            
+
             return 0.0
-        
+
         except Exception as e:
             self.logger.error(f"Threat score calculation failed: {e}")
             return 0.0
@@ -914,7 +914,7 @@ class AdvancedThreatIntelligenceEngine:
     def _score_behavioral_patterns(self, patterns: Dict[str, Any]) -> float:
         """Score behavioral patterns for maliciousness"""
         score = 0.0
-        
+
         try:
             # Evasion techniques increase score
             if "evasion_techniques" in patterns:
@@ -927,7 +927,7 @@ class AdvancedThreatIntelligenceEngine:
                     score += 25
                 if evasion.get("polymorphic_behavior"):
                     score += 20
-            
+
             # Suspicious communication patterns
             if "communication_patterns" in patterns:
                 comm = patterns["communication_patterns"]
@@ -935,16 +935,16 @@ class AdvancedThreatIntelligenceEngine:
                     score += 10
                 if "DNS_tunneling" in comm.get("data_exfiltration_methods", []):
                     score += 30
-        
+
         except Exception as e:
             self.logger.error(f"Behavioral pattern scoring failed: {e}")
-        
+
         return min(score, 100)
 
     def _score_infrastructure_risk(self, infrastructure: Dict[str, Any]) -> float:
         """Score infrastructure-based risk indicators"""
         score = 0.0
-        
+
         try:
             # Hosting provider reputation
             if "hosting_analysis" in infrastructure:
@@ -953,14 +953,14 @@ class AdvancedThreatIntelligenceEngine:
                     score += 40
                 if hosting.get("hosting_type") == "bulletproof":
                     score += 30
-            
+
             # Geographic risk factors
             if "geolocation" in infrastructure:
                 geo = infrastructure["geolocation"]
                 high_risk_countries = ["RU", "CN", "KP", "IR"]
                 if geo.get("country") in high_risk_countries:
                     score += 20
-            
+
             # Infrastructure patterns
             if "infrastructure_patterns" in infrastructure:
                 patterns = infrastructure["infrastructure_patterns"]
@@ -970,16 +970,16 @@ class AdvancedThreatIntelligenceEngine:
                     score += 25
                 if patterns.get("recently_registered"):
                     score += 15
-        
+
         except Exception as e:
             self.logger.error(f"Infrastructure risk scoring failed: {e}")
-        
+
         return min(score, 100)
 
     def _generate_recommendations(self, analysis: ThreatAnalysisResult) -> List[str]:
         """Generate actionable security recommendations"""
         recommendations = []
-        
+
         try:
             # Based on threat score
             if analysis.threat_score >= 80:
@@ -1002,28 +1002,28 @@ class AdvancedThreatIntelligenceEngine:
                     "📊 Add to watchlist for behavioral analysis",
                     "🔍 Periodic review for context changes"
                 ])
-            
+
             # Based on MITRE techniques
             if "T1071" in analysis.mitre_techniques:  # Application Layer Protocol
                 recommendations.append("🌐 Review network traffic filtering rules")
-            
+
             if "T1055" in analysis.mitre_techniques:  # Process Injection
                 recommendations.append("🛡️ Enhance endpoint detection capabilities")
-            
+
             if "T1041" in analysis.mitre_techniques:  # Exfiltration Over C2
                 recommendations.append("📡 Implement data loss prevention controls")
-            
+
             # Based on attributed campaigns
             if analysis.attributed_campaigns:
                 recommendations.append(f"🎯 Review defenses against {analysis.attributed_campaigns[0]} campaign tactics")
-            
+
             # Infrastructure-based recommendations
             if analysis.geographic_origin:
                 recommendations.append(f"🌍 Consider geo-blocking traffic from {analysis.geographic_origin}")
-        
+
         except Exception as e:
             self.logger.error(f"Recommendation generation failed: {e}")
-        
+
         return recommendations
 
     async def _correlate_indicators(self, analyses: List[ThreatAnalysisResult]) -> Dict[str, Any]:
@@ -1034,12 +1034,12 @@ class AdvancedThreatIntelligenceEngine:
             "campaign_clustering": {},
             "actor_attribution": {}
         }
-        
+
         try:
             # Infrastructure correlation
             ip_addresses = set()
             domains = set()
-            
+
             for analysis in analyses:
                 if "infrastructure_analysis" in analysis.infrastructure_analysis:
                     infra = analysis.infrastructure_analysis["infrastructure_analysis"]
@@ -1048,24 +1048,24 @@ class AdvancedThreatIntelligenceEngine:
                     if "historical_resolutions" in infra:
                         for resolution in infra["historical_resolutions"]:
                             ip_addresses.add(resolution["ip"])
-            
+
             correlation_insights["shared_infrastructure"] = {
                 "common_ips": list(ip_addresses),
                 "common_domains": list(domains)
             }
-            
+
             # Temporal correlation
             timestamps = [analysis.analysis_timestamp for analysis in analyses]
             if len(timestamps) > 1:
-                time_diffs = [(timestamps[i+1] - timestamps[i]).total_seconds() 
+                time_diffs = [(timestamps[i+1] - timestamps[i]).total_seconds()
                              for i in range(len(timestamps)-1)]
                 correlation_insights["temporal_correlation"] = {
                     "average_time_delta": sum(time_diffs) / len(time_diffs),
                     "simultaneous_activity": any(diff < 3600 for diff in time_diffs)  # Within 1 hour
                 }
-            
+
             # Campaign clustering
-            all_campaigns = [campaign for analysis in analyses 
+            all_campaigns = [campaign for analysis in analyses
                            for campaign in analysis.attributed_campaigns]
             if all_campaigns:
                 from collections import Counter
@@ -1074,21 +1074,21 @@ class AdvancedThreatIntelligenceEngine:
                     "primary_campaign": campaign_counts.most_common(1)[0][0],
                     "campaign_distribution": dict(campaign_counts)
                 }
-        
+
         except Exception as e:
             self.logger.error(f"Indicator correlation failed: {e}")
-        
+
         return correlation_insights
 
     def _classify_indicator_type(self, indicator: str) -> str:
         """Classify indicator type (IP, domain, hash, URL, email)"""
         import re
-        
+
         # IP address patterns
         ip_pattern = r'^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
         if re.match(ip_pattern, indicator):
             return "ip"
-        
+
         # Hash patterns (MD5, SHA1, SHA256)
         if re.match(r'^[a-fA-F0-9]{32}$', indicator):
             return "hash"  # MD5
@@ -1096,21 +1096,21 @@ class AdvancedThreatIntelligenceEngine:
             return "hash"  # SHA1
         elif re.match(r'^[a-fA-F0-9]{64}$', indicator):
             return "hash"  # SHA256
-        
+
         # URL pattern
         if indicator.startswith(('http://', 'https://', 'ftp://')):
             return "url"
-        
+
         # Email pattern
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if re.match(email_pattern, indicator):
             return "email"
-        
+
         # Domain pattern (default)
         domain_pattern = r'^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$'
         if re.match(domain_pattern, indicator):
             return "domain"
-        
+
         return "unknown"
 
     def _is_ip_address(self, indicator: str) -> bool:
@@ -1137,19 +1137,19 @@ class AdvancedThreatIntelligenceEngine:
         try:
             current_time = time.time()
             rate_limit = self.rate_limits.get(api_type, {})
-            
+
             # Reset counter if minute has passed
             if current_time - rate_limit.get("reset_time", 0) > 60:
                 rate_limit["current_calls"] = 0
                 rate_limit["reset_time"] = current_time
-            
+
             # Check if under limit
             if rate_limit["current_calls"] < rate_limit.get("calls_per_minute", 60):
                 rate_limit["current_calls"] += 1
                 return True
-            
+
             return False
-        
+
         except Exception as e:
             self.logger.error(f"Rate limit check failed: {e}")
             return True  # Allow on error
@@ -1175,7 +1175,7 @@ class AdvancedThreatIntelligenceEngine:
                 "result": result,
                 "timestamp": time.time()
             }
-            
+
             # Cleanup old cache entries (keep last 1000)
             if len(self.analysis_cache) > 1000:
                 oldest_keys = sorted(
@@ -1184,7 +1184,7 @@ class AdvancedThreatIntelligenceEngine:
                 )[:100]
                 for key in oldest_keys:
                     del self.analysis_cache[key]
-        
+
         except Exception as e:
             self.logger.error(f"Cache storage failed: {e}")
 
@@ -1192,18 +1192,18 @@ class AdvancedThreatIntelligenceEngine:
         """Merge threat feed result into aggregate results"""
         if not feed_result:
             return
-        
+
         results["total_sources"] += 1
-        
+
         if feed_result.get("malicious", False):
             results["malicious_verdicts"] += 1
-        
+
         if "categories" in feed_result:
             results["threat_categories"].extend(feed_result["categories"])
-        
+
         if "malware" in feed_result:
             results["associated_malware"].extend(feed_result["malware"])
-        
+
         if "campaigns" in feed_result:
             results["campaign_attributions"].extend(feed_result["campaigns"])
 
@@ -1223,7 +1223,7 @@ class AdvancedThreatIntelligenceEngine:
         """Parse ThreatFox response"""
         if data.get("query_status") != "ok" or not data.get("data"):
             return {"found": False, "source": "threatfox"}
-        
+
         ioc_data = data["data"][0] if data["data"] else {}
         return {
             "found": True,
@@ -1239,7 +1239,7 @@ class AdvancedThreatIntelligenceEngine:
         """Parse URLhaus response"""
         if data.get("query_status") != "ok":
             return {"found": False, "source": "urlhaus"}
-        
+
         return {
             "found": True,
             "source": "urlhaus",
@@ -1254,7 +1254,7 @@ class AdvancedThreatIntelligenceEngine:
         """Parse MalwareBazaar response"""
         if data.get("query_status") != "ok" or not data.get("data"):
             return {"found": False, "source": "malware_bazaar"}
-        
+
         sample_data = data["data"][0] if data["data"] else {}
         return {
             "found": True,
@@ -1270,44 +1270,44 @@ class AdvancedThreatIntelligenceEngine:
     def _calculate_campaign_similarity(self, analysis: ThreatAnalysisResult, campaign: Dict[str, Any]) -> float:
         """Calculate similarity score between analysis and known campaign"""
         similarity_factors = []
-        
+
         try:
             # Infrastructure overlap
             if "infrastructure_indicators" in campaign:
                 overlap_score = 0.0
                 campaign_infra = set(campaign["infrastructure_indicators"])
-                
+
                 # Check for overlapping IPs, domains, etc.
                 analysis_infra = set()
                 if "associated_domains" in analysis.infrastructure_analysis:
                     analysis_infra.update(analysis.infrastructure_analysis["associated_domains"])
-                
+
                 if campaign_infra and analysis_infra:
                     overlap = campaign_infra.intersection(analysis_infra)
                     overlap_score = len(overlap) / len(campaign_infra.union(analysis_infra))
-                
+
                 similarity_factors.append(overlap_score)
-            
+
             # Technique overlap
             if "techniques" in campaign and analysis.mitre_techniques:
                 campaign_techniques = set(campaign["techniques"])
                 analysis_techniques = set(analysis.mitre_techniques)
-                
+
                 if campaign_techniques:
                     overlap = campaign_techniques.intersection(analysis_techniques)
                     technique_similarity = len(overlap) / len(campaign_techniques)
                     similarity_factors.append(technique_similarity)
-            
+
             # Geographic correlation
             if "geographic_focus" in campaign and analysis.geographic_origin:
                 if analysis.geographic_origin in campaign["geographic_focus"]:
                     similarity_factors.append(0.8)
                 else:
                     similarity_factors.append(0.2)
-            
+
             # Calculate average similarity
             return sum(similarity_factors) / len(similarity_factors) if similarity_factors else 0.0
-        
+
         except Exception as e:
             self.logger.error(f"Campaign similarity calculation failed: {e}")
             return 0.0
@@ -1381,23 +1381,23 @@ class AdvancedThreatIntelligenceEngine:
         """Integrate intelligence results into analysis"""
         if not intelligence:
             return
-        
+
         # Add source to consulted sources
         if "source" in intelligence:
             analysis.sources_consulted.append(intelligence["source"])
-        
+
         # Update infrastructure analysis
         if "infrastructure_analysis" in intelligence:
             analysis.infrastructure_analysis.update(intelligence["infrastructure_analysis"])
-        
+
         # Update behavioral patterns
         if "behavioral_patterns" in intelligence:
             analysis.behavioral_patterns.update(intelligence["behavioral_patterns"])
-        
+
         # Add categories
         if "categories" in intelligence:
             analysis.categories.extend(intelligence["categories"])
-        
+
         # Add MITRE techniques
         if "mitre_techniques" in intelligence:
             analysis.mitre_techniques.extend(intelligence["mitre_techniques"])
@@ -1410,8 +1410,8 @@ _threat_intelligence_engine: Optional[AdvancedThreatIntelligenceEngine] = None
 async def get_threat_intelligence_engine(config: Dict[str, Any] = None) -> AdvancedThreatIntelligenceEngine:
     """Get global threat intelligence engine instance"""
     global _threat_intelligence_engine
-    
+
     if _threat_intelligence_engine is None:
         _threat_intelligence_engine = AdvancedThreatIntelligenceEngine(config)
-    
+
     return _threat_intelligence_engine

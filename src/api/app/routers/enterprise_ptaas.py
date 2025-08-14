@@ -88,11 +88,11 @@ async def execute_enterprise_workflow(
     orchestrator: PTaaSOrchestrationService = Depends(get_orchestration_service)
 ):
     """Execute enterprise security workflow with advanced orchestration"""
-    
+
     try:
         # Validate user permissions
         await require_permissions(current_user, ["ptaas:execute", "enterprise:access"])
-        
+
         # Convert request targets to ScanTarget objects
         scan_targets = []
         for target_data in request.targets:
@@ -102,7 +102,7 @@ async def execute_enterprise_workflow(
                 scan_profile=target_data.get("scan_profile", "comprehensive")
             )
             scan_targets.append(target)
-        
+
         # Execute workflow with enterprise features
         execution_id = await orchestrator.execute_workflow(
             workflow_id=request.workflow_id,
@@ -110,17 +110,17 @@ async def execute_enterprise_workflow(
             triggered_by=f"user:{current_user['username']}",
             tenant_id=current_user.get("tenant_id")
         )
-        
+
         # Get execution details
         execution = await orchestrator.get_execution_status(execution_id)
         if not execution:
             raise HTTPException(status_code=404, detail="Execution not found")
-        
+
         # Get workflow details for task counting
         workflows = await orchestrator.list_workflows()
         workflow = next((w for w in workflows if w.id == request.workflow_id), None)
         tasks_total = len(workflow.tasks) if workflow else 0
-        
+
         # Schedule notifications if configured
         if request.notifications:
             background_tasks.add_task(
@@ -129,7 +129,7 @@ async def execute_enterprise_workflow(
                 request.notifications,
                 current_user
             )
-        
+
         return WorkflowExecutionResponse(
             execution_id=execution_id,
             workflow_id=request.workflow_id,
@@ -141,7 +141,7 @@ async def execute_enterprise_workflow(
             tasks_completed=len(execution.task_results),
             current_phase=_get_current_phase(execution)
         )
-        
+
     except Exception as e:
         logger.error(f"Enterprise workflow execution failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -155,11 +155,11 @@ async def execute_threat_simulation(
     orchestrator: PTaaSOrchestrationService = Depends(get_orchestration_service)
 ):
     """Execute advanced threat simulation with MITRE ATT&CK framework"""
-    
+
     try:
         # Validate high-privilege operation
         await require_permissions(current_user, ["ptaas:execute", "threat_simulation:access", "enterprise:access"])
-        
+
         # Convert targets
         scan_targets = []
         for target_data in request.targets:
@@ -169,18 +169,18 @@ async def execute_threat_simulation(
                 scan_profile="threat_simulation"
             )
             scan_targets.append(target)
-        
+
         # Get threat simulation workflow
         workflows = await orchestrator.list_workflows()
         simulation_workflow = next((w for w in workflows if w.workflow_type.value == "threat_simulation"), None)
-        
+
         if not simulation_workflow:
             raise HTTPException(status_code=404, detail="Threat simulation workflow not found")
-        
+
         # Register threat simulation hooks
         await orchestrator.register_hook("pre_execution", _threat_simulation_pre_hook)
         await orchestrator.register_hook("post_execution", _threat_simulation_post_hook)
-        
+
         # Execute simulation
         execution_id = await orchestrator.execute_workflow(
             workflow_id=simulation_workflow.id,
@@ -188,7 +188,7 @@ async def execute_threat_simulation(
             triggered_by=f"threat_simulation:{current_user['username']}",
             tenant_id=current_user.get("tenant_id")
         )
-        
+
         return {
             "simulation_id": execution_id,
             "simulation_type": request.simulation_type,
@@ -198,7 +198,7 @@ async def execute_threat_simulation(
             "stealth_level": request.stealth_level,
             "monitoring_url": f"/api/v1/enterprise/ptaas/executions/{execution_id}"
         }
-        
+
     except Exception as e:
         logger.error(f"Threat simulation failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -212,28 +212,28 @@ async def execute_compliance_assessment(
     orchestrator: PTaaSOrchestrationService = Depends(get_orchestration_service)
 ):
     """Execute comprehensive compliance assessment"""
-    
+
     try:
         # Validate compliance assessment permissions
         await require_permissions(current_user, ["ptaas:execute", "compliance:assess", "enterprise:access"])
-        
+
         # Get compliance workflow based on framework
         workflows = await orchestrator.list_workflows()
         compliance_workflow = None
-        
+
         for workflow in workflows:
-            if (workflow.workflow_type.value == "compliance_scan" and 
-                workflow.compliance_framework and 
+            if (workflow.workflow_type.value == "compliance_scan" and
+                workflow.compliance_framework and
                 workflow.compliance_framework.value.replace("_", "-") == request.framework):
                 compliance_workflow = workflow
                 break
-        
+
         if not compliance_workflow:
             raise HTTPException(
-                status_code=404, 
+                status_code=404,
                 detail=f"Compliance workflow for {request.framework} not found"
             )
-        
+
         # Convert targets
         scan_targets = []
         for target_data in request.targets:
@@ -243,7 +243,7 @@ async def execute_compliance_assessment(
                 scan_profile="compliance"
             )
             scan_targets.append(target)
-        
+
         # Execute compliance assessment
         execution_id = await orchestrator.execute_workflow(
             workflow_id=compliance_workflow.id,
@@ -251,7 +251,7 @@ async def execute_compliance_assessment(
             triggered_by=f"compliance:{current_user['username']}",
             tenant_id=current_user.get("tenant_id")
         )
-        
+
         return {
             "assessment_id": execution_id,
             "framework": request.framework,
@@ -261,7 +261,7 @@ async def execute_compliance_assessment(
             "remediation_planning": request.remediation_planning,
             "monitoring_url": f"/api/v1/enterprise/ptaas/executions/{execution_id}"
         }
-        
+
     except Exception as e:
         logger.error(f"Compliance assessment failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -274,18 +274,18 @@ async def get_execution_status(
     orchestrator: PTaaSOrchestrationService = Depends(get_orchestration_service)
 ):
     """Get detailed execution status with enterprise metrics"""
-    
+
     try:
         await require_permissions(current_user, ["ptaas:read", "enterprise:access"])
-        
+
         execution = await orchestrator.get_execution_status(execution_id)
         if not execution:
             raise HTTPException(status_code=404, detail="Execution not found")
-        
+
         # Get workflow details
         workflows = await orchestrator.list_workflows()
         workflow = next((w for w in workflows if w.id == execution.workflow_id), None)
-        
+
         response = {
             "execution_id": execution_id,
             "workflow_id": execution.workflow_id,
@@ -299,14 +299,14 @@ async def get_execution_status(
             "findings_summary": execution.findings_summary,
             "error_message": execution.error_message
         }
-        
+
         if include_details:
             response["task_results"] = execution.task_results
-            response["scan_results"] = [result.__dict__ if hasattr(result, '__dict__') else result 
+            response["scan_results"] = [result.__dict__ if hasattr(result, '__dict__') else result
                                      for result in execution.scan_results]
-        
+
         return response
-        
+
     except Exception as e:
         logger.error(f"Failed to get execution status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -318,24 +318,24 @@ async def get_enterprise_metrics(
     scanner: SecurityScannerService = Depends(get_scanner_service)
 ):
     """Get comprehensive enterprise PTaaS metrics"""
-    
+
     try:
         await require_permissions(current_user, ["ptaas:read", "metrics:view", "enterprise:access"])
-        
+
         # Get orchestrator metrics
         orchestrator_metrics = await orchestrator.get_metrics()
-        
+
         # Get scanner metrics
         scanner_health = await scanner.health_check()
-        
+
         # Calculate security metrics
         executions = await orchestrator.list_executions()
         recent_executions = [e for e in executions if e.started_at > datetime.utcnow() - timedelta(days=7)]
-        
+
         security_metrics = {
             "total_scans_last_7_days": len(recent_executions),
             "vulnerabilities_found_last_7_days": sum(
-                len(e.findings_summary.get("vulnerabilities", [])) for e in recent_executions 
+                len(e.findings_summary.get("vulnerabilities", [])) for e in recent_executions
                 if e.findings_summary
             ),
             "critical_issues_last_7_days": sum(
@@ -353,7 +353,7 @@ async def get_enterprise_metrics(
                 if e.completed_at
             ) / len([e for e in recent_executions if e.completed_at]) if recent_executions else 0
         }
-        
+
         # Add scanner availability
         orchestrator_metrics["security_metrics"] = security_metrics
         orchestrator_metrics["scanner_health"] = {
@@ -361,9 +361,9 @@ async def get_enterprise_metrics(
             "available_scanners": scanner_health.checks.get("available_scanners", 0),
             "message": scanner_health.message
         }
-        
+
         return EnterpriseMetricsResponse(**orchestrator_metrics)
-        
+
     except Exception as e:
         logger.error(f"Failed to get enterprise metrics: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -376,16 +376,16 @@ async def cancel_execution(
     orchestrator: PTaaSOrchestrationService = Depends(get_orchestration_service)
 ):
     """Cancel running execution"""
-    
+
     try:
         await require_permissions(current_user, ["ptaas:execute", "enterprise:access"])
-        
+
         success = await orchestrator.cancel_execution(execution_id)
         if not success:
             raise HTTPException(status_code=404, detail="Execution not found or cannot be cancelled")
-        
+
         return {"message": "Execution cancelled successfully", "execution_id": execution_id}
-        
+
     except Exception as e:
         logger.error(f"Failed to cancel execution: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -396,12 +396,12 @@ async def list_enterprise_workflows(
     orchestrator: PTaaSOrchestrationService = Depends(get_orchestration_service)
 ):
     """List available enterprise workflows"""
-    
+
     try:
         await require_permissions(current_user, ["ptaas:read", "enterprise:access"])
-        
+
         workflows = await orchestrator.list_workflows()
-        
+
         return {
             "workflows": [
                 {
@@ -417,7 +417,7 @@ async def list_enterprise_workflows(
             ],
             "total_workflows": len(workflows)
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to list workflows: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -437,10 +437,10 @@ def _estimate_completion(execution, tasks_total: int) -> Optional[datetime]:
     """Estimate completion time based on progress"""
     if execution.progress == 0 or tasks_total == 0:
         return None
-    
+
     elapsed = (datetime.utcnow() - execution.started_at).total_seconds()
     remaining_time = (elapsed / execution.progress) * (1 - execution.progress)
-    
+
     return datetime.utcnow() + timedelta(seconds=remaining_time)
 
 def _get_current_phase(execution) -> str:

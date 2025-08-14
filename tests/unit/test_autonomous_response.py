@@ -61,7 +61,7 @@ agent_health_status = Gauge(
 class XORBAgentTemplate:
     """
     Template for XORB autonomous agents
-    
+
     Features:
     - Structured logging with structlog
     - Prometheus metrics emission

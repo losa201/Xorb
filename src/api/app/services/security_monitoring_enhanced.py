@@ -51,7 +51,7 @@ class SecurityEvent:
     payload: Optional[str] = None
     metadata: Dict[str, Any] = None
     correlation_id: Optional[str] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
         data = asdict(self)
@@ -72,10 +72,10 @@ class ThreatIntelligence:
     tags: List[str]
     first_seen: datetime
     last_seen: datetime
-    
+
 class EnhancedSecurityMonitor:
     """Enhanced security monitoring with real-time threat detection"""
-    
+
     def __init__(self):
         self.events_buffer = deque(maxlen=10000)  # Ring buffer for recent events
         self.threat_intelligence = {}  # Threat intel database
@@ -84,11 +84,11 @@ class EnhancedSecurityMonitor:
         self.correlation_rules = []  # Event correlation rules
         self.anomaly_detection_enabled = True
         self.threat_feeds_enabled = True
-        
+
         # Initialize threat detection patterns
         self._initialize_detection_patterns()
         self._initialize_threat_intelligence()
-    
+
     def _initialize_detection_patterns(self):
         """Initialize threat detection patterns"""
         self.detection_patterns = {
@@ -111,7 +111,7 @@ class EnhancedSecurityMonitor:
                 r"(?i)(wget\s+|curl\s+|python\s+-c|perl\s+-e)"
             ]
         }
-    
+
     def _initialize_threat_intelligence(self):
         """Initialize threat intelligence database"""
         # Mock threat intelligence data (in production, load from external feeds)
@@ -120,7 +120,7 @@ class EnhancedSecurityMonitor:
             "10.0.0.50",      # Example suspicious IP
             "172.16.0.25"     # Example compromised IP
         ]
-        
+
         for ip in malicious_ips:
             self.threat_intelligence[ip] = ThreatIntelligence(
                 indicator=ip,
@@ -133,10 +133,10 @@ class EnhancedSecurityMonitor:
                 first_seen=datetime.utcnow() - timedelta(days=30),
                 last_seen=datetime.utcnow() - timedelta(hours=2)
             )
-    
+
     async def analyze_request(self, request_data: Dict[str, Any]) -> Optional[SecurityEvent]:
         """Analyze incoming request for security threats"""
-        
+
         try:
             # Extract request details
             source_ip = request_data.get('source_ip', '')
@@ -145,7 +145,7 @@ class EnhancedSecurityMonitor:
             user_agent = request_data.get('user_agent', '')
             payload = request_data.get('payload', '')
             headers = request_data.get('headers', {})
-            
+
             # Check threat intelligence
             threat_intel_result = await self._check_threat_intelligence(source_ip)
             if threat_intel_result:
@@ -162,38 +162,38 @@ class EnhancedSecurityMonitor:
                         'method': method
                     }
                 )
-            
+
             # Check for attack patterns
             attack_result = await self._detect_attack_patterns(payload, path, headers)
             if attack_result:
                 return attack_result
-            
+
             # Check for brute force attempts
             brute_force_result = await self._detect_brute_force(source_ip, path)
             if brute_force_result:
                 return brute_force_result
-            
+
             # Check for anomalous behavior
             if self.anomaly_detection_enabled:
                 anomaly_result = await self._detect_anomalies(request_data)
                 if anomaly_result:
                     return anomaly_result
-            
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Error analyzing request: {e}")
             return None
-    
+
     async def _check_threat_intelligence(self, ip: str) -> Optional[ThreatIntelligence]:
         """Check IP against threat intelligence database"""
-        
+
         # Check internal threat intelligence
         if ip in self.threat_intelligence:
             intel = self.threat_intelligence[ip]
             intel.last_seen = datetime.utcnow()
             return intel
-        
+
         # Check IP reputation (mock implementation)
         if await self._is_malicious_ip(ip):
             # Create new threat intelligence entry
@@ -210,35 +210,35 @@ class EnhancedSecurityMonitor:
             )
             self.threat_intelligence[ip] = intel
             return intel
-        
+
         return None
-    
+
     async def _is_malicious_ip(self, ip: str) -> bool:
         """Check if IP is malicious (mock implementation)"""
         try:
             ip_obj = ipaddress.ip_address(ip)
-            
+
             # Check for private/local IPs
             if ip_obj.is_private or ip_obj.is_loopback:
                 return False
-            
+
             # Mock reputation check (in production, query external services)
             # For demonstration, flag certain IP patterns as suspicious
             if ip.endswith('.100') or ip.endswith('.50'):
                 return True
-                
+
             return False
-            
+
         except ValueError:
             return False
-    
+
     async def _detect_attack_patterns(self, payload: str, path: str, headers: Dict[str, str]) -> Optional[SecurityEvent]:
         """Detect attack patterns in request data"""
-        
+
         import re
-        
+
         combined_data = f"{payload} {path} {' '.join(headers.values())}"
-        
+
         # Check SQL injection patterns
         for pattern in self.detection_patterns['sql_injection']:
             if re.search(pattern, combined_data):
@@ -252,7 +252,7 @@ class EnhancedSecurityMonitor:
                     payload=payload[:1000],  # Truncate for storage
                     metadata={'pattern_matched': pattern, 'attack_type': 'sql_injection'}
                 )
-        
+
         # Check XSS patterns
         for pattern in self.detection_patterns['xss']:
             if re.search(pattern, combined_data):
@@ -266,7 +266,7 @@ class EnhancedSecurityMonitor:
                     payload=payload[:1000],
                     metadata={'pattern_matched': pattern, 'attack_type': 'xss'}
                 )
-        
+
         # Check directory traversal
         for pattern in self.detection_patterns['directory_traversal']:
             if re.search(pattern, combined_data):
@@ -280,7 +280,7 @@ class EnhancedSecurityMonitor:
                     payload=payload[:1000],
                     metadata={'pattern_matched': pattern, 'attack_type': 'directory_traversal'}
                 )
-        
+
         # Check command injection
         for pattern in self.detection_patterns['command_injection']:
             if re.search(pattern, combined_data):
@@ -294,20 +294,20 @@ class EnhancedSecurityMonitor:
                     payload=payload[:1000],
                     metadata={'pattern_matched': pattern, 'attack_type': 'command_injection'}
                 )
-        
+
         return None
-    
+
     async def _detect_brute_force(self, source_ip: str, path: str) -> Optional[SecurityEvent]:
         """Detect brute force attacks"""
-        
+
         # Count recent requests from this IP
         now = datetime.utcnow()
         recent_events = [
             event for event in self.events_buffer
-            if event.source_ip == source_ip and 
+            if event.source_ip == source_ip and
                (now - event.timestamp).total_seconds() < 300  # Last 5 minutes
         ]
-        
+
         # Check for high request rate
         if len(recent_events) > 50:  # More than 50 requests in 5 minutes
             return SecurityEvent(
@@ -323,22 +323,22 @@ class EnhancedSecurityMonitor:
                     'rate': len(recent_events) / 5  # requests per minute
                 }
             )
-        
+
         return None
-    
+
     async def _detect_anomalies(self, request_data: Dict[str, Any]) -> Optional[SecurityEvent]:
         """Detect anomalous behavior patterns"""
-        
+
         source_ip = request_data.get('source_ip', '')
         user_agent = request_data.get('user_agent', '')
         path = request_data.get('path', '')
-        
+
         # Detect unusual user agents
         suspicious_user_agents = [
             'sqlmap', 'nikto', 'nmap', 'masscan', 'zap', 'burp',
             'python-requests', 'curl', 'wget'
         ]
-        
+
         if any(agent.lower() in user_agent.lower() for agent in suspicious_user_agents):
             return SecurityEvent(
                 event_id=self._generate_event_id(),
@@ -353,7 +353,7 @@ class EnhancedSecurityMonitor:
                     'detected_tool': next(agent for agent in suspicious_user_agents if agent.lower() in user_agent.lower())
                 }
             )
-        
+
         # Detect rapid scanning behavior
         if '/admin' in path or '/wp-admin' in path or '/.env' in path:
             return SecurityEvent(
@@ -368,19 +368,19 @@ class EnhancedSecurityMonitor:
                     'path_category': 'admin_or_config'
                 }
             )
-        
+
         return None
-    
+
     async def correlate_events(self, events: List[SecurityEvent]) -> List[SecurityEvent]:
         """Correlate security events to identify attack campaigns"""
-        
+
         correlated_events = []
-        
+
         # Group events by source IP
         ip_groups = defaultdict(list)
         for event in events:
             ip_groups[event.source_ip].append(event)
-        
+
         # Look for attack patterns
         for source_ip, ip_events in ip_groups.items():
             if len(ip_events) >= 3:  # Multiple events from same IP
@@ -391,7 +391,7 @@ class EnhancedSecurityMonitor:
                     correlation_id = self._generate_correlation_id()
                     for event in ip_events:
                         event.correlation_id = correlation_id
-                    
+
                     # Create summary event
                     correlated_event = SecurityEvent(
                         event_id=self._generate_event_id(),
@@ -410,42 +410,42 @@ class EnhancedSecurityMonitor:
                         correlation_id=correlation_id
                     )
                     correlated_events.append(correlated_event)
-        
+
         return correlated_events
-    
+
     async def add_event(self, event: SecurityEvent):
         """Add security event to buffer for analysis"""
         self.events_buffer.append(event)
-        
+
         # Trigger real-time correlation if buffer has enough events
         if len(self.events_buffer) >= 100:
             recent_events = list(self.events_buffer)[-100:]  # Last 100 events
             correlated = await self.correlate_events(recent_events)
-            
+
             for corr_event in correlated:
                 logger.warning(f"Correlated security event detected: {corr_event.event_type.value} from {corr_event.source_ip}")
-    
+
     async def get_security_dashboard_data(self) -> Dict[str, Any]:
         """Get data for security monitoring dashboard"""
-        
+
         now = datetime.utcnow()
         last_24h = now - timedelta(hours=24)
         last_hour = now - timedelta(hours=1)
-        
+
         # Filter recent events
         recent_events = [e for e in self.events_buffer if e.timestamp >= last_24h]
         last_hour_events = [e for e in recent_events if e.timestamp >= last_hour]
-        
+
         # Calculate statistics
         event_counts = defaultdict(int)
         threat_levels = defaultdict(int)
         top_sources = defaultdict(int)
-        
+
         for event in recent_events:
             event_counts[event.event_type.value] += 1
             threat_levels[event.threat_level.value] += 1
             top_sources[event.source_ip] += 1
-        
+
         return {
             'summary': {
                 'total_events_24h': len(recent_events),
@@ -469,15 +469,15 @@ class EnhancedSecurityMonitor:
                 ])
             }
         }
-    
+
     async def update_threat_intelligence(self, indicators: List[Dict[str, Any]]):
         """Update threat intelligence database"""
-        
+
         for indicator_data in indicators:
             indicator = indicator_data.get('indicator')
             if not indicator:
                 continue
-            
+
             intel = ThreatIntelligence(
                 indicator=indicator,
                 indicator_type=indicator_data.get('type', 'unknown'),
@@ -489,15 +489,15 @@ class EnhancedSecurityMonitor:
                 first_seen=datetime.utcnow(),
                 last_seen=datetime.utcnow()
             )
-            
+
             self.threat_intelligence[indicator] = intel
-        
+
         logger.info(f"Updated threat intelligence with {len(indicators)} indicators")
-    
+
     def _generate_event_id(self) -> str:
         """Generate unique event ID"""
         return f"evt_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{hash(datetime.utcnow()) % 10000:04d}"
-    
+
     def _generate_correlation_id(self) -> str:
         """Generate correlation ID for related events"""
         return f"corr_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{hash(datetime.utcnow()) % 1000:03d}"
@@ -519,7 +519,7 @@ async def log_security_event(event: SecurityEvent):
     """Log security event"""
     monitor = await get_security_monitor()
     await monitor.add_event(event)
-    
+
     # Log to standard logger
     logger.warning(
         f"Security event: {event.event_type.value} | "

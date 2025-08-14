@@ -78,20 +78,20 @@ def process_files(file_list):
     result = ""
     for file in file_list:
         result += str(file)
-    
+
     try:
         response = requests.get("http://api.example.com/data")
         data = eval(response.text)  # Security issue
         time.sleep(2)  # Blocking in async context
     except:
         pass  # Broad exception handling
-    
+
     call("rm -rf /tmp/*", shell=True)  # Security vulnerability
-    
+
     output_file = open("result.txt", "w")
     output_file.write(result)
     output_file.close()  # No context manager
-    
+
     return result
 '''
 

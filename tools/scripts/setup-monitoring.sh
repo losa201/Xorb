@@ -35,32 +35,32 @@ info() {
 # Check prerequisites
 check_prerequisites() {
     log "Checking prerequisites..."
-    
+
     # Check if Docker is installed
     if ! command -v docker &> /dev/null; then
         error "Docker is not installed. Please install Docker first."
         exit 1
     fi
-    
+
     # Check if Docker Compose is installed
     if ! command -v docker-compose &> /dev/null; then
         error "Docker Compose is not installed. Please install Docker Compose first."
         exit 1
     fi
-    
+
     # Check if Docker daemon is running
     if ! docker info &> /dev/null; then
         error "Docker daemon is not running. Please start Docker first."
         exit 1
     fi
-    
+
     log "Prerequisites check passed ✅"
 }
 
 # Create monitoring directories
 create_directories() {
     log "Creating monitoring directories..."
-    
+
     mkdir -p "$MONITORING_DIR/grafana/dashboards/json"
     mkdir -p "$MONITORING_DIR/grafana/datasources"
     mkdir -p "$MONITORING_DIR/prometheus/rules"
@@ -68,38 +68,38 @@ create_directories() {
     mkdir -p "$PROJECT_ROOT/data/prometheus"
     mkdir -p "$PROJECT_ROOT/data/grafana"
     mkdir -p "$PROJECT_ROOT/data/alertmanager"
-    
+
     log "Directories created ✅"
 }
 
 # Set proper permissions
 set_permissions() {
     log "Setting proper file permissions..."
-    
+
     # Grafana needs specific permissions
     sudo chown -R 472:472 "$PROJECT_ROOT/data/grafana" 2>/dev/null || {
         warn "Could not set Grafana permissions. You may need to run this script with sudo."
     }
-    
+
     # Prometheus needs specific permissions
     sudo chown -R 65534:65534 "$PROJECT_ROOT/data/prometheus" 2>/dev/null || {
         warn "Could not set Prometheus permissions. You may need to run this script with sudo."
     }
-    
+
     # AlertManager needs specific permissions
     sudo chown -R 65534:65534 "$PROJECT_ROOT/data/alertmanager" 2>/dev/null || {
         warn "Could not set AlertManager permissions. You may need to run this script with sudo."
     }
-    
+
     log "Permissions set ✅"
 }
 
 # Generate environment file
 generate_env_file() {
     log "Generating monitoring environment file..."
-    
+
     ENV_FILE="$PROJECT_ROOT/.env.monitoring"
-    
+
     cat > "$ENV_FILE" << EOF
 # XORB Monitoring Stack Environment Variables
 # Generated on $(date)
@@ -138,34 +138,34 @@ EOF
 # Start monitoring stack
 start_monitoring() {
     log "Starting XORB monitoring stack..."
-    
+
     cd "$PROJECT_ROOT"
-    
+
     # Load environment variables
     if [ -f ".env.monitoring" ]; then
         source .env.monitoring
     fi
-    
+
     # Start the monitoring services
     docker-compose -f docker-compose.monitoring.yml up -d
-    
+
     log "Monitoring stack started ✅"
 }
 
 # Check service health
 check_services() {
     log "Checking service health..."
-    
+
     local services=("prometheus:9090" "grafana:3000" "alertmanager:9093" "node-exporter:9100")
     local max_attempts=30
     local attempt=1
-    
+
     for service in "${services[@]}"; do
         local name="${service%%:*}"
         local port="${service##*:}"
-        
+
         info "Checking $name on port $port..."
-        
+
         while [ $attempt -le $max_attempts ]; do
             if curl -s "http://localhost:$port" &> /dev/null; then
                 log "$name is healthy ✅"
@@ -179,7 +179,7 @@ check_services() {
                 fi
             fi
         done
-        
+
         attempt=1
     done
 }
@@ -219,17 +219,17 @@ main() {
     echo "║          Prometheus + Grafana + AlertManager     ║"
     echo "╚══════════════════════════════════════════════════╝"
     echo -e "${NC}"
-    
+
     check_prerequisites
     create_directories
     set_permissions
     generate_env_file
     start_monitoring
-    
+
     # Wait a bit for services to start
     info "Waiting for services to start..."
     sleep 10
-    
+
     check_services
     show_access_info
 }

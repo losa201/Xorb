@@ -741,7 +741,7 @@ Get orchestrator health status.
 ```json
 {
   "id": "string",
-  "name": "string", 
+  "name": "string",
   "description": "string",
   "version": "string",
   "enabled": true,
@@ -936,7 +936,7 @@ const execution = await orchestrator.workflows.execute(
 // Poll for completion
 const pollExecution = async (executionId) => {
   const status = await orchestrator.workflows.getExecution(executionId);
-  
+
   if (status.status === 'completed') {
     console.log('Workflow completed successfully');
     console.log(`Compliance score: ${status.summary.compliance_score}`);
@@ -961,7 +961,7 @@ xorb_orchestrator_services_total
 xorb_orchestrator_services_running
 xorb_orchestrator_services_failed
 
-# Workflow metrics  
+# Workflow metrics
 xorb_orchestrator_workflows_total
 xorb_orchestrator_workflows_active
 xorb_orchestrator_workflow_duration_seconds
@@ -1030,7 +1030,7 @@ Recommended alert rules:
    ```python
    # Old
    from api.app.infrastructure.service_orchestrator import ServiceOrchestrator
-   
+
    # New
    from orchestrator.unified_orchestrator import UnifiedOrchestrator
    ```
@@ -1039,7 +1039,7 @@ Recommended alert rules:
    ```python
    # Old
    service_orchestrator.register_service(service_config)
-   
+
    # New
    unified_orchestrator.register_service(service_definition)
    ```

@@ -17,16 +17,16 @@ sys.path.insert(0, str(app_dir))
 try:
     from app.domain.tenant_entities import Base as TenantBase
     from app.domain.entities import Base as EntityBase
-    
+
     # Combine all metadata
     combined_metadata = TenantBase.metadata
     # Extend with other model metadata if needed
     for table in EntityBase.metadata.tables.values():
         if table.name not in combined_metadata.tables:
             table.tometadata(combined_metadata)
-    
+
     target_metadata = combined_metadata
-    
+
 except ImportError as e:
     print(f"Warning: Could not import models: {e}")
     from sqlalchemy.orm import declarative_base

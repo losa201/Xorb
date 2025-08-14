@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field, validator
 from ..auth.models import UserClaims
 from ..auth.dependencies import get_current_user, require_permissions
 from ..services.ptaas_orchestrator_service import (
-    get_ptaas_orchestrator, 
+    get_ptaas_orchestrator,
     PTaaSOrchestrator,
     PTaaSTarget,
     PTaaSSession
@@ -37,7 +37,7 @@ class ScanTargetRequest(BaseModel):
     scan_profile: str = Field(default="comprehensive", description="Scan profile to use")
     constraints: Optional[List[str]] = Field(default=None, description="Scanning constraints")
     authorized: bool = Field(default=True, description="Confirmation that target is authorized")
-    
+
     @validator('host')
     def validate_host(cls, v):
         if not v or len(v.strip()) == 0:
@@ -47,7 +47,7 @@ class ScanTargetRequest(BaseModel):
         if not re.match(r'^[a-zA-Z0-9.-]+$', v.replace(':', '')):
             raise ValueError("Invalid host format")
         return v.strip()
-    
+
     @validator('ports')
     def validate_ports(cls, v):
         for port in v:
@@ -61,7 +61,7 @@ class ScanSessionRequest(BaseModel):
     scan_type: str = Field(..., description="Type of scan to perform")
     description: Optional[str] = Field(default=None, description="Session description")
     metadata: Optional[Dict[str, Any]] = Field(default=None, description="Additional metadata")
-    
+
     @validator('scan_type')
     def validate_scan_type(cls, v):
         valid_types = ["quick", "comprehensive", "stealth", "web_focused"]
@@ -118,7 +118,7 @@ class SessionSummaryResponse(BaseModel):
 
 # API Endpoints
 
-@router.get("/profiles", 
+@router.get("/profiles",
     summary="Get Available Scan Profiles",
     description="Retrieve available PTaaS scan profiles and configurations")
 async def get_scan_profiles(
@@ -132,20 +132,20 @@ async def get_scan_profiles(
             user_id=str(current_user.user_id),
             tenant_id=str(current_user.tenant_id)
         )
-        
+
         profiles = await ptaas.get_available_scan_profiles()
-        
+
         return {
             "success": True,
             "data": profiles,
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get scan profiles: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get scan profiles: {str(e)}")
 
-@router.post("/sessions", 
+@router.post("/sessions",
     response_model=ScanSessionResponse,
     summary="Create PTaaS Scan Session",
     description="Create a new penetration testing scan session with specified targets")
@@ -159,7 +159,7 @@ async def create_scan_session(
     try:
         # Check permissions
         await require_permissions(current_user, ["ptaas:scan"])
-        
+
         # Convert request targets to PTaaS targets
         targets = []
         for i, target_req in enumerate(request.targets):
@@ -172,7 +172,7 @@ async def create_scan_session(
                 authorized=target_req.authorized
             )
             targets.append(target)
-        
+
         # Create session
         session_id = await ptaas.create_scan_session(
             targets=targets,
@@ -184,10 +184,10 @@ async def create_scan_session(
                 "user_metadata": request.metadata
             }
         )
-        
+
         # Start session in background
         background_tasks.add_task(ptaas.start_scan_session, session_id)
-        
+
         add_trace_context(
             operation="ptaas_session_created",
             session_id=session_id,
@@ -195,7 +195,7 @@ async def create_scan_session(
             tenant_id=str(current_user.tenant_id),
             targets_count=len(targets)
         )
-        
+
         return ScanSessionResponse(
             session_id=session_id,
             status="created",
@@ -203,14 +203,14 @@ async def create_scan_session(
             targets_count=len(targets),
             created_at=datetime.utcnow().isoformat()
         )
-        
+
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         logger.error(f"Failed to create scan session: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to create scan session: {str(e)}")
 
-@router.get("/sessions/{session_id}", 
+@router.get("/sessions/{session_id}",
     response_model=ScanSessionResponse,
     summary="Get Scan Session Status",
     description="Retrieve status and results of a PTaaS scan session")
@@ -222,15 +222,15 @@ async def get_scan_session(
     """Get scan session status and results"""
     try:
         session_data = await ptaas.get_scan_session_status(session_id)
-        
+
         if not session_data:
             raise HTTPException(status_code=404, detail="Scan session not found")
-        
+
         # Verify tenant access
         # Note: In production, implement proper tenant isolation check
-        
+
         return ScanSessionResponse(**session_data)
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -238,7 +238,7 @@ async def get_scan_session(
         raise HTTPException(status_code=500, detail=f"Failed to get scan session: {str(e)}")
 
 @router.post("/sessions/{session_id}/cancel",
-    summary="Cancel Scan Session", 
+    summary="Cancel Scan Session",
     description="Cancel an active PTaaS scan session")
 async def cancel_scan_session(
     session_id: str,
@@ -249,24 +249,24 @@ async def cancel_scan_session(
     try:
         # Check permissions
         await require_permissions(current_user, ["ptaas:cancel"])
-        
+
         success = await ptaas.cancel_scan_session(session_id)
-        
+
         if not success:
             raise HTTPException(status_code=400, detail="Cannot cancel session")
-        
+
         add_trace_context(
             operation="ptaas_session_cancelled",
             session_id=session_id,
             user_id=str(current_user.user_id)
         )
-        
+
         return {
             "success": True,
             "message": f"Scan session {session_id} cancelled",
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -286,29 +286,29 @@ async def get_scan_results(
     """Get detailed scan results with optional filtering"""
     try:
         session_data = await ptaas.get_scan_session_status(session_id)
-        
+
         if not session_data:
             raise HTTPException(status_code=404, detail="Scan session not found")
-        
+
         if session_data["status"] not in ["completed", "failed"]:
             raise HTTPException(status_code=400, detail="Scan session not completed")
-        
+
         results = session_data.get("results", {})
         scan_results = results.get("scan_results", [])
-        
+
         # Process and filter results
         processed_results = []
         for result in scan_results:
             if "error" in result:
                 processed_results.append(result)
                 continue
-            
+
             # Filter vulnerabilities by severity if requested
             vulnerabilities = result.get("raw_data", {}).get("vulnerabilities", [])
             if severity_filter:
                 severity_levels = [s.strip().lower() for s in severity_filter.split(",")]
                 vulnerabilities = [v for v in vulnerabilities if v.get("severity", "").lower() in severity_levels]
-            
+
             processed_result = {
                 "target_id": result.get("target_id"),
                 "vulnerabilities_found": len(vulnerabilities),
@@ -317,13 +317,13 @@ async def get_scan_results(
                 "scan_duration": result.get("scan_duration", 0),
                 "tools_used": result.get("tools_used", [])
             }
-            
+
             # Include raw data if requested
             if include_raw:
                 processed_result["raw_data"] = result.get("raw_data", {})
-            
+
             processed_results.append(processed_result)
-        
+
         return {
             "success": True,
             "session_id": session_id,
@@ -335,7 +335,7 @@ async def get_scan_results(
             },
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -356,15 +356,15 @@ async def generate_scan_report(
     try:
         # Check permissions
         await require_permissions(current_user, ["ptaas:report"])
-        
+
         session_data = await ptaas.get_scan_session_status(session_id)
-        
+
         if not session_data:
             raise HTTPException(status_code=404, detail="Scan session not found")
-        
+
         if session_data["status"] != "completed":
             raise HTTPException(status_code=400, detail="Scan session not completed")
-        
+
         # Generate report based on format
         if report_format.lower() == "json":
             report = await _generate_json_report(session_data, include_executive_summary)
@@ -375,16 +375,16 @@ async def generate_scan_report(
             raise HTTPException(status_code=501, detail="PDF format not yet implemented")
         else:
             raise HTTPException(status_code=400, detail="Invalid report format")
-        
+
         add_trace_context(
             operation="ptaas_report_generated",
             session_id=session_id,
             report_format=report_format,
             user_id=str(current_user.user_id)
         )
-        
+
         return report
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -409,10 +409,10 @@ async def list_scan_sessions(
         for session_id, session in ptaas.active_sessions.items():
             if session.tenant_id != current_user.tenant_id:
                 continue
-                
+
             if status_filter and session.status != status_filter:
                 continue
-                
+
             session_info = {
                 "session_id": session_id,
                 "status": session.status,
@@ -422,16 +422,16 @@ async def list_scan_sessions(
                 "started_at": session.started_at.isoformat() if session.started_at else None,
                 "completed_at": session.completed_at.isoformat() if session.completed_at else None
             }
-            
+
             if session.results:
                 session_info["summary"] = session.results.get("summary", {})
-            
+
             sessions.append(session_info)
-        
+
         # Apply pagination
         total_sessions = len(sessions)
         sessions = sessions[offset:offset + limit]
-        
+
         return {
             "success": True,
             "sessions": sessions,
@@ -446,7 +446,7 @@ async def list_scan_sessions(
             },
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to list scan sessions: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to list scan sessions: {str(e)}")
@@ -461,7 +461,7 @@ async def get_ptaas_health(
     """Get PTaaS service health"""
     try:
         health = await ptaas.health_check()
-        
+
         return {
             "success": True,
             "status": health.status.value if hasattr(health.status, 'value') else str(health.status),
@@ -469,7 +469,7 @@ async def get_ptaas_health(
             "checks": health.checks,
             "timestamp": health.timestamp.isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"PTaaS health check failed: {e}")
         return {
@@ -485,7 +485,7 @@ async def _generate_json_report(session_data: Dict[str, Any], include_executive_
     """Generate JSON format report"""
     results = session_data.get("results", {})
     summary = results.get("summary", {})
-    
+
     report = {
         "report_type": "ptaas_scan_report",
         "format": "json",
@@ -500,10 +500,10 @@ async def _generate_json_report(session_data: Dict[str, Any], include_executive_
         "scan_summary": summary,
         "detailed_results": results.get("scan_results", [])
     }
-    
+
     if include_executive_summary:
         report["executive_summary"] = _generate_executive_summary(summary)
-    
+
     return report
 
 async def _generate_html_report(session_data: Dict[str, Any], include_executive_summary: bool) -> Dict[str, Any]:
@@ -524,7 +524,7 @@ def _generate_executive_summary(summary: Dict[str, Any]) -> Dict[str, Any]:
     critical_vulns = summary.get("critical_vulnerabilities", 0)
     high_vulns = summary.get("high_vulnerabilities", 0)
     risk_level = summary.get("risk_level", "unknown")
-    
+
     # Generate risk assessment
     if critical_vulns > 0:
         risk_assessment = "CRITICAL - Immediate action required"
@@ -538,7 +538,7 @@ def _generate_executive_summary(summary: Dict[str, Any]) -> Dict[str, Any]:
     else:
         risk_assessment = "LOW - Continue monitoring"
         priority = "LOW"
-    
+
     # Generate recommendations
     recommendations = []
     if critical_vulns > 0:
@@ -549,7 +549,7 @@ def _generate_executive_summary(summary: Dict[str, Any]) -> Dict[str, Any]:
     if total_vulns > 5:
         recommendations.append("Implement regular vulnerability scanning")
     recommendations.append("Review and update security policies")
-    
+
     return {
         "risk_level": risk_level,
         "risk_assessment": risk_assessment,

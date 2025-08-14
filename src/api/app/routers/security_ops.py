@@ -94,30 +94,30 @@ class Threat(BaseModel):
     severity: ThreatSeverity
     status: ThreatStatus
     category: ThreatCategory
-    
+
     # Detection details
     detected_at: datetime
     source_system: str
     detection_rule: Optional[str] = None
-    
+
     # Affected assets
     affected_hosts: List[str] = Field(default_factory=list)
     affected_users: List[str] = Field(default_factory=list)
     affected_networks: List[str] = Field(default_factory=list)
-    
+
     # Threat intelligence
     indicators: List[ThreatIndicator] = Field(default_factory=list)
     tactics: List[str] = Field(default_factory=list)  # MITRE ATT&CK tactics
     techniques: List[str] = Field(default_factory=list)  # MITRE ATT&CK techniques
-    
+
     # Investigation
     assigned_analyst: Optional[str] = None
     investigation_notes: List[Dict[str, Any]] = Field(default_factory=list)
-    
+
     # Response
     response_actions: List[str] = Field(default_factory=list)
     containment_status: Optional[str] = None
-    
+
     # Metadata
     created_by: str = "system"
     updated_at: datetime
@@ -216,19 +216,19 @@ async def list_threats(
     limit: int = Query(100, ge=1, le=1000, description="Maximum results"),
 ) -> Dict[str, Any]:
     """List security threats with filtering"""
-    
+
     if Permission.SECURITY_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: security:read")
-    
+
     cutoff_time = datetime.utcnow() - timedelta(hours=hours_back)
-    
+
     # Filter threats
     filtered_threats = []
     for threat in threats_store.values():
         # Time filter
         if threat.detected_at < cutoff_time:
             continue
-            
+
         # Apply other filters
         if severity and threat.severity != severity:
             continue
@@ -238,19 +238,19 @@ async def list_threats(
             continue
         if assigned_analyst and threat.assigned_analyst != assigned_analyst:
             continue
-            
+
         filtered_threats.append(threat)
-    
+
     # Sort by severity and detection time
     filtered_threats.sort(key=lambda t: (
         _severity_value(t.severity),
         t.detected_at
     ), reverse=True)
-    
+
     # Apply limit
     if len(filtered_threats) > limit:
         filtered_threats = filtered_threats[:limit]
-    
+
     return {
         "threats": filtered_threats,
         "total": len(filtered_threats),
@@ -265,10 +265,10 @@ async def create_threat(
     context: SecurityContext = Depends(require_security_ops)
 ) -> Threat:
     """Create a new security threat"""
-    
+
     threat_id = str(uuid.uuid4())
     current_time = datetime.utcnow()
-    
+
     threat = Threat(
         id=threat_id,
         name=request.name,
@@ -286,7 +286,7 @@ async def create_threat(
         updated_at=current_time,
         tags=request.tags
     )
-    
+
     # Add initial investigation note
     threat.investigation_notes.append({
         "timestamp": current_time.isoformat(),
@@ -294,9 +294,9 @@ async def create_threat(
         "note": f"Threat created from {request.source_system}",
         "type": "system"
     })
-    
+
     threats_store[threat_id] = threat
-    
+
     # Auto-assign high severity threats
     if request.severity in [ThreatSeverity.HIGH, ThreatSeverity.CRITICAL]:
         threat.assigned_analyst = context.user_id
@@ -306,7 +306,7 @@ async def create_threat(
             "note": f"Auto-assigned to {context.user_id} due to {request.severity.value} severity",
             "type": "assignment"
         })
-    
+
     return threat
 
 
@@ -316,14 +316,14 @@ async def get_threat(
     context: SecurityContext = Depends(get_security_context)
 ) -> Threat:
     """Get detailed threat information"""
-    
+
     if Permission.SECURITY_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: security:read")
-    
+
     threat = threats_store.get(threat_id)
     if not threat:
         raise HTTPException(status_code=404, detail="Threat not found")
-    
+
     return threat
 
 
@@ -335,27 +335,27 @@ async def update_threat_status(
     context: SecurityContext = Depends(require_security_ops)
 ) -> Threat:
     """Update threat status"""
-    
+
     threat = threats_store.get(threat_id)
     if not threat:
         raise HTTPException(status_code=404, detail="Threat not found")
-    
+
     old_status = threat.status
     threat.status = status
     threat.updated_at = datetime.utcnow()
-    
+
     # Add investigation note
     note_text = f"Status changed from {old_status.value} to {status.value}"
     if notes:
         note_text += f"\nNotes: {notes}"
-    
+
     threat.investigation_notes.append({
         "timestamp": datetime.utcnow().isoformat(),
         "author": context.user_id,
         "note": note_text,
         "type": "status_update"
     })
-    
+
     return threat
 
 
@@ -367,14 +367,14 @@ async def respond_to_threat(
     context: SecurityContext = Depends(require_security_ops)
 ) -> ThreatResponseResult:
     """Execute automated threat response"""
-    
+
     threat = threats_store.get(threat_id)
     if not threat:
         raise HTTPException(status_code=404, detail="Threat not found")
-    
+
     response_id = str(uuid.uuid4())
     current_time = datetime.utcnow()
-    
+
     # Create response result
     response_result = ThreatResponseResult(
         response_id=response_id,
@@ -383,14 +383,14 @@ async def respond_to_threat(
         status="initiated",
         initiated_at=current_time
     )
-    
+
     # Store response
     response_actions_store[response_id] = response_result
-    
+
     # Add to threat's response actions
     for action in request.actions:
         threat.response_actions.append(action.value)
-    
+
     # Add investigation note
     threat.investigation_notes.append({
         "timestamp": current_time.isoformat(),
@@ -398,12 +398,12 @@ async def respond_to_threat(
         "note": f"Response initiated: {', '.join([a.value for a in request.actions])}",
         "type": "response"
     })
-    
+
     threat.updated_at = current_time
-    
+
     # Execute response actions
     background_tasks.add_task(_execute_threat_response, response_id, request)
-    
+
     return response_result
 
 
@@ -413,17 +413,17 @@ async def get_threat_timeline(
     context: SecurityContext = Depends(get_security_context)
 ) -> Dict[str, Any]:
     """Get threat investigation timeline"""
-    
+
     if Permission.SECURITY_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: security:read")
-    
+
     threat = threats_store.get(threat_id)
     if not threat:
         raise HTTPException(status_code=404, detail="Threat not found")
-    
+
     # Build timeline from investigation notes and related events
     timeline_events = []
-    
+
     # Add threat creation
     timeline_events.append({
         "timestamp": threat.detected_at.isoformat(),
@@ -432,7 +432,7 @@ async def get_threat_timeline(
         "severity": threat.severity.value,
         "source": "detection_system"
     })
-    
+
     # Add investigation notes
     for note in threat.investigation_notes:
         timeline_events.append({
@@ -442,10 +442,10 @@ async def get_threat_timeline(
             "author": note.get("author", "system"),
             "note_type": note.get("type", "general")
         })
-    
+
     # Sort by timestamp
     timeline_events.sort(key=lambda x: x["timestamp"])
-    
+
     return {
         "threat_id": threat_id,
         "timeline": timeline_events,
@@ -464,34 +464,34 @@ async def list_security_events(
     limit: int = Query(1000, ge=1, le=10000, description="Maximum results"),
 ) -> Dict[str, Any]:
     """List security events"""
-    
+
     if Permission.SECURITY_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: security:read")
-    
+
     cutoff_time = datetime.utcnow() - timedelta(hours=hours_back)
-    
+
     # Filter events
     filtered_events = []
     for event in security_events_store.values():
         if event.timestamp < cutoff_time:
             continue
-            
+
         if event_type and event.event_type != event_type:
             continue
         if severity and event.severity != severity:
             continue
         if source and event.source != source:
             continue
-            
+
         filtered_events.append(event)
-    
+
     # Sort by timestamp (newest first)
     filtered_events.sort(key=lambda e: e.timestamp, reverse=True)
-    
+
     # Apply limit
     if len(filtered_events) > limit:
         filtered_events = filtered_events[:limit]
-    
+
     return {
         "events": filtered_events,
         "total": len(filtered_events),
@@ -506,10 +506,10 @@ async def get_compliance_status(
     status: Optional[str] = Query(None, description="Filter by compliance status"),
 ) -> Dict[str, Any]:
     """Get compliance status and checks"""
-    
+
     if Permission.SECURITY_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: security:read")
-    
+
     # Filter compliance checks
     filtered_checks = []
     for check in compliance_checks_store.values():
@@ -517,9 +517,9 @@ async def get_compliance_status(
             continue
         if status and check.status != status:
             continue
-            
+
         filtered_checks.append(check)
-    
+
     # Calculate overall compliance scores by standard
     compliance_scores = {}
     for std in ComplianceStandard:
@@ -530,7 +530,7 @@ async def get_compliance_status(
                 compliance_scores[std.value] = sum(scores) / len(scores)
             else:
                 compliance_scores[std.value] = 0.0
-    
+
     return {
         "compliance_checks": filtered_checks,
         "compliance_scores": compliance_scores,
@@ -544,35 +544,35 @@ async def get_security_metrics(
     context: SecurityContext = Depends(get_security_context)
 ) -> SecurityMetrics:
     """Get security operation metrics"""
-    
+
     if Permission.SECURITY_READ not in context.permissions:
         raise HTTPException(status_code=403, detail="Permission required: security:read")
-    
+
     current_time = datetime.utcnow()
     today_start = current_time.replace(hour=0, minute=0, second=0, microsecond=0)
-    
+
     # Calculate metrics
     threats_today = [
-        t for t in threats_store.values() 
+        t for t in threats_store.values()
         if t.detected_at >= today_start
     ]
-    
+
     resolved_today = [
-        t for t in threats_today 
+        t for t in threats_today
         if t.status == ThreatStatus.RESOLVED
     ]
-    
+
     active_investigations = [
-        t for t in threats_store.values() 
+        t for t in threats_store.values()
         if t.status in [ThreatStatus.INVESTIGATING, ThreatStatus.CONTAINED]
     ]
-    
+
     # Calculate average response time
     completed_responses = [
         r for r in response_actions_store.values()
         if r.completed_at is not None
     ]
-    
+
     if completed_responses:
         total_response_time = sum(
             (r.completed_at - r.initiated_at).total_seconds() / 60
@@ -581,13 +581,13 @@ async def get_security_metrics(
         avg_response_time = total_response_time / len(completed_responses)
     else:
         avg_response_time = 0.0
-    
+
     # Simulate other metrics
     compliance_score = 85.5  # This would come from compliance checks
     blocked_attacks = len([t for t in threats_today if t.status == ThreatStatus.CONTAINED])
     false_positive_rate = 0.05  # 5%
     system_health_score = 92.3
-    
+
     return SecurityMetrics(
         threats_detected_today=len(threats_today),
         threats_resolved_today=len(resolved_today),
@@ -607,12 +607,12 @@ async def create_security_alert(
     context: SecurityContext = Depends(require_security_ops)
 ) -> Dict[str, str]:
     """Create a security alert and potential threat"""
-    
+
     alert_id = str(uuid.uuid4())
-    
+
     # Process alert and potentially create threat
     background_tasks.add_task(_process_security_alert, alert_id, alert_data, context.user_id)
-    
+
     return {
         "alert_id": alert_id,
         "status": "processing",
@@ -637,22 +637,22 @@ async def _execute_threat_response(response_id: str, request: ThreatResponseRequ
     response = response_actions_store.get(response_id)
     if not response:
         return
-    
+
     try:
         response.status = "executing"
-        
+
         # Execute each action
         for action in request.actions:
             action_result = await _execute_response_action(action, request.parameters)
             response.actions_taken.append(action_result)
-            
+
             # Add delay between actions
             await asyncio.sleep(1)
-        
+
         response.status = "completed"
         response.completed_at = datetime.utcnow()
         response.effectiveness_score = 0.85  # Simulate effectiveness calculation
-        
+
     except Exception as e:
         response.status = "failed"
         response.actions_taken.append({
@@ -665,10 +665,10 @@ async def _execute_threat_response(response_id: str, request: ThreatResponseRequ
 async def _execute_response_action(action: ResponseAction, parameters: Dict[str, Any]) -> Dict[str, Any]:
     """Execute a single response action"""
     current_time = datetime.utcnow()
-    
+
     # Simulate action execution
     await asyncio.sleep(2)
-    
+
     action_results = {
         ResponseAction.BLOCK_IP: {
             "action": "block_ip",
@@ -697,13 +697,13 @@ async def _execute_response_action(action: ResponseAction, parameters: Dict[str,
             "artifacts": ["memory_dump.raw", "network_traffic.pcap", "system_logs.zip"]
         }
     }
-    
+
     result = action_results.get(action, {
         "action": action.value,
         "result": f"Executed {action.value}",
         "success": True
     })
-    
+
     result["timestamp"] = current_time.isoformat()
     return result
 
@@ -714,12 +714,12 @@ async def _process_security_alert(alert_id: str, alert_data: Dict[str, Any], use
         # Analyze alert data and determine if threat creation is needed
         severity = alert_data.get("severity", "medium")
         confidence = alert_data.get("confidence", 0.7)
-        
+
         # Create threat if confidence is high enough
         if confidence > 0.6:
             threat_id = str(uuid.uuid4())
             current_time = datetime.utcnow()
-            
+
             # Map alert severity to threat severity
             severity_mapping = {
                 "low": ThreatSeverity.LOW,
@@ -727,7 +727,7 @@ async def _process_security_alert(alert_id: str, alert_data: Dict[str, Any], use
                 "high": ThreatSeverity.HIGH,
                 "critical": ThreatSeverity.CRITICAL
             }
-            
+
             threat = Threat(
                 id=threat_id,
                 name=alert_data.get("name", f"Alert {alert_id}"),
@@ -741,7 +741,7 @@ async def _process_security_alert(alert_id: str, alert_data: Dict[str, Any], use
                 updated_at=current_time,
                 tags={"alert_id": alert_id, "auto_generated": "true"}
             )
-            
+
             # Add initial investigation note
             threat.investigation_notes.append({
                 "timestamp": current_time.isoformat(),
@@ -749,9 +749,9 @@ async def _process_security_alert(alert_id: str, alert_data: Dict[str, Any], use
                 "note": f"Threat auto-created from alert {alert_id} with {confidence:.2f} confidence",
                 "type": "system"
             })
-            
+
             threats_store[threat_id] = threat
-            
+
     except Exception as e:
         # Log error but don't fail
         pass
@@ -762,7 +762,7 @@ async def _initialize_sample_security_data():
     """Initialize sample security data for testing"""
     if not threats_store:  # Only create if empty
         current_time = datetime.utcnow()
-        
+
         # Sample threats
         sample_threats = [
             {
@@ -804,10 +804,10 @@ async def _initialize_sample_security_data():
                 ]
             }
         ]
-        
+
         for i, threat_data in enumerate(sample_threats):
             threat_id = str(uuid.uuid4())
-            
+
             threat = Threat(
                 id=threat_id,
                 name=threat_data["name"],
@@ -831,7 +831,7 @@ async def _initialize_sample_security_data():
                     }
                 ]
             )
-            
+
             if i == 0:  # Assign first threat to analyst
                 threat.assigned_analyst = "analyst_001"
                 threat.investigation_notes.append({
@@ -840,7 +840,7 @@ async def _initialize_sample_security_data():
                     "note": "Beginning investigation of network anomaly",
                     "type": "investigation"
                 })
-            
+
             threats_store[threat_id] = threat
 
 

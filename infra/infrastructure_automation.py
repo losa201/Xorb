@@ -128,24 +128,24 @@ class InfrastructureComponent:
 
 class XORBInfrastructureAutomation:
     """Main infrastructure automation system"""
-    
+
     def __init__(self, namespace: str = "xorb-infra", platform: str = "kubernetes"):
         self.namespace = namespace
         self.platform = platform
         self.components: Dict[str, InfrastructureComponent] = {}
         self.deployment_id = f"infra_{int(time.time())}"
-        
+
         # Initialize configurations
         self._initialize_infrastructure_configs()
-        
+
         logger.info(f"🏗️  Infrastructure automation initialized")
         logger.info(f"📋 Namespace: {self.namespace}")
         logger.info(f"🎯 Platform: {self.platform}")
         logger.info(f"🆔 Deployment ID: {self.deployment_id}")
-    
+
     def _initialize_infrastructure_configs(self):
         """Initialize infrastructure component configurations"""
-        
+
         # PostgreSQL Primary
         postgres_config = PostgreSQLConfig()
         self.components["postgresql-primary"] = InfrastructureComponent(
@@ -154,7 +154,7 @@ class XORBInfrastructureAutomation:
             status=InfrastructureStatus.PENDING,
             config=postgres_config
         )
-        
+
         # PostgreSQL Replica
         postgres_replica_config = PostgreSQLConfig()
         postgres_replica_config.port = 5433
@@ -164,7 +164,7 @@ class XORBInfrastructureAutomation:
             status=InfrastructureStatus.PENDING,
             config=postgres_replica_config
         )
-        
+
         # Redis Cluster
         redis_config = RedisConfig()
         redis_config.enable_cluster = True
@@ -174,7 +174,7 @@ class XORBInfrastructureAutomation:
             status=InfrastructureStatus.PENDING,
             config=redis_config
         )
-        
+
         # Neo4j Cluster
         neo4j_config = Neo4jConfig()
         self.components["neo4j-cluster"] = InfrastructureComponent(
@@ -183,7 +183,7 @@ class XORBInfrastructureAutomation:
             status=InfrastructureStatus.PENDING,
             config=neo4j_config
         )
-        
+
         # Elasticsearch Cluster
         elasticsearch_config = ElasticsearchConfig()
         self.components["elasticsearch-cluster"] = InfrastructureComponent(
@@ -192,33 +192,33 @@ class XORBInfrastructureAutomation:
             status=InfrastructureStatus.PENDING,
             config=elasticsearch_config
         )
-        
+
         logger.info(f"🔧 Initialized {len(self.components)} infrastructure components")
-    
+
     async def provision_infrastructure(self) -> bool:
         """Provision all infrastructure components"""
         try:
             logger.info("🚀 Starting infrastructure provisioning")
-            
+
             # Create namespace
             if self.platform == "kubernetes":
                 await self._create_kubernetes_namespace()
-            
+
             # Provision components in dependency order
             provisioning_order = [
                 "postgresql-primary",
-                "postgresql-replica", 
+                "postgresql-replica",
                 "redis-cluster",
                 "neo4j-cluster",
                 "elasticsearch-cluster"
             ]
-            
+
             for component_name in provisioning_order:
                 component = self.components[component_name]
                 logger.info(f"🔧 Provisioning {component_name}")
-                
+
                 success = await self._provision_component(component)
-                
+
                 if success:
                     logger.info(f"✅ {component_name} provisioned successfully")
                     # Wait for health check
@@ -226,18 +226,18 @@ class XORBInfrastructureAutomation:
                 else:
                     logger.error(f"❌ Failed to provision {component_name}")
                     return False
-            
+
             # Setup monitoring and backups
             await self._setup_infrastructure_monitoring()
             await self._setup_automated_backups()
-            
+
             logger.info("🎉 Infrastructure provisioning completed successfully!")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Infrastructure provisioning failed: {e}")
             return False
-    
+
     async def _create_kubernetes_namespace(self) -> bool:
         """Create Kubernetes namespace for infrastructure"""
         try:
@@ -280,19 +280,19 @@ spec:
       memory: "512Mi"
     type: Container
 """
-            
+
             return await self._kubectl_apply(namespace_yaml)
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to create namespace: {e}")
             return False
-    
+
     async def _provision_component(self, component: InfrastructureComponent) -> bool:
         """Provision individual infrastructure component"""
         try:
             component.status = InfrastructureStatus.PROVISIONING
             component.start_time = datetime.now()
-            
+
             if component.type == DatabaseType.POSTGRESQL:
                 success = await self._provision_postgresql(component)
             elif component.type == DatabaseType.REDIS:
@@ -304,39 +304,39 @@ spec:
             else:
                 logger.warning(f"⚠️  Unknown component type: {component.type}")
                 success = False
-            
+
             component.end_time = datetime.now()
-            
+
             if success:
                 component.status = InfrastructureStatus.RUNNING
             else:
                 component.status = InfrastructureStatus.FAILED
-            
+
             return success
-            
+
         except Exception as e:
             component.status = InfrastructureStatus.FAILED
             component.error_message = str(e)
             component.end_time = datetime.now()
             logger.error(f"❌ Component provisioning failed: {e}")
             return False
-    
+
     async def _provision_postgresql(self, component: InfrastructureComponent) -> bool:
         """Provision PostgreSQL with high availability"""
         try:
             config = component.config
             is_replica = "replica" in component.name
-            
+
             if self.platform == "kubernetes":
                 return await self._provision_postgresql_kubernetes(component, config, is_replica)
             else:
                 return await self._provision_postgresql_docker(component, config, is_replica)
-                
+
         except Exception as e:
             logger.error(f"❌ PostgreSQL provisioning failed: {e}")
             return False
-    
-    async def _provision_postgresql_kubernetes(self, component: InfrastructureComponent, 
+
+    async def _provision_postgresql_kubernetes(self, component: InfrastructureComponent,
                                             config: PostgreSQLConfig, is_replica: bool) -> bool:
         """Provision PostgreSQL on Kubernetes"""
         try:
@@ -353,9 +353,9 @@ data:
   password: {self._base64_encode(config.password)}
   database: {self._base64_encode(config.database)}
 """
-            
+
             await self._kubectl_apply(secret_yaml)
-            
+
             # Create ConfigMap for PostgreSQL configuration
             postgres_conf = f"""
 # PostgreSQL configuration optimized for XORB
@@ -387,7 +387,7 @@ log_temp_files = 0
 {"max_wal_senders = 3" if not is_replica else ""}
 {"wal_keep_size = 1GB" if not is_replica else ""}
 """
-            
+
             configmap_yaml = f"""
 apiVersion: v1
 kind: ConfigMap
@@ -405,9 +405,9 @@ data:
     host replication all 0.0.0.0/0 md5
     host all all 0.0.0.0/0 md5
 """
-            
+
             await self._kubectl_apply(configmap_yaml)
-            
+
             # Create StatefulSet
             statefulset_yaml = f"""
 apiVersion: apps/v1
@@ -576,23 +576,23 @@ spec:
     protocol: TCP
   type: ClusterIP
 """
-            
+
             success = await self._kubectl_apply(statefulset_yaml)
-            
+
             if success:
                 # Set endpoints
                 component.endpoints = {
                     "primary": f"{component.name}.{self.namespace}.svc.cluster.local:5432",
                     "metrics": f"{component.name}.{self.namespace}.svc.cluster.local:9187"
                 }
-            
+
             return success
-            
+
         except Exception as e:
             logger.error(f"❌ PostgreSQL Kubernetes provisioning failed: {e}")
             return False
-    
-    async def _provision_postgresql_docker(self, component: InfrastructureComponent, 
+
+    async def _provision_postgresql_docker(self, component: InfrastructureComponent,
                                          config: PostgreSQLConfig, is_replica: bool) -> bool:
         """Provision PostgreSQL using Docker Compose"""
         try:
@@ -622,34 +622,34 @@ spec:
     retries: 3
     start_period: 60s
 """
-            
+
             # In a real implementation, this would update the docker-compose.yml file
             # For now, we'll simulate success
             component.endpoints = {
                 "primary": f"localhost:{config.port}",
                 "connection_string": f"postgresql://{config.username}:{config.password}@localhost:{config.port}/{config.database}"
             }
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ PostgreSQL Docker provisioning failed: {e}")
             return False
-    
+
     async def _provision_redis(self, component: InfrastructureComponent) -> bool:
         """Provision Redis cluster"""
         try:
             config = component.config
-            
+
             if self.platform == "kubernetes":
                 return await self._provision_redis_kubernetes(component, config)
             else:
                 return await self._provision_redis_docker(component, config)
-                
+
         except Exception as e:
             logger.error(f"❌ Redis provisioning failed: {e}")
             return False
-    
+
     async def _provision_redis_kubernetes(self, component: InfrastructureComponent, config: RedisConfig) -> bool:
         """Provision Redis on Kubernetes"""
         try:
@@ -691,7 +691,7 @@ requirepass redis_secure_password_123!
 bind 0.0.0.0
 protected-mode yes
 """
-            
+
             configmap_yaml = f"""
 apiVersion: v1
 kind: ConfigMap
@@ -702,9 +702,9 @@ data:
   redis.conf: |
 {redis_conf}
 """
-            
+
             await self._kubectl_apply(configmap_yaml)
-            
+
             # Redis StatefulSet
             statefulset_yaml = f"""
 apiVersion: apps/v1
@@ -827,21 +827,21 @@ spec:
     protocol: TCP
   type: ClusterIP
 """
-            
+
             success = await self._kubectl_apply(statefulset_yaml)
-            
+
             if success:
                 component.endpoints = {
                     "primary": f"{component.name}.{self.namespace}.svc.cluster.local:6379",
                     "metrics": f"{component.name}.{self.namespace}.svc.cluster.local:9121"
                 }
-            
+
             return success
-            
+
         except Exception as e:
             logger.error(f"❌ Redis Kubernetes provisioning failed: {e}")
             return False
-    
+
     async def _provision_redis_docker(self, component: InfrastructureComponent, config: RedisConfig) -> bool:
         """Provision Redis using Docker"""
         try:
@@ -850,25 +850,25 @@ spec:
                 "connection_string": f"redis://localhost:{config.port}"
             }
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Redis Docker provisioning failed: {e}")
             return False
-    
+
     async def _provision_neo4j(self, component: InfrastructureComponent) -> bool:
         """Provision Neo4j graph database"""
         try:
             config = component.config
-            
+
             if self.platform == "kubernetes":
                 return await self._provision_neo4j_kubernetes(component, config)
             else:
                 return await self._provision_neo4j_docker(component, config)
-                
+
         except Exception as e:
             logger.error(f"❌ Neo4j provisioning failed: {e}")
             return False
-    
+
     async def _provision_neo4j_kubernetes(self, component: InfrastructureComponent, config: Neo4jConfig) -> bool:
         """Provision Neo4j on Kubernetes"""
         try:
@@ -987,21 +987,21 @@ spec:
     protocol: TCP
   type: ClusterIP
 """
-            
+
             success = await self._kubectl_apply(statefulset_yaml)
-            
+
             if success:
                 component.endpoints = {
                     "http": f"{component.name}.{self.namespace}.svc.cluster.local:7474",
                     "bolt": f"{component.name}.{self.namespace}.svc.cluster.local:7687"
                 }
-            
+
             return success
-            
+
         except Exception as e:
             logger.error(f"❌ Neo4j Kubernetes provisioning failed: {e}")
             return False
-    
+
     async def _provision_neo4j_docker(self, component: InfrastructureComponent, config: Neo4jConfig) -> bool:
         """Provision Neo4j using Docker"""
         try:
@@ -1010,26 +1010,26 @@ spec:
                 "bolt": f"localhost:{config.port}"
             }
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Neo4j Docker provisioning failed: {e}")
             return False
-    
+
     async def _provision_elasticsearch(self, component: InfrastructureComponent) -> bool:
         """Provision Elasticsearch cluster"""
         try:
             config = component.config
-            
+
             if self.platform == "kubernetes":
                 return await self._provision_elasticsearch_kubernetes(component, config)
             else:
                 return await self._provision_elasticsearch_docker(component, config)
-                
+
         except Exception as e:
             logger.error(f"❌ Elasticsearch provisioning failed: {e}")
             return False
-    
-    async def _provision_elasticsearch_kubernetes(self, component: InfrastructureComponent, 
+
+    async def _provision_elasticsearch_kubernetes(self, component: InfrastructureComponent,
                                                config: ElasticsearchConfig) -> bool:
         """Provision Elasticsearch on Kubernetes"""
         try:
@@ -1151,22 +1151,22 @@ spec:
     protocol: TCP
   type: ClusterIP
 """
-            
+
             success = await self._kubectl_apply(statefulset_yaml)
-            
+
             if success:
                 component.endpoints = {
                     "http": f"{component.name}.{self.namespace}.svc.cluster.local:9200",
                     "transport": f"{component.name}.{self.namespace}.svc.cluster.local:9300"
                 }
-            
+
             return success
-            
+
         except Exception as e:
             logger.error(f"❌ Elasticsearch Kubernetes provisioning failed: {e}")
             return False
-    
-    async def _provision_elasticsearch_docker(self, component: InfrastructureComponent, 
+
+    async def _provision_elasticsearch_docker(self, component: InfrastructureComponent,
                                             config: ElasticsearchConfig) -> bool:
         """Provision Elasticsearch using Docker"""
         try:
@@ -1174,36 +1174,36 @@ spec:
                 "http": f"localhost:{config.port}"
             }
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Elasticsearch Docker provisioning failed: {e}")
             return False
-    
+
     async def _wait_for_component_health(self, component: InfrastructureComponent, timeout: int = 300) -> bool:
         """Wait for component to become healthy"""
         try:
             logger.info(f"⏳ Waiting for {component.name} to become healthy...")
-            
+
             start_time = time.time()
-            
+
             while time.time() - start_time < timeout:
                 health_status = await self._check_component_health(component)
-                
+
                 if health_status:
                     component.health_status = True
                     logger.info(f"✅ {component.name} is healthy")
                     return True
-                
+
                 logger.info(f"⏳ {component.name} not ready yet, waiting...")
                 await asyncio.sleep(10)
-            
+
             logger.error(f"❌ Timeout waiting for {component.name} to become healthy")
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Health check failed for {component.name}: {e}")
             return False
-    
+
     async def _check_component_health(self, component: InfrastructureComponent) -> bool:
         """Check component health status"""
         try:
@@ -1216,30 +1216,30 @@ spec:
                     "--field-selector=status.phase=Running",
                     "--no-headers"
                 ], capture_output=True, text=True, timeout=30)
-                
+
                 if result.returncode == 0 and result.stdout.strip():
                     # At least one pod is running
                     return True
-            
+
             # Add Docker health check logic here for Docker platform
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Component health check failed: {e}")
             return False
-    
+
     async def _setup_infrastructure_monitoring(self):
         """Setup monitoring for infrastructure components"""
         logger.info("📊 Setting up infrastructure monitoring")
-        
+
         # This would setup Prometheus monitoring for all infrastructure components
         # ServiceMonitor resources would be created for each component
-        
+
         for component_name, component in self.components.items():
             if component.status == InfrastructureStatus.RUNNING:
                 await self._setup_component_monitoring(component)
-    
+
     async def _setup_component_monitoring(self, component: InfrastructureComponent):
         """Setup monitoring for individual component"""
         try:
@@ -1263,34 +1263,34 @@ spec:
     interval: 30s
     path: /metrics
 """
-                
+
                 await self._kubectl_apply(service_monitor_yaml)
                 logger.info(f"📊 Monitoring setup completed for {component.name}")
-            
+
         except Exception as e:
             logger.error(f"❌ Monitoring setup failed for {component.name}: {e}")
-    
+
     async def _setup_automated_backups(self):
         """Setup automated backup jobs"""
         logger.info("💾 Setting up automated backups")
-        
+
         for component_name, component in self.components.items():
             if component.status == InfrastructureStatus.RUNNING:
                 await self._setup_component_backup(component)
-    
+
     async def _setup_component_backup(self, component: InfrastructureComponent):
         """Setup backup for individual component"""
         try:
             if self.platform == "kubernetes":
                 backup_schedule = "0 2 * * *"  # Default schedule
-                
+
                 if component.type == DatabaseType.POSTGRESQL:
                     backup_schedule = component.config.backup_schedule
                 elif component.type == DatabaseType.REDIS:
                     backup_schedule = component.config.backup_schedule
                 elif component.type == DatabaseType.NEO4J:
                     backup_schedule = component.config.backup_schedule
-                
+
                 # Create CronJob for backup
                 cronjob_yaml = f"""
 apiVersion: batch/v1
@@ -1325,13 +1325,13 @@ spec:
               claimName: backup-storage-pvc
           restartPolicy: OnFailure
 """
-                
+
                 await self._kubectl_apply(cronjob_yaml)
                 logger.info(f"💾 Backup setup completed for {component.name}")
-            
+
         except Exception as e:
             logger.error(f"❌ Backup setup failed for {component.name}: {e}")
-    
+
     def _get_backup_image(self, db_type: DatabaseType) -> str:
         """Get appropriate backup image for database type"""
         images = {
@@ -1341,7 +1341,7 @@ spec:
             DatabaseType.ELASTICSEARCH: "elasticsearch:8.9.0"
         }
         return images.get(db_type, "busybox:1.35")
-    
+
     def _get_backup_command(self, component: InfrastructureComponent) -> List[str]:
         """Get backup command for component"""
         if component.type == DatabaseType.POSTGRESQL:
@@ -1362,34 +1362,34 @@ spec:
             ]
         else:
             return ["echo", "Backup not implemented for this type"]
-    
+
     async def _kubectl_apply(self, yaml_content: str) -> bool:
         """Apply Kubernetes YAML configuration"""
         try:
             with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
                 f.write(yaml_content)
                 temp_file = f.name
-            
+
             cmd = ["kubectl", "apply", "-f", temp_file]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            
+
             os.unlink(temp_file)
-            
+
             if result.returncode == 0:
                 return True
             else:
                 logger.error(f"❌ kubectl apply failed: {result.stderr}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"❌ kubectl apply failed: {e}")
             return False
-    
+
     def _base64_encode(self, data: str) -> str:
         """Base64 encode string"""
         import base64
         return base64.b64encode(data.encode()).decode()
-    
+
     def get_infrastructure_status(self) -> Dict[str, Any]:
         """Get comprehensive infrastructure status"""
         status = {
@@ -1405,7 +1405,7 @@ spec:
                 "provisioning": 0
             }
         }
-        
+
         for name, component in self.components.items():
             status["components"][name] = {
                 "type": component.type.value,
@@ -1416,54 +1416,54 @@ spec:
                 "end_time": component.end_time.isoformat() if component.end_time else None,
                 "error_message": component.error_message
             }
-            
+
             if component.status == InfrastructureStatus.RUNNING:
                 status["summary"]["running"] += 1
             elif component.status == InfrastructureStatus.FAILED:
                 status["summary"]["failed"] += 1
             elif component.status == InfrastructureStatus.PROVISIONING:
                 status["summary"]["provisioning"] += 1
-        
+
         return status
-    
+
     async def scale_component(self, component_name: str, replicas: int) -> bool:
         """Scale infrastructure component"""
         try:
             if component_name not in self.components:
                 logger.error(f"❌ Component {component_name} not found")
                 return False
-            
+
             component = self.components[component_name]
-            
+
             if self.platform == "kubernetes":
                 result = subprocess.run([
                     "kubectl", "scale", "statefulset", component_name,
                     f"--replicas={replicas}",
                     f"--namespace={self.namespace}"
                 ], capture_output=True, text=True, timeout=60)
-                
+
                 if result.returncode == 0:
                     logger.info(f"✅ Scaled {component_name} to {replicas} replicas")
                     return True
                 else:
                     logger.error(f"❌ Failed to scale {component_name}: {result.stderr}")
                     return False
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Component scaling failed: {e}")
             return False
-    
+
     async def backup_component(self, component_name: str) -> bool:
         """Trigger manual backup for component"""
         try:
             if component_name not in self.components:
                 logger.error(f"❌ Component {component_name} not found")
                 return False
-            
+
             component = self.components[component_name]
-            
+
             if self.platform == "kubernetes":
                 # Create a one-time backup job
                 job_yaml = f"""
@@ -1493,18 +1493,18 @@ spec:
           claimName: backup-storage-pvc
       restartPolicy: Never
 """
-                
+
                 success = await self._kubectl_apply(job_yaml)
-                
+
                 if success:
                     logger.info(f"✅ Manual backup triggered for {component_name}")
                     return True
                 else:
                     logger.error(f"❌ Failed to trigger backup for {component_name}")
                     return False
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Component backup failed: {e}")
             return False
@@ -1516,26 +1516,26 @@ async def main():
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-    
+
     # Initialize infrastructure automation
     infra = XORBInfrastructureAutomation(
         namespace="xorb-infra",
         platform="kubernetes"
     )
-    
+
     # Provision infrastructure
     success = await infra.provision_infrastructure()
-    
+
     if success:
         print("🎉 Infrastructure provisioning completed successfully!")
-        
+
         # Get status
         status = infra.get_infrastructure_status()
         print(f"📊 Infrastructure Status:")
         print(f"  Total Components: {status['summary']['total']}")
         print(f"  Running: {status['summary']['running']}")
         print(f"  Failed: {status['summary']['failed']}")
-        
+
         # Print endpoints
         print(f"\n🔗 Service Endpoints:")
         for name, component in status['components'].items():
@@ -1545,7 +1545,7 @@ async def main():
                     print(f"    {endpoint_type}: {endpoint_url}")
     else:
         print("❌ Infrastructure provisioning failed!")
-    
+
     return success
 
 if __name__ == "__main__":

@@ -313,40 +313,40 @@ log_error() {
 # Check prerequisites
 check_prerequisites() {
     log_info "Checking prerequisites..."
-    
+
     # Check for Docker
     if ! command -v docker >/dev/null 2>&1; then
         log_error "Docker not found. Please install Docker first."
         exit 1
     fi
-    
+
     # Check for Docker Compose
     if ! command -v docker-compose >/dev/null 2>&1; then
         log_error "Docker Compose not found. Please install Docker Compose first."
         exit 1
     fi
-    
+
     # Check Docker daemon
     if ! docker info >/dev/null 2>&1; then
         log_error "Docker daemon not running. Please start Docker."
         exit 1
     fi
-    
+
     log_info "Prerequisites check passed"
 }
 
 # Load Docker images
 load_images() {
     log_info "Loading Docker images..."
-    
+
     local images_dir="${XORB_ROOT}/images"
     local manifest_file="${images_dir}/manifest.json"
-    
+
     if [[ ! -f "${manifest_file}" ]]; then
         log_error "Images manifest not found: ${manifest_file}"
         exit 1
     fi
-    
+
     # Read manifest and load images
     while IFS= read -r image_file; do
         local image_path="${images_dir}/${image_file}"
@@ -357,28 +357,28 @@ load_images() {
             log_warning "Image file not found: ${image_file}"
         fi
     done < <(jq -r '.images[].filename' "${manifest_file}")
-    
+
     log_info "Images loaded successfully"
 }
 
 # Install configuration
 install_config() {
     log_info "Installing configuration..."
-    
+
     # Copy configuration files to appropriate locations
     cp -r "${XORB_ROOT}/config/"* ./
-    
+
     # Make scripts executable
     find "${XORB_ROOT}/scripts" -name "*.sh" -exec chmod +x {} \\;
     find "${XORB_ROOT}/scripts" -name "*.py" -exec chmod +x {} \\;
-    
+
     log_info "Configuration installed"
 }
 
 # Install systemd services
 install_systemd() {
     log_info "Installing systemd services..."
-    
+
     if [[ -d "${XORB_ROOT}/systemd" ]]; then
         sudo cp "${XORB_ROOT}/systemd/"*.service /etc/systemd/system/
         sudo cp "${XORB_ROOT}/systemd/"*.target /etc/systemd/system/
@@ -392,7 +392,7 @@ install_systemd() {
 # Deploy XORB
 deploy_xorb() {
     log_info "Deploying XORB..."
-    
+
     # Use local docker-compose file
     if [[ -f "docker-compose.local.yml" ]]; then
         docker-compose -f docker-compose.local.yml up -d
@@ -400,7 +400,7 @@ deploy_xorb() {
         log_error "Docker Compose file not found"
         exit 1
     fi
-    
+
     log_info "XORB deployment started"
 }
 
@@ -409,13 +409,13 @@ main() {
     echo "XORB Offline Installer"
     echo "======================"
     echo
-    
+
     check_prerequisites
     load_images
     install_config
     install_systemd
     deploy_xorb
-    
+
     echo
     echo -e "${GREEN}🎉 XORB installation completed!${NC}"
     echo

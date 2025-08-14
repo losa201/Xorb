@@ -121,7 +121,7 @@ async def api_client():
     """FastAPI test client."""
     from fastapi.testclient import TestClient
     from src.api.app.main import app
-    
+
     with TestClient(app) as client:
         yield client
 
@@ -169,7 +169,7 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.security)
         elif "performance" in str(item.fspath):
             item.add_marker(pytest.mark.performance)
-        
+
         # Mark slow tests
         if hasattr(item, 'keywords') and ('sleep' in item.keywords or 'slow' in item.keywords):
             item.add_marker(pytest.mark.slow)

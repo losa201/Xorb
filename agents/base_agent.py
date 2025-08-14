@@ -8,21 +8,21 @@ class Agent(ABC):
         self.position = position
         self.resource_level = resource_level
         self.type = "base"
-        
+
     @abstractmethod
     def get_telemetry(self):
         """Return telemetry data for this agent."""
         pass
-        
+
     def move(self, new_position):
         """Update agent position with resource consumption."""
         distance = np.linalg.norm(np.array(self.position) - np.array(new_position))
         self.position = new_position
-        
+
         # Moving consumes resources
         move_cost = distance * 0.01
         self.resource_level = max(0, self.resource_level - move_cost)
-        
+
         return True
 
 class RedTeamAgent(Agent):

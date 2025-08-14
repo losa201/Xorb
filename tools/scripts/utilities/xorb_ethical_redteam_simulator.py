@@ -115,7 +115,7 @@ class SimulationResult:
 class XorbEthicalRedTeamSimulator:
     """
     Ethical red team simulator with comprehensive safeguards.
-    
+
     Features:
     - Sandboxed simulation environment
     - Built-in ethical and legal constraints

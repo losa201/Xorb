@@ -24,7 +24,7 @@ class SecurityAudit:
             'vulnerabilities': self._scan_vulnerabilities(target_url),
             'compliance': self._check_compliance(target_url)
         }
-        
+
         self.audit_results.append(results)
         return results
 
@@ -35,16 +35,16 @@ class SecurityAudit:
         try:
             response = requests.get(target_url, timeout=10)
             headers = dict(response.headers)
-            
-            missing_headers = [header for header in self.headers.required_headers 
+
+            missing_headers = [header for header in self.headers.required_headers
                                if header not in headers]
-            
+
             csp_issues = []
             if 'Content-Security-Policy' in headers:
                 csp = headers['Content-Security-Policy']
                 if "'unsafe-inline'" in csp or "'unsafe-eval'" in csp:
                     csp_issues.append("Unsafe directives in CSP")
-            
+
             return {
                 'present': list(headers.keys()),
                 'missing': missing_headers,
@@ -141,44 +141,44 @@ class SecurityAudit:
         """
         report = "# Security Audit Report\n\n"
         report += f"Generated: {datetime.utcnow().isoformat()}\n\n"
-        
+
         for result in self.audit_results:
             report += f"## Target: {result['target']}\n\n"
             report += f"Timestamp: {result['timestamp']}\n\n"
-            
+
             # Security Headers
             report += "### Security Headers\n\n"
             report += f"Present: {', '.join(result['security_headers']['present'])}\n\n"
             report += f"Missing: {', '.join(result['security_headers']['missing']) if result['security_headers']['missing'] else 'None'}\n\n"
-            
+
             # CSP Issues
             report += "### CSP Issues\n\n"
             if result['security_headers']['csp_issues']:
-            
+
                 report += "- " + "\n- ".join(result['security_headers']['csp_issues']) + "\n\n"
             else:
                 report += "No CSP issues found\n\n"
-            
+
             # TLS Security
             tls = result['tls_security']
             report += "### TLS Security\n\n"
             report += f"Valid: {tls['valid']}\n\n"
             report += f"Protocols: {', '.join(tls['protocols'])}\n\n"
             report += f"Cipher Suites: {', '.join(tls['cipher_suites'])}\n\n"
-            
+
             # Compliance
             compliance = result['compliance']
             report += "### Compliance\n\n"
             report += f"GDPR: {compliance['gdpr']}\n\n"
             report += f"PCI DSS: {compliance['pci_dss']}\n\n"
             report += f"NIST: {compliance['nist']}\n\n"
-            
+
             # Vulnerabilities
             if result['vulnerabilities']:
                 report += "### Vulnerabilities\n\n"
                 for vuln in result['vulnerabilities']:
                     report += f"- {vuln.get('description', 'Unknown vulnerability')}\n\n"
-            
+
         return report
 
     def save_report(self, file_path: str, output_format: str = 'json') -> None:

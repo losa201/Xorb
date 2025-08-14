@@ -41,67 +41,67 @@ check_root() {
 # Detect hardware configuration
 detect_hardware() {
     log "Detecting hardware configuration..."
-    
+
     local cpu_cores=$(nproc)
     local total_memory=$(free -g | awk '/^Mem:/{print $2}')
     local cpu_model=$(lscpu | grep "Model name" | cut -d: -f2 | xargs)
-    
+
     info "CPU: $cpu_model"
     info "Cores: $cpu_cores"
     info "Memory: ${total_memory}GB"
-    
+
     # Verify EPYC configuration
     if [[ $cpu_cores -ne 16 ]]; then
         warn "Expected 16 cores, found $cpu_cores"
     fi
-    
+
     if [[ $total_memory -lt 30 ]]; then
         warn "Expected ~32GB memory, found ${total_memory}GB"
     fi
-    
+
     # Check for GPU (should be none)
     if command -v nvidia-smi &> /dev/null; then
         warn "NVIDIA drivers detected - this is a CPU-only deployment"
     fi
-    
+
     log "Hardware detection completed"
 }
 
 # Optimize CPU settings
 optimize_cpu() {
     log "Optimizing CPU settings for AMD EPYC..."
-    
+
     # Set CPU governor to performance
     for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
         if [[ -w $cpu ]]; then
             echo "performance" > "$cpu"
         fi
     done
-    
+
     # Disable CPU frequency scaling
     if [[ -w /sys/devices/system/cpu/intel_pstate/no_turbo ]]; then
         echo 0 > /sys/devices/system/cpu/intel_pstate/no_turbo
     fi
-    
+
     # Enable NUMA balancing
     echo 1 > /proc/sys/kernel/numa_balancing
-    
+
     # Optimize scheduler
     echo 1 > /proc/sys/kernel/sched_migration_cost_ns
-    
+
     # Set CPU affinity optimization
     echo 2 > /proc/sys/kernel/sched_domain/cpu0/domain1/flags
-    
+
     log "CPU optimizations applied"
 }
 
 # Optimize memory settings
 optimize_memory() {
     log "Optimizing memory settings for 32GB RAM..."
-    
+
     # Disable swap for ML workloads
     swapoff -a
-    
+
     # Update sysctl settings
     cat >> /etc/sysctl.conf << EOF
 
@@ -116,54 +116,54 @@ vm.max_map_count=262144
 # Transparent Huge Pages
 vm.nr_hugepages=1024
 EOF
-    
+
     # Apply transparent huge pages
     echo madvise > /sys/kernel/mm/transparent_hugepage/enabled
     echo madvise > /sys/kernel/mm/transparent_hugepage/defrag
-    
+
     # Apply sysctl settings
     sysctl -p
-    
+
     log "Memory optimizations applied"
 }
 
 # Optimize I/O and storage
 optimize_io() {
     log "Optimizing I/O and storage settings..."
-    
+
     # Set I/O scheduler to deadline for SSDs
     for disk in /sys/block/sd*/queue/scheduler; do
         if [[ -w $disk ]]; then
             echo deadline > "$disk"
         fi
     done
-    
+
     for disk in /sys/block/nvme*/queue/scheduler; do
         if [[ -w $disk ]]; then
             echo none > "$disk"
         fi
     done
-    
+
     # Optimize read-ahead for ML workloads
     for disk in /sys/block/sd*/queue/read_ahead_kb; do
         if [[ -w $disk ]]; then
             echo 512 > "$disk"
         fi
     done
-    
+
     for disk in /sys/block/nvme*/queue/read_ahead_kb; do
         if [[ -w $disk ]]; then
             echo 512 > "$disk"
         fi
     done
-    
+
     log "I/O optimizations applied"
 }
 
 # Optimize network settings
 optimize_network() {
     log "Optimizing network settings..."
-    
+
     cat >> /etc/sysctl.conf << EOF
 
 # XORB Network Optimizations
@@ -179,16 +179,16 @@ net.ipv4.tcp_timestamps=1
 net.ipv4.tcp_sack=1
 net.core.netdev_max_backlog=5000
 EOF
-    
+
     sysctl -p
-    
+
     log "Network optimizations applied"
 }
 
 # Configure container runtime
 configure_docker() {
     log "Configuring Docker for EPYC optimization..."
-    
+
     # Create Docker daemon configuration
     mkdir -p /etc/docker
     cat > /etc/docker/daemon.json << EOF
@@ -223,17 +223,17 @@ configure_docker() {
     }
 }
 EOF
-    
+
     # Restart Docker service
     systemctl restart docker
-    
+
     log "Docker configuration updated"
 }
 
 # Create systemd service for optimizations
 create_optimization_service() {
     log "Creating optimization service..."
-    
+
     cat > /etc/systemd/system/xorb-epyc-optimization.service << EOF
 [Unit]
 Description=XORB EPYC System Optimizations
@@ -247,46 +247,46 @@ RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 EOF
-    
+
     systemctl daemon-reload
     systemctl enable xorb-epyc-optimization.service
-    
+
     log "Optimization service created and enabled"
 }
 
 # Apply runtime optimizations (called by systemd service)
 apply_runtime_optimizations() {
     log "Applying runtime optimizations..."
-    
+
     # Set CPU performance mode
     for cpu in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor; do
         if [[ -w $cpu ]]; then
             echo "performance" > "$cpu"
         fi
     done
-    
+
     # Configure IRQ affinity for better performance
     if command -v irqbalance &> /dev/null; then
         systemctl stop irqbalance
         systemctl disable irqbalance
     fi
-    
+
     # Set process priorities for XORB services
     if pgrep -f "xorb-ml-defense" > /dev/null; then
         renice -10 $(pgrep -f "xorb-ml-defense")
     fi
-    
+
     if pgrep -f "xorb-adversarial" > /dev/null; then
         renice -5 $(pgrep -f "xorb-adversarial")
     fi
-    
+
     log "Runtime optimizations applied"
 }
 
 # Create monitoring script
 create_monitoring() {
     log "Creating performance monitoring script..."
-    
+
     cat > "$PROJECT_ROOT/scripts/monitoring/epyc-monitor.sh" << 'EOF'
 #!/bin/bash
 
@@ -300,81 +300,81 @@ while true; do
     clear
     echo "XORB EPYC Performance Dashboard - $(date)"
     echo "=========================================="
-    
+
     # CPU Usage
     echo "CPU Usage:"
     top -bn1 | grep "Cpu(s)" | awk '{print "  Total: " $2 " user, " $4 " system, " $8 " idle"}'
-    
+
     # Memory Usage
     echo "Memory Usage:"
     free -h | grep "Mem:" | awk '{print "  Used: " $3 "/" $2 " (" int($3/$2*100) "%)"}'
-    
+
     # Top processes by CPU
     echo "Top CPU Consumers:"
     ps aux --sort=-%cpu | head -6 | tail -5 | awk '{printf "  %-15s %5s%% %s\n", $11, $3, $2}'
-    
+
     # Top processes by Memory
     echo "Top Memory Consumers:"
     ps aux --sort=-%mem | head -6 | tail -5 | awk '{printf "  %-15s %5s%% %s\n", $11, $4, $2}'
-    
+
     # Load Average
     echo "Load Average:"
     uptime | awk -F'load average:' '{print "  " $2}'
-    
+
     # Container Stats (if Docker is running)
     if command -v docker &> /dev/null && docker info &> /dev/null; then
         echo "Container Resources:"
         docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}" | head -6
     fi
-    
+
     sleep $INTERVAL
 done
 EOF
-    
+
     chmod +x "$PROJECT_ROOT/scripts/monitoring/epyc-monitor.sh"
-    
+
     log "Performance monitoring script created"
 }
 
 # Validate optimizations
 validate_optimizations() {
     log "Validating optimizations..."
-    
+
     local errors=0
-    
+
     # Check CPU governor
     local governor=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo "unknown")
     if [[ "$governor" != "performance" ]]; then
         warn "CPU governor is not set to performance: $governor"
         ((errors++))
     fi
-    
+
     # Check swap
     local swap_usage=$(free | grep Swap | awk '{print $3}')
     if [[ $swap_usage -gt 0 ]]; then
         warn "Swap is being used: ${swap_usage}KB"
         ((errors++))
     fi
-    
+
     # Check memory settings
     local swappiness=$(cat /proc/sys/vm/swappiness)
     if [[ $swappiness -ne 1 ]]; then
         warn "Swappiness not optimized: $swappiness"
         ((errors++))
     fi
-    
+
     # Check Docker status
     if ! systemctl is-active --quiet docker; then
         warn "Docker service is not running"
         ((errors++))
     fi
-    
+
     if [[ $errors -eq 0 ]]; then
         log "All optimizations validated successfully"
     else
         warn "Found $errors optimization issues"
     fi
-    
+
     return $errors
 }
 
@@ -386,16 +386,16 @@ print_summary() {
     echo "  - Cores: $(nproc)"
     echo "  - Governor: $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor 2>/dev/null || echo 'N/A')"
     echo "  - Frequency: $(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq 2>/dev/null || echo 'N/A') kHz"
-    
+
     echo "Memory Configuration:"
     echo "  - Total: $(free -h | grep Mem | awk '{print $2}')"
     echo "  - Available: $(free -h | grep Mem | awk '{print $7}')"
     echo "  - Swappiness: $(cat /proc/sys/vm/swappiness)"
-    
+
     echo "Performance Tuning:"
     echo "  - Transparent Huge Pages: $(cat /sys/kernel/mm/transparent_hugepage/enabled)"
     echo "  - NUMA Balancing: $(cat /proc/sys/kernel/numa_balancing)"
-    
+
     echo "Services:"
     echo "  - Docker: $(systemctl is-active docker)"
     echo "  - XORB Optimization: $(systemctl is-active xorb-epyc-optimization.service 2>/dev/null || echo 'not installed')"

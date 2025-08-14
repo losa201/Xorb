@@ -103,48 +103,48 @@ class AnomalyDetection:
 
 class XORBEnhancedMonitoring:
     """Enhanced monitoring system with Prometheus integration"""
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         self.config = config or {}
         self.monitoring_id = str(uuid.uuid4())
-        
+
         # Prometheus configuration
         self.prometheus_url = self.config.get('prometheus_url', 'http://localhost:9090')
         self.prometheus_gateway_url = self.config.get('prometheus_gateway_url', 'http://localhost:9091')
         self.metrics_push_interval = self.config.get('metrics_push_interval', 15)
-        
+
         # Grafana configuration
         self.grafana_url = self.config.get('grafana_url', 'http://localhost:3000')
         self.grafana_api_key = self.config.get('grafana_api_key', '')
-        
+
         # Metrics storage
         self.metrics: Dict[str, PrometheusMetric] = {}
         self.metric_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self.custom_metrics: Dict[str, deque] = defaultdict(lambda: deque(maxlen=100))
-        
+
         # SLA monitoring
         self.sla_targets: Dict[str, SLATarget] = {}
         self.sla_violations: List[Dict[str, Any]] = []
-        
+
         # Alerting
         self.active_alerts: Dict[str, Alert] = {}
         self.alert_history: deque = deque(maxlen=1000)
         self.alert_rules: List[Dict[str, Any]] = []
-        
+
         # Anomaly detection
         self.anomaly_detectors: Dict[str, Dict[str, Any]] = {}
         self.detected_anomalies: List[AnomalyDetection] = []
-        
+
         # Background task control
         self.monitoring_active = False
-        
+
         # Initialize components
         self._initialize_default_metrics()
         self._initialize_default_sla_targets()
         self._initialize_alert_rules()
-        
+
         logger.info(f"Enhanced Monitoring System initialized: {self.monitoring_id}")
-    
+
     def _initialize_default_metrics(self):
         """Initialize default XORB platform metrics"""
         default_metrics = {
@@ -164,7 +164,7 @@ class XORBEnhancedMonitoring:
                 metric_type=MetricType.GAUGE,
                 description='System disk usage percentage'
             ),
-            
+
             # Service metrics
             'xorb_service_requests_total': PrometheusMetric(
                 name='xorb_service_requests_total',
@@ -186,7 +186,7 @@ class XORBEnhancedMonitoring:
                 metric_type=MetricType.GAUGE,
                 description='Service availability percentage'
             ),
-            
+
             # Load balancer metrics
             'xorb_loadbalancer_requests_total': PrometheusMetric(
                 name='xorb_loadbalancer_requests_total',
@@ -198,7 +198,7 @@ class XORBEnhancedMonitoring:
                 metric_type=MetricType.GAUGE,
                 description='Load balancer response time in milliseconds'
             ),
-            
+
             # Circuit breaker metrics
             'xorb_circuit_breaker_state': PrometheusMetric(
                 name='xorb_circuit_breaker_state',
@@ -210,7 +210,7 @@ class XORBEnhancedMonitoring:
                 metric_type=MetricType.COUNTER,
                 description='Total circuit breaker failures'
             ),
-            
+
             # Replication metrics
             'xorb_replication_lag_ms': PrometheusMetric(
                 name='xorb_replication_lag_ms',
@@ -222,7 +222,7 @@ class XORBEnhancedMonitoring:
                 metric_type=MetricType.COUNTER,
                 description='Total successful replications'
             ),
-            
+
             # AI/ML metrics
             'xorb_agent_performance_score': PrometheusMetric(
                 name='xorb_agent_performance_score',
@@ -240,9 +240,9 @@ class XORBEnhancedMonitoring:
                 description='Total threat detections'
             )
         }
-        
+
         self.metrics.update(default_metrics)
-    
+
     def _initialize_default_sla_targets(self):
         """Initialize default SLA targets"""
         default_slas = [
@@ -274,10 +274,10 @@ class XORBEnhancedMonitoring:
                 description="Evolution accelerator success rate SLA"
             )
         ]
-        
+
         for sla in default_slas:
             self.sla_targets[f"{sla.service_name}_{sla.metric_name}"] = sla
-    
+
     def _initialize_alert_rules(self):
         """Initialize default alert rules"""
         self.alert_rules = [
@@ -324,7 +324,7 @@ class XORBEnhancedMonitoring:
                 'for': '2m'
             }
         ]
-    
+
     async def update_metric(self, metric_name: str, value: float, labels: Optional[Dict[str, str]] = None):
         """Update a metric value"""
         try:
@@ -334,32 +334,32 @@ class XORBEnhancedMonitoring:
                 metric.timestamp = datetime.now()
                 if labels:
                     metric.labels.update(labels)
-                
+
                 # Store in history
                 self.metric_history[metric_name].append({
                     'timestamp': metric.timestamp,
                     'value': value,
                     'labels': labels or {}
                 })
-                
+
                 # Check for anomalies
                 await self._check_anomalies(metric_name, value)
-                
+
                 # Check SLA violations
                 await self._check_sla_violations(metric_name, value)
-                
+
             else:
                 logger.warning(f"Unknown metric: {metric_name}")
-                
+
         except Exception as e:
             logger.error(f"Failed to update metric {metric_name}: {e}")
-    
-    async def add_custom_metric(self, service_name: str, metric_name: str, value: float, 
+
+    async def add_custom_metric(self, service_name: str, metric_name: str, value: float,
                               metadata: Optional[Dict[str, Any]] = None):
         """Add custom service metric"""
         try:
             custom_key = f"{service_name}_{metric_name}"
-            
+
             metric_data = {
                 'timestamp': datetime.now(),
                 'service_name': service_name,
@@ -367,73 +367,73 @@ class XORBEnhancedMonitoring:
                 'value': value,
                 'metadata': metadata or {}
             }
-            
+
             self.custom_metrics[custom_key].append(metric_data)
-            
+
             # Also update in main metrics if it exists
             full_metric_name = f"xorb_{custom_key}"
             if full_metric_name in self.metrics:
                 await self.update_metric(full_metric_name, value)
-            
+
             logger.debug(f"Added custom metric: {custom_key} = {value}")
-            
+
         except Exception as e:
             logger.error(f"Failed to add custom metric {service_name}.{metric_name}: {e}")
-    
+
     async def _check_anomalies(self, metric_name: str, value: float):
         """Check for anomalies in metric values"""
         try:
             if metric_name not in self.metric_history:
                 return
-            
+
             history = list(self.metric_history[metric_name])
             if len(history) < 10:  # Need sufficient history
                 return
-            
+
             # Get recent values
             recent_values = [h['value'] for h in history[-30:]]  # Last 30 measurements
-            
+
             if len(recent_values) < 10:
                 return
-            
+
             # Calculate statistical measures
             mean = statistics.mean(recent_values)
             std_dev = statistics.stdev(recent_values) if len(recent_values) > 1 else 0
-            
+
             # Define anomaly thresholds
             spike_threshold = mean + (3 * std_dev)
             drop_threshold = mean - (3 * std_dev)
-            
+
             anomaly_detected = False
             anomaly_type = None
             severity = 0.0
-            
+
             # Check for spike
             if value > spike_threshold and std_dev > 0:
                 anomaly_type = AnomalyType.SPIKE
                 severity = min(1.0, (value - spike_threshold) / (spike_threshold * 0.5))
                 anomaly_detected = True
-            
+
             # Check for drop
             elif value < drop_threshold and std_dev > 0:
                 anomaly_type = AnomalyType.DROP
                 severity = min(1.0, (drop_threshold - value) / (drop_threshold * 0.5))
                 anomaly_detected = True
-            
+
             # Check for trend change (simplified)
             if len(recent_values) >= 20:
                 first_half = recent_values[:10]
                 second_half = recent_values[-10:]
-                
+
                 first_mean = statistics.mean(first_half)
                 second_mean = statistics.mean(second_half)
-                
+
                 # Significant trend change detection
                 if abs(second_mean - first_mean) > (std_dev * 2) and std_dev > 0:
                     anomaly_type = AnomalyType.TREND_CHANGE
                     severity = min(1.0, abs(second_mean - first_mean) / (mean * 0.3))
                     anomaly_detected = True
-            
+
             # Create anomaly if detected
             if anomaly_detected and severity > 0.3:  # Only report significant anomalies
                 anomaly = AnomalyDetection(
@@ -448,22 +448,22 @@ class XORBEnhancedMonitoring:
                     actual_value=value,
                     confidence=min(1.0, severity * 1.2)
                 )
-                
+
                 self.detected_anomalies.append(anomaly)
-                
+
                 # Keep only recent anomalies
                 if len(self.detected_anomalies) > 100:
                     self.detected_anomalies = self.detected_anomalies[-100:]
-                
+
                 # Generate alert for high-severity anomalies
                 if severity > 0.7:
                     await self._create_anomaly_alert(anomaly)
-                
+
                 logger.warning(f"Anomaly detected in {metric_name}: {anomaly_type.value} (severity: {severity:.2f})")
-                
+
         except Exception as e:
             logger.error(f"Failed to check anomalies for {metric_name}: {e}")
-    
+
     async def _check_sla_violations(self, metric_name: str, value: float):
         """Check for SLA violations"""
         try:
@@ -471,7 +471,7 @@ class XORBEnhancedMonitoring:
                 if sla.metric_name in metric_name.lower():
                     # Check if value violates SLA
                     violation = False
-                    
+
                     if sla.comparison == ">=" and value < sla.target_value:
                         violation = True
                     elif sla.comparison == "<=" and value > sla.target_value:
@@ -480,11 +480,11 @@ class XORBEnhancedMonitoring:
                         violation = True
                     elif sla.comparison == "!=" and abs(value - sla.target_value) < (sla.target_value * 0.01):
                         violation = True
-                    
+
                     if violation:
                         # Calculate deviation percentage
                         deviation = abs(value - sla.target_value) / sla.target_value * 100
-                        
+
                         if deviation > sla.alert_threshold:
                             violation_record = {
                                 'sla_key': sla_key,
@@ -496,26 +496,26 @@ class XORBEnhancedMonitoring:
                                 'timestamp': datetime.now(),
                                 'description': sla.description
                             }
-                            
+
                             self.sla_violations.append(violation_record)
-                            
+
                             # Keep only recent violations
                             if len(self.sla_violations) > 100:
                                 self.sla_violations = self.sla_violations[-100:]
-                            
+
                             # Create alert
                             await self._create_sla_violation_alert(violation_record)
-                            
+
                             logger.warning(f"SLA violation detected: {sla.service_name}.{sla.metric_name} = {value} (target: {sla.target_value})")
-                            
+
         except Exception as e:
             logger.error(f"Failed to check SLA violations: {e}")
-    
+
     async def _create_anomaly_alert(self, anomaly: AnomalyDetection):
         """Create alert for anomaly detection"""
         try:
             alert_id = f"anomaly_{anomaly.anomaly_id}"
-            
+
             # Determine severity based on anomaly severity
             if anomaly.severity >= 0.9:
                 severity = AlertSeverity.CRITICAL
@@ -525,7 +525,7 @@ class XORBEnhancedMonitoring:
                 severity = AlertSeverity.MEDIUM
             else:
                 severity = AlertSeverity.LOW
-            
+
             alert = Alert(
                 alert_id=alert_id,
                 service_name=anomaly.service_name,
@@ -538,17 +538,17 @@ class XORBEnhancedMonitoring:
                 timestamp=anomaly.detected_at,
                 metadata={'anomaly_id': anomaly.anomaly_id, 'confidence': anomaly.confidence}
             )
-            
+
             await self._process_alert(alert)
-            
+
         except Exception as e:
             logger.error(f"Failed to create anomaly alert: {e}")
-    
+
     async def _create_sla_violation_alert(self, violation: Dict[str, Any]):
         """Create alert for SLA violation"""
         try:
             alert_id = f"sla_{violation['sla_key']}_{int(time.time())}"
-            
+
             # Determine severity based on deviation
             deviation = violation['deviation_percent']
             if deviation >= 50:
@@ -559,7 +559,7 @@ class XORBEnhancedMonitoring:
                 severity = AlertSeverity.MEDIUM
             else:
                 severity = AlertSeverity.LOW
-            
+
             alert = Alert(
                 alert_id=alert_id,
                 service_name=violation['service_name'],
@@ -572,24 +572,24 @@ class XORBEnhancedMonitoring:
                 timestamp=violation['timestamp'],
                 metadata={'sla_key': violation['sla_key'], 'deviation_percent': deviation}
             )
-            
+
             await self._process_alert(alert)
-            
+
         except Exception as e:
             logger.error(f"Failed to create SLA violation alert: {e}")
-    
+
     async def _process_alert(self, alert: Alert):
         """Process and store alert"""
         try:
             # Check if similar alert already exists
             existing_alert = None
             for existing_id, existing in self.active_alerts.items():
-                if (existing.service_name == alert.service_name and 
-                    existing.alert_name == alert.alert_name and 
+                if (existing.service_name == alert.service_name and
+                    existing.alert_name == alert.alert_name and
                     not existing.resolved):
                     existing_alert = existing
                     break
-            
+
             if existing_alert:
                 # Update existing alert
                 existing_alert.escalation_level += 1
@@ -600,15 +600,15 @@ class XORBEnhancedMonitoring:
                 # Create new alert
                 self.active_alerts[alert.alert_id] = alert
                 self.alert_history.append(asdict(alert))
-                
+
                 # Send notification (placeholder)
                 await self._send_alert_notification(alert)
-                
+
                 logger.warning(f"New alert created: {alert.alert_id} - {alert.description}")
-            
+
         except Exception as e:
             logger.error(f"Failed to process alert: {e}")
-    
+
     async def _send_alert_notification(self, alert: Alert):
         """Send alert notification (placeholder implementation)"""
         try:
@@ -617,7 +617,7 @@ class XORBEnhancedMonitoring:
             # - Slack/Teams
             # - PagerDuty
             # - SMS
-            
+
             notification_data = {
                 'alert_id': alert.alert_id,
                 'service_name': alert.service_name,
@@ -627,13 +627,13 @@ class XORBEnhancedMonitoring:
                 'value': alert.value,
                 'threshold': alert.threshold
             }
-            
+
             logger.info(f"Alert notification sent: {alert.alert_id}")
             # print(f"📢 ALERT: {alert.severity.value.upper()} - {alert.description}")
-            
+
         except Exception as e:
             logger.error(f"Failed to send alert notification: {e}")
-    
+
     async def resolve_alert(self, alert_id: str, resolution_note: Optional[str] = None) -> bool:
         """Resolve an active alert"""
         try:
@@ -643,63 +643,63 @@ class XORBEnhancedMonitoring:
                 alert.resolved_at = datetime.now()
                 if resolution_note:
                     alert.metadata['resolution_note'] = resolution_note
-                
+
                 logger.info(f"Alert resolved: {alert_id}")
                 return True
             else:
                 logger.warning(f"Alert not found for resolution: {alert_id}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"Failed to resolve alert {alert_id}: {e}")
             return False
-    
+
     async def push_metrics_to_prometheus(self):
         """Push metrics to Prometheus Push Gateway"""
         try:
             if not self.prometheus_gateway_url:
                 return
-            
+
             # Prepare metrics for push
             metrics_data = []
-            
+
             for metric_name, metric in self.metrics.items():
                 metric_line = f"{metric_name}"
-                
+
                 # Add labels
                 if metric.labels:
                     label_pairs = [f'{k}="{v}"' for k, v in metric.labels.items()]
                     metric_line += "{" + ",".join(label_pairs) + "}"
-                
+
                 metric_line += f" {metric.value} {int(metric.timestamp.timestamp() * 1000)}"
                 metrics_data.append(metric_line)
-            
+
             # Push to gateway
             if metrics_data:
                 payload = "\n".join(metrics_data)
-                
+
                 response = requests.post(
                     f"{self.prometheus_gateway_url}/metrics/job/xorb_platform",
                     data=payload,
                     headers={'Content-Type': 'text/plain'},
                     timeout=10
                 )
-                
+
                 if response.status_code == 200:
                     logger.debug("Metrics pushed to Prometheus successfully")
                 else:
                     logger.error(f"Failed to push metrics to Prometheus: {response.status_code}")
-                    
+
         except Exception as e:
             logger.error(f"Failed to push metrics to Prometheus: {e}")
-    
+
     async def create_grafana_dashboard(self, dashboard_name: str, service_names: List[str]) -> bool:
         """Create Grafana dashboard for XORB services"""
         try:
             if not self.grafana_api_key:
                 logger.warning("Grafana API key not configured")
                 return False
-            
+
             # Dashboard configuration
             dashboard_config = {
                 "dashboard": {
@@ -714,10 +714,10 @@ class XORBEnhancedMonitoring:
                     "refresh": "30s"
                 }
             }
-            
+
             # Add panels for each service
             panel_id = 1
-            
+
             for service_name in service_names:
                 # Response time panel
                 response_time_panel = {
@@ -736,7 +736,7 @@ class XORBEnhancedMonitoring:
                         "show": False
                     }]
                 }
-                
+
                 # Error rate panel
                 error_rate_panel = {
                     "id": panel_id + 1,
@@ -754,34 +754,34 @@ class XORBEnhancedMonitoring:
                         "show": False
                     }]
                 }
-                
+
                 dashboard_config["dashboard"]["panels"].extend([response_time_panel, error_rate_panel])
                 panel_id += 2
-            
+
             # Create dashboard via Grafana API
             headers = {
                 'Authorization': f'Bearer {self.grafana_api_key}',
                 'Content-Type': 'application/json'
             }
-            
+
             response = requests.post(
                 f"{self.grafana_url}/api/dashboards/db",
                 json=dashboard_config,
                 headers=headers,
                 timeout=30
             )
-            
+
             if response.status_code == 200:
                 logger.info(f"Grafana dashboard created: {dashboard_name}")
                 return True
             else:
                 logger.error(f"Failed to create Grafana dashboard: {response.status_code} - {response.text}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"Failed to create Grafana dashboard: {e}")
             return False
-    
+
     async def export_prometheus_config(self, output_path: str) -> bool:
         """Export Prometheus configuration"""
         try:
@@ -795,7 +795,7 @@ class XORBEnhancedMonitoring:
                 ],
                 'scrape_configs': [
                     {
-                        'job_name': 'xorb-platform',
+                        'job_name': 'xorb_platform',
                         'static_configs': [{
                             'targets': [
                                 'localhost:8003',  # neural_orchestrator
@@ -824,18 +824,18 @@ class XORBEnhancedMonitoring:
                     }]
                 }
             }
-            
+
             # Write configuration file
             with open(output_path, 'w') as f:
                 yaml.dump(config, f, default_flow_style=False)
-            
+
             logger.info(f"Prometheus configuration exported: {output_path}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to export Prometheus config: {e}")
             return False
-    
+
     async def export_alert_rules(self, output_path: str) -> bool:
         """Export Prometheus alert rules"""
         try:
@@ -845,7 +845,7 @@ class XORBEnhancedMonitoring:
                     'rules': []
                 }]
             }
-            
+
             for rule in self.alert_rules:
                 alert_rule = {
                     'alert': rule['name'],
@@ -860,18 +860,18 @@ class XORBEnhancedMonitoring:
                     }
                 }
                 alert_rules['groups'][0]['rules'].append(alert_rule)
-            
+
             # Write alert rules file
             with open(output_path, 'w') as f:
                 yaml.dump(alert_rules, f, default_flow_style=False)
-            
+
             logger.info(f"Alert rules exported: {output_path}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to export alert rules: {e}")
             return False
-    
+
     async def get_monitoring_status(self) -> Dict[str, Any]:
         """Get comprehensive monitoring status"""
         try:
@@ -880,19 +880,19 @@ class XORBEnhancedMonitoring:
             for alert in self.active_alerts.values():
                 if not alert.resolved:
                     alert_counts[alert.severity.value] += 1
-            
+
             # Recent anomalies
             recent_anomalies = [
                 anomaly for anomaly in self.detected_anomalies
                 if (datetime.now() - anomaly.detected_at).total_seconds() < 3600
             ]
-            
+
             # SLA violations
             recent_sla_violations = [
                 violation for violation in self.sla_violations
                 if (datetime.now() - violation['timestamp']).total_seconds() < 3600
             ]
-            
+
             # Metric statistics
             metric_stats = {}
             for metric_name, metric in self.metrics.items():
@@ -906,7 +906,7 @@ class XORBEnhancedMonitoring:
                         'max_value': max(values) if values else 0,
                         'measurement_count': len(history)
                     }
-            
+
             return {
                 'monitoring_id': self.monitoring_id,
                 'monitoring_active': self.monitoring_active,
@@ -938,30 +938,30 @@ class XORBEnhancedMonitoring:
                 },
                 'timestamp': datetime.now().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to get monitoring status: {e}")
             return {'error': str(e)}
-    
+
     async def start_monitoring(self):
         """Start background monitoring tasks"""
         try:
             self.monitoring_active = True
-            
+
             # Metrics push task
             async def metrics_push_loop():
                 while self.monitoring_active:
                     await self.push_metrics_to_prometheus()
                     await asyncio.sleep(self.metrics_push_interval)
-            
+
             # Start background tasks
             asyncio.create_task(metrics_push_loop())
-            
+
             logger.info("Enhanced monitoring system started")
-            
+
         except Exception as e:
             logger.error(f"Failed to start monitoring: {e}")
-    
+
     async def stop_monitoring(self):
         """Stop monitoring tasks"""
         self.monitoring_active = False
@@ -972,51 +972,51 @@ async def main():
     """Example usage of XORB Enhanced Monitoring"""
     try:
         print("📊 XORB Enhanced Monitoring System initializing...")
-        
+
         # Initialize monitoring system
         monitoring = XORBEnhancedMonitoring({
             'prometheus_url': 'http://localhost:9090',
             'grafana_url': 'http://localhost:3000',
             'metrics_push_interval': 15
         })
-        
+
         # Start monitoring
         await monitoring.start_monitoring()
-        
+
         print("✅ Enhanced monitoring system started")
-        
+
         # Simulate metric updates
         print("\n📈 Simulating metric updates...")
-        
+
         # System metrics
         await monitoring.update_metric('xorb_system_cpu_usage', 45.5)
         await monitoring.update_metric('xorb_system_memory_usage', 62.3)
         await monitoring.update_metric('xorb_system_disk_usage', 78.9)
-        
+
         # Service metrics
         await monitoring.update_metric('xorb_service_requests_total', 1234)
         await monitoring.update_metric('xorb_service_request_duration_seconds', 0.145)
         await monitoring.update_metric('xorb_service_availability', 99.8)
-        
+
         # Custom metrics
         await monitoring.add_custom_metric('neural_orchestrator', 'decisions_per_second', 25.4)
         await monitoring.add_custom_metric('threat_detection', 'threats_detected', 3)
         await monitoring.add_custom_metric('evolution_accelerator', 'evolutions_completed', 12)
-        
+
         print("✅ Metrics updated successfully")
-        
+
         # Simulate anomaly (high CPU)
         print("\n🚨 Simulating anomaly detection...")
         await monitoring.update_metric('xorb_system_cpu_usage', 95.5)  # Trigger high CPU alert
-        
+
         # Wait a bit for processing
         await asyncio.sleep(1)
-        
+
         # Export configurations
         print("\n📄 Exporting monitoring configurations...")
         await monitoring.export_prometheus_config('/tmp/prometheus.yml')
         await monitoring.export_alert_rules('/tmp/xorb_alerts.yml')
-        
+
         # Get monitoring status
         status = await monitoring.get_monitoring_status()
         print(f"\n📊 Monitoring Status:")
@@ -1025,19 +1025,19 @@ async def main():
         print(f"- Active Alerts: {status['alerting']['total_active_alerts']}")
         print(f"- SLA Targets: {status['sla_monitoring']['sla_targets_count']}")
         print(f"- Recent Anomalies: {status['anomaly_detection']['recent_anomalies_1h']}")
-        
+
         # Show alert details
         if status['alerting']['total_active_alerts'] > 0:
             print(f"\n🚨 Active Alerts:")
             for severity, count in status['alerting']['active_alerts'].items():
                 if count > 0:
                     print(f"  - {severity.upper()}: {count}")
-        
+
         print(f"\n✅ XORB Enhanced Monitoring System demonstration completed!")
-        
+
         # Stop monitoring
         await monitoring.stop_monitoring()
-        
+
     except Exception as e:
         logger.error(f"Main execution failed: {e}")
 

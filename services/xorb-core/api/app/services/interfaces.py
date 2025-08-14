@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID
 
 from ..domain.entities import (
-    User, Organization, EmbeddingRequest, EmbeddingResult, 
+    User, Organization, EmbeddingRequest, EmbeddingResult,
     DiscoveryWorkflow, AuthToken
 )
 from ..domain.value_objects import UsageStats, RateLimitInfo
@@ -16,32 +16,32 @@ from ..domain.tenant_entities import Tenant, TenantPlan, TenantStatus
 
 class AuthenticationService(ABC):
     """Interface for unified authentication operations"""
-    
+
     @abstractmethod
     async def authenticate_user(self, credentials) -> Any:
         """Authenticate user with various credential types"""
         pass
-    
+
     @abstractmethod
     async def validate_token(self, token: str) -> Any:
         """Validate access token and return validation result"""
         pass
-    
+
     @abstractmethod
     async def refresh_access_token(self, refresh_token: str) -> Optional[str]:
         """Generate new access token from refresh token"""
         pass
-    
+
     @abstractmethod
     async def logout_user(self, session_id: str) -> bool:
         """Logout user and invalidate session"""
         pass
-    
+
     @abstractmethod
     def hash_password(self, password: str) -> str:
         """Hash password securely"""
         pass
-    
+
     @abstractmethod
     def verify_password(self, password: str, hashed: str) -> bool:
         """Verify password against hash"""
@@ -50,12 +50,12 @@ class AuthenticationService(ABC):
 
 class AuthorizationService(ABC):
     """Interface for authorization operations"""
-    
+
     @abstractmethod
     async def check_permission(self, user: User, resource: str, action: str) -> bool:
         """Check if user has permission for resource action"""
         pass
-    
+
     @abstractmethod
     async def get_user_permissions(self, user: User) -> Dict[str, List[str]]:
         """Get all permissions for user"""
@@ -64,7 +64,7 @@ class AuthorizationService(ABC):
 
 class EmbeddingService(ABC):
     """Interface for embedding operations"""
-    
+
     @abstractmethod
     async def generate_embeddings(
         self,
@@ -76,7 +76,7 @@ class EmbeddingService(ABC):
     ) -> EmbeddingResult:
         """Generate embeddings for texts"""
         pass
-    
+
     @abstractmethod
     async def compute_similarity(
         self,
@@ -87,7 +87,7 @@ class EmbeddingService(ABC):
     ) -> float:
         """Compute similarity between two texts"""
         pass
-    
+
     @abstractmethod
     async def batch_embeddings(
         self,
@@ -100,7 +100,7 @@ class EmbeddingService(ABC):
     ) -> EmbeddingResult:
         """Process large batches of texts"""
         pass
-    
+
     @abstractmethod
     async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available embedding models"""
@@ -109,7 +109,7 @@ class EmbeddingService(ABC):
 
 class DiscoveryService(ABC):
     """Interface for discovery operations"""
-    
+
     @abstractmethod
     async def start_discovery(
         self,
@@ -119,7 +119,7 @@ class DiscoveryService(ABC):
     ) -> DiscoveryWorkflow:
         """Start a new discovery workflow"""
         pass
-    
+
     @abstractmethod
     async def get_discovery_results(
         self,
@@ -128,7 +128,7 @@ class DiscoveryService(ABC):
     ) -> Optional[DiscoveryWorkflow]:
         """Get results from discovery workflow"""
         pass
-    
+
     @abstractmethod
     async def get_user_workflows(
         self,
@@ -142,7 +142,7 @@ class DiscoveryService(ABC):
 
 class RateLimitService(ABC):
     """Interface for rate limiting operations"""
-    
+
     @abstractmethod
     async def check_rate_limit(
         self,
@@ -152,7 +152,7 @@ class RateLimitService(ABC):
     ) -> RateLimitInfo:
         """Check rate limit for organization and resource"""
         pass
-    
+
     @abstractmethod
     async def increment_usage(
         self,
@@ -162,7 +162,7 @@ class RateLimitService(ABC):
     ) -> None:
         """Increment resource usage"""
         pass
-    
+
     @abstractmethod
     async def get_usage_stats(
         self,
@@ -174,7 +174,7 @@ class RateLimitService(ABC):
 
 class UserService(ABC):
     """Interface for user management operations"""
-    
+
     @abstractmethod
     async def create_user(
         self,
@@ -185,22 +185,22 @@ class UserService(ABC):
     ) -> User:
         """Create a new user"""
         pass
-    
+
     @abstractmethod
     async def get_user_by_id(self, user_id: UUID) -> Optional[User]:
         """Get user by ID"""
         pass
-    
+
     @abstractmethod
     async def get_user_by_username(self, username: str) -> Optional[User]:
         """Get user by username"""
         pass
-    
+
     @abstractmethod
     async def update_user(self, user: User) -> User:
         """Update user information"""
         pass
-    
+
     @abstractmethod
     async def deactivate_user(self, user_id: UUID) -> bool:
         """Deactivate a user"""
@@ -209,7 +209,7 @@ class UserService(ABC):
 
 class OrganizationService(ABC):
     """Interface for organization management operations"""
-    
+
     @abstractmethod
     async def create_organization(
         self,
@@ -219,17 +219,17 @@ class OrganizationService(ABC):
     ) -> Organization:
         """Create a new organization"""
         pass
-    
+
     @abstractmethod
     async def get_organization_by_id(self, org_id: UUID) -> Optional[Organization]:
         """Get organization by ID"""
         pass
-    
+
     @abstractmethod
     async def update_organization(self, organization: Organization) -> Organization:
         """Update organization information"""
         pass
-    
+
     @abstractmethod
     async def get_user_organizations(self, user: User) -> List[Organization]:
         """Get organizations for user"""
@@ -238,7 +238,7 @@ class OrganizationService(ABC):
 
 class NotificationService(ABC):
     """Interface for notification operations"""
-    
+
     @abstractmethod
     async def send_notification(
         self,
@@ -248,7 +248,7 @@ class NotificationService(ABC):
     ) -> bool:
         """Send notification to user"""
         pass
-    
+
     @abstractmethod
     async def send_webhook(
         self,
@@ -262,7 +262,7 @@ class NotificationService(ABC):
 
 class TenantService(ABC):
     """Interface for tenant management operations"""
-    
+
     @abstractmethod
     async def create_tenant(
         self,
@@ -273,22 +273,22 @@ class TenantService(ABC):
     ) -> Tenant:
         """Create a new tenant"""
         pass
-    
+
     @abstractmethod
     async def get_tenant_by_id(self, tenant_id: UUID) -> Optional[Tenant]:
         """Get tenant by ID"""
         pass
-    
+
     @abstractmethod
     async def get_tenant_by_slug(self, slug: str) -> Optional[Tenant]:
         """Get tenant by slug"""
         pass
-    
+
     @abstractmethod
     async def update_tenant(self, tenant: Tenant) -> Tenant:
         """Update tenant information"""
         pass
-    
+
     @abstractmethod
     async def deactivate_tenant(self, tenant_id: UUID) -> bool:
         """Deactivate a tenant"""
@@ -297,12 +297,12 @@ class TenantService(ABC):
 
 class HealthService(ABC):
     """Interface for health check operations"""
-    
+
     @abstractmethod
     async def check_service_health(self, service_name: str) -> Dict[str, Any]:
         """Check health of a specific service"""
         pass
-    
+
     @abstractmethod
     async def get_system_health(self) -> Dict[str, Any]:
         """Get overall system health"""

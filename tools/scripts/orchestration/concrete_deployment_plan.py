@@ -17,17 +17,17 @@ logger = logging.getLogger(__name__)
 
 class XORBConcreteDeployment:
     """Concrete deployment plan based on existing infrastructure"""
-    
+
     def __init__(self):
         self.deployment_id = f"CONCRETE-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
         self.existing_services = {}
         self.deployment_plan = {}
         self.consolidated_services = []
-        
+
     async def analyze_existing_infrastructure(self):
         """Analyze all existing services to avoid duplication"""
         logger.info("🔍 Analyzing existing infrastructure...")
-        
+
         # Existing Docker Compose Services
         self.existing_services = {
             "databases": {
@@ -55,20 +55,20 @@ class XORBConcreteDeployment:
                 "router": {"file": "/var/www/verteidiq.com/js/router.js", "status": "fixed"}
             }
         }
-        
+
         logger.info(f"✅ Found {self._count_services()} existing services")
-        
+
     def _count_services(self):
         """Count total services across all categories"""
         total = 0
         for category in self.existing_services.values():
             total += len(category)
         return total
-    
+
     async def create_deployment_plan(self):
         """Create concrete deployment plan without duplicating existing services"""
         logger.info("📋 Creating concrete deployment plan...")
-        
+
         self.deployment_plan = {
             "phase_1_infrastructure": {
                 "action": "use_existing",
@@ -114,88 +114,88 @@ class XORBConcreteDeployment:
                 "enhancements": ["ensure_routing_works", "add_api_integration", "optimize_performance"]
             }
         }
-        
+
         logger.info("✅ Deployment plan created with minimal duplication")
-    
+
     async def execute_deployment_plan(self):
         """Execute the concrete deployment plan"""
         logger.info("🚀 Executing concrete deployment plan...")
-        
+
         try:
             # Phase 1: Start Infrastructure
             await self.deploy_infrastructure()
-            
+
             # Phase 2: Deploy Missing Core Services
             await self.deploy_core_services()
-            
+
             # Phase 3: Enhance Monitoring
             await self.enhance_monitoring()
-            
+
             # Phase 4: Integrate PTaaS (if needed)
             await self.integrate_ptaas()
-            
+
             # Phase 5: Website Optimization
             await self.optimize_website()
-            
+
             # Phase 6: Final Validation
             await self.validate_deployment()
-            
+
             logger.info("✅ Concrete deployment completed successfully!")
-            
+
         except Exception as e:
             logger.error(f"❌ Deployment failed: {e}")
             raise
-    
+
     async def deploy_infrastructure(self):
         """Deploy core infrastructure using existing compose files"""
         logger.info("🏗️ Phase 1: Deploying infrastructure...")
-        
+
         # Create network if it doesn't exist
         try:
-            subprocess.run(['docker', 'network', 'create', 'xorb-network'], 
+            subprocess.run(['docker', 'network', 'create', 'xorb-network'],
                          capture_output=True, check=False)
             logger.info("✅ Docker network created/verified")
         except Exception as e:
             logger.warning(f"⚠️ Network creation warning: {e}")
-        
+
         # Start databases using existing compose file
         databases_compose = "/root/Xorb/infra/docker-compose-databases.yml"
         if os.path.exists(databases_compose):
             try:
                 subprocess.run([
-                    'docker-compose', '-f', databases_compose, 
+                    'docker-compose', '-f', databases_compose,
                     'up', '-d', '--remove-orphans'
                 ], cwd='/root/Xorb', check=True)
                 logger.info("✅ Database infrastructure deployed")
                 self.consolidated_services.append("Database Infrastructure")
             except Exception as e:
                 logger.warning(f"⚠️ Database deployment warning: {e}")
-        
+
         # Wait for databases to be ready
         await asyncio.sleep(30)
-    
+
     async def deploy_core_services(self):
         """Deploy missing core services"""
         logger.info("🔧 Phase 2: Deploying core services...")
-        
+
         # Deploy Unified API Service (consolidates existing API services)
         unified_api_service = await self.create_unified_api_service()
-        
-        # Deploy Analytics Service  
+
+        # Deploy Analytics Service
         analytics_service = await self.create_analytics_service()
-        
+
         # Deploy Threat Intelligence Service
         threat_intel_service = await self.create_threat_intel_service()
-        
+
         # Create combined compose file for new services
         await self.create_core_services_compose()
-        
+
         logger.info("✅ Core services deployed")
-    
+
     async def create_unified_api_service(self):
         """Create unified API service consolidating existing APIs"""
         logger.info("🔧 Creating unified API service...")
-        
+
         unified_api_compose = """
 version: '3.8'
 
@@ -237,7 +237,7 @@ networks:
   xorb-network:
     external: true
 """
-        
+
         # Create Dockerfile for unified API
         unified_dockerfile = """FROM python:3.11-slim
 
@@ -255,20 +255,20 @@ EXPOSE 8000
 
 CMD ["python", "api_gateway.py"]
 """
-        
+
         with open('/root/Xorb/docker-compose.unified-api.yml', 'w') as f:
             f.write(unified_api_compose)
-        
+
         with open('/root/Xorb/Dockerfile.unified-api', 'w') as f:
             f.write(unified_dockerfile)
-            
+
         logger.info("✅ Unified API service configuration created")
         return "unified-api"
-    
+
     async def create_analytics_service(self):
         """Create analytics service for real-time metrics"""
         logger.info("📊 Creating analytics service...")
-        
+
         analytics_service_code = '''
 import asyncio
 import json
@@ -285,7 +285,7 @@ class XORBAnalyticsService:
     def __init__(self):
         self.redis = None
         self.metrics_cache = {}
-        
+
     async def init_redis(self):
         try:
             self.redis = await aioredis.from_url(
@@ -296,7 +296,7 @@ class XORBAnalyticsService:
             logger.info("✅ Connected to Redis")
         except Exception as e:
             logger.warning(f"⚠️ Redis connection failed: {e}")
-    
+
     async def get_system_metrics(self, request: web_request) -> web_response:
         """Get comprehensive system metrics"""
         metrics = {
@@ -314,16 +314,16 @@ class XORBAnalyticsService:
             "database_connections": random.randint(10, 50),
             "cache_hit_ratio": round(random.uniform(0.85, 0.98), 3)
         }
-        
+
         # Cache metrics
         if self.redis:
             try:
                 await self.redis.setex("system_metrics", 60, json.dumps(metrics))
             except Exception as e:
                 logger.warning(f"⚠️ Redis cache error: {e}")
-        
+
         return web.json_response({"success": True, "data": metrics})
-    
+
     async def get_threat_analytics(self, request: web_request) -> web_response:
         """Get threat analytics and trends"""
         analytics = {
@@ -348,9 +348,9 @@ class XORBAnalyticsService:
             "mitigation_success_rate": round(random.uniform(0.90, 0.98), 3),
             "false_positive_rate": round(random.uniform(0.02, 0.08), 3)
         }
-        
+
         return web.json_response({"success": True, "data": analytics})
-    
+
     async def health_check(self, request: web_request) -> web_response:
         """Health check endpoint"""
         return web.json_response({
@@ -362,29 +362,29 @@ class XORBAnalyticsService:
 async def create_app():
     analytics = XORBAnalyticsService()
     await analytics.init_redis()
-    
+
     app = web.Application()
     app.router.add_get('/health', analytics.health_check)
     app.router.add_get('/api/v1/metrics', analytics.get_system_metrics)
     app.router.add_get('/api/v1/analytics/threats', analytics.get_threat_analytics)
-    
+
     return app
 
 if __name__ == '__main__':
     app = create_app()
     web.run_app(app, host='0.0.0.0', port=8003)
 '''
-        
+
         with open('/root/Xorb/xorb_analytics_service.py', 'w') as f:
             f.write(analytics_service_code)
-            
+
         logger.info("✅ Analytics service created")
         return "analytics-service"
-    
+
     async def create_threat_intel_service(self):
         """Create threat intelligence service"""
         logger.info("🧠 Creating threat intelligence service...")
-        
+
         threat_intel_code = '''
 import asyncio
 import json
@@ -400,7 +400,7 @@ class XORBThreatIntelService:
     def __init__(self):
         self.threat_feeds = []
         self.indicators = []
-        
+
     async def get_threat_intelligence(self, request: web_request) -> web_response:
         """Get comprehensive threat intelligence"""
         intelligence = {
@@ -410,14 +410,14 @@ class XORBThreatIntelService:
             "risk_assessment": self.generate_risk_assessment(),
             "recommendations": self.generate_recommendations()
         }
-        
+
         return web.json_response({"success": True, "data": intelligence})
-    
+
     def generate_threat_feeds(self):
         """Generate simulated threat feed data"""
         feeds = []
         threat_types = ["malware", "phishing", "ransomware", "apt", "botnet"]
-        
+
         for i in range(10):
             feed = {
                 "id": f"FEED-{i+1:03d}",
@@ -435,9 +435,9 @@ class XORBThreatIntelService:
                 }
             }
             feeds.append(feed)
-        
+
         return feeds
-    
+
     def generate_indicators(self):
         """Generate threat indicators"""
         return {
@@ -451,7 +451,7 @@ class XORBThreatIntelService:
                 "urls": random.randint(500, 1000)
             }
         }
-    
+
     def generate_global_trends(self):
         """Generate global threat trends"""
         return {
@@ -470,7 +470,7 @@ class XORBThreatIntelService:
                 "physical": 10.3
             }
         }
-    
+
     def generate_risk_assessment(self):
         """Generate risk assessment"""
         return {
@@ -484,7 +484,7 @@ class XORBThreatIntelService:
                 "Holiday season targeting"
             ]
         }
-    
+
     def generate_recommendations(self):
         """Generate security recommendations"""
         return [
@@ -494,7 +494,7 @@ class XORBThreatIntelService:
             "Implement additional network monitoring",
             "Update threat hunting playbooks"
         ]
-    
+
     async def health_check(self, request: web_request) -> web_response:
         """Health check endpoint"""
         return web.json_response({
@@ -505,28 +505,28 @@ class XORBThreatIntelService:
 
 async def create_app():
     threat_intel = XORBThreatIntelService()
-    
+
     app = web.Application()
     app.router.add_get('/health', threat_intel.health_check)
     app.router.add_get('/api/v1/intelligence', threat_intel.get_threat_intelligence)
-    
+
     return app
 
 if __name__ == '__main__':
     app = create_app()
     web.run_app(app, host='0.0.0.0', port=8004)
 '''
-        
+
         with open('/root/Xorb/xorb_threat_intel_service.py', 'w') as f:
             f.write(threat_intel_code)
-            
+
         logger.info("✅ Threat intelligence service created")
         return "threat-intel-service"
-    
+
     async def create_core_services_compose(self):
         """Create compose file for new core services"""
         logger.info("📝 Creating core services compose file...")
-        
+
         core_services_compose = """
 version: '3.8'
 
@@ -575,7 +575,7 @@ networks:
   xorb-network:
     external: true
 """
-        
+
         # Create Dockerfiles
         analytics_dockerfile = """FROM python:3.11-slim
 
@@ -591,7 +591,7 @@ EXPOSE 8003
 
 CMD ["python", "xorb_analytics_service.py"]
 """
-        
+
         threat_intel_dockerfile = """FROM python:3.11-slim
 
 WORKDIR /app
@@ -606,87 +606,87 @@ EXPOSE 8004
 
 CMD ["python", "xorb_threat_intel_service.py"]
 """
-        
+
         with open('/root/Xorb/docker-compose.core-services.yml', 'w') as f:
             f.write(core_services_compose)
-            
+
         with open('/root/Xorb/Dockerfile.analytics', 'w') as f:
             f.write(analytics_dockerfile)
-            
+
         with open('/root/Xorb/Dockerfile.threat-intel', 'w') as f:
             f.write(threat_intel_dockerfile)
-        
+
         # Deploy core services
         try:
             subprocess.run([
-                'docker-compose', '-f', 'docker-compose.core-services.yml', 
+                'docker-compose', '-f', 'docker-compose.core-services.yml',
                 'up', '-d', '--build'
             ], cwd='/root/Xorb', check=True)
             logger.info("✅ Core services deployed")
             self.consolidated_services.extend(["Analytics Service", "Threat Intelligence Service"])
         except Exception as e:
             logger.warning(f"⚠️ Core services deployment warning: {e}")
-    
+
     async def enhance_monitoring(self):
         """Enhance existing monitoring stack"""
         logger.info("📊 Phase 3: Enhancing monitoring...")
-        
+
         # Deploy monitoring using existing compose file
         monitoring_compose = "/root/Xorb/infra/docker-compose-core.yml"
         if os.path.exists(monitoring_compose):
             try:
                 subprocess.run([
-                    'docker-compose', '-f', monitoring_compose, 
+                    'docker-compose', '-f', monitoring_compose,
                     'up', '-d'
                 ], cwd='/root/Xorb', check=True)
                 logger.info("✅ Monitoring stack enhanced")
                 self.consolidated_services.append("Enhanced Monitoring")
             except Exception as e:
                 logger.warning(f"⚠️ Monitoring enhancement warning: {e}")
-    
+
     async def integrate_ptaas(self):
         """Integrate PTaaS platform if needed"""
         logger.info("🎯 Phase 4: PTaaS integration...")
         logger.info("ℹ️ PTaaS platform already defined - integration available when needed")
         self.consolidated_services.append("PTaaS Platform (Available)")
-    
+
     async def optimize_website(self):
         """Optimize website performance"""
         logger.info("🌐 Phase 5: Website optimization...")
-        
+
         # Website router was already fixed in previous session
         website_status = "operational"
         if os.path.exists("/var/www/verteidiq.com"):
             logger.info("✅ Website structure verified")
-            
+
         if os.path.exists("/var/www/verteidiq.com/js/router.js"):
             logger.info("✅ Router functionality verified")
-            
+
         self.consolidated_services.append("Website Optimization")
-    
+
     async def validate_deployment(self):
         """Validate the deployment"""
         logger.info("✅ Phase 6: Validating deployment...")
-        
+
         # Check Docker containers
         try:
-            result = subprocess.run(['docker', 'ps', '--format', 'table {{.Names}}\t{{.Status}}'], 
+            result = subprocess.run(['docker', 'ps', '--format', 'table {{.Names}}\t{{.Status}}'],
                                   capture_output=True, text=True)
             if result.returncode == 0:
-                running_containers = [line for line in result.stdout.split('\n') 
+                running_containers = [line for line in result.stdout.split('\n')
                                     if 'xorb' in line.lower() and 'up' in line.lower()]
                 logger.info(f"✅ Found {len(running_containers)} running XORB containers")
-                
+
         except Exception as e:
             logger.warning(f"⚠️ Container validation warning: {e}")
-        
+
         # Generate deployment report
         await self.generate_deployment_report()
-    
+
     async def generate_deployment_report(self):
         """Generate comprehensive deployment report"""
         logger.info("📋 Generating deployment report...")
-        
+
         report = {
             "deployment_id": self.deployment_id,
             "timestamp": datetime.now().isoformat(),
@@ -697,7 +697,7 @@ CMD ["python", "xorb_threat_intel_service.py"]
             "service_endpoints": {
                 "databases": {
                     "postgres": "localhost:5432",
-                    "redis": "localhost:6379", 
+                    "redis": "localhost:6379",
                     "neo4j": "localhost:7474"
                 },
                 "apis": {
@@ -717,7 +717,7 @@ CMD ["python", "xorb_threat_intel_service.py"]
                 "docker-compose -f infra/docker-compose-databases.yml up -d",
                 "",
                 "# Start monitoring:",
-                "docker-compose -f infra/docker-compose-core.yml up -d", 
+                "docker-compose -f infra/docker-compose-core.yml up -d",
                 "",
                 "# Start new services:",
                 "docker-compose -f docker-compose.core-services.yml up -d --build",
@@ -734,61 +734,61 @@ CMD ["python", "xorb_threat_intel_service.py"]
             "next_steps": [
                 "Monitor service health with 'docker ps'",
                 "Access analytics at http://localhost:8003/api/v1/metrics",
-                "View threat intelligence at http://localhost:8004/api/v1/intelligence", 
+                "View threat intelligence at http://localhost:8004/api/v1/intelligence",
                 "Check monitoring dashboards at http://localhost:3000",
                 "Test website functionality at https://verteidiq.com",
                 "Deploy PTaaS platform if needed with docker-compose -f infra/docker-compose-ptaas.yml up -d"
             ]
         }
-        
+
         report_file = f"/root/Xorb/logs/concrete-deployment-{self.deployment_id}.json"
         os.makedirs('/root/Xorb/logs', exist_ok=True)
-        
+
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)
-        
+
         logger.info(f"📋 Deployment report saved: {report_file}")
         return report
 
 async def main():
     """Execute concrete deployment plan"""
     deployment = XORBConcreteDeployment()
-    
+
     try:
         # Analyze existing infrastructure
         await deployment.analyze_existing_infrastructure()
-        
+
         # Create deployment plan
         await deployment.create_deployment_plan()
-        
+
         # Execute deployment
         await deployment.execute_deployment_plan()
-        
+
         print("\n" + "="*80)
         print("🎉 XORB CONCRETE DEPLOYMENT COMPLETE!")
         print("="*80)
         print(f"📋 Deployment ID: {deployment.deployment_id}")
         print(f"🔧 Strategy: Consolidation without duplication")
         print(f"🎯 Services Consolidated: {len(deployment.consolidated_services)}")
-        
+
         print("\n🛠️ Consolidated Services:")
         for service in deployment.consolidated_services:
             print(f"  ✅ {service}")
-        
+
         print("\n🚀 Service Access:")
         print("  Analytics API:      http://localhost:8003/api/v1/metrics")
         print("  Threat Intel API:   http://localhost:8004/api/v1/intelligence")
         print("  Grafana Dashboard:  http://localhost:3000 (admin/xorb_admin_2024)")
         print("  Prometheus:         http://localhost:9090")
         print("  Website:            https://verteidiq.com")
-        
+
         print("\n📊 Quick Health Check:")
         print("  docker ps --filter name=xorb")
         print("  curl http://localhost:8003/health")
         print("  curl http://localhost:8004/health")
-        
+
         print("\n" + "="*80)
-        
+
     except Exception as e:
         logger.error(f"❌ Concrete deployment failed: {e}")
         raise

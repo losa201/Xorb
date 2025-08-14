@@ -90,7 +90,7 @@ class ReportConfiguration:
     include_appendices: bool = True
     custom_sections: List[str] = None
     branding: Dict[str, Any] = None
-    
+
     def __post_init__(self):
         if self.custom_sections is None:
             self.custom_sections = []
@@ -100,7 +100,7 @@ class ReportConfiguration:
 class AdvancedReportingService(SecurityService):
     """
     Advanced Reporting Service with AI-powered insights
-    
+
     Features:
     - Multi-format report generation (PDF, HTML, JSON, etc.)
     - Executive and technical report templates
@@ -111,58 +111,58 @@ class AdvancedReportingService(SecurityService):
     - Automated report scheduling
     - Report analytics and metrics
     """
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="advanced_reporting_service",
             dependencies=["database", "cache"],
             **kwargs
         )
-        
+
         self.visualization_available = VISUALIZATION_AVAILABLE
         self.pdf_available = PDF_AVAILABLE
-        
+
         # Report templates
         self.templates = self._initialize_report_templates()
-        
+
         # Generated reports cache
         self.generated_reports: Dict[str, Dict[str, Any]] = {}
-        
+
         # Report analytics
         self.report_metrics: Dict[str, Dict[str, Any]] = {}
-        
+
         # Branding configurations
         self.branding_configs: Dict[str, Dict[str, Any]] = {}
-        
+
         # Chart styles and themes
         if self.visualization_available:
             self._configure_visualization_theme()
-    
+
     async def initialize(self) -> bool:
         """Initialize the reporting service"""
         try:
             logger.info("Initializing Advanced Reporting Service...")
-            
+
             # Load custom templates
             await self._load_custom_templates()
-            
+
             # Initialize report analytics
             await self._initialize_report_analytics()
-            
+
             # Setup default branding
             await self._setup_default_branding()
-            
+
             logger.info(f"Reporting service initialized with {len(self.templates)} templates")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize reporting service: {e}")
             return False
-    
+
     def _initialize_report_templates(self) -> Dict[str, ReportTemplate]:
         """Initialize default report templates"""
         templates = {}
-        
+
         # Executive Summary Template
         templates["executive_summary"] = ReportTemplate(
             template_id="executive_summary",
@@ -179,7 +179,7 @@ class AdvancedReportingService(SecurityService):
             ],
             format_options=[ReportFormat.PDF, ReportFormat.HTML, ReportFormat.PPTX]
         )
-        
+
         # Technical Detailed Template
         templates["technical_detailed"] = ReportTemplate(
             template_id="technical_detailed",
@@ -197,7 +197,7 @@ class AdvancedReportingService(SecurityService):
             ],
             format_options=[ReportFormat.PDF, ReportFormat.HTML, ReportFormat.JSON]
         )
-        
+
         # Compliance Audit Template
         templates["compliance_audit"] = ReportTemplate(
             template_id="compliance_audit",
@@ -214,7 +214,7 @@ class AdvancedReportingService(SecurityService):
             ],
             format_options=[ReportFormat.PDF, ReportFormat.XLSX, ReportFormat.DOCX]
         )
-        
+
         # Penetration Test Template
         templates["penetration_test"] = ReportTemplate(
             template_id="penetration_test",
@@ -232,9 +232,9 @@ class AdvancedReportingService(SecurityService):
             ],
             format_options=[ReportFormat.PDF, ReportFormat.HTML]
         )
-        
+
         return templates
-    
+
     async def generate_report(
         self,
         template_id: str,
@@ -246,13 +246,13 @@ class AdvancedReportingService(SecurityService):
         try:
             report_id = str(uuid.uuid4())
             start_time = datetime.utcnow()
-            
+
             # Get template
             if template_id not in self.templates:
                 raise ValueError(f"Template {template_id} not found")
-            
+
             template = self.templates[template_id]
-            
+
             # Use default config if not provided
             if config is None:
                 config = ReportConfiguration(
@@ -263,23 +263,23 @@ class AdvancedReportingService(SecurityService):
             else:
                 config.report_id = report_id
                 config.template = template
-            
+
             logger.info(f"Generating {template.name} report in {config.format.value} format")
-            
+
             # Generate report content
             report_content = await self._generate_report_content(template, data, config)
-            
+
             # Format the report
             formatted_report = await self._format_report(report_content, config)
-            
+
             # Generate visualizations if needed
             if config.include_charts and self.visualization_available:
                 charts = await self._generate_charts(data, config)
                 formatted_report["charts"] = charts
-            
+
             # Add metadata
             generation_time = (datetime.utcnow() - start_time).total_seconds()
-            
+
             report_result = {
                 "report_id": report_id,
                 "template_id": template_id,
@@ -295,21 +295,21 @@ class AdvancedReportingService(SecurityService):
                     "user_id": getattr(user, 'id', None) if user else None
                 }
             }
-            
+
             # Cache the report
             self.generated_reports[report_id] = report_result
-            
+
             # Update analytics
             await self._update_report_analytics(template_id, config.format, generation_time)
-            
+
             logger.info(f"Report {report_id} generated successfully in {generation_time:.2f}s")
-            
+
             return report_result
-            
+
         except Exception as e:
             logger.error(f"Failed to generate report: {e}")
             raise
-    
+
     async def _generate_report_content(
         self,
         template: ReportTemplate,
@@ -317,7 +317,7 @@ class AdvancedReportingService(SecurityService):
         config: ReportConfiguration
     ) -> Dict[str, Any]:
         """Generate the core report content"""
-        
+
         content = {
             "title": template.name,
             "subtitle": f"Generated on {datetime.utcnow().strftime('%B %d, %Y')}",
@@ -326,28 +326,28 @@ class AdvancedReportingService(SecurityService):
             "ai_insights": {},
             "recommendations": []
         }
-        
+
         # Generate each section based on template
         for section_name in template.sections:
             if section_name in config.custom_sections or section_name in template.sections:
                 section_content = await self._generate_section_content(section_name, data, template)
                 content["sections"][section_name] = section_content
-        
+
         # Generate AI insights if enabled
         if template.ai_enhanced:
             ai_insights = await self._generate_ai_insights(data, template)
             content["ai_insights"] = ai_insights
-        
+
         # Generate recommendations
         recommendations = await self._generate_recommendations(data, template)
         content["recommendations"] = recommendations
-        
+
         # Generate executive summary
         summary = await self._generate_executive_summary(data, template, content)
         content["summary"] = summary
-        
+
         return content
-    
+
     async def _generate_section_content(
         self,
         section_name: str,
@@ -355,7 +355,7 @@ class AdvancedReportingService(SecurityService):
         template: ReportTemplate
     ) -> Dict[str, Any]:
         """Generate content for a specific section"""
-        
+
         section_content = {
             "section_name": section_name,
             "content": "",
@@ -363,7 +363,7 @@ class AdvancedReportingService(SecurityService):
             "charts": [],
             "tables": []
         }
-        
+
         if section_name == "executive_overview":
             section_content.update(await self._generate_executive_overview(data))
         elif section_name == "key_findings":
@@ -382,30 +382,30 @@ class AdvancedReportingService(SecurityService):
             # Generic section generation
             section_content["content"] = f"Section: {section_name}"
             section_content["data"] = data.get(section_name, {})
-        
+
         return section_content
-    
+
     async def _generate_executive_overview(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate executive overview section"""
-        
+
         # Extract key metrics
         total_vulnerabilities = data.get("total_vulnerabilities", 0)
         critical_vulnerabilities = data.get("critical_vulnerabilities", 0)
         high_vulnerabilities = data.get("high_vulnerabilities", 0)
         overall_risk_score = data.get("overall_risk_score", 0.0)
-        
+
         content = f"""
         This security assessment identified {total_vulnerabilities} vulnerabilities across the target environment,
         including {critical_vulnerabilities} critical and {high_vulnerabilities} high-severity issues.
-        
-        The overall risk score is {overall_risk_score:.1f}/10.0, indicating a 
-        {"high" if overall_risk_score >= 7 else "medium" if overall_risk_score >= 4 else "low"} 
+
+        The overall risk score is {overall_risk_score:.1f}/10.0, indicating a
+        {"high" if overall_risk_score >= 7 else "medium" if overall_risk_score >= 4 else "low"}
         level of security risk that requires immediate attention.
-        
+
         Key areas of concern include network security, access controls, and vulnerability management.
         Immediate remediation is recommended for all critical findings to reduce organizational risk.
         """
-        
+
         return {
             "content": content.strip(),
             "data": {
@@ -415,18 +415,18 @@ class AdvancedReportingService(SecurityService):
                 "overall_risk_score": overall_risk_score
             }
         }
-    
+
     async def _generate_key_findings(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate key findings section"""
-        
+
         findings = data.get("vulnerabilities", [])
-        
+
         # Sort by severity
         critical_findings = [f for f in findings if f.get("severity") == "critical"]
         high_findings = [f for f in findings if f.get("severity") == "high"]
-        
+
         key_findings = []
-        
+
         # Top critical findings
         for finding in critical_findings[:5]:  # Top 5 critical
             key_findings.append({
@@ -436,7 +436,7 @@ class AdvancedReportingService(SecurityService):
                 "impact": finding.get("business_impact", "High"),
                 "recommendation": finding.get("remediation", "Update or patch")
             })
-        
+
         # Top high findings
         for finding in high_findings[:3]:  # Top 3 high
             key_findings.append({
@@ -446,9 +446,9 @@ class AdvancedReportingService(SecurityService):
                 "impact": finding.get("business_impact", "Medium"),
                 "recommendation": finding.get("remediation", "Review and update")
             })
-        
+
         content = "The following critical security issues require immediate attention:"
-        
+
         return {
             "content": content,
             "data": {"key_findings": key_findings},
@@ -463,13 +463,13 @@ class AdvancedReportingService(SecurityService):
                 }
             ]
         }
-    
+
     async def _generate_risk_assessment(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate risk assessment section"""
-        
+
         risk_score = data.get("overall_risk_score", 0.0)
         vulnerabilities = data.get("vulnerabilities", [])
-        
+
         # Risk categorization
         risk_categories = {
             "Network Security": 0,
@@ -478,13 +478,13 @@ class AdvancedReportingService(SecurityService):
             "System Configuration": 0,
             "Application Security": 0
         }
-        
+
         # Categorize vulnerabilities (simplified)
         for vuln in vulnerabilities:
             category = vuln.get("category", "System Configuration")
             if category in risk_categories:
                 risk_categories[category] += 1
-        
+
         # Business impact assessment
         business_impact = {
             "Data Breach Risk": "High" if risk_score >= 7 else "Medium" if risk_score >= 4 else "Low",
@@ -492,15 +492,15 @@ class AdvancedReportingService(SecurityService):
             "Compliance Risk": "High" if any(v.get("compliance_related") for v in vulnerabilities) else "Low",
             "Financial Impact": "High" if risk_score >= 8 else "Medium" if risk_score >= 5 else "Low"
         }
-        
+
         content = f"""
         The organization faces a {business_impact["Data Breach Risk"].lower()} risk of data breach
         based on the identified vulnerabilities and current security posture.
-        
-        Risk distribution across security domains shows the highest concentration in 
+
+        Risk distribution across security domains shows the highest concentration in
         {max(risk_categories, key=risk_categories.get)} with {max(risk_categories.values())} findings.
         """
-        
+
         return {
             "content": content.strip(),
             "data": {
@@ -509,21 +509,21 @@ class AdvancedReportingService(SecurityService):
                 "business_impact": business_impact
             }
         }
-    
+
     async def _generate_ai_insights(
         self,
         data: Dict[str, Any],
         template: ReportTemplate
     ) -> Dict[str, Any]:
         """Generate AI-powered insights"""
-        
+
         insights = {
             "threat_trends": [],
             "pattern_analysis": {},
             "prediction": {},
             "correlation": {}
         }
-        
+
         # Threat trend analysis
         vulnerabilities = data.get("vulnerabilities", [])
         if vulnerabilities:
@@ -532,13 +532,13 @@ class AdvancedReportingService(SecurityService):
             for vuln in vulnerabilities:
                 severity = vuln.get("severity", "unknown")
                 severity_distribution[severity] = severity_distribution.get(severity, 0) + 1
-            
+
             insights["pattern_analysis"] = {
                 "severity_distribution": severity_distribution,
                 "most_common_type": "Network vulnerability",  # Simplified
                 "attack_vector_trends": ["Remote code execution", "SQL injection"]
             }
-            
+
             # Risk prediction
             insights["prediction"] = {
                 "risk_trajectory": "Increasing",
@@ -546,21 +546,21 @@ class AdvancedReportingService(SecurityService):
                 "time_to_exploit": "2-4 weeks",
                 "confidence": 0.75
             }
-        
+
         return insights
-    
+
     async def _generate_recommendations(
         self,
         data: Dict[str, Any],
         template: ReportTemplate
     ) -> List[Dict[str, Any]]:
         """Generate intelligent recommendations"""
-        
+
         recommendations = []
-        
+
         vulnerabilities = data.get("vulnerabilities", [])
         risk_score = data.get("overall_risk_score", 0.0)
-        
+
         # High-level strategic recommendations
         if risk_score >= 7:
             recommendations.append({
@@ -572,7 +572,7 @@ class AdvancedReportingService(SecurityService):
                 "effort": "High",
                 "impact": "High"
             })
-        
+
         # Vulnerability-specific recommendations
         critical_vulns = [v for v in vulnerabilities if v.get("severity") == "critical"]
         if critical_vulns:
@@ -585,7 +585,7 @@ class AdvancedReportingService(SecurityService):
                 "effort": "Medium",
                 "impact": "High"
             })
-        
+
         # Compliance recommendations
         if template.report_type == ReportType.COMPLIANCE_AUDIT:
             recommendations.append({
@@ -597,16 +597,16 @@ class AdvancedReportingService(SecurityService):
                 "effort": "Medium",
                 "impact": "Medium"
             })
-        
+
         return recommendations
-    
+
     async def _format_report(
         self,
         content: Dict[str, Any],
         config: ReportConfiguration
     ) -> Dict[str, Any]:
         """Format the report according to the specified format"""
-        
+
         if config.format == ReportFormat.JSON:
             return content
         elif config.format == ReportFormat.HTML:
@@ -616,14 +616,14 @@ class AdvancedReportingService(SecurityService):
         else:
             # Default to JSON for unsupported formats
             return content
-    
+
     async def _format_html_report(
         self,
         content: Dict[str, Any],
         config: ReportConfiguration
     ) -> Dict[str, Any]:
         """Format report as HTML"""
-        
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -647,7 +647,7 @@ class AdvancedReportingService(SecurityService):
                 <p>{content['subtitle']}</p>
             </div>
         """
-        
+
         # Add sections
         for section_name, section_data in content["sections"].items():
             html_content += f"""
@@ -656,50 +656,50 @@ class AdvancedReportingService(SecurityService):
                 <p>{section_data.get('content', '')}</p>
             </div>
             """
-        
+
         html_content += """
         </body>
         </html>
         """
-        
+
         return {
             "format": "html",
             "content": html_content,
             "size_bytes": len(html_content.encode('utf-8'))
         }
-    
+
     async def _format_pdf_report(
         self,
         content: Dict[str, Any],
         config: ReportConfiguration
     ) -> Dict[str, Any]:
         """Format report as PDF"""
-        
+
         if not self.pdf_available:
             logger.warning("PDF generation not available, returning HTML instead")
             return await self._format_html_report(content, config)
-        
+
         # This would generate a proper PDF in production
         pdf_content = f"PDF Report: {content['title']}\n{content['subtitle']}"
-        
+
         return {
             "format": "pdf",
             "content": base64.b64encode(pdf_content.encode()).decode(),
             "size_bytes": len(pdf_content.encode())
         }
-    
+
     async def _generate_charts(
         self,
         data: Dict[str, Any],
         config: ReportConfiguration
     ) -> List[Dict[str, Any]]:
         """Generate charts and visualizations"""
-        
+
         if not self.visualization_available:
             return []
-        
+
         charts = []
-        
+
         # Vulnerability severity distribution pie chart
         vulnerabilities = data.get("vulnerabilities", [])
         if vulnerabilities:
@@ -707,7 +707,7 @@ class AdvancedReportingService(SecurityService):
             for vuln in vulnerabilities:
                 severity = vuln.get("severity", "unknown")
                 severity_counts[severity] = severity_counts.get(severity, 0) + 1
-            
+
             chart_data = {
                 "chart_id": "severity_distribution",
                 "title": "Vulnerability Severity Distribution",
@@ -716,7 +716,7 @@ class AdvancedReportingService(SecurityService):
                 "description": "Distribution of vulnerabilities by severity level"
             }
             charts.append(chart_data)
-        
+
         # Risk score trend (simulated)
         risk_trend_data = {
             "chart_id": "risk_trend",
@@ -729,18 +729,18 @@ class AdvancedReportingService(SecurityService):
             "description": "Risk score progression over time"
         }
         charts.append(risk_trend_data)
-        
+
         return charts
-    
+
     def _configure_visualization_theme(self):
         """Configure visualization theme and styling"""
         if not self.visualization_available:
             return
-        
+
         # Set seaborn style
         sns.set_style("whitegrid")
         sns.set_palette("husl")
-        
+
         # Configure matplotlib
         plt.rcParams.update({
             'figure.figsize': (10, 6),
@@ -751,9 +751,9 @@ class AdvancedReportingService(SecurityService):
             'ytick.labelsize': 9,
             'legend.fontsize': 9
         })
-    
+
     # Additional helper methods...
-    
+
     async def _generate_executive_summary(
         self,
         data: Dict[str, Any],
@@ -769,35 +769,35 @@ class AdvancedReportingService(SecurityService):
                 "compliance_score": "75%"
             }
         }
-    
+
     async def _generate_vulnerability_details(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate detailed vulnerability information"""
         return {
             "content": "Detailed vulnerability analysis and technical findings",
             "data": data.get("vulnerabilities", [])
         }
-    
+
     async def _generate_compliance_overview(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate compliance overview"""
         return {
             "content": "Compliance framework analysis and gap assessment",
             "data": data.get("compliance", {})
         }
-    
+
     async def _generate_technical_summary(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate technical summary"""
         return {
             "content": "Technical methodology and detailed findings",
             "data": {"methodology": "OWASP Testing Guide", "tools_used": ["Nmap", "Nuclei"]}
         }
-    
+
     async def _generate_remediation_steps(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate remediation steps"""
         return {
             "content": "Step-by-step remediation guidance",
             "data": {"steps": ["Patch systems", "Update configurations", "Implement monitoring"]}
         }
-    
+
     async def _load_custom_templates(self):
         """Load custom report templates"""
         try:
@@ -810,7 +810,7 @@ class AdvancedReportingService(SecurityService):
                 },
                 "technical_report": {
                     "sections": ["methodology", "findings", "evidence", "technical_details", "remediation"],
-                    "format": "technical", 
+                    "format": "technical",
                     "max_pages": 50
                 },
                 "compliance_report": {
@@ -829,7 +829,7 @@ class AdvancedReportingService(SecurityService):
                     "max_pages": 20
                 }
             }
-            
+
             # Load custom templates from file system
             try:
                 import os
@@ -842,12 +842,12 @@ class AdvancedReportingService(SecurityService):
                                 template_content = await f.read()
                                 self.templates[template_name] = json.loads(template_content)
                                 logger.info(f"Loaded custom template: {template_name}")
-                                
+
             except Exception as e:
                 logger.warning(f"Could not load custom templates: {e}")
-            
+
             logger.info(f"Loaded {len(self.templates)} report templates")
-            
+
         except Exception as e:
             logger.error(f"Failed to load templates: {e}")
             # Fallback to minimal template
@@ -858,7 +858,7 @@ class AdvancedReportingService(SecurityService):
                     "max_pages": 10
                 }
             }
-    
+
     async def _initialize_report_analytics(self):
         """Initialize report analytics tracking"""
         try:
@@ -870,26 +870,26 @@ class AdvancedReportingService(SecurityService):
                 "error_count": 0,
                 "last_reset": datetime.utcnow()
             }
-            
+
             # Load historical analytics if available
             try:
                 analytics_file = "data/report_analytics.json"
                 if os.path.exists(analytics_file):
                     async with aiofiles.open(analytics_file, 'r') as f:
                         stored_analytics = json.loads(await f.read())
-                        
+
                         # Merge with current analytics
                         self.analytics.update(stored_analytics)
                         logger.info("Loaded historical report analytics")
-                        
+
             except Exception as e:
                 logger.warning(f"Could not load analytics: {e}")
-            
+
             # Start analytics collection task
             asyncio.create_task(self._analytics_collector())
-            
+
             logger.info("Report analytics initialized")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize analytics: {e}")
             # Fallback to basic analytics
@@ -897,34 +897,34 @@ class AdvancedReportingService(SecurityService):
                 "reports_generated": 0,
                 "error_count": 0
             }
-    
+
     async def _analytics_collector(self):
         """Background task to collect and persist analytics"""
         while True:
             try:
                 await asyncio.sleep(3600)  # Run every hour
-                
+
                 # Save analytics to file
                 try:
                     analytics_file = "data/report_analytics.json"
                     os.makedirs(os.path.dirname(analytics_file), exist_ok=True)
-                    
+
                     async with aiofiles.open(analytics_file, 'w') as f:
                         await f.write(json.dumps(self.analytics, default=str, indent=2))
-                    
+
                     logger.debug("Report analytics saved")
-                    
+
                 except Exception as e:
                     logger.error(f"Failed to save analytics: {e}")
-                
+
                 # Clean old generation times (keep last 1000)
                 if len(self.analytics.get("generation_times", [])) > 1000:
                     self.analytics["generation_times"] = self.analytics["generation_times"][-1000:]
-                
+
             except Exception as e:
                 logger.error(f"Analytics collector error: {e}")
                 await asyncio.sleep(3600)
-    
+
     async def _setup_default_branding(self):
         """Setup default branding configuration"""
         self.branding_configs["default"] = {
@@ -941,7 +941,7 @@ class AdvancedReportingService(SecurityService):
                 "heading": "Georgia, serif"
             }
         }
-    
+
     async def _update_report_analytics(self, template_id: str, format: ReportFormat, generation_time: float):
         """Update report generation analytics"""
         if template_id not in self.report_metrics:
@@ -951,18 +951,18 @@ class AdvancedReportingService(SecurityService):
                 "format_distribution": {},
                 "last_generated": None
             }
-        
+
         metrics = self.report_metrics[template_id]
         metrics["total_generated"] += 1
         metrics["avg_generation_time"] = (
             (metrics["avg_generation_time"] * (metrics["total_generated"] - 1) + generation_time) /
             metrics["total_generated"]
         )
-        
+
         format_str = format.value
         metrics["format_distribution"][format_str] = metrics["format_distribution"].get(format_str, 0) + 1
         metrics["last_generated"] = datetime.utcnow().isoformat()
-    
+
     async def get_report_analytics(self) -> Dict[str, Any]:
         """Get report generation analytics"""
         return {

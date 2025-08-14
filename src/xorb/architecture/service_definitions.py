@@ -11,7 +11,7 @@ from datetime import datetime
 
 class ServiceTier(Enum):
     CORE = "core"           # Critical business logic
-    DOMAIN = "domain"       # Domain-specific services  
+    DOMAIN = "domain"       # Domain-specific services
     PLATFORM = "platform"   # Infrastructure services
     EDGE = "edge"          # External-facing services
 
@@ -38,7 +38,7 @@ class EPYCOptimization:
     core_allocation: Optional[List[int]] = None # Specific core assignment
     memory_policy: str = "interleave"          # NUMA memory policy
 
-@dataclass  
+@dataclass
 class ServiceDefinition:
     """Enhanced service definition with architectural metadata."""
     name: str
@@ -61,21 +61,21 @@ class ServiceDefinition:
 
 class XORBArchitecture:
     """XORB Pristine Microservices Architecture Definition."""
-    
+
     def __init__(self):
         self.services = self._define_service_architecture()
         self.service_mesh_config = self._define_service_mesh()
         self.deployment_topology = self._define_deployment_topology()
-    
+
     def _define_service_architecture(self) -> Dict[str, ServiceDefinition]:
         """Define the complete service architecture with optimal boundaries."""
-        
+
         services = {}
-        
+
         # ==============================
         # CORE TIER - Critical Business Logic
         # ==============================
-        
+
         services["campaign-orchestrator"] = ServiceDefinition(
             name="campaign-orchestrator",
             tier=ServiceTier.CORE,
@@ -99,7 +99,7 @@ class XORBArchitecture:
             observability_level="deep",
             caching_strategy="hybrid"
         )
-        
+
         services["target-registry"] = ServiceDefinition(
             name="target-registry",
             tier=ServiceTier.CORE,
@@ -121,7 +121,7 @@ class XORBArchitecture:
             scalability_pattern="horizontal",
             caching_strategy="distributed"
         )
-        
+
         services["agent-lifecycle"] = ServiceDefinition(
             name="agent-lifecycle",
             tier=ServiceTier.CORE,
@@ -144,7 +144,7 @@ class XORBArchitecture:
             scalability_pattern="horizontal",
             observability_level="deep"
         )
-        
+
         services["evidence-collector"] = ServiceDefinition(
             name="evidence-collector",
             tier=ServiceTier.CORE,
@@ -166,11 +166,11 @@ class XORBArchitecture:
             scalability_pattern="horizontal",
             caching_strategy="local"
         )
-        
+
         # ==============================
         # DOMAIN TIER - Domain-Specific Services
         # ==============================
-        
+
         services["vulnerability-scanner"] = ServiceDefinition(
             name="vulnerability-scanner",
             tier=ServiceTier.DOMAIN,
@@ -193,7 +193,7 @@ class XORBArchitecture:
             scalability_pattern="horizontal",
             observability_level="enhanced"
         )
-        
+
         services["exploitation-engine"] = ServiceDefinition(
             name="exploitation-engine",
             tier=ServiceTier.DOMAIN,
@@ -216,7 +216,7 @@ class XORBArchitecture:
             scalability_pattern="horizontal",
             observability_level="deep"
         )
-        
+
         services["stealth-manager"] = ServiceDefinition(
             name="stealth-manager",
             tier=ServiceTier.DOMAIN,
@@ -237,7 +237,7 @@ class XORBArchitecture:
             scalability_pattern="vertical",
             caching_strategy="distributed"
         )
-        
+
         services["ai-gateway"] = ServiceDefinition(
             name="ai-gateway",
             tier=ServiceTier.DOMAIN,
@@ -261,7 +261,7 @@ class XORBArchitecture:
             observability_level="enhanced",
             caching_strategy="hybrid"
         )
-        
+
         services["threat-intelligence"] = ServiceDefinition(
             name="threat-intelligence",
             tier=ServiceTier.DOMAIN,
@@ -282,11 +282,11 @@ class XORBArchitecture:
             scalability_pattern="horizontal",
             caching_strategy="distributed"
         )
-        
+
         # ==============================
         # PLATFORM TIER - Infrastructure Services
         # ==============================
-        
+
         services["api-gateway"] = ServiceDefinition(
             name="api-gateway",
             tier=ServiceTier.PLATFORM,
@@ -308,7 +308,7 @@ class XORBArchitecture:
             observability_level="enhanced",
             caching_strategy="local"
         )
-        
+
         services["auth-service"] = ServiceDefinition(
             name="auth-service",
             tier=ServiceTier.PLATFORM,
@@ -328,7 +328,7 @@ class XORBArchitecture:
             scalability_pattern="horizontal",
             caching_strategy="distributed"
         )
-        
+
         services["metrics-collector"] = ServiceDefinition(
             name="metrics-collector",
             tier=ServiceTier.PLATFORM,
@@ -348,11 +348,11 @@ class XORBArchitecture:
             scalability_pattern="horizontal",
             caching_strategy="local"
         )
-        
+
         # ==============================
         # EDGE TIER - External-Facing Services
         # ==============================
-        
+
         services["web-interface"] = ServiceDefinition(
             name="web-interface",
             tier=ServiceTier.EDGE,
@@ -369,7 +369,7 @@ class XORBArchitecture:
             scalability_pattern="horizontal",
             caching_strategy="local"
         )
-        
+
         services["external-integrations"] = ServiceDefinition(
             name="external-integrations",
             tier=ServiceTier.EDGE,
@@ -388,9 +388,9 @@ class XORBArchitecture:
             security_level="high",
             scalability_pattern="horizontal"
         )
-        
+
         return services
-    
+
     def _define_service_mesh(self) -> Dict[str, any]:
         """Define service mesh configuration for optimal communication."""
         return {
@@ -432,7 +432,7 @@ class XORBArchitecture:
                 }
             }
         }
-    
+
     def _define_deployment_topology(self) -> Dict[str, any]:
         """Define EPYC-optimized deployment topology."""
         return {
@@ -457,13 +457,13 @@ class XORBArchitecture:
                     "numa_nodes": [0]
                 },
                 "domain_tier": {
-                    "cpu_limit": "12000m", 
+                    "cpu_limit": "12000m",
                     "memory_limit": "24Gi",
                     "numa_nodes": [0, 1]
                 },
                 "platform_tier": {
                     "cpu_limit": "8000m",
-                    "memory_limit": "16Gi", 
+                    "memory_limit": "16Gi",
                     "numa_nodes": [1]
                 }
             },
@@ -474,36 +474,36 @@ class XORBArchitecture:
                 "scale_down_cooldown": "600s"
             }
         }
-    
+
     def get_service_dependencies(self, service_name: str) -> Set[str]:
         """Get all dependencies for a service."""
         if service_name not in self.services:
             return set()
         return self.services[service_name].dependencies
-    
+
     def get_services_by_tier(self, tier: ServiceTier) -> List[ServiceDefinition]:
         """Get all services in a specific tier."""
         return [svc for svc in self.services.values() if svc.tier == tier]
-    
+
     def get_services_by_domain(self, domain: str) -> List[ServiceDefinition]:
         """Get all services in a specific domain."""
         return [svc for svc in self.services.values() if svc.domain == domain]
-    
+
     def validate_architecture(self) -> List[str]:
         """Validate the architecture for common anti-patterns."""
         issues = []
-        
+
         # Check for circular dependencies
         for service_name, service in self.services.items():
             if self._has_circular_dependency(service_name, service.dependencies):
                 issues.append(f"Circular dependency detected for {service_name}")
-        
+
         # Check for single points of failure
         for service_name, service in self.services.items():
             dependents = self._get_dependents(service_name)
             if len(dependents) > 5 and service.scalability_pattern == "static":
                 issues.append(f"Potential SPOF: {service_name} has many dependents but static scaling")
-        
+
         # Check EPYC optimization conflicts
         core_allocations = {}
         for service_name, service in self.services.items():
@@ -512,26 +512,26 @@ class XORBArchitecture:
                     if core in core_allocations:
                         issues.append(f"Core allocation conflict: {service_name} and {core_allocations[core]} both use core {core}")
                     core_allocations[core] = service_name
-        
+
         return issues
-    
+
     def _has_circular_dependency(self, service_name: str, dependencies: Set[str], visited: Set[str] = None) -> bool:
         """Check for circular dependencies."""
         if visited is None:
             visited = set()
-        
+
         if service_name in visited:
             return True
-        
+
         visited.add(service_name)
-        
+
         for dep in dependencies:
             if dep in self.services:
                 if self._has_circular_dependency(dep, self.services[dep].dependencies, visited.copy()):
                     return True
-        
+
         return False
-    
+
     def _get_dependents(self, service_name: str) -> Set[str]:
         """Get all services that depend on the given service."""
         dependents = set()

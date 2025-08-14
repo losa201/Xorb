@@ -40,7 +40,7 @@ def check_service_health(service_name, url, port):
 def check_docker_service(container_name):
     """Check Docker container status"""
     try:
-        result = subprocess.run(['docker', 'ps', '--filter', f'name={container_name}', '--format', '{{.Status}}'], 
+        result = subprocess.run(['docker', 'ps', '--filter', f'name={container_name}', '--format', '{{.Status}}'],
                                capture_output=True, text=True)
         if result.returncode == 0 and result.stdout.strip():
             status = result.stdout.strip()
@@ -58,17 +58,17 @@ def main():
     print_banner()
     print(f"🕐 Status Check Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print()
-    
+
     # Core XORB Services
     print("🧠 CORE XORB SERVICES")
     print("=" * 60)
-    
+
     services = [
         ("Neural Orchestrator", "http://localhost:8003/health", 8003),
         ("Learning Service", "http://localhost:8004/health", 8004),
         ("Threat Detection", "http://localhost:8005/health", 8005),
     ]
-    
+
     for service_name, health_url, port in services:
         status, data = check_service_health(service_name, health_url, port)
         print(f"   {status:<15} {service_name:<20} (Port {port})")
@@ -80,48 +80,48 @@ def main():
                 print(f"     Active Agents: {data.get('active_agents', 0)}")
             if 'learning_active' in data:
                 print(f"     Learning Active: {data.get('learning_active', False)}")
-    
+
     print()
-    
+
     # Infrastructure Services
     print("🏗️ INFRASTRUCTURE SERVICES")
     print("=" * 60)
-    
+
     infra_services = [
         ("PostgreSQL", "xorb_production_postgres_1", 5432),
         ("Redis", "xorb-redis", 6379),
         ("Neo4j", "xorb-neo4j", 7474),
     ]
-    
+
     for service_name, container_name, port in infra_services:
         status, data = check_docker_service(container_name)
         print(f"   {status:<15} {service_name:<20} (Port {port})")
         if data:
             print(f"     Container Status: {data}")
-    
+
     print()
-    
+
     # Monitoring Services
     print("📊 MONITORING & OBSERVABILITY")
     print("=" * 60)
-    
+
     monitoring_services = [
         ("Prometheus", "http://localhost:9090/-/healthy", 9090),
         ("Grafana", "http://localhost:3000/api/health", 3000),
     ]
-    
+
     for service_name, health_url, port in monitoring_services:
         status, data = check_service_health(service_name, health_url, port)
         print(f"   {status:<15} {service_name:<20} (Port {port})")
-    
+
     print()
-    
+
     # Network Status
     print("🌐 NETWORK STATUS")
     print("=" * 60)
-    
+
     try:
-        result = subprocess.run(['docker', 'network', 'ls', '--filter', 'name=xorb'], 
+        result = subprocess.run(['docker', 'network', 'ls', '--filter', 'name=xorb'],
                                capture_output=True, text=True)
         if result.returncode == 0:
             networks = [line for line in result.stdout.split('\n') if 'xorb' in line.lower()]
@@ -135,9 +135,9 @@ def main():
             print("   ❌ ERROR       Failed to check Docker networks")
     except Exception as e:
         print(f"   ❌ ERROR       Network check failed: {e}")
-    
+
     print()
-    
+
     # Access Points
     print("🔗 ACCESS POINTS")
     print("=" * 60)
@@ -147,20 +147,20 @@ def main():
     print("   🎓 Learning Service:      http://localhost:8004")
     print("   🛡️  Threat Detection:     http://localhost:8005")
     print("   🗄️  Neo4j Browser:        http://localhost:7474")
-    
+
     print()
-    
+
     # Overall Status
     print("🏆 OVERALL PLATFORM STATUS")
     print("=" * 60)
-    
+
     # Count healthy services
     core_healthy = 0
     for service_name, health_url, port in services:
         status, _ = check_service_health(service_name, health_url, port)
         if "HEALTHY" in status:
             core_healthy += 1
-    
+
     if core_healthy == len(services):
         print("   🎉 EXCELLENT    All core services are healthy and operational!")
         print("   🚀 READY        XORB Platform is ready for production use")
@@ -170,9 +170,9 @@ def main():
     else:
         print("   ❌ POOR         Multiple services are unhealthy")
         print("   🚨 CRITICAL     Platform requires immediate attention")
-    
+
     print(f"   📊 HEALTH       {core_healthy}/{len(services)} core services healthy")
-    
+
     print()
     print("✅ Status check completed!")
     print(f"🕐 Check Duration: {time.time():.1f} seconds")

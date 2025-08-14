@@ -19,7 +19,7 @@ from datetime import datetime
 
 def test_intelligence_decision():
     """Test the intelligence decision endpoint specifically"""
-    
+
     # Start server
     print("🚀 Starting debug server...")
     server_thread = threading.Thread(
@@ -30,19 +30,19 @@ def test_intelligence_decision():
     )
     server_thread.start()
     time.sleep(3)
-    
+
     # Generate token
     token = authenticator.generate_jwt(
-        user_id="debug_user", 
+        user_id="debug_user",
         client_id="debug_client",
         roles=[Role.ADMIN]
     )
-    
+
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-    
+
     # Test intelligence decision endpoint
     print("\n🧠 Testing /v1/intelligence/decisions endpoint...")
-    
+
     decision_data = {
         "decision_type": "threat_classification",
         "context": {
@@ -57,21 +57,21 @@ def test_intelligence_decision():
             "confidence_threshold": 0.8
         }
     }
-    
+
     try:
         response = requests.post(
-            "http://127.0.0.1:8090/v1/intelligence/decisions", 
-            headers=headers, 
+            "http://127.0.0.1:8090/v1/intelligence/decisions",
+            headers=headers,
             json=decision_data,
             timeout=10
         )
         print(f"Status: {response.status_code}")
         print(f"Headers: {dict(response.headers)}")
         print(f"Content: {response.text}")
-        
+
         if response.status_code != 200:
             print("❌ Request failed with detailed response above")
-            
+
     except Exception as e:
         print(f"Request failed with exception: {e}")
 

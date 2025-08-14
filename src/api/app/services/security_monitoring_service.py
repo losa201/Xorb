@@ -134,37 +134,37 @@ class ThreatDetectionRule:
 
 class SecurityMonitoringService(XORBService):
     """Comprehensive security monitoring and incident response service"""
-    
+
     def __init__(self):
         super().__init__()
-        
+
         # Storage
         self.events: deque = deque(maxlen=100000)  # Recent events
         self.alerts: Dict[str, SecurityAlert] = {}
         self.incidents: Dict[str, SecurityIncident] = {}
         self.detection_rules: Dict[str, ThreatDetectionRule] = {}
-        
+
         # ML Models for anomaly detection
         self.anomaly_models: Dict[str, Any] = {}
         self.feature_scalers: Dict[str, Any] = {}
-        
+
         # Configuration
         self.correlation_window = 300  # 5 minutes
         self.alert_threshold = 0.7
         self.incident_threshold = 0.8
         self.max_events_memory = 100000
         self.cleanup_interval = 3600  # 1 hour
-        
+
         # Redis for real-time processing
         self.redis_client: Optional[aioredis.Redis] = None
-        
+
         # Background tasks
         self.worker_tasks: List[asyncio.Task] = []
         self.running = False
-        
+
         # Metrics
         self.metrics = get_metrics_collector()
-        
+
         # Event processors
         self.event_processors = {
             "authentication": self._process_auth_event,
@@ -173,54 +173,54 @@ class SecurityMonitoringService(XORBService):
             "system": self._process_system_event,
             "application": self._process_app_event
         }
-    
+
     async def initialize(self) -> bool:
         """Initialize the security monitoring service"""
         try:
             logger.info("Initializing Security Monitoring Service...")
-            
+
             # Initialize Redis connection
             await self._initialize_redis()
-            
+
             # Initialize ML models
             await self._initialize_ml_models()
-            
+
             # Load detection rules
             await self._load_detection_rules()
-            
+
             # Start background workers
             await self._start_background_workers()
-            
+
             self.running = True
             logger.info("Security Monitoring Service initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize Security Monitoring Service: {e}")
             return False
-    
+
     async def shutdown(self) -> bool:
         """Shutdown the security monitoring service"""
         try:
             self.running = False
-            
+
             # Cancel background tasks
             for task in self.worker_tasks:
                 task.cancel()
-            
+
             await asyncio.gather(*self.worker_tasks, return_exceptions=True)
-            
+
             # Close Redis connection
             if self.redis_client:
                 await self.redis_client.close()
-            
+
             logger.info("Security Monitoring Service shutdown complete")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to shutdown Security Monitoring Service: {e}")
             return False
-    
+
     async def _initialize_redis(self):
         """Initialize Redis connection for real-time processing"""
         try:
@@ -230,7 +230,7 @@ class SecurityMonitoringService(XORBService):
         except Exception as e:
             logger.warning(f"Redis connection failed, using memory-only mode: {e}")
             self.redis_client = None
-    
+
     async def _initialize_ml_models(self):
         """Initialize ML models for anomaly detection"""
         try:
@@ -240,29 +240,29 @@ class SecurityMonitoringService(XORBService):
                     contamination=0.1,
                     random_state=42
                 )
-                
+
                 # Network traffic anomaly detection
                 self.anomaly_models['network_anomaly'] = IsolationForest(
                     contamination=0.05,
                     random_state=42
                 )
-                
+
                 # File access anomaly detection
                 self.anomaly_models['file_anomaly'] = IsolationForest(
                     contamination=0.08,
                     random_state=42
                 )
-                
+
                 # Feature scalers
                 self.feature_scalers['standard'] = StandardScaler()
-                
+
                 logger.info("ML models initialized for security monitoring")
             else:
                 logger.warning("scikit-learn not available, using rule-based detection only")
-                
+
         except Exception as e:
             logger.error(f"Failed to initialize ML models: {e}")
-    
+
     async def _load_detection_rules(self):
         """Load threat detection rules"""
         try:
@@ -345,44 +345,44 @@ class SecurityMonitoringService(XORBService):
                     false_positive_rate=0.2
                 )
             ]
-            
+
             for rule in default_rules:
                 self.detection_rules[rule.rule_id] = rule
-            
+
             logger.info(f"Loaded {len(self.detection_rules)} detection rules")
-            
+
         except Exception as e:
             logger.error(f"Failed to load detection rules: {e}")
-    
+
     async def _start_background_workers(self):
         """Start background processing workers"""
         try:
             # Event correlation worker
             correlation_task = asyncio.create_task(self._correlation_worker())
             self.worker_tasks.append(correlation_task)
-            
+
             # Alert processing worker
             alert_task = asyncio.create_task(self._alert_processing_worker())
             self.worker_tasks.append(alert_task)
-            
+
             # Incident management worker
             incident_task = asyncio.create_task(self._incident_management_worker())
             self.worker_tasks.append(incident_task)
-            
+
             # Cleanup worker
             cleanup_task = asyncio.create_task(self._cleanup_worker())
             self.worker_tasks.append(cleanup_task)
-            
+
             # ML training worker
             if HAS_SKLEARN:
                 ml_task = asyncio.create_task(self._ml_training_worker())
                 self.worker_tasks.append(ml_task)
-            
+
             logger.info(f"Started {len(self.worker_tasks)} background workers")
-            
+
         except Exception as e:
             logger.error(f"Failed to start background workers: {e}")
-    
+
     async def ingest_security_event(self, event_data: Dict[str, Any]) -> str:
         """Ingest a security event for processing"""
         try:
@@ -403,103 +403,103 @@ class SecurityMonitoringService(XORBService):
                 tags=event_data.get("tags", []),
                 raw_data=event_data
             )
-            
+
             # Store event
             self.events.append(event)
-            
+
             # Real-time processing
             await self._process_event_real_time(event)
-            
+
             # Store in Redis for real-time queries
             if self.redis_client:
                 await self._store_event_in_redis(event)
-            
+
             # Record metrics
             self.metrics.record_api_request(f"security_event_{event.category.value}", 1)
-            
+
             logger.debug(f"Ingested security event: {event.event_id}")
             return event.event_id
-            
+
         except Exception as e:
             logger.error(f"Failed to ingest security event: {e}")
             raise
-    
+
     async def _process_event_real_time(self, event: SecurityEvent):
         """Process event in real-time for immediate threats"""
         try:
             # Apply detection rules
             await self._apply_detection_rules(event)
-            
+
             # Check for immediate anomalies
             if event.category in self.anomaly_models and HAS_SKLEARN:
                 anomaly_score = await self._detect_anomaly(event)
                 if anomaly_score > self.alert_threshold:
                     await self._create_anomaly_alert(event, anomaly_score)
-            
+
             # Process by event type
             processor = self.event_processors.get(event.event_type)
             if processor:
                 await processor(event)
-            
+
         except Exception as e:
             logger.error(f"Failed to process event real-time: {e}")
-    
+
     async def _apply_detection_rules(self, event: SecurityEvent):
         """Apply detection rules to the event"""
         try:
             for rule in self.detection_rules.values():
                 if not rule.enabled:
                     continue
-                
+
                 if await self._rule_matches_event(rule, event):
                     await self._trigger_rule_actions(rule, event)
-                    
+
                     rule.last_triggered = datetime.utcnow()
                     rule.trigger_count += 1
-                    
+
         except Exception as e:
             logger.error(f"Failed to apply detection rules: {e}")
-    
+
     async def _rule_matches_event(self, rule: ThreatDetectionRule, event: SecurityEvent) -> bool:
         """Check if a rule matches the given event"""
         try:
             conditions = rule.conditions
-            
+
             # Check event type
             if "event_type" in conditions and event.event_type != conditions["event_type"]:
                 return False
-            
+
             # Check category
             if "category" in conditions and event.category.value != conditions["category"]:
                 return False
-            
+
             # Check severity
             if "min_severity" in conditions:
                 min_severity = AlertSeverity(conditions["min_severity"])
                 if self._severity_weight(event.severity) < self._severity_weight(min_severity):
                     return False
-            
+
             # Check count-based conditions
             if "count_threshold" in conditions:
                 count = await self._get_event_count(rule, event)
                 if count < conditions["count_threshold"]:
                     return False
-            
+
             # Check specific field conditions
             for field, expected_value in conditions.items():
                 if field in ["event_type", "category", "min_severity", "count_threshold", "time_window", "group_by"]:
                     continue
-                
+
                 actual_value = event.details.get(field) or getattr(event, field, None)
                 if actual_value != expected_value:
                     return False
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to check rule match: {e}")
             return False
-    
+
     def _severity_weight(self, severity: AlertSeverity) -> int:
         """Get numeric weight for severity"""
         weights = {
@@ -510,14 +510,14 @@ class SecurityMonitoringService(XORBService):
             AlertSeverity.CRITICAL: 5
         }
         return weights.get(severity, 1)
-    
+
     async def _get_event_count(self, rule: ThreatDetectionRule, event: SecurityEvent) -> int:
         """Get count of similar events for rule evaluation"""
         try:
             time_window = rule.conditions.get("time_window", 300)
             group_by = rule.conditions.get("group_by", "source_ip")
             cutoff_time = datetime.utcnow() - timedelta(seconds=time_window)
-            
+
             # Get grouping value
             if group_by == "source_ip":
                 group_value = event.source_ip
@@ -525,29 +525,29 @@ class SecurityMonitoringService(XORBService):
                 group_value = event.user_id
             else:
                 group_value = getattr(event, group_by, None)
-            
+
             if not group_value:
                 return 0
-            
+
             # Count matching events
             count = 0
             for stored_event in self.events:
                 if stored_event.timestamp < cutoff_time:
                     continue
-                
+
                 if stored_event.event_type != event.event_type:
                     continue
-                
+
                 stored_group_value = getattr(stored_event, group_by, None)
                 if stored_group_value == group_value:
                     count += 1
-            
+
             return count
-            
+
         except Exception as e:
             logger.error(f"Failed to get event count: {e}")
             return 0
-    
+
     async def _trigger_rule_actions(self, rule: ThreatDetectionRule, event: SecurityEvent):
         """Trigger actions for a matched rule"""
         try:
@@ -566,10 +566,10 @@ class SecurityMonitoringService(XORBService):
                     await self._require_approval(event)
                 else:
                     logger.warning(f"Unknown rule action: {action}")
-                    
+
         except Exception as e:
             logger.error(f"Failed to trigger rule actions: {e}")
-    
+
     async def _create_rule_alert(self, rule: ThreatDetectionRule, event: SecurityEvent):
         """Create alert from rule trigger"""
         try:
@@ -589,17 +589,17 @@ class SecurityMonitoringService(XORBService):
                 remediation_steps=await self._generate_remediation_steps(rule, event),
                 false_positive_likelihood=rule.false_positive_rate
             )
-            
+
             self.alerts[alert.alert_id] = alert
-            
+
             # Store in database
             await self._store_alert_in_database(alert)
-            
+
             logger.info(f"Created alert from rule {rule.name}: {alert.alert_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to create rule alert: {e}")
-    
+
     async def _create_rule_incident(self, rule: ThreatDetectionRule, event: SecurityEvent):
         """Create incident from critical rule trigger"""
         try:
@@ -621,21 +621,21 @@ class SecurityMonitoringService(XORBService):
                 }],
                 containment_actions=await self._generate_containment_actions(rule, event)
             )
-            
+
             self.incidents[incident.incident_id] = incident
-            
+
             # Store in database
             await self._store_incident_in_database(incident)
-            
+
             logger.warning(f"Created security incident: {incident.incident_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to create rule incident: {e}")
-    
+
     async def _generate_remediation_steps(self, rule: ThreatDetectionRule, event: SecurityEvent) -> List[str]:
         """Generate remediation steps for an alert"""
         steps = []
-        
+
         if rule.category == AlertCategory.AUTHENTICATION:
             steps.extend([
                 "Verify user identity and recent login activity",
@@ -664,7 +664,7 @@ class SecurityMonitoringService(XORBService):
                 "Verify network segmentation",
                 "Review external connections"
             ])
-        
+
         # Generic steps
         steps.extend([
             "Document all findings and actions taken",
@@ -672,13 +672,13 @@ class SecurityMonitoringService(XORBService):
             "Update threat intelligence if applicable",
             "Review and update detection rules as needed"
         ])
-        
+
         return steps
-    
+
     async def _generate_containment_actions(self, rule: ThreatDetectionRule, event: SecurityEvent) -> List[str]:
         """Generate containment actions for an incident"""
         actions = []
-        
+
         if rule.category == AlertCategory.MALWARE:
             actions.extend([
                 "Isolate infected systems from network",
@@ -700,9 +700,9 @@ class SecurityMonitoringService(XORBService):
                 "Monitor for lateral movement",
                 "Update firewall rules"
             ])
-        
+
         return actions
-    
+
     # Background workers
     async def _correlation_worker(self):
         """Background worker for event correlation"""
@@ -710,86 +710,86 @@ class SecurityMonitoringService(XORBService):
             try:
                 await self._correlate_recent_events()
                 await asyncio.sleep(30)  # Run every 30 seconds
-                
+
             except Exception as e:
                 logger.error(f"Correlation worker error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _alert_processing_worker(self):
         """Background worker for alert processing"""
         while self.running:
             try:
                 await self._process_pending_alerts()
                 await asyncio.sleep(60)  # Run every minute
-                
+
             except Exception as e:
                 logger.error(f"Alert processing worker error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _incident_management_worker(self):
         """Background worker for incident management"""
         while self.running:
             try:
                 await self._update_incident_statuses()
                 await asyncio.sleep(300)  # Run every 5 minutes
-                
+
             except Exception as e:
                 logger.error(f"Incident management worker error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _cleanup_worker(self):
         """Background worker for data cleanup"""
         while self.running:
             try:
                 await self._cleanup_old_data()
                 await asyncio.sleep(self.cleanup_interval)
-                
+
             except Exception as e:
                 logger.error(f"Cleanup worker error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _ml_training_worker(self):
         """Background worker for ML model training"""
         while self.running:
             try:
                 await self._retrain_anomaly_models()
                 await asyncio.sleep(3600)  # Run every hour
-                
+
             except Exception as e:
                 logger.error(f"ML training worker error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _correlate_recent_events(self):
         """Correlate recent events to identify attack patterns"""
         try:
             cutoff_time = datetime.utcnow() - timedelta(seconds=self.correlation_window)
             recent_events = [e for e in self.events if e.timestamp > cutoff_time]
-            
+
             if len(recent_events) < 3:
                 return
-            
+
             # Group events by various criteria
             correlations = await self._find_event_correlations(recent_events)
-            
+
             # Create alerts for significant correlations
             for correlation in correlations:
                 if correlation["confidence"] > self.alert_threshold:
                     await self._create_correlation_alert(correlation)
-                    
+
         except Exception as e:
             logger.error(f"Event correlation failed: {e}")
-    
+
     async def _find_event_correlations(self, events: List[SecurityEvent]) -> List[Dict[str, Any]]:
         """Find correlations between events"""
         correlations = []
-        
+
         try:
             # IP-based correlation
             ip_groups = defaultdict(list)
             for event in events:
                 if event.source_ip:
                     ip_groups[event.source_ip].append(event)
-            
+
             for ip, ip_events in ip_groups.items():
                 if len(ip_events) >= 3:
                     correlation = {
@@ -801,13 +801,13 @@ class SecurityMonitoringService(XORBService):
                         "severity": max(ip_events, key=lambda e: self._severity_weight(e.severity)).severity
                     }
                     correlations.append(correlation)
-            
+
             # User-based correlation
             user_groups = defaultdict(list)
             for event in events:
                 if event.user_id:
                     user_groups[event.user_id].append(event)
-            
+
             for user_id, user_events in user_groups.items():
                 if len(user_events) >= 3:
                     correlation = {
@@ -819,7 +819,7 @@ class SecurityMonitoringService(XORBService):
                         "severity": max(user_events, key=lambda e: self._severity_weight(e.severity)).severity
                     }
                     correlations.append(correlation)
-            
+
             # Time-based correlation (rapid succession)
             time_sorted = sorted(events, key=lambda e: e.timestamp)
             for i in range(len(time_sorted) - 2):
@@ -829,7 +829,7 @@ class SecurityMonitoringService(XORBService):
                         window_events.append(time_sorted[j])
                     else:
                         break
-                
+
                 if len(window_events) >= 3:
                     correlation = {
                         "type": "temporal",
@@ -841,12 +841,12 @@ class SecurityMonitoringService(XORBService):
                     }
                     correlations.append(correlation)
                     break
-                    
+
         except Exception as e:
             logger.error(f"Failed to find event correlations: {e}")
-        
+
         return correlations
-    
+
     async def _create_correlation_alert(self, correlation: Dict[str, Any]):
         """Create alert from event correlation"""
         try:
@@ -865,15 +865,15 @@ class SecurityMonitoringService(XORBService):
                 correlation_count=len(correlation["events"]),
                 remediation_steps=await self._generate_correlation_remediation(correlation)
             )
-            
+
             self.alerts[alert.alert_id] = alert
             await self._store_alert_in_database(alert)
-            
+
             logger.info(f"Created correlation alert: {alert.alert_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to create correlation alert: {e}")
-    
+
     async def _generate_correlation_remediation(self, correlation: Dict[str, Any]) -> List[str]:
         """Generate remediation steps for correlated events"""
         steps = [
@@ -882,7 +882,7 @@ class SecurityMonitoringService(XORBService):
             "Check for signs of coordinated attack",
             "Verify the legitimacy of the correlated activities"
         ]
-        
+
         if correlation["type"] == "ip_based":
             steps.extend([
                 "Consider blocking the source IP temporarily",
@@ -901,71 +901,71 @@ class SecurityMonitoringService(XORBService):
                 "Look for automated attack patterns",
                 "Check for script or bot activity"
             ])
-        
+
         return steps
-    
+
     def _calculate_risk_score(self, severity: AlertSeverity, confidence: float) -> float:
         """Calculate risk score based on severity and confidence"""
         severity_score = self._severity_weight(severity) / 5.0
         return min(1.0, severity_score * confidence)
-    
+
     # Utility methods for action implementation
     async def _notify_security_team(self, rule: ThreatDetectionRule, event: SecurityEvent):
         """Notify security team about the event"""
         try:
             # In production, this would send notifications via email, Slack, etc.
             logger.warning(f"SECURITY ALERT: {rule.name} - {event.description}")
-            
+
         except Exception as e:
             logger.error(f"Failed to notify security team: {e}")
-    
+
     async def _temp_block_ip(self, event: SecurityEvent):
         """Temporarily block an IP address"""
         try:
             if event.source_ip:
                 # In production, this would update firewall rules
                 logger.warning(f"Temporarily blocking IP: {event.source_ip}")
-                
+
         except Exception as e:
             logger.error(f"Failed to block IP: {e}")
-    
+
     async def _isolate_system(self, event: SecurityEvent):
         """Isolate a compromised system"""
         try:
             # In production, this would trigger network isolation
             logger.critical(f"Isolating system: {event.source}")
-            
+
         except Exception as e:
             logger.error(f"Failed to isolate system: {e}")
-    
+
     async def _require_approval(self, event: SecurityEvent):
         """Require approval for high-risk activities"""
         try:
             # In production, this would trigger approval workflow
             logger.warning(f"Requiring approval for: {event.description}")
-            
+
         except Exception as e:
             logger.error(f"Failed to require approval: {e}")
-    
+
     # Database operations
     async def _store_alert_in_database(self, alert: SecurityAlert):
         """Store alert in database"""
         try:
             # In production, this would store in database
             logger.debug(f"Storing alert in database: {alert.alert_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to store alert in database: {e}")
-    
+
     async def _store_incident_in_database(self, incident: SecurityIncident):
         """Store incident in database"""
         try:
             # In production, this would store in database
             logger.debug(f"Storing incident in database: {incident.incident_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to store incident in database: {e}")
-    
+
     async def _store_event_in_redis(self, event: SecurityEvent):
         """Store event in Redis for real-time queries"""
         try:
@@ -973,21 +973,21 @@ class SecurityMonitoringService(XORBService):
                 event_data = asdict(event)
                 # Convert datetime to string for JSON serialization
                 event_data['timestamp'] = event.timestamp.isoformat()
-                
+
                 await self.redis_client.lpush(
-                    f"security_events:{event.tenant_id or 'global'}", 
+                    f"security_events:{event.tenant_id or 'global'}",
                     json.dumps(event_data, default=str)
                 )
-                
+
                 # Expire after 24 hours
                 await self.redis_client.expire(
-                    f"security_events:{event.tenant_id or 'global'}", 
+                    f"security_events:{event.tenant_id or 'global'}",
                     86400
                 )
-                
+
         except Exception as e:
             logger.error(f"Failed to store event in Redis: {e}")
-    
+
     async def get_security_dashboard_data(self, tenant_id: Optional[str] = None) -> Dict[str, Any]:
         """Get security dashboard data"""
         try:
@@ -997,34 +997,34 @@ class SecurityMonitoringService(XORBService):
                 e.tenant_id == tenant_id for e in self.events if e.event_id in a.event_ids
             )]
             filtered_incidents = [i for i in self.incidents.values() if not tenant_id]
-            
+
             # Calculate time periods
             now = datetime.utcnow()
             last_24h = now - timedelta(hours=24)
             last_7d = now - timedelta(days=7)
-            
+
             # Event statistics
             recent_events = [e for e in filtered_events if e.timestamp > last_24h]
             weekly_events = [e for e in filtered_events if e.timestamp > last_7d]
-            
+
             # Alert statistics
             recent_alerts = [a for a in filtered_alerts if a.created_at > last_24h]
             weekly_alerts = [a for a in filtered_alerts if a.created_at > last_7d]
-            
+
             # Incident statistics
             recent_incidents = [i for i in filtered_incidents if i.created_at > last_24h]
             open_incidents = [i for i in filtered_incidents if i.status != IncidentStatus.CLOSED]
-            
+
             # Category breakdown
             category_counts = defaultdict(int)
             for event in recent_events:
                 category_counts[event.category.value] += 1
-            
+
             # Severity breakdown
             severity_counts = defaultdict(int)
             for alert in recent_alerts:
                 severity_counts[alert.severity.value] += 1
-            
+
             dashboard_data = {
                 "summary": {
                     "events_24h": len(recent_events),
@@ -1060,13 +1060,13 @@ class SecurityMonitoringService(XORBService):
                     for i in sorted(open_incidents, key=lambda x: x.created_at, reverse=True)[:5]
                 ]
             }
-            
+
             return dashboard_data
-            
+
         except Exception as e:
             logger.error(f"Failed to get dashboard data: {e}")
             return {"error": str(e)}
-    
+
     async def health_check(self) -> ServiceHealth:
         """Perform health check"""
         try:
@@ -1078,10 +1078,10 @@ class SecurityMonitoringService(XORBService):
                 "background_tasks": len([t for t in self.worker_tasks if not t.done()]),
                 "redis_connected": self.redis_client is not None
             }
-            
+
             status = ServiceStatus.HEALTHY
             message = "Security Monitoring Service is operational"
-            
+
             # Check for issues
             if checks["background_tasks"] < len(self.worker_tasks) * 0.8:
                 status = ServiceStatus.DEGRADED
@@ -1089,14 +1089,14 @@ class SecurityMonitoringService(XORBService):
             elif len(self.events) >= self.max_events_memory * 0.9:
                 status = ServiceStatus.DEGRADED
                 message = "High memory usage for events"
-            
+
             return ServiceHealth(
                 status=status,
                 message=message,
                 timestamp=datetime.utcnow(),
                 checks=checks
             )
-            
+
         except Exception as e:
             return ServiceHealth(
                 status=ServiceStatus.UNHEALTHY,
@@ -1111,9 +1111,9 @@ _security_monitoring_service: Optional[SecurityMonitoringService] = None
 async def get_security_monitoring_service() -> SecurityMonitoringService:
     """Get global security monitoring service instance"""
     global _security_monitoring_service
-    
+
     if _security_monitoring_service is None:
         _security_monitoring_service = SecurityMonitoringService()
         await _security_monitoring_service.initialize()
-    
+
     return _security_monitoring_service

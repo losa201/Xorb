@@ -11,17 +11,17 @@ async def run_validation_test():
     sim_engine = SimulationEngine()
     telemetry = TelemetrySystem()
     orchestrator = MissionOrchestrator()
-    
+
     # Create agents
     red_agent = RedTeamAgent("R-001", sim_engine)
     blue_agent = BlueTeamAgent("B-001", sim_engine)
     rl_agent = RLAgent("RL-001", sim_engine)
-    
+
     # Register agents with simulation
     sim_engine.register_agent(red_agent)
     sim_engine.register_agent(blue_agent)
     sim_engine.register_agent(rl_agent)
-    
+
     # Set up mission
     mission = {
         "id": "M-001",
@@ -36,25 +36,25 @@ async def run_validation_test():
             }
         }]
     }
-    
+
     # Assign mission
     orchestrator.assign_mission(rl_agent.id, mission)
-    
+
     # Set up swarm behavior
     swarm = SwarmBehavior([red_agent, blue_agent, rl_agent])
-    
+
     # Run simulation
     print("Starting simulation...")
     for i in range(10):  # Run for 10 steps
         print(f"\n--- Step {i} ---")
-        
+
         # Advance simulation
         sim_engine.step()
-        
+
         # Collect telemetry
         telemetry_data = telemetry.collect_telemetry()
         telemetry.process_telemetry(telemetry_data)
-        
+
         # Show agent states
         print("\nAgent States:")
         for agent in [red_agent, blue_agent, rl_agent]:
@@ -64,16 +64,16 @@ async def run_validation_test():
             print(f"  Detection Risk: {agent.detection_risk:.2f}")
             print(f"  Mission Progress: {agent.mission_progress:.2f}")
             print(f"  Policy: {agent.current_policy}")
-        
+
         # Check for emergent behavior
         if i % 3 == 0:
             print("\nChecking for emergent behavior...")
             swarm_behavior = swarm.coordinate_attack()
             print(f"Emergent behavior pattern: {swarm_behavior}")
-        
+
         # Wait for next step
         await asyncio.sleep(0.5)
-    
+
     # Generate validation report
     print("\n=== Validation Report ===")
     print(f"Simulation Steps Completed: {sim_engine.step_count}")
@@ -83,7 +83,7 @@ async def run_validation_test():
     print(f"Resource Utilization: {sim_engine.calculate_resource_utilization():.2f}")
     print(f"Average Detection Risk: {sim_engine.calculate_average_detection_risk():.2f}")
     print(f"Mission Success Rate: {sim_engine.calculate_mission_success_rate():.2f}")
-    
+
     return {
         "step_count": sim_engine.step_count,
         "agents_simulated": len(sim_engine.agents),

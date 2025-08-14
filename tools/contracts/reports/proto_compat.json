@@ -1,0 +1,11 @@
+{
+  "breaking_changes": [],
+  "checked_files": [
+    "proto/audit/v1/evidence.proto",
+    "proto/compliance/v1/compliance.proto",
+    "proto/discovery/v1/discovery.proto",
+    "proto/threat/v1/threat.proto",
+    "proto/vuln/v1/vulnerability.proto"
+  ],
+  "errors": []
+}

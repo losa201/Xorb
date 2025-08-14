@@ -72,7 +72,7 @@ class ComplianceFramework(str, Enum):
 class EnhancedTarget(BaseModel):
     """Enhanced target specification"""
     model_config = {"protected_namespaces": ()}
-    
+
     host: str = Field(..., description="Target host or IP address")
     ports: Optional[List[int]] = Field(default=None, description="Specific ports to scan")
     protocol: str = Field(default="tcp", description="Protocol to use (tcp, udp)")
@@ -80,7 +80,7 @@ class EnhancedTarget(BaseModel):
     custom_headers: Optional[Dict[str, str]] = Field(default=None, description="Custom HTTP headers")
     scan_depth: int = Field(default=2, ge=1, le=5, description="Scan depth level")
     exclude_paths: Optional[List[str]] = Field(default=None, description="Paths to exclude from scanning")
-    
+
     @validator('host')
     def validate_host(cls, v):
         if not v or len(v.strip()) == 0:
@@ -90,7 +90,7 @@ class EnhancedTarget(BaseModel):
 class EnhancedScanRequest(BaseModel):
     """Enhanced scan request with advanced options"""
     model_config = {"protected_namespaces": ()}
-    
+
     name: str = Field(..., description="Scan session name")
     targets: List[EnhancedTarget] = Field(..., description="Target specifications")
     scan_type: ScanType = Field(..., description="Type of scan to perform")
@@ -102,11 +102,11 @@ class EnhancedScanRequest(BaseModel):
     aggressive_mode: bool = Field(default=False, description="Enable aggressive scanning")
     custom_payloads: Optional[List[str]] = Field(default=None, description="Custom exploit payloads")
     notification_webhook: Optional[str] = Field(default=None, description="Webhook URL for notifications")
-    
+
 class VulnerabilityFinding(BaseModel):
     """Vulnerability finding details"""
     model_config = {"protected_namespaces": ()}
-    
+
     id: str = Field(..., description="Unique finding ID")
     severity: str = Field(..., description="Vulnerability severity")
     title: str = Field(..., description="Vulnerability title")
@@ -122,7 +122,7 @@ class VulnerabilityFinding(BaseModel):
 class EnhancedScanResult(BaseModel):
     """Enhanced scan results with detailed findings"""
     model_config = {"protected_namespaces": ()}
-    
+
     session_id: str
     status: ScanStatus
     progress: float = Field(ge=0, le=100, description="Scan progress percentage")
@@ -148,7 +148,7 @@ async def create_enhanced_scan(
 ):
     """
     Create an enhanced penetration testing scan with real-world security tools
-    
+
     This endpoint creates a comprehensive security scan using industry-standard tools:
     - **Nmap**: Network discovery and port scanning
     - **Nuclei**: Modern vulnerability scanner with 3000+ templates
@@ -158,9 +158,9 @@ async def create_enhanced_scan(
     - **SQLMap**: SQL injection testing
     - **WPScan**: WordPress security scanner
     """
-    
+
     session_id = f"enhanced-{uuid.uuid4().hex[:8]}"
-    
+
     try:
         # Validate targets
         if not request.targets:
@@ -168,7 +168,7 @@ async def create_enhanced_scan(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="At least one target is required"
             )
-        
+
         # Security validation - prevent scanning of internal/restricted targets
         for target in request.targets:
             if _is_restricted_target(target.host):
@@ -176,7 +176,7 @@ async def create_enhanced_scan(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"Scanning of target {target.host} is not permitted"
                 )
-        
+
         # Create scan configuration
         scan_config = {
             "session_id": session_id,
@@ -196,7 +196,7 @@ async def create_enhanced_scan(
             "created_at": datetime.utcnow(),
             "status": ScanStatus.QUEUED
         }
-        
+
         # Schedule the scan execution
         if request.schedule and request.schedule > datetime.utcnow():
             # Schedule for future execution
@@ -206,9 +206,9 @@ async def create_enhanced_scan(
             # Execute immediately
             background_tasks.add_task(_execute_enhanced_scan, scan_config)
             status_msg = "Scan started"
-        
+
         logger.info(f"Enhanced scan created: {session_id} by user {getattr(current_user, 'user_id', 'anonymous')}")
-        
+
         return {
             "session_id": session_id,
             "status": ScanStatus.QUEUED,
@@ -222,7 +222,7 @@ async def create_enhanced_scan(
                 "report": f"/api/v1/enhanced-ptaas/scans/{session_id}/report"
             }
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -240,21 +240,21 @@ async def get_enhanced_scan_status(
     """
     Get detailed status and results of an enhanced penetration testing scan
     """
-    
+
     try:
         # In a real implementation, this would fetch from database
         # For demonstration, return mock data with realistic scan results
-        
+
         scan_result = _get_mock_enhanced_scan_result(session_id)
-        
+
         if not scan_result:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Scan session {session_id} not found"
             )
-        
+
         return scan_result
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -273,16 +273,16 @@ async def get_enhanced_scan_report(
     """
     Generate and download comprehensive scan report in various formats
     """
-    
+
     try:
         scan_result = _get_mock_enhanced_scan_result(session_id)
-        
+
         if not scan_result:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Scan session {session_id} not found"
             )
-        
+
         if format == "json":
             return JSONResponse(content=scan_result.dict())
         elif format == "pdf":
@@ -309,7 +309,7 @@ async def get_enhanced_scan_report(
                 media_type="application/xml",
                 headers={"Content-Disposition": f"attachment; filename=scan_report_{session_id}.xml"}
             )
-            
+
     except HTTPException:
         raise
     except Exception as e:
@@ -328,19 +328,19 @@ async def control_enhanced_scan(
     """
     Control scan execution (pause, resume, cancel, restart)
     """
-    
+
     valid_actions = ["pause", "resume", "cancel", "restart"]
-    
+
     if action not in valid_actions:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Invalid action. Must be one of: {', '.join(valid_actions)}"
         )
-    
+
     try:
         # In a real implementation, this would interact with the scan engine
         result = _control_scan_execution(session_id, action)
-        
+
         return {
             "session_id": session_id,
             "action": action,
@@ -348,7 +348,7 @@ async def control_enhanced_scan(
             "message": f"Scan {action} executed successfully",
             "timestamp": datetime.utcnow()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to control scan: {e}")
         raise HTTPException(
@@ -363,7 +363,7 @@ async def get_available_security_tools(
     """
     Get list of available security tools and their capabilities
     """
-    
+
     tools_info = {
         "nmap": {
             "name": "Nmap",
@@ -407,7 +407,7 @@ async def get_available_security_tools(
             "estimated_time": "5-60 minutes"
         }
     }
-    
+
     return {
         "available_tools": list(tools_info.keys()),
         "total_tools": len(tools_info),
@@ -431,7 +431,7 @@ def _is_restricted_target(host: str) -> bool:
         "172.16.0.0/12",   # Private networks (optional restriction)
         "192.168.0.0/16"   # Private networks (optional restriction)
     ]
-    
+
     # Add more sophisticated validation logic here
     return host.lower() in ["localhost", "127.0.0.1", "::1"]
 
@@ -446,7 +446,7 @@ def _get_default_tools(scan_type: ScanType) -> List[SecurityTool]:
         ScanType.VULNERABILITY_ASSESSMENT: [SecurityTool.NUCLEI, SecurityTool.NMAP],
         ScanType.COMPLIANCE_SCAN: [SecurityTool.SSLSCAN, SecurityTool.NUCLEI],
     }
-    
+
     return tool_mapping.get(scan_type, [SecurityTool.NMAP, SecurityTool.NUCLEI])
 
 def _estimate_scan_duration(request: EnhancedScanRequest) -> str:
@@ -460,15 +460,15 @@ def _estimate_scan_duration(request: EnhancedScanRequest) -> str:
         ScanType.VULNERABILITY_ASSESSMENT: 25,
         ScanType.COMPLIANCE_SCAN: 15,
     }
-    
+
     estimated_minutes = base_time.get(request.scan_type, 15)
     estimated_minutes *= len(request.targets)
-    
+
     if request.aggressive_mode:
         estimated_minutes *= 0.7  # Faster but noisier
     if request.stealth_mode:
         estimated_minutes *= 1.5  # Slower but stealthier
-    
+
     return f"{int(estimated_minutes)} minutes"
 
 async def _schedule_scan(scan_config: Dict[str, Any]):
@@ -479,25 +479,25 @@ async def _schedule_scan(scan_config: Dict[str, Any]):
 async def _execute_enhanced_scan(scan_config: Dict[str, Any]):
     """Execute the enhanced penetration testing scan with real security tools"""
     session_id = scan_config["session_id"]
-    
+
     try:
         logger.info(f"Starting enhanced scan: {session_id}")
-        
+
         # Import production scanner
         from ..services.production_ptaas_scanner_implementation import ProductionPTaaSScanner, ScanConfiguration
-        
+
         # Update status to running
         scan_config["status"] = ScanStatus.RUNNING
         scan_config["started_at"] = datetime.utcnow()
-        
+
         # Initialize production scanner
         scanner = ProductionPTaaSScanner(config=scan_config)
-        
+
         # Execute comprehensive scan for each target
         all_results = []
         for target_data in scan_config["targets"]:
             target_host = target_data.get("host") if isinstance(target_data, dict) else str(target_data)
-            
+
             # Create scan configuration
             scan_cfg = ScanConfiguration(
                 target=target_host,
@@ -507,31 +507,31 @@ async def _execute_enhanced_scan(scan_config: Dict[str, Any]):
                 aggressive_mode=scan_config.get("aggressive_mode", False),
                 timeout=scan_config.get("max_duration", 300)
             )
-            
+
             # Validate target first
             is_valid, validation_msg = await scanner.validate_target(target_host)
             if not is_valid:
                 logger.warning(f"Target validation failed for {target_host}: {validation_msg}")
                 continue
-            
+
             # Execute comprehensive scan
             logger.info(f"Executing comprehensive scan for {target_host}")
             scan_result = await scanner.execute_comprehensive_scan(scan_cfg)
             all_results.append(scan_result)
-        
+
         # Combine results
         combined_results = _combine_scan_results(all_results)
-        
+
         # Store results in scan config
         scan_config["results"] = combined_results
         scan_config["status"] = ScanStatus.COMPLETED
         scan_config["completed_at"] = datetime.utcnow()
-        
+
         logger.info(f"Enhanced scan completed: {session_id}")
-        
+
         # Trigger post-scan analysis
         await _post_scan_analysis(session_id, combined_results)
-        
+
     except Exception as e:
         logger.error(f"Enhanced scan failed: {session_id} - {e}")
         scan_config["status"] = ScanStatus.FAILED
@@ -539,7 +539,7 @@ async def _execute_enhanced_scan(scan_config: Dict[str, Any]):
 
 def _get_mock_enhanced_scan_result(session_id: str) -> Optional[EnhancedScanResult]:
     """Get mock scan result for demonstration"""
-    
+
     # Mock vulnerability findings
     findings = [
         VulnerabilityFinding(
@@ -577,7 +577,7 @@ def _get_mock_enhanced_scan_result(session_id: str) -> Optional[EnhancedScanResu
             references=["https://owasp.org/www-project-web-security-testing-guide/"]
         )
     ]
-    
+
     return EnhancedScanResult(
         session_id=session_id,
         status=ScanStatus.COMPLETED,
@@ -662,7 +662,7 @@ def _generate_xml_report(scan_result: EnhancedScanResult) -> str:
 
 def _combine_scan_results(scan_results: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Combine multiple scan results into a comprehensive report"""
-    
+
     combined = {
         "summary": {
             "total_targets": len(scan_results),
@@ -677,48 +677,48 @@ def _combine_scan_results(scan_results: List[Dict[str, Any]]) -> Dict[str, Any]:
         "compliance_analysis": {},
         "recommendations": []
     }
-    
+
     for result in scan_results:
         if not result:
             continue
-            
+
         # Aggregate vulnerabilities
         vulnerabilities = result.get("vulnerabilities", [])
         combined["vulnerabilities"].extend(vulnerabilities)
         combined["summary"]["total_vulnerabilities"] += len(vulnerabilities)
-        
+
         # Aggregate services
         services = result.get("services", [])
         combined["services"].extend(services)
         combined["summary"]["total_services"] += len(services)
-        
+
         # Aggregate ports
         ports = result.get("ports", [])
         combined["ports"].extend(ports)
         combined["summary"]["total_ports"] += len(ports)
-        
+
         # Aggregate recommendations
         recommendations = result.get("recommendations", [])
         combined["recommendations"].extend(recommendations)
-        
+
         # Add scan duration
         duration = result.get("duration", 0)
         combined["summary"]["scan_duration"] += duration
-    
+
     # Remove duplicates from recommendations
     combined["recommendations"] = list(set(combined["recommendations"]))
-    
+
     # Calculate overall risk score
     combined["summary"]["risk_score"] = _calculate_overall_risk_score(combined["vulnerabilities"])
-    
+
     return combined
 
 def _calculate_overall_risk_score(vulnerabilities: List[Dict[str, Any]]) -> float:
     """Calculate overall risk score based on vulnerabilities"""
-    
+
     if not vulnerabilities:
         return 0.0
-    
+
     severity_weights = {
         "Critical": 10.0,
         "High": 7.0,
@@ -726,38 +726,38 @@ def _calculate_overall_risk_score(vulnerabilities: List[Dict[str, Any]]) -> floa
         "Low": 2.0,
         "Info": 0.5
     }
-    
+
     total_score = 0.0
     for vuln in vulnerabilities:
         severity = vuln.get("severity", "Low")
         weight = severity_weights.get(severity, 1.0)
         total_score += weight
-    
+
     # Normalize to 0-10 scale
     max_possible_score = len(vulnerabilities) * 10.0
     if max_possible_score > 0:
         normalized_score = (total_score / max_possible_score) * 10.0
         return min(normalized_score, 10.0)
-    
+
     return 0.0
 
 async def _post_scan_analysis(session_id: str, scan_results: Dict[str, Any]):
     """Perform post-scan analysis and threat intelligence correlation"""
-    
+
     try:
         # Import threat intelligence service
         from ..services.production_ai_threat_intelligence_engine import ProductionAIThreatIntelligence
-        
+
         # Initialize threat intelligence
         threat_intel = ProductionAIThreatIntelligence()
-        
+
         # Extract indicators from scan results
         indicators = _extract_indicators_from_results(scan_results)
-        
+
         if indicators:
             # Analyze indicators with AI threat intelligence
             threat_analysis = await threat_intel.analyze_threat_indicators(indicators)
-            
+
             # Store threat analysis results
             scan_results["threat_intelligence"] = {
                 "indicators_analyzed": len(indicators),
@@ -765,39 +765,39 @@ async def _post_scan_analysis(session_id: str, scan_results: Dict[str, Any]):
                 "analysis_results": [asdict(indicator) for indicator in threat_analysis],
                 "analysis_timestamp": datetime.utcnow().isoformat()
             }
-            
+
             logger.info(f"Post-scan threat analysis completed for {session_id}")
-            
+
     except Exception as e:
         logger.error(f"Post-scan analysis failed for {session_id}: {e}")
 
 def _extract_indicators_from_results(scan_results: Dict[str, Any]) -> List[str]:
     """Extract threat indicators from scan results"""
-    
+
     indicators = []
-    
+
     # Extract IPs from services
     for service in scan_results.get("services", []):
         if "ip" in service:
             indicators.append(service["ip"])
-    
+
     # Extract domains from vulnerabilities
     for vuln in scan_results.get("vulnerabilities", []):
         affected_component = vuln.get("affected_component", "")
         if "." in affected_component and not affected_component.startswith("/"):
             indicators.append(affected_component)
-    
+
     # Extract URLs from scan summary
     scan_summary = scan_results.get("scan_summary", {})
     if "target_urls" in scan_summary:
         indicators.extend(scan_summary["target_urls"])
-    
+
     # Remove duplicates and return
     return list(set(indicators))
 
 async def _execute_compliance_scan(target: str, framework: str) -> Dict[str, Any]:
     """Execute compliance-specific security scan"""
-    
+
     compliance_results = {
         "framework": framework,
         "target": target,
@@ -807,7 +807,7 @@ async def _execute_compliance_scan(target: str, framework: str) -> Dict[str, Any
         "checks": [],
         "recommendations": []
     }
-    
+
     # Framework-specific checks
     if framework == "PCI-DSS":
         compliance_results.update(await _pci_dss_compliance_scan(target))
@@ -820,22 +820,22 @@ async def _execute_compliance_scan(target: str, framework: str) -> Dict[str, Any
     else:
         # Generic compliance scan
         compliance_results.update(await _generic_compliance_scan(target))
-    
+
     return compliance_results
 
 async def _pci_dss_compliance_scan(target: str) -> Dict[str, Any]:
     """PCI-DSS specific compliance checks"""
-    
+
     checks = [
         {"check_id": "PCI-1.1", "name": "Firewall Configuration", "status": "pass", "details": "Firewall properly configured"},
         {"check_id": "PCI-2.1", "name": "Default Passwords", "status": "fail", "details": "Default passwords detected"},
         {"check_id": "PCI-4.1", "name": "Encryption in Transit", "status": "pass", "details": "Strong encryption in use"},
         {"check_id": "PCI-6.1", "name": "Vulnerability Management", "status": "warning", "details": "Some vulnerabilities need patching"}
     ]
-    
+
     passing = len([c for c in checks if c["status"] == "pass"])
     failing = len([c for c in checks if c["status"] == "fail"])
-    
+
     return {
         "compliance_score": (passing / len(checks)) * 100,
         "passing_checks": passing,
@@ -850,16 +850,16 @@ async def _pci_dss_compliance_scan(target: str) -> Dict[str, Any]:
 
 async def _hipaa_compliance_scan(target: str) -> Dict[str, Any]:
     """HIPAA specific compliance checks"""
-    
+
     checks = [
         {"check_id": "HIPAA-164.312", "name": "Access Control", "status": "pass", "details": "Access controls implemented"},
         {"check_id": "HIPAA-164.314", "name": "Transmission Security", "status": "fail", "details": "Weak encryption protocols"},
         {"check_id": "HIPAA-164.308", "name": "Administrative Safeguards", "status": "pass", "details": "Policies in place"}
     ]
-    
+
     passing = len([c for c in checks if c["status"] == "pass"])
     failing = len([c for c in checks if c["status"] == "fail"])
-    
+
     return {
         "compliance_score": (passing / len(checks)) * 100,
         "passing_checks": passing,
@@ -874,16 +874,16 @@ async def _hipaa_compliance_scan(target: str) -> Dict[str, Any]:
 
 async def _sox_compliance_scan(target: str) -> Dict[str, Any]:
     """SOX specific compliance checks"""
-    
+
     checks = [
         {"check_id": "SOX-404", "name": "Internal Controls", "status": "pass", "details": "Controls documented"},
         {"check_id": "SOX-302", "name": "Data Integrity", "status": "pass", "details": "Data validation in place"},
         {"check_id": "SOX-906", "name": "Access Management", "status": "warning", "details": "Review access permissions"}
     ]
-    
+
     passing = len([c for c in checks if c["status"] == "pass"])
     failing = len([c for c in checks if c["status"] == "fail"])
-    
+
     return {
         "compliance_score": (passing / len(checks)) * 100,
         "passing_checks": passing,
@@ -898,16 +898,16 @@ async def _sox_compliance_scan(target: str) -> Dict[str, Any]:
 
 async def _iso27001_compliance_scan(target: str) -> Dict[str, Any]:
     """ISO 27001 specific compliance checks"""
-    
+
     checks = [
         {"check_id": "ISO-A.9.1", "name": "Access Control Policy", "status": "pass", "details": "Policy exists and enforced"},
         {"check_id": "ISO-A.10.1", "name": "Cryptographic Controls", "status": "fail", "details": "Weak cryptographic implementation"},
         {"check_id": "ISO-A.12.1", "name": "Operational Security", "status": "pass", "details": "Procedures documented"}
     ]
-    
+
     passing = len([c for c in checks if c["status"] == "pass"])
     failing = len([c for c in checks if c["status"] == "fail"])
-    
+
     return {
         "compliance_score": (passing / len(checks)) * 100,
         "passing_checks": passing,
@@ -922,16 +922,16 @@ async def _iso27001_compliance_scan(target: str) -> Dict[str, Any]:
 
 async def _generic_compliance_scan(target: str) -> Dict[str, Any]:
     """Generic compliance checks"""
-    
+
     checks = [
         {"check_id": "GEN-1", "name": "Password Policy", "status": "pass", "details": "Strong password policy enforced"},
         {"check_id": "GEN-2", "name": "Network Security", "status": "warning", "details": "Some ports unnecessarily open"},
         {"check_id": "GEN-3", "name": "Update Management", "status": "fail", "details": "Security updates missing"}
     ]
-    
+
     passing = len([c for c in checks if c["status"] == "pass"])
     failing = len([c for c in checks if c["status"] == "fail"])
-    
+
     return {
         "compliance_score": (passing / len(checks)) * 100,
         "passing_checks": passing,

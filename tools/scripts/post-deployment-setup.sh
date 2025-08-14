@@ -45,23 +45,23 @@ step() {
 # Check if deployment exists
 check_deployment() {
     step "🔍 Verifying XORB deployment"
-    
+
     if ! kubectl get namespace "$NAMESPACE" &>/dev/null; then
         error "Namespace $NAMESPACE not found. Please run deployment first."
         exit 1
     fi
-    
+
     if ! kubectl get deployment xorb-autonomous-orchestrator -n "$NAMESPACE" &>/dev/null; then
         error "XORB orchestrator deployment not found. Please run deployment first."
         exit 1
     fi
-    
+
     local running_pods=$(kubectl get pods -n "$NAMESPACE" -l app=xorb-orchestrator --field-selector=status.phase=Running --no-headers | wc -l)
     if [ "$running_pods" -eq 0 ]; then
         error "No running XORB orchestrator pods found."
         exit 1
     fi
-    
+
     log "✅ XORB deployment verified - $running_pods pods running"
 }
 
@@ -71,9 +71,9 @@ setup_ingress() {
         warn "⏭️ Skipping ingress setup (ENABLE_INGRESS=false)"
         return 0
     fi
-    
+
     step "🌐 Setting up external access"
-    
+
     # Create ingress for orchestrator API
     info "📝 Creating ingress configuration"
     kubectl apply -f - << EOF
@@ -133,7 +133,7 @@ spec:
             port:
               number: 9090
 EOF
-    
+
     # Create basic auth for metrics
     info "🔐 Setting up metrics authentication"
     htpasswd -cb /tmp/auth admin "$(openssl rand -base64 12)"
@@ -142,7 +142,7 @@ EOF
         --namespace="$NAMESPACE" \
         --dry-run=client -o yaml | kubectl apply -f -
     rm -f /tmp/auth
-    
+
     log "✅ Ingress configured for api.$DOMAIN and metrics.$DOMAIN"
 }
 
@@ -152,9 +152,9 @@ setup_tls() {
         warn "⏭️ Skipping TLS setup (ENABLE_TLS=false)"
         return 0
     fi
-    
+
     step "🔒 Setting up TLS certificates"
-    
+
     # Create ClusterIssuer for Let's Encrypt
     info "📜 Creating Let's Encrypt ClusterIssuer"
     kubectl apply -f - << EOF
@@ -173,7 +173,7 @@ spec:
         ingress:
           class: nginx
 EOF
-    
+
     # Create certificate for orchestrator
     info "🔐 Creating SSL certificate"
     kubectl apply -f - << EOF
@@ -192,7 +192,7 @@ spec:
   - metrics.$DOMAIN
   - xorb-orchestrator.$NAMESPACE.svc.cluster.local
 EOF
-    
+
     log "✅ TLS certificates configured"
 }
 
@@ -202,9 +202,9 @@ setup_alerts() {
         warn "⏭️ Skipping alerts setup (SETUP_ALERTS=false)"
         return 0
     fi
-    
+
     step "🚨 Setting up monitoring alerts"
-    
+
     # Create comprehensive alerting rules
     info "📊 Creating Prometheus alerting rules"
     kubectl apply -f - << EOF
@@ -232,7 +232,7 @@ spec:
         summary: "XORB Orchestrator is down"
         description: "Orchestrator {{ \$labels.instance }} has been down for more than 5 minutes"
         runbook_url: "https://docs.xorb.company.com/runbooks/orchestrator-down"
-    
+
     - alert: XORBHighMemoryUsage
       expr: (container_memory_usage_bytes{pod=~"xorb-autonomous-orchestrator-.*"} / container_spec_memory_limit_bytes) > 0.85
       for: 10m
@@ -242,7 +242,7 @@ spec:
       annotations:
         summary: "XORB Orchestrator high memory usage"
         description: "Pod {{ \$labels.pod }} memory usage is above 85% for 10 minutes"
-    
+
     - alert: XORBHighCPUUsage
       expr: (rate(container_cpu_usage_seconds_total{pod=~"xorb-autonomous-orchestrator-.*"}[5m]) / container_spec_cpu_quota * container_spec_cpu_period) > 0.8
       for: 15m
@@ -252,7 +252,7 @@ spec:
       annotations:
         summary: "XORB Orchestrator high CPU usage"
         description: "Pod {{ \$labels.pod }} CPU usage is above 80% for 15 minutes"
-    
+
     - alert: XORBTaskFailureRate
       expr: rate(xorb_orchestrator_tasks_failed_total[5m]) > 0.1
       for: 5m
@@ -262,7 +262,7 @@ spec:
       annotations:
         summary: "High task failure rate detected"
         description: "Task failure rate is {{ \$value }} per second"
-    
+
     - alert: XORBMLModelAccuracy
       expr: xorb_ml_model_accuracy < 0.75
       for: 10m
@@ -272,7 +272,7 @@ spec:
       annotations:
         summary: "ML model accuracy degraded"
         description: "Model {{ \$labels.model_type }} accuracy is {{ \$value }}"
-    
+
     - alert: XORBRedisDown
       expr: up{job="redis"} == 0
       for: 2m
@@ -282,7 +282,7 @@ spec:
       annotations:
         summary: "Redis is down"
         description: "Redis instance has been down for more than 2 minutes"
-    
+
     - alert: XORBAPIErrorRate
       expr: rate(xorb_api_requests_total{status=~"5.."}[5m]) / rate(xorb_api_requests_total[5m]) > 0.05
       for: 5m
@@ -292,7 +292,7 @@ spec:
       annotations:
         summary: "High API error rate"
         description: "API error rate is {{ \$value | humanizePercentage }} over the last 5 minutes"
-    
+
     - alert: XORBConsensusIssues
       expr: increase(xorb_consensus_leader_elections_failed_total[10m]) > 2
       for: 1m
@@ -303,7 +303,7 @@ spec:
         summary: "Consensus leader election failures"
         description: "Multiple leader election failures detected"
 EOF
-    
+
     log "✅ Monitoring alerts configured"
 }
 
@@ -313,9 +313,9 @@ setup_backups() {
         warn "⏭️ Skipping backup setup (CONFIGURE_BACKUPS=false)"
         return 0
     fi
-    
+
     step "💾 Setting up automated backups"
-    
+
     # Create backup script ConfigMap
     info "📝 Creating backup script"
     kubectl create configmap xorb-backup-script \
@@ -361,7 +361,7 @@ find /backups -name "xorb-backup-*.tar.gz" -mtime +7 -delete
 
 echo "Backup process finished at $(date)"
 ' --dry-run=client -o yaml | kubectl apply -f -
-    
+
     # Create backup CronJob
     info "⏰ Creating backup CronJob"
     kubectl apply -f - << EOF
@@ -420,17 +420,17 @@ spec:
       storage: 10Gi
   storageClassName: standard
 EOF
-    
+
     log "✅ Automated backups configured (daily at 2 AM)"
 }
 
 # Create operational scripts
 create_operational_scripts() {
     step "📋 Creating operational scripts"
-    
+
     local scripts_dir="/opt/xorb/scripts"
     mkdir -p "$scripts_dir"
-    
+
     # Health check script
     info "🏥 Creating health check script"
     cat > "$scripts_dir/health-check.sh" << 'EOF'
@@ -475,7 +475,7 @@ fi
 
 echo -e "\n✅ Health check completed"
 EOF
-    
+
     # Log collection script
     info "📝 Creating log collection script"
     cat > "$scripts_dir/collect-logs.sh" << 'EOF'
@@ -508,7 +508,7 @@ rm -rf "$OUTPUT_DIR"
 
 echo "✅ Logs collected: ${OUTPUT_DIR}.tar.gz"
 EOF
-    
+
     # Performance monitoring script
     info "📊 Creating performance monitoring script"
     cat > "$scripts_dir/performance-monitor.sh" << 'EOF'
@@ -540,17 +540,17 @@ kill $PF_PID 2>/dev/null || true
 
 echo -e "\n✅ Performance monitoring completed"
 EOF
-    
+
     # Make scripts executable
     chmod +x "$scripts_dir"/*.sh
-    
+
     log "✅ Operational scripts created in $scripts_dir"
 }
 
 # Setup log aggregation
 setup_logging() {
     step "📝 Setting up centralized logging"
-    
+
     info "🔍 Creating log aggregation configuration"
     kubectl apply -f - << EOF
 apiVersion: v1
@@ -600,17 +600,17 @@ data:
         Time_Format %Y-%m-%dT%H:%M:%S.%L
         Time_Keep   On
 EOF
-    
+
     log "✅ Logging configuration created"
 }
 
 # Generate final report
 generate_post_deployment_report() {
     step "📋 Generating post-deployment report"
-    
+
     local report_file="/var/log/xorb/post-deployment-$(date +%Y%m%d_%H%M%S).json"
     mkdir -p "$(dirname "$report_file")"
-    
+
     cat > "$report_file" << EOF
 {
   "post_deployment_setup": {
@@ -649,7 +649,7 @@ generate_post_deployment_report() {
   ]
 }
 EOF
-    
+
     log "✅ Post-deployment report generated: $report_file"
     echo "$report_file"
 }
@@ -726,7 +726,7 @@ main() {
     echo -e "${CYAN}🚀 XORB Autonomous Orchestrator - Post-Deployment Setup${NC}"
     echo "======================================================"
     echo ""
-    
+
     check_deployment
     setup_ingress
     setup_tls
@@ -734,10 +734,10 @@ main() {
     setup_backups
     create_operational_scripts
     setup_logging
-    
+
     local report_file=$(generate_post_deployment_report)
     print_summary
-    
+
     echo ""
     log "🎉 Post-deployment setup completed successfully!"
     log "📋 Detailed report: $report_file"

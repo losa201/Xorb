@@ -94,7 +94,7 @@ pub fn record_tool_completion(
     span.record("tool.status", status);
     span.record("tool.duration_ms", duration_ms);
     span.record("tool.findings_count", findings_count);
-    
+
     if status == "success" {
         tracing::info!(
             status = %status,
@@ -121,7 +121,7 @@ pub fn record_fingerprint_completion(
     span.record("fp.status", status);
     span.record("fp.confidence", confidence);
     span.record("fp.duration_ms", duration_ms);
-    
+
     tracing::info!(
         status = %status,
         confidence = %confidence,
@@ -142,7 +142,7 @@ pub fn record_risk_assessment_completion(
     span.record("risk.level", risk_level);
     span.record("risk.tags_count", tags_count);
     span.record("risk.duration_ms", duration_ms);
-    
+
     tracing::info!(
         score = %risk_score,
         level = %risk_level,
@@ -160,7 +160,7 @@ pub fn record_bus_message_completion(
 ) {
     span.record("bus.status", status);
     span.record("bus.processing_duration_ms", processing_duration_ms);
-    
+
     tracing::info!(
         status = %status,
         processing_duration_ms = %processing_duration_ms,
@@ -178,52 +178,52 @@ pub async fn shutdown_tracing() {
 mod tests {
     use super::*;
     use tracing::instrument;
-    
+
     #[tokio::test]
     async fn test_tracing_initialization() {
         // Test should not panic
         let result = init_tracing("test-scanner").await;
         assert!(result.is_ok());
     }
-    
+
     #[test]
     fn test_span_creation() {
         let span = create_tool_span("nmap", "192.168.1.1");
         assert_eq!(span.metadata().unwrap().name(), "tool_execution");
-        
+
         let fp_span = create_fingerprint_span("create", "asset-001");
         assert_eq!(fp_span.metadata().unwrap().name(), "fingerprint_operation");
-        
+
         let risk_span = create_risk_assessment_span("asset-001");
         assert_eq!(risk_span.metadata().unwrap().name(), "risk_assessment");
-        
+
         let bus_span = create_bus_message_span("discovery_job", "inbound");
         assert_eq!(bus_span.metadata().unwrap().name(), "bus_message");
     }
-    
+
     #[test]
     fn test_span_recording() {
         let span = create_tool_span("nmap", "192.168.1.1");
-        
+
         // Test recording without panicking
         record_tool_completion(&span, "success", 1500, 5);
-        
+
         let fp_span = create_fingerprint_span("create", "asset-001");
         record_fingerprint_completion(&fp_span, "success", 0.95, 200);
-        
+
         let risk_span = create_risk_assessment_span("asset-001");
         record_risk_assessment_completion(&risk_span, 7.5, "HIGH", 3, 100);
-        
+
         let bus_span = create_bus_message_span("discovery_job", "inbound");
         record_bus_message_completion(&bus_span, "success", 50);
     }
-    
+
     #[instrument(skip(test_value))]
     fn instrumented_function(test_value: i32) -> i32 {
         tracing::info!(value = %test_value, "Processing test value");
         test_value * 2
     }
-    
+
     #[test]
     fn test_instrumented_function() {
         let result = instrumented_function(42);

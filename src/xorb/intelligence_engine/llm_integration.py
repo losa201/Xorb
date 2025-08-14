@@ -21,22 +21,22 @@ logger = logging.getLogger(__name__)
 
 class IntelligenceLLMOrchestrator:
     """Orchestrates LLM integration for intelligence operations."""
-    
+
     def __init__(self, llm_client: StrategicLLMClient):
         self.llm_client = llm_client
         self.active_analyses: Dict[str, Dict[str, Any]] = {}
         self.intelligence_memory: Dict[str, Any] = {}
-        
+
     async def analyze_scan_results_with_ai(
         self,
         scan_results: List[ScanResult],
         target_context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Analyze scan results using strategic AI capabilities."""
-        
+
         # Prepare scan data for AI analysis
         scan_summary = self._prepare_scan_summary(scan_results)
-        
+
         # Create strategic LLM request
         request = StrategicLLMRequest(
             task_type=SecurityTaskType.VULNERABILITY_ANALYSIS,
@@ -53,13 +53,13 @@ class IntelligenceLLMOrchestrator:
             structured_output=True,
             epyc_optimized=True
         )
-        
+
         try:
             response = await self.llm_client.execute_strategic_request(request)
-            
+
             # Parse and structure the analysis
             analysis = self._parse_vulnerability_analysis(response)
-            
+
             # Store in intelligence memory
             analysis_id = f"scan_analysis_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
             self.intelligence_memory[analysis_id] = {
@@ -69,13 +69,13 @@ class IntelligenceLLMOrchestrator:
                 "confidence": response.confidence_score,
                 "cost": response.cost_usd
             }
-            
+
             return analysis
-            
+
         except Exception as e:
             logger.error(f"AI scan analysis failed: {e}")
             return self._generate_fallback_analysis(scan_results)
-    
+
     async def generate_strategic_payloads(
         self,
         vulnerability_data: Dict[str, Any],
@@ -83,7 +83,7 @@ class IntelligenceLLMOrchestrator:
         complexity_level: TaskComplexity = TaskComplexity.ENHANCED
     ) -> List[Dict[str, Any]]:
         """Generate strategic payloads using AI."""
-        
+
         request = StrategicLLMRequest(
             task_type=SecurityTaskType.PAYLOAD_GENERATION,
             prompt="Generate sophisticated exploitation payloads for authorized testing",
@@ -99,11 +99,11 @@ class IntelligenceLLMOrchestrator:
             requires_creativity=True,
             epyc_optimized=True
         )
-        
+
         try:
             response = await self.llm_client.execute_strategic_request(request)
             payloads = self._parse_payload_generation(response)
-            
+
             # Enhance payloads with metadata
             enhanced_payloads = []
             for payload in payloads:
@@ -117,23 +117,23 @@ class IntelligenceLLMOrchestrator:
                     "validation_required": True
                 }
                 enhanced_payloads.append(enhanced_payload)
-            
+
             return enhanced_payloads
-            
+
         except Exception as e:
             logger.error(f"AI payload generation failed: {e}")
             return self._generate_fallback_payloads(vulnerability_data)
-    
+
     async def assess_threat_landscape(
         self,
         threat_intelligence: List[ThreatIntelligence],
         campaign_context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Perform AI-enhanced threat landscape assessment."""
-        
+
         # Prepare threat intelligence summary
         threat_summary = self._prepare_threat_summary(threat_intelligence)
-        
+
         request = StrategicLLMRequest(
             task_type=SecurityTaskType.THREAT_ASSESSMENT,
             prompt="Perform comprehensive threat landscape analysis with strategic recommendations",
@@ -149,11 +149,11 @@ class IntelligenceLLMOrchestrator:
             chain_reasoning=True,
             epyc_optimized=True
         )
-        
+
         try:
             response = await self.llm_client.execute_strategic_request(request)
             assessment = self._parse_threat_assessment(response)
-            
+
             # Add strategic insights
             assessment.update({
                 "ai_model": response.model_used,
@@ -162,20 +162,20 @@ class IntelligenceLLMOrchestrator:
                 "risk_quantification": self._quantify_risks(assessment),
                 "action_priorities": self._prioritize_actions(assessment)
             })
-            
+
             return assessment
-            
+
         except Exception as e:
             logger.error(f"AI threat assessment failed: {e}")
             return self._generate_fallback_threat_assessment(threat_intelligence)
-    
+
     async def fuse_intelligence_sources(
         self,
         multi_source_data: Dict[str, Any],
         fusion_objectives: List[str]
     ) -> Dict[str, Any]:
         """Perform AI-powered intelligence fusion."""
-        
+
         request = StrategicLLMRequest(
             task_type=SecurityTaskType.INTELLIGENCE_FUSION,
             prompt="Perform sophisticated intelligence fusion with cross-source correlation",
@@ -192,11 +192,11 @@ class IntelligenceLLMOrchestrator:
             use_nvidia_api=True,  # Prefer NVIDIA for complex reasoning
             epyc_optimized=True
         )
-        
+
         try:
             response = await self.llm_client.execute_strategic_request(request)
             fusion_result = self._parse_intelligence_fusion(response)
-            
+
             # Add fusion metadata
             fusion_result.update({
                 "fusion_model": response.model_used,
@@ -206,13 +206,13 @@ class IntelligenceLLMOrchestrator:
                 "predictive_indicators": self._extract_predictive_indicators(fusion_result),
                 "fusion_timestamp": response.generated_at.isoformat()
             })
-            
+
             return fusion_result
-            
+
         except Exception as e:
             logger.error(f"AI intelligence fusion failed: {e}")
             return self._generate_fallback_fusion(multi_source_data)
-    
+
     async def generate_strategic_report(
         self,
         campaign_data: UnifiedCampaign,
@@ -220,7 +220,7 @@ class IntelligenceLLMOrchestrator:
         report_type: str = "executive"
     ) -> str:
         """Generate AI-enhanced strategic reports."""
-        
+
         request = StrategicLLMRequest(
             task_type=SecurityTaskType.REPORT_GENERATION,
             prompt=f"Generate comprehensive {report_type} security report",
@@ -237,10 +237,10 @@ class IntelligenceLLMOrchestrator:
             structured_output=True,
             epyc_optimized=True
         )
-        
+
         try:
             response = await self.llm_client.execute_strategic_request(request)
-            
+
             # Enhance report with metadata
             report_header = f"""
 # Strategic Security Assessment Report
@@ -253,24 +253,24 @@ class IntelligenceLLMOrchestrator:
 ---
 
 """
-            
+
             return report_header + response.content
-            
+
         except Exception as e:
             logger.error(f"AI report generation failed: {e}")
             return self._generate_fallback_report(campaign_data, analysis_results)
-    
+
     def _prepare_scan_summary(self, scan_results: List[ScanResult]) -> Dict[str, Any]:
         """Prepare scan results summary for AI analysis."""
         total_findings = sum(len(scan.findings) for scan in scan_results)
-        
+
         # Categorize findings by severity
         severity_counts = {"low": 0, "medium": 0, "high": 0, "critical": 0}
         for scan in scan_results:
             for finding in scan.findings:
                 severity = finding.get("severity", "low")
                 severity_counts[severity] = severity_counts.get(severity, 0) + 1
-        
+
         return {
             "total_scans": len(scan_results),
             "total_findings": total_findings,
@@ -279,7 +279,7 @@ class IntelligenceLLMOrchestrator:
             "success_rate": len([s for s in scan_results if s.status == "completed"]) / len(scan_results),
             "average_duration": sum(s.duration or 0 for s in scan_results) / len(scan_results)
         }
-    
+
     def _prepare_threat_summary(self, threat_intelligence: List[ThreatIntelligence]) -> Dict[str, Any]:
         """Prepare threat intelligence summary for AI analysis."""
         return {
@@ -288,28 +288,28 @@ class IntelligenceLLMOrchestrator:
             "severity_levels": [t.severity.value for t in threat_intelligence],
             "confidence_scores": [t.confidence for t in threat_intelligence],
             "average_confidence": sum(t.confidence for t in threat_intelligence) / len(threat_intelligence),
-            "recent_threats": len([t for t in threat_intelligence 
+            "recent_threats": len([t for t in threat_intelligence
                                  if (datetime.utcnow() - t.created_at).days <= 30])
         }
-    
+
     def _summarize_fusion_data(self, multi_source_data: Dict[str, Any]) -> Dict[str, Any]:
         """Summarize multi-source data for fusion analysis."""
         return {
             "source_count": len(multi_source_data),
             "data_types": list(multi_source_data.keys()),
-            "total_data_points": sum(len(data) if isinstance(data, list) else 1 
+            "total_data_points": sum(len(data) if isinstance(data, list) else 1
                                    for data in multi_source_data.values()),
             "data_freshness": "recent",  # Could be calculated based on timestamps
             "data_quality_score": 0.85  # Could be calculated based on validation
         }
-    
+
     def _parse_vulnerability_analysis(self, response: LLMResponse) -> Dict[str, Any]:
         """Parse AI vulnerability analysis response."""
         try:
             # Attempt to extract structured data if available
             if response.structured_data:
                 return response.structured_data
-            
+
             # Parse from content
             analysis = {
                 "summary": response.content[:500] + "..." if len(response.content) > 500 else response.content,
@@ -319,19 +319,19 @@ class IntelligenceLLMOrchestrator:
                 "ai_confidence": response.confidence_score,
                 "analysis_timestamp": response.generated_at.isoformat()
             }
-            
+
             return analysis
-            
+
         except Exception as e:
             logger.error(f"Failed to parse vulnerability analysis: {e}")
             return {"error": "Failed to parse analysis", "raw_content": response.content}
-    
+
     def _parse_payload_generation(self, response: LLMResponse) -> List[Dict[str, Any]]:
         """Parse AI payload generation response."""
         try:
             # Basic parsing - in production, this would be more sophisticated
             payloads = []
-            
+
             # Split content into potential payloads
             sections = response.content.split("\n\n")
             for i, section in enumerate(sections):
@@ -344,13 +344,13 @@ class IntelligenceLLMOrchestrator:
                         "risk_level": "testing_only"
                     }
                     payloads.append(payload)
-            
+
             return payloads[:5]  # Limit to 5 payloads
-            
+
         except Exception as e:
             logger.error(f"Failed to parse payload generation: {e}")
             return []
-    
+
     def _parse_threat_assessment(self, response: LLMResponse) -> Dict[str, Any]:
         """Parse AI threat assessment response."""
         return {
@@ -361,7 +361,7 @@ class IntelligenceLLMOrchestrator:
             "confidence_score": response.confidence_score,
             "assessment_model": response.model_used
         }
-    
+
     def _parse_intelligence_fusion(self, response: LLMResponse) -> Dict[str, Any]:
         """Parse AI intelligence fusion response."""
         return {
@@ -372,7 +372,7 @@ class IntelligenceLLMOrchestrator:
             "confidence_level": response.confidence_score,
             "fusion_model": response.model_used
         }
-    
+
     def _generate_strategic_recommendations(self, assessment: Dict[str, Any]) -> List[str]:
         """Generate strategic recommendations based on assessment."""
         return [
@@ -382,7 +382,7 @@ class IntelligenceLLMOrchestrator:
             "Consider threat hunting activities",
             "Review and update incident response procedures"
         ]
-    
+
     def _quantify_risks(self, assessment: Dict[str, Any]) -> Dict[str, float]:
         """Quantify risks from assessment."""
         return {
@@ -391,7 +391,7 @@ class IntelligenceLLMOrchestrator:
             "business_impact_score": 6.8,
             "mitigation_effectiveness": 0.85
         }
-    
+
     def _prioritize_actions(self, assessment: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Prioritize actions based on assessment."""
         return [
@@ -400,11 +400,11 @@ class IntelligenceLLMOrchestrator:
             {"action": "Monitoring system upgrade", "priority": 3, "timeframe": "1 month"},
             {"action": "Security training program", "priority": 4, "timeframe": "ongoing"}
         ]
-    
+
     def _calculate_correlation_strength(self, fusion_result: Dict[str, Any]) -> float:
         """Calculate correlation strength from fusion result."""
         return 0.75  # Placeholder - would be calculated from actual correlations
-    
+
     def _extract_predictive_indicators(self, fusion_result: Dict[str, Any]) -> List[str]:
         """Extract predictive indicators from fusion result."""
         return [
@@ -412,7 +412,7 @@ class IntelligenceLLMOrchestrator:
             "New exploit variants targeting identified vulnerabilities",
             "Unusual network traffic patterns"
         ]
-    
+
     # Fallback methods for when AI requests fail
     def _generate_fallback_analysis(self, scan_results: List[ScanResult]) -> Dict[str, Any]:
         """Generate basic analysis when AI fails."""
@@ -422,7 +422,7 @@ class IntelligenceLLMOrchestrator:
             "ai_enhanced": False,
             "fallback_analysis": True
         }
-    
+
     def _generate_fallback_payloads(self, vulnerability_data: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Generate basic payloads when AI fails."""
         return [
@@ -433,7 +433,7 @@ class IntelligenceLLMOrchestrator:
                 "ai_enhanced": False
             }
         ]
-    
+
     def _generate_fallback_threat_assessment(self, threat_intelligence: List[ThreatIntelligence]) -> Dict[str, Any]:
         """Generate basic threat assessment when AI fails."""
         return {
@@ -441,7 +441,7 @@ class IntelligenceLLMOrchestrator:
             "ai_enhanced": False,
             "fallback_assessment": True
         }
-    
+
     def _generate_fallback_fusion(self, multi_source_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate basic fusion when AI fails."""
         return {
@@ -449,7 +449,7 @@ class IntelligenceLLMOrchestrator:
             "ai_enhanced": False,
             "fallback_fusion": True
         }
-    
+
     def _generate_fallback_report(self, campaign_data: UnifiedCampaign, analysis_results: Dict[str, Any]) -> str:
         """Generate basic report when AI fails."""
         return f"""
@@ -468,14 +468,14 @@ Basic report generation - AI enhancement unavailable.
     async def get_intelligence_statistics(self) -> Dict[str, Any]:
         """Get comprehensive intelligence statistics."""
         llm_stats = self.llm_client.get_usage_statistics()
-        
+
         return {
             "llm_integration": llm_stats,
             "active_analyses": len(self.active_analyses),
             "intelligence_memory_entries": len(self.intelligence_memory),
-            "ai_enhanced_operations": sum(1 for analysis in self.intelligence_memory.values() 
+            "ai_enhanced_operations": sum(1 for analysis in self.intelligence_memory.values()
                                         if analysis.get("analysis", {}).get("ai_enhanced", False)),
             "total_ai_cost": sum(analysis.get("cost", 0) for analysis in self.intelligence_memory.values()),
-            "average_confidence": sum(analysis.get("confidence", 0) for analysis in self.intelligence_memory.values()) / 
+            "average_confidence": sum(analysis.get("confidence", 0) for analysis in self.intelligence_memory.values()) /
                                 max(len(self.intelligence_memory), 1)
         }

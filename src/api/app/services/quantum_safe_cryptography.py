@@ -114,7 +114,7 @@ class SignatureResult:
 class QuantumSafeCryptography(XORBService):
     """
     Quantum-Safe Cryptography Service
-    
+
     Provides:
     - Post-quantum key exchange and signatures
     - Hybrid classical/quantum-resistant encryption
@@ -122,7 +122,7 @@ class QuantumSafeCryptography(XORBService):
     - Cryptographic agility
     - Forward secrecy
     """
-    
+
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         super().__init__(
             service_name="quantum_safe_crypto",
@@ -130,22 +130,22 @@ class QuantumSafeCryptography(XORBService):
             dependencies=["vault", "secure_storage"],
             config=config or {}
         )
-        
+
         # Key storage
         self.keys: Dict[str, CryptographicKey] = {}
         self.key_derivation_cache: Dict[str, bytes] = {}
-        
+
         # Cryptographic engines
         self.classical_engine = None
         self.post_quantum_engine = None
         self.hybrid_engine = None
-        
+
         # Security configuration
         self.default_security_level = SecurityLevel.LEVEL_3
         self.key_rotation_interval = timedelta(days=30)
         self.enable_forward_secrecy = True
         self.enable_hybrid_mode = True
-        
+
         # Performance metrics
         self.crypto_metrics = {
             "keys_generated": 0,
@@ -157,7 +157,7 @@ class QuantumSafeCryptography(XORBService):
             "average_encryption_time_ms": 0.0,
             "average_signature_time_ms": 0.0
         }
-        
+
         # Algorithm preferences (quantum-safe first)
         self.algorithm_preferences = {
             "encryption": [
@@ -180,25 +180,25 @@ class QuantumSafeCryptography(XORBService):
         """Initialize quantum-safe cryptography service"""
         try:
             logger.info("Initializing Quantum-Safe Cryptography Service...")
-            
+
             # Initialize cryptographic backends
             await self._initialize_crypto_backends()
-            
+
             # Load or generate master keys
             await self._initialize_master_keys()
-            
+
             # Setup key rotation
             await self._setup_key_rotation()
-            
+
             # Initialize post-quantum algorithms
             await self._initialize_post_quantum_algorithms()
-            
+
             # Validate cryptographic implementations
             await self._validate_crypto_implementations()
-            
+
             logger.info("Quantum-Safe Cryptography Service initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize quantum-safe crypto service: {e}")
             return False
@@ -212,7 +212,7 @@ class QuantumSafeCryptography(XORBService):
         """Generate quantum-safe key pair"""
         try:
             security_level = security_level or self.default_security_level
-            
+
             # Generate key pair based on algorithm
             if algorithm == CryptoAlgorithm.KYBER_1024:
                 private_key, public_key = await self._generate_kyber_keypair(security_level)
@@ -226,11 +226,11 @@ class QuantumSafeCryptography(XORBService):
                 private_key, public_key = await self._generate_ecdsa_keypair()
             else:
                 raise ValueError(f"Unsupported algorithm: {algorithm}")
-            
+
             # Create key objects
             private_key_id = str(uuid.uuid4())
             public_key_id = str(uuid.uuid4())
-            
+
             private_key_obj = CryptographicKey(
                 key_id=private_key_id,
                 key_type=KeyType.ASYMMETRIC_PRIVATE,
@@ -240,7 +240,7 @@ class QuantumSafeCryptography(XORBService):
                 public_key=public_key,
                 expires_at=datetime.utcnow() + self.key_rotation_interval
             )
-            
+
             public_key_obj = CryptographicKey(
                 key_id=public_key_id,
                 key_type=KeyType.ASYMMETRIC_PUBLIC,
@@ -248,16 +248,16 @@ class QuantumSafeCryptography(XORBService):
                 security_level=security_level,
                 key_data=public_key
             )
-            
+
             # Store keys
             self.keys[private_key_id] = private_key_obj
             self.keys[public_key_id] = public_key_obj
-            
+
             self.crypto_metrics["keys_generated"] += 2
-            
+
             logger.info(f"Generated {algorithm.value} key pair (security level {security_level.value})")
             return private_key_id, public_key_id
-            
+
         except Exception as e:
             logger.error(f"Key pair generation failed: {e}")
             raise
@@ -272,16 +272,16 @@ class QuantumSafeCryptography(XORBService):
         """Encrypt data with quantum-safe algorithms"""
         try:
             start_time = datetime.utcnow()
-            
+
             # Select algorithm and key
             if not algorithm:
                 algorithm = self.algorithm_preferences["encryption"][0]
-            
+
             if not key_id:
                 key_id = await self._get_or_create_encryption_key(algorithm)
-            
+
             key = self.keys[key_id]
-            
+
             # Perform encryption based on algorithm
             if algorithm == CryptoAlgorithm.AES_256_GCM:
                 result = await self._encrypt_aes_gcm(data, key, additional_data)
@@ -292,19 +292,19 @@ class QuantumSafeCryptography(XORBService):
             else:
                 # Hybrid mode: use post-quantum + classical
                 result = await self._encrypt_hybrid(data, key, algorithm, additional_data)
-            
+
             # Update metrics
             processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
             self._update_encryption_metrics(processing_time)
-            
+
             # Update key usage
             key.usage_count += 1
-            
+
             result.key_id = key_id
             result.algorithm = algorithm
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Encryption failed: {e}")
             raise
@@ -321,12 +321,12 @@ class QuantumSafeCryptography(XORBService):
         """Decrypt data with quantum-safe algorithms"""
         try:
             start_time = datetime.utcnow()
-            
+
             if key_id not in self.keys:
                 raise ValueError(f"Key not found: {key_id}")
-            
+
             key = self.keys[key_id]
-            
+
             # Perform decryption based on algorithm
             if algorithm == CryptoAlgorithm.AES_256_GCM:
                 plaintext = await self._decrypt_aes_gcm(ciphertext, key, nonce, tag, additional_data)
@@ -337,16 +337,16 @@ class QuantumSafeCryptography(XORBService):
             else:
                 # Hybrid mode decryption
                 plaintext = await self._decrypt_hybrid(ciphertext, key, algorithm, nonce, tag, additional_data)
-            
+
             # Update metrics
             processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
             self._update_decryption_metrics(processing_time)
-            
+
             # Update key usage
             key.usage_count += 1
-            
+
             return plaintext
-            
+
         except Exception as e:
             logger.error(f"Decryption failed: {e}")
             raise
@@ -360,18 +360,18 @@ class QuantumSafeCryptography(XORBService):
         """Create quantum-safe digital signature"""
         try:
             start_time = datetime.utcnow()
-            
+
             if private_key_id not in self.keys:
                 raise ValueError(f"Private key not found: {private_key_id}")
-            
+
             key = self.keys[private_key_id]
-            
+
             if not algorithm:
                 algorithm = key.algorithm
-            
+
             # Hash the data
             message_hash = hashlib.sha3_256(data).digest()
-            
+
             # Create signature based on algorithm
             if algorithm == CryptoAlgorithm.DILITHIUM_5:
                 signature = await self._sign_dilithium(message_hash, key)
@@ -385,21 +385,21 @@ class QuantumSafeCryptography(XORBService):
                 signature = await self._sign_rsa(message_hash, key)
             else:
                 raise ValueError(f"Unsupported signature algorithm: {algorithm}")
-            
+
             # Update metrics
             processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
             self._update_signature_metrics(processing_time)
-            
+
             # Update key usage
             key.usage_count += 1
-            
+
             return SignatureResult(
                 signature=signature,
                 algorithm=algorithm,
                 key_id=private_key_id,
                 message_hash=message_hash
             )
-            
+
         except Exception as e:
             logger.error(f"Signing failed: {e}")
             raise
@@ -415,12 +415,12 @@ class QuantumSafeCryptography(XORBService):
         try:
             if public_key_id not in self.keys:
                 raise ValueError(f"Public key not found: {public_key_id}")
-            
+
             key = self.keys[public_key_id]
-            
+
             # Hash the data
             message_hash = hashlib.sha3_256(data).digest()
-            
+
             # Verify signature based on algorithm
             if algorithm == CryptoAlgorithm.DILITHIUM_5:
                 valid = await self._verify_dilithium(message_hash, signature, key)
@@ -434,11 +434,11 @@ class QuantumSafeCryptography(XORBService):
                 valid = await self._verify_rsa(message_hash, signature, key)
             else:
                 raise ValueError(f"Unsupported signature algorithm: {algorithm}")
-            
+
             self.crypto_metrics["verification_operations"] += 1
-            
+
             return valid
-            
+
         except Exception as e:
             logger.error(f"Signature verification failed: {e}")
             return False
@@ -455,17 +455,17 @@ class QuantumSafeCryptography(XORBService):
             else:
                 # Classical ECDH as fallback
                 shared_secret, encapsulated_key = await self._ecdh_key_exchange(peer_public_key)
-            
+
             self.crypto_metrics["key_exchanges"] += 1
-            
+
             return shared_secret, encapsulated_key
-            
+
         except Exception as e:
             logger.error(f"Key exchange failed: {e}")
             raise
 
     # Implementation of cryptographic primitives (simplified for demo)
-    
+
     async def _generate_kyber_keypair(self, security_level: SecurityLevel) -> Tuple[bytes, bytes]:
         """Generate Kyber post-quantum key pair (simplified implementation)"""
         # In production, this would use liboqs or similar library
@@ -495,24 +495,24 @@ class QuantumSafeCryptography(XORBService):
         """Encrypt with AES-256-GCM"""
         if not CRYPTOGRAPHY_AVAILABLE:
             raise RuntimeError("Cryptography library not available")
-        
+
         # Generate random nonce
         nonce = secrets.token_bytes(12)
-        
+
         # Create cipher
         cipher = Cipher(
             algorithms.AES(key.key_data[:32]),  # Use first 32 bytes as AES key
             modes.GCM(nonce),
             backend=default_backend()
         )
-        
+
         encryptor = cipher.encryptor()
-        
+
         if additional_data:
             encryptor.authenticate_additional_data(additional_data)
-        
+
         ciphertext = encryptor.update(data) + encryptor.finalize()
-        
+
         return EncryptionResult(
             ciphertext=ciphertext,
             algorithm=CryptoAlgorithm.AES_256_GCM,
@@ -532,26 +532,26 @@ class QuantumSafeCryptography(XORBService):
         """Decrypt with AES-256-GCM"""
         if not CRYPTOGRAPHY_AVAILABLE:
             raise RuntimeError("Cryptography library not available")
-        
+
         cipher = Cipher(
             algorithms.AES(key.key_data[:32]),
             modes.GCM(nonce, tag),
             backend=default_backend()
         )
-        
+
         decryptor = cipher.decryptor()
-        
+
         if additional_data:
             decryptor.authenticate_additional_data(additional_data)
-        
+
         plaintext = decryptor.update(ciphertext) + decryptor.finalize()
-        
+
         return plaintext
 
     def _update_encryption_metrics(self, processing_time_ms: float):
         """Update encryption performance metrics"""
         self.crypto_metrics["encryption_operations"] += 1
-        
+
         # Update average
         current_avg = self.crypto_metrics["average_encryption_time_ms"]
         count = self.crypto_metrics["encryption_operations"]
@@ -565,7 +565,7 @@ class QuantumSafeCryptography(XORBService):
     def _update_signature_metrics(self, processing_time_ms: float):
         """Update signature performance metrics"""
         self.crypto_metrics["signature_operations"] += 1
-        
+
         # Update average
         current_avg = self.crypto_metrics["average_signature_time_ms"]
         count = self.crypto_metrics["signature_operations"]
@@ -581,12 +581,12 @@ class QuantumSafeCryptography(XORBService):
                 "post_quantum_ready": LIBOQS_AVAILABLE,
                 "hybrid_mode_enabled": self.enable_hybrid_mode
             }
-            
+
             healthy = all([
                 CRYPTOGRAPHY_AVAILABLE,
                 len(self.keys) > 0
             ])
-            
+
             return ServiceHealth(
                 service_name=self.service_name,
                 status=ServiceStatus.HEALTHY if healthy else ServiceStatus.DEGRADED,
@@ -594,7 +594,7 @@ class QuantumSafeCryptography(XORBService):
                 metrics=self.crypto_metrics,
                 timestamp=datetime.utcnow()
             )
-            
+
         except Exception as e:
             return ServiceHealth(
                 service_name=self.service_name,
@@ -610,9 +610,9 @@ _quantum_crypto_service: Optional[QuantumSafeCryptography] = None
 async def get_quantum_crypto_service(config: Dict[str, Any] = None) -> QuantumSafeCryptography:
     """Get or create quantum-safe cryptography service instance"""
     global _quantum_crypto_service
-    
+
     if _quantum_crypto_service is None:
         _quantum_crypto_service = QuantumSafeCryptography(config)
         await _quantum_crypto_service.initialize()
-    
+
     return _quantum_crypto_service

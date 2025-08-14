@@ -1,5 +1,5 @@
 //! Observability and metrics for the Rust scanner service
-//! 
+//!
 //! Implements comprehensive observability with Prometheus metrics,
 //! distributed tracing, and structured logging.
 
@@ -140,18 +140,18 @@ impl ScannerMetrics {
     pub fn new(service_name: String) -> Self {
         Self { service_name }
     }
-    
+
     /// Record a scan job completion
     #[instrument(skip(self), fields(service = %self.service_name))]
     pub fn record_scan_job(&self, tenant_id: &str, job_type: &str, status: &str, duration: Duration) {
         SCAN_JOBS_TOTAL
             .with_label_values(&[tenant_id, job_type, status])
             .inc();
-        
+
         SCAN_JOB_DURATION
             .with_label_values(&[tenant_id, job_type, "overall"])
             .observe(duration.as_secs_f64());
-        
+
         info!(
             tenant_id = %tenant_id,
             job_type = %job_type,
@@ -160,7 +160,7 @@ impl ScannerMetrics {
             "Scan job completed"
         );
     }
-    
+
     /// Get metrics in Prometheus format
     pub fn get_metrics(&self) -> Result<String> {
         let encoder = TextEncoder::new();
@@ -182,7 +182,7 @@ impl Timer {
             start: Instant::now(),
         }
     }
-    
+
     pub fn elapsed(&self) -> Duration {
         self.start.elapsed()
     }
@@ -211,7 +211,7 @@ pub fn init_metrics() {
     Lazy::force(&QUEUE_SIZE);
     Lazy::force(&BUS_MESSAGES_TOTAL);
     Lazy::force(&BUS_MESSAGE_PROCESSING_DURATION);
-    
+
     info!("Scanner metrics initialized");
 }
 
@@ -219,25 +219,25 @@ pub fn init_metrics() {
 mod tests {
     use super::*;
     use std::time::Duration;
-    
+
     #[test]
     fn test_metrics_initialization() {
         init_metrics();
         // Should not panic
     }
-    
+
     #[test]
     fn test_scanner_metrics() {
         let metrics = ScannerMetrics::new("test-scanner".to_string());
-        
+
         // Test scan job recording
         metrics.record_scan_job("test-tenant", "network-scan", "success", Duration::from_secs(30));
-        
+
         // Test metrics export
         let exported = metrics.get_metrics().expect("Failed to export metrics");
         assert!(exported.contains("xorb_scanner_jobs_total"));
     }
-    
+
     #[test]
     fn test_timer() {
         let timer = Timer::new();

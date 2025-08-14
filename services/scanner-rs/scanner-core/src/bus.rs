@@ -121,27 +121,27 @@ impl JetStreamBus {
     pub async fn new(nats_url: &str, consumer_group: &str) -> Result<Self> {
         let client = async_nats::connect(nats_url).await
             .map_err(|e| anyhow!("Failed to connect to NATS: {}", e))?;
-            
+
         let jetstream = jetstream::new(client.clone());
-        
+
         let bus = Self {
             client,
             jetstream,
             consumer_group: consumer_group.to_string(),
         };
-        
+
         // Initialize streams
         bus.ensure_streams().await?;
-        
+
         info!(
             nats_url = %nats_url,
             consumer_group = %consumer_group,
             "JetStream bus initialized"
         );
-        
+
         Ok(bus)
     }
-    
+
     /// Ensure required streams exist
     async fn ensure_streams(&self) -> Result<()> {
         let streams = [
@@ -149,7 +149,7 @@ impl JetStreamBus {
             ("discovery-results", "tenant.*.discovery.results"),
             ("audit-events", "audit.events"),
         ];
-        
+
         for (stream_name, subject) in streams {
             match self.jetstream.get_stream(stream_name).await {
                 Ok(_) => {
@@ -157,7 +157,7 @@ impl JetStreamBus {
                 }
                 Err(_) => {
                     info!(stream = %stream_name, subject = %subject, "Creating stream");
-                    
+
                     let stream_config = jetstream::stream::Config {
                         name: stream_name.to_string(),
                         subjects: vec![subject.to_string()],
@@ -165,21 +165,21 @@ impl JetStreamBus {
                         storage: jetstream::stream::StorageType::File,
                         ..Default::default()
                     };
-                    
+
                     self.jetstream.create_stream(stream_config).await
                         .map_err(|e| anyhow!("Failed to create stream {}: {}", stream_name, e))?;
                 }
             }
         }
-        
+
         Ok(())
     }
-    
+
     /// Subscribe to discovery jobs
     pub async fn subscribe_discovery_jobs(&self, tenant_id: &str) -> Result<PullConsumer> {
         let subject = format!("tenant.{}.discovery.jobs", tenant_id);
         let consumer_name = format!("{}-{}", self.consumer_group, tenant_id);
-        
+
         let consumer_config = jetstream::consumer::pull::Config {
             name: Some(consumer_name.clone()),
             durable_name: Some(consumer_name),
@@ -189,33 +189,33 @@ impl JetStreamBus {
             ack_wait: Duration::from_secs(300), // 5 minutes
             ..Default::default()
         };
-        
+
         let consumer = self.jetstream
             .create_consumer_on_stream(consumer_config, "discovery-jobs")
             .await
             .map_err(|e| anyhow!("Failed to create consumer for {}: {}", subject, e))?;
-            
+
         info!(
             subject = %subject,
             consumer = %consumer.cached_info().name,
             "Subscribed to discovery jobs"
         );
-        
+
         Ok(consumer)
     }
-    
+
     /// Publish discovery result
     #[instrument(skip(self, result), fields(job_id = %result.job_id, tenant_id = %result.tenant_id))]
     pub async fn publish_discovery_result(&self, result: &DiscoveryResult) -> Result<()> {
         let subject = format!("tenant.{}.discovery.results", result.tenant_id);
         let payload = serde_json::to_vec(result)
             .map_err(|e| anyhow!("Failed to serialize result: {}", e))?;
-            
+
         let publish_ack = self.jetstream
             .publish(subject.clone(), payload.into())
             .await
             .map_err(|e| anyhow!("Failed to publish to {}: {}", subject, e))?;
-            
+
         match publish_ack.await {
             Ok(_) => {
                 info!(
@@ -237,19 +237,19 @@ impl JetStreamBus {
             }
         }
     }
-    
+
     /// Publish audit event
     #[instrument(skip(self, event))]
     pub async fn publish_audit_event(&self, event: &AuditEvent) -> Result<()> {
         let subject = "audit.events";
         let payload = serde_json::to_vec(event)
             .map_err(|e| anyhow!("Failed to serialize audit event: {}", e))?;
-            
+
         let publish_ack = self.jetstream
             .publish(subject, payload.into())
             .await
             .map_err(|e| anyhow!("Failed to publish audit event: {}", e))?;
-            
+
         match publish_ack.await {
             Ok(_) => {
                 info!(
@@ -318,7 +318,7 @@ impl AuditEvent {
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+
     #[test]
     fn test_discovery_job_serialization() {
         let job = DiscoveryJob {
@@ -334,14 +334,14 @@ mod tests {
             created_at: chrono::Utc::now(),
             deadline: None,
         };
-        
+
         let json = serde_json::to_string(&job).expect("Serialization failed");
         let deserialized: DiscoveryJob = serde_json::from_str(&json).expect("Deserialization failed");
-        
+
         assert_eq!(job.job_id, deserialized.job_id);
         assert_eq!(job.tenant_id, deserialized.tenant_id);
     }
-    
+
     #[test]
     fn test_audit_event_creation() {
         let event = AuditEvent::new(
@@ -352,7 +352,7 @@ mod tests {
             "create",
             "success"
         );
-        
+
         assert_eq!(event.event_type, "scan_initiated");
         assert_eq!(event.tenant_id, "tenant-001");
         assert_eq!(event.resource_type, "discovery_job");

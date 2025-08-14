@@ -47,7 +47,7 @@ class XORBPTaaSCore:
         self.postgres_pool = None
         self.neo4j_driver = None
         self.qdrant_client = None
-        
+
     async def init_connections(self):
         """Initialize all database connections"""
         try:
@@ -55,21 +55,21 @@ class XORBPTaaSCore:
             redis_host = os.getenv('REDIS_HOST', 'xorb-redis')
             redis_port = int(os.getenv('REDIS_PORT', 6379))
             redis_password = os.getenv('REDIS_PASSWORD', 'xorb_redis_2024')
-            
+
             self.redis = await aioredis.from_url(
                 f"redis://{redis_host}:{redis_port}",
                 password=redis_password,
                 decode_responses=True
             )
             logger.info("✅ PTaaS Core connected to Redis")
-            
+
             # PostgreSQL connection
             postgres_host = os.getenv('POSTGRES_HOST', 'xorb-postgres')
             postgres_port = int(os.getenv('POSTGRES_PORT', 5432))
             postgres_db = os.getenv('POSTGRES_DB', 'xorb_platform')
             postgres_user = os.getenv('POSTGRES_USER', 'xorb_user')
             postgres_password = os.getenv('POSTGRES_PASSWORD', 'xorb_secure_2024')
-            
+
             self.postgres_pool = await asyncpg.create_pool(
                 host=postgres_host,
                 port=postgres_port,
@@ -80,31 +80,31 @@ class XORBPTaaSCore:
                 max_size=10
             )
             logger.info("✅ PTaaS Core connected to PostgreSQL")
-            
+
             # Neo4j connection
             neo4j_uri = os.getenv('NEO4J_URI', 'bolt://xorb-neo4j:7687')
             neo4j_user = os.getenv('NEO4J_USER', 'neo4j')
             neo4j_password = os.getenv('NEO4J_PASSWORD', 'xorb_graph_2024')
-            
+
             self.neo4j_driver = AsyncGraphDatabase.driver(
                 neo4j_uri, auth=(neo4j_user, neo4j_password)
             )
             logger.info("✅ PTaaS Core connected to Neo4j")
-            
+
             # Qdrant connection
             qdrant_host = os.getenv('QDRANT_HOST', 'xorb-qdrant')
             qdrant_port = int(os.getenv('QDRANT_PORT', 6333))
-            
+
             self.qdrant_client = QdrantClient(
                 host=qdrant_host,
                 port=qdrant_port
             )
             logger.info("✅ PTaaS Core connected to Qdrant")
-            
+
         except Exception as e:
             logger.error(f"❌ PTaaS Core database connection failed: {e}")
             raise
-    
+
     async def health_check(self, request: web_request) -> web_response:
         """Health check endpoint"""
         health_status = {
@@ -120,9 +120,9 @@ class XORBPTaaSCore:
                 "security_research"
             ]
         }
-        
+
         return web.json_response(health_status)
-    
+
     async def get_ptaas_status(self, request: web_request) -> web_response:
         """Get PTaaS platform status"""
         status = {
@@ -148,9 +148,9 @@ class XORBPTaaSCore:
                 {"name": "pentest_master", "points": 1280, "vulnerabilities": 7}
             ]
         }
-        
+
         return web.json_response({"success": True, "data": status})
-    
+
     async def get_vulnerability_reports(self, request: web_request) -> web_response:
         """Get vulnerability reports"""
         reports = [
@@ -168,9 +168,9 @@ class XORBPTaaSCore:
             }
             for i in range(20)
         ]
-        
+
         return web.json_response({"success": True, "data": reports})
-    
+
     async def get_research_programs(self, request: web_request) -> web_response:
         """Get active research programs"""
         programs = [
@@ -187,16 +187,16 @@ class XORBPTaaSCore:
                 "status": "active",
                 "reward_ranges": {
                     "critical": "$2000-$5000",
-                    "high": "$1000-$3000", 
+                    "high": "$1000-$3000",
                     "medium": "$500-$1500",
                     "low": "$100-$500"
                 }
             }
             for i in range(5)
         ]
-        
+
         return web.json_response({"success": True, "data": programs})
-    
+
     async def get_exploit_validation(self, request: web_request) -> web_response:
         """Get exploit validation status"""
         validations = [
@@ -214,16 +214,16 @@ class XORBPTaaSCore:
             }
             for i in range(15)
         ]
-        
+
         return web.json_response({"success": True, "data": validations})
 
 async def create_app():
     """Create PTaaS core application"""
     ptaas = XORBPTaaSCore()
     await ptaas.init_connections()
-    
+
     app = web.Application()
-    
+
     # Add CORS middleware
     @web.middleware
     async def cors_middleware(request, handler):
@@ -232,16 +232,16 @@ async def create_app():
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
         return response
-    
+
     app.middlewares.append(cors_middleware)
-    
+
     # Routes
     app.router.add_get('/health', ptaas.health_check)
     app.router.add_get('/api/v1/ptaas/status', ptaas.get_ptaas_status)
     app.router.add_get('/api/v1/ptaas/vulnerabilities', ptaas.get_vulnerability_reports)
     app.router.add_get('/api/v1/ptaas/programs', ptaas.get_research_programs)
     app.router.add_get('/api/v1/ptaas/validation', ptaas.get_exploit_validation)
-    
+
     return app
 
 if __name__ == '__main__':

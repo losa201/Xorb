@@ -16,53 +16,53 @@ logger = logging.getLogger(__name__)
 
 class XORBEnhancedDeployment:
     """Enhanced XORB Platform Deployment with all improvements"""
-    
+
     def __init__(self):
-        self.namespace = "xorb-platform"
+        self.namespace = "xorb_platform"
         self.deployment_id = f"ENHANCED-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
         self.fixes_applied = []
         self.services_deployed = []
-        
+
     async def deploy_enhanced_platform(self):
         """Deploy comprehensive enhanced XORB platform"""
         logger.info("🚀 Starting Enhanced XORB Platform Deployment")
         logger.info(f"📋 Deployment ID: {self.deployment_id}")
-        
+
         try:
             # Phase 1: Infrastructure Setup
             await self.setup_enhanced_infrastructure()
-            
+
             # Phase 2: Deploy Core Services with Fixes
             await self.deploy_core_services_enhanced()
-            
+
             # Phase 3: Deploy Security-Compliant Services
             await self.deploy_security_compliant_services()
-            
+
             # Phase 4: Deploy Working Service Implementations
             await self.deploy_working_implementations()
-            
+
             # Phase 5: Setup Enhanced Networking
             await self.setup_enhanced_networking()
-            
+
             # Phase 6: Deploy Monitoring Stack
             await self.deploy_monitoring_stack()
-            
+
             # Phase 7: Validate Deployment
             await self.validate_enhanced_deployment()
-            
+
             # Phase 8: Generate Deployment Report
             await self.generate_deployment_report()
-            
+
             logger.info("✅ Enhanced XORB Platform Deployment Complete!")
-            
+
         except Exception as e:
             logger.error(f"❌ Enhanced deployment failed: {e}")
             raise
-    
+
     async def setup_enhanced_infrastructure(self):
         """Setup enhanced infrastructure with security compliance"""
         logger.info("🏗️ Setting up enhanced infrastructure...")
-        
+
         # Create secure storage with proper permissions
         secure_storage_yaml = """
 apiVersion: storage.k8s.io/v1
@@ -117,28 +117,28 @@ spec:
   hostPath:
     path: /tmp/xorb-secure-storage-3
 """
-        
+
         with open('/tmp/secure-storage.yaml', 'w') as f:
             f.write(secure_storage_yaml)
-        
+
         try:
             subprocess.run(['kubectl', 'apply', '-f', '/tmp/secure-storage.yaml'], check=True)
             logger.info("✅ Secure storage infrastructure created")
             self.fixes_applied.append("Created secure storage infrastructure")
         except Exception as e:
             logger.warning(f"⚠️ Storage setup warning: {e}")
-    
+
     async def deploy_core_services_enhanced(self):
         """Deploy core services with security enhancements"""
         logger.info("🔧 Deploying enhanced core services...")
-        
+
         # Enhanced API Gateway with security
         enhanced_api_gateway_yaml = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: xorb-enhanced-api-gateway
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 2
   selector:
@@ -173,11 +173,11 @@ spec:
           import time
           import random
           from datetime import datetime
-          
+
           class XORBAPIHandler(BaseHTTPRequestHandler):
               def do_GET(self):
                   self.send_cors_headers()
-                  
+
                   if self.path == '/health':
                       self.send_response(200)
                       self.send_header('Content-type', 'application/json')
@@ -189,7 +189,7 @@ spec:
                           "timestamp": datetime.now().isoformat()
                       }
                       self.wfile.write(json.dumps(response).encode())
-                      
+
                   elif self.path == '/api/v1/status':
                       self.send_response(200)
                       self.send_header('Content-type', 'application/json')
@@ -207,7 +207,7 @@ spec:
                           "last_update": datetime.now().isoformat()
                       }
                       self.wfile.write(json.dumps(status).encode())
-                      
+
                   elif self.path == '/api/v1/metrics':
                       self.send_response(200)
                       self.send_header('Content-type', 'application/json')
@@ -222,7 +222,7 @@ spec:
                           "timestamp": datetime.now().isoformat()
                       }
                       self.wfile.write(json.dumps(metrics).encode())
-                      
+
                   elif self.path == '/api/v1/threats':
                       self.send_response(200)
                       self.send_header('Content-type', 'application/json')
@@ -239,21 +239,21 @@ spec:
                           for i in range(1, 11)
                       ]
                       self.wfile.write(json.dumps(threats).encode())
-                      
+
                   else:
                       self.send_response(404)
                       self.end_headers()
-              
+
               def send_cors_headers(self):
                   self.send_header('Access-Control-Allow-Origin', '*')
                   self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
                   self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-              
+
               def do_OPTIONS(self):
                   self.send_response(200)
                   self.send_cors_headers()
                   self.end_headers()
-          
+
           httpd = HTTPServer(('0.0.0.0', 8080), XORBAPIHandler)
           print("XORB Enhanced API Gateway running on port 8080")
           httpd.serve_forever()
@@ -285,7 +285,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: xorb-enhanced-api-gateway
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: xorb-enhanced-api-gateway
@@ -294,14 +294,14 @@ spec:
     targetPort: 8080
   type: ClusterIP
 """
-        
+
         # Enhanced Security Dashboard
         enhanced_dashboard_yaml = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: xorb-enhanced-dashboard
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 2
   selector:
@@ -366,32 +366,32 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: enhanced-nginx-config
-  namespace: xorb-platform
+  namespace: xorb_platform
 data:
   nginx.conf: |
     user nginx;
     worker_processes auto;
     error_log /var/log/nginx/error.log notice;
     pid /var/run/nginx.pid;
-    
+
     events {
         worker_connections 1024;
     }
-    
+
     http {
         include /etc/nginx/mime.types;
         default_type application/octet-stream;
-        
+
         server {
             listen 8080;
             server_name localhost;
             root /usr/share/nginx/html;
             index index.html;
-            
+
             location / {
                 try_files $uri $uri/ /index.html;
             }
-            
+
             location /health {
                 access_log off;
                 return 200 "healthy\\n";
@@ -404,7 +404,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: enhanced-dashboard-content
-  namespace: xorb-platform
+  namespace: xorb_platform
 data:
   index.html: |
     <!DOCTYPE html>
@@ -580,10 +580,10 @@ data:
 
         <script>
             function updateTime() {
-                document.getElementById('current-time').textContent = 
+                document.getElementById('current-time').textContent =
                     'System Time: ' + new Date().toLocaleString();
             }
-            
+
             function updateMetrics() {
                 // Simulate real-time metrics
                 const elements = {
@@ -594,7 +594,7 @@ data:
                     'network-coverage': '100%',
                     'response-time': Math.floor(Math.random() * 20) + 10 + 'ms'
                 };
-                
+
                 Object.entries(elements).forEach(([id, value]) => {
                     const element = document.getElementById(id);
                     if (element) element.textContent = value;
@@ -614,7 +614,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: xorb-enhanced-dashboard
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: xorb-enhanced-dashboard
@@ -623,35 +623,35 @@ spec:
     targetPort: 8080
   type: ClusterIP
 """
-        
+
         # Deploy enhanced services
         enhanced_services = [
             ('/tmp/enhanced-api-gateway.yaml', enhanced_api_gateway_yaml, 'Enhanced API Gateway'),
             ('/tmp/enhanced-dashboard.yaml', enhanced_dashboard_yaml, 'Enhanced Security Dashboard')
         ]
-        
+
         for file_path, yaml_content, service_name in enhanced_services:
             with open(file_path, 'w') as f:
                 f.write(yaml_content)
-            
+
             try:
                 subprocess.run(['kubectl', 'apply', '-f', file_path], check=True)
                 logger.info(f"✅ {service_name} deployed")
                 self.services_deployed.append(service_name)
             except Exception as e:
                 logger.warning(f"⚠️ {service_name} deployment warning: {e}")
-    
+
     async def deploy_security_compliant_services(self):
         """Deploy security-compliant monitoring services"""
         logger.info("🔒 Deploying security-compliant services...")
-        
+
         # Security-compliant Prometheus
         prometheus_secure_yaml = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: prometheus-secure
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 1
   selector:
@@ -710,7 +710,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: prometheus-secure
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: prometheus-secure
@@ -723,18 +723,18 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: prometheus-secure-config
-  namespace: xorb-platform
+  namespace: xorb_platform
 data:
   prometheus.yml: |
     global:
       scrape_interval: 15s
       evaluation_interval: 15s
-    
+
     scrape_configs:
     - job_name: 'prometheus'
       static_configs:
       - targets: ['localhost:9090']
-    
+
     - job_name: 'xorb-services'
       static_configs:
       - targets:
@@ -743,28 +743,28 @@ data:
         - 'postgres:5432'
         - 'redis:6379'
 """
-        
+
         with open('/tmp/prometheus-secure.yaml', 'w') as f:
             f.write(prometheus_secure_yaml)
-        
+
         try:
             subprocess.run(['kubectl', 'apply', '-f', '/tmp/prometheus-secure.yaml'], check=True)
             logger.info("✅ Security-compliant Prometheus deployed")
             self.services_deployed.append("Security-compliant Prometheus")
         except Exception as e:
             logger.warning(f"⚠️ Prometheus deployment warning: {e}")
-    
+
     async def deploy_working_implementations(self):
         """Deploy working service implementations"""
         logger.info("🛠️ Deploying working service implementations...")
-        
+
         # Working Threat Intelligence Service
         threat_intel_yaml = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: xorb-threat-intelligence
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 1
   selector:
@@ -798,40 +798,40 @@ spec:
           import json
           import random
           from datetime import datetime, timedelta
-          
+
           class ThreatIntelHandler(BaseHTTPRequestHandler):
               def do_GET(self):
                   self.send_cors_headers()
-                  
+
                   if self.path == '/health':
                       self.send_response(200)
                       self.send_header('Content-type', 'application/json')
                       self.end_headers()
                       self.wfile.write(json.dumps({"status": "healthy", "service": "threat-intelligence"}).encode())
-                      
+
                   elif self.path == '/api/v1/threats':
                       threats = self.generate_threat_data()
                       self.send_response(200)
                       self.send_header('Content-type', 'application/json')
                       self.end_headers()
                       self.wfile.write(json.dumps(threats).encode())
-                      
+
                   elif self.path == '/api/v1/threats/summary':
                       summary = self.generate_threat_summary()
                       self.send_response(200)
                       self.send_header('Content-type', 'application/json')
                       self.end_headers()
                       self.wfile.write(json.dumps(summary).encode())
-                      
+
                   else:
                       self.send_response(404)
                       self.end_headers()
-              
+
               def generate_threat_data(self):
                   threat_types = ["malware", "phishing", "ddos", "ransomware", "apt", "insider_threat"]
                   severities = ["low", "medium", "high", "critical"]
                   sources = ["honeypot", "ids", "siem", "endpoint", "network", "cloud"]
-                  
+
                   threats = []
                   for i in range(1, 16):
                       threat = {
@@ -849,9 +849,9 @@ spec:
                           }
                       }
                       threats.append(threat)
-                  
+
                   return {"threats": threats, "total": len(threats)}
-              
+
               def generate_threat_summary(self):
                   return {
                       "total_threats": random.randint(200, 300),
@@ -868,17 +868,17 @@ spec:
                       "risk_level": random.choice(["low", "medium", "high"]),
                       "last_updated": datetime.now().isoformat()
                   }
-              
+
               def send_cors_headers(self):
                   self.send_header('Access-Control-Allow-Origin', '*')
                   self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
                   self.send_header('Access-Control-Allow-Headers', 'Content-Type')
-              
+
               def do_OPTIONS(self):
                   self.send_response(200)
                   self.send_cors_headers()
                   self.end_headers()
-          
+
           httpd = HTTPServer(('0.0.0.0', 8002), ThreatIntelHandler)
           print("XORB Threat Intelligence Service running on port 8002")
           httpd.serve_forever()
@@ -898,7 +898,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: xorb-threat-intelligence
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: xorb-threat-intelligence
@@ -907,27 +907,27 @@ spec:
     targetPort: 8002
   type: ClusterIP
 """
-        
+
         with open('/tmp/threat-intel.yaml', 'w') as f:
             f.write(threat_intel_yaml)
-        
+
         try:
             subprocess.run(['kubectl', 'apply', '-f', '/tmp/threat-intel.yaml'], check=True)
             logger.info("✅ Working Threat Intelligence Service deployed")
             self.services_deployed.append("Working Threat Intelligence Service")
         except Exception as e:
             logger.warning(f"⚠️ Threat Intelligence deployment warning: {e}")
-    
+
     async def setup_enhanced_networking(self):
         """Setup enhanced networking with ingress"""
         logger.info("🌐 Setting up enhanced networking...")
-        
+
         enhanced_ingress_yaml = """
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: xorb-enhanced-ingress
-  namespace: xorb-platform
+  namespace: xorb_platform
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "false"
@@ -966,28 +966,28 @@ spec:
             port:
               number: 9090
 """
-        
+
         with open('/tmp/enhanced-ingress.yaml', 'w') as f:
             f.write(enhanced_ingress_yaml)
-        
+
         try:
             subprocess.run(['kubectl', 'apply', '-f', '/tmp/enhanced-ingress.yaml'], check=True)
             logger.info("✅ Enhanced networking configured")
             self.fixes_applied.append("Enhanced networking with ingress")
         except Exception as e:
             logger.warning(f"⚠️ Networking setup warning: {e}")
-    
+
     async def deploy_monitoring_stack(self):
         """Deploy complete monitoring stack"""
         logger.info("📊 Deploying monitoring stack...")
-        
+
         # Add basic monitoring service
         monitoring_yaml = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: xorb-monitoring
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 1
   selector:
@@ -1021,7 +1021,7 @@ spec:
           import json
           import time
           import random
-          
+
           class MonitorHandler(BaseHTTPRequestHandler):
               def do_GET(self):
                   if self.path == '/health':
@@ -1029,7 +1029,7 @@ spec:
                       self.send_header('Content-type', 'application/json')
                       self.end_headers()
                       self.wfile.write(json.dumps({"status": "healthy", "service": "monitoring"}).encode())
-                      
+
                   elif self.path == '/metrics':
                       metrics = {
                           "platform_health": round(random.uniform(0.95, 0.99), 3),
@@ -1047,11 +1047,11 @@ spec:
                       self.send_header('Content-type', 'application/json')
                       self.end_headers()
                       self.wfile.write(json.dumps(metrics).encode())
-                      
+
                   else:
                       self.send_response(404)
                       self.end_headers()
-          
+
           httpd = HTTPServer(('0.0.0.0', 9090), MonitorHandler)
           print("XORB Monitoring Service running on port 9090")
           httpd.serve_forever()
@@ -1071,7 +1071,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: xorb-monitoring
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: xorb-monitoring
@@ -1080,48 +1080,48 @@ spec:
     targetPort: 9090
   type: ClusterIP
 """
-        
+
         with open('/tmp/monitoring.yaml', 'w') as f:
             f.write(monitoring_yaml)
-        
+
         try:
             subprocess.run(['kubectl', 'apply', '-f', '/tmp/monitoring.yaml'], check=True)
             logger.info("✅ Monitoring stack deployed")
             self.services_deployed.append("Monitoring Stack")
         except Exception as e:
             logger.warning(f"⚠️ Monitoring deployment warning: {e}")
-    
+
     async def validate_enhanced_deployment(self):
         """Validate enhanced deployment"""
         logger.info("✅ Validating enhanced deployment...")
-        
+
         # Wait for services to stabilize
         await asyncio.sleep(45)
-        
+
         try:
-            result = subprocess.run(['kubectl', 'get', 'pods', '-n', self.namespace], 
+            result = subprocess.run(['kubectl', 'get', 'pods', '-n', self.namespace],
                                   capture_output=True, text=True)
             if result.returncode == 0:
                 lines = result.stdout.strip().split('\n')[1:]  # Skip header
                 total_pods = len(lines)
                 running_pods = sum(1 for line in lines if 'Running' in line and ('1/1' in line or '2/2' in line))
-                
+
                 health_percentage = (running_pods / total_pods * 100) if total_pods > 0 else 0
                 logger.info(f"✅ Deployment health: {running_pods}/{total_pods} ({health_percentage:.1f}%)")
-                
+
                 if health_percentage >= 70:
                     logger.info("🎉 Enhanced deployment successful - platform is operational!")
                     self.fixes_applied.append(f"Deployment validated: {health_percentage:.1f}% healthy")
                 else:
                     logger.warning("⚠️ Deployment partial - some services need attention")
-                    
+
         except Exception as e:
             logger.warning(f"⚠️ Validation error: {e}")
-    
+
     async def generate_deployment_report(self):
         """Generate comprehensive deployment report"""
         logger.info("📋 Generating deployment report...")
-        
+
         deployment_report = {
             "deployment_id": self.deployment_id,
             "timestamp": datetime.now().isoformat(),
@@ -1137,11 +1137,11 @@ spec:
                 "networking_optimized": True
             },
             "access_methods": {
-                "dashboard": "kubectl port-forward service/xorb-enhanced-dashboard 8080:80 -n xorb-platform",
-                "api_gateway": "kubectl port-forward service/xorb-enhanced-api-gateway 8081:8080 -n xorb-platform",
-                "threat_intelligence": "kubectl port-forward service/xorb-threat-intelligence 8002:8002 -n xorb-platform",
-                "monitoring": "kubectl port-forward service/xorb-monitoring 9090:9090 -n xorb-platform",
-                "prometheus": "kubectl port-forward service/prometheus-secure 9091:9090 -n xorb-platform"
+                "dashboard": "kubectl port-forward service/xorb-enhanced-dashboard 8080:80 -n xorb_platform",
+                "api_gateway": "kubectl port-forward service/xorb-enhanced-api-gateway 8081:8080 -n xorb_platform",
+                "threat_intelligence": "kubectl port-forward service/xorb-threat-intelligence 8002:8002 -n xorb_platform",
+                "monitoring": "kubectl port-forward service/xorb-monitoring 9090:9090 -n xorb_platform",
+                "prometheus": "kubectl port-forward service/prometheus-secure 9091:9090 -n xorb_platform"
             },
             "service_urls": {
                 "Dashboard": "http://localhost:8080",
@@ -1151,66 +1151,66 @@ spec:
                 "Prometheus": "http://localhost:9091"
             },
             "health_checks": [
-                "kubectl get pods -n xorb-platform",
-                "kubectl get services -n xorb-platform",
-                "kubectl logs -f deployment/xorb-enhanced-dashboard -n xorb-platform",
+                "kubectl get pods -n xorb_platform",
+                "kubectl get services -n xorb_platform",
+                "kubectl logs -f deployment/xorb-enhanced-dashboard -n xorb_platform",
                 "curl http://localhost:8081/health (after port-forward)"
             ],
             "next_steps": [
-                "Monitor service health with kubectl get pods -n xorb-platform",
+                "Monitor service health with kubectl get pods -n xorb_platform",
                 "Access enhanced dashboard at http://localhost:8080",
                 "Test API endpoints for real-time data",
                 "Review monitoring metrics at http://localhost:9090",
                 "Check threat intelligence feeds at http://localhost:8002"
             ]
         }
-        
+
         # Save deployment report
         report_file = f"/root/Xorb/logs/enhanced-deployment-{self.deployment_id}.json"
         with open(report_file, 'w') as f:
             json.dump(deployment_report, f, indent=2)
-        
+
         logger.info(f"📋 Enhanced deployment report saved: {report_file}")
         return deployment_report
 
 async def main():
     """Main enhanced deployment function"""
     deployment = XORBEnhancedDeployment()
-    
+
     try:
         report = await deployment.deploy_enhanced_platform()
-        
+
         print("\n" + "="*80)
         print("🎉 XORB ENHANCED PLATFORM DEPLOYMENT COMPLETE!")
         print("="*80)
         print(f"📋 Deployment ID: {deployment.deployment_id}")
         print(f"🚀 Services Deployed: {len(deployment.services_deployed)}")
         print(f"🔧 Fixes Applied: {len(deployment.fixes_applied)}")
-        
+
         print("\n🛠️ Services Deployed:")
         for service in deployment.services_deployed:
             print(f"  ✅ {service}")
-        
+
         print("\n🔧 Fixes Applied:")
         for fix in deployment.fixes_applied:
             print(f"  ✅ {fix}")
-        
+
         print("\n🚀 Quick Access Commands:")
-        print("  Dashboard:           kubectl port-forward service/xorb-enhanced-dashboard 8080:80 -n xorb-platform")
-        print("  API Gateway:         kubectl port-forward service/xorb-enhanced-api-gateway 8081:8080 -n xorb-platform")
-        print("  Threat Intelligence: kubectl port-forward service/xorb-threat-intelligence 8002:8002 -n xorb-platform")
-        print("  Monitoring:          kubectl port-forward service/xorb-monitoring 9090:9090 -n xorb-platform")
-        print("  Prometheus:          kubectl port-forward service/prometheus-secure 9091:9090 -n xorb-platform")
-        
+        print("  Dashboard:           kubectl port-forward service/xorb-enhanced-dashboard 8080:80 -n xorb_platform")
+        print("  API Gateway:         kubectl port-forward service/xorb-enhanced-api-gateway 8081:8080 -n xorb_platform")
+        print("  Threat Intelligence: kubectl port-forward service/xorb-threat-intelligence 8002:8002 -n xorb_platform")
+        print("  Monitoring:          kubectl port-forward service/xorb-monitoring 9090:9090 -n xorb_platform")
+        print("  Prometheus:          kubectl port-forward service/prometheus-secure 9091:9090 -n xorb_platform")
+
         print("\n📊 Service URLs (after port-forward):")
         print("  • Enhanced Dashboard: http://localhost:8080")
         print("  • API Gateway: http://localhost:8081/api/v1/status")
         print("  • Threat Intelligence: http://localhost:8002/api/v1/threats")
         print("  • Monitoring: http://localhost:9090/metrics")
         print("  • Prometheus: http://localhost:9091")
-        
+
         print("\n" + "="*80)
-        
+
     except Exception as e:
         logger.error(f"❌ Enhanced deployment failed: {e}")
 

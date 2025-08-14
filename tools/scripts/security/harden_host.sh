@@ -46,59 +46,59 @@ detect_os() {
         log_error "Cannot detect OS"
         exit 1
     fi
-    
+
     log_info "Detected OS: $OS $VER"
 }
 
 # Configure firewall
 configure_firewall() {
     log_info "Configuring firewall..."
-    
+
     case $OS in
         ubuntu|debian)
             # Install ufw if not present
             apt-get update
             apt-get install -y ufw
-            
+
             # Reset to defaults
             ufw --force reset
-            
+
             # Default policies
             ufw default deny incoming
             ufw default allow outgoing
-            
+
             # Allow SSH (preserve access)
             ufw allow ssh
-            
+
             # Allow XORB services
             ufw allow 8000/tcp   # API
             ufw allow 8080/tcp   # Orchestrator
             ufw allow 9090/tcp   # Worker/Prometheus
             ufw allow 3000/tcp   # Grafana
-            
+
             # Enable firewall
             ufw --force enable
-            
+
             log_success "UFW firewall configured"
             ;;
-        
+
         centos|rhel|fedora)
             # Configure firewalld
             systemctl enable firewalld
             systemctl start firewalld
-            
+
             # XORB services
             firewall-cmd --permanent --add-port=8000/tcp
             firewall-cmd --permanent --add-port=8080/tcp
             firewall-cmd --permanent --add-port=9090/tcp
             firewall-cmd --permanent --add-port=3000/tcp
-            
+
             # Reload configuration
             firewall-cmd --reload
-            
+
             log_success "Firewalld configured"
             ;;
-        
+
         *)
             log_warning "Firewall configuration not implemented for $OS"
             ;;
@@ -109,18 +109,18 @@ configure_firewall() {
 configure_selinux() {
     if [[ $OS == "centos" || $OS == "rhel" ]]; then
         log_info "Configuring SELinux..."
-        
+
         # Install SELinux tools
         yum install -y policycoreutils-python-utils setools-console
-        
+
         # Set SELinux to enforcing mode
         setenforce 1
         sed -i 's/SELINUX=.*/SELINUX=enforcing/' /etc/selinux/config
-        
+
         # Allow container management
         setsebool -P container_manage_cgroup true
         setsebool -P virt_use_execmem true
-        
+
         log_success "SELinux configured"
     fi
 }
@@ -129,19 +129,19 @@ configure_selinux() {
 configure_apparmor() {
     if [[ $OS == "ubuntu" || $OS == "debian" ]]; then
         log_info "Configuring AppArmor..."
-        
+
         # Install AppArmor
         apt-get install -y apparmor apparmor-utils
-        
+
         # Enable AppArmor
         systemctl enable apparmor
         systemctl start apparmor
-        
+
         # Docker profile
         if [[ -f /etc/apparmor.d/docker ]]; then
             aa-enforce /etc/apparmor.d/docker
         fi
-        
+
         log_success "AppArmor configured"
     fi
 }
@@ -149,7 +149,7 @@ configure_apparmor() {
 # Configure audit logging
 configure_audit() {
     log_info "Configuring audit logging..."
-    
+
     case $OS in
         ubuntu|debian)
             apt-get install -y auditd audispd-plugins
@@ -158,7 +158,7 @@ configure_audit() {
             yum install -y audit audit-libs
             ;;
     esac
-    
+
     # Create XORB audit rules
     cat > /etc/audit/rules.d/xorb.rules << 'EOF'
 # XORB Security Audit Rules
@@ -187,21 +187,21 @@ configure_audit() {
 # Monitor sudo usage
 -w /var/log/sudo.log -p wa -k sudo_log
 EOF
-    
+
     # Enable and start auditd
     systemctl enable auditd
     systemctl restart auditd
-    
+
     log_success "Audit logging configured"
 }
 
 # Harden Docker daemon
 harden_docker() {
     log_info "Hardening Docker daemon..."
-    
+
     # Create Docker daemon configuration
     mkdir -p /etc/docker
-    
+
     cat > /etc/docker/daemon.json << 'EOF'
 {
     "log-driver": "json-file",
@@ -220,7 +220,7 @@ harden_docker() {
     ]
 }
 EOF
-    
+
     # Create seccomp profile
     cat > /etc/docker/seccomp.json << 'EOF'
 {
@@ -298,18 +298,18 @@ EOF
     ]
 }
 EOF
-    
+
     # Restart Docker
     systemctl daemon-reload
     systemctl restart docker
-    
+
     log_success "Docker daemon hardened"
 }
 
 # Configure log rotation
 configure_logging() {
     log_info "Configuring log rotation..."
-    
+
     # XORB log rotation
     cat > /etc/logrotate.d/xorb << 'EOF'
 /var/log/xorb/*.log {
@@ -335,44 +335,44 @@ configure_logging() {
     copytruncate
 }
 EOF
-    
+
     # Docker log rotation (handled by daemon.json)
-    
+
     log_success "Log rotation configured"
 }
 
 # Set file permissions
 set_permissions() {
     log_info "Setting secure file permissions..."
-    
+
     # Create XORB directories if they don't exist
     mkdir -p /opt/xorb/{config,logs,data}
     mkdir -p /var/log/xorb
-    
+
     # Set ownership
     chown -R root:docker /opt/xorb
     chown -R root:root /var/log/xorb
-    
+
     # Set permissions
     chmod 750 /opt/xorb
     chmod 640 /opt/xorb/config/*
     chmod 755 /opt/xorb/logs
     chmod 750 /opt/xorb/data
     chmod 755 /var/log/xorb
-    
+
     # Secure systemd files
     if [[ -d /etc/systemd/system ]]; then
         chmod 644 /etc/systemd/system/xorb*.service
         chmod 644 /etc/systemd/system/xorb*.target
     fi
-    
+
     log_success "File permissions configured"
 }
 
 # Configure fail2ban
 configure_fail2ban() {
     log_info "Configuring fail2ban..."
-    
+
     case $OS in
         ubuntu|debian)
             apt-get install -y fail2ban
@@ -381,7 +381,7 @@ configure_fail2ban() {
             yum install -y fail2ban
             ;;
     esac
-    
+
     # Create XORB jail configuration
     cat > /etc/fail2ban/jail.d/xorb.conf << 'EOF'
 [xorb-api]
@@ -402,7 +402,7 @@ maxretry = 3
 bantime = 7200
 findtime = 300
 EOF
-    
+
     # Create filter for XORB API
     cat > /etc/fail2ban/filter.d/xorb-api.conf << 'EOF'
 [Definition]
@@ -410,7 +410,7 @@ failregex = ^.*\[.*\] ".*" 40[13] \d+ ".*" ".*" <HOST>.*$
             ^.*\[.*\] client <HOST> denied.*$
 ignoreregex =
 EOF
-    
+
     # Create filter for XORB auth
     cat > /etc/fail2ban/filter.d/xorb-auth.conf << 'EOF'
 [Definition]
@@ -419,24 +419,24 @@ failregex = ^.*authentication failed.*from <HOST>.*$
             ^.*unauthorized access.*from <HOST>.*$
 ignoreregex =
 EOF
-    
+
     # Enable and start fail2ban
     systemctl enable fail2ban
     systemctl restart fail2ban
-    
+
     log_success "Fail2ban configured"
 }
 
 # Configure network security
 configure_network_security() {
     log_info "Configuring network security..."
-    
+
     # Disable IPv6 if not needed
     if ! grep -q "net.ipv6.conf.all.disable_ipv6" /etc/sysctl.conf; then
         echo "net.ipv6.conf.all.disable_ipv6 = 1" >> /etc/sysctl.conf
         echo "net.ipv6.conf.default.disable_ipv6 = 1" >> /etc/sysctl.conf
     fi
-    
+
     # Network security settings
     cat >> /etc/sysctl.conf << 'EOF'
 
@@ -457,19 +457,19 @@ net.ipv4.tcp_max_syn_backlog = 2048
 net.ipv4.tcp_synack_retries = 2
 net.ipv4.tcp_syn_retries = 5
 EOF
-    
+
     # Apply sysctl settings
     sysctl -p
-    
+
     log_success "Network security configured"
 }
 
 # Generate security report
 generate_security_report() {
     log_info "Generating security report..."
-    
+
     REPORT_FILE="/opt/xorb/security_report_$(date +%Y%m%d_%H%M%S).txt"
-    
+
     cat > "$REPORT_FILE" << EOF
 XORB Security Hardening Report
 Generated: $(date)
@@ -513,7 +513,7 @@ $(systemctl status xorb-* 2>/dev/null | grep -E "(Active|Loaded)" || echo "XORB 
 Date: $(date)
 Status: SUCCESS
 EOF
-    
+
     log_success "Security report generated: $REPORT_FILE"
 }
 
@@ -525,18 +525,18 @@ main() {
 ║              XORB SECURITY HARDENING                ║
 ║                                                      ║
 ║  🛡️  Host Security Configuration                     ║
-║  🔒  Container Security Hardening                    ║  
+║  🔒  Container Security Hardening                    ║
 ║  📊  Audit and Monitoring Setup                      ║
 ║  🔥  Firewall and Network Security                   ║
 ╚══════════════════════════════════════════════════════╝
 EOF
     echo -e "${NC}"
-    
+
     log_info "Starting XORB security hardening..."
-    
+
     check_privileges
     detect_os
-    
+
     # Core security configurations
     configure_firewall
     configure_selinux
@@ -547,10 +547,10 @@ EOF
     set_permissions
     configure_fail2ban
     configure_network_security
-    
+
     # Generate final report
     generate_security_report
-    
+
     echo
     log_success "🎉 XORB security hardening completed!"
     echo

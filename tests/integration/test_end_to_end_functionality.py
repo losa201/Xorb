@@ -177,7 +177,7 @@ As a senior penetration tester, analyze:
 
 2. RISK ASSESSMENT:
    - Critical vs low-impact vulnerabilities
-   - Business logic flaws potential  
+   - Business logic flaws potential
    - Technical vs social engineering approaches
 
 3. TESTING STRATEGY:

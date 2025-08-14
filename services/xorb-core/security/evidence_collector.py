@@ -43,11 +43,11 @@ class EvidenceCollector:
     Enterprise evidence collection implementation
     Provides secure collection, storage, and management of compliance evidence
     """
-    
+
     def __init__(self, storage_path: str = "/var/xorb/evidence"):
         self.storage_path = storage_path
         self._initialize_storage()
-        
+
     def _initialize_storage(self) -> None:
         """
         Initialize evidence storage directory
@@ -59,7 +59,7 @@ class EvidenceCollector:
             logger.error(f"Failed to initialize evidence storage: {str(e)}")
             raise
 
-    def collect_evidence(self, 
+    def collect_evidence(self,
                         evidence_type: EvidenceType,
                         source: EvidenceSource,
                         content: Union[str, bytes, Dict[str, Any]],
@@ -94,14 +94,14 @@ class EvidenceCollector:
 
             # Generate file path
             file_path = self._generate_file_path(evidence_record["id"], content_type)
-            
+
             # Store evidence securely
             with open(file_path, "wb") as f:
                 f.write(content_data)
 
             # Calculate hashes
             evidence_hash = self._calculate_hash(content_data)
-            
+
             # Update storage info
             evidence_record["storage_info"] = {
                 "file_path": str(file_path),
@@ -147,10 +147,10 @@ class EvidenceCollector:
         """
         # Create record file path
         record_path = Path(self.storage_path) / "records" / f"{evidence_record['id']}.json"
-        
+
         # Ensure record directory exists
         record_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Store record
         with open(record_path, "w") as f:
             json.dump(evidence_record, f, indent=2)
@@ -161,14 +161,14 @@ class EvidenceCollector:
         """
         try:
             record_path = Path(self.storage_path) / "records" / f"{evidence_id}.json"
-            
+
             if not record_path.exists():
                 logger.warning(f"Evidence record {evidence_id} not found")
                 return None
 
             with open(record_path, "r") as f:
                 evidence_record = json.load(f)
-                
+
             # Add content preview if available
             if "storage_info" in evidence_record and "file_path" in evidence_record["storage_info"]:
                 file_path = Path(evidence_record["storage_info"]["file_path"])
@@ -179,14 +179,14 @@ class EvidenceCollector:
                             evidence_record["content_preview"] = f.read(1024).decode(errors="ignore")
                     except Exception as e:
                         logger.warning(f"Failed to read content preview: {str(e)}")
-                        
+
             return evidence_record
-            
+
         except Exception as e:
             logger.error(f"Failed to retrieve evidence: {str(e)}")
             raise
 
-    def search_evidence(self, 
+    def search_evidence(self,
                         evidence_type: Optional[EvidenceType] = None,
                         source: Optional[EvidenceSource] = None,
                         start_date: Optional[datetime] = None,
@@ -198,7 +198,7 @@ class EvidenceCollector:
         try:
             results = []
             records_path = Path(self.storage_path) / "records"
-            
+
             if not records_path.exists():
                 return []
 
@@ -206,24 +206,24 @@ class EvidenceCollector:
             for record_file in records_path.glob("*.json"):
                 with open(record_file, "r") as f:
                     evidence_record = json.load(f)
-                    
+
                 # Apply filters
                 if evidence_type and evidence_record.get("type") != evidence_type.value:
                     continue
-                    
+
                 if source and evidence_record.get("source") != source.value:
                     continue
-                    
+
                 if start_date:
                     record_time = datetime.fromisoformat(evidence_record.get("timestamp", ""))
                     if record_time < start_date:
                         continue
-                        
+
                 if end_date:
                     record_time = datetime.fromisoformat(evidence_record.get("timestamp", ""))
                     if record_time > end_date:
                         continue
-                        
+
                 if metadata_filter:
                     matches = True
                     for key, value in metadata_filter.items():
@@ -232,11 +232,11 @@ class EvidenceCollector:
                             break
                     if not matches:
                         continue
-                        
+
                 results.append(evidence_record)
-                
+
             return results
-            
+
         except Exception as e:
             logger.error(f"Failed to search evidence: {str(e)}")
             raise
@@ -264,7 +264,7 @@ class EvidenceCollector:
 
             logger.info(f"Deleted evidence {evidence_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to delete evidence: {str(e)}")
             return False
@@ -300,12 +300,12 @@ class EvidenceCollector:
 
             with open(file_path, "rb") as f:
                 file_data = f.read()
-                
+
             calculated_hash = self._calculate_hash(file_data)
-            
+
             # Compare hashes
             valid = stored_hash == calculated_hash
-            
+
             return {
                 "valid": valid,
                 "stored_hash": stored_hash,
@@ -313,7 +313,7 @@ class EvidenceCollector:
                 "match": valid,
                 "timestamp": datetime.now().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to verify evidence integrity: {str(e)}")
             return {
@@ -339,14 +339,14 @@ class EvidenceCollector:
 
             # Create export path
             export_file = Path(export_path) / file_path.name
-            
+
             # Copy file
             import shutil
             shutil.copy2(file_path, export_file)
-            
+
             logger.info(f"Exported evidence {evidence_id} to {export_file}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to export evidence: {str(e)}")
             return False
@@ -355,7 +355,7 @@ class EvidenceCollector:
 if __name__ == '__main__':
     # Create evidence collector instance
     collector = EvidenceCollector()
-    
+
     # Example metadata
     metadata = {
         "collector": "system_audit",
@@ -363,14 +363,14 @@ if __name__ == '__main__':
         "component": "access_control",
         "compliance_standard": "NIST"
     }
-    
+
     # Example log content
     log_content = """
 2025-08-10 12:00:00 INFO User admin accessed firewall configuration
 2025-08-10 12:05:00 WARNING Failed login attempt from 192.168.1.100
 2025-08-10 12:10:00 INFO Firewall rules updated
     """
-    
+
     # Collect system log evidence
     evidence_record = collector.collect_evidence(
         evidence_type=EvidenceType.LOG_FILE,
@@ -378,13 +378,13 @@ if __name__ == '__main__':
         content=log_content,
         metadata=metadata
     )
-    
+
     print("Collected Evidence:", evidence_record)
-    
+
     # Verify evidence integrity
     verification = collector.verify_evidence_integrity(evidence_record["id"])
     print("\nEvidence Verification:", verification)
-    
+
     # Search for evidence
     search_results = collector.search_evidence(
         evidence_type=EvidenceType.LOG_FILE,
@@ -393,11 +393,11 @@ if __name__ == '__main__':
     print(f"\nSearch Results ({len(search_results)} items):")
     for result in search_results:
         print(f"- {result['id']} ({result['timestamp']})")
-    
+
     # Export evidence
     export_success = collector.export_evidence(evidence_record["id"], ".")
     print("\nExport Success:", export_success)
-    
+
     # Delete evidence
     delete_success = collector.delete_evidence(evidence_record["id"])
     print("\nDelete Success:", delete_success)

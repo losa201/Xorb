@@ -7,7 +7,7 @@ from typing import List, Optional, Dict, Any
 from uuid import UUID
 
 from ..domain.entities import (
-    User, Organization, EmbeddingRequest, EmbeddingResult, 
+    User, Organization, EmbeddingRequest, EmbeddingResult,
     DiscoveryWorkflow, AuthToken
 )
 from ..domain.value_objects import UsageStats, RateLimitInfo
@@ -16,32 +16,32 @@ from ..domain.tenant_entities import Tenant, TenantPlan, TenantStatus
 
 class AuthenticationService(ABC):
     """Interface for unified authentication operations"""
-    
+
     @abstractmethod
     async def authenticate_user(self, credentials) -> Any:
         """Authenticate user with various credential types"""
         raise NotImplementedError("authenticate_user must be implemented by subclass")
-    
+
     @abstractmethod
     async def validate_token(self, token: str) -> Any:
         """Validate access token and return validation result"""
         raise NotImplementedError("validate_token must be implemented by subclass")
-    
+
     @abstractmethod
     async def refresh_access_token(self, refresh_token: str) -> Optional[str]:
         """Generate new access token from refresh token"""
         raise NotImplementedError("refresh_access_token must be implemented by subclass")
-    
+
     @abstractmethod
     async def logout_user(self, session_id: str) -> bool:
         """Logout user and invalidate session"""
         raise NotImplementedError("logout_user must be implemented by subclass")
-    
+
     @abstractmethod
     def hash_password(self, password: str) -> str:
         """Hash password securely"""
         raise NotImplementedError("hash_password must be implemented by subclass")
-    
+
     @abstractmethod
     def verify_password(self, password: str, hashed: str) -> bool:
         """Verify password against hash"""
@@ -50,12 +50,12 @@ class AuthenticationService(ABC):
 
 class AuthorizationService(ABC):
     """Interface for authorization operations"""
-    
+
     @abstractmethod
     async def check_permission(self, user: User, resource: str, action: str) -> bool:
         """Check if user has permission for resource action"""
         raise NotImplementedError("check_permission must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_user_permissions(self, user: User) -> Dict[str, List[str]]:
         """Get all permissions for user"""
@@ -64,7 +64,7 @@ class AuthorizationService(ABC):
 
 class EmbeddingService(ABC):
     """Interface for embedding operations"""
-    
+
     @abstractmethod
     async def generate_embeddings(
         self,
@@ -76,7 +76,7 @@ class EmbeddingService(ABC):
     ) -> EmbeddingResult:
         """Generate embeddings for texts"""
         raise NotImplementedError("generate_embeddings must be implemented by subclass")
-    
+
     @abstractmethod
     async def compute_similarity(
         self,
@@ -87,7 +87,7 @@ class EmbeddingService(ABC):
     ) -> float:
         """Compute similarity between two texts"""
         raise NotImplementedError("compute_similarity must be implemented by subclass")
-    
+
     @abstractmethod
     async def batch_embeddings(
         self,
@@ -100,7 +100,7 @@ class EmbeddingService(ABC):
     ) -> EmbeddingResult:
         """Process large batches of texts"""
         raise NotImplementedError("batch_embeddings must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_available_models(self) -> List[Dict[str, Any]]:
         """Get list of available embedding models"""
@@ -109,7 +109,7 @@ class EmbeddingService(ABC):
 
 class DiscoveryService(ABC):
     """Interface for discovery operations"""
-    
+
     @abstractmethod
     async def start_discovery(
         self,
@@ -119,7 +119,7 @@ class DiscoveryService(ABC):
     ) -> DiscoveryWorkflow:
         """Start a new discovery workflow"""
         raise NotImplementedError("start_discovery must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_discovery_results(
         self,
@@ -128,7 +128,7 @@ class DiscoveryService(ABC):
     ) -> Optional[DiscoveryWorkflow]:
         """Get results from discovery workflow"""
         raise NotImplementedError("get_discovery_results must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_user_workflows(
         self,
@@ -142,7 +142,7 @@ class DiscoveryService(ABC):
 
 class RateLimitService(ABC):
     """Interface for rate limiting operations"""
-    
+
     @abstractmethod
     async def check_rate_limit(
         self,
@@ -152,7 +152,7 @@ class RateLimitService(ABC):
     ) -> RateLimitInfo:
         """Check rate limit for organization and resource"""
         raise NotImplementedError("check_rate_limit must be implemented by subclass")
-    
+
     @abstractmethod
     async def increment_usage(
         self,
@@ -162,7 +162,7 @@ class RateLimitService(ABC):
     ) -> None:
         """Increment resource usage"""
         raise NotImplementedError("increment_usage must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_usage_stats(
         self,
@@ -174,7 +174,7 @@ class RateLimitService(ABC):
 
 class UserService(ABC):
     """Interface for user management operations"""
-    
+
     @abstractmethod
     async def create_user(
         self,
@@ -185,22 +185,22 @@ class UserService(ABC):
     ) -> User:
         """Create a new user"""
         raise NotImplementedError("create_user must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_user_by_id(self, user_id: UUID) -> Optional[User]:
         """Get user by ID"""
         raise NotImplementedError("get_user_by_id must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_user_by_username(self, username: str) -> Optional[User]:
         """Get user by username"""
         raise NotImplementedError("get_user_by_username must be implemented by subclass")
-    
+
     @abstractmethod
     async def update_user(self, user: User) -> User:
         """Update user information"""
         raise NotImplementedError("update_user must be implemented by subclass")
-    
+
     @abstractmethod
     async def deactivate_user(self, user_id: UUID) -> bool:
         """Deactivate a user"""
@@ -209,7 +209,7 @@ class UserService(ABC):
 
 class OrganizationService(ABC):
     """Interface for organization management operations"""
-    
+
     @abstractmethod
     async def create_organization(
         self,
@@ -219,17 +219,17 @@ class OrganizationService(ABC):
     ) -> Organization:
         """Create a new organization"""
         raise NotImplementedError("create_organization must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_organization_by_id(self, org_id: UUID) -> Optional[Organization]:
         """Get organization by ID"""
         raise NotImplementedError("get_organization_by_id must be implemented by subclass")
-    
+
     @abstractmethod
     async def update_organization(self, organization: Organization) -> Organization:
         """Update organization information"""
         raise NotImplementedError("update_organization must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_user_organizations(self, user: User) -> List[Organization]:
         """Get organizations for user"""
@@ -238,12 +238,12 @@ class OrganizationService(ABC):
 
 class SecurityService(ABC):
     """Interface for security-related operations"""
-    
+
     @abstractmethod
     async def analyze_security_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze security data and return insights"""
         raise NotImplementedError("analyze_security_data must be implemented by subclass")
-    
+
     @abstractmethod
     async def assess_risk(self, context: Dict[str, Any]) -> float:
         """Assess risk level for given context"""
@@ -252,7 +252,7 @@ class SecurityService(ABC):
 
 class NotificationService(ABC):
     """Interface for notification operations"""
-    
+
     @abstractmethod
     async def send_notification(
         self,
@@ -262,7 +262,7 @@ class NotificationService(ABC):
     ) -> bool:
         """Send notification to user"""
         raise NotImplementedError("send_notification must be implemented by subclass")
-    
+
     @abstractmethod
     async def send_webhook(
         self,
@@ -276,7 +276,7 @@ class NotificationService(ABC):
 
 class TenantService(ABC):
     """Interface for tenant management operations"""
-    
+
     @abstractmethod
     async def create_tenant(
         self,
@@ -287,22 +287,22 @@ class TenantService(ABC):
     ) -> Tenant:
         """Create a new tenant"""
         raise NotImplementedError("create_tenant must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_tenant_by_id(self, tenant_id: UUID) -> Optional[Tenant]:
         """Get tenant by ID"""
         raise NotImplementedError("get_tenant_by_id must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_tenant_by_slug(self, slug: str) -> Optional[Tenant]:
         """Get tenant by slug"""
         raise NotImplementedError("get_tenant_by_slug must be implemented by subclass")
-    
+
     @abstractmethod
     async def update_tenant(self, tenant: Tenant) -> Tenant:
         """Update tenant information"""
         raise NotImplementedError("update_tenant must be implemented by subclass")
-    
+
     @abstractmethod
     async def deactivate_tenant(self, tenant_id: UUID) -> bool:
         """Deactivate a tenant"""
@@ -311,12 +311,12 @@ class TenantService(ABC):
 
 class HealthService(ABC):
     """Interface for health check operations"""
-    
+
     @abstractmethod
     async def check_service_health(self, service_name: str) -> Dict[str, Any]:
         """Check health of a specific service"""
         raise NotImplementedError("check_service_health must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_system_health(self) -> Dict[str, Any]:
         """Get overall system health"""
@@ -325,7 +325,7 @@ class HealthService(ABC):
 
 class PTaaSService(ABC):
     """Interface for PTaaS (Penetration Testing as a Service) operations"""
-    
+
     @abstractmethod
     async def create_scan_session(
         self,
@@ -337,7 +337,7 @@ class PTaaSService(ABC):
     ) -> Dict[str, Any]:
         """Create a new PTaaS scan session"""
         raise NotImplementedError("create_scan_session must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_scan_status(
         self,
@@ -346,7 +346,7 @@ class PTaaSService(ABC):
     ) -> Dict[str, Any]:
         """Get status of a scan session"""
         raise NotImplementedError("get_scan_status must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_scan_results(
         self,
@@ -355,7 +355,7 @@ class PTaaSService(ABC):
     ) -> Dict[str, Any]:
         """Get results from a completed scan"""
         raise NotImplementedError("get_scan_results must be implemented by subclass")
-    
+
     @abstractmethod
     async def cancel_scan(
         self,
@@ -364,12 +364,12 @@ class PTaaSService(ABC):
     ) -> bool:
         """Cancel an active scan session"""
         raise NotImplementedError("cancel_scan must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_available_scan_profiles(self) -> List[Dict[str, Any]]:
         """Get available scan profiles and their configurations"""
         raise NotImplementedError("get_available_scan_profiles must be implemented by subclass")
-    
+
     @abstractmethod
     async def create_compliance_scan(
         self,
@@ -384,7 +384,7 @@ class PTaaSService(ABC):
 
 class ThreatIntelligenceService(ABC):
     """Interface for threat intelligence operations"""
-    
+
     @abstractmethod
     async def analyze_indicators(
         self,
@@ -394,7 +394,7 @@ class ThreatIntelligenceService(ABC):
     ) -> Dict[str, Any]:
         """Analyze threat indicators using AI"""
         raise NotImplementedError("analyze_indicators must be implemented by subclass")
-    
+
     @abstractmethod
     async def correlate_threats(
         self,
@@ -403,7 +403,7 @@ class ThreatIntelligenceService(ABC):
     ) -> Dict[str, Any]:
         """Correlate scan results with threat intelligence"""
         raise NotImplementedError("correlate_threats must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_threat_prediction(
         self,
@@ -412,7 +412,7 @@ class ThreatIntelligenceService(ABC):
     ) -> Dict[str, Any]:
         """Get AI-powered threat predictions"""
         raise NotImplementedError("get_threat_prediction must be implemented by subclass")
-    
+
     @abstractmethod
     async def generate_threat_report(
         self,
@@ -425,7 +425,7 @@ class ThreatIntelligenceService(ABC):
 
 class SecurityOrchestrationService(ABC):
     """Interface for security orchestration and automation"""
-    
+
     @abstractmethod
     async def create_workflow(
         self,
@@ -435,7 +435,7 @@ class SecurityOrchestrationService(ABC):
     ) -> Dict[str, Any]:
         """Create security automation workflow"""
         raise NotImplementedError("create_workflow must be implemented by subclass")
-    
+
     @abstractmethod
     async def execute_workflow(
         self,
@@ -445,7 +445,7 @@ class SecurityOrchestrationService(ABC):
     ) -> Dict[str, Any]:
         """Execute a security workflow"""
         raise NotImplementedError("execute_workflow must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_workflow_status(
         self,
@@ -454,7 +454,7 @@ class SecurityOrchestrationService(ABC):
     ) -> Dict[str, Any]:
         """Get status of workflow execution"""
         raise NotImplementedError("get_workflow_status must be implemented by subclass")
-    
+
     @abstractmethod
     async def schedule_recurring_scan(
         self,
@@ -469,7 +469,7 @@ class SecurityOrchestrationService(ABC):
 
 class ComplianceService(ABC):
     """Interface for compliance management operations"""
-    
+
     @abstractmethod
     async def validate_compliance(
         self,
@@ -479,7 +479,7 @@ class ComplianceService(ABC):
     ) -> Dict[str, Any]:
         """Validate compliance against specific framework"""
         raise NotImplementedError("validate_compliance must be implemented by subclass")
-    
+
     @abstractmethod
     async def generate_compliance_report(
         self,
@@ -489,7 +489,7 @@ class ComplianceService(ABC):
     ) -> Dict[str, Any]:
         """Generate compliance report for specified period"""
         raise NotImplementedError("generate_compliance_report must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_compliance_gaps(
         self,
@@ -498,7 +498,7 @@ class ComplianceService(ABC):
     ) -> List[Dict[str, Any]]:
         """Identify compliance gaps and remediation steps"""
         raise NotImplementedError("get_compliance_gaps must be implemented by subclass")
-    
+
     @abstractmethod
     async def track_remediation_progress(
         self,
@@ -511,7 +511,7 @@ class ComplianceService(ABC):
 
 class SecurityMonitoringService(ABC):
     """Interface for real-time security monitoring"""
-    
+
     @abstractmethod
     async def start_real_time_monitoring(
         self,
@@ -521,7 +521,7 @@ class SecurityMonitoringService(ABC):
     ) -> Dict[str, Any]:
         """Start real-time security monitoring"""
         raise NotImplementedError("start_real_time_monitoring must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_security_alerts(
         self,
@@ -531,7 +531,7 @@ class SecurityMonitoringService(ABC):
     ) -> List[Dict[str, Any]]:
         """Get recent security alerts"""
         raise NotImplementedError("get_security_alerts must be implemented by subclass")
-    
+
     @abstractmethod
     async def create_alert_rule(
         self,
@@ -541,7 +541,7 @@ class SecurityMonitoringService(ABC):
     ) -> Dict[str, Any]:
         """Create custom security alert rule"""
         raise NotImplementedError("create_alert_rule must be implemented by subclass")
-    
+
     @abstractmethod
     async def investigate_incident(
         self,
@@ -555,7 +555,7 @@ class SecurityMonitoringService(ABC):
 
 class RateLimitingService(ABC):
     """Interface for rate limiting operations"""
-    
+
     @abstractmethod
     async def check_rate_limit(
         self,
@@ -566,7 +566,7 @@ class RateLimitingService(ABC):
     ) -> RateLimitInfo:
         """Check if request is within rate limits"""
         raise NotImplementedError("check_rate_limit must be implemented by subclass")
-    
+
     @abstractmethod
     async def increment_usage(
         self,
@@ -577,7 +577,7 @@ class RateLimitingService(ABC):
     ) -> bool:
         """Increment usage counter for rate limiting"""
         raise NotImplementedError("increment_usage must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_usage_stats(
         self,
@@ -591,7 +591,7 @@ class RateLimitingService(ABC):
 
 class NotificationService(ABC):
     """Interface for notification operations"""
-    
+
     @abstractmethod
     async def send_notification(
         self,
@@ -606,7 +606,7 @@ class NotificationService(ABC):
     ) -> str:
         """Send a notification"""
         raise NotImplementedError("send_notification must be implemented by subclass")
-    
+
     @abstractmethod
     async def send_webhook(
         self,
@@ -622,12 +622,12 @@ class NotificationService(ABC):
 
 class IntelligenceService(ABC):
     """Interface for intelligence and analytics operations"""
-    
+
     @abstractmethod
     async def analyze_data(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze data and return intelligence insights"""
         raise NotImplementedError("analyze_data must be implemented by subclass")
-    
+
     @abstractmethod
     async def get_intelligence_report(self, query: Dict[str, Any]) -> Dict[str, Any]:
         """Generate intelligence report based on query"""

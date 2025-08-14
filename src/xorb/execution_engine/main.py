@@ -20,18 +20,18 @@ async def create_app():
     return engine.app
 
 if __name__ == '__main__':
-    
+
     # EPYC optimization
     os.environ['OMP_NUM_THREADS'] = str(EPYCExecutionConfig.CPU_CORES)
-    
+
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-    
+
     async def main():
         app = await create_app()
         web.run_app(app, host='0.0.0.0', port=8002)
-    
+
     asyncio.run(main())

@@ -26,12 +26,12 @@ class ComplianceFramework:
     Enterprise compliance framework implementation
     Provides standardized security policy validation across multiple standards
     """
-    
+
     def __init__(self, standard: ComplianceStandard):
         self.standard = standard.value
         self.requirements = self._load_requirements()
         self.metadata = self._load_metadata()
-        
+
     def _load_metadata(self) -> Dict[str, Any]:
         """
         Load standard metadata including version and scope
@@ -88,7 +88,7 @@ class ComplianceFramework:
             'hipaa': self._load_hipaa_requirements(),
             'gdpr': self._load_gdpr_requirements()
         }.get(self.standard, {})
-    
+
     def _load_nist_requirements(self) -> List[str]:
         """
         Load NIST Cybersecurity Framework requirements
@@ -110,7 +110,7 @@ class ComplianceFramework:
             'RC.CO-1', 'RC.CO-2', 'RC.CO-3',  # Improvements
             'RC.IM-1', 'RC.IM-2', 'RC.IM-3'   # Incident Management
         ]
-    
+
     def _load_cis_requirements(self) -> List[str]:
         """
         Load CIS Controls requirements
@@ -127,7 +127,7 @@ class ComplianceFramework:
             '9.1', '9.2', '9.3', '9.4', '9.5', '9.6', '9.7', '9.8',  # Email Defense
             '10.1', '10.2', '10.3', '10.4', '10.5', '10.6', '10.7', '10.8'  # Web Defense
         ]
-    
+
     def _load_iso_requirements(self) -> List[str]:
         """
         Load ISO/IEC 27001 requirements
@@ -148,7 +148,7 @@ class ComplianceFramework:
             'A.17.1.1', 'A.17.1.2', 'A.17.2.1', 'A.17.2.2',  # Business Continuity
             'A.18.1.1', 'A.18.1.2', 'A.18.1.3', 'A.18.1.4', 'A.18.2.1', 'A.18.2.2'  # Compliance
         ]
-    
+
     def _load_soc2_requirements(self) -> List[str]:
         """
         Load SOC 2 Type II requirements
@@ -253,16 +253,16 @@ class ComplianceFramework:
             'recommendations': [],
             'coverage_percentage': 0.0
         }
-        
+
         # Count total requirements
         total_requirements = len(self.requirements)
         if total_requirements == 0:
             logger.warning(f"No requirements found for standard {self.standard}")
             return results
-        
+
         # Count implemented requirements
         implemented_count = 0
-        
+
         # Basic validation logic
         for req in self.requirements:
             if req in policy.get('controls', {}):
@@ -279,14 +279,14 @@ class ComplianceFramework:
                     results['recommendations'].append(
                         f"Implement control for requirement {req}."
                     )
-        
+
         # Calculate coverage
         coverage = (implemented_count / total_requirements) * 100
         results['coverage_percentage'] = round(coverage, 2)
-        
+
         # Determine compliance status
         results['compliant'] = coverage >= 95.0  # 95% coverage required for compliance
-        
+
         return results
 
     def generate_compliance_report(self, policy: Dict[str, Any]) -> Dict[str, Any]:
@@ -294,7 +294,7 @@ class ComplianceFramework:
         Generate detailed compliance report with recommendations
         """
         validation_results = self.validate_policy(policy)
-        
+
         report = {
             'header': {
                 'standard': validation_results['metadata'].get('name', self.standard),
@@ -313,13 +313,13 @@ class ComplianceFramework:
                 'recommendations': validation_results['recommendations']
             }
         }
-        
+
         return report
 
 # Example usage
 if __name__ == '__main__':
     from datetime import datetime
-    
+
     # Example policy
     example_policy = {
         'controls': {
@@ -332,21 +332,21 @@ if __name__ == '__main__':
             'RC.RP-1': {'implemented': True, 'description': 'Recovery plan documented'}
         }
     }
-    
+
     # Test with NIST framework
     nist_framework = ComplianceFramework(ComplianceStandard.NIST)
     nist_results = nist_framework.validate_policy(example_policy)
     print("NIST Validation Results:", nist_results)
-    
+
     # Generate detailed report
     nist_report = nist_framework.generate_compliance_report(example_policy)
     print("\nNIST Compliance Report:", nist_report)
-    
+
     # Test with PCI-DSS framework
     pci_framework = ComplianceFramework(ComplianceStandard.PCI_DSS)
     pci_results = pci_framework.validate_policy(example_policy)
     print("\nPCI-DSS Validation Results:", pci_results)
-    
+
     # Generate detailed report
     pci_report = pci_framework.generate_compliance_report(example_policy)
     print("\nPCI-DSS Compliance Report:", pci_report)

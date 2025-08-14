@@ -29,7 +29,7 @@ scrape_configs:
   # ==============================
   # CORE TIER SERVICES
   # ==============================
-  
+
   - job_name: 'campaign-orchestrator'
     static_configs:
       - targets: ['campaign-orchestrator:9001']
@@ -337,15 +337,15 @@ recording_rules:
     rules:
       - record: xorb:campaign_success_rate
         expr: |
-          rate(xorb_campaigns_total{status="success"}[5m]) / 
+          rate(xorb_campaigns_total{status="success"}[5m]) /
           rate(xorb_campaigns_total[5m])
-      
-      - record: xorb:vulnerability_discovery_rate  
+
+      - record: xorb:vulnerability_discovery_rate
         expr: rate(xorb_vulnerabilities_discovered_total[5m])
-      
+
       - record: xorb:exploit_success_rate
         expr: |
-          rate(xorb_exploits_successful_total[5m]) / 
+          rate(xorb_exploits_successful_total[5m]) /
           rate(xorb_exploits_attempted_total[5m])
 
   - name: xorb_performance_metrics
@@ -354,12 +354,12 @@ recording_rules:
       - record: xorb:service_availability
         expr: |
           (up == 1) * 100
-      
+
       - record: xorb:request_latency_p95
         expr: |
-          histogram_quantile(0.95, 
+          histogram_quantile(0.95,
             rate(xorb_request_duration_seconds_bucket[5m]))
-      
+
       - record: xorb:error_rate
         expr: |
           rate(xorb_request_duration_seconds_count{status=~"4..|5.."}[5m]) /
@@ -371,11 +371,11 @@ recording_rules:
       - record: xorb:epyc_numa_efficiency
         expr: |
           avg_over_time(xorb_numa_utilization_percent[5m])
-      
+
       - record: xorb:epyc_thermal_health
         expr: |
           (xorb_ccx_temperature_celsius < 75) * 100
-      
+
       - record: xorb:epyc_cache_effectiveness
         expr: |
           avg_over_time(xorb_cache_hit_rate_percent[5m])
@@ -387,7 +387,7 @@ recording_rules:
         expr: |
           rate(xorb_ai_inference_duration_seconds_count[5m]) /
           rate(xorb_ai_cost_usd_total[5m])
-      
+
       - record: xorb:ai_model_performance
         expr: |
           avg_over_time(xorb_ai_model_accuracy_percent[10m])

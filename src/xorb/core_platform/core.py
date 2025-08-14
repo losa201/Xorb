@@ -43,7 +43,7 @@ class XORBPristineCorePlatform:
         self.observability = None
         self.epyc_optimization = None
         self.logger = logging.getLogger(__name__)
-        
+
         # Enhanced metrics
         self.request_counter = Counter(
             'xorb_core_platform_requests_total',
@@ -64,16 +64,16 @@ class XORBPristineCorePlatform:
             'Health status of backend services',
             ['service']
         )
-        
+
     async def init_services(self):
         """Initialize all pristine architecture services."""
         # Redis connection
         self.redis = aioredis.from_url("redis://redis:6379")
-        
+
         # Initialize core services
         self.auth_service = UnifiedAuthService(db_session=AsyncSessionLocal(), redis_client=self.redis)
         self.rate_limiter = UnifiedRateLimiter(self.redis)
-        
+
         # Initialize pristine architecture components
         self.service_mesh = await initialize_service_mesh({
             'services': {
@@ -89,17 +89,17 @@ class XORBPristineCorePlatform:
                 }
             }
         })
-        
+
         self.fault_tolerance = await initialize_fault_tolerance()
-        
+
         self.observability = await initialize_observability('core-platform', {
             'jaeger_endpoint': 'http://jaeger:14268/api/traces',
             'metrics_port': 9090,
             'webhook_url': 'http://alertmanager:9093/api/v1/alerts'
         })
-        
+
         self.epyc_optimization = await initialize_epyc_optimization()
-        
+
         # Setup CORS
         cors = cors_setup(self.app, defaults={
             "*": ResourceOptions(
@@ -109,12 +109,12 @@ class XORBPristineCorePlatform:
                 allow_methods="*"
             )
         })
-        
+
         # Register routes
         self.setup_routes()
-        
+
         self.logger.info("XORB Pristine Core Platform initialized with full architecture stack")
-        
+
     def setup_routes(self):
         """Setup all pristine architecture routes."""
         # Authentication routes
@@ -122,27 +122,27 @@ class XORBPristineCorePlatform:
         self.app.router.add_post('/auth/logout', self.logout)
         self.app.router.add_post('/auth/refresh', self.refresh_token)
         self.app.router.add_post('/auth/api-key', self.create_api_key)
-        
+
         # Pristine architecture service proxy routes
-        self.app.router.add_route('*', '/api/campaigns/{path:.*}', 
+        self.app.router.add_route('*', '/api/campaigns/{path:.*}',
                                  lambda req: self.proxy_to_service(req, 'campaign-orchestrator'))
-        self.app.router.add_route('*', '/api/targets/{path:.*}', 
+        self.app.router.add_route('*', '/api/targets/{path:.*}',
                                  lambda req: self.proxy_to_service(req, 'target-registry'))
-        self.app.router.add_route('*', '/api/agents/{path:.*}', 
+        self.app.router.add_route('*', '/api/agents/{path:.*}',
                                  lambda req: self.proxy_to_service(req, 'agent-lifecycle'))
-        self.app.router.add_route('*', '/api/evidence/{path:.*}', 
+        self.app.router.add_route('*', '/api/evidence/{path:.*}',
                                  lambda req: self.proxy_to_service(req, 'evidence-collector'))
-        self.app.router.add_route('*', '/api/vulnerabilities/{path:.*}', 
+        self.app.router.add_route('*', '/api/vulnerabilities/{path:.*}',
                                  lambda req: self.proxy_to_service(req, 'vulnerability-scanner'))
-        self.app.router.add_route('*', '/api/exploits/{path:.*}', 
+        self.app.router.add_route('*', '/api/exploits/{path:.*}',
                                  lambda req: self.proxy_to_service(req, 'exploitation-engine'))
-        self.app.router.add_route('*', '/api/stealth/{path:.*}', 
+        self.app.router.add_route('*', '/api/stealth/{path:.*}',
                                  lambda req: self.proxy_to_service(req, 'stealth-manager'))
-        self.app.router.add_route('*', '/api/ai/{path:.*}', 
+        self.app.router.add_route('*', '/api/ai/{path:.*}',
                                  lambda req: self.proxy_to_service(req, 'ai-gateway'))
-        self.app.router.add_route('*', '/api/threats/{path:.*}', 
+        self.app.router.add_route('*', '/api/threats/{path:.*}',
                                  lambda req: self.proxy_to_service(req, 'threat-intelligence'))
-        
+
         # Platform management routes
         self.app.router.add_get('/health', self.health_check)
         self.app.router.add_get('/metrics', self.prometheus_metrics)
@@ -150,7 +150,7 @@ class XORBPristineCorePlatform:
         self.app.router.add_get('/architecture', self.get_architecture_info)
         self.app.router.add_get('/fault-tolerance', self.get_fault_tolerance_status)
         self.app.router.add_get('/epyc-optimization', self.get_epyc_status)
-    
+
     @middleware
     async def observability_middleware(self, request: web_request.Request, handler):
         """Distributed tracing and observability middleware."""
@@ -166,14 +166,14 @@ class XORBPristineCorePlatform:
                 return await handler(request)
         else:
             return await handler(request)
-    
+
     @middleware
     async def auth_middleware(self, request: web_request.Request, handler):
         """Authentication middleware."""
         # Skip auth for health checks
         if request.path in ['/health', '/metrics']:
             return await handler(request)
-        
+
         # Try JWT first
         auth_header = request.headers.get('Authorization', '')
         if auth_header.startswith('Bearer '):
@@ -182,7 +182,7 @@ class XORBPristineCorePlatform:
             if payload:
                 request['user'] = payload
                 return await handler(request)
-        
+
         # Try API key
         api_key = request.headers.get('X-API-Key') or request.query.get('api_key')
         if api_key:
@@ -195,10 +195,10 @@ class XORBPristineCorePlatform:
                     'auth_type': 'api_key'
                 }
                 return await handler(request)
-        
+
         # No valid auth found
         return web.json_response({'error': 'Authentication required'}, status=401)
-    
+
     @middleware
     async def fault_tolerance_middleware(self, request: web_request.Request, handler):
         """Fault tolerance middleware with circuit breaker protection."""
@@ -217,29 +217,29 @@ class XORBPristineCorePlatform:
                 raise
         else:
             return await handler(request)
-    
+
     @middleware
     async def epyc_optimization_middleware(self, request: web_request.Request, handler):
         """EPYC optimization middleware for workload-aware processing."""
         if self.epyc_optimization:
             # Determine workload type based on request
             workload_type = WorkloadType.IO_INTENSIVE  # Default for API requests
-            
+
             if request.path.startswith('/api/ai/'):
                 workload_type = WorkloadType.AI_INFERENCE
             elif request.path.startswith('/api/vulnerabilities/'):
                 workload_type = WorkloadType.CPU_INTENSIVE
             elif request.path.startswith('/metrics'):
                 workload_type = WorkloadType.LATENCY_SENSITIVE
-            
+
             @epyc_optimized(workload_type)
             async def optimized_handler():
                 return await handler(request)
-            
+
             return await optimized_handler()
         else:
             return await handler(request)
-    
+
     @middleware
     async def rate_limit_middleware(self, request: web_request.Request, handler):
         """Rate limiting middleware."""
@@ -248,55 +248,55 @@ class XORBPristineCorePlatform:
             key = f"user:{request['user'].get('user_id', 'unknown')}"
         else:
             key = f"ip:{request.remote}"
-        
+
         # Check rate limit
         allowed, remaining = await self.rate_limiter.check_rate_limit(key)
-        
+
         if not allowed:
             return web.json_response({'error': 'Rate limit exceeded'}, status=429)
-        
+
         response = await handler(request)
         response.headers['X-RateLimit-Remaining'] = str(remaining)
         return response
-    
+
     @middleware
     async def metrics_middleware(self, request: web_request.Request, handler):
         """Enhanced metrics collection middleware."""
         start_time = time.time()
-        
+
         try:
             response = await handler(request)
             duration = time.time() - start_time
-            
+
             # Record Prometheus metrics
             self.request_counter.labels(
                 method=request.method,
                 endpoint=request.path,
                 status=str(response.status)
             ).inc()
-            
+
             self.request_duration.labels(
                 method=request.method,
                 endpoint=request.path
             ).observe(duration)
-            
+
             # Legacy Redis metrics for backward compatibility
             await self.redis.hincrby('metrics:requests', request.path, 1)
             await self.redis.hset('metrics:response_times', request.path, duration)
-            
+
             return response
         except Exception as e:
             duration = time.time() - start_time
-            
+
             self.request_counter.labels(
                 method=request.method,
                 endpoint=request.path,
                 status='500'
             ).inc()
-            
+
             await self.redis.hincrby('metrics:errors', request.path, 1)
             raise
-    
+
     @middleware
     async def error_middleware(self, request: web_request.Request, handler):
         """Error handling middleware."""
@@ -310,12 +310,12 @@ class XORBPristineCorePlatform:
                 'error': 'Internal server error',
                 'request_id': str(uuid4())
             }, status=500)
-    
+
     @trace("proxy_to_service")
     async def proxy_to_service(self, request: web_request.Request, service_name: str):
         """Enhanced proxy with service mesh integration."""
         path = request.match_info.get('path', '')
-        
+
         try:
             # Extract request data with enhanced headers
             headers = dict(request.headers)
@@ -323,7 +323,7 @@ class XORBPristineCorePlatform:
             headers['X-Request-ID'] = str(uuid4())
             headers['X-Service-Tier'] = self._get_service_tier(service_name)
             headers['X-EPYC-Optimized'] = 'true'
-            
+
             # Get request context for intelligent routing
             request_context = {
                 'numa_preference': 0 if service_name in ['campaign-orchestrator', 'target-registry'] else 1,
@@ -331,7 +331,7 @@ class XORBPristineCorePlatform:
                 'model_type': 'llm' if service_name == 'ai-gateway' else 'unknown',
                 'complexity': 'cognitive' if 'ai' in service_name else 'standard'
             }
-            
+
             # Proxy via service mesh with intelligent routing
             response = await self.service_mesh.proxy_request(
                 source_service='core-platform',
@@ -342,31 +342,31 @@ class XORBPristineCorePlatform:
                 data=await request.read() if request.body_exists else None,
                 request_context=request_context
             )
-            
+
             return web.Response(
                 body=await response.read(),
                 status=response.status,
                 headers=dict(response.headers)
             )
-            
+
         except Exception as e:
             self.logger.exception(f"Error proxying to {service_name}")
-            
+
             # Update service health metrics
             self.service_health.labels(service=service_name).set(0)
-            
+
             return web.json_response({
                 'error': f'Service {service_name} unavailable',
                 'service': service_name,
                 'service_tier': self._get_service_tier(service_name),
                 'retry_after': 30
             }, status=503)
-    
+
     def _get_service_tier(self, service_name: str) -> str:
         """Get service tier for given service name."""
         service_def = XORB_ARCHITECTURE.services.get(service_name)
         return service_def.tier.value if service_def else 'unknown'
-    
+
     def _determine_workload_type(self, service_name: str) -> str:
         """Determine workload type for intelligent routing."""
         workload_mapping = {
@@ -378,43 +378,43 @@ class XORBPristineCorePlatform:
             'evidence-collector': 'io_intensive'
         }
         return workload_mapping.get(service_name, 'balanced')
-    
+
     async def login(self, request: web_request.Request):
         """User login endpoint."""
         data = await request.json()
         username = data.get('username')
         password = data.get('password')
-        
+
         user = await self.auth_service.user_repo.get_user_by_username(username)
         if not user or not self.auth_service.verify_password(password, user.password):
             return web.json_response({'error': 'Invalid credentials'}, status=401)
-        
+
         token = await self.auth_service.create_jwt_token(user)
-        
+
         return web.json_response({
             'token': token,
             'user': user.dict(),
             'expires_in': PlatformConfig.JWT_EXPIRY_HOURS * 3600
         })
-    
+
     async def create_api_key(self, request: web_request.Request):
         """Create API key endpoint."""
         data = await request.json()
         user = request['user']
-        
+
         api_key, key_model = await self.auth_service.create_api_key(
             user_id=user.id,
             name=data.get('name', 'Default API Key'),
             scopes=data.get('scopes', ['read', 'write'])
         )
-        
+
         return web.json_response({
             'api_key': api_key,
             'key_id': key_model.key_id,
             'scopes': key_model.scopes,
             'rate_limit': key_model.rate_limit
         })
-    
+
     async def health_check(self, request: web_request.Request):
         """Health check endpoint."""
         return web.json_response({
@@ -423,19 +423,19 @@ class XORBPristineCorePlatform:
             'version': '1.0.0',
             'services': await self.get_service_health()
         })
-    
+
     async def get_service_health(self):
         """Get health status of all services."""
         health_status = {}
         for service_name in PlatformConfig.SERVICES:
             health_status[service_name] = await self.service_mesh.health_check(service_name)
         return health_status
-    
+
     async def prometheus_metrics(self, request: web_request.Request):
         """Prometheus metrics endpoint."""
         metrics_data = generate_latest()
         return web.Response(text=metrics_data.decode('utf-8'), content_type='text/plain')
-    
+
     async def get_metrics(self, request: web_request.Request):
         """Enhanced platform metrics with architecture insights."""
         base_metrics = {
@@ -444,34 +444,34 @@ class XORBPristineCorePlatform:
             'errors': await self.redis.hgetall('metrics:errors'),
             'active_users': await self.redis.scard('active_users'),
         }
-        
+
         # Add architecture-specific metrics
         if self.observability:
             observability_stats = await self.observability.get_usage_statistics() if hasattr(self.observability, 'get_usage_statistics') else {}
             base_metrics['observability'] = observability_stats
-        
+
         if self.fault_tolerance:
             fault_tolerance_stats = self.fault_tolerance.get_usage_statistics() if hasattr(self.fault_tolerance, 'get_usage_statistics') else {}
             base_metrics['fault_tolerance'] = fault_tolerance_stats
-        
+
         if self.epyc_optimization:
             epyc_stats = {
                 'topology': self.epyc_optimization.topology.__dict__ if self.epyc_optimization.topology else {},
                 'optimization_active': self.epyc_optimization.optimization_active
             }
             base_metrics['epyc_optimization'] = epyc_stats
-        
+
         return web.json_response(base_metrics)
-    
+
     async def get_status(self, request: web_request.Request):
         """Enhanced platform status with architecture information."""
         service_health = await self.get_service_health()
-        
+
         # Calculate overall health score
         healthy_services = sum(1 for status in service_health.values() if status.get('healthy', False))
         total_services = len(service_health)
         health_percentage = (healthy_services / total_services * 100) if total_services > 0 else 0
-        
+
         return web.json_response({
             'platform': 'XORB Pristine Core Platform',
             'version': '2.0.0',
@@ -495,11 +495,11 @@ class XORBPristineCorePlatform:
             'numa_nodes': self.epyc_optimization.topology.numa_nodes if self.epyc_optimization and self.epyc_optimization.topology else 2,
             'ccx_count': self.epyc_optimization.topology.ccx_count if self.epyc_optimization and self.epyc_optimization.topology else 8
         })
-    
+
     async def get_architecture_info(self, request: web_request.Request):
         """Get detailed architecture information."""
         architecture_issues = XORB_ARCHITECTURE.validate_architecture()
-        
+
         return web.json_response({
             'architecture_type': 'pristine_microservices',
             'total_services': len(XORB_ARCHITECTURE.services),
@@ -525,26 +525,26 @@ class XORBPristineCorePlatform:
             'validation_issues': architecture_issues,
             'deployment_topology': XORB_ARCHITECTURE.deployment_topology
         })
-    
+
     async def get_fault_tolerance_status(self, request: web_request.Request):
         """Get fault tolerance system status."""
         if not self.fault_tolerance:
             return web.json_response({'error': 'Fault tolerance not initialized'}, status=503)
-        
+
         return web.json_response({
             'bulkheads': list(self.fault_tolerance.bulkheads.keys()),
             'circuit_breakers': list(self.fault_tolerance.circuit_breakers.keys()),
             'active': True,
             'patterns_available': ['circuit_breaker', 'bulkhead', 'timeout', 'retry', 'rate_limiter']
         })
-    
+
     async def get_epyc_status(self, request: web_request.Request):
         """Get EPYC optimization status."""
         if not self.epyc_optimization:
             return web.json_response({'error': 'EPYC optimization not initialized'}, status=503)
-        
+
         topology = self.epyc_optimization.topology
-        
+
         return web.json_response({
             'optimization_active': self.epyc_optimization.optimization_active,
             'topology': {

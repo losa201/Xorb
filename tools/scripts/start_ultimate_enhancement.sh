@@ -29,7 +29,7 @@ echo -e "   Working Dir: $(pwd)"
 
 echo -e "\n${BLUE}🧠 AI Enhancement Systems (XORB Integrated):${NC}"
 echo -e "   1. 🤖 Qwen3 Autonomous Enhancement (5-min cycles) - API Connected"
-echo -e "   2. 🧬 HyperEvolution Intelligence (3-min cycles) - Orchestrator Linked" 
+echo -e "   2. 🧬 HyperEvolution Intelligence (3-min cycles) - Orchestrator Linked"
 echo -e "   3. ⚡ Real-time Code Monitor (30-sec cycles) - Worker Integrated"
 echo -e "   4. 🧠 Deep Learning Analysis (10-min cycles) - Vector DB Connected"
 echo -e "   5. 🎯 Multi-Model Ensemble (4-min cycles) - Knowledge Fabric Linked"
@@ -193,10 +193,10 @@ sleep 3
 # Function to handle cleanup
 cleanup() {
     echo -e "\n${YELLOW}🛑 Shutting down Ultimate Enhancement Suite...${NC}"
-    
+
     # Kill background processes
     jobs -p | xargs -r kill
-    
+
     # Final status
     echo -e "${BLUE}📊 Final Enhancement Status:${NC}"
     if [ -f "logs/qwen3_hyperevolution.log" ]; then
@@ -205,13 +205,13 @@ cleanup() {
     if [ -f "logs/qwen3_enhancement.log" ]; then
         echo -e "   Autonomous Cycles: $(grep -c "Enhancement cycle" logs/qwen3_enhancement.log 2>/dev/null || echo "0")"
     fi
-    
+
     # Session summary
     echo -e "${BLUE}📋 Session Summary:${NC}"
     echo -e "   Session Duration: $(date)"
     echo -e "   Systems Coordinated: 5 AI enhancement systems"
     echo -e "   Enhancement Mode: Ultimate coordinated multi-agent"
-    
+
     echo -e "${GREEN}✅ Ultimate Enhancement Suite stopped cleanly${NC}"
     exit 0
 }
@@ -239,7 +239,7 @@ import os
 
 services = {
     "api": "http://localhost:8000/health",
-    "orchestrator": "http://localhost:8080/health", 
+    "orchestrator": "http://localhost:8080/health",
     "worker": "http://localhost:9000/health",
     "prometheus": "http://localhost:9090/api/v1/status/config",
     "grafana": "http://localhost:3000/api/health"
@@ -254,10 +254,10 @@ while True:
                 status[name] = "healthy" if resp.status_code == 200 else "unhealthy"
             except:
                 status[name] = "down"
-        
+
         with open("logs/xorb_service_status.json", "w") as f:
             json.dump({"timestamp": time.time(), "services": status}, f)
-        
+
         time.sleep(60)  # Check every minute
     except KeyboardInterrupt:
         break

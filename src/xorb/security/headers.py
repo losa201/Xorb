@@ -9,7 +9,7 @@ from fastapi.middleware import Middleware
 
 def configure_security_headers(app: FastAPI):
     """Configure strict security headers for the application."""
-    
+
     # Content Security Policy with strict rules
     csp_policy = {
         'default-src': "'self'",
@@ -61,10 +61,10 @@ def configure_security_headers(app: FastAPI):
     @app.middleware("http")
     async def add_security_headers(request, call_next):
         response = await call_next(request)
-        
+
         # Add Content Security Policy
         response.headers["Content-Security-Policy"] = csp_header
-        
+
         # Add other security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
@@ -78,10 +78,10 @@ def configure_security_headers(app: FastAPI):
             "publickey-credentials-get=(), screen-wake-lock=(), sync-xhr=(), usb=(), web-share=(), "
             "xr-spatial-tracking=()"
         )
-        
+
         # Remove server information
         response.headers["Server"] = "Xorb-Security-Platform"
-        
+
         return response
 
     return app

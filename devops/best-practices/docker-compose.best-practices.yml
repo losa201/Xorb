@@ -61,7 +61,7 @@ x-common-variables: &common-variables
   LOG_LEVEL: ${LOG_LEVEL:-INFO}
   PROMETHEUS_ENABLED: "true"
   VAULT_URL: http://vault:8200
-  
+
 x-restart-policy: &restart-policy
   restart: unless-stopped
 
@@ -88,7 +88,7 @@ services:
   # ==========================================================================
   # DATABASE LAYER
   # ==========================================================================
-  
+
   postgres:
     image: postgres:15-alpine
     <<: *restart-policy
@@ -144,7 +144,7 @@ services:
   # ==========================================================================
   # SECURITY & SECRET MANAGEMENT
   # ==========================================================================
-  
+
   vault:
     image: vault:1.15
     <<: *restart-policy
@@ -173,7 +173,7 @@ services:
   # ==========================================================================
   # APPLICATION SERVICES
   # ==========================================================================
-  
+
   api-gateway:
     build:
       context: .
@@ -281,7 +281,7 @@ services:
   # ==========================================================================
   # MONITORING & OBSERVABILITY
   # ==========================================================================
-  
+
   prometheus:
     image: prom/prometheus:v2.47.0
     <<: *restart-policy
@@ -373,7 +373,7 @@ services:
   # ==========================================================================
   # REVERSE PROXY & LOAD BALANCER
   # ==========================================================================
-  
+
   nginx:
     image: nginx:1.25-alpine
     <<: *restart-policy

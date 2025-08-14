@@ -10,14 +10,14 @@ services:
   api:
     workers: 1
     timeout: 10
-  
+
   orchestrator:
     enabled: false  # Disable orchestrator in tests
-  
+
   intelligence:
     workers: 1
     timeout: 10
-  
+
   worker:
     enabled: false  # Disable worker in tests
 

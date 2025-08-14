@@ -20,7 +20,7 @@ services:
   # ==========================================
   # CORE INFRASTRUCTURE
   # ==========================================
-  
+
   postgres:
     image: postgres:16-alpine
     container_name: xorb-postgres

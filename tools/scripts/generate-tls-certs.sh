@@ -46,15 +46,15 @@ create_cert_directory() {
 # Generate CA certificate
 generate_ca_certificate() {
     log_info "Generating Certificate Authority (CA)..."
-    
+
     # Generate CA private key
     openssl genrsa -out "${CA_KEY}" 4096
     chmod 600 "${CA_KEY}"
-    
+
     # Generate CA certificate
     openssl req -new -x509 -days ${CERT_VALIDITY_DAYS} -key "${CA_KEY}" -out "${CA_CERT}" \
         -subj "/C=US/ST=Security/L=XORB/O=XORB AI Platform/OU=Telemetry/CN=XORB Root CA"
-    
+
     chmod 644 "${CA_CERT}"
     log_success "CA certificate generated: ${CA_CERT}"
 }
@@ -62,15 +62,15 @@ generate_ca_certificate() {
 # Generate domain certificates
 generate_domain_certificates() {
     log_info "Generating domain certificates..."
-    
+
     for domain in "${DOMAINS[@]}"; do
         log_info "Processing domain: ${domain}"
-        
+
         local domain_key="${CERT_DIR}/${domain}-key.pem"
         local domain_csr="${CERT_DIR}/${domain}.csr"
         local domain_cert="${CERT_DIR}/${domain}-cert.pem"
         local domain_config="${CERT_DIR}/${domain}.conf"
-        
+
         # Create domain configuration file
         cat > "${domain_config}" <<EOF
 [req]
@@ -98,24 +98,24 @@ DNS.2 = localhost
 IP.1 = 127.0.0.1
 IP.2 = ::1
 EOF
-        
+
         # Generate domain private key
         openssl genrsa -out "${domain_key}" 2048
         chmod 600 "${domain_key}"
-        
+
         # Generate certificate signing request (CSR)
         openssl req -new -key "${domain_key}" -out "${domain_csr}" -config "${domain_config}"
-        
+
         # Generate domain certificate signed by CA
         openssl x509 -req -in "${domain_csr}" -CA "${CA_CERT}" -CAkey "${CA_KEY}" \
             -CAcreateserial -out "${domain_cert}" -days ${CERT_VALIDITY_DAYS} \
             -extensions v3_req -extfile "${domain_config}"
-        
+
         chmod 644 "${domain_cert}"
-        
+
         # Clean up CSR and config files
         rm -f "${domain_csr}" "${domain_config}"
-        
+
         log_success "Certificate generated for ${domain}"
     done
 }
@@ -123,16 +123,16 @@ EOF
 # Create PEM bundles for Caddy
 create_caddy_bundles() {
     log_info "Creating certificate bundles for Caddy..."
-    
+
     for domain in "${DOMAINS[@]}"; do
         local domain_key="${CERT_DIR}/${domain}-key.pem"
         local domain_cert="${CERT_DIR}/${domain}-cert.pem"
         local bundle_file="${CERT_DIR}/${domain}.pem"
-        
+
         # Create bundle with certificate and key
         cat "${domain_cert}" "${domain_key}" > "${bundle_file}"
         chmod 600 "${bundle_file}"
-        
+
         log_success "Bundle created for ${domain}: ${bundle_file}"
     done
 }
@@ -141,23 +141,23 @@ create_caddy_bundles() {
 generate_dh_params() {
     log_info "Generating Diffie-Hellman parameters (this may take a while)..."
     local dh_file="${CERT_DIR}/dhparam.pem"
-    
+
     openssl dhparam -out "${dh_file}" 2048
     chmod 644 "${dh_file}"
-    
+
     log_success "DH parameters generated: ${dh_file}"
 }
 
 # Update /etc/hosts for local testing
 update_hosts_file() {
     log_info "Updating /etc/hosts for local domain resolution..."
-    
+
     # Backup original hosts file
     cp /etc/hosts /etc/hosts.backup.$(date +%Y%m%d_%H%M%S)
-    
+
     # Remove existing XORB entries
     sed -i '/# XORB Telemetry Domains/,/# End XORB Telemetry Domains/d' /etc/hosts
-    
+
     # Add new entries
     {
         echo "# XORB Telemetry Domains"
@@ -166,14 +166,14 @@ update_hosts_file() {
         done
         echo "# End XORB Telemetry Domains"
     } >> /etc/hosts
-    
+
     log_success "/etc/hosts updated with XORB telemetry domains"
 }
 
 # Create certificate verification script
 create_verification_script() {
     log_info "Creating certificate verification script..."
-    
+
     cat > "${CERT_DIR}/verify-certs.sh" <<'EOF'
 #!/bin/bash
 
@@ -195,10 +195,10 @@ for domain in "${DOMAINS[@]}"; do
     echo ""
     echo "🌐 Domain: ${domain}"
     echo "   Certificate: ${CERT_DIR}/${domain}-cert.pem"
-    
+
     if [[ -f "${CERT_DIR}/${domain}-cert.pem" ]]; then
         openssl x509 -in "${CERT_DIR}/${domain}-cert.pem" -text -noout | grep -E "(Subject:|Not Before|Not After|DNS:|IP Address:)"
-        
+
         # Verify certificate chain
         if openssl verify -CAfile "${CERT_DIR}/ca-cert.pem" "${CERT_DIR}/${domain}-cert.pem" > /dev/null 2>&1; then
             echo "   ✅ Certificate chain valid"
@@ -217,7 +217,7 @@ ls -la "${CERT_DIR}/"*.pem 2>/dev/null || echo "   No certificate files found"
 echo ""
 echo "🔍 Certificate verification complete"
 EOF
-    
+
     chmod +x "${CERT_DIR}/verify-certs.sh"
     log_success "Certificate verification script created: ${CERT_DIR}/verify-certs.sh"
 }
@@ -225,7 +225,7 @@ EOF
 # Create certificate renewal script
 create_renewal_script() {
     log_info "Creating certificate renewal script..."
-    
+
     cat > "${CERT_DIR}/renew-certs.sh" <<'EOF'
 #!/bin/bash
 
@@ -255,7 +255,7 @@ docker-compose -f docker-compose.telemetry-secure.yml restart xorb-caddy-proxy
 echo "✅ Certificate renewal complete"
 echo "📦 Backup stored in: ${BACKUP_DIR}"
 EOF
-    
+
     chmod +x "${CERT_DIR}/renew-certs.sh"
     log_success "Certificate renewal script created: ${CERT_DIR}/renew-certs.sh"
 }
@@ -263,7 +263,7 @@ EOF
 # Create certificate monitoring script
 create_monitoring_script() {
     log_info "Creating certificate monitoring script..."
-    
+
     cat > "${CERT_DIR}/monitor-certs.sh" <<'EOF'
 #!/bin/bash
 
@@ -280,19 +280,19 @@ echo "====================================="
 
 for domain in "${DOMAINS[@]}"; do
     cert_file="${CERT_DIR}/${domain}-cert.pem"
-    
+
     if [[ -f "${cert_file}" ]]; then
         # Get certificate expiration date
         exp_date=$(openssl x509 -in "${cert_file}" -noout -dates | grep notAfter | cut -d= -f2)
         exp_timestamp=$(date -d "${exp_date}" +%s)
         current_timestamp=$(date +%s)
         days_until_expiry=$(( (exp_timestamp - current_timestamp) / 86400 ))
-        
+
         echo ""
         echo "🌐 ${domain}:"
         echo "   Expires: ${exp_date}"
         echo "   Days until expiry: ${days_until_expiry}"
-        
+
         if [[ ${days_until_expiry} -le ${CRITICAL_DAYS} ]]; then
             echo "   🚨 CRITICAL: Certificate expires in ${days_until_expiry} days!"
         elif [[ ${days_until_expiry} -le ${WARNING_DAYS} ]]; then
@@ -310,7 +310,7 @@ done
 echo ""
 echo "🔍 Certificate monitoring complete"
 EOF
-    
+
     chmod +x "${CERT_DIR}/monitor-certs.sh"
     log_success "Certificate monitoring script created: ${CERT_DIR}/monitor-certs.sh"
 }
@@ -319,7 +319,7 @@ EOF
 main() {
     log_info "🔐 XORB Telemetry TLS Certificate Generation"
     log_info "==========================================="
-    
+
     create_cert_directory
     generate_ca_certificate
     generate_domain_certificates
@@ -329,7 +329,7 @@ main() {
     create_verification_script
     create_renewal_script
     create_monitoring_script
-    
+
     log_success "🎉 TLS certificate generation complete!"
     log_info ""
     log_info "📋 Next steps:"

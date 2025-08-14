@@ -132,7 +132,7 @@ DELIMITER ;
 
 -- Create views that expose sensitive data
 CREATE VIEW employee_sensitive_data AS
-SELECT 
+SELECT
     employee_id,
     CONCAT(first_name, ' ', last_name) as full_name,
     department,
@@ -143,7 +143,7 @@ SELECT
 FROM employees;
 
 CREATE VIEW financial_summary AS
-SELECT 
+SELECT
     account_number,
     account_holder,
     balance,
@@ -166,11 +166,11 @@ ALTER TABLE financial_records COMMENT = 'Financial data - high value target for 
 -- Create some triggers that log sensitive operations
 DELIMITER //
 
-CREATE TRIGGER log_financial_access 
+CREATE TRIGGER log_financial_access
 AFTER SELECT ON financial_records
 FOR EACH ROW
 BEGIN
-    INSERT INTO system_logs (action, table_affected, details, ip_address) 
+    INSERT INTO system_logs (action, table_affected, details, ip_address)
     VALUES ('SELECT', 'financial_records', 'Financial data accessed', CONNECTION_ID());
 END//
 

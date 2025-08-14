@@ -90,11 +90,11 @@ class SIEMConfiguration:
 
 class SplunkConnector:
     """Splunk SIEM integration connector"""
-    
+
     def __init__(self, config: SIEMConfiguration):
         self.config = config
         self.session_key = None
-        
+
     async def authenticate(self) -> bool:
         """Authenticate with Splunk"""
         try:
@@ -103,25 +103,25 @@ class SplunkConnector:
                 "username": self.config.authentication.get("username"),
                 "password": self.config.authentication.get("password")
             }
-            
+
             # In production, this would make actual HTTP request to Splunk
             # POST to /services/auth/login
             self.session_key = f"splunk_session_{hashlib.md5(str(auth_data).encode()).hexdigest()}"
-            
+
             logger.info("Successfully authenticated with Splunk")
             return True
-            
+
         except Exception as e:
             logger.error(f"Splunk authentication failed: {e}")
             return False
-    
+
     async def send_events(self, events: List[SIEMEvent]) -> bool:
         """Send events to Splunk"""
         try:
             if not self.session_key:
                 if not await self.authenticate():
                     return False
-            
+
             # Convert events to Splunk format
             splunk_events = []
             for event in events:
@@ -150,16 +150,16 @@ class SplunkConnector:
                     }
                 }
                 splunk_events.append(splunk_event)
-            
+
             # In production, send to Splunk HTTP Event Collector (HEC)
             # POST to /services/collector/event
             logger.info(f"Sent {len(splunk_events)} events to Splunk")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send events to Splunk: {e}")
             return False
-    
+
     async def create_search(self, query: str, earliest_time: str = "-24h") -> Dict[str, Any]:
         """Create Splunk search job"""
         try:
@@ -169,21 +169,21 @@ class SplunkConnector:
                 "latest_time": "now",
                 "output_mode": "json"
             }
-            
+
             # Simulate search creation
             search_id = f"search_{hashlib.md5(query.encode()).hexdigest()[:8]}"
-            
+
             return {
                 "search_id": search_id,
                 "status": "created",
                 "query": query,
                 "created_at": datetime.now().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Splunk search creation failed: {e}")
             return {}
-    
+
     async def get_search_results(self, search_id: str) -> List[Dict[str, Any]]:
         """Get Splunk search results"""
         try:
@@ -204,9 +204,9 @@ class SplunkConnector:
                     "count": 12
                 }
             ]
-            
+
             return results
-            
+
         except Exception as e:
             logger.error(f"Failed to get Splunk search results: {e}")
             return []
@@ -214,35 +214,35 @@ class SplunkConnector:
 
 class QRadarConnector:
     """IBM QRadar SIEM integration connector"""
-    
+
     def __init__(self, config: SIEMConfiguration):
         self.config = config
         self.auth_token = None
-        
+
     async def authenticate(self) -> bool:
         """Authenticate with QRadar"""
         try:
             # QRadar uses SEC token authentication
             self.auth_token = self.config.authentication.get("sec_token")
-            
+
             if not self.auth_token:
                 logger.error("QRadar SEC token not provided")
                 return False
-                
+
             logger.info("Successfully authenticated with QRadar")
             return True
-            
+
         except Exception as e:
             logger.error(f"QRadar authentication failed: {e}")
             return False
-    
+
     async def send_events(self, events: List[SIEMEvent]) -> bool:
         """Send events to QRadar"""
         try:
             if not self.auth_token:
                 if not await self.authenticate():
                     return False
-            
+
             # Convert events to QRadar LEF format
             lef_events = []
             for event in events:
@@ -261,16 +261,16 @@ class QRadarConnector:
                     f"process={event.process or 'N/A'}"
                 )
                 lef_events.append(lef_event)
-            
+
             # In production, send to QRadar via syslog or REST API
             # POST to /api/siem/events
             logger.info(f"Sent {len(lef_events)} events to QRadar")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send events to QRadar: {e}")
             return False
-    
+
     async def create_aql_search(self, query: str, start_time: int, end_time: int) -> str:
         """Create AQL search in QRadar"""
         try:
@@ -279,17 +279,17 @@ class QRadarConnector:
                 "start_time": start_time,
                 "end_time": end_time
             }
-            
+
             # Simulate AQL search creation
             search_id = f"aql_{hashlib.md5(query.encode()).hexdigest()[:8]}"
-            
+
             logger.info(f"Created QRadar AQL search: {search_id}")
             return search_id
-            
+
         except Exception as e:
             logger.error(f"QRadar AQL search creation failed: {e}")
             return ""
-    
+
     async def get_offense_data(self, offense_id: int) -> Dict[str, Any]:
         """Get QRadar offense data"""
         try:
@@ -309,9 +309,9 @@ class QRadarConnector:
                 "event_count": 127,
                 "flow_count": 45
             }
-            
+
             return offense_data
-            
+
         except Exception as e:
             logger.error(f"Failed to get QRadar offense data: {e}")
             return {}
@@ -319,11 +319,11 @@ class QRadarConnector:
 
 class SentinelConnector:
     """Microsoft Azure Sentinel integration connector"""
-    
+
     def __init__(self, config: SIEMConfiguration):
         self.config = config
         self.access_token = None
-        
+
     async def authenticate(self) -> bool:
         """Authenticate with Azure Sentinel"""
         try:
@@ -333,24 +333,24 @@ class SentinelConnector:
                 "client_secret": self.config.authentication.get("client_secret"),
                 "tenant_id": self.config.authentication.get("tenant_id")
             }
-            
+
             # In production, authenticate with Azure AD
             self.access_token = f"sentinel_token_{hashlib.md5(str(auth_data).encode()).hexdigest()}"
-            
+
             logger.info("Successfully authenticated with Azure Sentinel")
             return True
-            
+
         except Exception as e:
             logger.error(f"Azure Sentinel authentication failed: {e}")
             return False
-    
+
     async def send_events(self, events: List[SIEMEvent]) -> bool:
         """Send events to Azure Sentinel"""
         try:
             if not self.access_token:
                 if not await self.authenticate():
                     return False
-            
+
             # Convert events to Common Event Format (CEF)
             cef_events = []
             for event in events:
@@ -371,15 +371,15 @@ class SentinelConnector:
                     f"deviceCustomDate1Label=EventTime"
                 )
                 cef_events.append(cef_event)
-            
+
             # In production, send to Azure Monitor Data Collector API
             logger.info(f"Sent {len(cef_events)} events to Azure Sentinel")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send events to Azure Sentinel: {e}")
             return False
-    
+
     def _severity_to_cef(self, severity: EventSeverity) -> str:
         """Convert severity to CEF format"""
         mapping = {
@@ -389,7 +389,7 @@ class SentinelConnector:
             EventSeverity.CRITICAL: "10"
         }
         return mapping.get(severity, "5")
-    
+
     async def run_kql_query(self, query: str, timespan: str = "P1D") -> List[Dict[str, Any]]:
         """Run KQL query in Azure Sentinel"""
         try:
@@ -397,7 +397,7 @@ class SentinelConnector:
                 "query": query,
                 "timespan": timespan
             }
-            
+
             # Simulate KQL query results
             results = [
                 {
@@ -409,9 +409,9 @@ class SentinelConnector:
                     "Count": 15
                 }
             ]
-            
+
             return results
-            
+
         except Exception as e:
             logger.error(f"Azure Sentinel KQL query failed: {e}")
             return []
@@ -419,20 +419,20 @@ class SentinelConnector:
 
 class ElasticSIEMConnector:
     """Elastic SIEM integration connector"""
-    
+
     def __init__(self, config: SIEMConfiguration):
         self.config = config
         self.auth_header = None
-        
+
     async def authenticate(self) -> bool:
         """Authenticate with Elastic SIEM"""
         try:
             import base64
-            
+
             # Basic authentication for Elasticsearch
             username = self.config.authentication.get("username")
             password = self.config.authentication.get("password")
-            
+
             if username and password:
                 credentials = base64.b64encode(f"{username}:{password}".encode()).decode()
                 self.auth_header = f"Basic {credentials}"
@@ -441,21 +441,21 @@ class ElasticSIEMConnector:
                 api_key = self.config.authentication.get("api_key")
                 if api_key:
                     self.auth_header = f"ApiKey {api_key}"
-                    
+
             logger.info("Successfully authenticated with Elastic SIEM")
             return True
-            
+
         except Exception as e:
             logger.error(f"Elastic SIEM authentication failed: {e}")
             return False
-    
+
     async def send_events(self, events: List[SIEMEvent]) -> bool:
         """Send events to Elastic SIEM"""
         try:
             if not self.auth_header:
                 if not await self.authenticate():
                     return False
-            
+
             # Convert events to Elastic Common Schema (ECS)
             ecs_events = []
             for event in events:
@@ -497,19 +497,19 @@ class ElasticSIEMConnector:
                         "severity": event.severity.value
                     }
                 }
-                
+
                 # Remove empty objects
                 ecs_event = {k: v for k, v in ecs_event.items() if v}
                 ecs_events.append(ecs_event)
-            
+
             # In production, send to Elasticsearch _bulk API
             logger.info(f"Sent {len(ecs_events)} events to Elastic SIEM")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to send events to Elastic SIEM: {e}")
             return False
-    
+
     def _severity_to_ecs(self, severity: EventSeverity) -> int:
         """Convert severity to ECS numeric format"""
         mapping = {
@@ -519,12 +519,12 @@ class ElasticSIEMConnector:
             EventSeverity.CRITICAL: 10
         }
         return mapping.get(severity, 5)
-    
+
     async def create_detection_rule(self, rule_config: Dict[str, Any]) -> str:
         """Create detection rule in Elastic SIEM"""
         try:
             rule_id = f"rule_{hashlib.md5(str(rule_config).encode()).hexdigest()[:8]}"
-            
+
             detection_rule = {
                 "rule_id": rule_id,
                 "name": rule_config.get("name", "XORB PTaaS Detection Rule"),
@@ -538,10 +538,10 @@ class ElasticSIEMConnector:
                 "from": "now-6m",
                 "to": "now"
             }
-            
+
             logger.info(f"Created Elastic SIEM detection rule: {rule_id}")
             return rule_id
-            
+
         except Exception as e:
             logger.error(f"Elastic SIEM detection rule creation failed: {e}")
             return ""
@@ -549,21 +549,21 @@ class ElasticSIEMConnector:
 
 class SIEMIntegrationPlatform:
     """Main SIEM integration platform"""
-    
+
     def __init__(self):
         self.connectors = {}
         self.event_queue = asyncio.Queue()
         self.batch_processor_running = False
-        
+
     async def initialize(self):
         """Initialize SIEM integration platform"""
         logger.info("Initializing SIEM Integration Platform")
-        
+
         # Start batch processor
         if not self.batch_processor_running:
             asyncio.create_task(self._batch_event_processor())
             self.batch_processor_running = True
-    
+
     async def register_siem(self, platform: SIEMPlatform, config: SIEMConfiguration) -> bool:
         """Register SIEM platform"""
         try:
@@ -578,7 +578,7 @@ class SIEMIntegrationPlatform:
             else:
                 logger.error(f"Unsupported SIEM platform: {platform}")
                 return False
-            
+
             # Test authentication
             if await connector.authenticate():
                 self.connectors[platform] = connector
@@ -587,17 +587,17 @@ class SIEMIntegrationPlatform:
             else:
                 logger.error(f"Failed to authenticate with {platform.value}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"SIEM registration failed for {platform.value}: {e}")
             return False
-    
+
     async def send_event(self, event: SIEMEvent, platforms: Optional[List[SIEMPlatform]] = None) -> Dict[SIEMPlatform, bool]:
         """Send event to specified SIEM platforms"""
         try:
             if platforms is None:
                 platforms = list(self.connectors.keys())
-            
+
             results = {}
             for platform in platforms:
                 if platform in self.connectors:
@@ -610,29 +610,29 @@ class SIEMIntegrationPlatform:
                 else:
                     logger.warning(f"SIEM platform {platform.value} not registered")
                     results[platform] = False
-            
+
             return results
-            
+
         except Exception as e:
             logger.error(f"Event sending failed: {e}")
             return {}
-    
+
     async def queue_event(self, event: SIEMEvent):
         """Queue event for batch processing"""
         await self.event_queue.put(event)
-    
+
     async def _batch_event_processor(self):
         """Process events in batches"""
         while True:
             try:
                 batch = []
-                
+
                 # Collect events for batch processing
                 try:
                     # Wait for first event
                     event = await asyncio.wait_for(self.event_queue.get(), timeout=5.0)
                     batch.append(event)
-                    
+
                     # Collect additional events up to batch size
                     while len(batch) < 100:  # Max batch size
                         try:
@@ -640,10 +640,10 @@ class SIEMIntegrationPlatform:
                             batch.append(event)
                         except asyncio.TimeoutError:
                             break
-                            
+
                 except asyncio.TimeoutError:
                     continue
-                
+
                 # Send batch to all registered SIEMs
                 if batch:
                     for platform, connector in self.connectors.items():
@@ -651,13 +651,13 @@ class SIEMIntegrationPlatform:
                             await connector.send_events(batch)
                         except Exception as e:
                             logger.error(f"Batch send failed for {platform.value}: {e}")
-                    
+
                     logger.info(f"Processed batch of {len(batch)} events")
-                    
+
             except Exception as e:
                 logger.error(f"Batch processor error: {e}")
                 await asyncio.sleep(1)
-    
+
     async def create_ptaas_events_from_scan(self, scan_results: Dict[str, Any]) -> List[SIEMEvent]:
         """Create SIEM events from PTaaS scan results"""
         try:
@@ -665,7 +665,7 @@ class SIEMIntegrationPlatform:
             scan_id = scan_results.get("scan_id", "unknown")
             target = scan_results.get("target", "unknown")
             timestamp = datetime.now()
-            
+
             # Create event for scan initiation
             scan_event = SIEMEvent(
                 event_id=f"{scan_id}_scan_start",
@@ -684,7 +684,7 @@ class SIEMIntegrationPlatform:
                 }
             )
             events.append(scan_event)
-            
+
             # Create events for vulnerabilities found
             vulnerabilities = scan_results.get("vulnerabilities", [])
             for vuln in vulnerabilities:
@@ -709,7 +709,7 @@ class SIEMIntegrationPlatform:
                     }
                 )
                 events.append(vuln_event)
-            
+
             # Create event for scan completion
             completion_event = SIEMEvent(
                 event_id=f"{scan_id}_scan_complete",
@@ -729,13 +729,13 @@ class SIEMIntegrationPlatform:
                 }
             )
             events.append(completion_event)
-            
+
             return events
-            
+
         except Exception as e:
             logger.error(f"Failed to create SIEM events from scan results: {e}")
             return []
-    
+
     def _map_vulnerability_severity(self, vuln_severity: str) -> EventSeverity:
         """Map vulnerability severity to SIEM event severity"""
         mapping = {
@@ -746,7 +746,7 @@ class SIEMIntegrationPlatform:
             "info": EventSeverity.LOW
         }
         return mapping.get(vuln_severity.lower(), EventSeverity.MEDIUM)
-    
+
     async def get_platform_status(self) -> Dict[str, Any]:
         """Get status of all registered SIEM platforms"""
         status = {
@@ -755,7 +755,7 @@ class SIEMIntegrationPlatform:
             "event_queue_size": self.event_queue.qsize(),
             "batch_processor_running": self.batch_processor_running
         }
-        
+
         for platform, connector in self.connectors.items():
             try:
                 # Test connectivity
@@ -763,7 +763,7 @@ class SIEMIntegrationPlatform:
                     auth_status = "authenticated"
                 else:
                     auth_status = "not_authenticated"
-                    
+
                 status["platforms"][platform.value] = {
                     "status": "connected",
                     "authentication": auth_status,
@@ -775,7 +775,7 @@ class SIEMIntegrationPlatform:
                     "status": "error",
                     "error": str(e)
                 }
-        
+
         return status
 
 
@@ -785,9 +785,9 @@ _siem_platform: Optional[SIEMIntegrationPlatform] = None
 async def get_siem_platform() -> SIEMIntegrationPlatform:
     """Get global SIEM integration platform instance"""
     global _siem_platform
-    
+
     if _siem_platform is None:
         _siem_platform = SIEMIntegrationPlatform()
         await _siem_platform.initialize()
-    
+
     return _siem_platform

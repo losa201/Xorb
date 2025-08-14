@@ -129,31 +129,31 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
     Enterprise-grade PTaaS service with real security tool integration
     and advanced AI-powered analysis capabilities
     """
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="enterprise_ptaas",
             dependencies=["database", "cache", "vector_store", "advanced_ai_orchestrator"],
             **kwargs
         )
-        
+
         # Tool management
         self.security_tools: Dict[str, SecurityTool] = {}
         self.tool_locks: Dict[str, asyncio.Lock] = {}
-        
+
         # Scan management
         self.active_scans: Dict[str, Dict[str, Any]] = {}
         self.scan_queue = asyncio.PriorityQueue()
         self.scan_history: Dict[str, ScanResult] = {}
-        
+
         # Compliance frameworks
         self.compliance_rules = {}
         self.compliance_templates = {}
-        
+
         # AI integration
         self.ai_orchestrator = None
         self.threat_intelligence = None
-        
+
         # Performance metrics
         self.metrics = {
             "total_scans": 0,
@@ -163,31 +163,31 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             "scan_duration_avg": 0.0,
             "tool_reliability": {}
         }
-    
+
     async def initialize(self) -> bool:
         """Initialize the PTaaS service"""
         try:
             await super().initialize()
-            
+
             # Initialize security tools
             await self._initialize_security_tools()
-            
+
             # Load compliance frameworks
             await self._load_compliance_frameworks()
-            
+
             # Start scan processor
             asyncio.create_task(self._scan_processor())
-            
+
             # Initialize AI integration
             await self._initialize_ai_integration()
-            
+
             self.logger.info("Enterprise PTaaS Service initialized successfully")
             return True
-            
+
         except Exception as e:
             self.logger.error(f"Failed to initialize PTaaS service: {e}")
             return False
-    
+
     async def _initialize_security_tools(self):
         """Initialize and validate security tools"""
         tool_configs = {
@@ -267,7 +267,7 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 }
             }
         }
-        
+
         for tool_name, config in tool_configs.items():
             try:
                 # Check if tool is available
@@ -277,14 +277,14 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                     stderr=asyncio.subprocess.PIPE
                 )
                 stdout, stderr = await result.communicate()
-                
+
                 if result.returncode == 0:
                     version = self._extract_version(stdout.decode())
                     status = ToolStatus.AVAILABLE
                 else:
                     version = None
                     status = ToolStatus.UNAVAILABLE
-                
+
                 tool = SecurityTool(
                     name=tool_name,
                     executable=config["executable"],
@@ -294,15 +294,15 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                     config=config["config"],
                     last_update=datetime.utcnow()
                 )
-                
+
                 self.security_tools[tool_name] = tool
                 self.tool_locks[tool_name] = asyncio.Lock()
-                
+
                 self.logger.info(f"Initialized tool: {tool_name} (status: {status.value})")
-                
+
             except Exception as e:
                 self.logger.warning(f"Failed to initialize tool {tool_name}: {e}")
-                
+
                 # Create tool entry with error status
                 tool = SecurityTool(
                     name=tool_name,
@@ -313,10 +313,10 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                     config=config["config"],
                     last_update=datetime.utcnow()
                 )
-                
+
                 self.security_tools[tool_name] = tool
                 self.tool_locks[tool_name] = asyncio.Lock()
-    
+
     def _extract_version(self, version_output: str) -> Optional[str]:
         """Extract version from tool output"""
         # Common version patterns
@@ -325,14 +325,14 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             r'v(\d+\.\d+(?:\.\d+)?)',
             r'(\d+\.\d+(?:\.\d+)?)'
         ]
-        
+
         for pattern in patterns:
             match = re.search(pattern, version_output, re.IGNORECASE)
             if match:
                 return match.group(1)
-        
+
         return None
-    
+
     async def _load_compliance_frameworks(self):
         """Load compliance framework rules and templates"""
         self.compliance_rules = {
@@ -394,7 +394,7 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 ]
             }
         }
-    
+
     async def _initialize_ai_integration(self):
         """Initialize AI orchestrator integration"""
         try:
@@ -404,24 +404,24 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 self.logger.info("AI orchestrator integration initialized")
         except Exception as e:
             self.logger.warning(f"AI orchestrator not available: {e}")
-    
+
     async def _scan_processor(self):
         """Process scan queue"""
         while True:
             try:
                 # Get next scan from queue
                 priority, scan_config = await self.scan_queue.get()
-                
+
                 # Execute scan
                 await self._execute_scan(scan_config)
-                
+
                 # Mark task as done
                 self.scan_queue.task_done()
-                
+
             except Exception as e:
                 self.logger.error(f"Error in scan processor: {e}")
                 await asyncio.sleep(5)
-    
+
     async def create_scan_session(
         self,
         targets: List[Dict[str, Any]],
@@ -433,10 +433,10 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
         """Create a new PTaaS scan session"""
         try:
             scan_id = str(uuid.uuid4())
-            
+
             # Validate targets
             validated_targets = await self._validate_targets(targets)
-            
+
             # Determine scan configuration
             scan_config = ScanConfiguration(
                 scan_id=scan_id,
@@ -449,13 +449,13 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 max_duration=timedelta(hours=metadata.get("max_hours", 2) if metadata else 2),
                 notification_config=metadata.get("notifications", {}) if metadata else {}
             )
-            
+
             # Calculate priority (higher number = higher priority)
             priority = self._calculate_scan_priority(scan_config, user, org)
-            
+
             # Add to scan queue
             await self.scan_queue.put((priority, scan_config))
-            
+
             # Store scan info
             self.active_scans[scan_id] = {
                 "config": scan_config,
@@ -467,9 +467,9 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "current_phase": "initialization",
                 "estimated_completion": datetime.utcnow() + scan_config.max_duration
             }
-            
+
             self.logger.info(f"Created scan session: {scan_id} (type: {scan_type})")
-            
+
             return {
                 "session_id": scan_id,
                 "status": "queued",
@@ -480,21 +480,21 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "queue_position": self.scan_queue.qsize(),
                 "created_at": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             self.logger.error(f"Failed to create scan session: {e}")
             raise
-    
+
     async def _validate_targets(self, targets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Validate and sanitize scan targets"""
         validated_targets = []
-        
+
         for target in targets:
             try:
                 host = target.get("host")
                 if not host:
                     continue
-                
+
                 # Validate IP address or hostname
                 try:
                     ipaddress.ip_address(host)
@@ -506,14 +506,14 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                     else:
                         self.logger.warning(f"Invalid target: {host}")
                         continue
-                
+
                 # Validate ports
                 ports = target.get("ports", [80, 443])
                 validated_ports = []
                 for port in ports:
                     if isinstance(port, int) and 1 <= port <= 65535:
                         validated_ports.append(port)
-                
+
                 validated_target = {
                     "host": host,
                     "type": target_type,
@@ -521,14 +521,14 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                     "scan_profile": target.get("scan_profile", "standard"),
                     "stealth_mode": target.get("stealth_mode", False)
                 }
-                
+
                 validated_targets.append(validated_target)
-                
+
             except Exception as e:
                 self.logger.warning(f"Failed to validate target {target}: {e}")
-        
+
         return validated_targets
-    
+
     def _select_tools_for_scan_type(self, scan_type: str) -> List[str]:
         """Select appropriate tools for scan type"""
         tool_mapping = {
@@ -542,34 +542,34 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             "stealth": ["nmap", "nuclei"],
             "web_focused": ["nikto", "nuclei", "sqlmap", "dirb"]
         }
-        
+
         selected_tools = tool_mapping.get(scan_type, ["nmap", "nuclei"])
-        
+
         # Filter only available tools
-        available_tools = [tool for tool in selected_tools 
-                          if tool in self.security_tools and 
+        available_tools = [tool for tool in selected_tools
+                          if tool in self.security_tools and
                           self.security_tools[tool].status == ToolStatus.AVAILABLE]
-        
+
         return available_tools
-    
+
     def _get_compliance_framework(self, metadata: Optional[Dict[str, Any]]) -> Optional[ComplianceFramework]:
         """Extract compliance framework from metadata"""
         if not metadata:
             return None
-        
+
         framework_str = metadata.get("compliance_framework")
         if framework_str:
             try:
                 return ComplianceFramework(framework_str.lower())
             except ValueError:
                 pass
-        
+
         return None
-    
+
     def _calculate_scan_priority(self, scan_config: ScanConfiguration, user: Any, org: Any) -> int:
         """Calculate scan priority (higher number = higher priority)"""
         base_priority = 50
-        
+
         # Adjust based on scan type
         type_priorities = {
             ScanType.RED_TEAM_EXERCISE: 90,
@@ -579,38 +579,38 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             ScanType.WEB_APPLICATION: 55,
             ScanType.NETWORK_DISCOVERY: 40
         }
-        
+
         priority = type_priorities.get(scan_config.scan_type, base_priority)
-        
+
         # Adjust based on organization tier (if available)
         org_tier = getattr(org, 'tier', 'standard') if org else 'standard'
         if org_tier == 'enterprise':
             priority += 20
         elif org_tier == 'premium':
             priority += 10
-        
+
         # Adjust based on compliance requirements
         if scan_config.compliance_framework:
             priority += 15
-        
+
         # Adjust based on stealth mode (higher priority for stealth)
         if scan_config.stealth_mode:
             priority += 5
-        
+
         return priority
-    
+
     async def _execute_scan(self, scan_config: ScanConfiguration):
         """Execute a security scan"""
         scan_id = scan_config.scan_id
-        
+
         try:
             self.logger.info(f"Starting scan execution: {scan_id}")
-            
+
             # Update scan status
             self.active_scans[scan_id]["status"] = "running"
             self.active_scans[scan_id]["started_at"] = datetime.utcnow()
             self.active_scans[scan_id]["current_phase"] = "reconnaissance"
-            
+
             scan_results = {
                 "scan_id": scan_id,
                 "targets": scan_config.targets,
@@ -621,35 +621,35 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "ai_analysis": None,
                 "metadata": {}
             }
-            
+
             total_tools = len(scan_config.tools)
             completed_tools = 0
-            
+
             # Execute tools sequentially or in parallel based on configuration
             for tool_name in scan_config.tools:
                 try:
                     self.active_scans[scan_id]["current_phase"] = f"scanning_with_{tool_name}"
-                    
+
                     tool_results = await self._execute_tool(tool_name, scan_config)
-                    
+
                     if tool_results:
                         scan_results["tools_used"].append(tool_name)
                         scan_results["findings"].extend(tool_results.get("findings", []))
                         scan_results["vulnerabilities"].extend(tool_results.get("vulnerabilities", []))
                         scan_results["metadata"][tool_name] = tool_results.get("metadata", {})
-                    
+
                     completed_tools += 1
                     progress = int((completed_tools / total_tools) * 80)  # Reserve 20% for analysis
                     self.active_scans[scan_id]["progress"] = progress
-                    
+
                 except Exception as e:
                     self.logger.error(f"Tool {tool_name} failed for scan {scan_id}: {e}")
                     continue
-            
+
             # AI Analysis phase
             self.active_scans[scan_id]["current_phase"] = "ai_analysis"
             self.active_scans[scan_id]["progress"] = 85
-            
+
             if self.ai_orchestrator:
                 try:
                     ai_analysis = await self.ai_orchestrator.analyze_indicators(
@@ -664,35 +664,35 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                     scan_results["ai_analysis"] = ai_analysis
                 except Exception as e:
                     self.logger.error(f"AI analysis failed for scan {scan_id}: {e}")
-            
+
             # Compliance assessment
             if scan_config.compliance_framework:
                 self.active_scans[scan_id]["current_phase"] = "compliance_assessment"
                 self.active_scans[scan_id]["progress"] = 90
-                
+
                 compliance_assessment = await self._assess_compliance(
                     scan_results, scan_config.compliance_framework
                 )
                 scan_results["compliance_assessment"] = compliance_assessment
-            
+
             # Finalize scan
             self.active_scans[scan_id]["current_phase"] = "completed"
             self.active_scans[scan_id]["progress"] = 100
             self.active_scans[scan_id]["status"] = "completed"
             self.active_scans[scan_id]["completed_at"] = datetime.utcnow()
             self.active_scans[scan_id]["results"] = scan_results
-            
+
             # Store in scan history
             self.scan_history[scan_id] = scan_results
-            
+
             # Update metrics
             self.metrics["total_scans"] += 1
             self.metrics["successful_scans"] += 1
             self.metrics["vulnerabilities_found"] += len(scan_results["vulnerabilities"])
-            
-            duration = (self.active_scans[scan_id]["completed_at"] - 
+
+            duration = (self.active_scans[scan_id]["completed_at"] -
                        self.active_scans[scan_id]["started_at"]).total_seconds()
-            
+
             # Update average duration
             if self.metrics["scan_duration_avg"] == 0:
                 self.metrics["scan_duration_avg"] = duration
@@ -700,24 +700,24 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 self.metrics["scan_duration_avg"] = (
                     self.metrics["scan_duration_avg"] * 0.9 + duration * 0.1
                 )
-            
+
             self.logger.info(f"Scan completed successfully: {scan_id}")
-            
+
         except Exception as e:
             self.logger.error(f"Scan execution failed: {scan_id} - {e}")
             self.active_scans[scan_id]["status"] = "failed"
             self.active_scans[scan_id]["error"] = str(e)
             self.active_scans[scan_id]["completed_at"] = datetime.utcnow()
-    
+
     async def _execute_tool(self, tool_name: str, scan_config: ScanConfiguration) -> Optional[Dict[str, Any]]:
         """Execute a specific security tool"""
         if tool_name not in self.security_tools:
             return None
-        
+
         tool = self.security_tools[tool_name]
         if tool.status != ToolStatus.AVAILABLE:
             return None
-        
+
         async with self.tool_locks[tool_name]:
             try:
                 if tool_name == "nmap":
@@ -739,54 +739,54 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 else:
                     self.logger.warning(f"Unknown tool: {tool_name}")
                     return None
-                    
+
             except Exception as e:
                 self.logger.error(f"Tool execution failed {tool_name}: {e}")
                 return None
-    
+
     async def _execute_nmap(self, scan_config: ScanConfiguration) -> Dict[str, Any]:
         """Execute Nmap scan"""
         tool_config = self.security_tools["nmap"].config
         findings = []
         vulnerabilities = []
-        
+
         for target in scan_config.targets:
             try:
                 # Build nmap command
                 cmd = ["nmap"]
-                
+
                 if scan_config.stealth_mode:
                     cmd.extend(["-sS", "-T2", "-f"])
                 else:
                     cmd.extend(["-sS", "-sV", "-O", "--script=default,vuln"])
-                
+
                 cmd.extend(["-oX", "-", target])
-                
+
                 # Execute nmap
                 process = await asyncio.create_subprocess_exec(
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE
                 )
-                
+
                 stdout, stderr = await asyncio.wait_for(
                     process.communicate(),
                     timeout=tool_config["timeout"]
                 )
-                
+
                 if process.returncode == 0:
                     # Parse XML output
                     xml_output = stdout.decode()
                     scan_results = self._parse_nmap_xml(xml_output, target)
-                    
+
                     findings.extend(scan_results["findings"])
                     vulnerabilities.extend(scan_results["vulnerabilities"])
-                
+
             except asyncio.TimeoutError:
                 self.logger.warning(f"Nmap timeout for target: {target}")
             except Exception as e:
                 self.logger.error(f"Nmap execution error for {target}: {e}")
-        
+
         return {
             "findings": findings,
             "vulnerabilities": vulnerabilities,
@@ -796,34 +796,34 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "timestamp": datetime.utcnow().isoformat()
             }
         }
-    
+
     def _parse_nmap_xml(self, xml_output: str, target: str) -> Dict[str, Any]:
         """Parse Nmap XML output"""
         findings = []
         vulnerabilities = []
-        
+
         try:
             root = ET.fromstring(xml_output)
-            
+
             for host in root.findall("host"):
                 # Get host status
                 status = host.find("status")
                 if status is not None and status.get("state") == "up":
-                    
+
                     # Process ports
                     ports = host.find("ports")
                     if ports is not None:
                         for port in ports.findall("port"):
                             port_id = port.get("portid")
                             protocol = port.get("protocol")
-                            
+
                             state = port.find("state")
                             if state is not None and state.get("state") == "open":
-                                
+
                                 service = port.find("service")
                                 service_name = service.get("name") if service is not None else "unknown"
                                 service_version = service.get("version") if service is not None else ""
-                                
+
                                 finding = {
                                     "type": "open_port",
                                     "target": target,
@@ -834,9 +834,9 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                                     "indicator": f"{target}:{port_id}",
                                     "severity": "info"
                                 }
-                                
+
                                 findings.append(finding)
-                                
+
                                 # Check for vulnerable services
                                 if self._is_vulnerable_service(service_name, service_version):
                                     vulnerability = VulnerabilityReport(
@@ -864,16 +864,16 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                                             "version": service_version
                                         }
                                     )
-                                    
+
                                     vulnerabilities.append(asdict(vulnerability))
-                
+
                 # Process script results for vulnerabilities
                 hostscript = host.find("hostscript")
                 if hostscript is not None:
                     for script in hostscript.findall("script"):
                         script_id = script.get("id")
                         script_output = script.get("output", "")
-                        
+
                         if "VULNERABLE" in script_output.upper():
                             vulnerability = VulnerabilityReport(
                                 vulnerability_id=str(uuid.uuid4()),
@@ -898,14 +898,14 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                                     "script_output": script_output
                                 }
                             )
-                            
+
                             vulnerabilities.append(asdict(vulnerability))
-        
+
         except ET.ParseError as e:
             self.logger.error(f"Failed to parse Nmap XML: {e}")
-        
+
         return {"findings": findings, "vulnerabilities": vulnerabilities}
-    
+
     def _is_vulnerable_service(self, service_name: str, version: str) -> bool:
         """Check if service version is known to be vulnerable"""
         # Simplified vulnerability check
@@ -919,26 +919,26 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             "postgresql": ["7.", "8.0", "8.1", "8.2"],
             "smb": ["Samba 2.", "Samba 3.0"]
         }
-        
+
         if service_name.lower() in vulnerable_patterns:
             patterns = vulnerable_patterns[service_name.lower()]
-            
+
             for pattern in patterns:
                 if pattern == "*" or (version and pattern in version):
                     return True
-        
+
         return False
-    
+
     def _extract_cve_from_script(self, script_output: str) -> Optional[str]:
         """Extract CVE ID from script output"""
         cve_pattern = r'CVE-\d{4}-\d{4,7}'
         match = re.search(cve_pattern, script_output)
         return match.group(0) if match else None
-    
+
     def _determine_severity_from_script(self, script_output: str) -> str:
         """Determine severity from script output"""
         script_lower = script_output.lower()
-        
+
         if any(word in script_lower for word in ["critical", "severe", "exploit"]):
             return "critical"
         elif any(word in script_lower for word in ["high", "dangerous", "vulnerable"]):
@@ -947,13 +947,13 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             return "medium"
         else:
             return "low"
-    
+
     async def _execute_nuclei(self, scan_config: ScanConfiguration) -> Dict[str, Any]:
         """Execute Nuclei vulnerability scanner"""
         tool_config = self.security_tools["nuclei"].config
         findings = []
         vulnerabilities = []
-        
+
         for target in scan_config.targets:
             try:
                 # Build nuclei command
@@ -963,28 +963,28 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                     "-json",
                     "-severity", "critical,high,medium"
                 ]
-                
+
                 if scan_config.stealth_mode:
                     cmd.extend(["-rate-limit", "5"])
                 else:
                     cmd.extend(["-c", str(tool_config["concurrency"])])
-                
+
                 # Execute nuclei
                 process = await asyncio.create_subprocess_exec(
                     *cmd,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE
                 )
-                
+
                 stdout, stderr = await asyncio.wait_for(
                     process.communicate(),
                     timeout=tool_config["timeout"]
                 )
-                
+
                 if process.returncode == 0 or stdout:
                     # Parse JSON output (one JSON object per line)
                     json_lines = stdout.decode().strip().split('\n')
-                    
+
                     for line in json_lines:
                         if line.strip():
                             try:
@@ -992,7 +992,7 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                                 vulnerability = self._parse_nuclei_result(result, target)
                                 if vulnerability:
                                     vulnerabilities.append(vulnerability)
-                                    
+
                                     # Add as finding too
                                     finding = {
                                         "type": "vulnerability",
@@ -1003,15 +1003,15 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                                         "title": result.get("info", {}).get("name", "Unknown")
                                     }
                                     findings.append(finding)
-                                    
+
                             except json.JSONDecodeError:
                                 continue
-                
+
             except asyncio.TimeoutError:
                 self.logger.warning(f"Nuclei timeout for target: {target}")
             except Exception as e:
                 self.logger.error(f"Nuclei execution error for {target}: {e}")
-        
+
         return {
             "findings": findings,
             "vulnerabilities": vulnerabilities,
@@ -1021,12 +1021,12 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "timestamp": datetime.utcnow().isoformat()
             }
         }
-    
+
     def _parse_nuclei_result(self, result: Dict[str, Any], target: str) -> Optional[Dict[str, Any]]:
         """Parse Nuclei JSON result"""
         try:
             info = result.get("info", {})
-            
+
             # Map Nuclei severity to CVSS scores
             severity_mapping = {
                 "critical": 9.5,
@@ -1035,10 +1035,10 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "low": 2.5,
                 "info": 0.0
             }
-            
+
             severity = info.get("severity", "unknown").lower()
             cvss_score = severity_mapping.get(severity, 0.0)
-            
+
             vulnerability = VulnerabilityReport(
                 vulnerability_id=str(uuid.uuid4()),
                 cve_id=None,  # Nuclei templates may include CVE info
@@ -1065,20 +1065,20 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                     "tags": info.get("tags", [])
                 }
             )
-            
+
             return asdict(vulnerability)
-            
+
         except Exception as e:
             self.logger.error(f"Failed to parse Nuclei result: {e}")
             return None
-    
+
     async def _execute_nikto(self, scan_config: ScanConfiguration) -> Dict[str, Any]:
         """Execute Nikto web scanner"""
         # Implementation similar to nuclei but for web scanning
         # This would parse Nikto's JSON output format
         findings = []
         vulnerabilities = []
-        
+
         # Simplified implementation for demonstration
         return {
             "findings": findings,
@@ -1089,13 +1089,13 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "timestamp": datetime.utcnow().isoformat()
             }
         }
-    
+
     async def _execute_sqlmap(self, scan_config: ScanConfiguration) -> Dict[str, Any]:
         """Execute SQLMap for SQL injection testing"""
         # Implementation for SQL injection testing
         findings = []
         vulnerabilities = []
-        
+
         # Simplified implementation for demonstration
         return {
             "findings": findings,
@@ -1106,13 +1106,13 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "timestamp": datetime.utcnow().isoformat()
             }
         }
-    
+
     async def _execute_dirb(self, scan_config: ScanConfiguration) -> Dict[str, Any]:
         """Execute DIRB for directory bruteforcing"""
         # Implementation for directory discovery
         findings = []
         vulnerabilities = []
-        
+
         # Simplified implementation for demonstration
         return {
             "findings": findings,
@@ -1123,13 +1123,13 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "timestamp": datetime.utcnow().isoformat()
             }
         }
-    
+
     async def _execute_sslscan(self, scan_config: ScanConfiguration) -> Dict[str, Any]:
         """Execute SSLScan for SSL/TLS testing"""
         # Implementation for SSL/TLS security testing
         findings = []
         vulnerabilities = []
-        
+
         # Simplified implementation for demonstration
         return {
             "findings": findings,
@@ -1140,13 +1140,13 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "timestamp": datetime.utcnow().isoformat()
             }
         }
-    
+
     async def _execute_testssl(self, scan_config: ScanConfiguration) -> Dict[str, Any]:
         """Execute testssl.sh for comprehensive SSL/TLS testing"""
         # Implementation for comprehensive SSL/TLS testing
         findings = []
         vulnerabilities = []
-        
+
         # Simplified implementation for demonstration
         return {
             "findings": findings,
@@ -1157,13 +1157,13 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "timestamp": datetime.utcnow().isoformat()
             }
         }
-    
+
     async def _execute_masscan(self, scan_config: ScanConfiguration) -> Dict[str, Any]:
         """Execute Masscan for fast port scanning"""
         # Implementation for fast port scanning
         findings = []
         vulnerabilities = []
-        
+
         # Simplified implementation for demonstration
         return {
             "findings": findings,
@@ -1174,24 +1174,24 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "timestamp": datetime.utcnow().isoformat()
             }
         }
-    
+
     async def _assess_compliance(self, scan_results: Dict[str, Any], framework: ComplianceFramework) -> ComplianceAssessment:
         """Assess compliance against specific framework"""
         rules = self.compliance_rules.get(framework, {})
-        
+
         # Simplified compliance assessment
         total_controls = len(rules.get("requirements", []))
         passed_controls = 0
         failed_controls = 0
         critical_failures = []
         recommendations = []
-        
+
         # Check vulnerabilities against compliance requirements
         vulnerabilities = scan_results.get("vulnerabilities", [])
-        
+
         if framework == ComplianceFramework.PCI_DSS:
             # PCI-DSS specific checks
-            has_encryption = any("ssl" in str(v).lower() or "tls" in str(v).lower() 
+            has_encryption = any("ssl" in str(v).lower() or "tls" in str(v).lower()
                                 for v in vulnerabilities)
             if has_encryption:
                 passed_controls += 1
@@ -1199,7 +1199,7 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 failed_controls += 1
                 critical_failures.append("Encryption requirements not met")
                 recommendations.append("Implement SSL/TLS encryption")
-        
+
         elif framework == ComplianceFramework.OWASP:
             # OWASP Top 10 checks
             owasp_issues = ["injection", "authentication", "xss", "xxe"]
@@ -1210,9 +1210,9 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                     recommendations.append(f"Address {issue} vulnerabilities")
                 else:
                     passed_controls += 1
-        
+
         overall_score = passed_controls / max(total_controls, 1) if total_controls > 0 else 0.0
-        
+
         return ComplianceAssessment(
             framework=framework,
             overall_score=overall_score,
@@ -1224,15 +1224,15 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             evidence=scan_results,
             assessment_timestamp=datetime.utcnow()
         )
-    
+
     # Implementation of PTaaSService interface methods
     async def get_scan_status(self, session_id: str, user: Any) -> Dict[str, Any]:
         """Get status of a scan session"""
         if session_id not in self.active_scans:
             return {"error": "Scan session not found"}
-        
+
         scan_info = self.active_scans[session_id]
-        
+
         return {
             "session_id": session_id,
             "status": scan_info["status"],
@@ -1245,36 +1245,36 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             "vulnerabilities_found": len(scan_info.get("results", {}).get("vulnerabilities", [])),
             "findings_count": len(scan_info.get("results", {}).get("findings", []))
         }
-    
+
     async def get_scan_results(self, session_id: str, user: Any) -> Dict[str, Any]:
         """Get results from a completed scan"""
         if session_id not in self.active_scans:
             return {"error": "Scan session not found"}
-        
+
         scan_info = self.active_scans[session_id]
-        
+
         if scan_info["status"] != "completed":
             return {"error": "Scan not completed yet"}
-        
+
         return scan_info.get("results", {})
-    
+
     async def cancel_scan(self, session_id: str, user: Any) -> bool:
         """Cancel an active scan session"""
         if session_id not in self.active_scans:
             return False
-        
+
         scan_info = self.active_scans[session_id]
-        
+
         if scan_info["status"] in ["completed", "failed", "cancelled"]:
             return False
-        
+
         # Mark as cancelled
         scan_info["status"] = "cancelled"
         scan_info["cancelled_at"] = datetime.utcnow()
-        
+
         self.logger.info(f"Scan cancelled: {session_id}")
         return True
-    
+
     async def get_available_scan_profiles(self) -> List[Dict[str, Any]]:
         """Get available scan profiles and their configurations"""
         profiles = [
@@ -1288,7 +1288,7 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             },
             {
                 "name": "comprehensive",
-                "display_name": "Comprehensive Scan", 
+                "display_name": "Comprehensive Scan",
                 "description": "Full security assessment with vulnerability scanning",
                 "duration": "30-60 minutes",
                 "tools": ["nmap", "nuclei", "nikto", "sslscan"],
@@ -1319,39 +1319,39 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
                 "scan_type": "compliance_audit"
             }
         ]
-        
+
         # Filter profiles based on available tools
         available_profiles = []
         for profile in profiles:
-            available_tools = [tool for tool in profile["tools"] 
-                             if tool in self.security_tools and 
+            available_tools = [tool for tool in profile["tools"]
+                             if tool in self.security_tools and
                              self.security_tools[tool].status == ToolStatus.AVAILABLE]
-            
+
             if available_tools:
                 profile["available_tools"] = available_tools
-                profile["unavailable_tools"] = [tool for tool in profile["tools"] 
+                profile["unavailable_tools"] = [tool for tool in profile["tools"]
                                               if tool not in available_tools]
                 available_profiles.append(profile)
-        
+
         return available_profiles
-    
+
     async def create_compliance_scan(self, targets: List[str], compliance_framework: str, user: Any, org: Any) -> Dict[str, Any]:
         """Create compliance-specific scan"""
         try:
             framework = ComplianceFramework(compliance_framework.lower())
         except ValueError:
             return {"error": f"Unsupported compliance framework: {compliance_framework}"}
-        
+
         # Convert targets to expected format
         target_objects = [{"host": target, "ports": [80, 443]} for target in targets]
-        
+
         # Create scan with compliance framework
         metadata = {
             "compliance_framework": compliance_framework,
             "scan_purpose": "compliance_audit",
             "max_hours": 2
         }
-        
+
         return await self.create_scan_session(
             targets=target_objects,
             scan_type="compliance_audit",
@@ -1359,17 +1359,17 @@ class EnterprisePTaaSService(SecurityService, PTaaSService, SecurityOrchestratio
             org=org,
             metadata=metadata
         )
-    
+
     async def get_health_status(self) -> ServiceHealth:
         """Get PTaaS service health status"""
-        available_tools = sum(1 for tool in self.security_tools.values() 
+        available_tools = sum(1 for tool in self.security_tools.values()
                             if tool.status == ToolStatus.AVAILABLE)
         total_tools = len(self.security_tools)
-        
+
         status = ServiceStatus.HEALTHY if available_tools > 0 else ServiceStatus.DEGRADED
         if available_tools < total_tools * 0.5:
             status = ServiceStatus.DEGRADED
-        
+
         return ServiceHealth(
             status=status,
             last_check=datetime.utcnow(),

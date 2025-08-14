@@ -50,7 +50,7 @@ async def initiate_learning_session(request: Dict[str, Any]):
     """Initiate autonomous learning session"""
     try:
         session_id = f"learn_session_{int(time.time())}"
-        
+
         learning_session = {
             "session_id": session_id,
             "learning_type": request.get("learning_type", "reinforcement"),
@@ -62,10 +62,10 @@ async def initiate_learning_session(request: Dict[str, Any]):
             "status": "active",
             "started_at": datetime.now().isoformat()
         }
-        
+
         learning_state["learning_sessions"][session_id] = learning_session
         return learning_session
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Learning initiation failed: {str(e)}")
 
@@ -85,7 +85,7 @@ async def trigger_evolution():
     """Trigger autonomous evolution process"""
     try:
         evolution_id = f"evolution_{int(time.time())}"
-        
+
         evolution_event = {
             "evolution_id": evolution_id,
             "evolution_trigger": "performance_threshold_reached",
@@ -96,10 +96,10 @@ async def trigger_evolution():
             "rollback_available": True,
             "timestamp": datetime.now().isoformat()
         }
-        
+
         learning_state["evolution_events"].append(evolution_event)
         return evolution_event
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Evolution failed: {str(e)}")
 

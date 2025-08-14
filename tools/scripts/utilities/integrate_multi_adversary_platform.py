@@ -36,7 +36,7 @@ logger = logging.getLogger(__name__)
 
 class XORBMultiAdversaryPlatformIntegrator:
     """Integrates Multi-Adversary Framework with XORB platform infrastructure."""
-    
+
     def __init__(self):
         self.integration_id = f"xorb_multi_adversary_integration_{int(time.time())}"
         self.platform_status = {
@@ -49,7 +49,7 @@ class XORBMultiAdversaryPlatformIntegrator:
             'apis_deployed': False,
             'platform_operational': False
         }
-        
+
         self.required_services = [
             'postgres',
             'neo4j',
@@ -60,57 +60,57 @@ class XORBMultiAdversaryPlatformIntegrator:
             'xorb-orchestrator',
             'xorb-worker'
         ]
-        
+
         logger.info(f"Initialized XORB Multi-Adversary Platform Integrator: {self.integration_id}")
-    
+
     async def integrate_platform(self) -> Dict[str, Any]:
         """Integrate Multi-Adversary Framework with XORB platform."""
-        
+
         try:
             logger.info("🚀 Starting XORB Multi-Adversary Platform Integration")
-            
+
             # Step 1: Prepare infrastructure
             await self._prepare_infrastructure()
-            
+
             # Step 2: Deploy database services
             await self._deploy_database_services()
-            
+
             # Step 3: Initialize databases
             await self._initialize_databases()
-            
+
             # Step 4: Deploy core services
             await self._deploy_core_services()
-            
+
             # Step 5: Integrate simulation framework
             await self._integrate_simulation_framework()
-            
+
             # Step 6: Configure monitoring and dashboards
             await self._configure_monitoring()
-            
+
             # Step 7: Deploy APIs and endpoints
             await self._deploy_apis()
-            
+
             # Step 8: Verify platform integration
             await self._verify_platform_integration()
-            
+
             # Update final status
             self.platform_status['platform_operational'] = True
             self.platform_status['end_time'] = datetime.utcnow().isoformat()
-            
+
             logger.info("✅ XORB Multi-Adversary Platform Integration completed successfully")
             return self.platform_status
-            
+
         except Exception as e:
             logger.error(f"❌ Platform integration failed: {str(e)}")
             self.platform_status['error'] = str(e)
             self.platform_status['platform_operational'] = False
             raise
-    
+
     async def _prepare_infrastructure(self) -> None:
         """Prepare infrastructure for platform deployment."""
-        
+
         logger.info("🔧 Preparing infrastructure...")
-        
+
         # Create necessary directories
         directories = [
             '/root/Xorb/logs',
@@ -122,11 +122,11 @@ class XORBMultiAdversaryPlatformIntegrator:
             '/root/Xorb/config/simulation',
             '/root/Xorb/reports_output'
         ]
-        
+
         for directory in directories:
             os.makedirs(directory, exist_ok=True)
             logger.debug(f"Created directory: {directory}")
-        
+
         # Ensure Docker network exists
         try:
             result = subprocess.run(
@@ -139,14 +139,14 @@ class XORBMultiAdversaryPlatformIntegrator:
                 logger.info("ℹ️ Docker network xorb-network already exists")
         except Exception as e:
             logger.warning(f"⚠️ Docker network creation: {str(e)}")
-        
+
         logger.info("✅ Infrastructure preparation completed")
-    
+
     async def _deploy_database_services(self) -> None:
         """Deploy database services using Docker Compose."""
-        
+
         logger.info("🗄️ Deploying database services...")
-        
+
         # Create database-specific docker-compose configuration
         db_compose_config = {
             'version': '3.8',
@@ -225,44 +225,44 @@ class XORBMultiAdversaryPlatformIntegrator:
                 }
             }
         }
-        
+
         # Write database compose file
         db_compose_path = '/root/Xorb/docker-compose-databases.yml'
         with open(db_compose_path, 'w') as f:
             import yaml
             yaml.dump(db_compose_config, f, default_flow_style=False)
-        
+
         # Deploy database services
         try:
             result = subprocess.run(
                 ['docker-compose', '-f', db_compose_path, 'up', '-d'],
                 capture_output=True, text=True, timeout=180, cwd='/root/Xorb'
             )
-            
+
             if result.returncode == 0:
                 logger.info("✅ Database services deployed successfully")
                 self.platform_status['services_deployed'].extend(['postgres', 'neo4j', 'redis'])
             else:
                 logger.error(f"❌ Database deployment failed: {result.stderr}")
                 raise RuntimeError(f"Database deployment failed: {result.stderr}")
-                
+
         except subprocess.TimeoutExpired:
             logger.error("❌ Database deployment timed out")
             raise RuntimeError("Database deployment timed out")
         except Exception as e:
             logger.error(f"❌ Database deployment error: {str(e)}")
             raise
-        
+
         # Wait for services to be healthy
         await self._wait_for_service_health(['postgres', 'neo4j', 'redis'])
-        
+
         logger.info("✅ Database services deployment completed")
-    
+
     async def _wait_for_service_health(self, services: List[str], timeout: int = 120) -> None:
         """Wait for services to be healthy."""
-        
+
         logger.info(f"⏳ Waiting for services to be healthy: {services}")
-        
+
         start_time = time.time()
         while time.time() - start_time < timeout:
             try:
@@ -270,36 +270,36 @@ class XORBMultiAdversaryPlatformIntegrator:
                     ['docker', 'ps', '--filter', 'health=healthy', '--format', '{{.Names}}'],
                     capture_output=True, text=True, timeout=10
                 )
-                
+
                 healthy_services = result.stdout.strip().split('\n') if result.stdout.strip() else []
-                
+
                 # Check if all required services are healthy
                 services_healthy = all(
                     any(service_name in healthy for healthy in healthy_services)
                     for service_name in services
                 )
-                
+
                 if services_healthy:
                     logger.info(f"✅ All services are healthy: {services}")
                     return
-                
+
                 await asyncio.sleep(5)
-                
+
             except Exception as e:
                 logger.warning(f"⚠️ Health check error: {str(e)}")
                 await asyncio.sleep(5)
-        
+
         raise TimeoutError(f"Services failed to become healthy within {timeout} seconds: {services}")
-    
+
     async def _initialize_databases(self) -> None:
         """Initialize databases with required schemas and data."""
-        
+
         logger.info("🏗️ Initializing databases...")
-        
+
         # Create database initialization SQL
         init_sql = """
         -- Multi-Adversary Simulation Framework Database Schema
-        
+
         -- Adversary Profiles Table
         CREATE TABLE IF NOT EXISTS adversary_profiles (
             profile_id UUID PRIMARY KEY,
@@ -312,7 +312,7 @@ class XORBMultiAdversaryPlatformIntegrator:
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        
+
         -- Simulations Table
         CREATE TABLE IF NOT EXISTS simulations (
             simulation_id UUID PRIMARY KEY,
@@ -324,7 +324,7 @@ class XORBMultiAdversaryPlatformIntegrator:
             end_time TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        
+
         -- Adversary Instances Table
         CREATE TABLE IF NOT EXISTS adversary_instances (
             instance_id UUID PRIMARY KEY,
@@ -334,7 +334,7 @@ class XORBMultiAdversaryPlatformIntegrator:
             performance_metrics JSONB,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        
+
         -- Campaign Goals Table
         CREATE TABLE IF NOT EXISTS campaign_goals (
             goal_id UUID PRIMARY KEY,
@@ -346,7 +346,7 @@ class XORBMultiAdversaryPlatformIntegrator:
             status VARCHAR(50) NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        
+
         -- Threat Intelligence Table
         CREATE TABLE IF NOT EXISTS threat_intelligence (
             entry_id UUID PRIMARY KEY,
@@ -361,7 +361,7 @@ class XORBMultiAdversaryPlatformIntegrator:
             last_seen TIMESTAMP NOT NULL,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        
+
         -- Resource Allocations Table
         CREATE TABLE IF NOT EXISTS resource_allocations (
             allocation_id UUID PRIMARY KEY,
@@ -375,7 +375,7 @@ class XORBMultiAdversaryPlatformIntegrator:
             efficiency_modifier FLOAT DEFAULT 1.0,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         );
-        
+
         -- Create indexes for performance
         CREATE INDEX IF NOT EXISTS idx_adversary_profiles_type ON adversary_profiles(adversary_type);
         CREATE INDEX IF NOT EXISTS idx_simulations_status ON simulations(status);
@@ -383,43 +383,43 @@ class XORBMultiAdversaryPlatformIntegrator:
         CREATE INDEX IF NOT EXISTS idx_campaign_goals_simulation ON campaign_goals(simulation_id);
         CREATE INDEX IF NOT EXISTS idx_threat_intelligence_source ON threat_intelligence(source);
         CREATE INDEX IF NOT EXISTS idx_resource_allocations_simulation ON resource_allocations(simulation_id);
-        
+
         -- Insert sample data
-        INSERT INTO adversary_profiles (profile_id, name, adversary_type, description, capabilities, behavioral_profile, ttp_preferences) 
-        VALUES 
+        INSERT INTO adversary_profiles (profile_id, name, adversary_type, description, capabilities, behavioral_profile, ttp_preferences)
+        VALUES
             (gen_random_uuid(), 'APT-XORB-001', 'nation_state', 'Advanced nation-state threat actor', '{}', '{}', '{}'),
             (gen_random_uuid(), 'CyberCrime-Alpha', 'cybercrime', 'Financially motivated cybercrime group', '{}', '{}', '{}'),
             (gen_random_uuid(), 'Hacktivist-Beta', 'hacktivist', 'Politically motivated hacktivist collective', '{}', '{}', '{}')
         ON CONFLICT (profile_id) DO NOTHING;
         """
-        
+
         # Write initialization SQL file
         with open('/root/Xorb/init-db.sql', 'w') as f:
             f.write(init_sql)
-        
+
         # Execute database initialization
         try:
             # Wait a bit more for PostgreSQL to be fully ready
             await asyncio.sleep(10)
-            
+
             # Execute initialization script
             result = subprocess.run([
                 'docker', 'exec', 'xorb-multi-adversary-postgres',
                 'psql', '-U', 'xorb_user', '-d', 'xorb_multi_adversary',
                 '-f', '/docker-entrypoint-initdb.d/init-db.sql'
             ], capture_output=True, text=True, timeout=60)
-            
+
             if result.returncode == 0:
                 logger.info("✅ PostgreSQL database initialized")
                 self.platform_status['databases_initialized'].append('postgres')
             else:
                 logger.warning(f"⚠️ PostgreSQL initialization warning: {result.stderr}")
                 self.platform_status['databases_initialized'].append('postgres')
-            
+
         except Exception as e:
             logger.error(f"❌ PostgreSQL initialization failed: {str(e)}")
             # Don't fail the entire deployment for database init issues
-        
+
         # Initialize Neo4j with basic constraints and indexes
         try:
             neo4j_init_commands = [
@@ -428,33 +428,33 @@ class XORBMultiAdversaryPlatformIntegrator:
                 "CREATE INDEX adversary_type IF NOT EXISTS FOR (a:Adversary) ON (a.type);",
                 "CREATE INDEX simulation_status IF NOT EXISTS FOR (s:Simulation) ON (s.status);"
             ]
-            
+
             for command in neo4j_init_commands:
                 result = subprocess.run([
                     'docker', 'exec', 'xorb-multi-adversary-neo4j',
                     'cypher-shell', '-u', 'neo4j', '-p', 'xorb_graph_2024', command
                 ], capture_output=True, text=True, timeout=30)
-                
+
                 if result.returncode == 0:
                     logger.debug(f"Neo4j command executed: {command}")
-            
+
             logger.info("✅ Neo4j database initialized")
             self.platform_status['databases_initialized'].append('neo4j')
-            
+
         except Exception as e:
             logger.warning(f"⚠️ Neo4j initialization: {str(e)}")
             self.platform_status['databases_initialized'].append('neo4j')
-        
+
         # Redis doesn't need schema initialization
         self.platform_status['databases_initialized'].append('redis')
-        
+
         logger.info("✅ Database initialization completed")
-    
+
     async def _deploy_core_services(self) -> None:
         """Deploy core XORB services."""
-        
+
         logger.info("🔄 Deploying core XORB services...")
-        
+
         # Create core services compose configuration
         core_services_config = {
             'version': '3.8',
@@ -503,7 +503,7 @@ class XORBMultiAdversaryPlatformIntegrator:
                 }
             }
         }
-        
+
         # Create Prometheus configuration
         prometheus_config = {
             'global': {
@@ -519,47 +519,47 @@ class XORBMultiAdversaryPlatformIntegrator:
                 }
             ]
         }
-        
+
         # Create config directory and files
         os.makedirs('/root/Xorb/config', exist_ok=True)
         with open('/root/Xorb/config/prometheus.yml', 'w') as f:
             import yaml
             yaml.dump(prometheus_config, f, default_flow_style=False)
-        
+
         # Write core services compose file
         core_compose_path = '/root/Xorb/docker-compose-core.yml'
         with open(core_compose_path, 'w') as f:
             import yaml
             yaml.dump(core_services_config, f, default_flow_style=False)
-        
+
         # Deploy core services
         try:
             result = subprocess.run(
                 ['docker-compose', '-f', core_compose_path, 'up', '-d'],
                 capture_output=True, text=True, timeout=120, cwd='/root/Xorb'
             )
-            
+
             if result.returncode == 0:
                 logger.info("✅ Core services deployed successfully")
                 self.platform_status['services_deployed'].extend(['prometheus', 'grafana'])
             else:
                 logger.error(f"❌ Core services deployment failed: {result.stderr}")
                 raise RuntimeError(f"Core services deployment failed: {result.stderr}")
-                
+
         except Exception as e:
             logger.error(f"❌ Core services deployment error: {str(e)}")
             raise
-        
+
         # Wait for services to be ready
         await asyncio.sleep(20)
-        
+
         logger.info("✅ Core services deployment completed")
-    
+
     async def _integrate_simulation_framework(self) -> None:
         """Integrate the Multi-Adversary Simulation Framework with the platform."""
-        
+
         logger.info("🎮 Integrating Multi-Adversary Simulation Framework...")
-        
+
         # Create framework integration configuration
         framework_config = {
             'framework_version': '2.0.0',
@@ -611,12 +611,12 @@ class XORBMultiAdversaryPlatformIntegrator:
                 'metrics_collection_interval': '5s'
             }
         }
-        
+
         # Write framework configuration
         framework_config_path = '/root/Xorb/config/multi_adversary_framework_config.json'
         with open(framework_config_path, 'w') as f:
             json.dump(framework_config, f, indent=2)
-        
+
         # Create framework service wrapper
         framework_service_script = '''#!/usr/bin/env python3
 """
@@ -640,15 +640,15 @@ logger = logging.getLogger(__name__)
 
 async def main():
     logger.info("🎯 Multi-Adversary Simulation Framework Service Starting...")
-    
+
     # Initialize framework components
     profile_manager = SyntheticAdversaryProfileManager()
     simulation_engine = MultiActorSimulationEngine(profile_manager)
     threat_synthesizer = PredictiveThreatIntelligenceSynthesizer()
     goal_optimizer = CampaignGoalOptimizer()
-    
+
     logger.info("✅ Multi-Adversary Framework Service Operational")
-    
+
     # Keep service running
     while True:
         await asyncio.sleep(60)
@@ -657,31 +657,31 @@ async def main():
 if __name__ == "__main__":
     asyncio.run(main())
 '''
-        
+
         # Write framework service script
         service_script_path = '/root/Xorb/multi_adversary_framework_service.py'
         with open(service_script_path, 'w') as f:
             f.write(framework_service_script)
-        
+
         # Make script executable
         os.chmod(service_script_path, 0o755)
-        
+
         self.platform_status['framework_integrated'] = True
         logger.info("✅ Multi-Adversary Simulation Framework integration completed")
-    
+
     async def _configure_monitoring(self) -> None:
         """Configure monitoring and dashboards."""
-        
+
         logger.info("📊 Configuring monitoring and dashboards...")
-        
+
         # Import dashboard configuration
         dashboard_source = '/root/Xorb/grafana/multi-adversary-simulation-dashboard.json'
         dashboard_dest = '/root/Xorb/config/grafana_dashboard.json'
-        
+
         if os.path.exists(dashboard_source):
             subprocess.run(['cp', dashboard_source, dashboard_dest], check=True)
             logger.info("✅ Grafana dashboard configuration copied")
-        
+
         # Create Grafana provisioning configuration
         grafana_provisioning = {
             'datasources': [
@@ -700,20 +700,20 @@ if __name__ == "__main__":
                 }
             ]
         }
-        
+
         # Write monitoring configuration
         monitoring_config_path = '/root/Xorb/config/monitoring_config.json'
         with open(monitoring_config_path, 'w') as f:
             json.dump(grafana_provisioning, f, indent=2)
-        
+
         self.platform_status['monitoring_configured'] = True
         logger.info("✅ Monitoring and dashboards configuration completed")
-    
+
     async def _deploy_apis(self) -> None:
         """Deploy API endpoints for the Multi-Adversary Framework."""
-        
+
         logger.info("🔌 Deploying APIs and endpoints...")
-        
+
         # Create FastAPI application for framework APIs
         api_application = '''#!/usr/bin/env python3
 """
@@ -772,7 +772,7 @@ async def list_simulations():
 async def framework_status():
     return {
         "profile_manager": "operational",
-        "simulation_engine": "operational", 
+        "simulation_engine": "operational",
         "threat_synthesizer": "operational",
         "goal_optimizer": "operational",
         "integration": "complete"
@@ -782,61 +782,61 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
 '''
-        
+
         # Write API application
         api_app_path = '/root/Xorb/multi_adversary_api.py'
         with open(api_app_path, 'w') as f:
             f.write(api_application)
-        
+
         # Make API script executable
         os.chmod(api_app_path, 0o755)
-        
+
         self.platform_status['apis_deployed'] = True
         logger.info("✅ APIs and endpoints deployment completed")
-    
+
     async def _verify_platform_integration(self) -> None:
         """Verify the complete platform integration."""
-        
+
         logger.info("🔍 Verifying platform integration...")
-        
+
         verification_checks = {
             'database_services': len(self.platform_status['databases_initialized']) >= 3,
-            'core_services': 'prometheus' in self.platform_status['services_deployed'] and 
+            'core_services': 'prometheus' in self.platform_status['services_deployed'] and
                            'grafana' in self.platform_status['services_deployed'],
             'framework_integration': self.platform_status['framework_integrated'],
             'monitoring_configuration': self.platform_status['monitoring_configured'],
             'apis_deployment': self.platform_status['apis_deployed'],
             'configuration_files': True  # Will verify below
         }
-        
+
         # Verify configuration files exist
         required_configs = [
             '/root/Xorb/config/multi_adversary_framework_config.json',
             '/root/Xorb/config/monitoring_config.json',
             '/root/Xorb/init-db.sql'
         ]
-        
+
         config_files_exist = all(os.path.exists(config) for config in required_configs)
         verification_checks['configuration_files'] = config_files_exist
-        
+
         # Calculate verification score
         passed_checks = sum(1 for check in verification_checks.values() if check)
         total_checks = len(verification_checks)
         verification_score = (passed_checks / total_checks) * 100
-        
+
         self.platform_status['verification_checks'] = verification_checks
         self.platform_status['verification_score'] = verification_score
-        
+
         if verification_score >= 85:
             logger.info(f"✅ Platform integration verification passed: {verification_score:.1f}%")
         else:
             logger.warning(f"⚠️ Platform integration verification incomplete: {verification_score:.1f}%")
             failed_checks = [check for check, passed in verification_checks.items() if not passed]
             logger.warning(f"Failed checks: {failed_checks}")
-    
+
     def get_integration_summary(self) -> Dict[str, Any]:
         """Get comprehensive integration summary."""
-        
+
         return {
             'integration_info': {
                 'integration_id': self.integration_id,
@@ -865,19 +865,19 @@ if __name__ == "__main__":
 
 async def main():
     """Main integration function."""
-    
+
     print("🚀 XORB Multi-Adversary Platform Integration")
     print("=" * 70)
-    
+
     integrator = XORBMultiAdversaryPlatformIntegrator()
-    
+
     try:
         # Integrate the platform
         integration_result = await integrator.integrate_platform()
-        
+
         # Print integration summary
         summary = integrator.get_integration_summary()
-        
+
         print("\n📊 INTEGRATION SUMMARY")
         print("=" * 70)
         print(f"Integration ID: {summary['integration_info']['integration_id']}")
@@ -885,20 +885,20 @@ async def main():
         print(f"Services Deployed: {summary['services_deployed']['deployment_coverage']:.1f}%")
         print(f"Databases Initialized: {summary['databases_initialized']['initialization_coverage']:.1f}%")
         print(f"Verification Score: {summary['verification_score']:.1f}%")
-        
+
         print(f"\n✅ Services Deployed:")
         for service in summary['services_deployed']['services']:
             print(f"  - {service}")
-        
+
         print(f"\n🗄️ Databases Initialized:")
         for db in summary['databases_initialized']['databases']:
             print(f"  - {db}")
-        
+
         print(f"\n🔧 Framework Integration:")
         print(f"  - Framework: {'✅' if summary['framework_integration']['framework_integrated'] else '❌'}")
         print(f"  - Monitoring: {'✅' if summary['framework_integration']['monitoring_configured'] else '❌'}")
         print(f"  - APIs: {'✅' if summary['framework_integration']['apis_deployed'] else '❌'}")
-        
+
         if integration_result['platform_operational']:
             print(f"\n🎉 XORB Multi-Adversary Platform Integration completed successfully!")
             print(f"🌐 Framework API: http://localhost:8000")
@@ -907,30 +907,30 @@ async def main():
             print(f"🗄️ PostgreSQL: localhost:5432")
             print(f"🕸️ Neo4j Browser: http://localhost:7474")
             print(f"📋 Redis: localhost:6379")
-            
+
             # Save integration report
             report_path = f'/root/Xorb/reports_output/platform_integration_report_{int(time.time())}.json'
             os.makedirs(os.path.dirname(report_path), exist_ok=True)
-            
+
             with open(report_path, 'w') as f:
                 json.dump({
                     'integration_result': integration_result,
                     'integration_summary': summary,
                     'timestamp': datetime.utcnow().isoformat()
                 }, f, indent=2, default=str)
-            
+
             print(f"📋 Integration report saved: {report_path}")
-            
+
         else:
             print(f"\n❌ Platform integration failed or incomplete")
             if 'error' in integration_result:
                 print(f"Error: {integration_result['error']}")
-    
+
     except Exception as e:
         logger.error(f"Integration failed with error: {str(e)}")
         print(f"\n❌ PLATFORM INTEGRATION FAILED: {str(e)}")
         return False
-    
+
     return True
 
 

@@ -157,7 +157,7 @@ from common.unified_config import get_config
 config = get_config()
 # Access all configuration sections:
 # - config.database
-# - config.redis  
+# - config.redis
 # - config.security
 # - config.api
 # - config.sso
@@ -218,7 +218,7 @@ In dependency injection containers:
 container.register(AuthSecurityService, ...)
 container.register(XORBAuthenticator, ...)
 
-# NEW  
+# NEW
 container.register(AuthenticationService, UnifiedAuthService)
 ```
 

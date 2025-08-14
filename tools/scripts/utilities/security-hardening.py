@@ -248,16 +248,16 @@ vault:
   backend: "file"  # or "hashicorp", "aws", "azure"
   path: "/root/Xorb/secrets/vault"
   encryption: "aes256"
-  
+
 secrets:
   database:
     postgres_password: "{{ vault.secret }}"
     redis_password: "{{ vault.secret }}"
-  
+
   api_keys:
     nvidia: "{{ vault.secret }}"
     openai: "{{ vault.secret }}"
-  
+
   security:
     jwt_secret: "{{ vault.secret }}"
     encryption_key: "{{ vault.secret }}"

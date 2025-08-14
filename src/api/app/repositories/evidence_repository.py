@@ -11,16 +11,16 @@ from ..infrastructure.database import get_async_session
 
 class EvidenceRepository:
     """Repository for Evidence operations with tenant isolation."""
-    
+
     def __init__(self, db_session: Optional[AsyncSession] = None):
         self.db_session = db_session
-    
+
     def _get_session(self):
         """Get database session."""
         if self.db_session:
             return self.db_session
         return get_async_session()
-    
+
     async def create(
         self,
         tenant_id: UUID,
@@ -45,12 +45,12 @@ class EvidenceRepository:
                 uploaded_by=uploaded_by,
                 status="uploaded"
             )
-            
+
             session.add(evidence)
             await session.commit()
             await session.refresh(evidence)
             return evidence
-    
+
     async def get_by_id(self, evidence_id: UUID, tenant_id: UUID) -> Optional[Evidence]:
         """Get evidence by ID with tenant isolation."""
         async with self._get_session() as session:
@@ -63,7 +63,7 @@ class EvidenceRepository:
                 )
             )
             return result.scalar_one_or_none()
-    
+
     async def get_by_storage_path(self, storage_path: str, tenant_id: UUID) -> Optional[Evidence]:
         """Get evidence by storage path with tenant isolation."""
         async with self._get_session() as session:
@@ -76,7 +76,7 @@ class EvidenceRepository:
                 )
             )
             return result.scalar_one_or_none()
-    
+
     async def get_by_hash(self, sha256_hash: str, tenant_id: UUID) -> Optional[Evidence]:
         """Get evidence by hash with tenant isolation (deduplication)."""
         async with self._get_session() as session:
@@ -89,7 +89,7 @@ class EvidenceRepository:
                 )
             )
             return result.scalar_one_or_none()
-    
+
     async def list_by_tenant(
         self,
         tenant_id: UUID,
@@ -100,15 +100,15 @@ class EvidenceRepository:
         """List evidence for tenant with pagination."""
         async with self._get_session() as session:
             query = select(Evidence).where(Evidence.tenant_id == tenant_id)
-            
+
             if status_filter:
                 query = query.where(Evidence.status == status_filter)
-            
+
             query = query.offset(offset).limit(limit).order_by(Evidence.created_at.desc())
-            
+
             result = await session.execute(query)
             return list(result.scalars().all())
-    
+
     async def update_status(
         self,
         evidence_id: UUID,
@@ -128,16 +128,16 @@ class EvidenceRepository:
                 )
                 .values(status=status)
             )
-            
+
             if processed_at:
                 query = query.values(processed_at=processed_at)
-            
+
             await session.execute(query)
             await session.commit()
-            
+
             # Return updated record
             return await self.get_by_id(evidence_id, tenant_id)
-    
+
     async def delete(self, evidence_id: UUID, tenant_id: UUID) -> bool:
         """Delete evidence with tenant isolation."""
         async with self._get_session() as session:
@@ -151,7 +151,7 @@ class EvidenceRepository:
             )
             await session.commit()
             return result.rowcount > 0
-    
+
     async def get_storage_stats(self, tenant_id: UUID) -> Dict[str, int]:
         """Get storage statistics for tenant."""
         async with self._get_session() as session:
@@ -160,33 +160,33 @@ class EvidenceRepository:
                 select(Evidence).where(Evidence.tenant_id == tenant_id)
             )
             total_files = len(list(total_result.scalars().all()))
-            
+
             # Calculate total size (would use SUM in production SQL)
             all_evidence = await session.execute(
                 select(Evidence.size_bytes).where(Evidence.tenant_id == tenant_id)
             )
-            
+
             total_size = 0
             for size_str in all_evidence.scalars():
                 try:
                     total_size += int(size_str) if size_str else 0
                 except (ValueError, TypeError):
                     continue
-            
+
             return {
                 "total_files": total_files,
                 "total_size_bytes": total_size,
                 "status_counts": await self._get_status_counts(tenant_id, session)
             }
-    
+
     async def _get_status_counts(self, tenant_id: UUID, session: AsyncSession) -> Dict[str, int]:
         """Get count of files by status."""
         result = await session.execute(
             select(Evidence.status).where(Evidence.tenant_id == tenant_id)
         )
-        
+
         status_counts = {}
         for status in result.scalars():
             status_counts[status] = status_counts.get(status, 0) + 1
-        
+
         return status_counts

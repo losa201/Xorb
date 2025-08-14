@@ -39,14 +39,14 @@ class DeploymentTier:
 
 class XORBStructuredDeployment:
     """Structured XORB deployment with optimal architecture"""
-    
+
     def __init__(self):
         self.deployment_id = f"STRUCTURED-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
         self.architecture = self._define_architecture()
         self.deployment_tiers = self._create_deployment_tiers()
         self.service_registry = {}
         self.wiring_config = {}
-        
+
     def _define_architecture(self) -> Dict:
         """Define the logical XORB architecture"""
         return {
@@ -57,7 +57,7 @@ class XORBStructuredDeployment:
                 "security": "encrypted-at-rest"
             },
             "core_layer": {
-                "description": "Core business logic and APIs", 
+                "description": "Core business logic and APIs",
                 "services": ["api-gateway", "security-api", "threat-intel", "analytics"],
                 "network": "xorb-core-net",
                 "security": "mTLS-enabled"
@@ -65,7 +65,7 @@ class XORBStructuredDeployment:
             "monitoring_layer": {
                 "description": "Observability and monitoring",
                 "services": ["prometheus", "grafana", "alertmanager"],
-                "network": "xorb-monitor-net", 
+                "network": "xorb-monitor-net",
                 "security": "rbac-enabled"
             },
             "web_layer": {
@@ -81,10 +81,10 @@ class XORBStructuredDeployment:
                 "security": "isolated-network"
             }
         }
-    
+
     def _create_deployment_tiers(self) -> List[DeploymentTier]:
         """Create logical deployment tiers"""
-        
+
         # Tier 1: Foundation (Data Layer)
         tier1_services = [
             ServiceDefinition(
@@ -99,7 +99,7 @@ class XORBStructuredDeployment:
             ),
             ServiceDefinition(
                 name="redis",
-                type="data", 
+                type="data",
                 port=6379,
                 dependencies=[],
                 health_endpoint="/ping",
@@ -118,7 +118,7 @@ class XORBStructuredDeployment:
                 priority="high"
             )
         ]
-        
+
         # Tier 2: Core Services
         tier2_services = [
             ServiceDefinition(
@@ -136,7 +136,7 @@ class XORBStructuredDeployment:
                 type="security",
                 port=8004,
                 dependencies=["postgres", "neo4j"],
-                health_endpoint="/health", 
+                health_endpoint="/health",
                 resources={"cpu": "300m", "memory": "512Mi"},
                 replicas=2,
                 priority="high"
@@ -152,7 +152,7 @@ class XORBStructuredDeployment:
                 priority="high"
             )
         ]
-        
+
         # Tier 3: Monitoring & Observability
         tier3_services = [
             ServiceDefinition(
@@ -176,7 +176,7 @@ class XORBStructuredDeployment:
                 priority="medium"
             )
         ]
-        
+
         # Tier 4: PTaaS Layer
         tier4_services = [
             ServiceDefinition(
@@ -220,7 +220,7 @@ class XORBStructuredDeployment:
                 priority="medium"
             )
         ]
-        
+
         # Tier 5: Web Layer
         tier5_services = [
             ServiceDefinition(
@@ -234,62 +234,62 @@ class XORBStructuredDeployment:
                 priority="high"
             )
         ]
-        
+
         return [
             DeploymentTier("foundation", tier1_services, 1, True),
-            DeploymentTier("core-services", tier2_services, 2, True), 
+            DeploymentTier("core-services", tier2_services, 2, True),
             DeploymentTier("monitoring", tier3_services, 3, False),
             DeploymentTier("ptaas-platform", tier4_services, 4, True),
             DeploymentTier("web-layer", tier5_services, 5, True)
         ]
-    
+
     async def deploy_structured_platform(self):
         """Deploy the structured XORB platform"""
         logger.info("🏗️ Starting XORB Structured Deployment")
         logger.info(f"📋 Deployment ID: {self.deployment_id}")
-        
+
         try:
             # Phase 1: Infrastructure Setup
             await self.setup_infrastructure()
-            
+
             # Phase 2: Deploy by Tiers
             await self.deploy_by_tiers()
-            
+
             # Phase 3: Configure Service Wiring
             await self.configure_service_wiring()
-            
+
             # Phase 4: Deploy Monitoring
             await self.deploy_monitoring_stack()
-            
+
             # Phase 5: Validate Deployment
             await self.validate_deployment()
-            
+
             # Phase 6: Generate Reports
             await self.generate_structured_report()
-            
+
             logger.info("✅ Structured XORB deployment completed successfully!")
-            
+
         except Exception as e:
             logger.error(f"❌ Structured deployment failed: {e}")
             raise
-    
+
     async def setup_infrastructure(self):
         """Setup infrastructure networks and volumes"""
         logger.info("🌐 Setting up infrastructure networks...")
-        
+
         # Create structured networks
         networks = [
             "xorb-data-net",
-            "xorb-core-net", 
+            "xorb-core-net",
             "xorb-monitor-net",
             "xorb-web-net",
             "xorb-ptaas-net"
         ]
-        
+
         for network in networks:
             try:
                 subprocess.run([
-                    'docker', 'network', 'create', 
+                    'docker', 'network', 'create',
                     '--driver', 'bridge',
                     '--subnet', f'172.{20 + networks.index(network)}.0.0/16',
                     network
@@ -297,14 +297,14 @@ class XORBStructuredDeployment:
                 logger.info(f"✅ Network {network} created")
             except Exception as e:
                 logger.warning(f"⚠️ Network {network} warning: {e}")
-        
+
         # Create optimized volumes
         await self.create_optimized_volumes()
-    
+
     async def create_optimized_volumes(self):
         """Create optimized storage volumes"""
         logger.info("💾 Creating optimized storage volumes...")
-        
+
         volume_configs = {
             "xorb-postgres-data": {"size": "20Gi", "type": "ssd"},
             "xorb-redis-data": {"size": "5Gi", "type": "ssd"},
@@ -312,7 +312,7 @@ class XORBStructuredDeployment:
             "xorb-prometheus-data": {"size": "10Gi", "type": "ssd"},
             "xorb-grafana-data": {"size": "2Gi", "type": "ssd"}
         }
-        
+
         for volume, config in volume_configs.items():
             try:
                 subprocess.run([
@@ -323,14 +323,14 @@ class XORBStructuredDeployment:
                 logger.info(f"✅ Volume {volume} ({config['size']}) created")
             except Exception as e:
                 logger.warning(f"⚠️ Volume {volume} warning: {e}")
-    
+
     async def deploy_by_tiers(self):
         """Deploy services tier by tier"""
         logger.info("🏗️ Deploying services by tiers...")
-        
+
         for tier in sorted(self.deployment_tiers, key=lambda t: t.order):
             logger.info(f"📦 Deploying Tier {tier.order}: {tier.name}")
-            
+
             if tier.parallel_deployment:
                 # Deploy services in parallel
                 tasks = [self.deploy_service(service) for service in tier.services]
@@ -339,30 +339,30 @@ class XORBStructuredDeployment:
                 # Deploy services sequentially
                 for service in tier.services:
                     await self.deploy_service(service)
-            
+
             # Wait for tier to stabilize
             await self.wait_for_tier_health(tier)
             logger.info(f"✅ Tier {tier.order} deployment completed")
-    
+
     async def deploy_service(self, service: ServiceDefinition):
         """Deploy individual service with optimal configuration"""
         logger.info(f"🚀 Deploying {service.name}...")
-        
+
         # Generate service-specific compose configuration
         compose_config = await self.generate_service_compose(service)
-        
+
         # Write compose file
         compose_file = f"/tmp/xorb-{service.name}.yml"
         with open(compose_file, 'w') as f:
             f.write(compose_config)
-        
+
         try:
             # Deploy service
             subprocess.run([
                 'docker-compose', '-f', compose_file,
                 'up', '-d', '--remove-orphans'
             ], check=True, cwd='/root/Xorb')
-            
+
             logger.info(f"✅ {service.name} deployed successfully")
             self.service_registry[service.name] = {
                 "status": "deployed",
@@ -370,14 +370,14 @@ class XORBStructuredDeployment:
                 "health_endpoint": service.health_endpoint,
                 "dependencies": service.dependencies
             }
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to deploy {service.name}: {e}")
             self.service_registry[service.name] = {"status": "failed", "error": str(e)}
-    
+
     async def generate_service_compose(self, service: ServiceDefinition) -> str:
         """Generate optimized Docker Compose configuration for service"""
-        
+
         if service.name == "postgres":
             return self._generate_postgres_compose(service)
         elif service.name == "redis":
@@ -406,7 +406,7 @@ class XORBStructuredDeployment:
             return self._generate_web_gateway_compose(service)
         else:
             return self._generate_generic_compose(service)
-    
+
     def _generate_postgres_compose(self, service: ServiceDefinition) -> str:
         """Generate PostgreSQL compose configuration"""
         return f"""
@@ -454,7 +454,7 @@ volumes:
   xorb-postgres-data:
     external: true
 """
-    
+
     def _generate_redis_compose(self, service: ServiceDefinition) -> str:
         """Generate Redis compose configuration"""
         return f"""
@@ -494,7 +494,7 @@ volumes:
   xorb-redis-data:
     external: true
 """
-    
+
     def _generate_neo4j_compose(self, service: ServiceDefinition) -> str:
         """Generate Neo4j compose configuration"""
         return f"""
@@ -543,7 +543,7 @@ volumes:
   xorb-neo4j-logs:
     external: true
 """
-    
+
     def _generate_unified_api_compose(self, service: ServiceDefinition) -> str:
         """Generate unified API compose configuration"""
         return f"""
@@ -595,7 +595,7 @@ networks:
   xorb-data-net:
     external: true
 """
-    
+
     def _generate_analytics_compose(self, service: ServiceDefinition) -> str:
         """Generate analytics service compose configuration"""
         return f"""
@@ -645,7 +645,7 @@ networks:
   xorb-data-net:
     external: true
 """
-    
+
     def _generate_threat_intel_compose(self, service: ServiceDefinition) -> str:
         """Generate threat intelligence compose configuration"""
         return f"""
@@ -676,7 +676,7 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8004/health"]
       interval: 30s
-      timeout: 10s 
+      timeout: 10s
       retries: 3
     restart: unless-stopped
     depends_on:
@@ -695,7 +695,7 @@ networks:
   xorb-data-net:
     external: true
 """
-    
+
     def _generate_prometheus_compose(self, service: ServiceDefinition) -> str:
         """Generate Prometheus compose configuration"""
         return f"""
@@ -743,7 +743,7 @@ volumes:
   xorb-prometheus-data:
     external: true
 """
-    
+
     def _generate_grafana_compose(self, service: ServiceDefinition) -> str:
         """Generate Grafana compose configuration"""
         return f"""
@@ -789,7 +789,7 @@ volumes:
   xorb-grafana-data:
     external: true
 """
-    
+
     def _generate_web_gateway_compose(self, service: ServiceDefinition) -> str:
         """Generate web gateway compose configuration"""
         return f"""
@@ -830,7 +830,7 @@ networks:
   xorb-core-net:
     external: true
 """
-    
+
     def _generate_qdrant_compose(self, service: ServiceDefinition) -> str:
         """Generate Qdrant vector database compose configuration"""
         return f"""
@@ -873,7 +873,7 @@ volumes:
   xorb-qdrant-data:
     external: true
 """
-    
+
     def _generate_ptaas_core_compose(self, service: ServiceDefinition) -> str:
         """Generate PTaaS core service compose configuration"""
         return f"""
@@ -930,7 +930,7 @@ networks:
   xorb-data-net:
     external: true
 """
-    
+
     def _generate_researcher_api_compose(self, service: ServiceDefinition) -> str:
         """Generate researcher API compose configuration"""
         return f"""
@@ -982,7 +982,7 @@ networks:
   xorb-data-net:
     external: true
 """
-    
+
     def _generate_company_api_compose(self, service: ServiceDefinition) -> str:
         """Generate company API compose configuration"""
         return f"""
@@ -1034,7 +1034,7 @@ networks:
   xorb-data-net:
     external: true
 """
-    
+
     def _generate_generic_compose(self, service: ServiceDefinition) -> str:
         """Generate generic compose configuration"""
         return f"""
@@ -1049,32 +1049,32 @@ services:
       - "{service.port}:{service.port}"
     restart: unless-stopped
 """
-    
+
     async def wait_for_tier_health(self, tier: DeploymentTier):
         """Wait for tier services to be healthy"""
         logger.info(f"⏳ Waiting for {tier.name} tier to be healthy...")
-        
+
         max_wait = 120  # 2 minutes
         wait_interval = 10
-        
+
         for i in range(0, max_wait, wait_interval):
             healthy_services = 0
-            
+
             for service in tier.services:
                 if await self.check_service_health(service):
                     healthy_services += 1
-            
+
             health_percentage = (healthy_services / len(tier.services)) * 100
             logger.info(f"📊 {tier.name} health: {healthy_services}/{len(tier.services)} ({health_percentage:.1f}%)")
-            
+
             if health_percentage >= 80:  # 80% threshold
                 logger.info(f"✅ {tier.name} tier is healthy")
                 return
-            
+
             await asyncio.sleep(wait_interval)
-        
+
         logger.warning(f"⚠️ {tier.name} tier health check timeout - proceeding anyway")
-    
+
     async def check_service_health(self, service: ServiceDefinition) -> bool:
         """Check individual service health"""
         try:
@@ -1083,20 +1083,20 @@ services:
                 'docker', 'ps', '--filter', f'name=xorb-{service.name}',
                 '--format', '{{.Status}}'
             ], capture_output=True, text=True)
-            
+
             if result.returncode == 0:
                 status = result.stdout.strip()
                 return 'Up' in status and 'healthy' in status.lower()
-            
+
         except Exception as e:
             logger.debug(f"Health check failed for {service.name}: {e}")
-        
+
         return False
-    
+
     async def configure_service_wiring(self):
         """Configure efficient service communication"""
         logger.info("🔌 Configuring service wiring...")
-        
+
         self.wiring_config = {
             "api_routing": {
                 "unified_api": {
@@ -1133,26 +1133,26 @@ services:
             },
             "monitoring_targets": [
                 "xorb-unified-api:8000",
-                "xorb-analytics:8003", 
+                "xorb-analytics:8003",
                 "xorb-threat-intel:8004",
                 "xorb-postgres:5432",
                 "xorb-redis:6379",
                 "xorb-neo4j:7474"
             ]
         }
-        
+
         # Create monitoring configuration
         await self.create_monitoring_config()
         logger.info("✅ Service wiring configured")
-    
+
     async def create_monitoring_config(self):
         """Create monitoring configuration files"""
         logger.info("📊 Creating monitoring configuration...")
-        
+
         # Create monitoring directory
         monitoring_dir = Path("/root/Xorb/monitoring")
         monitoring_dir.mkdir(exist_ok=True)
-        
+
         # Prometheus configuration
         prometheus_config = """
 global:
@@ -1193,53 +1193,53 @@ scrape_configs:
       - targets: ['xorb-neo4j:7474']
     scrape_interval: 60s
 """
-        
+
         with open(monitoring_dir / "prometheus.yml", 'w') as f:
             f.write(prometheus_config)
-        
+
         logger.info("✅ Monitoring configuration created")
-    
+
     async def deploy_monitoring_stack(self):
         """Deploy monitoring stack"""
         logger.info("📊 Deploying monitoring stack...")
-        
+
         # Find monitoring tier and deploy
         monitoring_tier = next((t for t in self.deployment_tiers if t.name == "monitoring"), None)
         if monitoring_tier:
             for service in monitoring_tier.services:
                 await self.deploy_service(service)
             await self.wait_for_tier_health(monitoring_tier)
-        
+
         logger.info("✅ Monitoring stack deployed")
-    
+
     async def validate_deployment(self):
         """Validate the complete deployment"""
         logger.info("✅ Validating structured deployment...")
-        
+
         # Check all services
         total_services = sum(len(tier.services) for tier in self.deployment_tiers)
         healthy_services = 0
-        
+
         for tier in self.deployment_tiers:
             for service in tier.services:
                 if await self.check_service_health(service):
                     healthy_services += 1
-        
+
         health_percentage = (healthy_services / total_services) * 100 if total_services > 0 else 0
-        
+
         logger.info(f"📊 Overall platform health: {healthy_services}/{total_services} ({health_percentage:.1f}%)")
-        
+
         if health_percentage >= 75:
             logger.info("🎉 Structured deployment validation successful!")
         else:
             logger.warning("⚠️ Deployment validation shows degraded performance")
-        
+
         return health_percentage
-    
+
     async def generate_structured_report(self):
         """Generate comprehensive structured deployment report"""
         logger.info("📋 Generating structured deployment report...")
-        
+
         report = {
             "deployment_id": self.deployment_id,
             "timestamp": datetime.now().isoformat(),
@@ -1268,7 +1268,7 @@ scrape_configs:
             "wiring_configuration": self.wiring_config,
             "access_information": {
                 "unified_api": "http://localhost:8000/api/v1/status",
-                "analytics": "http://localhost:8003/api/v1/metrics", 
+                "analytics": "http://localhost:8003/api/v1/metrics",
                 "threat_intelligence": "http://localhost:8004/api/v1/intelligence",
                 "grafana": "http://localhost:3000 (admin/xorb_admin_2024)",
                 "prometheus": "http://localhost:9090",
@@ -1290,24 +1290,24 @@ scrape_configs:
                 "alerting": "Grafana dashboards with automated alerts"
             }
         }
-        
+
         # Save report
         report_file = f"/root/Xorb/logs/structured-deployment-{self.deployment_id}.json"
         os.makedirs("/root/Xorb/logs", exist_ok=True)
-        
+
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2)
-        
+
         logger.info(f"📋 Structured deployment report saved: {report_file}")
         return report
 
 async def main():
     """Execute structured XORB deployment"""
     deployment = XORBStructuredDeployment()
-    
+
     try:
         report = await deployment.deploy_structured_platform()
-        
+
         print("\n" + "="*80)
         print("🏗️ XORB STRUCTURED DEPLOYMENT COMPLETE!")
         print("="*80)
@@ -1315,20 +1315,20 @@ async def main():
         print(f"🏛️ Architecture: Multi-tier with optimized wiring")
         print(f"📦 Services: {sum(len(tier.services) for tier in deployment.deployment_tiers)}")
         print(f"🌐 Networks: {len(deployment.architecture)} isolated layers")
-        
+
         print("\n🏗️ Deployment Tiers:")
         for tier in deployment.deployment_tiers:
             print(f"  Tier {tier.order}: {tier.name} ({len(tier.services)} services)")
             for service in tier.services:
                 status = deployment.service_registry.get(service.name, {}).get("status", "unknown")
                 print(f"    └─ {service.name}:{service.port} [{status}] ({service.priority})")
-        
+
         print("\n🔌 Service Wiring:")
         print("  • Data Layer: Optimized connection pooling")
-        print("  • Core Layer: Load balancing with circuit breakers") 
+        print("  • Core Layer: Load balancing with circuit breakers")
         print("  • Monitor Layer: Real-time metrics collection")
         print("  • Web Layer: Reverse proxy with SSL termination")
-        
+
         print("\n🚀 Access Points:")
         print("  Unified API:        http://localhost:8000/api/v1/status")
         print("  Analytics:          http://localhost:8003/api/v1/metrics")
@@ -1336,15 +1336,15 @@ async def main():
         print("  Grafana Dashboard:  http://localhost:3000 (admin/xorb_admin_2024)")
         print("  Prometheus:         http://localhost:9090")
         print("  Website:            https://verteidiq.com")
-        
+
         print("\n📊 Operations:")
         print("  Status:   docker ps --filter name=xorb")
         print("  Logs:     docker logs xorb-unified-api")
         print("  Scale:    docker-compose up -d --scale xorb-unified-api=3")
         print("  Health:   curl http://localhost:8000/health")
-        
+
         print("\n" + "="*80)
-        
+
     except Exception as e:
         logger.error(f"❌ Structured deployment failed: {e}")
         raise

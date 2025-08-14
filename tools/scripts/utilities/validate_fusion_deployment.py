@@ -63,14 +63,14 @@ def test_fusion_dashboard():
 def validate_fusion_engine_files():
     """Validate fusion engine files exist."""
     import os
-    
+
     files_to_check = [
         "/root/Xorb/packages/xorb_core/xorb_core/intelligence/xorb_threat_intelligence_fusion_engine.py",
         "/root/Xorb/tests/test_intelligence_fusion.py",
         "/root/Xorb/gitops/monitoring/grafana-dashboards/xorb-threat-intelligence-fusion-dashboard.json",
         "/root/Xorb/grafana/xorb-threat-intelligence-fusion-dashboard.json"
     ]
-    
+
     all_exist = True
     for file_path in files_to_check:
         if os.path.exists(file_path):
@@ -78,7 +78,7 @@ def validate_fusion_engine_files():
         else:
             print(f"❌ {file_path}")
             all_exist = False
-    
+
     return all_exist
 
 def check_dependencies():
@@ -97,7 +97,7 @@ async def test_fusion_engine_import():
     """Test if fusion engine can be imported."""
     try:
         sys.path.append('/root/Xorb')
-        
+
         # Test data classes import
         from packages.xorb_core.xorb_core.intelligence.xorb_threat_intelligence_fusion_engine import (
             ThreatMemory,
@@ -105,11 +105,11 @@ async def test_fusion_engine_import():
             FusionStatus
         )
         print("✅ Fusion engine data classes import successful")
-        
+
         # Test atom imports
         from xorb_core.knowledge_fabric.atom import KnowledgeAtom, AtomType
         print("✅ Knowledge fabric atom imports successful")
-        
+
         return True
     except ImportError as e:
         print(f"❌ Fusion engine import failed: {e}")
@@ -118,7 +118,7 @@ async def test_fusion_engine_import():
 def generate_deployment_report():
     """Generate a deployment status report."""
     timestamp = datetime.now().isoformat()
-    
+
     report = {
         "deployment_validation": {
             "timestamp": timestamp,
@@ -128,58 +128,58 @@ def generate_deployment_report():
         },
         "deliverables": {
             "fusion_engine": "✅ Implemented",
-            "test_suite": "✅ Implemented", 
+            "test_suite": "✅ Implemented",
             "grafana_dashboard": "✅ Implemented",
             "dependencies": "✅ Updated"
         },
         "capabilities": {
             "swarm_memory_fusion": "✅ Operational",
             "adversarial_feedback_loops": "✅ Operational",
-            "agent_scoring_mutation": "✅ Operational", 
+            "agent_scoring_mutation": "✅ Operational",
             "self_healing_protocols": "✅ Operational",
             "prometheus_metrics": "✅ Operational",
             "api_exposure": "✅ Ready"
         }
     }
-    
+
     with open("/root/Xorb/fusion_deployment_report.json", "w") as f:
         json.dump(report, f, indent=2)
-    
+
     print("📋 Deployment report generated: fusion_deployment_report.json")
 
 async def main():
     """Main validation function."""
     print("🔍 XORB Threat Intelligence Fusion Engine Validation")
     print("=" * 60)
-    
+
     validation_results = []
-    
+
     # Test file existence
     print("\n📁 Checking file existence...")
     validation_results.append(validate_fusion_engine_files())
-    
+
     # Test dependencies
     print("\n📦 Checking dependencies...")
     validation_results.append(check_dependencies())
-    
+
     # Test imports
     print("\n🔧 Testing imports...")
     validation_results.append(await test_fusion_engine_import())
-    
+
     # Test monitoring stack
     print("\n📊 Testing monitoring stack...")
     validation_results.append(test_prometheus_connection())
     validation_results.append(test_grafana_connection())
     validation_results.append(test_fusion_dashboard())
-    
+
     # Generate report
     print("\n📋 Generating deployment report...")
     generate_deployment_report()
-    
+
     # Final summary
     success_rate = sum(validation_results) / len(validation_results) * 100
     print(f"\n🎯 Validation Summary: {success_rate:.1f}% successful")
-    
+
     if success_rate >= 80:
         print("🎉 XORB Threat Intelligence Fusion Engine deployment validation PASSED!")
         return True

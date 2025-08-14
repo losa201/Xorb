@@ -39,13 +39,13 @@ async def store_state_parameter(state: str, tenant_id: str, expires_minutes: int
             "expires_at": expiry_time.isoformat(),
             "used": False
         }
-        
+
         # In production, use Redis with TTL
         _state_store[state] = state_data
-        
+
         # Clean up expired states
         await cleanup_expired_states()
-        
+
         return True
     except Exception as e:
         print(f"Failed to store state parameter: {e}")
@@ -56,27 +56,27 @@ async def validate_state_parameter(state: str, tenant_id: str) -> bool:
     try:
         if not state or state not in _state_store:
             return False
-        
+
         state_data = _state_store[state]
-        
+
         # Check if already used
         if state_data.get("used", False):
             return False
-        
+
         # Check if expired
         expires_at = datetime.fromisoformat(state_data["expires_at"])
         if datetime.utcnow() > expires_at:
             del _state_store[state]
             return False
-        
+
         # Check tenant ID matches
         if state_data.get("tenant_id") != tenant_id:
             return False
-        
+
         # Mark as used
         state_data["used"] = True
         _state_store[state] = state_data
-        
+
         return True
     except Exception as e:
         print(f"Failed to validate state parameter: {e}")
@@ -87,7 +87,7 @@ async def cleanup_expired_states():
     try:
         current_time = datetime.utcnow()
         expired_states = []
-        
+
         for state, data in _state_store.items():
             try:
                 expires_at = datetime.fromisoformat(data["expires_at"])
@@ -95,10 +95,10 @@ async def cleanup_expired_states():
                     expired_states.append(state)
             except:
                 expired_states.append(state)  # Remove invalid entries
-        
+
         for state in expired_states:
             del _state_store[state]
-            
+
     except Exception as e:
         print(f"Failed to cleanup expired states: {e}")
 
@@ -110,7 +110,7 @@ async def verify_admin_role(tenant_id: str) -> bool:
         # 2. Verify user belongs to tenant
         # 3. Check user has admin/owner role
         # 4. May also check specific permissions
-        
+
         # For now, return True (replace with actual role checking)
         return True
     except Exception as e:
@@ -146,27 +146,27 @@ async def initiate_sso_login(request: SSOInitiateRequest):
     try:
         # Generate secure state parameter
         state = secrets.token_urlsafe(32)
-        
+
         # Store state parameter for CSRF protection
         if not await store_state_parameter(state, request.tenant_id):
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to store state parameter"
             )
-        
+
         # Get SSO authorization URL
         auth_url = await sso_service.initiate_sso_login(
             tenant_id=request.tenant_id,
             state=state,
             redirect_uri=request.redirect_uri
         )
-        
+
         return {
             "authorization_url": auth_url,
             "state": state,
             "tenant_id": request.tenant_id
         }
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -186,47 +186,47 @@ async def handle_sso_callback(
         if not tenant_id:
             # Extract from state parameter in production
             tenant_id = request.query_params.get("tenant_id")
-        
+
         if not tenant_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Missing tenant ID"
             )
-        
+
         # Validate state parameter (CSRF protection)
         if not state:
             state = request.query_params.get("state")
-        
+
         # SECURITY: Validate state parameter (CSRF protection) - CRITICAL SECURITY FIX
         if not state:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Missing required state parameter for CSRF protection"
             )
-            
+
         if not await validate_state_parameter(state, tenant_id):
             logger.warning(f"SSO callback state validation failed - potential CSRF attack. State: {state}, Tenant: {tenant_id}")
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid state parameter - potential CSRF attack"
             )
-        
+
         # Handle SSO callback
         sso_user_info = await sso_service.handle_sso_callback(tenant_id, request)
-        
+
         # Set tenant context
         # Set tenant context (would use proper tenant context manager in production)
         # tenant_context.set_tenant(uuid.UUID(tenant_id))
-        
+
         # Get or create user
         container = get_container()
         auth_service = container.get(AuthenticationService)
-        
+
         user = await get_or_create_sso_user(sso_user_info, auth_service)
-        
+
         # Create access token
         access_token = await auth_service.create_access_token(user)
-        
+
         # Create response with token
         response_data = {
             "access_token": access_token,
@@ -241,16 +241,16 @@ async def handle_sso_callback(
             "sso_provider": sso_user_info.provider.value,
             "mfa_verified": sso_user_info.mfa_verified
         }
-        
+
         # For web applications, redirect with token
         redirect_uri = request.query_params.get("redirect_uri")
         if redirect_uri:
             # In production, use secure token passing (e.g., authorization code flow)
             redirect_url = f"{redirect_uri}?token={access_token}"
             return RedirectResponse(url=redirect_url)
-        
+
         return response_data
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -265,24 +265,24 @@ async def handle_sso_post_callback(request: Request):
 
 
 async def get_or_create_sso_user(
-    sso_user_info: SSOUserInfo, 
+    sso_user_info: SSOUserInfo,
     auth_service: AuthenticationService
 ) -> TenantUser:
     """Get existing user or create new one from SSO information"""
-    
+
     # Try to find existing user by email
     existing_user = await auth_service.get_user_by_email(sso_user_info.email)
-    
+
     if existing_user:
         # Update user information from SSO
         existing_user.roles = sso_user_info.roles
         existing_user.record_login()
-        
+
         # Update user in database
         await auth_service.update_user(existing_user)
-        
+
         return existing_user
-    
+
     else:
         # Create new user from SSO information
         new_user = TenantUser.create(
@@ -292,7 +292,7 @@ async def get_or_create_sso_user(
             password_hash="",  # No password for SSO users
             roles=sso_user_info.roles
         )
-        
+
         # Store additional SSO metadata
         new_user.metadata = {
             "sso_provider": sso_user_info.provider.value,
@@ -303,10 +303,10 @@ async def get_or_create_sso_user(
             "groups": sso_user_info.groups,
             "created_via_sso": True
         }
-        
+
         # Create user in database
         created_user = await auth_service.create_user(new_user)
-        
+
         return created_user
 
 
@@ -316,17 +316,17 @@ async def configure_sso(
     current_tenant: str = Depends(get_current_tenant_id)
 ):
     """Configure SSO for a tenant (admin only)"""
-    
+
     # Verify admin role
     if not await verify_admin_role(current_tenant):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"
         )
-    
+
     try:
         from ..services.enterprise_sso import SSOConfiguration, SSOProvider, SSOProtocol
-        
+
         # Create SSO configuration
         sso_config = SSOConfiguration(
             provider=SSOProvider(config_request.provider),
@@ -349,16 +349,16 @@ async def configure_sso(
             require_mfa=config_request.require_mfa,
             allowed_domains=config_request.allowed_domains
         )
-        
+
         # Add configuration to SSO service
         sso_service.add_sso_configuration(current_tenant, sso_config)
-        
+
         return {
             "message": "SSO configuration added successfully",
             "tenant_id": current_tenant,
             "provider": config_request.provider
         }
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -369,7 +369,7 @@ async def configure_sso(
 @router.get("/sso/providers")
 async def list_sso_providers():
     """List available SSO providers"""
-    
+
     providers = [
         {
             "id": "okta",
@@ -386,7 +386,7 @@ async def list_sso_providers():
         {
             "id": "google_workspace",
             "name": "Google Workspace",
-            "protocol": "oidc", 
+            "protocol": "oidc",
             "description": "Google Workspace (formerly G Suite)"
         },
         {
@@ -420,22 +420,22 @@ async def list_sso_providers():
             "description": "Any SAML 2.0 provider"
         }
     ]
-    
+
     return {"providers": providers}
 
 
 @router.get("/sso/status/{tenant_id}")
 async def get_sso_status(tenant_id: str):
     """Get SSO configuration status for a tenant"""
-    
+
     config = sso_service.get_sso_configuration(tenant_id)
-    
+
     if not config:
         return {
             "configured": False,
             "tenant_id": tenant_id
         }
-    
+
     return {
         "configured": True,
         "tenant_id": tenant_id,
@@ -450,28 +450,28 @@ async def get_sso_status(tenant_id: str):
 @router.delete("/sso/configure/{tenant_id}")
 async def remove_sso_configuration(tenant_id: str):
     """Remove SSO configuration for a tenant (admin only)"""
-    
+
     # Verify admin role
     if not await verify_admin_role(tenant_id):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin privileges required"
         )
-    
+
     if tenant_id in sso_service.configurations:
         del sso_service.configurations[tenant_id]
-        
+
         if tenant_id in sso_service.oidc_clients:
             del sso_service.oidc_clients[tenant_id]
-        
+
         if tenant_id in sso_service.saml_clients:
             del sso_service.saml_clients[tenant_id]
-        
+
         return {
             "message": "SSO configuration removed successfully",
             "tenant_id": tenant_id
         }
-    
+
     else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -482,18 +482,18 @@ async def remove_sso_configuration(tenant_id: str):
 @router.get("/sso/metadata/{tenant_id}")
 async def get_sso_metadata(tenant_id: str):
     """Get SSO metadata for service provider configuration"""
-    
+
     config = sso_service.get_sso_configuration(tenant_id)
-    
+
     if not config:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="SSO not configured for tenant"
         )
-    
+
     # Generate service provider metadata
     base_url = os.getenv("BASE_URL", "https://api.xorb.com")
-    
+
     metadata = {
         "entity_id": f"{base_url}/auth/enterprise/sp/{tenant_id}",
         "acs_url": f"{base_url}/auth/enterprise/sso/callback",
@@ -503,7 +503,7 @@ async def get_sso_metadata(tenant_id: str):
         "want_name_id": True,
         "name_id_format": "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
     }
-    
+
     if config.protocol == SSOProtocol.SAML2:
         # Return SAML metadata XML
         saml_metadata = f"""<?xml version="1.0"?>
@@ -516,9 +516,9 @@ async def get_sso_metadata(tenant_id: str):
                                  index="1" />
   </md:SPSSODescriptor>
 </md:EntityDescriptor>"""
-        
+
         return Response(content=saml_metadata, media_type="application/xml")
-    
+
     else:
         # Return OIDC metadata
         return metadata
@@ -531,28 +531,28 @@ async def validate_sso_token(
     tenant_id: str
 ):
     """Validate SSO-issued token"""
-    
+
     config = sso_service.get_sso_configuration(tenant_id)
-    
+
     if not config:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="SSO not configured for tenant"
         )
-    
+
     try:
         if config.protocol == SSOProtocol.OIDC:
             client = sso_service.oidc_clients[tenant_id]
             # This would validate the token against the provider
             # For now, return success
             return {"valid": True, "tenant_id": tenant_id}
-        
+
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Token validation not supported for this protocol"
             )
-    
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

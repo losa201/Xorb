@@ -76,7 +76,7 @@ uses_secure_base_image if {
         "gcr.io/distroless/python3",
         "chainguard.dev/python"
     }
-    
+
     some image in secure_images
     startswith(input.config.image, image)
 }

@@ -143,7 +143,7 @@ async def test_llm_integration():
         sample_vuln = """
         SQL Injection vulnerability found in login.php parameter 'username'.
         The application directly concatenates user input into SQL query without sanitization.
-        Payload: admin' OR '1'='1' -- 
+        Payload: admin' OR '1'='1' --
         Response: Successfully logged in as admin user.
         """
 

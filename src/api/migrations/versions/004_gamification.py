@@ -92,7 +92,7 @@ def upgrade():
     # Add RLS policies for gamification tables
     op.execute("""
         ALTER TABLE researcher_badges ENABLE ROW LEVEL SECURITY;
-        
+
         CREATE POLICY researcher_badges_org_isolation ON researcher_badges
             FOR ALL TO authenticated_role
             USING (org_id = current_setting('app.current_org_id')::uuid);
@@ -100,7 +100,7 @@ def upgrade():
 
     op.execute("""
         ALTER TABLE rating_history ENABLE ROW LEVEL SECURITY;
-        
+
         CREATE POLICY rating_history_org_isolation ON rating_history
             FOR ALL TO authenticated_role
             USING (org_id = current_setting('app.current_org_id')::uuid);
@@ -109,43 +109,43 @@ def upgrade():
     # Insert default badges
     op.execute("""
         INSERT INTO badges (id, name, description, svg_icon, criteria, tier_requirement, rating_requirement) VALUES
-        ('first_finding', 'First Finding', 'Submitted your first security finding', 
+        ('first_finding', 'First Finding', 'Submitted your first security finding',
          '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
          '{"findings_submitted": 1}', NULL, NULL),
-         
-        ('bronze_tier', 'Bronze Researcher', 'Achieved Bronze tier rating', 
+
+        ('bronze_tier', 'Bronze Researcher', 'Achieved Bronze tier rating',
          '<svg viewBox="0 0 24 24" fill="#CD7F32"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
          '{}', 'Bronze', 0),
-         
-        ('silver_tier', 'Silver Researcher', 'Achieved Silver tier rating', 
+
+        ('silver_tier', 'Silver Researcher', 'Achieved Silver tier rating',
          '<svg viewBox="0 0 24 24" fill="#C0C0C0"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
          '{}', 'Silver', 1200),
-         
-        ('gold_tier', 'Gold Researcher', 'Achieved Gold tier rating', 
+
+        ('gold_tier', 'Gold Researcher', 'Achieved Gold tier rating',
          '<svg viewBox="0 0 24 24" fill="#FFD700"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
          '{}', 'Gold', 1500),
-         
-        ('platinum_tier', 'Platinum Researcher', 'Achieved Platinum tier rating', 
+
+        ('platinum_tier', 'Platinum Researcher', 'Achieved Platinum tier rating',
          '<svg viewBox="0 0 24 24" fill="#E5E4E2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
          '{}', 'Platinum', 1800),
-         
-        ('diamond_tier', 'Diamond Researcher', 'Achieved Diamond tier rating', 
+
+        ('diamond_tier', 'Diamond Researcher', 'Achieved Diamond tier rating',
          '<svg viewBox="0 0 24 24" fill="#B9F2FF"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
          '{}', 'Diamond', 2100),
-         
-        ('master_tier', 'Master Researcher', 'Achieved Master tier rating', 
+
+        ('master_tier', 'Master Researcher', 'Achieved Master tier rating',
          '<svg viewBox="0 0 24 24" fill="#FF6B6B"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>',
          '{}', 'Master', 2500),
-         
-        ('reliable_researcher', 'Reliable Researcher', 'Maintained low rating deviation (RD < 60)', 
+
+        ('reliable_researcher', 'Reliable Researcher', 'Maintained low rating deviation (RD < 60)',
          '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
          '{}', NULL, NULL),
-         
-        ('high_value_hunter', 'High Value Hunter', 'Found 5+ critical vulnerabilities', 
+
+        ('high_value_hunter', 'High Value Hunter', 'Found 5+ critical vulnerabilities',
          '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>',
          '{"critical_findings": 5}', NULL, NULL),
-         
-        ('quality_contributor', 'Quality Contributor', 'Maintained <5% false positive rate with 20+ findings', 
+
+        ('quality_contributor', 'Quality Contributor', 'Maintained <5% false positive rate with 20+ findings',
          '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
          '{"min_findings": 20, "max_false_positive_rate": 0.05}', NULL, NULL)
     """)

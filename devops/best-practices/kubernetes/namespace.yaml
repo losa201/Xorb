@@ -4,12 +4,12 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: xorb-platform
+  name: xorb_platform
   labels:
-    name: xorb-platform
+    name: xorb_platform
     environment: production
     team: security
-    app.kubernetes.io/name: xorb-platform
+    app.kubernetes.io/name: xorb_platform
     app.kubernetes.io/version: "3.1.0"
     app.kubernetes.io/component: platform
     app.kubernetes.io/part-of: cybersecurity
@@ -21,7 +21,7 @@ apiVersion: v1
 kind: ResourceQuota
 metadata:
   name: xorb-resource-quota
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   hard:
     requests.cpu: "8"
@@ -40,7 +40,7 @@ apiVersion: v1
 kind: LimitRange
 metadata:
   name: xorb-limit-range
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   limits:
   - default:
@@ -64,7 +64,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: xorb-network-policy
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   podSelector: {}
   policyTypes:
@@ -74,7 +74,7 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          name: xorb-platform
+          name: xorb_platform
     - namespaceSelector:
         matchLabels:
           name: monitoring
@@ -82,7 +82,7 @@ spec:
   - to:
     - namespaceSelector:
         matchLabels:
-          name: xorb-platform
+          name: xorb_platform
   - to: []
     ports:
     - protocol: TCP
@@ -98,7 +98,7 @@ apiVersion: policy/v1beta1
 kind: PodSecurityPolicy
 metadata:
   name: xorb-psp
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   privileged: false
   allowPrivilegeEscalation: false

@@ -1,0 +1,697 @@
+# XORB Prometheus Alerting Rules
+groups:
+  - name: xorb_api_alerts
+    rules:
+      - alert: XORBAPIDown
+        expr: up{job="xorb-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: xorb-api
+        annotations:
+          summary: "XORB API service is down"
+          description: "XORB API has been down for more than 1 minute."
+
+      - alert: XORBAPIHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="xorb-api"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: xorb-api
+        annotations:
+          summary: "XORB API high latency"
+          description: "95th percentile latency is above 1 second for 5 minutes."
+
+      - alert: XORBAPIHighErrorRate
+        expr: rate(http_requests_total{job="xorb-api",status=~"5.."}[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          service: xorb-api
+        annotations:
+          summary: "XORB API high error rate"
+          description: "Error rate is above 10% for 3 minutes."
+
+      - alert: XORBAPIMemoryUsage
+        expr: process_resident_memory_bytes{job="xorb-api"} / 1024 / 1024 / 1024 > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: xorb-api
+        annotations:
+          summary: "XORB API high memory usage"
+          description: "Memory usage is above 2GB for 5 minutes."
+
+  - name: xorb_orchestrator_alerts
+    rules:
+      - alert: XORBOrchestratorDown
+        expr: up{job="xorb-orchestrator"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: xorb-orchestrator
+        annotations:
+          summary: "XORB Orchestrator is down"
+          description: "XORB Orchestrator has been down for more than 2 minutes."
+
+      - alert: XORBWorkflowFailures
+        expr: increase(temporal_workflow_failed_total[10m]) > 5
+        for: 5m
+        labels:
+          severity: warning
+          service: xorb-orchestrator
+        annotations:
+          summary: "High workflow failure rate"
+          description: "More than 5 workflow failures in the last 10 minutes."
+
+  - name: xorb_database_alerts
+    rules:
+      - alert: PostgreSQLDown
+        expr: up{job="postgres"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL database is down"
+          description: "PostgreSQL has been unreachable for more than 1 minute."
+
+      - alert: PostgreSQLHighConnections
+        expr: pg_stat_database_numbackends / pg_settings_max_connections * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL high connection usage"
+          description: "Connection usage is above 80% for 5 minutes."
+
+      - alert: PostgreSQLSlowQueries
+        expr: rate(pg_stat_database_tup_fetched[5m]) / rate(pg_stat_database_tup_returned[5m]) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+          service: postgresql
+        annotations:
+          summary: "PostgreSQL slow queries detected"
+          description: "Query efficiency is below 10% for 10 minutes."
+
+  - name: xorb_redis_alerts
+    rules:
+      - alert: RedisDown
+        expr: up{job="redis"} == 0
+        for: 1m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis cache is down"
+          description: "Redis has been unreachable for more than 1 minute."
+
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: "Redis high memory usage"
+          description: "Redis memory usage is above 90% for 5 minutes."
+
+  - name: xorb_system_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 10m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is above 85% for 10 minutes."
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is above 85% for 5 minutes."
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes * 100) / node_filesystem_size_bytes < 15
+        for: 5m
+        labels:
+          severity: warning
+          service: system
+        annotations:
+          summary: "Low disk space"
+          description: "Disk space is below 15% for 5 minutes."
+
+  - name: xorb_security_alerts
+    rules:
+      - alert: VaultSealedOrDown
+        expr: up{job="vault"} == 0 or vault_core_unsealed == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: vault
+        annotations:
+          summary: "Vault is sealed or down"
+          description: "Vault is either down or sealed, affecting secret access."
+
+      - alert: HighFailedLoginAttempts
+        expr: increase(auth_failed_total[5m]) > 20
+        for: 2m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High failed login attempts"
+          description: "More than 20 failed login attempts in 5 minutes."
+
+      - alert: ThreatDetectionHigh
+        expr: increase(threat_indicators_high_confidence_total[10m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: security
+        annotations:
+          summary: "High confidence threat indicators detected"
+          description: "More than 10 high confidence threat indicators in 10 minutes."
+
+  - name: xorb_business_alerts
+    rules:
+      - alert: LowAPIRequestRate
+        expr: rate(http_requests_total{job="xorb-api"}[5m]) < 0.1
+        for: 15m
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "Low API request rate"
+          description: "API request rate is unusually low for 15 minutes."
+
+      - alert: HighTenantActivity
+        expr: rate(tenant_operations_total[5m]) > 100
+        for: 10m
+        labels:
+          severity: info
+          service: business
+        annotations:
+          summary: "High tenant activity"
+          description: "Tenant activity is unusually high, may indicate scaling needs."
+
+  # Phase G4 Replay-Safe Streaming SLO Alerts
+  - name: xorb_replay_slo_alerts
+    rules:
+      # Critical SLO: Live P95 publish→deliver latency < 100ms
+      - alert: LiveStreamP95LatencyViolation
+        expr: histogram_quantile(0.95, sum(rate(nats_request_duration_seconds_bucket{stream_class="live"}[5m])) by (le)) * 1000 > 100
+        for: 2m
+        labels:
+          severity: critical
+          service: nats-backplane
+          slo: live_p95_latency
+          phase: g4
+        annotations:
+          summary: "🚨 Live Stream P95 Latency SLO Violation"
+          description: "Live stream p95 latency is {{ $value | printf \"%.2f\" }}ms, exceeding the 100ms SLO target for 2+ minutes. This indicates potential performance impact on live operations."
+          runbook_url: "https://docs.xorb.io/runbooks/live-latency-violation"
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      # Critical SLO: Replay success rate > 95%
+      - alert: ReplaySuccessRateViolation
+        expr: (sum(rate(nats_jetstream_consumer_delivered{stream_class="replay"}[5m])) / sum(rate(nats_jetstream_stream_messages{stream_class="replay"}[5m]))) < 0.95
+        for: 5m
+        labels:
+          severity: critical
+          service: nats-backplane
+          slo: replay_success_rate
+          phase: g4
+        annotations:
+          summary: "🚨 Replay Success Rate SLO Violation"
+          description: "Replay success rate is {{ $value | printf \"%.3f\" }}, below the 95% SLO target for 5+ minutes. This indicates replay lane degradation."
+          runbook_url: "https://docs.xorb.io/runbooks/replay-failure-rate"
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      # Warning: Live P99 latency monitoring (early warning)
+      - alert: LiveStreamP99LatencyHigh
+        expr: histogram_quantile(0.99, sum(rate(nats_request_duration_seconds_bucket{stream_class="live"}[5m])) by (le)) * 1000 > 200
+        for: 5m
+        labels:
+          severity: warning
+          service: nats-backplane
+          slo: live_p99_latency
+          phase: g4
+        annotations:
+          summary: "⚠️ Live Stream P99 Latency High"
+          description: "Live stream p99 latency is {{ $value | printf \"%.2f\" }}ms, indicating potential performance issues before P95 SLO violation."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      # Flow control and backpressure alerts
+      - alert: LiveStreamFlowControlHits
+        expr: rate(nats_jetstream_consumer_flow_control{stream_class="live"}[5m]) > 5
+        for: 3m
+        labels:
+          severity: warning
+          service: nats-backplane
+          category: flow_control
+          phase: g4
+        annotations:
+          summary: "🚦 Live Stream Flow Control Hits"
+          description: "Live stream consumers are hitting flow control limits at {{ $value | printf \"%.2f\" }} hits/sec, indicating backpressure."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      - alert: ReplayWorkerLimitExceeded
+        expr: sum(nats_jetstream_consumer_active{stream_class="replay"}) > 5
+        for: 1m
+        labels:
+          severity: warning
+          service: nats-backplane
+          category: replay_workers
+          phase: g4
+        annotations:
+          summary: "👥 Replay Worker Limit Exceeded"
+          description: "Active replay workers ({{ $value }}) exceed the maximum limit of 5, potentially impacting live stream performance."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      # Consumer lag alerts (backlog depth monitoring)
+      - alert: LiveStreamConsumerLag
+        expr: (nats_jetstream_stream_messages{stream_class="live"} - nats_jetstream_consumer_delivered{stream_class="live"}) > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: nats-backplane
+          category: consumer_lag
+          phase: g4
+        annotations:
+          summary: "📊 Live Stream Consumer Lag High"
+          description: "Live stream consumer {{ $labels.consumer_name }} has {{ $value }} messages behind, indicating processing delays."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      - alert: ReplayStreamConsumerLag
+        expr: (nats_jetstream_stream_messages{stream_class="replay"} - nats_jetstream_consumer_delivered{stream_class="replay"}) > 5000
+        for: 10m
+        labels:
+          severity: info
+          service: nats-backplane
+          category: consumer_lag
+          phase: g4
+        annotations:
+          summary: "📼 Replay Stream Consumer Lag High"
+          description: "Replay stream consumer {{ $labels.consumer_name }} has {{ $value }} messages behind, which is expected during bounded replay operations."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      # Rate limiting alerts
+      - alert: ReplayRateLimitExceeded
+        expr: sum(rate(nats_jetstream_consumer_bytes{stream_class="replay"}[5m])) > 5242880
+        for: 2m
+        labels:
+          severity: warning
+          service: nats-backplane
+          category: rate_limiting
+          phase: g4
+        annotations:
+          summary: "📊 Replay Rate Limit Exceeded"
+          description: "Global replay rate limit of 5MB/s exceeded ({{ $value | humanize1024 }}/s), replay operations may be throttled."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      # Redelivery rate monitoring
+      - alert: HighRedeliveryRateLive
+        expr: rate(nats_jetstream_consumer_redelivered{stream_class="live"}[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: nats-backplane
+          category: redeliveries
+          phase: g4
+        annotations:
+          summary: "🔄 High Live Stream Redelivery Rate"
+          description: "Live stream consumer {{ $labels.consumer_name }} has {{ $value | printf \"%.2f\" }} redeliveries/sec, indicating processing issues."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      - alert: HighRedeliveryRateReplay
+        expr: rate(nats_jetstream_consumer_redelivered{stream_class="replay"}[5m]) > 0.5
+        for: 10m
+        labels:
+          severity: info
+          service: nats-backplane
+          category: redeliveries
+          phase: g4
+        annotations:
+          summary: "🔄 High Replay Stream Redelivery Rate"
+          description: "Replay stream consumer {{ $labels.consumer_name }} has {{ $value | printf \"%.2f\" }} redeliveries/sec."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      # Stream storage quota alerts
+      - alert: LiveStreamStorageQuotaHigh
+        expr: (nats_jetstream_stream_bytes{stream_class="live"} / (512 * 1024 * 1024)) * 100 > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: nats-backplane
+          category: storage_quota
+          phase: g4
+        annotations:
+          summary: "💾 Live Stream Storage Quota High"
+          description: "Live stream {{ $labels.stream_name }} is using {{ $value | printf \"%.1f\" }}% of its 512MB quota."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      - alert: ReplayStreamStorageQuotaHigh
+        expr: (nats_jetstream_stream_bytes{stream_class="replay"} / (2 * 1024 * 1024 * 1024)) * 100 > 95
+        for: 10m
+        labels:
+          severity: warning
+          service: nats-backplane
+          category: storage_quota
+          phase: g4
+        annotations:
+          summary: "💾 Replay Stream Storage Quota High"
+          description: "Replay stream {{ $labels.stream_name }} is using {{ $value | printf \"%.1f\" }}% of its 2GB quota."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+  # NATS Infrastructure Health Alerts
+  - name: xorb_nats_infrastructure_alerts
+    rules:
+      - alert: NATSServerDown
+        expr: up{job="nats"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: nats
+          phase: g4
+        annotations:
+          summary: "🚨 NATS Server Down"
+          description: "NATS server {{ $labels.instance }} is down, affecting backplane operations."
+          runbook_url: "https://docs.xorb.io/runbooks/nats-server-down"
+
+      - alert: NATSJetStreamDown
+        expr: nats_jetstream_enabled == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: nats
+          phase: g4
+        annotations:
+          summary: "🚨 NATS JetStream Disabled"
+          description: "NATS JetStream is disabled on {{ $labels.instance }}, streaming operations are unavailable."
+          runbook_url: "https://docs.xorb.io/runbooks/jetstream-disabled"
+
+      - alert: NATSHighMemoryUsage
+        expr: (nats_varz_mem / (1024*1024*1024)) > 4
+        for: 5m
+        labels:
+          severity: warning
+          service: nats
+          phase: g4
+        annotations:
+          summary: "📊 NATS High Memory Usage"
+          description: "NATS server {{ $labels.instance }} is using {{ $value | printf \"%.2f\" }}GB memory, monitor for memory leaks."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      - alert: NATSClusterPartition
+        expr: nats_routez_num_routes < 2
+        for: 3m
+        labels:
+          severity: critical
+          service: nats
+          phase: g4
+        annotations:
+          summary: "🚨 NATS Cluster Partition"
+          description: "NATS server {{ $labels.instance }} has {{ $value }} routes, indicating potential cluster partition."
+          runbook_url: "https://docs.xorb.io/runbooks/nats-cluster-partition"
+
+  # Chaos Testing and SLO Validation Alerts
+  - name: xorb_chaos_testing_alerts
+    rules:
+      - alert: ChaosTestingActive
+        expr: increase(chaos_drill_started_total[1m]) > 0
+        for: 0m
+        labels:
+          severity: info
+          service: chaos-testing
+          phase: g4
+        annotations:
+          summary: "🧪 Chaos Testing Active"
+          description: "Chaos drill has started - monitoring SLO compliance during 10x replay load."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      - alert: ChaosTestSLOViolation
+        expr: |
+          (
+            histogram_quantile(0.95, sum(rate(nats_request_duration_seconds_bucket{stream_class="live"}[5m])) by (le)) * 1000 > 100
+            or
+            (sum(rate(nats_jetstream_consumer_delivered{stream_class="replay"}[5m])) / sum(rate(nats_jetstream_stream_messages{stream_class="replay"}[5m]))) < 0.95
+          )
+          and
+          increase(chaos_drill_active[5m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: chaos-testing
+          phase: g4
+        annotations:
+          summary: "🚨 Chaos Test SLO Violation"
+          description: "SLO violation detected during chaos testing - live p95 or replay success rate below targets."
+          runbook_url: "https://docs.xorb.io/runbooks/chaos-test-slo-failure"
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+      - alert: ChaosTestCompleted
+        expr: increase(chaos_drill_completed_total[1m]) > 0
+        for: 0m
+        labels:
+          severity: info
+          service: chaos-testing
+          phase: g4
+        annotations:
+          summary: "✅ Chaos Test Completed"
+          description: "Chaos drill completed - check results for SLO compliance validation."
+          dashboard_url: "/d/xorb-replay/xorb-replay-safe-streaming"
+
+  # Post-Release v2025.08-rc1 Operational Alerts
+  - name: xorb_post_release_alerts
+    rules:
+      # Post-release latency monitoring with burn rate alerting
+      - alert: PostReleaseAPILatencySpike
+        expr: |
+          (
+            histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job="xorb-api"}[5m])) by (le)) > 2.0
+            and
+            increase(deployment_events_total{version="v2025.08-rc1"}[1h]) > 0
+          )
+        for: 3m
+        labels:
+          severity: critical
+          service: xorb-api
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "🚨 Post-Release API Latency Spike"
+          description: "API P99 latency is {{ $value | printf \"%.3f\" }}s following v2025.08-rc1 deployment, exceeding 2s threshold for 3+ minutes."
+          runbook_url: "/runbooks/RUNBOOK_INCIDENT_RESPONSE.md#api-latency-spike"
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"
+
+      # Post-release failure spike detection
+      - alert: PostReleaseFailureSpike
+        expr: |
+          (
+            (
+              sum(rate(http_requests_total{job="xorb-api", code=~"5.."}[5m])) /
+              sum(rate(http_requests_total{job="xorb-api"}[5m]))
+            ) > 0.05
+            and
+            increase(deployment_events_total{version="v2025.08-rc1"}[2h]) > 0
+          )
+        for: 2m
+        labels:
+          severity: critical
+          service: xorb-api
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "🚨 Post-Release Failure Rate Spike"
+          description: "API failure rate is {{ $value | printf \"%.3f\" }}% following v2025.08-rc1 deployment, exceeding 5% threshold."
+          runbook_url: "/runbooks/RUNBOOK_INCIDENT_RESPONSE.md#failure-rate-spike"
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"
+
+      # Tenant isolation fairness imbalance detection
+      - alert: PostReleaseFairnessImbalance
+        expr: |
+          (
+            (
+              max(rate(http_requests_total{job="xorb-api"}[5m])) by (tenant_id) /
+              min(rate(http_requests_total{job="xorb-api"}[5m])) by (tenant_id)
+            ) > 10.0
+            and
+            increase(deployment_events_total{version="v2025.08-rc1"}[4h]) > 0
+          )
+        for: 5m
+        labels:
+          severity: warning
+          service: xorb-tenant-isolation
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "⚖️ Post-Release Tenant Fairness Imbalance"
+          description: "Tenant request rate imbalance ratio is {{ $value | printf \"%.1f\" }}:1 following v2025.08-rc1 deployment, exceeding 10:1 threshold."
+          runbook_url: "/runbooks/RUNBOOK_INCIDENT_RESPONSE.md#tenant-fairness-imbalance"
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"
+
+      # Evidence verification system post-release monitoring
+      - alert: PostReleaseEvidenceVerificationFailure
+        expr: |
+          (
+            (
+              sum(rate(evidence_verification_failed_total[5m])) /
+              sum(rate(evidence_verification_total[5m]))
+            ) > 0.01
+            and
+            increase(deployment_events_total{version="v2025.08-rc1"}[6h]) > 0
+          )
+        for: 3m
+        labels:
+          severity: critical
+          service: evidence-system
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "🔐 Post-Release Evidence Verification Failure"
+          description: "Evidence verification failure rate is {{ $value | printf \"%.3f\" }}% following v2025.08-rc1 deployment, exceeding 1% threshold."
+          runbook_url: "/runbooks/RUNBOOK_INCIDENT_RESPONSE.md#evidence-verification-failures"
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"
+
+      # Control plane quota enforcement post-release monitoring
+      - alert: PostReleaseQuotaEnforcementAnomaly
+        expr: |
+          (
+            (
+              sum(rate(quota_enforcement_violations_total[5m])) > 0.1
+              or
+              absent(control_plane_admission_controller_up) == 1
+            )
+            and
+            increase(deployment_events_total{version="v2025.08-rc1"}[4h]) > 0
+          )
+        for: 2m
+        labels:
+          severity: warning
+          service: control-plane
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "🎛️ Post-Release Quota Enforcement Anomaly"
+          description: "Quota enforcement violations or control plane unavailability detected following v2025.08-rc1 deployment."
+          runbook_url: "/runbooks/RUNBOOK_INCIDENT_RESPONSE.md#quota-enforcement-anomalies"
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"
+
+      # CI/CD pipeline failure rate post-release
+      - alert: PostReleaseCIPipelineFailures
+        expr: |
+          (
+            sum(rate(github_workflow_runs_total{conclusion="failure"}[1h])) /
+            sum(rate(github_workflow_runs_total[1h]))
+          ) > 0.15
+        for: 10m
+        labels:
+          severity: warning
+          service: ci-cd
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "🔧 Post-Release CI Pipeline Failure Rate High"
+          description: "CI/CD pipeline failure rate is {{ $value | printf \"%.1f\" }}% over the last hour, exceeding 15% threshold."
+          runbook_url: "/runbooks/RUNBOOK_INCIDENT_RESPONSE.md#cicd-pipeline-failures"
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"
+
+      # Security scan failure post-release
+      - alert: PostReleaseSecurityScanFailures
+        expr: |
+          sum(rate(github_workflow_runs_total{workflow="security-scan", conclusion="failure"}[2h])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: security-scanning
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "🛡️ Post-Release Security Scan Failures"
+          description: "Security scan failures detected at {{ $value }} failures over 2 hours, investigate scan pipeline health."
+          runbook_url: "/runbooks/RUNBOOK_INCIDENT_RESPONSE.md#security-scan-failures"
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"
+
+      # Deployment frequency monitoring (early warning for rollback conditions)
+      - alert: PostReleaseDeploymentFrequencyHigh
+        expr: |
+          increase(deployment_events_total{version="v2025.08-rc1"}[1h]) > 3
+        for: 1m
+        labels:
+          severity: info
+          service: deployment
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "📈 Post-Release High Deployment Frequency"
+          description: "{{ $value }} deployments of v2025.08-rc1 in the last hour, monitor for potential rollback scenarios."
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"
+
+      # Operational readiness score monitoring
+      - alert: PostReleaseOperationalReadinessLow
+        expr: |
+          (
+            (
+              sum(rate(http_requests_total{job="xorb-api", code!~"5.."}[5m])) /
+              sum(rate(http_requests_total{job="xorb-api"}[5m]))
+            ) * 0.4 +
+            (
+              (2.0 - histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job="xorb-api"}[5m])) by (le))) / 2.0
+            ) * 0.3 +
+            (
+              sum(rate(evidence_verification_success_total[5m])) /
+              sum(rate(evidence_verification_total[5m]))
+            ) * 0.2 +
+            (1 - clamp_max(sum(tenant_isolation_violation_total) / 100, 1)) * 0.1
+          ) * 100 < 85
+        for: 10m
+        labels:
+          severity: warning
+          service: operational-readiness
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "📊 Post-Release Operational Readiness Score Low"
+          description: "Overall operational readiness score is {{ $value | printf \"%.1f\" }}%, below 85% threshold following v2025.08-rc1 deployment."
+          runbook_url: "/runbooks/RUNBOOK_INCIDENT_RESPONSE.md#operational-readiness-degradation"
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"
+
+      # Error budget burn rate alerting (multi-window)
+      - alert: PostReleaseErrorBudgetBurnRateHigh
+        expr: |
+          (
+            (
+              1 - (
+                sum(rate(http_requests_total{job="xorb-api", code!~"5.."}[1h])) /
+                sum(rate(http_requests_total{job="xorb-api"}[1h]))
+              )
+            ) / (1 - 0.999) * 100 > 14.4
+            and
+            (
+              1 - (
+                sum(rate(http_requests_total{job="xorb-api", code!~"5.."}[5m])) /
+                sum(rate(http_requests_total{job="xorb-api"}[5m]))
+              )
+            ) / (1 - 0.999) * 100 > 14.4
+          )
+        for: 2m
+        labels:
+          severity: critical
+          service: slo-monitoring
+          phase: post-release
+          version: v2025.08-rc1
+        annotations:
+          summary: "🔥 Post-Release Error Budget Burn Rate Critical"
+          description: "Error budget is burning at {{ $value | printf \"%.1f\" }}x rate (>14.4x), 1-hour error budget will be exhausted in ~4 minutes."
+          runbook_url: "/runbooks/RUNBOOK_INCIDENT_RESPONSE.md#error-budget-burn-rate"
+          dashboard_url: "/d/xorb-release-slo-v2025-08-rc1/xorb-release-slo-operational-readiness-dashboard"

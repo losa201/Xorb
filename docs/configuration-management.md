@@ -48,7 +48,7 @@ if get_feature_flag("advanced_analytics", False):
 # Development environment
 docker-compose -f docker-compose.development.yml up -d
 
-# Production environment  
+# Production environment
 docker-compose -f docker-compose.production.yml up -d
 
 # Check status
@@ -62,7 +62,7 @@ docker-compose ps
 The system uses JSON configuration files for each environment:
 
 - `config/development.json` - Development settings
-- `config/staging.json` - Staging settings  
+- `config/staging.json` - Staging settings
 - `config/production.json` - Production settings
 - `config/test.json` - Test settings
 - `config/default.json` - Base configuration
@@ -76,7 +76,7 @@ class XORBConfig:
     app_name: str
     app_version: str
     debug: bool
-    
+
     # Service configurations
     database: DatabaseConfig
     redis: RedisConfig
@@ -85,10 +85,10 @@ class XORBConfig:
     api_service: ServiceConfig
     orchestrator_service: ServiceConfig
     intelligence_service: ServiceConfig
-    
+
     # Feature flags
     feature_flags: Dict[str, bool]
-    
+
     # External integrations
     integrations: Dict[str, Dict[str, Any]]
 ```
@@ -116,7 +116,7 @@ class XORBConfig:
 
 ```json
 {
-  "environment": "production", 
+  "environment": "production",
   "debug": false,
   "database": {
     "name": "xorb_prod",
@@ -218,7 +218,7 @@ reload_config()
 # Deploy environment
 ./tools/scripts/config-manager.sh deploy staging
 
-# Switch environments  
+# Switch environments
 ./tools/scripts/config-manager.sh switch development
 
 # Export configuration
@@ -249,7 +249,7 @@ config = get_config()
 db_config = config.database
 
 print(f"Host: {db_config.host}")
-print(f"Port: {db_config.port}")  
+print(f"Port: {db_config.port}")
 print(f"Database: {db_config.name}")
 print(f"Connection URL: {db_config.get_url()}")
 ```
@@ -301,7 +301,7 @@ The system validates configuration automatically:
 ```python
 # Validation rules
 - Production environments require JWT secrets
-- Service ports must be unique  
+- Service ports must be unique
 - Database connection parameters must be valid
 - Feature flag values must be boolean
 ```
@@ -355,7 +355,7 @@ env_config = manager.export_config(ConfigFormat.ENV, include_secrets=False)
 from src.common.config import get_settings
 settings = get_settings()
 
-# New way  
+# New way
 from src.common.config_manager import get_config
 config = get_config()
 ```

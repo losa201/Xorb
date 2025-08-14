@@ -98,7 +98,7 @@ class DeploymentConfig:
     enable_disaster_recovery: bool = False
     rpo_minutes: int = 15  # Recovery Point Objective
     rto_minutes: int = 60  # Recovery Time Objective
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             **asdict(self),
@@ -134,7 +134,7 @@ class ServiceConfig:
     enable_prometheus_scraping: bool = True
     prometheus_port: int = 9090
     prometheus_path: str = "/metrics"
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
 
@@ -337,7 +337,7 @@ class DeploymentComponent:
 
 class XORBEnterpriseDeploymentOrchestrator:
     """Enterprise-grade deployment orchestrator"""
-    
+
     def __init__(self, config_file: str, environment: str, platform: str = None):
         self.config_file = config_file
         self.environment = DeploymentEnvironment(environment)
@@ -350,66 +350,66 @@ class XORBEnterpriseDeploymentOrchestrator:
         self.deployment_artifacts = []
         self.health_checks = {}
         self.performance_metrics = {}
-        
+
         # Load configuration
         self._load_configuration()
-        
+
         # Auto-detect platform if not specified
         if platform:
             self.platform = DeploymentPlatform(platform)
         else:
             self.platform = self._detect_platform()
-        
+
         # Initialize components
         self._initialize_components()
-        
+
         # Setup directories
         self._setup_deployment_directories()
-        
+
         logger.info(f"🚀 Initialized XORB Enterprise Deployment Orchestrator")
         logger.info(f"📊 Environment: {self.environment.value}")
         logger.info(f"🏗️  Platform: {self.platform.value}")
         logger.info(f"🆔 Deployment ID: {self.deployment_id}")
         logger.info(f"📈 Strategy: {self.config.strategy.value}")
-    
+
     def _setup_deployment_directories(self):
         """Setup deployment directory structure"""
         base_dir = Path(f"/tmp/xorb_deployment_{self.deployment_id}")
         base_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.deployment_dir = base_dir
         self.config_dir = base_dir / "config"
         self.scripts_dir = base_dir / "scripts"
         self.logs_dir = base_dir / "logs"
         self.artifacts_dir = base_dir / "artifacts"
         self.backups_dir = base_dir / "backups"
-        
-        for directory in [self.config_dir, self.scripts_dir, self.logs_dir, 
+
+        for directory in [self.config_dir, self.scripts_dir, self.logs_dir,
                          self.artifacts_dir, self.backups_dir]:
             directory.mkdir(parents=True, exist_ok=True)
-        
+
         logger.info(f"📁 Deployment directory structure created at: {self.deployment_dir}")
-    
+
     def _load_configuration(self):
         """Load comprehensive deployment configuration"""
         try:
             config_path = Path(self.config_file)
             if not config_path.exists():
                 self._create_enterprise_config(config_path)
-            
+
             with open(config_path, 'r') as f:
                 if config_path.suffix.lower() in ['.yaml', '.yml']:
                     raw_config = yaml.safe_load(f)
                 else:
                     raw_config = json.load(f)
-            
+
             # Extract environment-specific config
             env_config = raw_config.get(self.environment.value, {})
             base_config = raw_config.get('base', {})
-            
+
             # Merge configurations
             merged_config = {**base_config, **env_config}
-            
+
             # Create configuration objects
             self.config = DeploymentConfig(
                 environment=self.environment,
@@ -418,10 +418,10 @@ class XORBEnterpriseDeploymentOrchestrator:
                 version=merged_config.get('version', '2.0.0'),
                 namespace=merged_config.get('namespace', f'xorb-{self.environment.value}'),
                 domain=merged_config.get('domain', f'{self.environment.value}.xorb.local'),
-                **{k: v for k, v in merged_config.items() 
+                **{k: v for k, v in merged_config.items()
                    if k not in ['platform', 'strategy', 'version', 'namespace', 'domain', 'services', 'infrastructure', 'monitoring', 'security', 'load_testing']}
             )
-            
+
             # Load service configurations
             self.services = {}
             services_config = merged_config.get('services', self._get_enterprise_services())
@@ -430,29 +430,29 @@ class XORBEnterpriseDeploymentOrchestrator:
                     name=service_name,
                     **service_data
                 )
-            
+
             # Load infrastructure configuration
             infra_config = merged_config.get('infrastructure', {})
             self.infrastructure = InfrastructureConfig(**infra_config)
-            
+
             # Load monitoring configuration
             monitoring_config = merged_config.get('monitoring', {})
             self.monitoring = MonitoringConfig(**monitoring_config)
-            
+
             # Load security configuration
             security_config = merged_config.get('security', {})
             self.security = SecurityConfig(**security_config)
-            
+
             # Load load testing configuration
             load_test_config = merged_config.get('load_testing', {})
             self.load_testing = LoadTestConfig(**load_test_config)
-            
+
             logger.info("✅ Enterprise configuration loaded successfully")
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to load configuration: {e}")
             raise
-    
+
     def _create_enterprise_config(self, config_path: Path):
         """Create comprehensive enterprise configuration file"""
         enterprise_config = {
@@ -545,13 +545,13 @@ class XORBEnterpriseDeploymentOrchestrator:
                 "timeout_seconds": 7200
             }
         }
-        
+
         config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(config_path, 'w') as f:
             yaml.dump(enterprise_config, f, default_flow_style=False, indent=2)
-        
+
         logger.info(f"📄 Created enterprise configuration at: {config_path}")
-    
+
     def _get_enterprise_services(self) -> Dict[str, Any]:
         """Get comprehensive enterprise service configurations"""
         return {
@@ -626,18 +626,18 @@ class XORBEnterpriseDeploymentOrchestrator:
                 "dependencies": ["postgresql", "redis", "neo4j"]
             }
         }
-    
+
     def _detect_platform(self) -> DeploymentPlatform:
         """Auto-detect deployment platform with enhanced detection"""
         detection_results = {}
-        
+
         # Check for Kubernetes
         try:
-            result = subprocess.run(['kubectl', 'version', '--client'], 
+            result = subprocess.run(['kubectl', 'version', '--client'],
                                   capture_output=True, text=True, timeout=10)
             if result.returncode == 0:
                 # Check if we can connect to a cluster
-                cluster_result = subprocess.run(['kubectl', 'cluster-info'], 
+                cluster_result = subprocess.run(['kubectl', 'cluster-info'],
                                               capture_output=True, text=True, timeout=10)
                 detection_results['kubernetes'] = {
                     'available': True,
@@ -646,10 +646,10 @@ class XORBEnterpriseDeploymentOrchestrator:
                 }
         except (subprocess.TimeoutExpired, FileNotFoundError):
             detection_results['kubernetes'] = {'available': False, 'priority': 0}
-        
+
         # Check for Docker Compose
         try:
-            result = subprocess.run(['docker-compose', 'version'], 
+            result = subprocess.run(['docker-compose', 'version'],
                                   capture_output=True, text=True, timeout=10)
             detection_results['docker-compose'] = {
                 'available': result.returncode == 0,
@@ -657,10 +657,10 @@ class XORBEnterpriseDeploymentOrchestrator:
             }
         except (subprocess.TimeoutExpired, FileNotFoundError):
             detection_results['docker-compose'] = {'available': False, 'priority': 0}
-        
+
         # Check for Docker Swarm
         try:
-            result = subprocess.run(['docker', 'info', '--format', '{{.Swarm.LocalNodeState}}'], 
+            result = subprocess.run(['docker', 'info', '--format', '{{.Swarm.LocalNodeState}}'],
                                   capture_output=True, text=True, timeout=10)
             is_swarm_active = result.returncode == 0 and 'active' in result.stdout.lower()
             detection_results['docker-swarm'] = {
@@ -669,16 +669,16 @@ class XORBEnterpriseDeploymentOrchestrator:
             }
         except (subprocess.TimeoutExpired, FileNotFoundError):
             detection_results['docker-swarm'] = {'available': False, 'priority': 0}
-        
+
         # Select platform based on priority and availability
         best_platform = None
         highest_priority = 0
-        
+
         for platform_name, details in detection_results.items():
             if details['available'] and details['priority'] > highest_priority:
                 highest_priority = details['priority']
                 best_platform = platform_name
-        
+
         if best_platform == 'kubernetes':
             logger.info("🔍 Detected Kubernetes platform (preferred for enterprise)")
             return DeploymentPlatform.KUBERNETES
@@ -691,10 +691,10 @@ class XORBEnterpriseDeploymentOrchestrator:
         else:
             logger.warning("⚠️  No suitable platform detected, defaulting to Docker Compose")
             return DeploymentPlatform.DOCKER_COMPOSE
-    
+
     def _initialize_components(self):
         """Initialize comprehensive deployment components"""
-        
+
         # Pre-deployment validation
         self.components["pre-deployment-validation"] = DeploymentComponent(
             name="pre-deployment-validation",
@@ -703,7 +703,7 @@ class XORBEnterpriseDeploymentOrchestrator:
             dependencies=[],
             validation_commands=["system_resources", "platform_connectivity", "registry_access"]
         )
-        
+
         # Network setup
         self.components["network-setup"] = DeploymentComponent(
             name="network-setup",
@@ -711,7 +711,7 @@ class XORBEnterpriseDeploymentOrchestrator:
             status=ComponentStatus.PENDING,
             dependencies=["pre-deployment-validation"]
         )
-        
+
         # Secret management
         if self.config.enable_security:
             self.components["vault"] = DeploymentComponent(
@@ -720,14 +720,14 @@ class XORBEnterpriseDeploymentOrchestrator:
                 status=ComponentStatus.PENDING,
                 dependencies=["network-setup"]
             )
-            
+
             self.components["tls-certificates"] = DeploymentComponent(
                 name="tls-certificates",
                 type="certificates",
                 status=ComponentStatus.PENDING,
                 dependencies=["vault"]
             )
-        
+
         # Infrastructure components with enhanced configuration
         infra_components = [
             ("postgresql-primary", "database", ["network-setup"]),
@@ -736,11 +736,11 @@ class XORBEnterpriseDeploymentOrchestrator:
             ("neo4j-cluster", "graph-database", ["network-setup"]),
             ("elasticsearch-cluster", "search-engine", ["network-setup"])
         ]
-        
+
         for name, comp_type, deps in infra_components:
             if self.config.enable_security:
                 deps.append("tls-certificates")
-            
+
             self.components[name] = DeploymentComponent(
                 name=name,
                 type=comp_type,
@@ -749,7 +749,7 @@ class XORBEnterpriseDeploymentOrchestrator:
                 health_checks=[f"{name}_health", f"{name}_connectivity"],
                 validation_commands=[f"validate_{name}_cluster"]
             )
-        
+
         # Service mesh (if enabled)
         if self.config.enable_service_mesh:
             self.components["istio-system"] = DeploymentComponent(
@@ -758,13 +758,13 @@ class XORBEnterpriseDeploymentOrchestrator:
                 status=ComponentStatus.PENDING,
                 dependencies=["network-setup", "tls-certificates"] if self.config.enable_security else ["network-setup"]
             )
-        
+
         # Monitoring stack
         if self.config.enable_monitoring:
             monitoring_deps = ["network-setup"]
             if self.config.enable_security:
                 monitoring_deps.append("tls-certificates")
-            
+
             monitoring_components = [
                 ("prometheus-operator", "monitoring", monitoring_deps),
                 ("prometheus-cluster", "monitoring", ["prometheus-operator"]),
@@ -774,7 +774,7 @@ class XORBEnterpriseDeploymentOrchestrator:
                 ("jaeger-cluster", "tracing", monitoring_deps),
                 ("fluentd-daemonset", "log-collection", ["loki-cluster"])
             ]
-            
+
             for name, comp_type, deps in monitoring_components:
                 self.components[name] = DeploymentComponent(
                     name=name,
@@ -784,7 +784,7 @@ class XORBEnterpriseDeploymentOrchestrator:
                     health_checks=[f"{name}_health", f"{name}_metrics"],
                     validation_commands=[f"validate_{name}_config"]
                 )
-        
+
         # Security components
         if self.config.enable_security:
             security_components = [
@@ -793,7 +793,7 @@ class XORBEnterpriseDeploymentOrchestrator:
                 ("pod-security-policies", "pod-security", ["rbac-policies"]),
                 ("falco-security-monitoring", "security-monitoring", ["network-policies"])
             ]
-            
+
             for name, comp_type, deps in security_components:
                 self.components[name] = DeploymentComponent(
                     name=name,
@@ -801,7 +801,7 @@ class XORBEnterpriseDeploymentOrchestrator:
                     status=ComponentStatus.PENDING,
                     dependencies=deps
                 )
-        
+
         # Application services with enhanced dependencies
         base_deps = ["postgresql-primary", "redis-cluster"]
         if self.config.enable_security:
@@ -810,11 +810,11 @@ class XORBEnterpriseDeploymentOrchestrator:
             base_deps.append("prometheus-cluster")
         if self.config.enable_service_mesh:
             base_deps.append("istio-system")
-        
+
         for service_name, service_config in self.services.items():
             service_deps = base_deps.copy()
             service_deps.extend(service_config.dependencies)
-            
+
             self.components[service_name] = DeploymentComponent(
                 name=service_name,
                 type="microservice",
@@ -823,7 +823,7 @@ class XORBEnterpriseDeploymentOrchestrator:
                 health_checks=[f"{service_name}_health", f"{service_name}_readiness"],
                 validation_commands=[f"validate_{service_name}_deployment", f"validate_{service_name}_metrics"]
             )
-        
+
         # Post-deployment validation and testing
         self.components["post-deployment-validation"] = DeploymentComponent(
             name="post-deployment-validation",
@@ -832,7 +832,7 @@ class XORBEnterpriseDeploymentOrchestrator:
             dependencies=list(self.services.keys()),
             validation_commands=["end_to_end_tests", "integration_tests", "security_scan"]
         )
-        
+
         if self.load_testing.enable_load_testing:
             self.components["load-testing"] = DeploymentComponent(
                 name="load-testing",
@@ -841,7 +841,7 @@ class XORBEnterpriseDeploymentOrchestrator:
                 dependencies=["post-deployment-validation"],
                 validation_commands=["baseline_load_test", "stress_test", "performance_validation"]
             )
-        
+
         # Backup setup
         if self.config.enable_backup:
             self.components["backup-system"] = DeploymentComponent(
@@ -851,46 +851,46 @@ class XORBEnterpriseDeploymentOrchestrator:
                 dependencies=["postgresql-primary", "redis-cluster", "neo4j-cluster"],
                 validation_commands=["backup_test", "restore_test"]
             )
-        
+
         logger.info(f"🔧 Initialized {len(self.components)} enterprise deployment components")
-    
+
     async def deploy(self) -> bool:
         """Execute comprehensive enterprise deployment"""
         try:
             self._print_deployment_banner()
-            
+
             logger.info("🚀 Starting XORB Enterprise Platform Deployment")
             logger.info(f"🎯 Target Environment: {self.environment.value}")
             logger.info(f"📈 Deployment Strategy: {self.config.strategy.value}")
             logger.info(f"🏗️  Platform: {self.platform.value}")
-            
+
             # Generate pre-deployment report
             await self._generate_pre_deployment_report()
-            
+
             # Pre-deployment validation
             await self._comprehensive_pre_deployment_validation()
-            
+
             # Create deployment plan with advanced dependency resolution
             deployment_plan = self._create_enterprise_deployment_plan()
             logger.info(f"📋 Created deployment plan with {len(deployment_plan)} phases")
-            
+
             # Save deployment plan
             await self._save_deployment_plan(deployment_plan)
-            
+
             # Execute deployment phases with monitoring
             success = await self._execute_deployment_phases(deployment_plan)
-            
+
             if success:
                 # Post-deployment validation
                 validation_success = await self._comprehensive_post_deployment_validation()
-                
+
                 if validation_success:
                     # Generate deployment report
                     await self._generate_deployment_report(success=True)
-                    
+
                     # Setup monitoring and alerting
                     await self._setup_post_deployment_monitoring()
-                    
+
                     self._print_success_summary()
                     return True
                 else:
@@ -902,14 +902,14 @@ class XORBEnterpriseDeploymentOrchestrator:
                 logger.error("❌ Deployment phases failed")
                 await self._generate_deployment_report(success=False)
                 return False
-                
+
         except Exception as e:
             logger.error(f"💥 Deployment failed with error: {e}")
             await self._generate_deployment_report(success=False, error=str(e))
             if self.config.rollback_on_failure:
                 await self._intelligent_rollback()
             return False
-    
+
     def _print_deployment_banner(self):
         """Print enterprise deployment banner"""
         banner = f"""
@@ -925,11 +925,11 @@ class XORBEnterpriseDeploymentOrchestrator:
         """
         print(banner)
         logger.info("🎭 Enterprise deployment banner displayed")
-    
+
     async def _comprehensive_pre_deployment_validation(self) -> bool:
         """Comprehensive pre-deployment validation"""
         logger.info("🔍 Running comprehensive pre-deployment validation")
-        
+
         validation_tasks = [
             self._validate_system_resources(),
             self._validate_platform_connectivity(),
@@ -940,178 +940,178 @@ class XORBEnterpriseDeploymentOrchestrator:
             self._validate_storage_availability(),
             self._validate_monitoring_prerequisites()
         ]
-        
+
         results = await asyncio.gather(*validation_tasks, return_exceptions=True)
-        
+
         validation_success = True
         for i, result in enumerate(results):
             if isinstance(result, Exception) or not result:
                 validation_success = False
                 logger.error(f"❌ Pre-deployment validation {i+1} failed: {result}")
-        
+
         if validation_success:
             logger.info("✅ All pre-deployment validations passed")
         else:
             logger.error("❌ Pre-deployment validation failed")
-        
+
         return validation_success
-    
+
     async def _validate_system_resources(self) -> bool:
         """Validate system resources"""
         try:
             # Memory check
             memory = psutil.virtual_memory()
             memory_gb = memory.total / (1024**3)
-            
+
             min_memory = 16 if self.environment == DeploymentEnvironment.PRODUCTION else 8
             if memory_gb < min_memory:
                 logger.warning(f"⚠️  Low memory: {memory_gb:.1f}GB (recommended: {min_memory}GB+)")
                 return False
-            
+
             # Disk space check
             disk = psutil.disk_usage('/')
             free_gb = disk.free / (1024**3)
-            
+
             min_disk = 100 if self.environment == DeploymentEnvironment.PRODUCTION else 50
             if free_gb < min_disk:
                 logger.warning(f"⚠️  Low disk space: {free_gb:.1f}GB (recommended: {min_disk}GB+)")
                 return False
-            
+
             # CPU check
             cpu_count = psutil.cpu_count()
             min_cpu = 8 if self.environment == DeploymentEnvironment.PRODUCTION else 4
             if cpu_count < min_cpu:
                 logger.warning(f"⚠️  Limited CPU cores: {cpu_count} (recommended: {min_cpu}+)")
                 return False
-            
+
             logger.info(f"✅ System resources validated: {memory_gb:.1f}GB RAM, {free_gb:.1f}GB disk, {cpu_count} CPUs")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ System resource validation failed: {e}")
             return False
-    
+
     async def _validate_platform_connectivity(self) -> bool:
         """Validate platform connectivity"""
         try:
             if self.platform == DeploymentPlatform.KUBERNETES:
                 # Test kubectl connectivity
                 result = subprocess.run(
-                    ['kubectl', 'cluster-info'], 
+                    ['kubectl', 'cluster-info'],
                     capture_output=True, text=True, timeout=30
                 )
                 if result.returncode != 0:
                     logger.error(f"❌ Kubernetes cluster not accessible: {result.stderr}")
                     return False
-                
+
                 # Check cluster resources
                 result = subprocess.run(
-                    ['kubectl', 'get', 'nodes'], 
+                    ['kubectl', 'get', 'nodes'],
                     capture_output=True, text=True, timeout=30
                 )
                 if result.returncode != 0:
                     logger.error(f"❌ Cannot list Kubernetes nodes: {result.stderr}")
                     return False
-                
+
                 logger.info("✅ Kubernetes cluster connectivity validated")
-                
+
             elif self.platform == DeploymentPlatform.DOCKER_COMPOSE:
                 # Test Docker daemon
                 result = subprocess.run(
-                    ['docker', 'info'], 
+                    ['docker', 'info'],
                     capture_output=True, text=True, timeout=30
                 )
                 if result.returncode != 0:
                     logger.error(f"❌ Docker daemon not accessible: {result.stderr}")
                     return False
-                
+
                 logger.info("✅ Docker daemon connectivity validated")
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Platform connectivity validation failed: {e}")
             return False
-    
+
     async def _validate_container_registry_access(self) -> bool:
         """Validate container registry access"""
         try:
             # Test registry connectivity for each service image
             test_images = ["xorb/api-gateway:2.0.0", "postgres:15", "redis:7"]
-            
+
             for image in test_images:
                 result = subprocess.run(
-                    ['docker', 'pull', image], 
+                    ['docker', 'pull', image],
                     capture_output=True, text=True, timeout=120
                 )
                 if result.returncode != 0:
                     logger.warning(f"⚠️  Cannot pull image {image}: {result.stderr}")
                     # Don't fail validation for this, as images might be built locally
-            
+
             logger.info("✅ Container registry access validated")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Container registry validation failed: {e}")
             return False
-    
+
     async def _validate_dns_resolution(self) -> bool:
         """Validate DNS resolution"""
         try:
             import socket
-            
+
             test_domains = ["docker.io", "k8s.gcr.io", "quay.io", self.config.domain]
-            
+
             for domain in test_domains:
                 try:
                     socket.gethostbyname(domain)
                 except socket.gaierror:
                     logger.warning(f"⚠️  DNS resolution failed for {domain}")
-            
+
             logger.info("✅ DNS resolution validated")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ DNS validation failed: {e}")
             return False
-    
+
     async def _validate_network_connectivity(self) -> bool:
         """Validate network connectivity"""
         logger.info("✅ Network connectivity validated")
         return True
-    
+
     async def _validate_security_prerequisites(self) -> bool:
         """Validate security prerequisites"""
         if not self.config.enable_security:
             return True
-        
+
         logger.info("✅ Security prerequisites validated")
         return True
-    
+
     async def _validate_storage_availability(self) -> bool:
         """Validate storage availability"""
         logger.info("✅ Storage availability validated")
         return True
-    
+
     async def _validate_monitoring_prerequisites(self) -> bool:
         """Validate monitoring prerequisites"""
         if not self.config.enable_monitoring:
             return True
-        
+
         logger.info("✅ Monitoring prerequisites validated")
         return True
-    
+
     def _create_enterprise_deployment_plan(self) -> List[List[DeploymentComponent]]:
         """Create enterprise deployment plan with advanced dependency resolution"""
-        
+
         def resolve_dependencies(components: Dict[str, DeploymentComponent]) -> List[List[DeploymentComponent]]:
             """Advanced topological sort with parallel execution optimization"""
-            
+
             # Build dependency graph
             graph = {}
             in_degree = {}
             component_priorities = {}
-            
+
             # Assign priorities based on component types
             priority_map = {
                 "validation": 0,
@@ -1126,27 +1126,27 @@ class XORBEnterpriseDeploymentOrchestrator:
                 "testing": 9,
                 "backup": 10
             }
-            
+
             for name, component in components.items():
                 graph[name] = component.dependencies.copy()
                 in_degree[name] = len([dep for dep in component.dependencies if dep in components])
                 component_priorities[name] = priority_map.get(component.type, 5)
-            
+
             phases = []
             remaining = set(components.keys())
-            
+
             while remaining:
                 # Find components with no dependencies
                 ready = [name for name in remaining if in_degree[name] == 0]
-                
+
                 if not ready:
                     # Handle circular dependencies
                     ready = [min(remaining, key=lambda x: (component_priorities[x], x))]
                     logger.warning(f"⚠️  Circular dependency detected, prioritizing {ready[0]}")
-                
+
                 # Sort ready components by priority and name for deterministic execution
                 ready.sort(key=lambda x: (component_priorities[x], x))
-                
+
                 # Group by priority for parallel execution
                 priority_groups = {}
                 for name in ready:
@@ -1154,11 +1154,11 @@ class XORBEnterpriseDeploymentOrchestrator:
                     if priority not in priority_groups:
                         priority_groups[priority] = []
                     priority_groups[priority].append(components[name])
-                
+
                 # Create phases for each priority group
                 for priority in sorted(priority_groups.keys()):
                     phases.append(priority_groups[priority])
-                
+
                 # Remove deployed components and update dependencies
                 for name in ready:
                     remaining.remove(name)
@@ -1166,42 +1166,42 @@ class XORBEnterpriseDeploymentOrchestrator:
                         if name in graph[other_name]:
                             graph[other_name].remove(name)
                             in_degree[other_name] -= 1
-            
+
             return phases
-        
+
         return resolve_dependencies(self.components)
-    
+
     async def _execute_deployment_phases(self, deployment_plan: List[List[DeploymentComponent]]) -> bool:
         """Execute deployment phases with comprehensive monitoring"""
-        
+
         total_phases = len(deployment_plan)
         failed_phases = []
-        
+
         for phase_num, phase_components in enumerate(deployment_plan, 1):
             logger.info(f"📋 Executing Phase {phase_num}/{total_phases}: {[c.name for c in phase_components]}")
-            
+
             # Create semaphore to limit concurrent deployments
             semaphore = asyncio.Semaphore(self.config.parallel_deployments)
-            
+
             async def deploy_with_semaphore(component):
                 async with semaphore:
                     return await self._deploy_enterprise_component(component)
-            
+
             # Deploy components in parallel within phase
             tasks = [deploy_with_semaphore(component) for component in phase_components]
             results = await asyncio.gather(*tasks, return_exceptions=True)
-            
+
             # Analyze results
             failed_components = []
             for i, result in enumerate(results):
                 if isinstance(result, Exception) or not result:
                     failed_components.append(phase_components[i])
                     logger.error(f"❌ Component {phase_components[i].name} failed: {result}")
-            
+
             if failed_components:
                 failed_phases.append(phase_num)
                 logger.error(f"❌ Phase {phase_num} failed for components: {[c.name for c in failed_components]}")
-                
+
                 if self.config.rollback_on_failure:
                     logger.info("🔄 Initiating intelligent rollback due to deployment failure")
                     await self._intelligent_rollback()
@@ -1210,22 +1210,22 @@ class XORBEnterpriseDeploymentOrchestrator:
                     logger.warning("⚠️  Continuing deployment despite failures (rollback disabled)")
             else:
                 logger.info(f"✅ Phase {phase_num} completed successfully")
-                
+
                 # Run phase validation
                 await self._validate_deployment_phase(phase_components)
-        
+
         return len(failed_phases) == 0
-    
+
     async def _deploy_enterprise_component(self, component: DeploymentComponent) -> bool:
         """Deploy individual component with enterprise features"""
         try:
             logger.info(f"🔧 Deploying enterprise component: {component.name}")
             component.status = ComponentStatus.DEPLOYING
             component.start_time = datetime.now()
-            
+
             # Component-specific deployment logic
             success = False
-            
+
             deployment_methods = {
                 "validation": self._deploy_validation_component,
                 "network": self._deploy_network_setup,
@@ -1250,59 +1250,59 @@ class XORBEnterpriseDeploymentOrchestrator:
                 "testing": self._deploy_load_testing,
                 "backup": self._deploy_backup_system
             }
-            
+
             deploy_method = deployment_methods.get(component.type)
             if deploy_method:
                 success = await deploy_method(component)
             else:
                 logger.warning(f"⚠️  Unknown component type: {component.type}")
                 success = True  # Skip unknown components
-            
+
             component.end_time = datetime.now()
-            
+
             if success:
                 component.status = ComponentStatus.DEPLOYED
                 logger.info(f"✅ Component {component.name} deployed successfully")
-                
+
                 # Run component health checks
                 if component.health_checks:
                     health_ok = await self._run_enterprise_health_checks(component)
                     if not health_ok:
                         component.status = ComponentStatus.FAILED
                         return False
-                
+
                 # Run component validation
                 if component.validation_commands:
                     validation_ok = await self._run_component_validation(component)
                     if not validation_ok:
                         component.status = ComponentStatus.FAILED
                         return False
-                
+
                 return True
             else:
                 component.status = ComponentStatus.FAILED
                 logger.error(f"❌ Component {component.name} deployment failed")
                 return False
-                
+
         except Exception as e:
             component.status = ComponentStatus.FAILED
             component.error_message = str(e)
             component.end_time = datetime.now()
             logger.error(f"❌ Component {component.name} deployment failed with error: {e}")
             return False
-    
+
     # Comprehensive deployment methods for each component type
-    
+
     async def _deploy_validation_component(self, component: DeploymentComponent) -> bool:
         """Deploy validation component"""
         logger.info(f"🔍 Running validation: {component.name}")
         return True
-    
+
     async def _deploy_network_setup(self, component: DeploymentComponent) -> bool:
         """Deploy enterprise network setup"""
         try:
             logger.info("🌐 Setting up enterprise network configuration")
-            
+
             if self.platform == DeploymentPlatform.KUBERNETES:
                 # Create namespace with resource quotas and limits
                 namespace_yaml = f"""
@@ -1345,23 +1345,23 @@ spec:
       memory: "128Mi"
     type: Container
 """
-                
+
                 success = await self._kubectl_apply(namespace_yaml)
                 if not success:
                     return False
-                
+
                 logger.info("✅ Enterprise network setup completed")
                 return True
-            
+
             elif self.platform == DeploymentPlatform.DOCKER_COMPOSE:
                 # Create Docker networks with proper configuration
                 networks = [
                     f"xorb-{self.environment.value}-frontend",
-                    f"xorb-{self.environment.value}-backend", 
+                    f"xorb-{self.environment.value}-backend",
                     f"xorb-{self.environment.value}-data",
                     f"xorb-{self.environment.value}-monitoring"
                 ]
-                
+
                 for network in networks:
                     cmd = [
                         "docker", "network", "create",
@@ -1373,91 +1373,91 @@ spec:
                     if result.returncode != 0 and "already exists" not in result.stderr:
                         logger.error(f"❌ Failed to create network {network}: {result.stderr}")
                         return False
-                
+
                 logger.info("✅ Docker network setup completed")
                 return True
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Network setup failed: {e}")
             return False
-    
+
     async def _deploy_vault_cluster(self, component: DeploymentComponent) -> bool:
         """Deploy Vault cluster for secrets management"""
         logger.info("🔐 Deploying Vault secrets management cluster")
         # Implementation would go here
         return True
-    
+
     async def _deploy_enterprise_tls(self, component: DeploymentComponent) -> bool:
         """Deploy enterprise TLS certificate management"""
         logger.info("🔒 Deploying enterprise TLS certificate management")
         # Implementation would go here
         return True
-    
+
     async def _deploy_database_cluster(self, component: DeploymentComponent) -> bool:
         """Deploy database cluster (PostgreSQL with high availability)"""
         logger.info(f"🗄️  Deploying database cluster: {component.name}")
         # Implementation would go here
         return True
-    
+
     async def _deploy_redis_cluster(self, component: DeploymentComponent) -> bool:
         """Deploy Redis cluster"""
         logger.info(f"💾 Deploying Redis cluster: {component.name}")
         # Implementation would go here
         return True
-    
+
     async def _deploy_neo4j_cluster(self, component: DeploymentComponent) -> bool:
         """Deploy Neo4j graph database cluster"""
         logger.info(f"🕸️  Deploying Neo4j cluster: {component.name}")
         # Implementation would go here
         return True
-    
+
     async def _deploy_elasticsearch_cluster(self, component: DeploymentComponent) -> bool:
         """Deploy Elasticsearch cluster"""
         logger.info(f"🔍 Deploying Elasticsearch cluster: {component.name}")
         # Implementation would go here
         return True
-    
+
     async def _deploy_istio_service_mesh(self, component: DeploymentComponent) -> bool:
         """Deploy Istio service mesh"""
         logger.info("🕷️  Deploying Istio service mesh")
         # Implementation would go here
         return True
-    
+
     async def _deploy_monitoring_component(self, component: DeploymentComponent) -> bool:
         """Deploy monitoring components"""
         logger.info(f"📊 Deploying monitoring component: {component.name}")
         # Implementation would go here
         return True
-    
+
     async def _deploy_enterprise_microservice(self, component: DeploymentComponent) -> bool:
         """Deploy enterprise microservice with full production features"""
         try:
             logger.info(f"🚀 Deploying enterprise microservice: {component.name}")
-            
+
             service_config = self.services.get(component.name)
             if not service_config:
                 logger.error(f"❌ Service configuration not found for {component.name}")
                 return False
-            
+
             if self.platform == DeploymentPlatform.KUBERNETES:
                 return await self._deploy_kubernetes_microservice(component, service_config)
             elif self.platform == DeploymentPlatform.DOCKER_COMPOSE:
                 return await self._deploy_docker_compose_service(component.name)
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Microservice {component.name} deployment failed: {e}")
             return False
-    
+
     async def _deploy_kubernetes_microservice(self, component: DeploymentComponent, service_config: ServiceConfig) -> bool:
         """Deploy microservice to Kubernetes with enterprise features"""
         try:
             # Generate comprehensive Kubernetes manifests
             manifests = await self._generate_kubernetes_manifests(component, service_config)
-            
+
             # Apply manifests
             for manifest_name, manifest_content in manifests.items():
                 logger.info(f"📄 Applying {manifest_name} for {component.name}")
@@ -1465,19 +1465,19 @@ spec:
                 if not success:
                     logger.error(f"❌ Failed to apply {manifest_name}")
                     return False
-            
+
             # Wait for deployment to be ready
             success = await self._wait_for_kubernetes_deployment(component.name)
             return success
-            
+
         except Exception as e:
             logger.error(f"❌ Kubernetes microservice deployment failed: {e}")
             return False
-    
+
     async def _generate_kubernetes_manifests(self, component: DeploymentComponent, service_config: ServiceConfig) -> Dict[str, str]:
         """Generate comprehensive Kubernetes manifests"""
         manifests = {}
-        
+
         # Deployment manifest
         deployment_yaml = f"""
 apiVersion: apps/v1
@@ -1532,14 +1532,14 @@ spec:
         {"  protocol: TCP" if service_config.enable_prometheus_scraping else ""}
         env:
 """
-        
+
         # Add environment variables
         for env_key, env_value in service_config.environment_variables.items():
             deployment_yaml += f"""
         - name: {env_key}
           value: "{env_value}"
 """
-        
+
         # Add common environment variables
         deployment_yaml += f"""
         - name: ENVIRONMENT
@@ -1551,7 +1551,7 @@ spec:
         - name: DEPLOYMENT_ID
           value: "{self.deployment_id}"
 """
-        
+
         # Add resource constraints and health checks
         deployment_yaml += f"""
         resources:
@@ -1587,9 +1587,9 @@ spec:
           failureThreshold: 30
       terminationGracePeriodSeconds: 30
 """
-        
+
         manifests["deployment"] = deployment_yaml
-        
+
         # Service manifest
         service_yaml = f"""
 apiVersion: v1
@@ -1617,9 +1617,9 @@ spec:
   {"  protocol: TCP" if service_config.enable_prometheus_scraping else ""}
   type: ClusterIP
 """
-        
+
         manifests["service"] = service_yaml
-        
+
         # ServiceAccount manifest
         serviceaccount_yaml = f"""
 apiVersion: v1
@@ -1631,9 +1631,9 @@ metadata:
     app: {component.name}
 automountServiceAccountToken: true
 """
-        
+
         manifests["serviceaccount"] = serviceaccount_yaml
-        
+
         # HorizontalPodAutoscaler manifest (if autoscaling enabled)
         if service_config.enable_autoscaling:
             hpa_yaml = f"""
@@ -1678,38 +1678,38 @@ spec:
         value: 100
         periodSeconds: 15
 """
-            
+
             manifests["hpa"] = hpa_yaml
-        
+
         return manifests
-    
+
     async def _wait_for_kubernetes_deployment(self, service_name: str, timeout: int = 600) -> bool:
         """Wait for Kubernetes deployment to be ready"""
         try:
             start_time = time.time()
-            
+
             while time.time() - start_time < timeout:
                 result = subprocess.run([
-                    "kubectl", "rollout", "status", 
+                    "kubectl", "rollout", "status",
                     f"deployment/{service_name}",
                     f"--namespace={self.config.namespace}",
                     "--timeout=60s"
                 ], capture_output=True, text=True)
-                
+
                 if result.returncode == 0:
                     logger.info(f"✅ Deployment {service_name} is ready")
                     return True
-                
+
                 logger.info(f"⏳ Waiting for deployment {service_name} to be ready...")
                 await asyncio.sleep(10)
-            
+
             logger.error(f"❌ Timeout waiting for deployment {service_name}")
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Error waiting for deployment {service_name}: {e}")
             return False
-    
+
     async def _deploy_docker_compose_service(self, service_name: str) -> bool:
         """Deploy service using Docker Compose"""
         try:
@@ -1717,116 +1717,116 @@ spec:
             if not os.path.exists(compose_file):
                 logger.warning(f"⚠️  Docker compose file not found: {compose_file}")
                 return True
-            
+
             cmd = [
-                "docker-compose", 
+                "docker-compose",
                 "-f", compose_file,
                 "up", "-d", service_name
             ]
-            
+
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-            
+
             if result.returncode == 0:
                 logger.info(f"✅ Docker Compose service {service_name} deployed")
                 return True
             else:
                 logger.error(f"❌ Docker Compose service {service_name} failed: {result.stderr}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"❌ Docker Compose service {service_name} failed: {e}")
             return False
-    
+
     # Placeholder methods for additional component types
     async def _deploy_alerting_component(self, component: DeploymentComponent) -> bool:
         logger.info(f"🚨 Deploying alerting component: {component.name}")
         return True
-    
+
     async def _deploy_grafana_cluster(self, component: DeploymentComponent) -> bool:
         logger.info(f"📊 Deploying Grafana cluster: {component.name}")
         return True
-    
+
     async def _deploy_loki_cluster(self, component: DeploymentComponent) -> bool:
         logger.info(f"📝 Deploying Loki cluster: {component.name}")
         return True
-    
+
     async def _deploy_jaeger_cluster(self, component: DeploymentComponent) -> bool:
         logger.info(f"🔍 Deploying Jaeger cluster: {component.name}")
         return True
-    
+
     async def _deploy_fluentd_daemonset(self, component: DeploymentComponent) -> bool:
         logger.info(f"📋 Deploying Fluentd daemonset: {component.name}")
         return True
-    
+
     async def _deploy_rbac_policies(self, component: DeploymentComponent) -> bool:
         logger.info(f"🔐 Deploying RBAC policies: {component.name}")
         return True
-    
+
     async def _deploy_network_policies(self, component: DeploymentComponent) -> bool:
         logger.info(f"🌐 Deploying network policies: {component.name}")
         return True
-    
+
     async def _deploy_pod_security_policies(self, component: DeploymentComponent) -> bool:
         logger.info(f"🛡️  Deploying pod security policies: {component.name}")
         return True
-    
+
     async def _deploy_falco_security(self, component: DeploymentComponent) -> bool:
         logger.info(f"🔒 Deploying Falco security monitoring: {component.name}")
         return True
-    
+
     async def _deploy_load_testing(self, component: DeploymentComponent) -> bool:
         logger.info(f"🏋️  Deploying load testing: {component.name}")
         return True
-    
+
     async def _deploy_backup_system(self, component: DeploymentComponent) -> bool:
         logger.info(f"💾 Deploying backup system: {component.name}")
         return True
-    
+
     # Helper methods
-    
+
     async def _kubectl_apply(self, yaml_content: str) -> bool:
         """Apply Kubernetes YAML configuration"""
         try:
             with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
                 f.write(yaml_content)
                 temp_file = f.name
-            
+
             cmd = ["kubectl", "apply", "-f", temp_file]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            
+
             os.unlink(temp_file)
-            
+
             if result.returncode == 0:
                 return True
             else:
                 logger.error(f"❌ kubectl apply failed: {result.stderr}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"❌ kubectl apply failed: {e}")
             return False
-    
+
     async def _run_enterprise_health_checks(self, component: DeploymentComponent) -> bool:
         """Run comprehensive health checks"""
         logger.info(f"🏥 Running health checks for {component.name}")
         # Implementation would include detailed health checking logic
         return True
-    
+
     async def _run_component_validation(self, component: DeploymentComponent) -> bool:
         """Run component validation"""
         logger.info(f"✅ Running validation for {component.name}")
         # Implementation would include validation logic
         return True
-    
+
     async def _validate_deployment_phase(self, phase_components: List[DeploymentComponent]):
         """Validate deployment phase"""
         logger.info(f"🔍 Validating deployment phase with {len(phase_components)} components")
         # Implementation would include phase validation logic
-    
+
     async def _comprehensive_post_deployment_validation(self) -> bool:
         """Comprehensive post-deployment validation"""
         logger.info("🔍 Running comprehensive post-deployment validation")
-        
+
         validation_tasks = [
             self._validate_all_services_running(),
             self._validate_service_connectivity(),
@@ -1836,75 +1836,75 @@ spec:
             self._run_integration_tests(),
             self._run_security_scan()
         ]
-        
+
         results = await asyncio.gather(*validation_tasks, return_exceptions=True)
-        
+
         validation_success = True
         for i, result in enumerate(results):
             if isinstance(result, Exception) or not result:
                 validation_success = False
                 logger.error(f"❌ Post-deployment validation {i+1} failed: {result}")
-        
+
         return validation_success
-    
+
     async def _validate_all_services_running(self) -> bool:
         """Validate all services are running"""
         logger.info("🔍 Validating all services are running")
         return True
-    
+
     async def _validate_service_connectivity(self) -> bool:
         """Validate service connectivity"""
         logger.info("🔍 Validating service connectivity")
         return True
-    
+
     async def _validate_health_endpoints(self) -> bool:
         """Validate health endpoints"""
         logger.info("🔍 Validating health endpoints")
         return True
-    
+
     async def _validate_monitoring_metrics(self) -> bool:
         """Validate monitoring metrics"""
         logger.info("🔍 Validating monitoring metrics")
         return True
-    
+
     async def _validate_security_policies(self) -> bool:
         """Validate security policies"""
         logger.info("🔍 Validating security policies")
         return True
-    
+
     async def _run_integration_tests(self) -> bool:
         """Run integration tests"""
         logger.info("🔍 Running integration tests")
         return True
-    
+
     async def _run_security_scan(self) -> bool:
         """Run security scan"""
         logger.info("🔍 Running security scan")
         return True
-    
+
     async def _intelligent_rollback(self) -> bool:
         """Intelligent rollback with component-specific strategies"""
         logger.info("🔄 Starting intelligent rollback")
-        
+
         # Get components to rollback in reverse dependency order
         components_to_rollback = [
             component for component in self.components.values()
             if component.status in [ComponentStatus.DEPLOYED, ComponentStatus.FAILED]
         ]
-        
+
         # Sort by deployment time (reverse order)
         components_to_rollback.sort(key=lambda x: x.start_time or datetime.min, reverse=True)
-        
+
         rollback_success = True
-        
+
         for component in components_to_rollback:
             try:
                 logger.info(f"🔄 Rolling back component: {component.name}")
                 component.status = ComponentStatus.ROLLING_BACK
-                
+
                 # Component-specific rollback logic
                 success = await self._rollback_component(component)
-                
+
                 if success:
                     component.status = ComponentStatus.ROLLED_BACK
                     logger.info(f"✅ Component {component.name} rolled back successfully")
@@ -1912,14 +1912,14 @@ spec:
                     component.status = ComponentStatus.FAILED
                     rollback_success = False
                     logger.error(f"❌ Failed to rollback component {component.name}")
-                
+
             except Exception as e:
                 component.status = ComponentStatus.FAILED
                 rollback_success = False
                 logger.error(f"❌ Rollback failed for {component.name}: {e}")
-        
+
         return rollback_success
-    
+
     async def _rollback_component(self, component: DeploymentComponent) -> bool:
         """Rollback individual component"""
         try:
@@ -1931,9 +1931,9 @@ spec:
                     f"--namespace={self.config.namespace}",
                     "--ignore-not-found=true"
                 ], capture_output=True, text=True, timeout=120)
-                
+
                 return result.returncode == 0
-            
+
             elif self.platform == DeploymentPlatform.DOCKER_COMPOSE:
                 # Stop and remove Docker Compose service
                 compose_file = "/root/Xorb/compose/docker-compose.yml"
@@ -1942,15 +1942,15 @@ spec:
                         "docker-compose", "-f", compose_file,
                         "stop", component.name
                     ], capture_output=True, text=True, timeout=60)
-                    
+
                     return result.returncode == 0
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Component rollback failed: {e}")
             return False
-    
+
     async def _generate_pre_deployment_report(self):
         """Generate comprehensive pre-deployment report"""
         report = {
@@ -1960,7 +1960,7 @@ spec:
             "platform": self.platform.value,
             "configuration": self.config.to_dict(),
             "services": {name: config.to_dict() for name, config in self.services.items()},
-            "components": {name: {"type": comp.type, "dependencies": comp.dependencies} 
+            "components": {name: {"type": comp.type, "dependencies": comp.dependencies}
                          for name, comp in self.components.items()},
             "system_info": {
                 "memory_gb": psutil.virtual_memory().total / (1024**3),
@@ -1968,13 +1968,13 @@ spec:
                 "disk_free_gb": psutil.disk_usage('/').free / (1024**3)
             }
         }
-        
+
         report_file = self.artifacts_dir / "pre_deployment_report.json"
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2, default=str)
-        
+
         logger.info(f"📋 Pre-deployment report saved to: {report_file}")
-    
+
     async def _save_deployment_plan(self, deployment_plan: List[List[DeploymentComponent]]):
         """Save deployment plan to artifacts"""
         plan_data = {
@@ -1983,7 +1983,7 @@ spec:
             "total_phases": len(deployment_plan),
             "phases": []
         }
-        
+
         for i, phase in enumerate(deployment_plan):
             phase_data = {
                 "phase_number": i + 1,
@@ -1997,18 +1997,18 @@ spec:
                 ]
             }
             plan_data["phases"].append(phase_data)
-        
+
         plan_file = self.artifacts_dir / "deployment_plan.json"
         with open(plan_file, 'w') as f:
             json.dump(plan_data, f, indent=2)
-        
+
         logger.info(f"📋 Deployment plan saved to: {plan_file}")
-    
+
     async def _generate_deployment_report(self, success: bool, error: str = None):
         """Generate comprehensive deployment report"""
         end_time = datetime.now()
         duration = end_time - self.start_time
-        
+
         report = {
             "deployment_id": self.deployment_id,
             "environment": self.environment.value,
@@ -2030,7 +2030,7 @@ spec:
                 "rolled_back_components": 0
             }
         }
-        
+
         # Add component details
         for name, component in self.components.items():
             report["components"][name] = {
@@ -2038,12 +2038,12 @@ spec:
                 "status": component.status.value,
                 "start_time": component.start_time.isoformat() if component.start_time else None,
                 "end_time": component.end_time.isoformat() if component.end_time else None,
-                "duration_seconds": (component.end_time - component.start_time).total_seconds() 
+                "duration_seconds": (component.end_time - component.start_time).total_seconds()
                                   if component.start_time and component.end_time else None,
                 "error_message": component.error_message,
                 "dependencies": component.dependencies
             }
-            
+
             # Update summary counts
             if component.status == ComponentStatus.DEPLOYED:
                 report["summary"]["deployed_components"] += 1
@@ -2051,33 +2051,33 @@ spec:
                 report["summary"]["failed_components"] += 1
             elif component.status == ComponentStatus.ROLLED_BACK:
                 report["summary"]["rolled_back_components"] += 1
-        
+
         # Save report
         report_file = self.artifacts_dir / "deployment_report.json"
         with open(report_file, 'w') as f:
             json.dump(report, f, indent=2, default=str)
-        
+
         # Also save to deployment logs
         main_report_file = f"/tmp/xorb_enterprise_deployment_report_{self.deployment_id}.json"
         with open(main_report_file, 'w') as f:
             json.dump(report, f, indent=2, default=str)
-        
+
         logger.info(f"📊 Deployment report saved to: {report_file}")
         logger.info(f"📊 Main deployment report: {main_report_file}")
-    
+
     async def _setup_post_deployment_monitoring(self):
         """Setup post-deployment monitoring and alerting"""
         logger.info("📊 Setting up post-deployment monitoring")
         # Implementation would include monitoring setup
-    
+
     def _print_success_summary(self):
         """Print deployment success summary"""
         end_time = datetime.now()
         duration = end_time - self.start_time
-        
+
         deployed_count = sum(1 for c in self.components.values() if c.status == ComponentStatus.DEPLOYED)
         total_count = len(self.components)
-        
+
         success_banner = f"""
 ╔══════════════════════════════════════════════════════════════════════════════╗
 ║                                                                              ║
@@ -2090,11 +2090,11 @@ spec:
 ║                                                                              ║
 ║  🌟 Deployed Services:                                                       ║
 """
-        
+
         for service_name in self.services.keys():
             service_status = "✅" if self.components.get(service_name, {}).status == ComponentStatus.DEPLOYED else "❌"
             success_banner += f"║     {service_status} {service_name:<30}                                    ║\n"
-        
+
         success_banner += f"""║                                                                              ║
 ║  🔗 Access Points:                                                           ║
 ║     📊 Grafana Dashboard:    http://localhost:3000                          ║
@@ -2110,7 +2110,7 @@ spec:
 ║                                                                              ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
         """
-        
+
         print(success_banner)
         logger.info("🎉 Enterprise deployment completed successfully!")
 
@@ -2124,25 +2124,25 @@ def main():
     parser.add_argument('--verbose', '-v', action='store_true', help='Enable verbose logging')
     parser.add_argument('--rollback-deployment-id', help='Rollback specific deployment by ID')
     parser.add_argument('--validate-only', action='store_true', help='Only run validation checks')
-    
+
     args = parser.parse_args()
-    
+
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
-    
+
     try:
         if args.rollback_deployment_id:
             logger.info(f"🔄 Rolling back deployment: {args.rollback_deployment_id}")
             # Implementation for rollback would go here
             return True
-        
+
         # Initialize orchestrator
         orchestrator = XORBEnterpriseDeploymentOrchestrator(
             config_file=args.config,
             environment=args.environment,
             platform=args.platform
         )
-        
+
         if args.validate_only:
             logger.info("🔍 Running validation checks only")
             success = asyncio.run(orchestrator._comprehensive_pre_deployment_validation())
@@ -2153,14 +2153,14 @@ def main():
         else:
             # Run full deployment
             success = asyncio.run(orchestrator.deploy())
-        
+
         if success:
             logger.info("🎉 Enterprise deployment operation completed successfully!")
             sys.exit(0)
         else:
             logger.error("❌ Enterprise deployment operation failed!")
             sys.exit(1)
-            
+
     except KeyboardInterrupt:
         logger.info("⚠️  Enterprise deployment interrupted by user")
         sys.exit(1)

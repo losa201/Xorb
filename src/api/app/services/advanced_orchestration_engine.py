@@ -138,20 +138,20 @@ class AdvancedOrchestrationEngine:
         self.workflow_definitions: Dict[str, WorkflowDefinition] = {}
         self.task_handlers: Dict[str, Callable] = {}
         self.execution_history: List[WorkflowExecution] = []
-        
+
         # AI optimization components
         self.performance_metrics: Dict[str, Any] = {}
         self.optimization_rules: Dict[str, Any] = {}
         self.learning_model = None
-        
+
         # Service integrations
         self.notification_service = None
         self.metrics_collector = None
         self.storage_backend = None
-        
+
         # Initialize core task handlers
         self._initialize_core_handlers()
-        
+
         logger.info("Advanced Orchestration Engine initialized")
 
     async def initialize(self):
@@ -159,19 +159,19 @@ class AdvancedOrchestrationEngine:
         try:
             # Load workflow definitions from storage
             await self._load_workflow_definitions()
-            
+
             # Initialize AI optimization model
             await self._initialize_ai_optimization()
-            
+
             # Setup performance monitoring
             await self._setup_performance_monitoring()
-            
+
             # Start background tasks
             asyncio.create_task(self._performance_optimizer())
             asyncio.create_task(self._execution_monitor())
-            
+
             logger.info("Orchestration engine initialization complete")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize orchestration engine: {e}")
             raise
@@ -181,30 +181,30 @@ class AdvancedOrchestrationEngine:
         try:
             # Validate workflow definition
             validated_def = await self._validate_workflow_definition(workflow_definition)
-            
+
             # Convert to WorkflowDefinition object
             workflow = self._dict_to_workflow_definition(validated_def)
-            
+
             # AI-powered optimization
             optimized_workflow = await self._optimize_workflow(workflow)
-            
+
             # Store workflow definition
             self.workflow_definitions[workflow.workflow_id] = optimized_workflow
-            
+
             # Persist to storage
             if self.storage_backend:
                 await self.storage_backend.save_workflow_definition(optimized_workflow)
-            
+
             logger.info(f"Workflow created: {workflow.workflow_id}")
             return workflow.workflow_id
-            
+
         except Exception as e:
             logger.error(f"Failed to create workflow: {e}")
             raise
 
     async def execute_workflow(
-        self, 
-        workflow_id: str, 
+        self,
+        workflow_id: str,
         execution_parameters: Dict[str, Any] = None,
         priority: str = "normal"
     ) -> str:
@@ -212,29 +212,29 @@ class AdvancedOrchestrationEngine:
         try:
             if workflow_id not in self.workflow_definitions:
                 raise ValueError(f"Workflow not found: {workflow_id}")
-            
+
             workflow_def = self.workflow_definitions[workflow_id]
             execution_id = str(uuid.uuid4())
-            
+
             # Create execution instance
             execution = WorkflowExecution(
                 execution_id=execution_id,
                 workflow_definition=workflow_def,
                 execution_context=execution_parameters or {}
             )
-            
+
             # AI-powered execution planning
             execution_plan = await self._create_execution_plan(execution, priority)
-            
+
             # Store active execution
             self.active_executions[execution_id] = execution
-            
+
             # Start execution in background
             asyncio.create_task(self._execute_workflow_async(execution, execution_plan))
-            
+
             logger.info(f"Workflow execution started: {execution_id}")
             return execution_id
-            
+
         except Exception as e:
             logger.error(f"Failed to execute workflow: {e}")
             raise
@@ -245,14 +245,14 @@ class AdvancedOrchestrationEngine:
             if execution_id in self.active_executions:
                 execution = self.active_executions[execution_id]
                 return self._execution_to_dict(execution)
-            
+
             # Check execution history
             for execution in self.execution_history:
                 if execution.execution_id == execution_id:
                     return self._execution_to_dict(execution)
-            
+
             raise ValueError(f"Execution not found: {execution_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to get execution status: {e}")
             raise
@@ -262,21 +262,21 @@ class AdvancedOrchestrationEngine:
         try:
             if execution_id not in self.active_executions:
                 return False
-            
+
             execution = self.active_executions[execution_id]
             execution.status = WorkflowStatus.CANCELLED
             execution.end_time = datetime.utcnow()
-            
+
             # Cancel any running tasks
             await self._cancel_execution_tasks(execution)
-            
+
             # Move to history
             self.execution_history.append(execution)
             del self.active_executions[execution_id]
-            
+
             logger.info(f"Workflow execution cancelled: {execution_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to cancel execution: {e}")
             return False
@@ -286,15 +286,15 @@ class AdvancedOrchestrationEngine:
         try:
             if execution_id not in self.active_executions:
                 return False
-            
+
             execution = self.active_executions[execution_id]
             if execution.status == WorkflowStatus.RUNNING:
                 execution.status = WorkflowStatus.PAUSED
                 logger.info(f"Workflow execution paused: {execution_id}")
                 return True
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"Failed to pause execution: {e}")
             return False
@@ -304,20 +304,20 @@ class AdvancedOrchestrationEngine:
         try:
             if execution_id not in self.active_executions:
                 return False
-            
+
             execution = self.active_executions[execution_id]
             if execution.status == WorkflowStatus.PAUSED:
                 execution.status = WorkflowStatus.RUNNING
-                
+
                 # Resume execution
                 execution_plan = await self._create_execution_plan(execution, "normal")
                 asyncio.create_task(self._execute_workflow_async(execution, execution_plan))
-                
+
                 logger.info(f"Workflow execution resumed: {execution_id}")
                 return True
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"Failed to resume execution: {e}")
             return False
@@ -327,10 +327,10 @@ class AdvancedOrchestrationEngine:
         try:
             if not asyncio.iscoroutinefunction(handler):
                 raise ValueError("Task handler must be an async function")
-            
+
             self.task_handlers[task_type] = handler
             logger.info(f"Task handler registered: {task_type}")
-            
+
         except Exception as e:
             logger.error(f"Failed to register task handler: {e}")
             raise
@@ -342,7 +342,7 @@ class AdvancedOrchestrationEngine:
                 return await self._get_workflow_specific_metrics(workflow_id)
             else:
                 return await self._get_global_workflow_metrics()
-                
+
         except Exception as e:
             logger.error(f"Failed to get workflow metrics: {e}")
             return {}
@@ -354,43 +354,43 @@ class AdvancedOrchestrationEngine:
         try:
             execution.status = WorkflowStatus.RUNNING
             execution.start_time = datetime.utcnow()
-            
+
             # Execute tasks according to plan
             for stage in execution_plan.get("stages", []):
                 if execution.status == WorkflowStatus.CANCELLED:
                     break
-                
+
                 # Wait if paused
                 while execution.status == WorkflowStatus.PAUSED:
                     await asyncio.sleep(1)
-                
+
                 await self._execute_stage(execution, stage)
-            
+
             # Finalize execution
             if execution.status == WorkflowStatus.RUNNING:
                 execution.status = WorkflowStatus.COMPLETED
-            
+
             execution.end_time = datetime.utcnow()
-            
+
             # Calculate metrics
             await self._calculate_execution_metrics(execution)
-            
+
             # Send notifications
             await self._send_execution_notifications(execution)
-            
+
             # Move to history
             self.execution_history.append(execution)
             if execution.execution_id in self.active_executions:
                 del self.active_executions[execution.execution_id]
-            
+
             logger.info(f"Workflow execution completed: {execution.execution_id}")
-            
+
         except Exception as e:
             logger.error(f"Workflow execution failed: {e}")
             execution.status = WorkflowStatus.FAILED
             execution.error = str(e)
             execution.end_time = datetime.utcnow()
-            
+
             # Move to history
             self.execution_history.append(execution)
             if execution.execution_id in self.active_executions:
@@ -400,7 +400,7 @@ class AdvancedOrchestrationEngine:
         """Execute a stage of tasks"""
         tasks = stage.get("tasks", [])
         execution_mode = stage.get("mode", "sequential")
-        
+
         if execution_mode == "parallel":
             # Execute tasks in parallel
             task_coroutines = []
@@ -408,16 +408,16 @@ class AdvancedOrchestrationEngine:
                 task = self._find_task_by_id(execution.workflow_definition, task_id)
                 if task:
                     task_coroutines.append(self._execute_task(execution, task))
-            
+
             if task_coroutines:
                 await asyncio.gather(*task_coroutines, return_exceptions=True)
-        
+
         else:  # sequential
             # Execute tasks sequentially
             for task_id in tasks:
                 if execution.status == WorkflowStatus.CANCELLED:
                     break
-                
+
                 task = self._find_task_by_id(execution.workflow_definition, task_id)
                 if task:
                     await self._execute_task(execution, task)
@@ -429,47 +429,47 @@ class AdvancedOrchestrationEngine:
             if not await self._should_execute_task(execution, task):
                 task.status = TaskStatus.SKIPPED
                 return
-            
+
             # Update task status
             task.status = TaskStatus.RUNNING
             task.start_time = datetime.utcnow()
             execution.current_task = task.task_id
-            
+
             # Get task handler
             handler = self.task_handlers.get(task.task_type)
             if not handler:
                 raise ValueError(f"No handler registered for task type: {task.task_type}")
-            
+
             # Prepare task parameters
             task_params = self._prepare_task_parameters(execution, task)
-            
+
             # Execute task with timeout
             try:
                 result = await asyncio.wait_for(
                     handler(task_params),
                     timeout=task.timeout
                 )
-                
+
                 # Store result
                 task.result = result
                 task.status = TaskStatus.COMPLETED
                 execution.completed_tasks.append(task.task_id)
                 execution.results[task.task_id] = result
-                
+
             except asyncio.TimeoutError:
                 raise Exception(f"Task timeout after {task.timeout} seconds")
-            
+
             task.end_time = datetime.utcnow()
-            
+
             logger.info(f"Task completed: {task.task_id}")
-            
+
         except Exception as e:
             logger.error(f"Task failed: {task.task_id} - {e}")
             task.status = TaskStatus.FAILED
             task.error = str(e)
             task.end_time = datetime.utcnow()
             execution.failed_tasks.append(task.task_id)
-            
+
             # Handle task failure
             await self._handle_task_failure(execution, task, e)
 
@@ -479,14 +479,14 @@ class AdvancedOrchestrationEngine:
         if task.retry_count > 0 and task.status != TaskStatus.RETRYING:
             task.status = TaskStatus.RETRYING
             task.retry_count -= 1
-            
+
             # Wait before retry
             await asyncio.sleep(task.retry_delay)
-            
+
             # Retry task
             await self._execute_task(execution, task)
             return
-        
+
         # Handle based on failure strategy
         if task.on_failure == "continue":
             logger.info(f"Continuing execution despite task failure: {task.task_id}")
@@ -520,7 +520,7 @@ class AdvancedOrchestrationEngine:
             headers = params.get("headers", {})
             data = params.get("data")
             timeout = params.get("timeout", 30)
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.request(
                     method, url, headers=headers, json=data, timeout=timeout
@@ -530,15 +530,15 @@ class AdvancedOrchestrationEngine:
                         "headers": dict(response.headers),
                         "content": await response.text()
                     }
-                    
+
                     if response.content_type == "application/json":
                         try:
                             response_data["json"] = await response.json()
                         except:
                             pass
-                    
+
                     return response_data
-                    
+
         except Exception as e:
             logger.error(f"HTTP request failed: {e}")
             raise
@@ -549,7 +549,7 @@ class AdvancedOrchestrationEngine:
             scan_type = params.get("scan_type", "nmap")
             target = params.get("target")
             options = params.get("options", {})
-            
+
             # Integration with PTaaS scanner service
             if hasattr(self, 'scanner_service'):
                 return await self.scanner_service.execute_scan(scan_type, target, options)
@@ -562,7 +562,7 @@ class AdvancedOrchestrationEngine:
                     "findings": [],
                     "timestamp": datetime.utcnow().isoformat()
                 }
-                
+
         except Exception as e:
             logger.error(f"Security scan failed: {e}")
             raise
@@ -573,7 +573,7 @@ class AdvancedOrchestrationEngine:
             analysis_type = params.get("analysis_type")
             data = params.get("data")
             model = params.get("model", "default")
-            
+
             # Integration with AI services
             if hasattr(self, 'ai_service'):
                 return await self.ai_service.analyze(analysis_type, data, model)
@@ -586,7 +586,7 @@ class AdvancedOrchestrationEngine:
                     "model": model,
                     "timestamp": datetime.utcnow().isoformat()
                 }
-                
+
         except Exception as e:
             logger.error(f"AI analysis failed: {e}")
             raise
@@ -596,7 +596,7 @@ class AdvancedOrchestrationEngine:
         try:
             framework = params.get("framework")
             scope = params.get("scope", {})
-            
+
             # Integration with compliance service
             if hasattr(self, 'compliance_service'):
                 return await self.compliance_service.validate_compliance(framework, scope)
@@ -609,7 +609,7 @@ class AdvancedOrchestrationEngine:
                     "recommendations": [],
                     "timestamp": datetime.utcnow().isoformat()
                 }
-                
+
         except Exception as e:
             logger.error(f"Compliance check failed: {e}")
             raise
@@ -628,7 +628,7 @@ class AdvancedOrchestrationEngine:
             else:
                 logger.info(f"Notification: {params.get('message', 'No message')}")
                 return {"sent": True, "timestamp": datetime.utcnow().isoformat()}
-                
+
         except Exception as e:
             logger.error(f"Notification failed: {e}")
             raise
@@ -662,15 +662,15 @@ class AdvancedOrchestrationEngine:
             # Analyze task dependencies and optimize execution order
             optimized_tasks = await self._optimize_task_order(workflow.tasks)
             workflow.tasks = optimized_tasks
-            
+
             # Optimize resource allocation
             await self._optimize_resource_allocation(workflow)
-            
+
             # Apply performance recommendations
             await self._apply_performance_optimizations(workflow)
-            
+
             return workflow
-            
+
         except Exception as e:
             logger.error(f"Workflow optimization failed: {e}")
             return workflow
@@ -679,16 +679,16 @@ class AdvancedOrchestrationEngine:
         """Create AI-optimized execution plan"""
         try:
             workflow = execution.workflow_definition
-            
+
             # Analyze task dependencies
             dependency_graph = self._build_dependency_graph(workflow.tasks)
-            
+
             # Create execution stages
             stages = self._create_execution_stages(dependency_graph, priority)
-            
+
             # Apply AI optimization
             optimized_stages = await self._ai_optimize_stages(stages, execution)
-            
+
             return {
                 "execution_id": execution.execution_id,
                 "stages": optimized_stages,
@@ -696,7 +696,7 @@ class AdvancedOrchestrationEngine:
                 "resource_requirements": self._calculate_resource_requirements(optimized_stages),
                 "priority": priority
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to create execution plan: {e}")
             # Fallback to simple sequential plan
@@ -717,7 +717,7 @@ class AdvancedOrchestrationEngine:
                 await self._analyze_performance_metrics()
                 await self._update_optimization_rules()
                 await asyncio.sleep(300)  # Run every 5 minutes
-                
+
             except Exception as e:
                 logger.error(f"Performance optimizer error: {e}")
                 await asyncio.sleep(60)
@@ -729,7 +729,7 @@ class AdvancedOrchestrationEngine:
                 await self._monitor_active_executions()
                 await self._cleanup_completed_executions()
                 await asyncio.sleep(30)  # Check every 30 seconds
-                
+
             except Exception as e:
                 logger.error(f"Execution monitor error: {e}")
                 await asyncio.sleep(60)
@@ -742,7 +742,7 @@ class AdvancedOrchestrationEngine:
         for task_dict in workflow_dict.get("tasks", []):
             task = WorkflowTask(**task_dict)
             tasks.append(task)
-        
+
         workflow_dict["tasks"] = tasks
         return WorkflowDefinition(**workflow_dict)
 
@@ -775,27 +775,27 @@ class AdvancedOrchestrationEngine:
         for field in required_fields:
             if field not in workflow_def:
                 raise ValueError(f"Missing required field: {field}")
-        
+
         # Validate tasks
         for task in workflow_def.get("tasks", []):
             if "task_id" not in task or "task_type" not in task:
                 raise ValueError("Invalid task definition")
-        
+
         return workflow_def
 
     def _prepare_task_parameters(self, execution: WorkflowExecution, task: WorkflowTask) -> Dict[str, Any]:
         """Prepare parameters for task execution"""
         params = task.parameters.copy()
-        
+
         # Add execution context
         params.update(execution.execution_context)
-        
+
         # Add results from previous tasks
         for completed_task_id in execution.completed_tasks:
             task_result = execution.results.get(completed_task_id)
             if task_result:
                 params[f"task_{completed_task_id}_result"] = task_result
-        
+
         return params
 
     async def _should_execute_task(self, execution: WorkflowExecution, task: WorkflowTask) -> bool:
@@ -804,12 +804,12 @@ class AdvancedOrchestrationEngine:
         for dep_task_id in task.dependencies:
             if dep_task_id not in execution.completed_tasks:
                 return False
-        
+
         # Check condition if specified
         if task.condition:
             # Evaluate condition (simplified implementation)
             return True  # For now, always execute
-        
+
         return True
 
     # Placeholder methods for complex operations
@@ -926,9 +926,9 @@ _orchestration_engine: Optional[AdvancedOrchestrationEngine] = None
 async def get_orchestration_engine() -> AdvancedOrchestrationEngine:
     """Get global orchestration engine instance"""
     global _orchestration_engine
-    
+
     if _orchestration_engine is None:
         _orchestration_engine = AdvancedOrchestrationEngine()
         await _orchestration_engine.initialize()
-    
+
     return _orchestration_engine

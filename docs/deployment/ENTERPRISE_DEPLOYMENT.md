@@ -125,7 +125,7 @@ tenants:
       api_calls_per_minute: 1000
       concurrent_scans: 10
   enterprise:
-    database_url: "postgresql://app:pass@postgres:5432/tenant_enterprise" 
+    database_url: "postgresql://app:pass@postgres:5432/tenant_enterprise"
     redis_prefix: "tenant:enterprise"
     rate_limits:
       api_calls_per_minute: 5000
@@ -151,16 +151,16 @@ upstream xorb_api {
 server {
     listen 443 ssl http2;
     server_name ptaas.company.com;
-    
+
     ssl_certificate /etc/ssl/certs/company.crt;
     ssl_certificate_key /etc/ssl/private/company.key;
-    
+
     location / {
         proxy_pass http://ptaas_frontend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
-    
+
     location /api/ {
         proxy_pass http://xorb_api;
         proxy_set_header Host $host;
@@ -221,7 +221,7 @@ scrape_configs:
     static_configs:
       - targets: ['api-1:8000', 'api-2:8000', 'api-3:8000']
     metrics_path: '/metrics'
-    
+
   - job_name: 'xorb-orchestrator'
     static_configs:
       - targets: ['orchestrator-1:8080', 'orchestrator-2:8080']

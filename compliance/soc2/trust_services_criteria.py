@@ -45,7 +45,7 @@ class SOC2Control:
     owner: str
     evidence_requirements: List[str]
     automated: bool = False
-    
+
     def __post_init__(self):
         self.created_at = datetime.utcnow()
 
@@ -61,7 +61,7 @@ class ControlEvidence:
     metadata: Dict[str, Any]
     collected_at: datetime
     collected_by: str
-    
+
     def __post_init__(self):
         if not hasattr(self, 'collected_at'):
             self.collected_at = datetime.utcnow()
@@ -79,7 +79,7 @@ class ControlTestResult:
     remediation_required: bool
     evidence_ids: List[str]
     notes: str
-    
+
     def __post_init__(self):
         if not hasattr(self, 'test_date'):
             self.test_date = datetime.utcnow()
@@ -87,16 +87,16 @@ class ControlTestResult:
 
 class SOC2ComplianceManager:
     """SOC2 compliance management and automation"""
-    
+
     def __init__(self, db_session: AsyncSession, audit_logger):
         self.db_session = db_session
         self.audit_logger = audit_logger
         self.controls = self._initialize_controls()
-    
+
     def _initialize_controls(self) -> List[SOC2Control]:
         """Initialize SOC2 controls based on Trust Services Criteria"""
         controls = []
-        
+
         # Security Controls (CC1-CC8)
         security_controls = [
             SOC2Control(
@@ -220,7 +220,7 @@ class SOC2ComplianceManager:
                 automated=True
             )
         ]
-        
+
         # Availability Controls (A1.1-A1.3)
         availability_controls = [
             SOC2Control(
@@ -269,7 +269,7 @@ class SOC2ComplianceManager:
                 automated=True
             )
         ]
-        
+
         # Processing Integrity Controls (PI1.1-PI1.2)
         processing_controls = [
             SOC2Control(
@@ -303,7 +303,7 @@ class SOC2ComplianceManager:
                 automated=False
             )
         ]
-        
+
         # Confidentiality Controls (C1.1-C1.2)
         confidentiality_controls = [
             SOC2Control(
@@ -337,7 +337,7 @@ class SOC2ComplianceManager:
                 automated=True
             )
         ]
-        
+
         # Privacy Controls (P1.1-P1.2)
         privacy_controls = [
             SOC2Control(
@@ -371,71 +371,71 @@ class SOC2ComplianceManager:
                 automated=True
             )
         ]
-        
+
         controls.extend(security_controls)
         controls.extend(availability_controls)
         controls.extend(processing_controls)
         controls.extend(confidentiality_controls)
         controls.extend(privacy_controls)
-        
+
         return controls
-    
+
     async def collect_automated_evidence(self, control_id: str) -> List[ControlEvidence]:
         """Collect automated evidence for a control"""
         control = next((c for c in self.controls if c.control_id == control_id), None)
         if not control or not control.automated:
             return []
-        
+
         evidence_list = []
-        
+
         # Security monitoring evidence (CC4.1)
         if control_id == "CC4.1":
             evidence_list.extend(await self._collect_security_monitoring_evidence())
-        
+
         # Access control evidence (CC5.1)
         elif control_id == "CC5.1":
             evidence_list.extend(await self._collect_access_control_evidence())
-        
+
         # Change management evidence (CC7.1)
         elif control_id == "CC7.1":
             evidence_list.extend(await self._collect_change_management_evidence())
-        
+
         # Availability monitoring evidence (A1.1)
         elif control_id == "A1.1":
             evidence_list.extend(await self._collect_availability_evidence())
-        
+
         # Data processing evidence (PI1.1)
         elif control_id == "PI1.1":
             evidence_list.extend(await self._collect_processing_integrity_evidence())
-        
+
         # Encryption evidence (C1.1)
         elif control_id == "C1.1":
             evidence_list.extend(await self._collect_encryption_evidence())
-        
+
         return evidence_list
-    
+
     async def _collect_security_monitoring_evidence(self) -> List[ControlEvidence]:
         """Collect security monitoring evidence"""
         evidence = []
-        
+
         # SIEM alert summary
         try:
             # Query security alerts from the last 24 hours
             result = await self.db_session.execute(
                 text("""
-                    SELECT 
+                    SELECT
                         COUNT(*) as alert_count,
                         risk_level,
                         COUNT(CASE WHEN outcome = 'resolved' THEN 1 END) as resolved_count
-                    FROM audit_logs 
-                    WHERE event_type LIKE '%security%' 
+                    FROM audit_logs
+                    WHERE event_type LIKE '%security%'
                     AND created_at >= NOW() - INTERVAL '24 hours'
                     GROUP BY risk_level
                 """)
             )
-            
+
             alert_data = [dict(row) for row in result]
-            
+
             evidence.append(ControlEvidence(
                 evidence_id=str(uuid.uuid4()),
                 control_id="CC4.1",
@@ -450,35 +450,35 @@ class SOC2ComplianceManager:
                 collected_at=datetime.utcnow(),
                 collected_by="automated_system"
             ))
-            
+
         except Exception as e:
             print(f"Failed to collect security monitoring evidence: {e}")
-        
+
         return evidence
-    
+
     async def _collect_access_control_evidence(self) -> List[ControlEvidence]:
         """Collect access control evidence"""
         evidence = []
-        
+
         try:
             # Query authentication events
             result = await self.db_session.execute(
                 text("""
-                    SELECT 
+                    SELECT
                         DATE(created_at) as date,
                         COUNT(*) as total_attempts,
                         COUNT(CASE WHEN outcome = 'success' THEN 1 END) as successful_logins,
                         COUNT(CASE WHEN outcome = 'failure' THEN 1 END) as failed_attempts
-                    FROM audit_logs 
+                    FROM audit_logs
                     WHERE event_type = 'authentication'
                     AND created_at >= NOW() - INTERVAL '7 days'
                     GROUP BY DATE(created_at)
                     ORDER BY date DESC
                 """)
             )
-            
+
             auth_data = [dict(row) for row in result]
-            
+
             evidence.append(ControlEvidence(
                 evidence_id=str(uuid.uuid4()),
                 control_id="CC5.1",
@@ -492,17 +492,17 @@ class SOC2ComplianceManager:
                 collected_at=datetime.utcnow(),
                 collected_by="automated_system"
             ))
-            
+
         except Exception as e:
             print(f"Failed to collect access control evidence: {e}")
-        
+
         return evidence
-    
+
     async def _collect_change_management_evidence(self) -> List[ControlEvidence]:
         """Collect change management evidence"""
         # This would integrate with Git/CI/CD systems
         evidence = []
-        
+
         # Simulate Git commit and deployment data
         evidence.append(ControlEvidence(
             evidence_id=str(uuid.uuid4()),
@@ -523,13 +523,13 @@ class SOC2ComplianceManager:
             collected_at=datetime.utcnow(),
             collected_by="automated_system"
         ))
-        
+
         return evidence
-    
+
     async def _collect_availability_evidence(self) -> List[ControlEvidence]:
         """Collect availability evidence"""
         evidence = []
-        
+
         # Simulate uptime monitoring data
         evidence.append(ControlEvidence(
             evidence_id=str(uuid.uuid4()),
@@ -546,13 +546,13 @@ class SOC2ComplianceManager:
             collected_at=datetime.utcnow(),
             collected_by="automated_system"
         ))
-        
+
         return evidence
-    
+
     async def _collect_processing_integrity_evidence(self) -> List[ControlEvidence]:
         """Collect processing integrity evidence"""
         evidence = []
-        
+
         # Data validation results
         evidence.append(ControlEvidence(
             evidence_id=str(uuid.uuid4()),
@@ -570,13 +570,13 @@ class SOC2ComplianceManager:
             collected_at=datetime.utcnow(),
             collected_by="automated_system"
         ))
-        
+
         return evidence
-    
+
     async def _collect_encryption_evidence(self) -> List[ControlEvidence]:
         """Collect encryption evidence"""
         evidence = []
-        
+
         # TLS configuration and certificate status
         evidence.append(ControlEvidence(
             evidence_id=str(uuid.uuid4()),
@@ -598,22 +598,22 @@ class SOC2ComplianceManager:
             collected_at=datetime.utcnow(),
             collected_by="automated_system"
         ))
-        
+
         return evidence
-    
+
     async def test_control(self, control_id: str, tester: str) -> ControlTestResult:
         """Test a specific control"""
         control = next((c for c in self.controls if c.control_id == control_id), None)
         if not control:
             raise ValueError(f"Control {control_id} not found")
-        
+
         # Collect evidence
         evidence_list = await self.collect_automated_evidence(control_id)
         evidence_ids = [e.evidence_id for e in evidence_list]
-        
+
         # Perform control testing logic
         effectiveness = await self._evaluate_control_effectiveness(control, evidence_list)
-        
+
         # Create test result
         test_result = ControlTestResult(
             test_id=str(uuid.uuid4()),
@@ -626,7 +626,7 @@ class SOC2ComplianceManager:
             evidence_ids=evidence_ids,
             notes=f"Automated testing of {control.title}"
         )
-        
+
         # Log audit event
         await self.audit_logger.log_event({
             "event_type": "soc2_control_test",
@@ -635,19 +635,19 @@ class SOC2ComplianceManager:
             "tester": tester,
             "evidence_count": len(evidence_list)
         })
-        
+
         return test_result
-    
+
     async def _evaluate_control_effectiveness(
-        self, 
-        control: SOC2Control, 
+        self,
+        control: SOC2Control,
         evidence: List[ControlEvidence]
     ) -> ControlEffectiveness:
         """Evaluate control effectiveness based on evidence"""
-        
+
         if not evidence:
             return ControlEffectiveness.NOT_TESTED
-        
+
         # Simple effectiveness evaluation based on control type
         if control.control_id == "CC4.1":
             # Security monitoring - check for timely alert response
@@ -660,10 +660,10 @@ class SOC2ComplianceManager:
             return ControlEffectiveness.EFFECTIVE
         else:
             return ControlEffectiveness.EFFECTIVE
-    
+
     async def generate_soc2_report(self, period_start: datetime, period_end: datetime) -> Dict[str, Any]:
         """Generate SOC2 compliance report"""
-        
+
         report = {
             "report_metadata": {
                 "report_type": "SOC2_Type_II",
@@ -681,11 +681,11 @@ class SOC2ComplianceManager:
                 "date": datetime.utcnow().isoformat()
             }
         }
-        
+
         # Test all controls
         for control in self.controls:
             test_result = await self.test_control(control.control_id, "automated_auditor")
-            
+
             control_report = {
                 "control_id": control.control_id,
                 "criteria": control.criteria.value,
@@ -695,32 +695,32 @@ class SOC2ComplianceManager:
                 "evidence_count": len(test_result.evidence_ids),
                 "exceptions": test_result.exceptions
             }
-            
+
             report["control_results"].append(control_report)
-        
+
         # Summarize by criteria
         for criteria in TrustServicesCriteria:
             criteria_controls = [c for c in report["control_results"] if c["criteria"] == criteria.value]
             effective_controls = [c for c in criteria_controls if c["effectiveness"] == "effective"]
-            
+
             report["trust_services_criteria"][criteria.value] = {
                 "total_controls": len(criteria_controls),
                 "effective_controls": len(effective_controls),
                 "effectiveness_percentage": (len(effective_controls) / len(criteria_controls) * 100) if criteria_controls else 0
             }
-        
+
         return report
-    
+
     async def schedule_control_testing(self):
         """Schedule automated control testing based on frequency"""
-        
+
         scheduled_tests = []
         now = datetime.utcnow()
-        
+
         for control in self.controls:
             if not control.automated:
                 continue
-            
+
             # Determine next test date based on frequency
             if control.frequency == "continuous":
                 # Test every hour
@@ -747,20 +747,20 @@ class SOC2ComplianceManager:
                     "next_test": now + timedelta(days=30),
                     "frequency": "monthly"
                 })
-        
+
         return scheduled_tests
 
 
 # SOC2 compliance monitoring service
 class SOC2Monitor:
     """Continuous SOC2 compliance monitoring"""
-    
+
     def __init__(self, compliance_manager: SOC2ComplianceManager):
         self.compliance_manager = compliance_manager
-    
+
     async def run_continuous_monitoring(self):
         """Run continuous compliance monitoring"""
-        
+
         while True:
             try:
                 # Test continuous controls
@@ -770,13 +770,13 @@ class SOC2Monitor:
                     "A1.1",   # Availability monitoring
                     "C1.1"    # Encryption
                 ]
-                
+
                 for control_id in continuous_controls:
                     await self.compliance_manager.test_control(control_id, "automated_monitor")
-                
+
                 # Wait 1 hour before next check
                 await asyncio.sleep(3600)
-                
+
             except Exception as e:
                 print(f"SOC2 monitoring error: {e}")
                 await asyncio.sleep(300)  # Wait 5 minutes on error
@@ -785,17 +785,17 @@ class SOC2Monitor:
 # Example usage
 async def example_soc2_implementation():
     """Example SOC2 implementation"""
-    
+
     # Initialize compliance manager
     # compliance_manager = SOC2ComplianceManager(db_session, audit_logger)
-    
+
     # Generate SOC2 report
     # period_start = datetime.utcnow() - timedelta(days=90)
     # period_end = datetime.utcnow()
     # report = await compliance_manager.generate_soc2_report(period_start, period_end)
-    
+
     # Start continuous monitoring
     # monitor = SOC2Monitor(compliance_manager)
     # await monitor.run_continuous_monitoring()
-    
+
     pass

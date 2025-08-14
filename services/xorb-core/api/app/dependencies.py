@@ -19,7 +19,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
     try:
         container = get_container()
         auth_service = container.get(AuthenticationService)
-        
+
         user = await auth_service.validate_token(token)
         if not user:
             raise HTTPException(
@@ -27,9 +27,9 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> User:
                 detail="Could not validate credentials",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-        
+
         return user
-        
+
     except DomainException as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -48,12 +48,12 @@ async def get_current_organization(
     current_user: User = Depends(get_current_user)
 ) -> Organization:
     """Get current organization - simplified implementation"""
-    
+
     # In a real implementation, this would:
     # 1. Extract org_id from headers or query params
     # 2. Validate user has access to the organization
     # 3. Return the organization from the repository
-    
+
     # For now, return a default organization
     return Organization.create(
         name="Default Organization",
@@ -63,7 +63,7 @@ async def get_current_organization(
 
 def require_role(required_role: str):
     """Dependency factory for role-based access control"""
-    
+
     def role_checker(current_user: User = Depends(get_current_user)) -> User:
         if not current_user.has_role(required_role):
             raise HTTPException(
@@ -71,7 +71,7 @@ def require_role(required_role: str):
                 detail=f"Required role: {required_role}"
             )
         return current_user
-    
+
     return role_checker
 
 

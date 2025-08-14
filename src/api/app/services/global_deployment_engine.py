@@ -61,7 +61,7 @@ class GlobalInfrastructure:
     data_residency_requirements: Dict[str, str]
     created_at: datetime
     last_updated: datetime
-    
+
 @dataclass
 class RegionMetrics:
     """Regional performance and capacity metrics"""
@@ -76,7 +76,7 @@ class RegionMetrics:
     error_rate: float
     capacity_remaining: float
     cost_per_hour: float
-    
+
 @dataclass
 class ScalingEvent:
     """Auto-scaling event record"""
@@ -94,7 +94,7 @@ class ScalingEvent:
 
 class GlobalDeploymentEngine:
     """Enterprise global deployment and scaling engine"""
-    
+
     def __init__(self):
         self.deployments = {}
         self.region_metrics = {}
@@ -102,15 +102,15 @@ class GlobalDeploymentEngine:
         self.load_balancer_config = {}
         self.cdn_config = {}
         self.disaster_recovery_plan = {}
-        
+
         # Initialize global infrastructure
         self._initialize_global_infrastructure()
         self._initialize_scaling_policies()
         self._initialize_compliance_mappings()
-    
+
     def _initialize_global_infrastructure(self):
         """Initialize global infrastructure capabilities"""
-        
+
         self.region_capabilities = {
             DeploymentRegion.US_EAST: {
                 "max_instances": 1000,
@@ -134,7 +134,7 @@ class GlobalDeploymentEngine:
                 "enterprise_features": ["low_latency", "regional_compliance"]
             }
         }
-        
+
         self.global_features = {
             "intelligent_routing": True,
             "auto_failover": True,
@@ -145,10 +145,10 @@ class GlobalDeploymentEngine:
             "compliance_automation": True,
             "cost_optimization": True
         }
-    
+
     def _initialize_scaling_policies(self):
         """Initialize auto-scaling policies"""
-        
+
         self.scaling_policies = {
             ScalingPolicy.AGGRESSIVE: {
                 "cpu_scale_up_threshold": 60,
@@ -184,10 +184,10 @@ class GlobalDeploymentEngine:
                 "min_instances_per_region": 2
             }
         }
-    
+
     def _initialize_compliance_mappings(self):
         """Initialize compliance and data residency mappings"""
-        
+
         self.compliance_mappings = {
             "GDPR": {
                 "allowed_regions": [DeploymentRegion.EU_WEST, DeploymentRegion.EU_CENTRAL],
@@ -210,27 +210,27 @@ class GlobalDeploymentEngine:
                 "retention_limits": {"financial_data": 2555}  # 7 years
             }
         }
-    
-    async def create_global_deployment(self, 
+
+    async def create_global_deployment(self,
                                      organization_id: str,
                                      tier: DeploymentTier,
                                      regions: List[DeploymentRegion],
                                      compliance_requirements: List[str] = None) -> GlobalInfrastructure:
         """Create new global enterprise deployment"""
-        
+
         try:
             deployment_id = f"deploy_{uuid.uuid4().hex[:8]}"
-            
+
             # Validate compliance requirements
             if compliance_requirements:
                 validated_regions = await self._validate_compliance_regions(regions, compliance_requirements)
                 if not validated_regions:
                     raise ValueError("No regions satisfy all compliance requirements")
                 regions = validated_regions
-            
+
             # Select primary region based on requirements
             primary_region = await self._select_primary_region(regions, compliance_requirements)
-            
+
             # Create deployment configuration
             deployment = GlobalInfrastructure(
                 deployment_id=deployment_id,
@@ -249,60 +249,60 @@ class GlobalDeploymentEngine:
                 created_at=datetime.utcnow(),
                 last_updated=datetime.utcnow()
             )
-            
+
             # Initialize infrastructure in each region
             for region in regions:
                 await self._initialize_region_infrastructure(deployment_id, region, tier)
-            
+
             # Configure global load balancing
             await self._configure_global_load_balancer(deployment_id, regions, primary_region)
-            
+
             # Setup CDN if enabled
             if deployment.cdn_enabled:
                 await self._configure_global_cdn(deployment_id, regions)
-            
+
             # Initialize monitoring and alerting
             await self._setup_global_monitoring(deployment_id, regions)
-            
+
             # Store deployment
             self.deployments[deployment_id] = deployment
-            
+
             logger.info(f"Global deployment created: {deployment_id} across {len(regions)} regions")
-            
+
             return deployment
-            
+
         except Exception as e:
             logger.error(f"Error creating global deployment: {e}")
             raise
-    
-    async def _validate_compliance_regions(self, 
-                                         regions: List[DeploymentRegion], 
+
+    async def _validate_compliance_regions(self,
+                                         regions: List[DeploymentRegion],
                                          compliance_requirements: List[str]) -> List[DeploymentRegion]:
         """Validate regions meet compliance requirements"""
-        
+
         valid_regions = []
-        
+
         for region in regions:
             region_valid = True
-            
+
             for requirement in compliance_requirements:
                 if requirement in self.compliance_mappings:
                     allowed_regions = self.compliance_mappings[requirement]["allowed_regions"]
-                    
+
                     if allowed_regions != "all" and region not in allowed_regions:
                         region_valid = False
                         break
-            
+
             if region_valid:
                 valid_regions.append(region)
-        
+
         return valid_regions
-    
-    async def _select_primary_region(self, 
-                                   regions: List[DeploymentRegion], 
+
+    async def _select_primary_region(self,
+                                   regions: List[DeploymentRegion],
                                    compliance_requirements: List[str] = None) -> DeploymentRegion:
         """Select optimal primary region"""
-        
+
         # Priority: compliance requirements, then capabilities, then geographic distribution
         if compliance_requirements:
             for requirement in compliance_requirements:
@@ -314,7 +314,7 @@ class GlobalDeploymentEngine:
                     for region in [DeploymentRegion.US_EAST, DeploymentRegion.US_WEST]:
                         if region in regions:
                             return region
-        
+
         # Default to region with highest capabilities
         capability_scores = {}
         for region in regions:
@@ -327,20 +327,20 @@ class GlobalDeploymentEngine:
                     len(capabilities["enterprise_features"]) * 5
                 )
                 capability_scores[region] = score
-        
+
         if capability_scores:
             return max(capability_scores, key=capability_scores.get)
-        
+
         return regions[0]  # Fallback to first region
-    
+
     async def _get_data_residency_requirements(self, compliance_requirements: List[str] = None) -> Dict[str, str]:
         """Get data residency requirements based on compliance"""
-        
+
         requirements = {}
-        
+
         if not compliance_requirements:
             return requirements
-        
+
         for requirement in compliance_requirements:
             if requirement == "GDPR":
                 requirements["personal_data"] = "EU_ONLY"
@@ -351,18 +351,18 @@ class GlobalDeploymentEngine:
             elif requirement == "SOX":
                 requirements["financial_data"] = "US_ONLY"
                 requirements["audit_logs"] = "US_ONLY"
-        
+
         return requirements
-    
-    async def _initialize_region_infrastructure(self, 
-                                              deployment_id: str, 
-                                              region: DeploymentRegion, 
+
+    async def _initialize_region_infrastructure(self,
+                                              deployment_id: str,
+                                              region: DeploymentRegion,
                                               tier: DeploymentTier):
         """Initialize infrastructure in specific region"""
-        
+
         # Mock infrastructure initialization
         logger.info(f"Initializing infrastructure in {region.value} for deployment {deployment_id}")
-        
+
         # Determine initial capacity based on tier
         tier_capacity = {
             DeploymentTier.GLOBAL_ENTERPRISE: {"min_instances": 10, "max_instances": 200},
@@ -370,9 +370,9 @@ class GlobalDeploymentEngine:
             DeploymentTier.MULTI_REGION: {"min_instances": 3, "max_instances": 50},
             DeploymentTier.SINGLE_REGION: {"min_instances": 2, "max_instances": 20}
         }
-        
+
         capacity = tier_capacity.get(tier, tier_capacity[DeploymentTier.SINGLE_REGION])
-        
+
         # Initialize region metrics
         self.region_metrics[f"{deployment_id}_{region.value}"] = RegionMetrics(
             region=region,
@@ -387,13 +387,13 @@ class GlobalDeploymentEngine:
             capacity_remaining=80.0,
             cost_per_hour=capacity["min_instances"] * 2.5
         )
-    
-    async def _configure_global_load_balancer(self, 
-                                            deployment_id: str, 
-                                            regions: List[DeploymentRegion], 
+
+    async def _configure_global_load_balancer(self,
+                                            deployment_id: str,
+                                            regions: List[DeploymentRegion],
                                             primary_region: DeploymentRegion):
         """Configure global load balancing"""
-        
+
         self.load_balancer_config[deployment_id] = {
             "primary_region": primary_region,
             "backup_regions": [r for r in regions if r != primary_region],
@@ -404,12 +404,12 @@ class GlobalDeploymentEngine:
             "ssl_termination": True,
             "ddos_protection": True
         }
-        
+
         logger.info(f"Global load balancer configured for deployment {deployment_id}")
-    
+
     async def _configure_global_cdn(self, deployment_id: str, regions: List[DeploymentRegion]):
         """Configure global CDN"""
-        
+
         self.cdn_config[deployment_id] = {
             "edge_locations": len(regions) * 3,  # 3 edge locations per region
             "cache_ttl": 3600,  # 1 hour
@@ -424,12 +424,12 @@ class GlobalDeploymentEngine:
                 "/api/v1/real-time/*": {"ttl": 0, "compress": False}
             }
         }
-        
+
         logger.info(f"Global CDN configured for deployment {deployment_id}")
-    
+
     async def _setup_global_monitoring(self, deployment_id: str, regions: List[DeploymentRegion]):
         """Setup global monitoring and alerting"""
-        
+
         monitoring_config = {
             "metrics_collection_interval": 60,
             "log_aggregation": True,
@@ -449,46 +449,46 @@ class GlobalDeploymentEngine:
                 "compliance": True
             }
         }
-        
+
         logger.info(f"Global monitoring setup for deployment {deployment_id} across {len(regions)} regions")
-    
+
     async def perform_auto_scaling(self, deployment_id: str) -> List[ScalingEvent]:
         """Perform intelligent auto-scaling across regions"""
-        
+
         if deployment_id not in self.deployments:
             return []
-        
+
         deployment = self.deployments[deployment_id]
         scaling_events = []
-        
+
         # Get current scaling policy
         policy = self.scaling_policies[deployment.scaling_policy]
-        
+
         # Check each region for scaling needs
         for region in deployment.regions:
             metrics_key = f"{deployment_id}_{region.value}"
             if metrics_key not in self.region_metrics:
                 continue
-            
+
             metrics = self.region_metrics[metrics_key]
             events = await self._evaluate_scaling_needs(deployment_id, region, metrics, policy)
             scaling_events.extend(events)
-        
+
         # Store scaling events
         self.scaling_events.extend(scaling_events)
-        
+
         return scaling_events
-    
-    async def _evaluate_scaling_needs(self, 
-                                    deployment_id: str, 
-                                    region: DeploymentRegion, 
-                                    metrics: RegionMetrics, 
+
+    async def _evaluate_scaling_needs(self,
+                                    deployment_id: str,
+                                    region: DeploymentRegion,
+                                    metrics: RegionMetrics,
                                     policy: Dict[str, Any]) -> List[ScalingEvent]:
         """Evaluate scaling needs for specific region"""
-        
+
         events = []
         current_time = datetime.utcnow()
-        
+
         # Check CPU scaling
         if metrics.cpu_utilization > policy["cpu_scale_up_threshold"]:
             event = ScalingEvent(
@@ -505,10 +505,10 @@ class GlobalDeploymentEngine:
                 cost_impact=12.5      # Mock cost increase
             )
             events.append(event)
-            
+
             # Update metrics after scaling
             metrics.cpu_utilization *= 0.7  # Reduce utilization after scaling up
-            
+
         elif metrics.cpu_utilization < policy["cpu_scale_down_threshold"]:
             event = ScalingEvent(
                 event_id=f"scale_{uuid.uuid4().hex[:8]}",
@@ -524,10 +524,10 @@ class GlobalDeploymentEngine:
                 cost_impact=-7.5
             )
             events.append(event)
-            
+
             # Update metrics after scaling
             metrics.cpu_utilization *= 1.2  # Increase utilization after scaling down
-        
+
         # Check response time scaling
         if metrics.response_time_ms > policy["response_time_threshold_ms"]:
             event = ScalingEvent(
@@ -544,25 +544,25 @@ class GlobalDeploymentEngine:
                 cost_impact=15.0
             )
             events.append(event)
-            
+
             # Update metrics
             metrics.response_time_ms *= 0.6
-        
+
         return events
-    
+
     async def get_global_deployment_status(self, deployment_id: str) -> Dict[str, Any]:
         """Get comprehensive global deployment status"""
-        
+
         if deployment_id not in self.deployments:
             raise ValueError(f"Deployment {deployment_id} not found")
-        
+
         deployment = self.deployments[deployment_id]
-        
+
         # Collect regional metrics
         regional_status = {}
         total_capacity = 0
         total_cost = 0
-        
+
         for region in deployment.regions:
             metrics_key = f"{deployment_id}_{region.value}"
             if metrics_key in self.region_metrics:
@@ -578,18 +578,18 @@ class GlobalDeploymentEngine:
                 }
                 total_capacity += metrics.capacity_remaining
                 total_cost += metrics.cost_per_hour
-        
+
         # Get recent scaling events
         recent_events = [
             event for event in self.scaling_events[-50:]  # Last 50 events
             if event.timestamp > datetime.utcnow() - timedelta(hours=24)
         ]
-        
+
         # Calculate global metrics
         avg_cpu = sum(m.cpu_utilization for m in self.region_metrics.values()) / len(self.region_metrics) if self.region_metrics else 0
         avg_response_time = sum(m.response_time_ms for m in self.region_metrics.values()) / len(self.region_metrics) if self.region_metrics else 0
         total_rps = sum(m.requests_per_second for m in self.region_metrics.values())
-        
+
         return {
             "deployment": asdict(deployment),
             "global_metrics": {
@@ -607,53 +607,53 @@ class GlobalDeploymentEngine:
             "cdn": self.cdn_config.get(deployment_id, {}),
             "recent_scaling_events": [asdict(event) for event in recent_events],
             "compliance_status": {
-                framework: "compliant" 
+                framework: "compliant"
                 for framework in deployment.compliance_regions
             },
             "recommendations": await self._generate_optimization_recommendations(deployment_id)
         }
-    
+
     async def _generate_optimization_recommendations(self, deployment_id: str) -> List[str]:
         """Generate optimization recommendations for deployment"""
-        
+
         recommendations = []
-        
+
         if deployment_id not in self.deployments:
             return recommendations
-        
+
         deployment = self.deployments[deployment_id]
-        
+
         # Analyze metrics for recommendations
         total_cost = sum(
-            metrics.cost_per_hour 
-            for key, metrics in self.region_metrics.items() 
+            metrics.cost_per_hour
+            for key, metrics in self.region_metrics.items()
             if key.startswith(deployment_id)
         )
-        
+
         avg_utilization = sum(
-            metrics.cpu_utilization 
-            for key, metrics in self.region_metrics.items() 
+            metrics.cpu_utilization
+            for key, metrics in self.region_metrics.items()
             if key.startswith(deployment_id)
         ) / len([k for k in self.region_metrics.keys() if k.startswith(deployment_id)])
-        
+
         # Cost optimization
         if total_cost > 100:  # $100/hour threshold
             recommendations.append("Consider reserved instances to reduce costs by 30-60%")
-        
+
         # Performance optimization
         if avg_utilization < 30:
             recommendations.append("CPU utilization is low - consider rightsizing instances")
         elif avg_utilization > 80:
             recommendations.append("High CPU utilization detected - consider scaling up")
-        
+
         # Regional optimization
         if len(deployment.regions) > 3:
             recommendations.append("Consider consolidating regions to reduce complexity and costs")
-        
+
         # Security optimization
         if deployment.cdn_enabled:
             recommendations.append("Enable WAF on CDN for enhanced security")
-        
+
         return recommendations
 
 # Global deployment engine instance

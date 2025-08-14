@@ -15,12 +15,12 @@ listener "tcp" {
   tls_disable   = false
   tls_cert_file = "/vault/tls/vault.crt"
   tls_key_file  = "/vault/tls/vault.key"
-  
+
   # Security headers
   tls_min_version     = "tls12"
   tls_cipher_suites   = "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
   tls_prefer_server_cipher_suites = true
-  
+
   # Client certificate authentication (optional)
   tls_require_and_verify_client_cert = false
 }

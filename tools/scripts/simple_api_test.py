@@ -28,25 +28,25 @@ def test_basic_functionality():
     if not API_AVAILABLE:
         print("❌ API not available for testing")
         return False
-    
+
     print("\n🧪 Starting Basic XORB API Tests")
     print("=" * 50)
-    
+
     # Create test client
     client = httpx.Client(app=app, base_url="http://testserver")
-    
+
     # Generate test token
     token = authenticator.generate_jwt(
         user_id="test_user",
-        client_id="test_client", 
+        client_id="test_client",
         roles=[Role.ADMIN]
     )
-    
+
     headers = {"Authorization": f"Bearer {token}"}
-    
+
     tests_passed = 0
     total_tests = 0
-    
+
     # Test 1: Health Check
     total_tests += 1
     print(f"\n📋 Test 1: Health Check")
@@ -59,7 +59,7 @@ def test_basic_functionality():
             print(f"❌ Health check failed: {response.status_code}")
     except Exception as e:
         print(f"❌ Health check error: {e}")
-    
+
     # Test 2: List Agents
     total_tests += 1
     print(f"\n📋 Test 2: List Agents")
@@ -73,7 +73,7 @@ def test_basic_functionality():
             print(f"❌ List agents failed: {response.status_code}")
     except Exception as e:
         print(f"❌ List agents error: {e}")
-    
+
     # Test 3: Create Agent
     total_tests += 1
     print(f"\n📋 Test 3: Create Agent")
@@ -84,13 +84,13 @@ def test_basic_functionality():
             "capabilities": ["threat_intelligence", "log_analysis"],
             "description": "Test agent for validation"
         }
-        
+
         response = client.post("/v1/agents", headers=headers, json=agent_data)
         if response.status_code == 201:
             agent = response.json()
             print(f"✅ Agent created successfully: {agent.get('name')} ({agent.get('id')})")
             tests_passed += 1
-            
+
             # Test agent status
             agent_id = agent.get('id')
             if agent_id:
@@ -104,7 +104,7 @@ def test_basic_functionality():
             print(f"❌ Create agent failed: {response.status_code}")
     except Exception as e:
         print(f"❌ Create agent error: {e}")
-    
+
     # Test 4: List Tasks
     total_tests += 1
     print(f"\n📋 Test 4: List Tasks")
@@ -118,7 +118,7 @@ def test_basic_functionality():
             print(f"❌ List tasks failed: {response.status_code}")
     except Exception as e:
         print(f"❌ List tasks error: {e}")
-    
+
     # Test 5: Create Task
     total_tests += 1
     print(f"\n📋 Test 5: Create Task")
@@ -133,7 +133,7 @@ def test_basic_functionality():
             },
             "description": "Test task for validation"
         }
-        
+
         response = client.post("/v1/orchestration/tasks", headers=headers, json=task_data)
         if response.status_code == 201:
             task = response.json()
@@ -143,7 +143,7 @@ def test_basic_functionality():
             print(f"❌ Create task failed: {response.status_code}")
     except Exception as e:
         print(f"❌ Create task error: {e}")
-    
+
     # Test 6: Security Threats
     total_tests += 1
     print(f"\n📋 Test 6: List Security Threats")
@@ -157,7 +157,7 @@ def test_basic_functionality():
             print(f"❌ List threats failed: {response.status_code}")
     except Exception as e:
         print(f"❌ List threats error: {e}")
-    
+
     # Test 7: Security Metrics
     total_tests += 1
     print(f"\n📋 Test 7: Security Metrics")
@@ -171,7 +171,7 @@ def test_basic_functionality():
             print(f"❌ Security metrics failed: {response.status_code}")
     except Exception as e:
         print(f"❌ Security metrics error: {e}")
-    
+
     # Test 8: Intelligence Models
     total_tests += 1
     print(f"\n📋 Test 8: Intelligence Models")
@@ -185,7 +185,7 @@ def test_basic_functionality():
             print(f"❌ Intelligence models failed: {response.status_code}")
     except Exception as e:
         print(f"❌ Intelligence models error: {e}")
-    
+
     # Test 9: AI Decision Request
     total_tests += 1
     print(f"\n📋 Test 9: AI Decision Request")
@@ -201,7 +201,7 @@ def test_basic_functionality():
                 "urgency_level": "medium"
             }
         }
-        
+
         response = client.post("/v1/intelligence/decisions", headers=headers, json=decision_data)
         if response.status_code == 200:
             decision = response.json()
@@ -211,7 +211,7 @@ def test_basic_functionality():
             print(f"❌ AI decision failed: {response.status_code}")
     except Exception as e:
         print(f"❌ AI decision error: {e}")
-    
+
     # Test 10: API Documentation
     total_tests += 1
     print(f"\n📋 Test 10: API Documentation")
@@ -224,7 +224,7 @@ def test_basic_functionality():
             print(f"❌ API documentation failed: {response.status_code}")
     except Exception as e:
         print(f"❌ API documentation error: {e}")
-    
+
     # Generate Report
     print("\n" + "=" * 50)
     print("📊 TEST RESULTS SUMMARY")
@@ -233,12 +233,12 @@ def test_basic_functionality():
     print(f"Passed: {tests_passed} ✅")
     print(f"Failed: {total_tests - tests_passed} ❌")
     print(f"Success Rate: {(tests_passed/total_tests)*100:.1f}%")
-    
+
     if tests_passed == total_tests:
         print("\n🎉 ALL TESTS PASSED! XORB API is fully functional.")
         print("\n🚀 Key Features Validated:")
         print("  ✅ Health monitoring")
-        print("  ✅ Agent management")  
+        print("  ✅ Agent management")
         print("  ✅ Task orchestration")
         print("  ✅ Security operations")
         print("  ✅ Intelligence integration")
@@ -252,9 +252,9 @@ def main():
     """Main test execution"""
     print("🚀 XORB API Simple Test Suite")
     print("Testing core API functionality...")
-    
+
     success = test_basic_functionality()
-    
+
     if success:
         print("\n✅ XORB API is ready for deployment!")
         return 0

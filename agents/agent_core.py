@@ -34,7 +34,7 @@ class AgentCore:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = self._build_model().to(self.device)
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
-        
+
     def _build_model(self):
         # Using PyTorch for GPU-accelerated neural network
         class DQN(nn.Module):
@@ -43,14 +43,14 @@ class AgentCore:
                 self.fc1 = nn.Linear(state_size, 24)
                 self.fc2 = nn.Linear(24, 24)
                 self.fc3 = nn.Linear(24, action_size)
-                
+
             def forward(self, x):
                 x = torch.relu(self.fc1(x))
                 x = torch.relu(self.fc2(x))
                 return self.fc3(x)
-                
+
         return DQN(self.state_size, self.action_size)
-    
+
     def remember(self, state, action, reward, next_state, done):
         self.memory.append((state, action, reward, next_state, done))
         MEMORY_USAGE.set(len(self.memory))
@@ -59,46 +59,46 @@ class AgentCore:
         """Choose action based on state with epsilon-greedy policy"""
         if np.random.rand() <= self.epsilon:
             return random.randrange(self.action_size)
-            
+
         state_tensor = torch.FloatTensor(state).to(self.device)
         with torch.no_grad():
             q_values = self.model(state_tensor)
-            
+
         return q_values.argmax().item()
 
     def replay(self, batch_size):
         """Train the model using experience replay"""
         if len(self.memory) < batch_size:
             return
-            
+
         minibatch = random.sample(self.memory, batch_size)
         states, actions, rewards, next_states, dones = zip(*minibatch)
-        
+
         state_batch = torch.FloatTensor(np.array(states)).to(self.device)
         action_batch = torch.LongTensor(actions).unsqueeze(1).to(self.device)
         reward_batch = torch.FloatTensor(rewards).to(self.device)
         next_state_batch = torch.FloatTensor(np.array(next_states)).to(self.device)
         done_batch = torch.FloatTensor(dones).to(self.device)
-        
+
         # Current Q values
         current_q_values = self.model(state_batch).gather(1, action_batch)
-        
+
         # Next Q values from target model
         next_q_values = self.model(next_state_batch).max(1)[0].detach()
         expected_q_values = reward_batch + (1 - done_batch) * self.gamma * next_q_values
-        
+
         # Compute loss
         loss = nn.MSELoss()(current_q_values.squeeze(), expected_q_values)
-        
+
         # Optimize the model
         self.optimizer.zero_grad()
         loss.backward()
         self.optimizer.step()
-        
+
         # Update exploration rate
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
-            
+
         logger.info(f"Training loss: {loss.item():.4f}, Epsilon: {self.epsilon:.2f}")
 
     def save(self, path):
@@ -124,7 +124,7 @@ if __name__ == "__main__":
         state_size=10,
         action_size=5
     )
-    
+
     # Simulated environment interaction
     for episode in range(100):
         state = np.random.rand(10)  # Random state for demonstration
@@ -132,12 +132,12 @@ if __name__ == "__main__":
         next_state = np.random.rand(10)  # Simulated next state
         reward = 1 if action == 2 else -1  # Simple reward function
         done = False
-        
+
         agent.remember(state, action, reward, next_state, done)
-        
+
         if len(agent.memory) > 32:
             agent.replay(32)
-        
+
         print(f"Episode: {episode+1}, Epsilon: {agent.epsilon:.2f}")
 
 # Performance improvements:

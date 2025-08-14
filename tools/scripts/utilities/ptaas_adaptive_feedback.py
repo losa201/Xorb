@@ -51,7 +51,7 @@ app.add_middleware(
 
 class FeedbackType(Enum):
     PERFORMANCE_OPTIMIZATION = "performance_optimization"
-    STRATEGY_ADJUSTMENT = "strategy_adjustment" 
+    STRATEGY_ADJUSTMENT = "strategy_adjustment"
     THRESHOLD_TUNING = "threshold_tuning"
     RESOURCE_SCALING = "resource_scaling"
     PRIORITY_REBALANCING = "priority_rebalancing"
@@ -99,7 +99,7 @@ class PerformanceSnapshot:
 
 class MLOptimizer:
     """Machine learning optimizer for agent configuration tuning"""
-    
+
     def __init__(self):
         self.models = {}
         self.scalers = {}
@@ -111,16 +111,16 @@ class MLOptimizer:
         self.target_columns = [
             'accuracy_improvement', 'speed_improvement', 'resource_efficiency'
         ]
-        
+
         # Initialize models for each agent
         self.agent_ids = [
             "AGENT-WEB-SCANNER-001",
-            "AGENT-NETWORK-RECON-002", 
+            "AGENT-NETWORK-RECON-002",
             "AGENT-VULN-ASSESSMENT-003",
             "AGENT-EXPLOITATION-004",
             "AGENT-DB-TESTER-005"
         ]
-        
+
         for agent_id in self.agent_ids:
             self.models[agent_id] = RandomForestRegressor(
                 n_estimators=100,
@@ -128,53 +128,53 @@ class MLOptimizer:
                 random_state=42
             )
             self.scalers[agent_id] = StandardScaler()
-        
+
         self.training_data = defaultdict(list)
         self.is_trained = defaultdict(bool)
-    
-    def add_training_sample(self, agent_id: str, features: Dict[str, float], 
+
+    def add_training_sample(self, agent_id: str, features: Dict[str, float],
                           targets: Dict[str, float]):
         """Add training sample for agent optimization model"""
         if agent_id not in self.agent_ids:
             return
-        
+
         feature_vector = [features.get(col, 0.0) for col in self.feature_columns]
         target_vector = [targets.get(col, 0.0) for col in self.target_columns]
-        
+
         self.training_data[agent_id].append({
             'features': feature_vector,
             'targets': target_vector,
             'timestamp': datetime.now()
         })
-        
+
         # Retrain if we have enough samples
         if len(self.training_data[agent_id]) >= 50:
             asyncio.create_task(self._retrain_model(agent_id))
-    
+
     async def _retrain_model(self, agent_id: str):
         """Retrain optimization model for specific agent"""
         try:
             samples = self.training_data[agent_id]
             if len(samples) < 10:
                 return
-            
+
             # Prepare training data
             X = np.array([sample['features'] for sample in samples])
             y = np.array([sample['targets'] for sample in samples])
-            
+
             # Scale features
             X_scaled = self.scalers[agent_id].fit_transform(X)
-            
+
             # Train model
             self.models[agent_id].fit(X_scaled, y)
             self.is_trained[agent_id] = True
-            
+
             logger.info(f"Retrained optimization model for {agent_id} with {len(samples)} samples")
-            
+
         except Exception as e:
             logger.error(f"Error retraining model for {agent_id}: {e}")
-    
-    def predict_optimization(self, agent_id: str, current_config: Dict[str, float], 
+
+    def predict_optimization(self, agent_id: str, current_config: Dict[str, float],
                            proposed_changes: Dict[str, float]) -> Dict[str, float]:
         """Predict impact of configuration changes"""
         if agent_id not in self.models or not self.is_trained[agent_id]:
@@ -184,62 +184,62 @@ class MLOptimizer:
                 'speed_improvement': 0.02,
                 'resource_efficiency': 0.03
             }
-        
+
         try:
             # Create feature vector with proposed changes
             modified_config = current_config.copy()
             modified_config.update(proposed_changes)
-            
+
             feature_vector = np.array([[modified_config.get(col, 0.0) for col in self.feature_columns]])
             feature_vector_scaled = self.scalers[agent_id].transform(feature_vector)
-            
+
             # Predict improvements
             predictions = self.models[agent_id].predict(feature_vector_scaled)[0]
-            
+
             return {
                 target: max(0.0, pred) for target, pred in zip(self.target_columns, predictions)
             }
-            
+
         except Exception as e:
             logger.error(f"Error predicting optimization for {agent_id}: {e}")
             return {'accuracy_improvement': 0.0, 'speed_improvement': 0.0, 'resource_efficiency': 0.0}
 
 class AdaptiveFeedbackEngine:
     """Core adaptive feedback engine for PTaaS agent optimization"""
-    
+
     def __init__(self):
         # Connections
         self.redis_client = None
         self.kafka_producer = None
         self.kafka_consumer = None
-        
+
         # Components
         self.ml_optimizer = MLOptimizer()
-        
+
         # State tracking
         self.agent_configurations: Dict[str, AgentConfiguration] = {}
         self.performance_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
         self.active_feedback_actions: Dict[str, FeedbackAction] = {}
         self.optimization_queue = asyncio.Queue(maxsize=1000)
-        
+
         # Circuit breakers
         self.circuit_breakers = {
             'kafka': circuit_breaker.CircuitBreaker(failure_threshold=5, recovery_timeout=60),
             'redis': circuit_breaker.CircuitBreaker(failure_threshold=3, recovery_timeout=30),
             'ptaas_api': circuit_breaker.CircuitBreaker(failure_threshold=10, recovery_timeout=120)
         }
-        
+
         # Metrics
         self.metrics_registry = CollectorRegistry()
         self._setup_metrics()
-        
+
         # Background tasks
         self.worker_tasks = []
         self.is_running = False
-        
+
         # Initialize agent configurations
         self._initialize_agent_configurations()
-    
+
     def _setup_metrics(self):
         """Setup Prometheus metrics for feedback system"""
         self.feedback_actions_counter = Counter(
@@ -248,35 +248,35 @@ class AdaptiveFeedbackEngine:
             ['feedback_type', 'agent_id', 'optimization_goal'],
             registry=self.metrics_registry
         )
-        
+
         self.optimization_latency = Histogram(
             'ptaas_optimization_latency_seconds',
             'Time taken for optimization decisions',
             ['agent_id'],
             registry=self.metrics_registry
         )
-        
+
         self.performance_improvement = Gauge(
             'ptaas_performance_improvement',
             'Measured performance improvement after optimization',
             ['agent_id', 'metric_type'],
             registry=self.metrics_registry
         )
-        
+
         self.configuration_changes = Counter(
             'ptaas_configuration_changes_total',
             'Total configuration changes applied',
             ['agent_id', 'parameter_type'],
             registry=self.metrics_registry
         )
-        
+
         self.feedback_effectiveness = Gauge(
             'ptaas_feedback_effectiveness',
             'Effectiveness score of feedback actions',
             ['agent_id', 'feedback_type'],
             registry=self.metrics_registry
         )
-    
+
     def _initialize_agent_configurations(self):
         """Initialize default configurations for all PTaaS agents"""
         default_configs = {
@@ -334,7 +334,7 @@ class AdaptiveFeedbackEngine:
                 "boolean_based_detection": True
             }
         }
-        
+
         for agent_id, config in default_configs.items():
             self.agent_configurations[agent_id] = AgentConfiguration(
                 agent_id=agent_id,
@@ -353,7 +353,7 @@ class AdaptiveFeedbackEngine:
                 },
                 last_updated=datetime.now()
             )
-    
+
     async def initialize(self):
         """Initialize all connections and components"""
         try:
@@ -365,14 +365,14 @@ class AdaptiveFeedbackEngine:
             )
             await self.redis_client.ping()
             logger.info("Redis connection established for adaptive feedback")
-            
+
             # Kafka connections
             self.kafka_producer = aiokafka.AIOKafkaProducer(
                 bootstrap_servers='localhost:9092',
                 value_serializer=lambda x: json.dumps(x, default=str).encode()
             )
             await self.kafka_producer.start()
-            
+
             self.kafka_consumer = aiokafka.AIOKafkaConsumer(
                 'ptaas-performance-metrics',
                 'ptaas-learning-insights',
@@ -380,20 +380,20 @@ class AdaptiveFeedbackEngine:
                 value_deserializer=lambda x: json.loads(x.decode())
             )
             await self.kafka_consumer.start()
-            
+
             logger.info("Kafka connections established for adaptive feedback")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize adaptive feedback system: {e}")
             raise
-    
+
     async def start_feedback_engine(self):
         """Start the adaptive feedback engine with worker tasks"""
         if self.is_running:
             return
-        
+
         self.is_running = True
-        
+
         # Start worker tasks
         self.worker_tasks = [
             asyncio.create_task(self._performance_monitoring_worker()),
@@ -402,42 +402,42 @@ class AdaptiveFeedbackEngine:
             asyncio.create_task(self._kafka_consumer_worker()),
             asyncio.create_task(self._performance_analysis_worker())
         ]
-        
+
         logger.info("Adaptive feedback engine started with 5 worker tasks")
-    
+
     async def stop_feedback_engine(self):
         """Stop the adaptive feedback engine gracefully"""
         self.is_running = False
-        
+
         # Cancel worker tasks
         for task in self.worker_tasks:
             task.cancel()
-        
+
         # Wait for tasks to complete
         await asyncio.gather(*self.worker_tasks, return_exceptions=True)
-        
+
         logger.info("Adaptive feedback engine stopped gracefully")
-    
+
     async def _performance_monitoring_worker(self):
         """Worker task for monitoring agent performance"""
         logger.info("Starting performance monitoring worker")
-        
+
         while self.is_running:
             try:
                 # Collect performance data for all agents
                 for agent_id in self.agent_configurations.keys():
                     await self._collect_agent_performance(agent_id)
-                
+
                 await asyncio.sleep(30)  # Monitor every 30 seconds
-                
+
             except Exception as e:
                 logger.error(f"Error in performance monitoring worker: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _optimization_worker(self):
         """Worker task for processing optimization requests"""
         logger.info("Starting optimization worker")
-        
+
         while self.is_running:
             try:
                 # Get optimization request from queue
@@ -445,20 +445,20 @@ class AdaptiveFeedbackEngine:
                     self.optimization_queue.get(),
                     timeout=5.0
                 )
-                
+
                 # Process optimization
                 await self._process_optimization_request(optimization_request)
-                
+
             except asyncio.TimeoutError:
                 continue
             except Exception as e:
                 logger.error(f"Error in optimization worker: {e}")
                 await asyncio.sleep(5)
-    
+
     async def _feedback_application_worker(self):
         """Worker task for applying feedback actions"""
         logger.info("Starting feedback application worker")
-        
+
         while self.is_running:
             try:
                 # Check for pending feedback actions
@@ -466,61 +466,61 @@ class AdaptiveFeedbackEngine:
                     action for action in self.active_feedback_actions.values()
                     if action.applied_at is None
                 ]
-                
+
                 # Sort by priority and apply highest priority actions
                 pending_actions.sort(key=lambda x: x.priority, reverse=True)
-                
+
                 for action in pending_actions[:5]:  # Process up to 5 actions per cycle
                     await self._apply_feedback_action(action)
-                
+
                 await asyncio.sleep(10)  # Apply feedback every 10 seconds
-                
+
             except Exception as e:
                 logger.error(f"Error in feedback application worker: {e}")
                 await asyncio.sleep(30)
-    
+
     async def _kafka_consumer_worker(self):
         """Worker task for consuming Kafka messages"""
         logger.info("Starting Kafka consumer worker for adaptive feedback")
-        
+
         try:
             async for message in self.kafka_consumer:
                 try:
                     topic = message.topic
                     data = message.value
-                    
+
                     if topic == 'ptaas-performance-metrics':
                         await self._handle_performance_metric(data)
                     elif topic == 'ptaas-learning-insights':
                         await self._handle_learning_insight(data)
-                        
+
                 except Exception as e:
                     logger.error(f"Error processing Kafka message: {e}")
                     continue
-                    
+
         except Exception as e:
             logger.error(f"Kafka consumer error in adaptive feedback: {e}")
             # Implement exponential backoff retry
             await asyncio.sleep(10)
             if self.is_running:
                 await self._kafka_consumer_worker()
-    
+
     async def _performance_analysis_worker(self):
         """Worker task for analyzing performance trends and generating insights"""
         logger.info("Starting performance analysis worker")
-        
+
         while self.is_running:
             try:
                 # Analyze performance trends for each agent
                 for agent_id in self.agent_configurations.keys():
                     await self._analyze_agent_performance_trends(agent_id)
-                
+
                 await asyncio.sleep(300)  # Analyze every 5 minutes
-                
+
             except Exception as e:
                 logger.error(f"Error in performance analysis worker: {e}")
                 await asyncio.sleep(300)
-    
+
     async def _collect_agent_performance(self, agent_id: str):
         """Collect current performance metrics for an agent"""
         try:
@@ -529,7 +529,7 @@ class AdaptiveFeedbackEngine:
                 async with session.get(f"http://localhost:8084/api/v1/agents/{agent_id}/performance") as response:
                     if response.status == 200:
                         performance_data = await response.json()
-                        
+
                         # Create performance snapshot
                         snapshot = PerformanceSnapshot(
                             agent_id=agent_id,
@@ -539,30 +539,30 @@ class AdaptiveFeedbackEngine:
                             test_context=performance_data.get('context', {}),
                             outcomes=performance_data.get('outcomes', {})
                         )
-                        
+
                         # Add to history
                         self.performance_history[agent_id].append(snapshot)
-                        
+
                         # Store in Redis for learning engine
                         await self._store_performance_data(snapshot)
-                        
+
         except Exception as e:
             logger.error(f"Error collecting performance for {agent_id}: {e}")
-    
+
     def _get_config_hash(self, agent_id: str) -> str:
         """Generate hash of current agent configuration"""
         if agent_id not in self.agent_configurations:
             return ""
-        
+
         config = self.agent_configurations[agent_id]
         config_str = json.dumps(config.parameters, sort_keys=True)
         return hashlib.md5(config_str.encode()).hexdigest()
-    
+
     async def _store_performance_data(self, snapshot: PerformanceSnapshot):
         """Store performance snapshot in Redis"""
         if not self.redis_client:
             return
-        
+
         try:
             data = {
                 'agent_id': snapshot.agent_id,
@@ -572,23 +572,23 @@ class AdaptiveFeedbackEngine:
                 'test_context': snapshot.test_context,
                 'outcomes': snapshot.outcomes
             }
-            
+
             await self.redis_client.lpush(
                 f'ptaas:performance:{snapshot.agent_id}',
                 json.dumps(data)
             )
             await self.redis_client.expire(f'ptaas:performance:{snapshot.agent_id}', 86400)  # 24 hours
-            
+
         except Exception as e:
             logger.error(f"Error storing performance data: {e}")
-    
+
     async def _handle_performance_metric(self, data: Dict[str, Any]):
         """Handle incoming performance metric from Kafka"""
         try:
             agent_id = data.get('agent_id')
             if not agent_id or agent_id not in self.agent_configurations:
                 return
-            
+
             # Create performance snapshot from metric data
             snapshot = PerformanceSnapshot(
                 agent_id=agent_id,
@@ -598,10 +598,10 @@ class AdaptiveFeedbackEngine:
                 test_context=data.get('context', {}),
                 outcomes=data.get('outcomes', {})
             )
-            
+
             # Add to history
             self.performance_history[agent_id].append(snapshot)
-            
+
             # Check if optimization is needed
             if await self._should_optimize_agent(agent_id, snapshot):
                 await self.optimization_queue.put({
@@ -610,103 +610,103 @@ class AdaptiveFeedbackEngine:
                     'snapshot': snapshot,
                     'timestamp': datetime.now()
                 })
-                
+
         except Exception as e:
             logger.error(f"Error handling performance metric: {e}")
-    
+
     async def _handle_learning_insight(self, data: Dict[str, Any]):
         """Handle learning insight from the learning engine"""
         try:
             insight_type = data.get('insight_type')
             agent_id = data.get('agent_id')
-            
+
             if not agent_id or agent_id not in self.agent_configurations:
                 return
-            
+
             # Generate feedback action based on insight
             feedback_action = await self._generate_feedback_from_insight(data)
-            
+
             if feedback_action:
                 self.active_feedback_actions[feedback_action.action_id] = feedback_action
-                
+
                 # Update metrics
                 self.feedback_actions_counter.labels(
                     feedback_type=feedback_action.feedback_type.value,
                     agent_id=agent_id,
                     optimization_goal=feedback_action.optimization_goal.value
                 ).inc()
-                
+
         except Exception as e:
             logger.error(f"Error handling learning insight: {e}")
-    
+
     async def _should_optimize_agent(self, agent_id: str, snapshot: PerformanceSnapshot) -> bool:
         """Determine if agent needs optimization based on performance"""
         if len(self.performance_history[agent_id]) < 5:
             return False  # Need sufficient history
-        
+
         config = self.agent_configurations[agent_id]
         current_metrics = snapshot.metrics
-        
+
         # Check if performance is below targets
         performance_issues = []
-        
+
         if current_metrics.get('success_rate', 1.0) < config.performance_targets['success_rate']:
             performance_issues.append('low_success_rate')
-        
+
         if current_metrics.get('false_positive_rate', 0.0) > config.performance_targets['false_positive_rate']:
             performance_issues.append('high_false_positive_rate')
-        
+
         if current_metrics.get('avg_detection_time', 0.0) > config.performance_targets['avg_detection_time']:
             performance_issues.append('slow_detection')
-        
+
         # Check for performance degradation trend
         recent_snapshots = list(self.performance_history[agent_id])[-5:]
         if len(recent_snapshots) >= 3:
             success_rates = [s.metrics.get('success_rate', 0.0) for s in recent_snapshots]
             if len(success_rates) >= 3 and all(success_rates[i] >= success_rates[i+1] for i in range(len(success_rates)-1)):
                 performance_issues.append('declining_performance')
-        
+
         return len(performance_issues) > 0
-    
+
     async def _process_optimization_request(self, request: Dict[str, Any]):
         """Process optimization request and generate feedback actions"""
         start_time = time.time()
-        
+
         try:
             agent_id = request['agent_id']
             optimization_type = request['type']
-            
+
             # Generate optimization recommendations
             feedback_actions = await self._generate_optimization_feedback(request)
-            
+
             # Store feedback actions
             for action in feedback_actions:
                 self.active_feedback_actions[action.action_id] = action
-            
+
             # Record processing latency
             self.optimization_latency.labels(agent_id=agent_id).observe(
                 time.time() - start_time
             )
-            
+
             logger.info(f"Generated {len(feedback_actions)} optimization actions for {agent_id}")
-            
+
         except Exception as e:
             logger.error(f"Error processing optimization request: {e}")
-    
+
     async def _generate_optimization_feedback(self, request: Dict[str, Any]) -> List[FeedbackAction]:
         """Generate optimization feedback actions based on request"""
         agent_id = request['agent_id']
         snapshot = request.get('snapshot')
-        
+
         if not snapshot or agent_id not in self.agent_configurations:
             return []
-        
+
         actions = []
         current_config = self.agent_configurations[agent_id]
         current_metrics = snapshot.metrics
-        
+
         # Generate different types of optimization actions
-        
+
         # 1. Threshold tuning for false positive reduction
         if current_metrics.get('false_positive_rate', 0.0) > 0.2:
             actions.append(FeedbackAction(
@@ -722,7 +722,7 @@ class AdaptiveFeedbackEngine:
                 priority=0.85,
                 created_at=datetime.now()
             ))
-        
+
         # 2. Performance optimization for slow agents
         if current_metrics.get('avg_detection_time', 0.0) > current_config.performance_targets['avg_detection_time']:
             actions.append(FeedbackAction(
@@ -739,7 +739,7 @@ class AdaptiveFeedbackEngine:
                 priority=0.7,
                 created_at=datetime.now()
             ))
-        
+
         # 3. Resource scaling based on utilization
         resource_utilization = current_metrics.get('resource_utilization', 0.5)
         if resource_utilization < 0.3:  # Under-utilized
@@ -772,16 +772,16 @@ class AdaptiveFeedbackEngine:
                 priority=0.75,
                 created_at=datetime.now()
             ))
-        
+
         return actions
-    
+
     async def _generate_feedback_from_insight(self, insight_data: Dict[str, Any]) -> Optional[FeedbackAction]:
         """Generate feedback action from learning engine insight"""
         try:
             insight_type = insight_data.get('insight_type')
             agent_id = insight_data.get('agent_id')
             confidence = insight_data.get('confidence', 0.5)
-            
+
             if insight_type == 'strategy_optimization':
                 return FeedbackAction(
                     action_id=str(uuid.uuid4()),
@@ -794,7 +794,7 @@ class AdaptiveFeedbackEngine:
                     priority=confidence * 0.9,
                     created_at=datetime.now()
                 )
-            
+
             elif insight_type == 'performance_degradation':
                 return FeedbackAction(
                     action_id=str(uuid.uuid4()),
@@ -810,37 +810,37 @@ class AdaptiveFeedbackEngine:
                     priority=0.95,  # High priority for error correction
                     created_at=datetime.now()
                 )
-            
+
             return None
-            
+
         except Exception as e:
             logger.error(f"Error generating feedback from insight: {e}")
             return None
-    
+
     @circuit_breaker.circuit
     async def _apply_feedback_action(self, action: FeedbackAction):
         """Apply feedback action to target agent"""
         try:
             agent_id = action.target_agent
-            
+
             if agent_id not in self.agent_configurations:
                 logger.warning(f"Unknown agent ID in feedback action: {agent_id}")
                 return
-            
+
             # Store rollback data
             current_config = self.agent_configurations[agent_id]
             action.rollback_data = {
                 'previous_parameters': current_config.parameters.copy(),
                 'previous_version': current_config.config_version
             }
-            
+
             # Apply parameter changes
             updated_parameters = current_config.parameters.copy()
             updated_parameters.update(action.parameters)
-            
+
             # Update configuration
             new_version = f"{current_config.config_version.split('.')[0]}.{int(current_config.config_version.split('.')[1]) + 1}.0"
-            
+
             self.agent_configurations[agent_id] = AgentConfiguration(
                 agent_id=agent_id,
                 config_version=new_version,
@@ -850,25 +850,25 @@ class AdaptiveFeedbackEngine:
                 last_updated=datetime.now(),
                 applied_optimizations=current_config.applied_optimizations + [action.action_id]
             )
-            
+
             # Send configuration update to PTaaS agent
             await self._send_config_update(agent_id, updated_parameters)
-            
+
             # Mark action as applied
             action.applied_at = datetime.now()
-            
+
             # Update metrics
             for param_name in action.parameters.keys():
                 self.configuration_changes.labels(
                     agent_id=agent_id,
                     parameter_type=param_name
                 ).inc()
-            
+
             logger.info(f"Applied feedback action {action.action_id} to agent {agent_id}")
-            
+
         except Exception as e:
             logger.error(f"Error applying feedback action: {e}")
-    
+
     @circuit_breaker.circuit
     async def _send_config_update(self, agent_id: str, parameters: Dict[str, Any]):
         """Send configuration update to PTaaS agent"""
@@ -881,30 +881,30 @@ class AdaptiveFeedbackEngine:
                     'timestamp': datetime.now().isoformat(),
                     'source': 'adaptive_feedback_engine'
                 }
-                
+
                 await self.kafka_producer.send(
                     'ptaas-agent-configs',
                     value=update_message
                 )
-                
+
                 logger.info(f"Sent configuration update to agent {agent_id}")
-                
+
         except Exception as e:
             logger.error(f"Error sending config update to {agent_id}: {e}")
-    
+
     async def _analyze_agent_performance_trends(self, agent_id: str):
         """Analyze performance trends and generate ML training data"""
         try:
             if len(self.performance_history[agent_id]) < 10:
                 return  # Need sufficient history
-            
+
             snapshots = list(self.performance_history[agent_id])[-20:]  # Last 20 snapshots
-            
+
             # Calculate performance improvements/degradations
             for i in range(1, len(snapshots)):
                 prev_snapshot = snapshots[i-1]
                 curr_snapshot = snapshots[i]
-                
+
                 # Extract features
                 features = {
                     'success_rate': curr_snapshot.metrics.get('success_rate', 0.0),
@@ -918,29 +918,29 @@ class AdaptiveFeedbackEngine:
                     'retry_count': curr_snapshot.test_context.get('retry_count', 2),
                     'confidence_threshold': curr_snapshot.test_context.get('confidence_threshold', 0.7)
                 }
-                
+
                 # Calculate improvements
                 targets = {
                     'accuracy_improvement': (
-                        curr_snapshot.metrics.get('success_rate', 0.0) - 
+                        curr_snapshot.metrics.get('success_rate', 0.0) -
                         prev_snapshot.metrics.get('success_rate', 0.0)
                     ),
                     'speed_improvement': (
-                        prev_snapshot.metrics.get('avg_detection_time', 0.0) - 
+                        prev_snapshot.metrics.get('avg_detection_time', 0.0) -
                         curr_snapshot.metrics.get('avg_detection_time', 0.0)
                     ) / max(1, prev_snapshot.metrics.get('avg_detection_time', 1.0)),
                     'resource_efficiency': (
-                        prev_snapshot.metrics.get('resource_utilization', 0.0) - 
+                        prev_snapshot.metrics.get('resource_utilization', 0.0) -
                         curr_snapshot.metrics.get('resource_utilization', 0.0)
                     )
                 }
-                
+
                 # Add training sample
                 self.ml_optimizer.add_training_sample(agent_id, features, targets)
-            
+
         except Exception as e:
             logger.error(f"Error analyzing performance trends for {agent_id}: {e}")
-    
+
     async def get_feedback_system_status(self) -> Dict[str, Any]:
         """Get comprehensive status of the adaptive feedback system"""
         return {
@@ -994,7 +994,7 @@ async def shutdown_event():
 async def health_check():
     """Comprehensive health check for adaptive feedback system"""
     status = await feedback_engine.get_feedback_system_status()
-    
+
     return {
         "status": "healthy" if status['system_status']['is_running'] else "unhealthy",
         "service": "ptaas_adaptive_feedback",
@@ -1012,7 +1012,7 @@ async def get_feedback_status():
 async def get_agent_configurations():
     """Get current configurations for all agents"""
     return {
-        agent_id: asdict(config) 
+        agent_id: asdict(config)
         for agent_id, config in feedback_engine.agent_configurations.items()
     }
 
@@ -1021,7 +1021,7 @@ async def get_agent_configuration(agent_id: str):
     """Get current configuration for specific agent"""
     if agent_id not in feedback_engine.agent_configurations:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     return asdict(feedback_engine.agent_configurations[agent_id])
 
 @app.get("/api/v1/feedback/actions")
@@ -1039,9 +1039,9 @@ async def get_agent_performance_history(agent_id: str):
     """Get performance history for specific agent"""
     if agent_id not in feedback_engine.performance_history:
         raise HTTPException(status_code=404, detail="Agent performance history not found")
-    
+
     history = list(feedback_engine.performance_history[agent_id])[-50:]  # Last 50 snapshots
-    
+
     return {
         "agent_id": agent_id,
         "performance_history": [
@@ -1062,12 +1062,12 @@ async def trigger_agent_optimization(agent_id: str, optimization_goal: str):
     """Manually trigger optimization for specific agent"""
     if agent_id not in feedback_engine.agent_configurations:
         raise HTTPException(status_code=404, detail="Agent not found")
-    
+
     try:
         goal = OptimizationGoal(optimization_goal)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid optimization goal")
-    
+
     # Add optimization request to queue
     optimization_request = {
         'type': 'manual_optimization',
@@ -1076,7 +1076,7 @@ async def trigger_agent_optimization(agent_id: str, optimization_goal: str):
         'timestamp': datetime.now(),
         'triggered_by': 'api_request'
     }
-    
+
     try:
         feedback_engine.optimization_queue.put_nowait(optimization_request)
         return {
@@ -1092,7 +1092,7 @@ async def trigger_agent_optimization(agent_id: str, optimization_goal: str):
 async def feedback_websocket(websocket: WebSocket):
     """Real-time WebSocket endpoint for feedback system updates"""
     await websocket.accept()
-    
+
     try:
         while True:
             status = await feedback_engine.get_feedback_system_status()
@@ -1101,9 +1101,9 @@ async def feedback_websocket(websocket: WebSocket):
                 "data": status,
                 "timestamp": datetime.now().isoformat()
             })
-            
+
             await asyncio.sleep(10)  # Send updates every 10 seconds
-            
+
     except Exception as e:
         logger.error(f"WebSocket error: {e}")
     finally:

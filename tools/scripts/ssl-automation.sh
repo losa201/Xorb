@@ -158,7 +158,7 @@ for client in "${CLIENT_NAMES[@]}"; do
     if [ ! -f "$PRIVATE_DIR/${client}-key.pem" ]; then
         # Generate client private key
         openssl genrsa -out "$PRIVATE_DIR/${client}-key.pem" 2048
-        
+
         # Generate client CSR
         cat > "$SSL_DIR/${client}.conf" << EOF
 [req]
@@ -173,15 +173,15 @@ O = XORB Cybersecurity Platform
 OU = Client Authentication
 CN = $client
 EOF
-        
+
         openssl req -new -key "$PRIVATE_DIR/${client}-key.pem" \
             -out "$CSR_DIR/${client}.csr" -config "$SSL_DIR/${client}.conf"
-        
+
         # Sign client certificate
         openssl x509 -req -in "$CSR_DIR/${client}.csr" \
             -CA "$CERTS_DIR/ca-cert.pem" -CAkey "$PRIVATE_DIR/ca-key.pem" \
             -CAcreateserial -out "$CERTS_DIR/${client}-cert.pem" -days 365
-        
+
         log_info "Client certificate generated for: $client"
     else
         log_info "Client certificate already exists for: $client"
@@ -224,7 +224,7 @@ add_header Referrer-Policy "strict-origin-when-cross-origin";
 # ssl_verify_depth 2;
 EOF
 
-# Create Apache SSL configuration template  
+# Create Apache SSL configuration template
 cat > "$SSL_DIR/apache/ssl.conf" << EOF
 # XORB SSL/TLS Configuration for Apache
 SSLEngine on
@@ -290,29 +290,29 @@ http {
     upstream api_backend {
         server host.docker.internal:8000;
     }
-    
+
     upstream orchestrator_backend {
         server host.docker.internal:8080;
     }
-    
+
     upstream worker_backend {
         server host.docker.internal:9000;
     }
-    
+
     # Redirect HTTP to HTTPS
     server {
         listen 80;
         server_name _;
         return 301 https://\$server_name\$request_uri;
     }
-    
+
     # Main HTTPS server
     server {
         listen 443 ssl http2;
         server_name $DOMAIN_NAME;
-        
+
         include /etc/ssl/ssl.conf;
-        
+
         # API routes
         location /api/ {
             proxy_pass http://api_backend/;
@@ -321,7 +321,7 @@ http {
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto \$scheme;
         }
-        
+
         # Orchestrator routes
         location /orchestrator/ {
             proxy_pass http://orchestrator_backend/;
@@ -330,7 +330,7 @@ http {
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto \$scheme;
         }
-        
+
         # Worker routes
         location /worker/ {
             proxy_pass http://worker_backend/;
@@ -339,7 +339,7 @@ http {
             proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto \$scheme;
         }
-        
+
         # Default route to API docs
         location / {
             proxy_pass http://api_backend/;

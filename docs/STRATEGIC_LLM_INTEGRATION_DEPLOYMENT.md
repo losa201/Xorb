@@ -185,7 +185,7 @@ curl -X POST http://localhost:8001/intelligence/fusion \
 ### Request Controls
 
 - **Daily Requests**: 100 (configurable)
-- **Monthly Requests**: 2000 (configurable) 
+- **Monthly Requests**: 2000 (configurable)
 - **Hourly Rate Limit**: 20 requests/hour (configurable)
 - **Emergency Allowance**: 150 requests (break-glass scenarios)
 - **Cost**: $0.00 (100% Free!)

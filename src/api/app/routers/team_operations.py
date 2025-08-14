@@ -147,7 +147,7 @@ async def create_security_scenario(
 ):
     """
     Create a new security scenario for team operations
-    
+
     Creates a comprehensive security scenario that can be used for
     red team, blue team, or purple team exercises.
     """
@@ -169,17 +169,17 @@ async def create_security_scenario(
             "required_skills": request.required_skills,
             "created_by": str(tenant_id)
         }
-        
+
         # Create scenario using framework
         scenario_id = await create_red_team_scenario(scenario_data)
-        
+
         # Get created scenario for response
         scenario = framework.security_scenarios[scenario_id]
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("scenario_created", 1)
-        
+
         # Add tracing context
         add_trace_context(
             operation="scenario_created",
@@ -187,9 +187,9 @@ async def create_security_scenario(
             tenant_id=str(tenant_id),
             operation_type=request.operation_type
         )
-        
+
         logger.info(f"Created security scenario {scenario_id} for tenant {tenant_id}")
-        
+
         return ScenarioResponse(
             scenario_id=scenario_id,
             name=scenario.name,
@@ -199,7 +199,7 @@ async def create_security_scenario(
             estimated_duration=str(scenario.estimated_duration),
             created_at=scenario.created_at.isoformat()
         )
-        
+
     except ValueError as e:
         logger.error(f"Invalid scenario request: {e}")
         raise HTTPException(status_code=400, detail=str(e))
@@ -215,7 +215,7 @@ async def create_operation_plan(
 ):
     """
     Create a comprehensive operation plan based on a security scenario
-    
+
     Generates an ML-optimized operation plan with team assignments,
     resource allocation, and tactical coordination.
     """
@@ -223,26 +223,26 @@ async def create_operation_plan(
         # Validate scenario exists
         if request.scenario_id not in framework.security_scenarios:
             raise HTTPException(status_code=404, detail="Scenario not found")
-        
+
         # Create operation plan with customizations
         plan_id = await framework.create_operation_plan(
-            request.scenario_id, 
+            request.scenario_id,
             request.customizations
         )
-        
+
         # Get created plan for response
         plan = framework.operation_plans[plan_id]
         scenario = framework.security_scenarios[request.scenario_id]
-        
+
         # Count ML optimizations
         ml_optimizations = len(plan.ml_integration_points)
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("operation_plan_created", 1)
-        
+
         logger.info(f"Created operation plan {plan_id} for scenario {request.scenario_id}")
-        
+
         return OperationPlanResponse(
             plan_id=plan_id,
             scenario_id=request.scenario_id,
@@ -253,7 +253,7 @@ async def create_operation_plan(
             ml_optimizations=ml_optimizations,
             created_at=datetime.now().isoformat()
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -268,7 +268,7 @@ async def make_tactical_decision(
 ):
     """
     Make an ML-powered tactical decision
-    
+
     Uses advanced machine learning to recommend optimal tactical actions
     based on current context and operational requirements.
     """
@@ -278,7 +278,7 @@ async def make_tactical_decision(
             decision_type = TacticalDecisionType(request.decision_type)
         except ValueError:
             raise HTTPException(status_code=400, detail=f"Invalid decision type: {request.decision_type}")
-        
+
         # Add tenant context to decision context
         enhanced_context = request.context.copy()
         enhanced_context.update({
@@ -287,14 +287,14 @@ async def make_tactical_decision(
             "constraints": request.constraints,
             "timestamp": datetime.now().isoformat()
         })
-        
+
         # Make tactical decision
         decision = await coordinator.make_tactical_decision(enhanced_context, decision_type)
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("tactical_decision_made", 1)
-        
+
         # Add tracing context
         add_trace_context(
             operation="tactical_decision",
@@ -302,9 +302,9 @@ async def make_tactical_decision(
             decision_type=request.decision_type,
             confidence=decision.confidence_score
         )
-        
+
         logger.info(f"Made tactical decision {decision.decision_id} with confidence {decision.confidence_score:.3f}")
-        
+
         return TacticalDecisionResponse(
             decision_id=decision.decision_id,
             recommended_action=decision.recommended_action,
@@ -315,7 +315,7 @@ async def make_tactical_decision(
             success_probability=decision.success_probability,
             implementation_steps=decision.implementation_steps
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -330,7 +330,7 @@ async def create_adaptive_strategy(
 ):
     """
     Create an ML-optimized adaptive strategy
-    
+
     Generates adaptive strategies that evolve based on adversary behavior
     and operational effectiveness.
     """
@@ -341,7 +341,7 @@ async def create_adaptive_strategy(
             tactical_context = TacticalContext(request.tactical_context)
         except ValueError as e:
             raise HTTPException(status_code=400, detail=f"Invalid parameter: {e}")
-        
+
         # Create base strategy from request
         base_strategy = {
             "objectives": request.base_objectives,
@@ -350,7 +350,7 @@ async def create_adaptive_strategy(
             "created_by": str(tenant_id),
             "created_at": datetime.now().isoformat()
         }
-        
+
         # Create adaptive strategy
         strategy_id = await coordinator.create_adaptive_strategy(
             request.team_role,
@@ -358,16 +358,16 @@ async def create_adaptive_strategy(
             tactical_context,
             base_strategy
         )
-        
+
         # Get created strategy for response
         strategy = coordinator.active_strategies[strategy_id]
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("adaptive_strategy_created", 1)
-        
+
         logger.info(f"Created adaptive strategy {strategy_id} for {request.team_role}")
-        
+
         return {
             "strategy_id": strategy_id,
             "team_role": strategy.team_role,
@@ -377,7 +377,7 @@ async def create_adaptive_strategy(
             "adaptive_modifications": len(strategy.adaptive_modifications),
             "created_at": strategy.last_updated.isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -393,7 +393,7 @@ async def execute_operation(
 ):
     """
     Execute a planned team operation
-    
+
     Starts real-time execution of a team operation with ML-powered
     monitoring and adaptive coordination.
     """
@@ -401,20 +401,20 @@ async def execute_operation(
         # Validate plan exists
         if request.plan_id not in framework.operation_plans:
             raise HTTPException(status_code=404, detail="Operation plan not found")
-        
+
         # Execute operation
         execution_id = await framework.execute_operation(request.plan_id)
-        
+
         # Wait a moment for execution to initialize
         await asyncio.sleep(1)
-        
+
         # Get initial status
         status = await framework.get_operation_status(execution_id)
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("operation_executed", 1)
-        
+
         # Add tracing context
         add_trace_context(
             operation="operation_execution",
@@ -422,9 +422,9 @@ async def execute_operation(
             plan_id=request.plan_id,
             monitoring_level=request.monitoring_level
         )
-        
+
         logger.info(f"Started operation execution {execution_id} for plan {request.plan_id}")
-        
+
         return OperationStatusResponse(
             execution_id=execution_id,
             plan_id=request.plan_id,
@@ -435,7 +435,7 @@ async def execute_operation(
             ml_predictions=status.get("ml_predictions", {}),
             adaptive_adjustments=status.get("adaptive_adjustments", 0)
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -450,21 +450,21 @@ async def get_operation_status(
 ):
     """
     Get real-time status of an executing operation
-    
+
     Returns comprehensive status including progress, team coordination,
     ML predictions, and adaptive adjustments.
     """
     try:
         # Get operation status
         status = await framework.get_operation_status(execution_id)
-        
+
         if "error" in status:
             raise HTTPException(status_code=404, detail=status["error"])
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("operation_status_checked", 1)
-        
+
         return OperationStatusResponse(
             execution_id=execution_id,
             plan_id=status["plan_id"],
@@ -475,7 +475,7 @@ async def get_operation_status(
             ml_predictions=status.get("ml_predictions", {}),
             adaptive_adjustments=status.get("adaptive_adjustments", 0)
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -493,20 +493,20 @@ async def list_scenarios(
 ):
     """
     List available security scenarios
-    
+
     Returns a paginated list of security scenarios, optionally filtered
     by operation type and threat level.
     """
     try:
         scenarios = []
-        
+
         for scenario_id, scenario in framework.security_scenarios.items():
             # Apply filters
             if operation_type and scenario.operation_type.value != operation_type:
                 continue
             if threat_level and scenario.threat_level.value != threat_level:
                 continue
-            
+
             scenarios.append({
                 "scenario_id": scenario_id,
                 "name": scenario.name,
@@ -518,15 +518,15 @@ async def list_scenarios(
                 "required_skills": scenario.required_skills,
                 "created_at": scenario.created_at.isoformat()
             })
-        
+
         # Apply pagination
         total_scenarios = len(scenarios)
         scenarios = scenarios[offset:offset + limit]
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("scenarios_listed", 1)
-        
+
         return {
             "scenarios": scenarios,
             "total": total_scenarios,
@@ -534,7 +534,7 @@ async def list_scenarios(
             "offset": offset,
             "has_more": offset + limit < total_scenarios
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to list scenarios: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -548,26 +548,26 @@ async def get_team_performance(
 ):
     """
     Get comprehensive team performance analysis
-    
+
     Returns detailed performance metrics, trends, and ML-powered insights
     for team operations within the specified timeframe.
     """
     try:
         # Get performance analysis
         analysis = await framework.get_team_performance_analysis(timeframe_days)
-        
+
         if "error" in analysis:
             raise HTTPException(status_code=500, detail=analysis["error"])
-        
+
         # Filter by team role if specified
         if team_role and team_role in analysis.get("team_analysis", {}):
             filtered_analysis = analysis["team_analysis"][team_role]
             analysis["team_analysis"] = {team_role: filtered_analysis}
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("team_performance_analyzed", 1)
-        
+
         return TeamPerformanceResponse(
             timeframe_days=analysis["timeframe_days"],
             team_analysis=analysis["team_analysis"],
@@ -575,7 +575,7 @@ async def get_team_performance(
             ml_insights=analysis.get("ml_insights", {}),
             recommendations=analysis["recommendations"]
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -589,20 +589,20 @@ async def get_tactical_intelligence(
 ):
     """
     Get comprehensive tactical intelligence summary
-    
+
     Returns ML model performance, decision analytics, strategy effectiveness,
     and actionable intelligence insights.
     """
     try:
         # Get tactical intelligence summary
         intelligence = await coordinator.get_tactical_intelligence_summary()
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("tactical_intelligence_retrieved", 1)
-        
+
         return intelligence
-        
+
     except Exception as e:
         logger.error(f"Failed to get tactical intelligence: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -614,20 +614,20 @@ async def get_framework_analytics(
 ):
     """
     Get comprehensive framework analytics
-    
+
     Returns overall framework status, team distribution, operation metrics,
     and performance insights.
     """
     try:
         # Get framework analytics
         analytics = await framework.get_framework_analytics()
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("framework_analytics_retrieved", 1)
-        
+
         return analytics
-        
+
     except Exception as e:
         logger.error(f"Failed to get framework analytics: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
@@ -640,7 +640,7 @@ async def cancel_operation(
 ):
     """
     Cancel an active operation
-    
+
     Safely cancels an executing operation and performs cleanup.
     """
     try:
@@ -648,22 +648,22 @@ async def cancel_operation(
         status = await framework.get_operation_status(execution_id)
         if "error" in status:
             raise HTTPException(status_code=404, detail="Operation not found")
-        
+
         # Cancel operation (implementation would be in framework)
         # For now, return success message
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_api_request("operation_cancelled", 1)
-        
+
         logger.info(f"Cancelled operation {execution_id}")
-        
+
         return {
             "message": "Operation cancelled successfully",
             "execution_id": execution_id,
             "cancelled_at": datetime.now().isoformat()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -677,17 +677,17 @@ async def get_team_operations_health(
 ):
     """
     Get team operations service health
-    
+
     Returns health information for the team operations framework
     and ML tactical coordinator.
     """
     try:
         # Get framework analytics
         framework_analytics = await framework.get_framework_analytics()
-        
+
         # Get ML coordinator summary
         ml_summary = await coordinator.get_tactical_intelligence_summary()
-        
+
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
@@ -700,7 +700,7 @@ async def get_team_operations_health(
                 "operation_execution": "operational"
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Team operations health check failed: {e}")
         return {

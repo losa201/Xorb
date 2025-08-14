@@ -22,11 +22,11 @@ class SecretMatch:
     secret_type: str
     severity: str
     rule_name: str
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             "file": self.file_path,
-            "line": self.line_number, 
+            "line": self.line_number,
             "content": self.line_content[:100] + "..." if len(self.line_content) > 100 else self.line_content,
             "type": self.secret_type,
             "severity": self.severity,
@@ -36,7 +36,7 @@ class SecretMatch:
 
 class SecretScanner:
     """Scans for hardcoded secrets in source code"""
-    
+
     def __init__(self):
         self.patterns = self._load_patterns()
         self.excluded_paths = {
@@ -44,7 +44,7 @@ class SecretScanner:
             "venv/", ".venv/", "dist/", "build/", ".next/",
             "*.pyc", "*.pyo", "*.so", "*.dylib", "*.dll"
         }
-        
+
     def _load_patterns(self) -> List[Dict[str, Any]]:
         """Load secret detection patterns"""
         return [
@@ -57,7 +57,7 @@ class SecretScanner:
             {
                 "name": "API Key",
                 "pattern": r'(?i)(api[_-]?key|apikey)\s*[=:]\s*["\']([A-Za-z0-9_\-]{20,})["\']',
-                "type": "api_key", 
+                "type": "api_key",
                 "severity": "high"
             },
             {
@@ -97,23 +97,23 @@ class SecretScanner:
                 "severity": "high"
             }
         ]
-        
+
     def scan_file(self, file_path: Path) -> List[SecretMatch]:
         """Scan a single file for secrets"""
         matches = []
-        
+
         try:
             with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
                 for line_num, line in enumerate(f, 1):
                     for pattern_def in self.patterns:
                         pattern = pattern_def["pattern"]
                         matches_found = re.finditer(pattern, line)
-                        
+
                         for match in matches_found:
                             # Skip if it looks like a template or example
                             if self._is_template_value(match.group()):
                                 continue
-                                
+
                             secret_match = SecretMatch(
                                 file_path=str(file_path),
                                 line_number=line_num,
@@ -123,12 +123,12 @@ class SecretScanner:
                                 rule_name=pattern_def["name"]
                             )
                             matches.append(secret_match)
-                            
+
         except Exception as e:
             print(f"Error scanning {file_path}: {e}")
-            
+
         return matches
-        
+
     def _is_template_value(self, value: str) -> bool:
         """Check if value appears to be a template/placeholder"""
         template_indicators = [
@@ -136,31 +136,31 @@ class SecretScanner:
             "xxx", "yyy", "zzz", "abc", "123", "placeholder",
             "template", "sample", "demo", "test"
         ]
-        
+
         value_lower = value.lower()
         return any(indicator in value_lower for indicator in template_indicators)
-        
+
     def scan_directory(self, directory: Path) -> List[SecretMatch]:
         """Scan directory recursively for secrets"""
         all_matches = []
-        
+
         for file_path in directory.rglob("*"):
             if not file_path.is_file():
                 continue
-                
+
             # Skip excluded paths
             if any(excluded in str(file_path) for excluded in self.excluded_paths):
                 continue
-                
+
             # Skip binary files
             if self._is_binary_file(file_path):
                 continue
-                
+
             matches = self.scan_file(file_path)
             all_matches.extend(matches)
-            
+
         return all_matches
-        
+
     def _is_binary_file(self, file_path: Path) -> bool:
         """Check if file is binary"""
         try:
@@ -169,7 +169,7 @@ class SecretScanner:
                 return b'\0' in chunk
         except:
             return True
-            
+
     def generate_report(self, matches: List[SecretMatch]) -> Dict[str, Any]:
         """Generate a summary report"""
         if not matches:
@@ -178,31 +178,31 @@ class SecretScanner:
                 "total_secrets": 0,
                 "message": "No hardcoded secrets detected"
             }
-            
+
         # Group by severity
         by_severity = {}
         by_type = {}
         by_file = {}
-        
+
         for match in matches:
             # By severity
             if match.severity not in by_severity:
                 by_severity[match.severity] = []
             by_severity[match.severity].append(match)
-            
+
             # By type
             if match.secret_type not in by_type:
                 by_type[match.secret_type] = []
             by_type[match.secret_type].append(match)
-            
+
             # By file
             if match.file_path not in by_file:
                 by_file[match.file_path] = []
             by_file[match.file_path].append(match)
-            
+
         critical_count = len(by_severity.get("critical", []))
         high_count = len(by_severity.get("high", []))
-        
+
         return {
             "status": "secrets_detected",
             "total_secrets": len(matches),
@@ -222,27 +222,27 @@ def main():
     parser.add_argument("--output", "-o", help="Output file for report")
     parser.add_argument("--format", choices=["json", "text"], default="text", help="Output format")
     parser.add_argument("--severity", choices=["critical", "high", "medium"], help="Minimum severity")
-    
+
     args = parser.parse_args()
-    
+
     scanner = SecretScanner()
     scan_path = Path(args.path)
-    
+
     print(f"🔍 Scanning for secrets in: {scan_path}")
-    
+
     if scan_path.is_file():
         matches = scanner.scan_file(scan_path)
     else:
         matches = scanner.scan_directory(scan_path)
-        
+
     # Filter by severity if specified
     if args.severity:
         severity_levels = {"medium": 1, "high": 2, "critical": 3}
         min_level = severity_levels[args.severity]
         matches = [m for m in matches if severity_levels.get(m.severity, 0) >= min_level]
-    
+
     report = scanner.generate_report(matches)
-    
+
     if args.format == "json":
         output = json.dumps(report, indent=2)
     else:
@@ -259,23 +259,23 @@ def main():
                 "",
                 "Detected secrets:"
             ]
-            
+
             for secret in report["secrets"]:
                 lines.append(f"  📄 {secret['file']}:{secret['line']}")
                 lines.append(f"     Type: {secret['type']} | Severity: {secret['severity']}")
                 lines.append(f"     Rule: {secret['rule']}")
                 lines.append(f"     Content: {secret['content']}")
                 lines.append("")
-                
+
         output = "\n".join(lines)
-    
+
     if args.output:
         with open(args.output, 'w') as f:
             f.write(output)
         print(f"Report saved to: {args.output}")
     else:
         print(output)
-        
+
     # Exit with error code if secrets found
     exit_code = min(report.get("critical_count", 0) + report.get("high_count", 0), 1)
     exit(exit_code)

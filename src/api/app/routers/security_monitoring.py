@@ -30,7 +30,7 @@ router = APIRouter(prefix="/api/v1/security", tags=["Security Monitoring"])
 class SecurityDashboardResponse(BaseModel):
     """Security monitoring dashboard data"""
     model_config = {"protected_namespaces": ()}
-    
+
     summary: Dict[str, Any]
     event_types: Dict[str, int]
     threat_levels: Dict[str, int]
@@ -42,7 +42,7 @@ class SecurityDashboardResponse(BaseModel):
 class ThreatIntelligenceUpdate(BaseModel):
     """Threat intelligence update request"""
     model_config = {"protected_namespaces": ()}
-    
+
     indicators: List[Dict[str, Any]] = Field(..., description="List of threat indicators")
     source: str = Field(..., description="Source of the intelligence")
     confidence: float = Field(ge=0, le=1, description="Confidence level")
@@ -50,7 +50,7 @@ class ThreatIntelligenceUpdate(BaseModel):
 class SecurityEventQuery(BaseModel):
     """Security event query parameters"""
     model_config = {"protected_namespaces": ()}
-    
+
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     event_types: Optional[List[str]] = None
@@ -61,7 +61,7 @@ class SecurityEventQuery(BaseModel):
 class IncidentResponse(BaseModel):
     """Incident response configuration"""
     model_config = {"protected_namespaces": ()}
-    
+
     incident_id: str
     severity: str
     status: str  # open, investigating, resolved, closed
@@ -79,7 +79,7 @@ async def get_security_dashboard(
 ):
     """
     Get comprehensive security monitoring dashboard data
-    
+
     Returns real-time security metrics including:
     - Event counts and trends
     - Threat level distribution
@@ -87,13 +87,13 @@ async def get_security_dashboard(
     - Recent critical security events
     - Threat intelligence statistics
     """
-    
+
     try:
         monitor = await get_security_monitor()
         dashboard_data = await monitor.get_security_dashboard_data()
-        
+
         return SecurityDashboardResponse(**dashboard_data)
-        
+
     except Exception as e:
         logger.error(f"Failed to get security dashboard: {e}")
         raise HTTPException(
@@ -113,26 +113,26 @@ async def get_security_events(
 ):
     """
     Query security events with advanced filtering options
-    
+
     Supports filtering by:
     - Time range
     - Event type (login_attempt, scan_detected, brute_force, etc.)
     - Threat level (critical, high, medium, low)
     - Source IP address
     """
-    
+
     try:
         monitor = await get_security_monitor()
-        
+
         # Filter events based on query parameters
         events = list(monitor.events_buffer)
-        
+
         # Apply time filters
         if start_time:
             events = [e for e in events if e.timestamp >= start_time]
         if end_time:
             events = [e for e in events if e.timestamp <= end_time]
-        
+
         # Apply other filters
         if event_type:
             events = [e for e in events if e.event_type.value == event_type]
@@ -140,10 +140,10 @@ async def get_security_events(
             events = [e for e in events if e.threat_level.value == threat_level]
         if source_ip:
             events = [e for e in events if e.source_ip == source_ip]
-        
+
         # Limit results
         events = events[-limit:]
-        
+
         return {
             "events": [event.to_dict() for event in events],
             "total_count": len(events),
@@ -157,7 +157,7 @@ async def get_security_events(
             },
             "timestamp": datetime.utcnow()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to query security events: {e}")
         raise HTTPException(
@@ -172,19 +172,19 @@ async def update_threat_intelligence(
 ):
     """
     Update threat intelligence database with new indicators
-    
+
     Accepts threat indicators including:
     - IP addresses
     - Domain names
     - File hashes
     - URLs
-    
+
     Each indicator includes confidence level and source attribution.
     """
-    
+
     try:
         monitor = await get_security_monitor()
-        
+
         # Validate indicators
         valid_indicators = []
         for indicator in update_request.indicators:
@@ -193,17 +193,17 @@ async def update_threat_intelligence(
                 indicator['source'] = update_request.source
                 indicator['confidence'] = update_request.confidence
                 valid_indicators.append(indicator)
-        
+
         if not valid_indicators:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="No valid indicators provided"
             )
-        
+
         await monitor.update_threat_intelligence(valid_indicators)
-        
+
         logger.info(f"Updated threat intelligence with {len(valid_indicators)} indicators from {update_request.source}")
-        
+
         return {
             "status": "success",
             "message": f"Updated {len(valid_indicators)} threat indicators",
@@ -211,7 +211,7 @@ async def update_threat_intelligence(
             "indicators_processed": len(valid_indicators),
             "timestamp": datetime.utcnow()
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -231,16 +231,16 @@ async def get_threat_intelligence(
 ):
     """
     Retrieve threat intelligence indicators
-    
+
     Returns current threat intelligence database with filtering options.
     """
-    
+
     try:
         monitor = await get_security_monitor()
-        
+
         # Get all threat intelligence
         all_intel = list(monitor.threat_intelligence.values())
-        
+
         # Apply filters
         if indicator_type:
             all_intel = [intel for intel in all_intel if intel.indicator_type == indicator_type]
@@ -248,10 +248,10 @@ async def get_threat_intelligence(
             all_intel = [intel for intel in all_intel if intel.threat_level.value == threat_level]
         if source:
             all_intel = [intel for intel in all_intel if intel.source == source]
-        
+
         # Limit results
         limited_intel = all_intel[-limit:]
-        
+
         return {
             "indicators": [
                 {
@@ -276,7 +276,7 @@ async def get_threat_intelligence(
             },
             "timestamp": datetime.utcnow()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to get threat intelligence: {e}")
         raise HTTPException(
@@ -291,22 +291,22 @@ async def analyze_request_endpoint(
 ):
     """
     Analyze a specific request for security threats
-    
+
     Performs real-time threat analysis including:
     - Attack pattern detection
     - Threat intelligence correlation
     - Anomaly detection
     - Behavioral analysis
     """
-    
+
     try:
         # Analyze the request
         security_event = await analyze_request_security(request_data)
-        
+
         if security_event:
             # Log the security event
             await log_security_event(security_event)
-            
+
             return {
                 "threat_detected": True,
                 "security_event": security_event.to_dict(),
@@ -319,7 +319,7 @@ async def analyze_request_endpoint(
                 "message": "No security threats detected",
                 "timestamp": datetime.utcnow()
             }
-            
+
     except Exception as e:
         logger.error(f"Failed to analyze request: {e}")
         raise HTTPException(
@@ -335,20 +335,20 @@ async def get_security_statistics(
     """
     Get comprehensive security statistics and trends
     """
-    
+
     try:
         monitor = await get_security_monitor()
-        
+
         # Calculate time range
         end_time = datetime.utcnow()
         start_time = end_time - timedelta(days=days)
-        
+
         # Filter events for time range
         period_events = [
             e for e in monitor.events_buffer
             if start_time <= e.timestamp <= end_time
         ]
-        
+
         # Calculate statistics
         stats = {
             "period": {
@@ -368,16 +368,16 @@ async def get_security_statistics(
             "top_targeted_endpoints": {},
             "daily_trend": {}
         }
-        
+
         # Calculate breakdowns
         from collections import defaultdict
-        
+
         threat_counts = defaultdict(int)
         event_type_counts = defaultdict(int)
         ip_counts = defaultdict(int)
         target_counts = defaultdict(int)
         daily_counts = defaultdict(int)
-        
+
         for event in period_events:
             threat_counts[event.threat_level.value] += 1
             event_type_counts[event.event_type.value] += 1
@@ -385,15 +385,15 @@ async def get_security_statistics(
             target_counts[event.target] += 1
             day_key = event.timestamp.strftime('%Y-%m-%d')
             daily_counts[day_key] += 1
-        
+
         stats["threat_breakdown"] = dict(threat_counts)
         stats["event_type_breakdown"] = dict(event_type_counts)
         stats["top_attacking_ips"] = dict(sorted(ip_counts.items(), key=lambda x: x[1], reverse=True)[:10])
         stats["top_targeted_endpoints"] = dict(sorted(target_counts.items(), key=lambda x: x[1], reverse=True)[:10])
         stats["daily_trend"] = dict(daily_counts)
-        
+
         return stats
-        
+
     except Exception as e:
         logger.error(f"Failed to get security statistics: {e}")
         raise HTTPException(
@@ -409,7 +409,7 @@ async def create_security_incident(
     """
     Create a new security incident for tracking and response
     """
-    
+
     try:
         # In a real implementation, this would store in database
         incident_data = {
@@ -418,16 +418,16 @@ async def create_security_incident(
             "created_by": getattr(current_user, 'user_id', 'unknown'),
             "last_updated": datetime.utcnow()
         }
-        
+
         logger.info(f"Security incident created: {incident.incident_id}")
-        
+
         return {
             "status": "success",
             "message": "Security incident created successfully",
             "incident": incident_data,
             "timestamp": datetime.utcnow()
         }
-        
+
     except Exception as e:
         logger.error(f"Failed to create security incident: {e}")
         raise HTTPException(
@@ -439,7 +439,7 @@ async def create_security_incident(
 
 def _get_threat_recommendations(security_event: SecurityEvent) -> List[str]:
     """Get recommendations based on security event type"""
-    
+
     recommendations = {
         EventType.SQL_INJECTION: [
             "Implement parameterized queries",
@@ -472,7 +472,7 @@ def _get_threat_recommendations(security_event: SecurityEvent) -> List[str]:
             "Review backup integrity"
         ]
     }
-    
+
     return recommendations.get(security_event.event_type, [
         "Monitor for additional suspicious activity",
         "Review security logs",

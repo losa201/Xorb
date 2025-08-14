@@ -77,7 +77,7 @@ class ThreatPrediction:
     risk_factors: Dict[str, float]
     created_at: datetime
     expires_at: datetime
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization"""
         data = asdict(self)
@@ -104,7 +104,7 @@ class AttackPattern:
 
 class AdvancedAIThreatPredictor:
     """Advanced AI-powered threat prediction and analysis engine"""
-    
+
     def __init__(self):
         self.models = {}
         self.feature_scalers = {}
@@ -113,22 +113,22 @@ class AdvancedAIThreatPredictor:
         self.threat_predictions = deque(maxlen=1000)
         self.training_data = []
         self.model_performance = {}
-        
+
         # Initialize models if ML is available
         if ML_AVAILABLE:
             self._initialize_ml_models()
         else:
             logger.warning("ML libraries not available, using fallback prediction algorithms")
-        
+
         # Initialize threat intelligence patterns
         self._initialize_attack_patterns()
         self._initialize_mitre_mappings()
-    
+
     def _initialize_ml_models(self):
         """Initialize machine learning models"""
         if not ML_AVAILABLE:
             return
-        
+
         try:
             # Anomaly detection model
             self.models['anomaly_detector'] = IsolationForest(
@@ -136,14 +136,14 @@ class AdvancedAIThreatPredictor:
                 random_state=42,
                 n_estimators=100
             )
-            
+
             # Attack classification model
             self.models['attack_classifier'] = RandomForestClassifier(
                 n_estimators=200,
                 max_depth=10,
                 random_state=42
             )
-            
+
             # Threat prediction model
             self.models['threat_predictor'] = GradientBoostingClassifier(
                 n_estimators=150,
@@ -151,24 +151,24 @@ class AdvancedAIThreatPredictor:
                 max_depth=8,
                 random_state=42
             )
-            
+
             # Clustering for attack pattern discovery
             self.models['pattern_clusterer'] = DBSCAN(
                 eps=0.5,
                 min_samples=3
             )
-            
+
             # Feature scalers
             self.feature_scalers['standard'] = StandardScaler()
-            
+
             # Label encoders
             self.label_encoders['attack_type'] = LabelEncoder()
-            
+
             logger.info("✅ AI threat prediction models initialized successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize ML models: {e}")
-    
+
     def _initialize_attack_patterns(self):
         """Initialize known attack patterns and signatures"""
         self.attack_signatures = {
@@ -218,7 +218,7 @@ class AdvancedAIThreatPredictor:
                 'mitre_techniques': ['T1595', 'T1590']
             }
         }
-    
+
     def _initialize_mitre_mappings(self):
         """Initialize MITRE ATT&CK technique mappings"""
         self.mitre_mappings = {
@@ -233,118 +233,118 @@ class AdvancedAIThreatPredictor:
             'T1071': 'Application Layer Protocol',
             'T1105': 'Ingress Tool Transfer'
         }
-    
-    async def predict_threats(self, 
-                            historical_events: List[Dict[str, Any]], 
+
+    async def predict_threats(self,
+                            historical_events: List[Dict[str, Any]],
                             current_context: Dict[str, Any]) -> List[ThreatPrediction]:
         """Generate AI-powered threat predictions"""
-        
+
         try:
             predictions = []
-            
+
             # Analyze attack patterns
             attack_patterns = await self._detect_attack_patterns(historical_events)
-            
+
             # Predict attack vectors
             for pattern in attack_patterns:
                 prediction = await self._generate_threat_prediction(pattern, current_context)
                 if prediction:
                     predictions.append(prediction)
-            
+
             # ML-based predictions if available
             if ML_AVAILABLE and len(historical_events) > 50:
                 ml_predictions = await self._ml_threat_prediction(historical_events, current_context)
                 predictions.extend(ml_predictions)
-            
+
             # Fallback rule-based predictions
             if not predictions or not ML_AVAILABLE:
                 fallback_predictions = await self._rule_based_prediction(historical_events, current_context)
                 predictions.extend(fallback_predictions)
-            
+
             # Store predictions
             for pred in predictions:
                 self.threat_predictions.append(pred)
-            
+
             # Sort by threat level and confidence
             predictions.sort(key=lambda x: (
                 self._threat_level_priority(x.threat_level),
                 self._confidence_score(x.confidence)
             ), reverse=True)
-            
+
             return predictions[:10]  # Return top 10 predictions
-            
+
         except Exception as e:
             logger.error(f"Error in threat prediction: {e}")
             return []
-    
+
     async def _detect_attack_patterns(self, events: List[Dict[str, Any]]) -> List[AttackPattern]:
         """Detect attack patterns in historical events"""
-        
+
         patterns = []
-        
+
         try:
             # Group events by time windows
             time_windows = self._create_time_windows(events, window_size=300)  # 5-minute windows
-            
+
             for window_start, window_events in time_windows.items():
                 if len(window_events) < 3:  # Need minimum events for pattern
                     continue
-                
+
                 # Analyze patterns within time window
                 pattern = await self._analyze_event_cluster(window_events, window_start)
                 if pattern:
                     patterns.append(pattern)
-            
+
             # Cross-window pattern analysis
             cross_patterns = await self._analyze_cross_window_patterns(time_windows)
             patterns.extend(cross_patterns)
-            
+
             return patterns
-            
+
         except Exception as e:
             logger.error(f"Error detecting attack patterns: {e}")
             return []
-    
+
     async def _analyze_event_cluster(self, events: List[Dict[str, Any]], window_start: datetime) -> Optional[AttackPattern]:
         """Analyze cluster of events for attack patterns"""
-        
+
         try:
             # Extract features
             source_ips = [e.get('source_ip', '') for e in events]
             targets = [e.get('target', '') for e in events]
             payloads = [e.get('payload', '') for e in events]
             user_agents = [e.get('user_agent', '') for e in events]
-            
+
             # Check for attack signatures
             detected_attacks = []
             confidence_scores = []
-            
+
             combined_payload = ' '.join(payloads)
             combined_ua = ' '.join(user_agents)
             combined_targets = ' '.join(targets)
-            
+
             for attack_type, signature in self.attack_signatures.items():
                 for pattern in signature['patterns']:
                     if re.search(pattern, combined_payload + ' ' + combined_targets + ' ' + combined_ua):
                         detected_attacks.append(attack_type)
                         confidence_scores.append(signature['weight'])
                         break
-            
+
             if not detected_attacks:
                 return None
-            
+
             # Calculate overall confidence
             avg_confidence = sum(confidence_scores) / len(confidence_scores)
-            
+
             # Determine pattern severity
             severity = "high" if avg_confidence > 0.8 else "medium" if avg_confidence > 0.6 else "low"
-            
+
             # Get MITRE techniques
             mitre_techniques = []
             for attack in detected_attacks:
                 if attack in self.attack_signatures:
                     mitre_techniques.extend(self.attack_signatures[attack]['mitre_techniques'])
-            
+
             pattern = AttackPattern(
                 pattern_id=f"pattern_{hashlib.md5(str(window_start).encode()).hexdigest()[:8]}",
                 pattern_name=f"Multi-vector attack: {', '.join(detected_attacks)}",
@@ -357,37 +357,37 @@ class AdvancedAIThreatPredictor:
                 mitre_techniques=list(set(mitre_techniques)),
                 severity=severity
             )
-            
+
             return pattern
-            
+
         except Exception as e:
             logger.error(f"Error analyzing event cluster: {e}")
             return None
-    
-    async def _generate_threat_prediction(self, 
-                                        pattern: AttackPattern, 
+
+    async def _generate_threat_prediction(self,
+                                        pattern: AttackPattern,
                                         context: Dict[str, Any]) -> Optional[ThreatPrediction]:
         """Generate threat prediction based on detected pattern"""
-        
+
         try:
             # Determine attack vector based on pattern
             attack_vector = self._map_pattern_to_vector(pattern)
-            
+
             # Calculate threat level
             threat_level = self._calculate_threat_level(pattern, context)
-            
+
             # Determine confidence
             confidence = self._map_confidence_score(pattern.confidence)
-            
+
             # Generate countermeasures
             countermeasures = self._generate_countermeasures(pattern, attack_vector)
-            
+
             # Calculate risk factors
             risk_factors = self._calculate_risk_factors(pattern, context)
-            
+
             # Predict timeframe
             timeframe = self._predict_attack_timeframe(pattern, threat_level)
-            
+
             prediction = ThreatPrediction(
                 prediction_id=f"pred_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}_{hash(pattern.pattern_id) % 1000:03d}",
                 attack_vector=attack_vector,
@@ -409,53 +409,53 @@ class AdvancedAIThreatPredictor:
                 created_at=datetime.utcnow(),
                 expires_at=datetime.utcnow() + timedelta(hours=24)
             )
-            
+
             return prediction
-            
+
         except Exception as e:
             logger.error(f"Error generating threat prediction: {e}")
             return None
-    
-    async def _ml_threat_prediction(self, 
-                                  events: List[Dict[str, Any]], 
+
+    async def _ml_threat_prediction(self,
+                                  events: List[Dict[str, Any]],
                                   context: Dict[str, Any]) -> List[ThreatPrediction]:
         """Generate ML-based threat predictions"""
-        
+
         if not ML_AVAILABLE:
             return []
-        
+
         try:
             predictions = []
-            
+
             # Prepare feature matrix
             features = self._extract_ml_features(events)
             if len(features) < 10:  # Need minimum data for ML
                 return []
-            
+
             # Train or update models with recent data
             await self._update_ml_models(features)
-            
+
             # Generate anomaly predictions
             anomaly_predictions = await self._detect_ml_anomalies(features)
             predictions.extend(anomaly_predictions)
-            
+
             # Generate attack type predictions
             attack_predictions = await self._predict_attack_types(features)
             predictions.extend(attack_predictions)
-            
+
             return predictions
-            
+
         except Exception as e:
             logger.error(f"Error in ML threat prediction: {e}")
             return []
-    
-    async def _rule_based_prediction(self, 
-                                   events: List[Dict[str, Any]], 
+
+    async def _rule_based_prediction(self,
+                                   events: List[Dict[str, Any]],
                                    context: Dict[str, Any]) -> List[ThreatPrediction]:
         """Generate rule-based threat predictions as fallback"""
-        
+
         predictions = []
-        
+
         try:
             # Analyze event frequency
             if len(events) > 100:  # High event volume
@@ -475,11 +475,11 @@ class AdvancedAIThreatPredictor:
                     expires_at=datetime.utcnow() + timedelta(hours=6)
                 )
                 predictions.append(prediction)
-            
+
             # Check for suspicious user agents
             user_agents = [e.get('user_agent', '') for e in events]
             suspicious_agents = ['nmap', 'nikto', 'sqlmap', 'burp', 'zap']
-            
+
             for agent in suspicious_agents:
                 if any(agent.lower() in ua.lower() for ua in user_agents):
                     prediction = ThreatPrediction(
@@ -498,18 +498,18 @@ class AdvancedAIThreatPredictor:
                         expires_at=datetime.utcnow() + timedelta(hours=4)
                     )
                     predictions.append(prediction)
-            
+
             return predictions
-            
+
         except Exception as e:
             logger.error(f"Error in rule-based prediction: {e}")
             return []
-    
+
     def _create_time_windows(self, events: List[Dict[str, Any]], window_size: int) -> Dict[datetime, List[Dict[str, Any]]]:
         """Create time windows for event analysis"""
-        
+
         windows = defaultdict(list)
-        
+
         for event in events:
             timestamp = event.get('timestamp')
             if isinstance(timestamp, str):
@@ -519,37 +519,37 @@ class AdvancedAIThreatPredictor:
                     continue
             elif not isinstance(timestamp, datetime):
                 continue
-            
+
             # Round to window boundary
             window_start = timestamp.replace(
                 minute=(timestamp.minute // (window_size // 60)) * (window_size // 60),
                 second=0,
                 microsecond=0
             )
-            
+
             windows[window_start].append(event)
-        
+
         return dict(windows)
-    
+
     async def _analyze_cross_window_patterns(self, time_windows: Dict[datetime, List[Dict[str, Any]]]) -> List[AttackPattern]:
         """Analyze patterns across multiple time windows"""
-        
+
         patterns = []
-        
+
         try:
             # Look for escalating attack patterns
             sorted_windows = sorted(time_windows.items())
-            
+
             for i in range(len(sorted_windows) - 2):
                 window1_time, window1_events = sorted_windows[i]
                 window2_time, window2_events = sorted_windows[i + 1]
                 window3_time, window3_events = sorted_windows[i + 2]
-                
+
                 # Check for attack escalation
                 escalation = self._detect_escalation_pattern(
                     window1_events, window2_events, window3_events
                 )
-                
+
                 if escalation:
                     pattern = AttackPattern(
                         pattern_id=f"escalation_{window1_time.strftime('%H%M%S')}",
@@ -568,32 +568,32 @@ class AdvancedAIThreatPredictor:
                         severity="high"
                     )
                     patterns.append(pattern)
-            
+
             return patterns
-            
+
         except Exception as e:
             logger.error(f"Error analyzing cross-window patterns: {e}")
             return []
-    
+
     def _detect_escalation_pattern(self, window1: List, window2: List, window3: List) -> bool:
         """Detect if events show escalation pattern"""
-        
+
         # Simple escalation detection: increasing event severity or complexity
         severities = [
             self._calculate_window_severity(window1),
             self._calculate_window_severity(window2),
             self._calculate_window_severity(window3)
         ]
-        
+
         # Check for increasing severity
         return severities[1] > severities[0] and severities[2] > severities[1]
-    
+
     def _calculate_window_severity(self, events: List[Dict[str, Any]]) -> float:
         """Calculate severity score for events in window"""
-        
+
         if not events:
             return 0.0
-        
+
         severity_map = {
             'critical': 1.0,
             'high': 0.8,
@@ -601,19 +601,19 @@ class AdvancedAIThreatPredictor:
             'low': 0.4,
             'info': 0.2
         }
-        
+
         total_severity = 0.0
         for event in events:
             severity = event.get('threat_level', 'low')
             total_severity += severity_map.get(severity, 0.4)
-        
+
         return total_severity / len(events)
-    
+
     # Helper methods for prediction generation
-    
+
     def _map_pattern_to_vector(self, pattern: AttackPattern) -> AttackVector:
         """Map attack pattern to attack vector"""
-        
+
         vector_mapping = {
             'sql_injection': AttackVector.WEB_APPLICATION,
             'xss_attack': AttackVector.WEB_APPLICATION,
@@ -622,29 +622,29 @@ class AdvancedAIThreatPredictor:
             'reconnaissance': AttackVector.RECONNAISSANCE,
             'escalation': AttackVector.PRIVILEGE_ESCALATION
         }
-        
+
         for indicator in pattern.indicators:
             if indicator in vector_mapping:
                 return vector_mapping[indicator]
-        
+
         return AttackVector.NETWORK_INTRUSION  # Default
-    
+
     def _calculate_threat_level(self, pattern: AttackPattern, context: Dict[str, Any]) -> ThreatPredictionLevel:
         """Calculate threat level based on pattern and context"""
-        
+
         base_score = pattern.confidence
-        
+
         # Adjust based on severity
         if pattern.severity == "high":
             base_score += 0.2
         elif pattern.severity == "low":
             base_score -= 0.1
-        
+
         # Adjust based on asset criticality
         critical_assets = context.get('critical_assets', [])
         if any(asset in pattern.targets for asset in critical_assets):
             base_score += 0.15
-        
+
         # Map to threat level
         if base_score >= 0.9:
             return ThreatPredictionLevel.IMMINENT
@@ -656,10 +656,10 @@ class AdvancedAIThreatPredictor:
             return ThreatPredictionLevel.LOW
         else:
             return ThreatPredictionLevel.MINIMAL
-    
+
     def _map_confidence_score(self, score: float) -> PredictionConfidence:
         """Map numeric confidence to enum"""
-        
+
         if score >= 0.9:
             return PredictionConfidence.VERY_HIGH
         elif score >= 0.75:
@@ -670,10 +670,10 @@ class AdvancedAIThreatPredictor:
             return PredictionConfidence.LOW
         else:
             return PredictionConfidence.VERY_LOW
-    
+
     def _generate_countermeasures(self, pattern: AttackPattern, vector: AttackVector) -> List[str]:
         """Generate countermeasures for attack pattern"""
-        
+
         countermeasures = {
             AttackVector.WEB_APPLICATION: [
                 "Enable Web Application Firewall (WAF)",
@@ -694,12 +694,12 @@ class AdvancedAIThreatPredictor:
                 "Apply principle of least privilege"
             ]
         }
-        
+
         return countermeasures.get(vector, ["Monitor and investigate"])
-    
+
     def _calculate_risk_factors(self, pattern: AttackPattern, context: Dict[str, Any]) -> Dict[str, float]:
         """Calculate risk factors for the threat"""
-        
+
         return {
             'attack_sophistication': pattern.confidence,
             'asset_exposure': 0.7,  # Based on context
@@ -707,10 +707,10 @@ class AdvancedAIThreatPredictor:
             'potential_impact': 0.8,  # Based on targets
             'exploitability': pattern.confidence * 0.9
         }
-    
+
     def _predict_attack_timeframe(self, pattern: AttackPattern, threat_level: ThreatPredictionLevel) -> str:
         """Predict when attack might occur"""
-        
+
         timeframes = {
             ThreatPredictionLevel.IMMINENT: "1-6 hours",
             ThreatPredictionLevel.HIGH: "6-24 hours",
@@ -718,12 +718,12 @@ class AdvancedAIThreatPredictor:
             ThreatPredictionLevel.LOW: "1-4 weeks",
             ThreatPredictionLevel.MINIMAL: "Unknown"
         }
-        
+
         return timeframes.get(threat_level, "Unknown")
-    
+
     def _threat_level_priority(self, level: ThreatPredictionLevel) -> int:
         """Get priority score for threat level"""
-        
+
         priorities = {
             ThreatPredictionLevel.IMMINENT: 5,
             ThreatPredictionLevel.HIGH: 4,
@@ -731,12 +731,12 @@ class AdvancedAIThreatPredictor:
             ThreatPredictionLevel.LOW: 2,
             ThreatPredictionLevel.MINIMAL: 1
         }
-        
+
         return priorities.get(level, 0)
-    
+
     def _confidence_score(self, confidence: PredictionConfidence) -> float:
         """Get numeric score for confidence level"""
-        
+
         scores = {
             PredictionConfidence.VERY_HIGH: 0.95,
             PredictionConfidence.HIGH: 0.8,
@@ -744,24 +744,24 @@ class AdvancedAIThreatPredictor:
             PredictionConfidence.LOW: 0.5,
             PredictionConfidence.VERY_LOW: 0.3
         }
-        
+
         return scores.get(confidence, 0.5)
-    
+
     # Placeholder ML methods (would be fully implemented with real ML pipeline)
-    
+
     def _extract_ml_features(self, events: List[Dict[str, Any]]) -> List[List[float]]:
         """Extract ML features from events"""
         # Simplified feature extraction
         return [[len(events), sum(1 for e in events if 'attack' in str(e))]]
-    
+
     async def _update_ml_models(self, features: List[List[float]]):
         """Update ML models with new data"""
         pass  # Placeholder
-    
+
     async def _detect_ml_anomalies(self, features: List[List[float]]) -> List[ThreatPrediction]:
         """Detect anomalies using ML"""
         return []  # Placeholder
-    
+
     async def _predict_attack_types(self, features: List[List[float]]) -> List[ThreatPrediction]:
         """Predict attack types using ML"""
         return []  # Placeholder

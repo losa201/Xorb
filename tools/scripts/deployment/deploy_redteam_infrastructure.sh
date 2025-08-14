@@ -44,43 +44,43 @@ info() {
 # Check Docker and Docker Compose
 check_docker() {
     log "Checking Docker installation..."
-    
+
     if ! command -v docker &> /dev/null; then
         error "Docker is not installed. Please install Docker first."
     fi
-    
+
     if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
         error "Docker Compose is not installed. Please install Docker Compose first."
     fi
-    
+
     # Check if Docker daemon is running
     if ! docker info &> /dev/null; then
         error "Docker daemon is not running. Please start Docker first."
     fi
-    
+
     info "Docker environment: ✅ Ready"
 }
 
 # Create required directories
 create_directories() {
     log "Creating red team infrastructure directories..."
-    
+
     mkdir -p {data,logs,config,reports,targets}/{campaigns,techniques,malware,signatures,breaches,network-maps,behavioral,baselines,pcaps,analysis,c2}
     mkdir -p targets/{web,api}
     mkdir -p config/{grafana-redteam-dashboards,prometheus}
     mkdir -p compose
-    
+
     # Set appropriate permissions
     chmod -R 755 data logs config reports targets
     chmod 700 data/malware data/c2  # Extra security for sensitive data
-    
+
     info "Directory structure created"
 }
 
 # Generate configuration files
 generate_configs() {
     log "Generating configuration files..."
-    
+
     # Prometheus configuration for red team
     cat > config/prometheus-redteam.yml << EOF
 global:
@@ -198,7 +198,7 @@ CREATE INDEX idx_events_timestamp ON detection_events(timestamp);
 CREATE INDEX idx_mutations_status ON defensive_mutations(status);
 
 -- Insert sample data
-INSERT INTO campaigns (campaign_id, apt_group, status) VALUES 
+INSERT INTO campaigns (campaign_id, apt_group, status) VALUES
     ('CAMPAIGN-APT28-DEMO', 'apt28', 'active'),
     ('CAMPAIGN-LAZARUS-DEMO', 'lazarus', 'completed');
 
@@ -212,7 +212,7 @@ EOF
 # Create Dockerfiles
 create_dockerfiles() {
     log "Creating Dockerfiles for red team services..."
-    
+
     # Red Team Orchestrator Dockerfile
     cat > compose/Dockerfile.red-orchestrator << EOF
 FROM python:3.11-slim
@@ -405,7 +405,7 @@ EOF
 # Create target applications
 create_targets() {
     log "Creating target applications for testing..."
-    
+
     # Vulnerable web application
     cat > targets/web/index.html << EOF
 <!DOCTYPE html>
@@ -423,7 +423,7 @@ create_targets() {
         <strong>⚠️ WARNING:</strong> This is a deliberately vulnerable application for testing purposes only.
         Do not deploy in production environments.
     </div>
-    
+
     <h2>Vulnerable Features:</h2>
     <ul>
         <li><a href="/login.php">SQL Injection Login</a></li>
@@ -431,12 +431,12 @@ create_targets() {
         <li><a href="/search.php">XSS Search</a></li>
         <li><a href="/admin.php">Weak Authentication</a></li>
     </ul>
-    
+
     <h2>System Information:</h2>
     <p>Server: nginx/1.21.0</p>
     <p>PHP: 7.4.0 (Vulnerable)</p>
     <p>Database: PostgreSQL 13</p>
-    
+
     <p><em>This target is monitored by XORB for adversarial testing.</em></p>
 </body>
 </html>
@@ -451,22 +451,22 @@ events {
 http {
     include /etc/nginx/mime.types;
     default_type application/octet-stream;
-    
+
     server {
         listen 80;
         server_name target-web;
         root /usr/share/nginx/html;
         index index.html;
-        
+
         # Deliberately weak security headers for testing
         add_header X-Frame-Options "ALLOWALL";
         add_header X-XSS-Protection "0";
         add_header X-Content-Type-Options "";
-        
+
         location / {
             try_files \$uri \$uri/ =404;
         }
-        
+
         # Log all requests for analysis
         access_log /var/log/nginx/access.log;
         error_log /var/log/nginx/error.log;
@@ -587,25 +587,25 @@ EOF
 # Deploy infrastructure
 deploy_infrastructure() {
     log "Deploying XORB Red Team Infrastructure..."
-    
+
     # Build and start services
     docker-compose -f docker-compose-redteam-infrastructure.yml build --parallel
     docker-compose -f docker-compose-redteam-infrastructure.yml up -d
-    
+
     # Wait for services to start
     log "Waiting for services to initialize..."
     sleep 30
-    
+
     # Check service health
     check_service_health
-    
+
     info "Red Team Infrastructure deployed successfully"
 }
 
 # Check service health
 check_service_health() {
     log "Checking service health..."
-    
+
     local services=(
         "xorb-red-orchestrator"
         "xorb-apt-emulator"
@@ -616,7 +616,7 @@ check_service_health() {
         "target-database"
         "target-api-server"
     )
-    
+
     for service in "${services[@]}"; do
         if docker ps --filter "name=$service" --filter "status=running" | grep -q "$service"; then
             echo -e "  ✅ $service: ${GREEN}RUNNING${NC}"
@@ -629,9 +629,9 @@ check_service_health() {
 # Generate deployment report
 generate_report() {
     log "Generating deployment report..."
-    
+
     local report_file="reports/redteam_deployment_$(date +%Y%m%d_%H%M%S).json"
-    
+
     cat > "$report_file" << EOF
 {
   "deployment": {
@@ -671,26 +671,26 @@ EOF
 main() {
     echo -e "${RED}"
     cat << "EOF"
-    ██╗  ██╗ ██████╗ ██████╗ ██████╗     ██████╗ ███████╗██████╗ 
+    ██╗  ██╗ ██████╗ ██████╗ ██████╗     ██████╗ ███████╗██████╗
     ╚██╗██╔╝██╔═══██╗██╔══██╗██╔══██╗    ██╔══██╗██╔════╝██╔══██╗
      ╚███╔╝ ██║   ██║██████╔╝██████╔╝    ██████╔╝█████╗  ██║  ██║
      ██╔██╗ ██║   ██║██╔══██╗██╔══██╗    ██╔══██╗██╔══╝  ██║  ██║
     ██╔╝ ██╗╚██████╔╝██║  ██║██████╔╝    ██║  ██║███████╗██████╔╝
-    ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝     ╚═╝  ╚═╝╚══════╝╚═════╝ 
-                                                                   
-    ████████╗███████╗ █████╗ ███╗   ███╗                         
-    ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║                         
-       ██║   █████╗  ███████║██╔████╔██║                         
-       ██║   ██╔══╝  ██╔══██║██║╚██╔╝██║                         
-       ██║   ███████╗██║  ██║██║ ╚═╝ ██║                         
-       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝                         
+    ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═════╝     ╚═╝  ╚═╝╚══════╝╚═════╝
+
+    ████████╗███████╗ █████╗ ███╗   ███╗
+    ╚══██╔══╝██╔════╝██╔══██╗████╗ ████║
+       ██║   █████╗  ███████║██╔████╔██║
+       ██║   ██╔══╝  ██╔══██║██║╚██╔╝██║
+       ██║   ███████╗██║  ██║██║ ╚═╝ ██║
+       ╚═╝   ╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝
 EOF
     echo -e "${NC}"
-    
+
     echo -e "${CYAN}Containerized Adversarial Testing Infrastructure${NC}"
     echo -e "${CYAN}Environment: $REDTEAM_ENV | Isolation: $ISOLATION_LEVEL | Threat: $THREAT_INTENSITY${NC}"
     echo ""
-    
+
     # Deployment steps
     check_docker
     create_directories
@@ -699,7 +699,7 @@ EOF
     create_targets
     deploy_infrastructure
     generate_report
-    
+
     echo ""
     echo -e "${GREEN}🎯 XORB Red Team Infrastructure deployment completed!${NC}"
     echo ""

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: xorb-api
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: xorb-api
     component: api
@@ -57,7 +57,7 @@ spec:
             secretKeyRef:
               name: xorb-secrets
               key: REDIS_URL
-        
+
         # Security Configuration
         - name: JWT_SECRET_KEY
           valueFrom:
@@ -74,7 +74,7 @@ spec:
             secretKeyRef:
               name: xorb-secrets
               key: ENCRYPTION_KEY
-        
+
         # External APIs
         - name: VIRUSTOTAL_API_KEY
           valueFrom:
@@ -88,18 +88,18 @@ spec:
               name: xorb-secrets
               key: MISP_API_KEY
               optional: true
-        
+
         # Configuration from ConfigMap
         envFrom:
         - configMapRef:
             name: xorb-config
-        
+
         volumeMounts:
         - name: temp-storage
           mountPath: /tmp
         - name: app-logs
           mountPath: /app/logs
-        
+
         resources:
           requests:
             memory: "1Gi"
@@ -107,7 +107,7 @@ spec:
           limits:
             memory: "4Gi"
             cpu: "2000m"
-        
+
         livenessProbe:
           httpGet:
             path: /api/v1/health
@@ -118,7 +118,7 @@ spec:
           timeoutSeconds: 10
           failureThreshold: 3
           successThreshold: 1
-        
+
         readinessProbe:
           httpGet:
             path: /api/v1/health/ready
@@ -129,7 +129,7 @@ spec:
           timeoutSeconds: 5
           failureThreshold: 3
           successThreshold: 1
-        
+
         startupProbe:
           httpGet:
             path: /api/v1/health
@@ -140,7 +140,7 @@ spec:
           timeoutSeconds: 3
           failureThreshold: 30
           successThreshold: 1
-        
+
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
@@ -149,7 +149,7 @@ spec:
             - ALL
             add:
             - NET_BIND_SERVICE
-      
+
       volumes:
       - name: temp-storage
         emptyDir:
@@ -157,7 +157,7 @@ spec:
       - name: app-logs
         emptyDir:
           sizeLimit: 2Gi
-      
+
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -170,7 +170,7 @@ spec:
                   values:
                   - xorb-api
               topologyKey: kubernetes.io/hostname
-      
+
       tolerations:
       - key: "xorb-workload"
         operator: "Equal"
@@ -181,7 +181,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: xorb-api
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: xorb-api
     component: api
@@ -208,7 +208,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: xorb-api-sa
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: xorb-api
     component: security
@@ -218,7 +218,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: xorb-api-role
-  namespace: xorb-platform
+  namespace: xorb_platform
 rules:
 - apiGroups: [""]
   resources: ["configmaps", "secrets"]
@@ -231,11 +231,11 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: xorb-api-rolebinding
-  namespace: xorb-platform
+  namespace: xorb_platform
 subjects:
 - kind: ServiceAccount
   name: xorb-api-sa
-  namespace: xorb-platform
+  namespace: xorb_platform
 roleRef:
   kind: Role
   name: xorb-api-role
@@ -245,7 +245,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: xorb-api-hpa
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: xorb-api
     component: autoscaling
@@ -298,7 +298,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: xorb-api-pdb
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: xorb-api
     component: availability

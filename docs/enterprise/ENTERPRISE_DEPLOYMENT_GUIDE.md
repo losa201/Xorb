@@ -1,8 +1,8 @@
 # XORB Enterprise Deployment Guide
 
-**Version**: 2.0  
-**Date**: January 2025  
-**Audience**: Enterprise IT Teams, DevOps Engineers, Security Teams  
+**Version**: 2.0
+**Date**: January 2025
+**Audience**: Enterprise IT Teams, DevOps Engineers, Security Teams
 
 ## 🎯 **Executive Summary**
 
@@ -48,7 +48,7 @@ Firewall Rules:
     - 8080/tcp (Orchestrator UI)
     - 9090/tcp (Prometheus - monitoring)
     - 3000/tcp (Grafana - dashboards)
-  
+
   Outbound:
     - 443/tcp (External API calls)
     - 53/tcp,udp (DNS resolution)
@@ -295,24 +295,24 @@ data:
     global:
       scrape_interval: 15s
       evaluation_interval: 15s
-    
+
     scrape_configs:
     - job_name: 'xorb-api'
       static_configs:
       - targets: ['xorb-api:8000']
       metrics_path: /metrics
       scrape_interval: 10s
-    
+
     - job_name: 'xorb-orchestrator'
       static_configs:
       - targets: ['xorb-orchestrator:8080']
       metrics_path: /metrics
       scrape_interval: 10s
-    
+
     - job_name: 'postgres-exporter'
       static_configs:
       - targets: ['postgres-exporter:9187']
-    
+
     - job_name: 'redis-exporter'
       static_configs:
       - targets: ['redis-exporter:9121']

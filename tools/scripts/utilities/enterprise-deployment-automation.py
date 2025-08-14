@@ -108,20 +108,20 @@ class XORBEnterpriseDeployment:
     def __init__(self, config_path: str = "/root/Xorb/config/deployment-enterprise.yaml"):
         self.config_path = Path(config_path)
         self.xorb_root = Path("/root/Xorb")
-        
+
         # Kubernetes clients
         self.k8s_apps_v1 = None
         self.k8s_core_v1 = None
         self.k8s_networking_v1 = None
-        
+
         # Deployment configuration
         self.deployment_configs: Dict[EnvironmentType, DeploymentConfig] = {}
         self.service_configs: Dict[str, ServiceConfig] = {}
-        
+
         # Current deployment state
         self.current_deployment: Optional[DeploymentResult] = None
         self.deployment_history: List[DeploymentResult] = []
-        
+
         # Results directory
         self.results_dir = self.xorb_root / "deployment_results"
         self.results_dir.mkdir(exist_ok=True)
@@ -129,19 +129,19 @@ class XORBEnterpriseDeployment:
     async def initialize(self):
         """Initialize the enterprise deployment system."""
         logger.info("Initializing XORB Enterprise Deployment Automation")
-        
+
         # Initialize Kubernetes clients
         await self._initialize_kubernetes()
-        
+
         # Load deployment configurations
         await self._load_deployment_configurations()
-        
+
         # Initialize service configurations
         await self._initialize_service_configurations()
-        
+
         # Validate prerequisites
         await self._validate_prerequisites()
-        
+
         logger.info("Enterprise deployment automation initialized successfully")
 
     async def _initialize_kubernetes(self):
@@ -154,16 +154,16 @@ class XORBEnterpriseDeployment:
             except config.ConfigException:
                 config.load_kube_config()
                 logger.info("Loaded local Kubernetes configuration")
-            
+
             # Initialize API clients
             self.k8s_apps_v1 = client.AppsV1Api()
             self.k8s_core_v1 = client.CoreV1Api()
             self.k8s_networking_v1 = client.NetworkingV1Api()
-            
+
             # Test connection
             version = await asyncio.to_thread(self.k8s_core_v1.get_api_versions)
             logger.info(f"Kubernetes API version: {version}")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize Kubernetes clients: {e}")
             # Create mock clients for testing
@@ -178,16 +178,16 @@ class XORBEnterpriseDeployment:
                 config_data = yaml.safe_load(f)
         else:
             config_data = self._get_default_deployment_config()
-            
+
             # Save default configuration
             self.config_path.parent.mkdir(exist_ok=True)
             with open(self.config_path, 'w') as f:
                 yaml.dump(config_data, f, default_flow_style=False)
-        
+
         # Parse configurations for each environment
         for env_name, env_config in config_data.get("environments", {}).items():
             env_type = EnvironmentType(env_name)
-            
+
             deployment_config = DeploymentConfig(
                 environment=env_type,
                 strategy=DeploymentStrategy(env_config.get("strategy", "standard")),
@@ -204,7 +204,7 @@ class XORBEnterpriseDeployment:
                 backup_enabled=env_config.get("backup_enabled", True),
                 notifications_enabled=env_config.get("notifications_enabled", True)
             )
-            
+
             self.deployment_configs[env_type] = deployment_config
 
     def _get_default_deployment_config(self) -> Dict[str, Any]:
@@ -308,20 +308,20 @@ class XORBEnterpriseDeployment:
                 secrets=[]
             )
         }
-        
+
         self.service_configs = services
 
     async def _validate_prerequisites(self):
         """Validate deployment prerequisites."""
         logger.info("Validating deployment prerequisites...")
-        
+
         # Check Kubernetes connectivity
         try:
             await asyncio.to_thread(self.k8s_core_v1.list_namespace)
             logger.info("✅ Kubernetes connectivity verified")
         except Exception as e:
             logger.warning(f"⚠️ Kubernetes connectivity issue: {e}")
-        
+
         # Check required tools
         tools = ["kubectl", "helm", "docker"]
         for tool in tools:
@@ -329,7 +329,7 @@ class XORBEnterpriseDeployment:
                 logger.info(f"✅ {tool} available")
             else:
                 logger.warning(f"⚠️ {tool} not available")
-        
+
         # Validate image registry access
         logger.info("✅ Prerequisites validation completed")
 
@@ -356,22 +356,22 @@ class XORBEnterpriseDeployment:
         """Execute enterprise deployment."""
         deployment_id = f"deploy-{environment.value}-{int(time.time())}"
         logger.info(f"Starting enterprise deployment: {deployment_id}")
-        
+
         # Get deployment configuration
         config = self.deployment_configs.get(environment)
         if not config:
             raise ValueError(f"No configuration found for environment: {environment.value}")
-        
+
         # Override strategy if specified
         if strategy:
             config.strategy = strategy
-        
+
         # Override version
         config.version = version
-        
+
         # Initialize deployment result
         start_time = datetime.utcnow()
-        
+
         self.current_deployment = DeploymentResult(
             deployment_id=deployment_id,
             status=DeploymentStatus.IN_PROGRESS,
@@ -389,40 +389,40 @@ class XORBEnterpriseDeployment:
             errors=[],
             logs=[]
         )
-        
+
         try:
             # Execute deployment phases
             await self._execute_deployment_phases(config, services or list(self.service_configs.keys()))
-            
+
             # Mark deployment as completed
             self.current_deployment.status = DeploymentStatus.COMPLETED
             self.current_deployment.phase = DeploymentPhase.FINALIZATION
-            
+
         except Exception as e:
             logger.error(f"Deployment failed: {e}")
             self.current_deployment.status = DeploymentStatus.FAILED
             self.current_deployment.errors.append(str(e))
-            
+
             # Attempt automatic rollback
             if config.strategy in [DeploymentStrategy.BLUE_GREEN, DeploymentStrategy.CANARY]:
                 logger.info("Attempting automatic rollback...")
                 await self._execute_rollback(config)
-        
+
         finally:
             # Finalize deployment
             end_time = datetime.utcnow()
             self.current_deployment.end_time = end_time
             self.current_deployment.duration = (end_time - start_time).total_seconds()
-            
+
             # Save deployment result
             await self._save_deployment_result()
-            
+
             # Add to history
             self.deployment_history.append(self.current_deployment)
-            
+
             # Send notifications
             await self._send_deployment_notification()
-        
+
         logger.info(f"Deployment completed: {deployment_id} - {self.current_deployment.status.value}")
         return self.current_deployment
 
@@ -437,40 +437,40 @@ class XORBEnterpriseDeployment:
             (DeploymentPhase.VALIDATION, self._phase_validation),
             (DeploymentPhase.FINALIZATION, self._phase_finalization)
         ]
-        
+
         for phase, phase_func in phases:
             logger.info(f"Executing phase: {phase.value}")
             self.current_deployment.phase = phase
-            
+
             phase_start = time.time()
             await phase_func(config, services)
             phase_duration = time.time() - phase_start
-            
+
             self.current_deployment.metrics[f"{phase.value}_duration"] = phase_duration
             self.current_deployment.logs.append(f"Phase {phase.value} completed in {phase_duration:.2f}s")
 
     async def _phase_initialization(self, config: DeploymentConfig, services: List[str]):
         """Initialize deployment environment."""
         logger.info("Initializing deployment environment...")
-        
+
         # Ensure namespace exists
         await self._ensure_namespace(config.namespace)
-        
+
         # Create backup if enabled
         if config.backup_enabled:
             backup_id = f"pre-deploy-{int(time.time())}"
             await self._create_backup(config.namespace, backup_id)
             self.current_deployment.rollback_version = backup_id
-        
+
         # Validate service dependencies
         await self._validate_service_dependencies(services)
-        
+
         logger.info("Initialization phase completed")
 
     async def _phase_pre_deployment(self, config: DeploymentConfig, services: List[str]):
         """Pre-deployment checks and preparations."""
         logger.info("Executing pre-deployment phase...")
-        
+
         # Run pre-deployment validations
         validation_script = self.xorb_root / "scripts" / "validation-pipeline.py"
         if validation_script.exists():
@@ -482,20 +482,20 @@ class XORBEnterpriseDeployment:
                 stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await result.communicate()
-            
+
             if result.returncode != 0:
                 raise RuntimeError(f"Pre-deployment validation failed: {stderr.decode()}")
-        
+
         # Scale down old services if using recreate strategy
         if config.strategy == DeploymentStrategy.RECREATE:
             await self._scale_services(config.namespace, services, 0)
-        
+
         logger.info("Pre-deployment phase completed")
 
     async def _phase_deployment(self, config: DeploymentConfig, services: List[str]):
         """Execute the main deployment."""
         logger.info(f"Executing deployment using {config.strategy.value} strategy...")
-        
+
         if config.strategy == DeploymentStrategy.STANDARD:
             await self._deploy_standard(config, services)
         elif config.strategy == DeploymentStrategy.BLUE_GREEN:
@@ -506,7 +506,7 @@ class XORBEnterpriseDeployment:
             await self._deploy_rolling(config, services)
         elif config.strategy == DeploymentStrategy.RECREATE:
             await self._deploy_recreate(config, services)
-        
+
         self.current_deployment.services_deployed = services
         logger.info("Deployment phase completed")
 
@@ -514,21 +514,21 @@ class XORBEnterpriseDeployment:
         """Execute standard deployment."""
         for service in services:
             service_config = self.service_configs[service]
-            
+
             # Deploy service
             await self._deploy_service(config, service_config)
-            
+
             # Wait for rollout
             await self._wait_for_rollout(config.namespace, service)
 
     async def _deploy_blue_green(self, config: DeploymentConfig, services: List[str]):
         """Execute blue-green deployment."""
         logger.info("Starting blue-green deployment...")
-        
+
         # Deploy to green environment
         green_namespace = f"{config.namespace}-green"
         await self._ensure_namespace(green_namespace)
-        
+
         # Deploy all services to green
         for service in services:
             service_config = self.service_configs[service]
@@ -548,59 +548,59 @@ class XORBEnterpriseDeployment:
                 backup_enabled=config.backup_enabled,
                 notifications_enabled=config.notifications_enabled
             )
-            
+
             await self._deploy_service(green_config, service_config)
-        
+
         # Wait for all services to be ready
         for service in services:
             await self._wait_for_rollout(green_namespace, service)
-        
+
         # Store green namespace for traffic routing
         self.current_deployment.metrics["green_namespace"] = green_namespace
 
     async def _deploy_canary(self, config: DeploymentConfig, services: List[str]):
         """Execute canary deployment."""
         logger.info("Starting canary deployment...")
-        
+
         # Deploy canary versions with reduced replicas
         canary_replicas = {}
         for service in services:
             original_replicas = config.replicas.get(service, 1)
             canary_replicas[service] = max(1, original_replicas // 3)  # 1/3 for canary
-        
+
         # Deploy canary services
         for service in services:
             service_config = self.service_configs[service]
             service_config.replicas = canary_replicas[service]
-            
+
             await self._deploy_service_canary(config, service_config)
-        
+
         # Monitor canary performance
         await self._monitor_canary_deployment(config, services)
 
     async def _deploy_rolling(self, config: DeploymentConfig, services: List[str]):
         """Execute rolling deployment."""
         logger.info("Starting rolling deployment...")
-        
+
         for service in services:
             service_config = self.service_configs[service]
-            
+
             # Deploy with rolling update strategy
             await self._deploy_service_rolling(config, service_config)
-            
+
             # Wait for rollout to complete
             await self._wait_for_rollout(config.namespace, service)
 
     async def _deploy_recreate(self, config: DeploymentConfig, services: List[str]):
         """Execute recreate deployment."""
         logger.info("Starting recreate deployment...")
-        
+
         # Services are already scaled down in pre-deployment phase
         # Deploy new versions
         for service in services:
             service_config = self.service_configs[service]
             await self._deploy_service(config, service_config)
-        
+
         # Wait for all services to be ready
         for service in services:
             await self._wait_for_rollout(config.namespace, service)
@@ -608,43 +608,43 @@ class XORBEnterpriseDeployment:
     async def _phase_health_check(self, config: DeploymentConfig, services: List[str]):
         """Execute health checks on deployed services."""
         logger.info("Executing health checks...")
-        
+
         health_results = {}
-        
+
         for service in services:
             service_config = self.service_configs[service]
-            
+
             # Perform health check
             is_healthy = await self._check_service_health(
-                config.namespace, 
-                service, 
+                config.namespace,
+                service,
                 service_config.health_check_path,
                 config.health_check_timeout
             )
-            
+
             health_results[service] = is_healthy
-            
+
             if not is_healthy:
                 self.current_deployment.errors.append(f"Health check failed for service: {service}")
-        
+
         self.current_deployment.health_checks = health_results
-        
+
         # Check if any critical services are unhealthy
         unhealthy_services = [s for s, healthy in health_results.items() if not healthy]
         if unhealthy_services:
             raise RuntimeError(f"Health checks failed for services: {unhealthy_services}")
-        
+
         logger.info("Health check phase completed")
 
     async def _phase_traffic_routing(self, config: DeploymentConfig, services: List[str]):
         """Execute traffic routing for blue-green and canary deployments."""
         logger.info("Executing traffic routing...")
-        
+
         if config.strategy == DeploymentStrategy.BLUE_GREEN:
             await self._route_traffic_blue_green(config, services)
         elif config.strategy == DeploymentStrategy.CANARY:
             await self._route_traffic_canary(config, services)
-        
+
         logger.info("Traffic routing phase completed")
 
     async def _route_traffic_blue_green(self, config: DeploymentConfig, services: List[str]):
@@ -652,43 +652,43 @@ class XORBEnterpriseDeployment:
         green_namespace = self.current_deployment.metrics.get("green_namespace")
         if not green_namespace:
             return
-        
+
         logger.info(f"Switching traffic from {config.namespace} to {green_namespace}")
-        
+
         # Update service selectors to point to green deployment
         for service in services:
             await self._update_service_selector(config.namespace, service, green_namespace)
-        
+
         # Wait for traffic to stabilize
         await asyncio.sleep(30)
-        
+
         # Clean up old blue deployment
         await self._cleanup_blue_deployment(config.namespace, services)
 
     async def _route_traffic_canary(self, config: DeploymentConfig, services: List[str]):
         """Route traffic for canary deployment."""
         logger.info(f"Routing {config.traffic_split_percentage}% traffic to canary")
-        
+
         # Monitor canary for configured duration
         monitor_duration = config.canary_duration_minutes * 60
         monitor_start = time.time()
-        
+
         while time.time() - monitor_start < monitor_duration:
             # Check canary health and error rates
             canary_healthy = await self._check_canary_health(config, services)
-            
+
             if not canary_healthy:
                 raise RuntimeError("Canary deployment showing errors, aborting")
-            
+
             await asyncio.sleep(60)  # Check every minute
-        
+
         # If canary is successful, promote to full deployment
         await self._promote_canary_deployment(config, services)
 
     async def _phase_validation(self, config: DeploymentConfig, services: List[str]):
         """Execute post-deployment validation."""
         logger.info("Executing post-deployment validation...")
-        
+
         # Run validation pipeline
         validation_script = self.xorb_root / "scripts" / "validation-pipeline.py"
         if validation_script.exists():
@@ -700,44 +700,44 @@ class XORBEnterpriseDeployment:
                 stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await result.communicate()
-            
+
             if result.returncode != 0:
                 raise RuntimeError(f"Post-deployment validation failed: {stderr.decode()}")
-        
+
         # Run smoke tests
         await self._run_smoke_tests(config, services)
-        
+
         logger.info("Validation phase completed")
 
     async def _phase_finalization(self, config: DeploymentConfig, services: List[str]):
         """Finalize deployment."""
         logger.info("Finalizing deployment...")
-        
+
         # Update deployment labels and annotations
         await self._update_deployment_metadata(config, services)
-        
+
         # Clean up temporary resources
         await self._cleanup_deployment_resources(config)
-        
+
         # Update monitoring and alerting
         if config.monitoring_enabled:
             await self._update_monitoring_configuration(config, services)
-        
+
         logger.info("Finalization phase completed")
 
     async def _deploy_service(self, config: DeploymentConfig, service_config: ServiceConfig):
         """Deploy a single service."""
         logger.info(f"Deploying service: {service_config.name}")
-        
+
         # Create deployment manifest
         deployment_manifest = self._create_deployment_manifest(config, service_config)
-        
+
         # Apply deployment
         await self._apply_kubernetes_manifest(deployment_manifest)
-        
+
         # Create service manifest
         service_manifest = self._create_service_manifest(config, service_config)
-        
+
         # Apply service
         await self._apply_kubernetes_manifest(service_manifest)
 
@@ -847,7 +847,7 @@ class XORBEnterpriseDeployment:
     async def _create_backup(self, namespace: str, backup_id: str):
         """Create backup before deployment."""
         logger.info(f"Creating backup: {backup_id} for namespace: {namespace}")
-        
+
         # Use disaster recovery script
         disaster_recovery_script = self.xorb_root / "scripts" / "disaster-recovery.sh"
         if disaster_recovery_script.exists():
@@ -857,14 +857,14 @@ class XORBEnterpriseDeployment:
                 stderr=asyncio.subprocess.PIPE
             )
             stdout, stderr = await result.communicate()
-            
+
             if result.returncode != 0:
                 logger.warning(f"Backup creation failed: {stderr.decode()}")
 
     async def _validate_service_dependencies(self, services: List[str]):
         """Validate service dependencies."""
         logger.info("Validating service dependencies...")
-        
+
         # Check if all dependencies are available
         for service in services:
             service_config = self.service_configs[service]
@@ -875,7 +875,7 @@ class XORBEnterpriseDeployment:
     async def _scale_services(self, namespace: str, services: List[str], replicas: int):
         """Scale services to specified replica count."""
         logger.info(f"Scaling services in {namespace} to {replicas} replicas")
-        
+
         for service in services:
             # Mock scaling
             await asyncio.sleep(0.5)
@@ -883,14 +883,14 @@ class XORBEnterpriseDeployment:
     async def _wait_for_rollout(self, namespace: str, service: str):
         """Wait for service rollout to complete."""
         logger.info(f"Waiting for rollout: {namespace}/{service}")
-        
+
         # Mock wait time
         await asyncio.sleep(10)
 
     async def _check_service_health(self, namespace: str, service: str, health_path: str, timeout: int) -> bool:
         """Check service health."""
         logger.info(f"Checking health: {namespace}/{service}")
-        
+
         # Mock health check - in real implementation would use kubectl port-forward and HTTP request
         await asyncio.sleep(2)
         return True  # Mock healthy response
@@ -898,47 +898,47 @@ class XORBEnterpriseDeployment:
     async def _run_smoke_tests(self, config: DeploymentConfig, services: List[str]):
         """Run smoke tests on deployed services."""
         logger.info("Running smoke tests...")
-        
+
         # Mock smoke tests
         await asyncio.sleep(5)
 
     async def _update_deployment_metadata(self, config: DeploymentConfig, services: List[str]):
         """Update deployment metadata."""
         logger.info("Updating deployment metadata...")
-        
+
         # Mock metadata update
         await asyncio.sleep(1)
 
     async def _cleanup_deployment_resources(self, config: DeploymentConfig):
         """Clean up temporary deployment resources."""
         logger.info("Cleaning up deployment resources...")
-        
+
         # Mock cleanup
         await asyncio.sleep(1)
 
     async def _update_monitoring_configuration(self, config: DeploymentConfig, services: List[str]):
         """Update monitoring configuration."""
         logger.info("Updating monitoring configuration...")
-        
+
         # Mock monitoring update
         await asyncio.sleep(1)
 
     async def _execute_rollback(self, config: DeploymentConfig):
         """Execute deployment rollback."""
         logger.info("Executing deployment rollback...")
-        
+
         if self.current_deployment.rollback_version:
             # Use disaster recovery script for rollback
             disaster_recovery_script = self.xorb_root / "scripts" / "disaster-recovery.sh"
             if disaster_recovery_script.exists():
                 result = await asyncio.create_subprocess_exec(
-                    "bash", str(disaster_recovery_script), 
+                    "bash", str(disaster_recovery_script),
                     "restore_backup", self.current_deployment.rollback_version,
                     stdout=asyncio.subprocess.PIPE,
                     stderr=asyncio.subprocess.PIPE
                 )
                 stdout, stderr = await result.communicate()
-                
+
                 if result.returncode == 0:
                     self.current_deployment.status = DeploymentStatus.ROLLED_BACK
                     logger.info("Rollback completed successfully")
@@ -949,19 +949,19 @@ class XORBEnterpriseDeployment:
         """Save deployment result to file."""
         if not self.current_deployment:
             return
-        
+
         result_file = self.results_dir / f"deployment_{self.current_deployment.deployment_id}.json"
-        
+
         with open(result_file, 'w') as f:
             json.dump(asdict(self.current_deployment), f, indent=2, default=str)
-        
+
         logger.info(f"Deployment result saved: {result_file}")
 
     async def _send_deployment_notification(self):
         """Send deployment notification."""
         if not self.current_deployment:
             return
-        
+
         logger.info(f"📢 Deployment notification: {self.current_deployment.deployment_id}")
         logger.info(f"Status: {self.current_deployment.status.value}")
         logger.info(f"Environment: {self.current_deployment.environment.value}")
@@ -1022,31 +1022,31 @@ class XORBEnterpriseDeployment:
     async def rollback_deployment(self, environment: EnvironmentType, target_version: str = None) -> DeploymentResult:
         """Rollback deployment to previous version."""
         logger.info(f"Rolling back deployment in {environment.value}")
-        
+
         # Find target deployment
         if target_version:
             target_deployment = None
             for deployment in reversed(self.deployment_history):
-                if (deployment.environment == environment and 
-                    deployment.version == target_version and 
+                if (deployment.environment == environment and
+                    deployment.version == target_version and
                     deployment.status == DeploymentStatus.COMPLETED):
                     target_deployment = deployment
                     break
-            
+
             if not target_deployment:
                 raise ValueError(f"No successful deployment found for version {target_version}")
         else:
             # Find last successful deployment
             target_deployment = None
             for deployment in reversed(self.deployment_history):
-                if (deployment.environment == environment and 
+                if (deployment.environment == environment and
                     deployment.status == DeploymentStatus.COMPLETED):
                     target_deployment = deployment
                     break
-            
+
             if not target_deployment:
                 raise ValueError("No successful deployment found for rollback")
-        
+
         # Execute rollback deployment
         return await self.deploy(
             environment=environment,
@@ -1057,10 +1057,10 @@ class XORBEnterpriseDeployment:
 
 class MockKubernetesClient:
     """Mock Kubernetes client for testing."""
-    
+
     def get_api_versions(self):
         return type('ApiVersions', (), {'versions': ['v1']})()
-    
+
     def list_namespace(self):
         return type('NamespaceList', (), {'items': []})()
 
@@ -1068,10 +1068,10 @@ class MockKubernetesClient:
 async def main():
     """Main function for enterprise deployment."""
     import argparse
-    
+
     parser = argparse.ArgumentParser(description="XORB Enterprise Deployment Automation")
     parser.add_argument("action", choices=["deploy", "rollback", "status", "list"], help="Action to perform")
-    parser.add_argument("--environment", choices=["development", "staging", "production"], 
+    parser.add_argument("--environment", choices=["development", "staging", "production"],
                        required=True, help="Target environment")
     parser.add_argument("--version", help="Version to deploy")
     parser.add_argument("--strategy", choices=["standard", "blue_green", "canary", "rolling", "recreate"],
@@ -1079,47 +1079,47 @@ async def main():
     parser.add_argument("--services", nargs="+", help="Services to deploy")
     parser.add_argument("--deployment-id", help="Deployment ID for status/rollback")
     parser.add_argument("--config", help="Deployment configuration file")
-    
+
     args = parser.parse_args()
-    
+
     # Initialize deployment system
     config_path = args.config or "/root/Xorb/config/deployment-enterprise.yaml"
     deployment = XORBEnterpriseDeployment(config_path)
-    
+
     try:
         await deployment.initialize()
-        
+
         environment = EnvironmentType(args.environment)
-        
+
         if args.action == "deploy":
             if not args.version:
                 raise ValueError("Version is required for deployment")
-            
+
             strategy = DeploymentStrategy(args.strategy) if args.strategy else None
-            
+
             result = await deployment.deploy(
                 environment=environment,
                 version=args.version,
                 strategy=strategy,
                 services=args.services
             )
-            
+
             print(f"Deployment completed: {result.deployment_id}")
             print(f"Status: {result.status.value}")
             print(f"Duration: {result.duration:.1f} seconds")
-        
+
         elif args.action == "rollback":
             result = await deployment.rollback_deployment(
                 environment=environment,
                 target_version=args.version
             )
-            
+
             print(f"Rollback completed: {result.deployment_id}")
             print(f"Status: {result.status.value}")
-        
+
         elif args.action == "status":
             result = await deployment.get_deployment_status(args.deployment_id)
-            
+
             if result:
                 print(f"Deployment ID: {result.deployment_id}")
                 print(f"Status: {result.status.value}")
@@ -1128,15 +1128,15 @@ async def main():
                 print(f"Version: {result.version}")
             else:
                 print("No deployment found")
-        
+
         elif args.action == "list":
             deployments = await deployment.list_deployments(environment)
-            
+
             print(f"Deployments for {environment.value}:")
             for deployment_result in deployments[-10:]:  # Show last 10
                 print(f"  {deployment_result.deployment_id}: {deployment_result.status.value} "
                       f"({deployment_result.version}) - {deployment_result.start_time}")
-    
+
     except Exception as e:
         logger.error(f"Enterprise deployment failed: {e}")
         raise

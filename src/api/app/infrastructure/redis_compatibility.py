@@ -41,19 +41,19 @@ if REDIS_CLIENT is None:
 
 class CompatibleRedisClient:
     """Redis client compatibility wrapper"""
-    
+
     def __init__(self, url: str = "redis://localhost:6379/0", **kwargs):
         self.url = url
         self.kwargs = kwargs
         self._client = None
         self._memory_store = {}
-        
+
     async def initialize(self):
         """Initialize Redis client with compatibility handling"""
         if REDIS_CLIENT_TYPE == "redis.asyncio":
             try:
                 self._client = REDIS_CLIENT.from_url(
-                    self.url, 
+                    self.url,
                     decode_responses=True,
                     **self.kwargs
                 )
@@ -63,7 +63,7 @@ class CompatibleRedisClient:
             except Exception as e:
                 logger.error(f"Redis connection failed: {e}")
                 self._client = None
-                
+
         elif REDIS_CLIENT_TYPE == "aioredis":
             try:
                 # Handle different aioredis API versions
@@ -72,17 +72,17 @@ class CompatibleRedisClient:
                 else:
                     # Legacy aioredis API
                     self._client = await REDIS_CLIENT.create_redis_pool(self.url, **self.kwargs)
-                
+
                 # Test connection
                 await self.ping()
                 logger.info("Redis connection established (aioredis)")
             except Exception as e:
                 logger.error(f"Redis connection failed: {e}")
                 self._client = None
-        
+
         if self._client is None:
             logger.warning("Using in-memory Redis fallback")
-    
+
     async def ping(self) -> bool:
         """Ping Redis server"""
         try:
@@ -99,7 +99,7 @@ class CompatibleRedisClient:
             return False
         except Exception:
             return False
-    
+
     async def get(self, key: str) -> Optional[str]:
         """Get value from Redis"""
         try:
@@ -120,7 +120,7 @@ class CompatibleRedisClient:
         except Exception as e:
             logger.error(f"Redis GET failed for key {key}: {e}")
             return None
-    
+
     async def set(self, key: str, value: str, ex: Optional[int] = None) -> bool:
         """Set value in Redis"""
         try:
@@ -137,14 +137,14 @@ class CompatibleRedisClient:
                     self._memory_store[key] = {"value": value, "expires": expiry_time}
                 else:
                     self._memory_store[key] = {"value": value, "expires": None}
-                
+
                 # Schedule cleanup of expired keys
                 asyncio.create_task(self._cleanup_expired_memory_keys())
                 return True
         except Exception as e:
             logger.error(f"Redis SET failed for key {key}: {e}")
             return False
-    
+
     async def delete(self, key: str) -> int:
         """Delete key from Redis"""
         try:
@@ -161,7 +161,7 @@ class CompatibleRedisClient:
         except Exception as e:
             logger.error(f"Redis DELETE failed for key {key}: {e}")
             return 0
-    
+
     async def exists(self, key: str) -> bool:
         """Check if key exists in Redis"""
         try:
@@ -173,7 +173,7 @@ class CompatibleRedisClient:
         except Exception as e:
             logger.error(f"Redis EXISTS failed for key {key}: {e}")
             return False
-    
+
     async def incr(self, key: str) -> int:
         """Increment value in Redis"""
         try:
@@ -187,7 +187,7 @@ class CompatibleRedisClient:
         except Exception as e:
             logger.error(f"Redis INCR failed for key {key}: {e}")
             return 0
-    
+
     async def incrby(self, key: str, amount: int) -> int:
         """Increment value by amount in Redis"""
         try:
@@ -201,7 +201,7 @@ class CompatibleRedisClient:
         except Exception as e:
             logger.error(f"Redis INCRBY failed for key {key}: {e}")
             return 0
-    
+
     async def expire(self, key: str, seconds: int) -> bool:
         """Set TTL for key"""
         try:
@@ -213,7 +213,7 @@ class CompatibleRedisClient:
         except Exception as e:
             logger.error(f"Redis EXPIRE failed for key {key}: {e}")
             return False
-    
+
     async def hget(self, key: str, field: str) -> Optional[str]:
         """Get hash field value"""
         try:
@@ -230,7 +230,7 @@ class CompatibleRedisClient:
         except Exception as e:
             logger.error(f"Redis HGET failed for key {key}, field {field}: {e}")
             return None
-    
+
     async def hset(self, key: str, field: str, value: str) -> bool:
         """Set hash field value"""
         try:
@@ -246,27 +246,27 @@ class CompatibleRedisClient:
         except Exception as e:
             logger.error(f"Redis HSET failed for key {key}, field {field}: {e}")
             return False
-    
+
     async def _cleanup_expired_memory_keys(self):
         """Clean up expired keys from memory store"""
         try:
             current_time = time.time()
             expired_keys = []
-            
+
             for key, data in self._memory_store.items():
                 if isinstance(data, dict) and data.get("expires"):
                     if current_time > data["expires"]:
                         expired_keys.append(key)
-            
+
             for key in expired_keys:
                 del self._memory_store[key]
-                
+
             if expired_keys:
                 logger.debug(f"Cleaned up {len(expired_keys)} expired keys from memory store")
-                
+
         except Exception as e:
             logger.error(f"Memory store cleanup failed: {e}")
-    
+
     async def close(self):
         """Close Redis connection"""
         try:

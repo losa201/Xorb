@@ -80,7 +80,7 @@ class ThreatHypothesis:
 
 class ThreatHuntingEngine:
     """Production-ready threat hunting engine with custom query language"""
-    
+
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self.queries: Dict[str, HuntingQuery] = {}
@@ -91,31 +91,31 @@ class ThreatHuntingEngine:
         self.elasticsearch_client = None
         self.redis_client = None
         self.running = False
-        
+
         # Initialize query templates
         self.query_templates = self._load_query_templates()
-        
+
     async def initialize(self):
         """Initialize the threat hunting engine"""
         try:
             logger.info("Initializing Threat Hunting Engine...")
-            
+
             # Initialize data connections
             await self._initialize_data_connections()
-            
+
             # Load predefined queries
             await self._load_predefined_queries()
-            
+
             # Load threat hypotheses
             await self._load_threat_hypotheses()
-            
+
             self.running = True
             logger.info("Threat Hunting Engine initialized successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize Threat Hunting Engine: {e}")
             raise
-    
+
     async def _initialize_data_connections(self):
         """Initialize connections to data sources"""
         try:
@@ -128,7 +128,7 @@ class ThreatHuntingEngine:
                     verify_certs=es_config.get('verify_certs', False)
                 )
                 logger.info("Connected to Elasticsearch")
-            
+
             # Redis for caching and real-time data
             redis_config = self.config.get('redis', {})
             if redis_config:
@@ -136,7 +136,7 @@ class ThreatHuntingEngine:
                     redis_config.get('url', 'redis://localhost:6379')
                 )
                 logger.info("Connected to Redis")
-            
+
             # Mock data connectors for other sources
             self.data_connectors = {
                 DataSource.LOGS: self._mock_log_connector,
@@ -145,11 +145,11 @@ class ThreatHuntingEngine:
                 DataSource.CLOUD: self._mock_cloud_connector,
                 DataSource.EXTERNAL: self._mock_external_connector
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize data connections: {e}")
             raise
-    
+
     def _load_query_templates(self) -> Dict[str, Dict[str, Any]]:
         """Load predefined query templates"""
         return {
@@ -157,11 +157,11 @@ class ThreatHuntingEngine:
                 "name": "Suspicious Login Activity",
                 "description": "Detect unusual login patterns",
                 "query": """
-                FIND authentication_events 
-                WHERE event_type = 'login_attempt' 
+                FIND authentication_events
+                WHERE event_type = 'login_attempt'
                 AND (
-                    failed_attempts > 5 
-                    OR unusual_time = true 
+                    failed_attempts > 5
+                    OR unusual_time = true
                     OR geolocation_anomaly = true
                 )
                 TIMERANGE last_24h
@@ -175,13 +175,13 @@ class ThreatHuntingEngine:
                 "name": "Lateral Movement Detection",
                 "description": "Detect potential lateral movement activities",
                 "query": """
-                FIND network_events 
+                FIND network_events
                 WHERE protocol IN ('SMB', 'RDP', 'SSH', 'WinRM')
                 AND source_ip IN (
                     SELECT internal_ips FROM network_topology
                 )
                 AND destination_ip IN (
-                    SELECT internal_ips FROM network_topology  
+                    SELECT internal_ips FROM network_topology
                 )
                 TIMERANGE last_6h
                 CORRELATE WITH authentication_events ON source_ip
@@ -207,7 +207,7 @@ class ThreatHuntingEngine:
                 "tags": ["data_exfiltration", "anomaly", "network_behavior"]
             },
             "malware_persistence_hunt": {
-                "name": "Malware Persistence Hunt", 
+                "name": "Malware Persistence Hunt",
                 "description": "Hunt for malware persistence mechanisms",
                 "query": """
                 FIND endpoint_events
@@ -247,7 +247,7 @@ class ThreatHuntingEngine:
                 "tags": ["c2", "beacon", "periodic_communication", "external"]
             }
         }
-    
+
     async def _load_predefined_queries(self):
         """Load predefined hunting queries"""
         for template_id, template in self.query_templates.items():
@@ -267,9 +267,9 @@ class ThreatHuntingEngine:
                 last_modified=datetime.now()
             )
             self.queries[template_id] = query
-        
+
         logger.info(f"Loaded {len(self.queries)} predefined hunting queries")
-    
+
     async def _load_threat_hypotheses(self):
         """Load threat hypotheses for hunting campaigns"""
         hypotheses = [
@@ -310,7 +310,7 @@ class ThreatHuntingEngine:
                 "priority": "critical"
             }
         ]
-        
+
         for hyp_data in hypotheses:
             hypothesis = ThreatHypothesis(
                 hypothesis_id=hyp_data["hypothesis_id"],
@@ -326,19 +326,19 @@ class ThreatHuntingEngine:
                 created_at=datetime.now()
             )
             self.hypotheses[hyp_data["hypothesis_id"]] = hypothesis
-        
+
         logger.info(f"Loaded {len(self.hypotheses)} threat hypotheses")
-    
+
     async def create_hunting_query(self, query_data: Dict[str, Any]) -> str:
         """Create a new hunting query"""
         try:
             query_id = f"hunt_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-            
+
             # Validate query syntax
             parsed_query = await self.query_parser.parse(query_data["query_language"])
             if not parsed_query.valid:
                 raise ValueError(f"Invalid query syntax: {parsed_query.errors}")
-            
+
             query = HuntingQuery(
                 query_id=query_id,
                 name=query_data["name"],
@@ -354,52 +354,52 @@ class ThreatHuntingEngine:
                 created_at=datetime.now(),
                 last_modified=datetime.now()
             )
-            
+
             self.queries[query_id] = query
             logger.info(f"Created hunting query: {query_id}")
-            
+
             return query_id
-            
+
         except Exception as e:
             logger.error(f"Failed to create hunting query: {e}")
             raise
-    
+
     async def execute_hunting_query(self, query_id: str, parameters: Dict[str, Any] = None) -> HuntingResult:
         """Execute a hunting query"""
         try:
             if query_id not in self.queries:
                 raise ValueError(f"Query {query_id} not found")
-            
+
             query = self.queries[query_id]
             start_time = datetime.now()
-            
+
             logger.info(f"Executing hunting query: {query_id}")
-            
+
             # Parse and execute query
             parsed_query = await self.query_parser.parse(query.query_language)
             if not parsed_query.valid:
                 raise ValueError(f"Query parsing failed: {parsed_query.errors}")
-            
+
             # Execute against data sources
             raw_results = await self._execute_against_data_sources(
-                parsed_query, 
+                parsed_query,
                 query.data_sources,
                 parameters or query.parameters
             )
-            
+
             # Analyze results
             findings = await self._analyze_query_results(raw_results, query)
-            
+
             # Calculate confidence and risk
             confidence_score = await self._calculate_confidence(findings, query)
             risk_level = await self._assess_risk_level(findings, confidence_score)
-            
+
             # Generate recommendations
             recommendations = await self._generate_hunting_recommendations(findings, query)
-            
+
             # Calculate false positive likelihood
             fp_likelihood = await self._calculate_false_positive_likelihood(findings, query)
-            
+
             result = HuntingResult(
                 result_id=f"result_{query_id}_{start_time.strftime('%Y%m%d_%H%M%S')}",
                 query_id=query_id,
@@ -412,25 +412,25 @@ class ThreatHuntingEngine:
                 recommendations=recommendations,
                 false_positive_likelihood=fp_likelihood
             )
-            
+
             self.results[result.result_id] = result
-            
+
             execution_time = (datetime.now() - start_time).total_seconds()
             logger.info(f"Query {query_id} executed in {execution_time:.2f}s, found {len(findings)} matches")
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(f"Failed to execute hunting query {query_id}: {e}")
             raise
-    
-    async def _execute_against_data_sources(self, 
-                                          parsed_query: 'ParsedQuery', 
+
+    async def _execute_against_data_sources(self,
+                                          parsed_query: 'ParsedQuery',
                                           data_sources: List[DataSource],
                                           parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Execute query against specified data sources"""
         results = {}
-        
+
         for data_source in data_sources:
             try:
                 if data_source in self.data_connectors:
@@ -439,22 +439,22 @@ class ThreatHuntingEngine:
                     results[data_source.value] = source_results
                 else:
                     logger.warning(f"No connector available for data source: {data_source}")
-                    
+
             except Exception as e:
                 logger.error(f"Failed to query data source {data_source}: {e}")
                 results[data_source.value] = {"error": str(e)}
-        
+
         return results
-    
+
     async def _analyze_query_results(self, raw_results: Dict[str, Any], query: HuntingQuery) -> List[Dict[str, Any]]:
         """Analyze raw query results and extract findings"""
         findings = []
-        
+
         try:
             for source, results in raw_results.items():
                 if "error" in results:
                     continue
-                
+
                 events = results.get("events", [])
                 for event in events:
                     # Apply confidence threshold
@@ -471,20 +471,20 @@ class ThreatHuntingEngine:
                             "raw_event": event
                         }
                         findings.append(finding)
-            
+
             # Sort by confidence and timestamp
             findings.sort(key=lambda x: (x["confidence"], x["timestamp"]), reverse=True)
-            
+
         except Exception as e:
             logger.error(f"Failed to analyze query results: {e}")
-        
+
         return findings
-    
+
     def _calculate_severity(self, event: Dict[str, Any]) -> str:
         """Calculate severity based on event characteristics"""
         confidence = event.get("confidence", 0.5)
         risk_factors = event.get("risk_factors", [])
-        
+
         if confidence >= 0.9 or "critical" in risk_factors:
             return "critical"
         elif confidence >= 0.7 or "high" in risk_factors:
@@ -493,32 +493,32 @@ class ThreatHuntingEngine:
             return "medium"
         else:
             return "low"
-    
+
     async def _calculate_confidence(self, findings: List[Dict[str, Any]], query: HuntingQuery) -> float:
         """Calculate overall confidence score for query results"""
         if not findings:
             return 0.0
-        
+
         # Weight by individual confidence scores
         total_confidence = sum(f["confidence"] for f in findings)
         avg_confidence = total_confidence / len(findings)
-        
+
         # Adjust based on number of findings
         count_factor = min(1.0, len(findings) / 10.0)
-        
+
         # Adjust based on query complexity
         complexity_factor = 0.9 if query.query_type == QueryType.COMPLEX else 1.0
-        
+
         return min(1.0, avg_confidence * count_factor * complexity_factor)
-    
+
     async def _assess_risk_level(self, findings: List[Dict[str, Any]], confidence: float) -> str:
         """Assess overall risk level"""
         if not findings:
             return "none"
-        
+
         critical_count = len([f for f in findings if f["severity"] == "critical"])
         high_count = len([f for f in findings if f["severity"] == "high"])
-        
+
         if critical_count > 0 and confidence >= 0.8:
             return "critical"
         elif high_count >= 3 or (high_count > 0 and confidence >= 0.8):
@@ -527,39 +527,39 @@ class ThreatHuntingEngine:
             return "medium"
         else:
             return "low"
-    
+
     async def _generate_hunting_recommendations(self, findings: List[Dict[str, Any]], query: HuntingQuery) -> List[str]:
         """Generate hunting recommendations based on findings"""
         recommendations = []
-        
+
         if not findings:
             recommendations.append("No immediate threats detected - consider expanding hunt scope")
             return recommendations
-        
+
         # Risk-based recommendations
         critical_findings = [f for f in findings if f["severity"] == "critical"]
         if critical_findings:
             recommendations.append(f"🚨 IMMEDIATE ACTION: {len(critical_findings)} critical findings require immediate investigation")
             recommendations.append("Initiate incident response procedures")
             recommendations.append("Consider isolating affected systems")
-        
+
         high_findings = [f for f in findings if f["severity"] == "high"]
         if high_findings:
             recommendations.append(f"⚠️  HIGH PRIORITY: Investigate {len(high_findings)} high-severity findings within 4 hours")
-        
+
         # Query-specific recommendations
         if "lateral_movement" in query.tags:
             recommendations.append("🔍 Review network segmentation and access controls")
             recommendations.append("🔐 Audit privileged account usage")
-        
+
         if "data_exfiltration" in query.tags:
             recommendations.append("📊 Analyze data flow patterns and DLP alerts")
             recommendations.append("🌐 Review external network connections")
-        
+
         if "persistence" in query.tags:
             recommendations.append("🔧 Scan for unauthorized system modifications")
             recommendations.append("📋 Review startup programs and scheduled tasks")
-        
+
         # General recommendations
         recommendations.extend([
             "📈 Extend time range for historical pattern analysis",
@@ -567,14 +567,14 @@ class ThreatHuntingEngine:
             "📝 Document findings and update threat intelligence",
             "🎯 Create focused hunts based on discovered indicators"
         ])
-        
+
         return recommendations
-    
+
     async def _calculate_false_positive_likelihood(self, findings: List[Dict[str, Any]], query: HuntingQuery) -> float:
         """Calculate likelihood of false positives"""
         if not findings:
             return 0.0
-        
+
         # Base false positive rate by query type
         base_rates = {
             QueryType.SIMPLE: 0.1,
@@ -583,30 +583,30 @@ class ThreatHuntingEngine:
             QueryType.STATISTICAL: 0.3,
             QueryType.TEMPORAL: 0.25
         }
-        
+
         base_rate = base_rates.get(query.query_type, 0.2)
-        
+
         # Adjust based on confidence threshold
         confidence_factor = 1.0 - query.confidence_threshold
-        
+
         # Adjust based on number of findings (more findings = potentially more FPs)
         count_factor = min(0.5, len(findings) / 20.0)
-        
+
         fp_likelihood = min(1.0, base_rate + confidence_factor + count_factor)
-        
+
         return round(fp_likelihood, 2)
-    
+
     async def run_hunting_campaign(self, hypothesis_id: str) -> Dict[str, Any]:
         """Run a complete hunting campaign based on a threat hypothesis"""
         try:
             if hypothesis_id not in self.hypotheses:
                 raise ValueError(f"Hypothesis {hypothesis_id} not found")
-            
+
             hypothesis = self.hypotheses[hypothesis_id]
             campaign_start = datetime.now()
-            
+
             logger.info(f"Running hunting campaign for hypothesis: {hypothesis_id}")
-            
+
             campaign_results = {
                 "hypothesis_id": hypothesis_id,
                 "campaign_start": campaign_start,
@@ -615,36 +615,36 @@ class ThreatHuntingEngine:
                 "summary": {},
                 "recommendations": []
             }
-            
+
             # Execute all queries related to the hypothesis
             for query_id in hypothesis.queries:
                 if query_id in self.queries:
                     result = await self.execute_hunting_query(query_id)
                     campaign_results["query_results"][query_id] = result
-            
+
             # Correlate results across queries
             correlation_results = await self._correlate_campaign_results(
                 campaign_results["query_results"]
             )
             campaign_results["correlation_results"] = correlation_results
-            
+
             # Generate campaign summary
             summary = await self._generate_campaign_summary(campaign_results, hypothesis)
             campaign_results["summary"] = summary
-            
+
             # Generate campaign recommendations
             recommendations = await self._generate_campaign_recommendations(campaign_results, hypothesis)
             campaign_results["recommendations"] = recommendations
-            
+
             execution_time = (datetime.now() - campaign_start).total_seconds()
             logger.info(f"Hunting campaign {hypothesis_id} completed in {execution_time:.2f}s")
-            
+
             return campaign_results
-            
+
         except Exception as e:
             logger.error(f"Failed to run hunting campaign {hypothesis_id}: {e}")
             raise
-    
+
     async def _correlate_campaign_results(self, query_results: Dict[str, HuntingResult]) -> Dict[str, Any]:
         """Correlate results across multiple hunting queries"""
         correlations = {
@@ -653,13 +653,13 @@ class ThreatHuntingEngine:
             "entity_correlations": [],
             "confidence_boost": 0.0
         }
-        
+
         try:
             # Find common entities across query results
             all_findings = []
             for result in query_results.values():
                 all_findings.extend(result.findings)
-            
+
             # Group by common indicators
             indicator_groups = {}
             for finding in all_findings:
@@ -667,7 +667,7 @@ class ThreatHuntingEngine:
                     if indicator not in indicator_groups:
                         indicator_groups[indicator] = []
                     indicator_groups[indicator].append(finding)
-            
+
             # Find significant correlations
             for indicator, findings in indicator_groups.items():
                 if len(findings) >= 2:  # Found in multiple queries
@@ -679,29 +679,29 @@ class ThreatHuntingEngine:
                         "findings": findings
                     }
                     correlations["cross_query_matches"].append(correlation)
-            
+
             # Calculate overall confidence boost from correlations
             if correlations["cross_query_matches"]:
                 avg_boost = sum(c["confidence_boost"] for c in correlations["cross_query_matches"])
                 correlations["confidence_boost"] = min(0.5, avg_boost / len(correlations["cross_query_matches"]))
-            
+
         except Exception as e:
             logger.error(f"Failed to correlate campaign results: {e}")
-        
+
         return correlations
-    
+
     async def _generate_campaign_summary(self, campaign_results: Dict[str, Any], hypothesis: ThreatHypothesis) -> Dict[str, Any]:
         """Generate summary of hunting campaign results"""
         query_results = campaign_results["query_results"]
         correlations = campaign_results["correlation_results"]
-        
+
         total_findings = sum(len(r.findings) for r in query_results.values())
         avg_confidence = sum(r.confidence_score for r in query_results.values()) / len(query_results) if query_results else 0
-        
+
         # Adjust confidence based on correlations
         correlation_boost = correlations.get("confidence_boost", 0)
         adjusted_confidence = min(1.0, avg_confidence + correlation_boost)
-        
+
         summary = {
             "hypothesis_validated": adjusted_confidence >= 0.7,
             "confidence_score": adjusted_confidence,
@@ -713,19 +713,19 @@ class ThreatHuntingEngine:
             "mitre_tactics_observed": hypothesis.tactics,
             "mitre_techniques_observed": hypothesis.techniques
         }
-        
+
         return summary
-    
+
     async def _generate_campaign_recommendations(self, campaign_results: Dict[str, Any], hypothesis: ThreatHypothesis) -> List[str]:
         """Generate recommendations based on campaign results"""
         recommendations = []
         summary = campaign_results["summary"]
-        
+
         if summary["hypothesis_validated"]:
             recommendations.append(f"🎯 HYPOTHESIS CONFIRMED: {hypothesis.title}")
             recommendations.append("🚨 Initiate immediate incident response procedures")
             recommendations.append("📋 Escalate to security leadership and relevant stakeholders")
-            
+
             # Hypothesis-specific recommendations
             if "lateral_movement" in hypothesis.hypothesis_id:
                 recommendations.extend([
@@ -733,26 +733,26 @@ class ThreatHuntingEngine:
                     "🔐 Reset credentials for potentially compromised accounts",
                     "📊 Audit all privileged access in the environment"
                 ])
-            
+
             if "data_theft" in hypothesis.hypothesis_id:
                 recommendations.extend([
                     "🛑 Activate data loss prevention measures",
                     "📊 Audit recent data access patterns",
                     "🌐 Monitor external network communications"
                 ])
-            
+
             if "ransomware" in hypothesis.hypothesis_id:
                 recommendations.extend([
                     "💾 Verify backup integrity and accessibility",
                     "🔒 Isolate critical systems from the network",
                     "📱 Activate emergency communication procedures"
                 ])
-        
+
         else:
             recommendations.append("✅ Hypothesis not validated - continue monitoring")
             recommendations.append("🔍 Consider expanding hunt scope or adjusting parameters")
             recommendations.append("📈 Schedule regular re-evaluation of this hypothesis")
-        
+
         # General recommendations
         recommendations.extend([
             "📝 Document all findings and update threat intelligence",
@@ -760,9 +760,9 @@ class ThreatHuntingEngine:
             "🔄 Update hunting queries based on campaign results",
             "📊 Schedule follow-up hunts based on new indicators"
         ])
-        
+
         return recommendations
-    
+
     # Mock data connectors (replace with real implementations)
     async def _mock_log_connector(self, parsed_query: 'ParsedQuery', parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Mock log data connector"""
@@ -780,7 +780,7 @@ class ThreatHuntingEngine:
                 for i in range(3)
             ]
         }
-    
+
     async def _mock_network_connector(self, parsed_query: 'ParsedQuery', parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Mock network data connector"""
         await asyncio.sleep(0.2)
@@ -797,7 +797,7 @@ class ThreatHuntingEngine:
                 for i in range(2)
             ]
         }
-    
+
     async def _mock_endpoint_connector(self, parsed_query: 'ParsedQuery', parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Mock endpoint data connector"""
         await asyncio.sleep(0.15)
@@ -814,17 +814,17 @@ class ThreatHuntingEngine:
                 for i in range(2)
             ]
         }
-    
+
     async def _mock_cloud_connector(self, parsed_query: 'ParsedQuery', parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Mock cloud data connector"""
         await asyncio.sleep(0.1)
         return {"events": []}
-    
+
     async def _mock_external_connector(self, parsed_query: 'ParsedQuery', parameters: Dict[str, Any]) -> Dict[str, Any]:
         """Mock external data connector"""
         await asyncio.sleep(0.1)
         return {"events": []}
-    
+
     async def get_hunting_statistics(self) -> Dict[str, Any]:
         """Get hunting engine statistics"""
         return {
@@ -832,28 +832,28 @@ class ThreatHuntingEngine:
             "total_results": len(self.results),
             "total_hypotheses": len(self.hypotheses),
             "active_hypotheses": len([h for h in self.hypotheses.values() if h.status == "active"]),
-            "recent_executions": len([r for r in self.results.values() 
+            "recent_executions": len([r for r in self.results.values()
                                     if r.execution_time > datetime.now() - timedelta(hours=24)]),
             "avg_confidence": sum(r.confidence_score for r in self.results.values()) / len(self.results) if self.results else 0,
             "data_sources_available": len(self.data_connectors),
             "engine_status": "running" if self.running else "stopped"
         }
-    
+
     async def shutdown(self):
         """Shutdown the threat hunting engine"""
         self.running = False
-        
+
         if self.elasticsearch_client:
             await self.elasticsearch_client.close()
-        
+
         if self.redis_client:
             await self.redis_client.close()
-        
+
         logger.info("Threat Hunting Engine shutdown complete")
 
 class ThreatHuntingQueryParser:
     """Parser for threat hunting query language"""
-    
+
     def __init__(self):
         self.keywords = [
             'FIND', 'WHERE', 'AND', 'OR', 'NOT', 'IN', 'CONTAINS',
@@ -861,21 +861,21 @@ class ThreatHuntingQueryParser:
             'CORRELATE', 'WITH', 'ON', 'ANOMALY', 'DETECTION',
             'STATISTICAL', 'ANALYSIS', 'ENRICHMENT'
         ]
-    
+
     async def parse(self, query_string: str) -> 'ParsedQuery':
         """Parse hunting query string"""
         try:
             # Simple parsing logic (would be more sophisticated in production)
             tokens = self._tokenize(query_string)
             parsed = self._parse_tokens(tokens)
-            
+
             return ParsedQuery(
                 valid=True,
                 errors=[],
                 parsed_structure=parsed,
                 execution_plan=self._create_execution_plan(parsed)
             )
-            
+
         except Exception as e:
             return ParsedQuery(
                 valid=False,
@@ -883,12 +883,12 @@ class ThreatHuntingQueryParser:
                 parsed_structure={},
                 execution_plan={}
             )
-    
+
     def _tokenize(self, query_string: str) -> List[str]:
         """Tokenize query string"""
         # Simple tokenization (would use proper lexer in production)
         return re.findall(r'\w+|[^\w\s]', query_string.upper())
-    
+
     def _parse_tokens(self, tokens: List[str]) -> Dict[str, Any]:
         """Parse tokens into structure"""
         return {
@@ -897,7 +897,7 @@ class ThreatHuntingQueryParser:
             "conditions": [],
             "time_range": "default"
         }
-    
+
     def _create_execution_plan(self, parsed: Dict[str, Any]) -> Dict[str, Any]:
         """Create execution plan"""
         return {

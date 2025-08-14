@@ -20,15 +20,15 @@ logger = logging.getLogger(__name__)
 
 async def main():
     logger.info("🎯 Multi-Adversary Simulation Framework Service Starting...")
-    
+
     # Initialize framework components
     profile_manager = SyntheticAdversaryProfileManager()
     simulation_engine = MultiActorSimulationEngine(profile_manager)
     threat_synthesizer = PredictiveThreatIntelligenceSynthesizer()
     goal_optimizer = CampaignGoalOptimizer()
-    
+
     logger.info("✅ Multi-Adversary Framework Service Operational")
-    
+
     # Keep service running
     while True:
         await asyncio.sleep(60)

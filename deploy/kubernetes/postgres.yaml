@@ -2,7 +2,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: postgres-pvc
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: postgres
     component: database
@@ -18,7 +18,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: postgres
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: postgres
     component: database
@@ -203,7 +203,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: postgres
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: postgres
     component: database
@@ -228,48 +228,48 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-config
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: postgres
     component: config
 data:
   postgresql.conf: |
     # XORB Production PostgreSQL Configuration
-    
+
     # Connection Settings
     listen_addresses = '*'
     port = 5432
     max_connections = 500
     superuser_reserved_connections = 3
-    
+
     # Memory Settings
     shared_buffers = 1GB
     effective_cache_size = 4GB
     maintenance_work_mem = 512MB
     work_mem = 64MB
-    
+
     # Checkpoint Settings
     checkpoint_completion_target = 0.9
     checkpoint_timeout = 10min
     checkpoint_warning = 30s
-    
+
     # WAL Settings
     wal_buffers = 32MB
     min_wal_size = 4GB
     max_wal_size = 16GB
     wal_level = replica
-    
+
     # Query Planner
     default_statistics_target = 100
     random_page_cost = 1.1
     effective_io_concurrency = 200
-    
+
     # Parallel Query
     max_worker_processes = 16
     max_parallel_workers_per_gather = 8
     max_parallel_workers = 16
     max_parallel_maintenance_workers = 8
-    
+
     # Logging
     log_destination = 'stderr'
     logging_collector = on
@@ -281,14 +281,14 @@ data:
     log_temp_files = 0
     log_checkpoints = on
     log_autovacuum_min_duration = 0
-    
+
     # Autovacuum
     autovacuum = on
     autovacuum_max_workers = 4
     autovacuum_naptime = 15s
     autovacuum_vacuum_threshold = 50
     autovacuum_analyze_threshold = 50
-    
+
     # Security
     ssl = off
     password_encryption = scram-sha-256
@@ -297,24 +297,24 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: postgres-init-scripts
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app: postgres
     component: init
 data:
   01-init-extensions.sql: |
     -- XORB Database Initialization Script
-    
+
     -- Create vector extension for AI operations
     CREATE EXTENSION IF NOT EXISTS vector;
-    
+
     -- Create additional useful extensions
     CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
     CREATE EXTENSION IF NOT EXISTS "pgcrypto";
     CREATE EXTENSION IF NOT EXISTS "btree_gin";
     CREATE EXTENSION IF NOT EXISTS "btree_gist";
     CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
-    
+
     -- Create application database user with limited privileges
     DO $$
     BEGIN
@@ -323,12 +323,12 @@ data:
         END IF;
     END
     $$;
-    
+
     -- Grant necessary permissions
     GRANT CONNECT ON DATABASE xorb_prod TO xorb_app;
     GRANT USAGE ON SCHEMA public TO xorb_app;
     GRANT CREATE ON SCHEMA public TO xorb_app;
-    
+
     -- Create monitoring user for metrics
     DO $$
     BEGIN
@@ -337,12 +337,12 @@ data:
         END IF;
     END
     $$;
-    
+
     GRANT pg_monitor TO postgres_exporter;
-  
+
   02-init-tables.sql: |
     -- XORB Core Tables
-    
+
     -- Tenants table for multi-tenancy
     CREATE TABLE IF NOT EXISTS tenants (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -353,7 +353,7 @@ data:
         is_active BOOLEAN DEFAULT TRUE,
         settings JSONB DEFAULT '{}'::JSONB
     );
-    
+
     -- Users table
     CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -368,7 +368,7 @@ data:
         last_login TIMESTAMP WITH TIME ZONE,
         metadata JSONB DEFAULT '{}'::JSONB
     );
-    
+
     -- PTaaS scan sessions
     CREATE TABLE IF NOT EXISTS ptaas_sessions (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -384,7 +384,7 @@ data:
         started_at TIMESTAMP WITH TIME ZONE,
         completed_at TIMESTAMP WITH TIME ZONE
     );
-    
+
     -- Threat intelligence indicators
     CREATE TABLE IF NOT EXISTS threat_indicators (
         id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -399,7 +399,7 @@ data:
         metadata JSONB DEFAULT '{}'::JSONB,
         embedding VECTOR(1536) -- For AI similarity search
     );
-    
+
     -- Create indexes for performance
     CREATE INDEX IF NOT EXISTS idx_tenants_slug ON tenants(slug);
     CREATE INDEX IF NOT EXISTS idx_users_tenant_id ON users(tenant_id);
@@ -409,21 +409,21 @@ data:
     CREATE INDEX IF NOT EXISTS idx_threat_indicators_tenant_id ON threat_indicators(tenant_id);
     CREATE INDEX IF NOT EXISTS idx_threat_indicators_type ON threat_indicators(indicator_type);
     CREATE INDEX IF NOT EXISTS idx_threat_indicators_embedding ON threat_indicators USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
-    
+
     -- Row Level Security (RLS) for multi-tenancy
     ALTER TABLE users ENABLE ROW LEVEL SECURITY;
     ALTER TABLE ptaas_sessions ENABLE ROW LEVEL SECURITY;
     ALTER TABLE threat_indicators ENABLE ROW LEVEL SECURITY;
-    
+
     -- RLS Policies
     CREATE POLICY tenant_isolation_users ON users
         FOR ALL TO xorb_app
         USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
-    
+
     CREATE POLICY tenant_isolation_ptaas_sessions ON ptaas_sessions
         FOR ALL TO xorb_app
         USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
-    
+
     CREATE POLICY tenant_isolation_threat_indicators ON threat_indicators
         FOR ALL TO xorb_app
         USING (tenant_id = current_setting('app.current_tenant_id')::UUID);

@@ -3,7 +3,7 @@ from sqlalchemy import select
 from typing import List
 
 from xorb.shared.models import (
-    UnifiedUser, APIKeyModel, UnifiedTarget, UnifiedAgent, UnifiedCampaign, 
+    UnifiedUser, APIKeyModel, UnifiedTarget, UnifiedAgent, UnifiedCampaign,
     ThreatIntelligence, ScanResultModel, ExploitResultModel, EvidenceModel
 )
 

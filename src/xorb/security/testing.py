@@ -66,7 +66,7 @@ class SecurityTester:
     def run_security_tests(self) -> List[SecurityTestResult]:
         """Run all security tests and return results"""
         logger.info("Starting security testing suite")
-        
+
         # Run all test categories
         test_results = []
         test_results.extend(self._test_authentication())
@@ -76,16 +76,16 @@ class SecurityTester:
         test_results.extend(self._test_api_security())
         test_results.extend(self._test_third_party_integrations())
         test_results.extend(self._test_compliance())
-        
+
         self.test_results = test_results
         self._log_summary()
-        
+
         # Store audit record
         self.audit.log_event(
             'security_testing_complete',
             {'total_tests': len(test_results), 'failed': len([r for r in test_results if r.status == 'failed']}
         )
-        
+
         return test_results
 
     def _log_summary(self):
@@ -93,24 +93,24 @@ class SecurityTester:
         total = len(self.test_results)
         failed = len([r for r in self.test_results if r.status == 'failed'])
         high_risk = len([r for r in self.test_results if r.severity in ['critical', 'high'] and r.status == 'failed'])
-        
+
         logger.info(f"Security testing complete: {total} tests executed")
         logger.info(f"Failed tests: {failed} ({high_risk} high/critical risk)")
-        
+
         if failed > 0:
             logger.warning("Security test failures detected - recommend immediate remediation")
-        
+
     def _test_authentication(self) -> List[SecurityTestResult]:
         """Test authentication mechanisms"""
         results = []
-        
+
         # Test 1: Weak password policy
         test_id = "AUTH-001"
         try:
             # Check password policy
             pwd_policy = self.config.get('password_policy', {})
             min_length = pwd_policy.get('min_length', 12)
-            
+
             if min_length < 12:
                 results.append(SecurityTestResult(
                     test_id=test_id,
@@ -148,13 +148,13 @@ class SecurityTester:
                 component="authentication",
                 status="failed"
             ))
-        
+
         # Test 2: MFA enforcement
         test_id = "AUTH-002"
         try:
             # Check MFA configuration
             mfa_required = self.config.get('mfa', {}).get('required', False)
-            
+
             if not mfa_required:
                 results.append(SecurityTestResult(
                     test_id=test_id,
@@ -192,22 +192,22 @@ class SecurityTester:
                 component="authentication",
                 status="failed"
             ))
-        
+
         return results
 
     def _test_authorization(self) -> List[SecurityTestResult]:
         """Test authorization mechanisms"""
         results = []
-        
+
         # Test 1: Insecure Direct Object References (IDOR)
         test_id = "AUTHZ-001"
         try:
             # Simulate IDOR attempt
             test_url = self.config.get('test_endpoints', {}).get('user_profile', '/api/v1/users/{user_id}')
-            
+
             # Try to access another user's profile
             response = self.session.get(test_url.format(user_id=1), headers={'Authorization': 'Bearer test_token'})
-            
+
             # If we can access another user's profile, it's a vulnerability
             if response.status_code == 200:
                 results.append(SecurityTestResult(
@@ -246,19 +246,19 @@ class SecurityTester:
                 component="authorization",
                 status="failed"
             ))
-        
+
         return results
 
     def _test_data_protection(self) -> List[SecurityTestResult]:
         """Test data protection mechanisms"""
         results = []
-        
+
         # Test 1: Sensitive data in logs
         test_id = "DATA-001"
         try:
             # Check if sensitive data is being logged
             log_config = self.config.get('logging', {})
-            
+
             if log_config.get('log_sensitive_data', False):
                 results.append(SecurityTestResult(
                     test_id=test_id,
@@ -296,22 +296,22 @@ class SecurityTester:
                 component="data_protection",
                 status="failed"
             ))
-        
+
         return results
 
     def _test_input_validation(self) -> List[SecurityTestResult]:
         """Test input validation mechanisms"""
         results = []
-        
+
         # Test 1: SQL Injection
         test_id = "INPUT-001"
         try:
             # Simulate SQL injection attempt
             test_url = self.config.get('test_endpoints', {}).get('search', '/api/v1/search')
-            
+
             # Try SQL injection payload
             response = self.session.get(test_url, params={'q': "' OR '1'='1"})
-            
+
             # Check if SQL injection was successful
             if response.status_code == 500 and "SQL" in response.text:
                 results.append(SecurityTestResult(
@@ -350,19 +350,19 @@ class SecurityTester:
                 component="input_validation",
                 status="failed"
             ))
-        
+
         return results
 
     def _test_api_security(self) -> List[SecurityTestResult]:
         """Test API security mechanisms"""
         results = []
-        
+
         # Test 1: Rate limiting
         test_id = "API-001"
         try:
             # Check rate limiting configuration
             rate_limit = self.config.get('rate_limiting', {})
-            
+
             if not rate_limit.get('enabled', False):
                 results.append(SecurityTestResult(
                     test_id=test_id,
@@ -400,19 +400,19 @@ class SecurityTester:
                 component="api_security",
                 status="failed"
             ))
-        
+
         return results
 
     def _test_third_party_integrations(self) -> List[SecurityTestResult]:
         """Test third-party integration security"""
         results = []
-        
+
         # Test 1: Insecure third-party API keys
         test_id = "THIRD-001"
         try:
             # Check if third-party API keys are exposed
             third_party = self.config.get('third_party', {})
-            
+
             for service, config in third_party.items():
                 if 'api_key' in config and config['api_key'] in ['test_key', '1234567890', 'default_key']:
                     results.append(SecurityTestResult(
@@ -451,19 +451,19 @@ class SecurityTester:
                 component="third_party_integrations",
                 status="failed"
             ))
-        
+
         return results
 
     def _test_compliance(self) -> List[SecurityTestResult]:
         """Test compliance with security standards"""
         results = []
-        
+
         # Test 1: GDPR compliance
         test_id = "COMPLIANCE-001"
         try:
             # Check GDPR compliance configuration
             compliance_config = self.config.get('compliance', {})
-            
+
             if not compliance_config.get('gdpr', {}).get('enabled', False):
                 results.append(SecurityTestResult(
                     test_id=test_id,
@@ -501,19 +501,19 @@ class SecurityTester:
                 component="compliance",
                 status="failed"
             ))
-        
+
         return results
 
     async def _test_api_security_async(self) -> List[SecurityTestResult]:
         """Async version of API security tests"""
         results = []
-        
+
         # Test 2: CORS misconfiguration
         test_id = "API-002"
         try:
             # Check CORS configuration
             cors_config = self.config.get('cors', {})
-            
+
             if cors_config.get('allow_credentials', False) and '*' in cors_config.get('origins', []):
                 results.append(SecurityTestResult(
                     test_id=test_id,
@@ -551,7 +551,7 @@ class SecurityTester:
                 component="api_security",
                 status="failed"
             ))
-        
+
         return results
 
     def run_security_tests_async(self) -> List[SecurityTestResult]:
@@ -563,18 +563,18 @@ class SecurityTester:
         """Generate a comprehensive security report"""
         if not self.test_results:
             self.run_security_tests()
-        
+
         # Calculate security score
         total_score = 0
         max_score = 0
-        
+
         for result in self.test_results:
             max_score += self.severity_weights.get(result.severity, 1)
             if result.status == 'failed':
                 total_score += self.severity_weights.get(result.severity, 1)
-        
+
         security_score = 100 - (total_score / max_score * 100) if max_score > 0 else 100
-        
+
         return {
             'timestamp': datetime.now().isoformat(),
             'total_tests': len(self.test_results),
@@ -592,12 +592,12 @@ class SecurityTester:
     def save_security_report(self, file_path: str) -> None:
         """Save security report to file"""
         report = self.generate_security_report()
-        
+
         with open(file_path, 'w') as f:
             json.dump(report, f, indent=2)
-        
+
         logger.info(f"Security report saved to {file_path}")
-        
+
         # Store audit record
         self.audit.log_event(
             'security_report_generated',
@@ -613,10 +613,10 @@ if __name__ == '__main__':
     # Example usage
     tester = SecurityTester()
     tester.run_and_save_security_report('security_report.json')
-    
+
     # Run async tests
     tester.run_security_tests_async()
-    
+
     # Generate and print report
     report = tester.generate_security_report()
     print(json.dumps(report, indent=2))
@@ -624,7 +624,7 @@ if __name__ == '__main__':
     # Run security tests and generate report
     tester = SecurityTester()
     tester.run_and_save_security_report('security_report.json')
-    
+
     # Print summary
     print("\nSecurity Score:", report['summary']['security_score'])
     print("Status:", report['summary']['status'].upper())
@@ -632,7 +632,7 @@ if __name__ == '__main__':
     print("Total Tests:", report['total_tests'])
     print("Passed:", report['passed'])
     print("Failed:", report['failed'])
-    
+
     # Exit with error code if there are failed tests
     if report['failed'] > 0:
         exit(1)

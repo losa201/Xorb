@@ -28,36 +28,36 @@ async def _check_service_health_default(service_name: str) -> Dict[str, Any]:
     try:
         import psutil
         import time
-        
+
         start_time = time.time()
-        
+
         # Basic system checks
         cpu_percent = psutil.cpu_percent(interval=0.1)
         memory = psutil.virtual_memory()
         disk = psutil.disk_usage('/')
-        
+
         response_time = int((time.time() - start_time) * 1000)
-        
+
         # Determine status based on resource utilization
         status = "healthy"
         checks = []
-        
+
         if cpu_percent > 90:
             status = "degraded"
             checks.append("High CPU usage")
-        
+
         if memory.percent > 90:
             status = "degraded"
             checks.append("High memory usage")
-        
+
         if disk.percent > 95:
             status = "degraded"
             checks.append("Low disk space")
-        
+
         if response_time > 1000:
             status = "degraded"
             checks.append("Slow response time")
-        
+
         return {
             "status": status,
             "message": f"Default health check for {service_name}",
@@ -68,7 +68,7 @@ async def _check_service_health_default(service_name: str) -> Dict[str, Any]:
             "checks": checks,
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         return {
             "status": "unhealthy",
@@ -104,27 +104,27 @@ threat_hunting_system: Optional[AdvancedThreatHuntingSystem] = None
 async def get_services():
     """Initialize and get service instances"""
     global africa_pentesting_suite, exploit_framework, ai_vulnerability_engine, compliance_engine, threat_hunting_system
-    
+
     if not africa_pentesting_suite:
         africa_pentesting_suite = AdvancedAfricaPentestingSuite()
         await africa_pentesting_suite.initialize()
-    
+
     if not exploit_framework:
         exploit_framework = AdvancedExploitFramework()
         await exploit_framework.initialize()
-    
+
     if not ai_vulnerability_engine:
         ai_vulnerability_engine = AIVulnerabilityAssessmentEngine()
         await ai_vulnerability_engine.initialize()
-    
+
     if not compliance_engine:
         compliance_engine = AfricanComplianceAutomationEngine()
         await compliance_engine.initialize()
-    
+
     if not threat_hunting_system:
         threat_hunting_system = AdvancedThreatHuntingSystem()
         await threat_hunting_system.initialize()
-    
+
     return {
         "africa_pentesting": africa_pentesting_suite,
         "exploit_framework": exploit_framework,
@@ -146,7 +146,7 @@ async def conduct_comprehensive_african_pentest(
 ):
     """
     Conduct comprehensive penetration test optimized for African markets
-    
+
     Features:
     - Regional threat intelligence for African cybersecurity landscape
     - Mobile money and fintech security testing
@@ -157,12 +157,12 @@ async def conduct_comprehensive_african_pentest(
     try:
         services = await get_services()
         africa_service = services["africa_pentesting"]
-        
+
         # Extract target information
         target_host = request.get("target_host")
         if not target_host:
             raise HTTPException(status_code=400, detail="Target host is required")
-        
+
         # Create scan target
         from ..domain.tenant_entities import ScanTarget
         target = ScanTarget(
@@ -171,13 +171,13 @@ async def conduct_comprehensive_african_pentest(
             scan_profile=request.get("scan_profile", "comprehensive"),
             stealth_mode=request.get("stealth_mode", False)
         )
-        
+
         # Execute comprehensive African pentest
         pentest_result = await africa_service.conduct_comprehensive_african_pentest(
             target=target,
             test_profile=request.get("test_profile", "comprehensive")
         )
-        
+
         return {
             "status": "success",
             "scan_id": pentest_result.scan_id,
@@ -201,7 +201,7 @@ async def conduct_comprehensive_african_pentest(
                 "executive_summary": pentest_result.executive_summary
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Comprehensive African pentest failed: {e}")
         raise HTTPException(status_code=500, detail=f"Penetration test failed: {str(e)}")
@@ -216,7 +216,7 @@ async def mobile_money_security_assessment(
 ):
     """
     Comprehensive mobile money security assessment
-    
+
     Supports:
     - M-Pesa (Kenya)
     - Airtel Money
@@ -227,10 +227,10 @@ async def mobile_money_security_assessment(
     try:
         services = await get_services()
         africa_service = services["africa_pentesting"]
-        
+
         target_host = request.get("target_host")
         mobile_service = request.get("mobile_service", "mpesa")
-        
+
         # Create target with mobile money context
         from ..domain.tenant_entities import ScanTarget
         target = ScanTarget(
@@ -239,15 +239,15 @@ async def mobile_money_security_assessment(
             scan_profile="mobile_money",
             stealth_mode=request.get("stealth_mode", True)
         )
-        
+
         # Get regional context
         regional_context = await africa_service._gather_regional_threat_intelligence(target)
-        
+
         # Assess mobile financial security
         mobile_assessment = await africa_service._assess_mobile_financial_security(
             target, regional_context
         )
-        
+
         return {
             "status": "success",
             "assessment_id": f"mobile_money_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -267,7 +267,7 @@ async def mobile_money_security_assessment(
                 }
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Mobile money security assessment failed: {e}")
         raise HTTPException(status_code=500, detail=f"Assessment failed: {str(e)}")
@@ -288,13 +288,13 @@ async def ai_vulnerability_prediction(
     try:
         services = await get_services()
         ai_service = services["ai_vulnerability"]
-        
+
         target_data = request.get("target_data", {})
         analysis_depth = request.get("analysis_depth", "comprehensive")
-        
+
         # Predict vulnerabilities using AI
         predictions = await ai_service.predict_vulnerabilities(target_data, analysis_depth)
-        
+
         # Format response
         formatted_predictions = []
         for prediction in predictions:
@@ -308,7 +308,7 @@ async def ai_vulnerability_prediction(
                 "mitigation_suggestions": prediction.mitigation_suggestions,
                 "false_positive_probability": prediction.false_positive_probability
             })
-        
+
         return {
             "status": "success",
             "predictions_count": len(formatted_predictions),
@@ -320,7 +320,7 @@ async def ai_vulnerability_prediction(
                 "timestamp": datetime.now().isoformat()
             }
         }
-        
+
     except Exception as e:
         logger.error(f"AI vulnerability prediction failed: {e}")
         raise HTTPException(status_code=500, detail=f"AI prediction failed: {str(e)}")
@@ -339,19 +339,19 @@ async def ai_code_analysis(
     try:
         services = await get_services()
         ai_service = services["ai_vulnerability"]
-        
+
         code_data = {
             "code": request.get("code", ""),
             "language": request.get("language", "python"),
             "context": request.get("context", {})
         }
-        
+
         if not code_data["code"]:
             raise HTTPException(status_code=400, detail="Code content is required")
-        
+
         # Analyze code with AI
         analysis_result = await ai_service.analyze_code_with_ai(code_data)
-        
+
         return {
             "status": "success",
             "analysis_id": analysis_result.analysis_id,
@@ -367,7 +367,7 @@ async def ai_code_analysis(
             },
             "timestamp": analysis_result.timestamp.isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"AI code analysis failed: {e}")
         raise HTTPException(status_code=500, detail=f"Code analysis failed: {str(e)}")
@@ -388,14 +388,14 @@ async def custom_exploit_development(
     try:
         services = await get_services()
         exploit_service = services["exploit_framework"]
-        
+
         vulnerability_info = request.get("vulnerability_info", {})
         if not vulnerability_info:
             raise HTTPException(status_code=400, detail="Vulnerability information is required")
-        
+
         # Develop custom exploit
         exploit_module = await exploit_service.develop_custom_exploit(vulnerability_info)
-        
+
         return {
             "status": "success",
             "exploit_module_id": exploit_module.module_id,
@@ -411,7 +411,7 @@ async def custom_exploit_development(
             },
             "creation_date": exploit_module.creation_date.isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Custom exploit development failed: {e}")
         raise HTTPException(status_code=500, detail=f"Exploit development failed: {str(e)}")
@@ -430,16 +430,16 @@ async def advanced_payload_generation(
     try:
         services = await get_services()
         exploit_service = services["exploit_framework"]
-        
+
         payload_type = request.get("payload_type", "reverse_shell")
         target_info = request.get("target_info", {})
         options = request.get("options", {})
-        
+
         # Generate advanced payload
         payload = await exploit_service.generate_advanced_payload(
             payload_type, target_info, options
         )
-        
+
         return {
             "status": "success",
             "payload_id": payload.payload_id,
@@ -457,7 +457,7 @@ async def advanced_payload_generation(
             # Note: Not returning actual payload data for security
             "creation_timestamp": payload.creation_timestamp.isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Advanced payload generation failed: {e}")
         raise HTTPException(status_code=500, detail=f"Payload generation failed: {str(e)}")
@@ -474,10 +474,10 @@ async def african_compliance_assessment(
 ):
     """
     Comprehensive compliance assessment for African regulatory frameworks
-    
+
     Supported frameworks:
     - POPIA (South Africa)
-    - NDPR (Nigeria)  
+    - NDPR (Nigeria)
     - DPA (Kenya, Ghana)
     - CBN Guidelines (Nigeria)
     - SARB Regulations (South Africa)
@@ -485,18 +485,18 @@ async def african_compliance_assessment(
     try:
         services = await get_services()
         compliance_service = services["compliance"]
-        
+
         organization_data = request.get("organization_data", {})
         assessment_scope = request.get("assessment_scope", "full")
-        
+
         if not organization_data:
             raise HTTPException(status_code=400, detail="Organization data is required")
-        
+
         # Conduct comprehensive compliance assessment
         compliance_report = await compliance_service.conduct_comprehensive_compliance_assessment(
             organization_data, assessment_scope
         )
-        
+
         return {
             "status": "success",
             "report_id": compliance_report.report_id,
@@ -507,11 +507,11 @@ async def african_compliance_assessment(
                 "frameworks_assessed": [f.value for f in compliance_report.frameworks_assessed],
                 "assessment_summary": {
                     "total_requirements": len(compliance_report.assessment_results),
-                    "compliant": len([r for r in compliance_report.assessment_results 
+                    "compliant": len([r for r in compliance_report.assessment_results
                                    if r.status.value == "compliant"]),
-                    "non_compliant": len([r for r in compliance_report.assessment_results 
+                    "non_compliant": len([r for r in compliance_report.assessment_results
                                         if r.status.value == "non_compliant"]),
-                    "partially_compliant": len([r for r in compliance_report.assessment_results 
+                    "partially_compliant": len([r for r in compliance_report.assessment_results
                                               if r.status.value == "partially_compliant"])
                 },
                 "executive_summary": compliance_report.executive_summary,
@@ -522,7 +522,7 @@ async def african_compliance_assessment(
             "next_assessment_date": compliance_report.next_assessment_date.isoformat(),
             "report_generation_date": compliance_report.report_generation_date.isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"African compliance assessment failed: {e}")
         raise HTTPException(status_code=500, detail=f"Compliance assessment failed: {str(e)}")
@@ -539,7 +539,7 @@ async def get_compliance_frameworks(
     try:
         services = await get_services()
         compliance_service = services["compliance"]
-        
+
         frameworks = []
         for framework, details in compliance_service.african_frameworks.items():
             frameworks.append({
@@ -551,13 +551,13 @@ async def get_compliance_frameworks(
                 "scope": details["scope"],
                 "update_frequency": details["update_frequency"]
             })
-        
+
         return {
             "status": "success",
             "frameworks_count": len(frameworks),
             "frameworks": frameworks
         }
-        
+
     except Exception as e:
         logger.error(f"Get compliance frameworks failed: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get frameworks: {str(e)}")
@@ -579,21 +579,21 @@ async def execute_threat_hunt(
     try:
         services = await get_services()
         hunting_service = services["threat_hunting"]
-        
+
         hunt_config = {
             "hunt_name": request.get("hunt_name", "Custom Hunt"),
             "hypothesis": request.get("hypothesis", ""),
             "hunt_query": request.get("hunt_query", ""),
             "data_sources": request.get("data_sources", ["logs", "network", "endpoints"]),
-            "start_time": datetime.fromisoformat(request.get("start_time", 
+            "start_time": datetime.fromisoformat(request.get("start_time",
                                                (datetime.now() - timedelta(hours=24)).isoformat())),
             "end_time": datetime.fromisoformat(request.get("end_time", datetime.now().isoformat())),
             "analyst": current_user.username if hasattr(current_user, 'username') else "api_user"
         }
-        
+
         # Execute threat hunt
         threat_hunt = await hunting_service.execute_threat_hunt(hunt_config)
-        
+
         return {
             "status": "success",
             "hunt_id": threat_hunt.hunt_id,
@@ -621,7 +621,7 @@ async def execute_threat_hunt(
                 "completed_time": threat_hunt.completed_time.isoformat() if threat_hunt.completed_time else None
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Threat hunt execution failed: {e}")
         raise HTTPException(status_code=500, detail=f"Threat hunt failed: {str(e)}")
@@ -641,10 +641,10 @@ async def automated_incident_response(
     try:
         services = await get_services()
         hunting_service = services["threat_hunting"]
-        
+
         # Create detection object from request
         from ..services.advanced_threat_hunting_system import ThreatDetection, ThreatSeverity, DetectionType
-        
+
         detection = ThreatDetection(
             detection_id=f"detection_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             title=request.get("title", "Security Event"),
@@ -662,10 +662,10 @@ async def automated_incident_response(
             rule_id=request.get("rule_id"),
             false_positive_probability=request.get("false_positive_probability", 0.1)
         )
-        
+
         # Execute automated incident response
         incident = await hunting_service.automated_incident_response(detection)
-        
+
         return {
             "status": "success",
             "incident_id": incident.incident_id,
@@ -686,7 +686,7 @@ async def automated_incident_response(
                 "automated_analysis_completed": True
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Automated incident response failed: {e}")
         raise HTTPException(status_code=500, detail=f"Incident response failed: {str(e)}")
@@ -702,9 +702,9 @@ async def advanced_ptaas_health():
     """
     try:
         services = await get_services()
-        
+
         health_status = {}
-        
+
         # Check each service
         for service_name, service in services.items():
             if hasattr(service, 'health_check'):
@@ -717,11 +717,11 @@ async def advanced_ptaas_health():
             else:
                 # Implement default health check for unknown services
                 health_status[service_name] = await _check_service_health_default(service_name)
-        
+
         # Overall system status
         all_statuses = [status["status"] for status in health_status.values()]
         overall_status = "healthy" if all(s == "healthy" for s in all_statuses) else "degraded"
-        
+
         return {
             "overall_status": overall_status,
             "services": health_status,
@@ -734,7 +734,7 @@ async def advanced_ptaas_health():
                 "threat_hunting_and_response": True
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Health check failed: {e}")
         return {
@@ -766,7 +766,7 @@ async def get_advanced_capabilities():
                         "Cross-border financial testing"
                     ],
                     "supported_countries": [
-                        "South Africa", "Nigeria", "Kenya", "Ghana", "Egypt", 
+                        "South Africa", "Nigeria", "Kenya", "Ghana", "Egypt",
                         "Morocco", "Tanzania", "Uganda", "Ethiopia"
                     ]
                 },
@@ -835,7 +835,7 @@ async def get_advanced_capabilities():
                 "JSON", "XML", "PDF", "Excel", "CSV", "STIX/TAXII"
             ]
         }
-        
+
     except Exception as e:
         logger.error(f"Get capabilities failed: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to get capabilities: {str(e)}")

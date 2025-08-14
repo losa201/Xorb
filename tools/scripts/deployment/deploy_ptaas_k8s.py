@@ -19,41 +19,41 @@ logger = logging.getLogger(__name__)
 
 class PTaaSKubernetesDeployer:
     """PTaaS Platform Kubernetes Integration"""
-    
+
     def __init__(self):
         self.deployment_id = f"PTAAS-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
-        self.namespace = "xorb-platform"  # Use existing namespace
-        
+        self.namespace = "xorb_platform"  # Use existing namespace
+
     async def deploy_ptaas_services(self):
         """Deploy PTaaS services to existing Kubernetes cluster"""
         logger.info("🚀 Starting XORB PTaaS Kubernetes Integration")
         logger.info(f"📋 Deployment ID: {self.deployment_id}")
-        
+
         try:
             # Deploy Neo4j Graph Database
             await self.deploy_neo4j()
-            
+
             # Deploy Qdrant Vector Database
             await self.deploy_qdrant()
-            
+
             # Deploy RabbitMQ Message Queue
             await self.deploy_rabbitmq()
-            
+
             # Deploy PTaaS Core Services
             await self.deploy_ptaas_core_services()
-            
+
             # Configure PTaaS Ingress
             await self.configure_ptaas_ingress()
-            
+
             # Verify deployment
             await self.verify_ptaas_deployment()
-            
+
             logger.info("🎉 PTaaS Platform Integration Complete!")
-            
+
         except Exception as e:
             logger.error(f"❌ PTaaS deployment failed: {e}")
             raise
-    
+
     async def deploy_neo4j(self):
         """Deploy Neo4j Graph Database"""
         neo4j_yaml = """
@@ -61,7 +61,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: neo4j
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 1
   selector:
@@ -106,7 +106,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: neo4j
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: neo4j
@@ -123,7 +123,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: neo4j-pvc
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   accessModes:
     - ReadWriteOnce
@@ -132,16 +132,16 @@ spec:
       storage: 20Gi
   storageClassName: xorb-ssd
 """
-        
+
         with open('/tmp/neo4j.yaml', 'w') as f:
             f.write(neo4j_yaml)
-        
+
         try:
             subprocess.run(['kubectl', 'apply', '-f', '/tmp/neo4j.yaml'], check=True)
             logger.info("✅ Neo4j Graph Database deployed")
         except subprocess.CalledProcessError as e:
             logger.warning(f"⚠️ Neo4j deployment warning: {e}")
-    
+
     async def deploy_qdrant(self):
         """Deploy Qdrant Vector Database"""
         qdrant_yaml = """
@@ -149,7 +149,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: qdrant
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 1
   selector:
@@ -185,7 +185,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: qdrant
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: qdrant
@@ -202,7 +202,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: qdrant-pvc
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   accessModes:
     - ReadWriteOnce
@@ -211,16 +211,16 @@ spec:
       storage: 50Gi
   storageClassName: xorb-ssd
 """
-        
+
         with open('/tmp/qdrant.yaml', 'w') as f:
             f.write(qdrant_yaml)
-        
+
         try:
             subprocess.run(['kubectl', 'apply', '-f', '/tmp/qdrant.yaml'], check=True)
             logger.info("✅ Qdrant Vector Database deployed")
         except subprocess.CalledProcessError as e:
             logger.warning(f"⚠️ Qdrant deployment warning: {e}")
-    
+
     async def deploy_rabbitmq(self):
         """Deploy RabbitMQ Message Queue"""
         rabbitmq_yaml = """
@@ -228,7 +228,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rabbitmq
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 1
   selector:
@@ -269,7 +269,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: rabbitmq
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: rabbitmq
@@ -286,7 +286,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: rabbitmq-pvc
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   accessModes:
     - ReadWriteOnce
@@ -295,26 +295,26 @@ spec:
       storage: 10Gi
   storageClassName: xorb-ssd
 """
-        
+
         with open('/tmp/rabbitmq.yaml', 'w') as f:
             f.write(rabbitmq_yaml)
-        
+
         try:
             subprocess.run(['kubectl', 'apply', '-f', '/tmp/rabbitmq.yaml'], check=True)
             logger.info("✅ RabbitMQ Message Queue deployed")
         except subprocess.CalledProcessError as e:
             logger.warning(f"⚠️ RabbitMQ deployment warning: {e}")
-    
+
     async def deploy_ptaas_core_services(self):
         """Deploy PTaaS Core Services"""
-        
+
         # PTaaS Bug Bounty Service
         bug_bounty_yaml = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ptaas-bug-bounty
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 2
   selector:
@@ -352,7 +352,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ptaas-bug-bounty
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: ptaas-bug-bounty
@@ -361,14 +361,14 @@ spec:
     targetPort: 8004
   type: ClusterIP
 """
-        
+
         # PTaaS Exploit Validation Service
         exploit_validation_yaml = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ptaas-exploit-validation
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 2
   selector:
@@ -411,7 +411,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ptaas-exploit-validation
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: ptaas-exploit-validation
@@ -420,14 +420,14 @@ spec:
     targetPort: 8005
   type: ClusterIP
 """
-        
+
         # PTaaS Reward System Service
         reward_system_yaml = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ptaas-reward-system
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   replicas: 1
   selector:
@@ -461,7 +461,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: ptaas-reward-system
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   selector:
     app: ptaas-reward-system
@@ -470,24 +470,24 @@ spec:
     targetPort: 8006
   type: ClusterIP
 """
-        
+
         # Deploy all PTaaS services
         services = [
             ('/tmp/bug-bounty.yaml', bug_bounty_yaml, 'Bug Bounty Service'),
             ('/tmp/exploit-validation.yaml', exploit_validation_yaml, 'Exploit Validation Service'),
             ('/tmp/reward-system.yaml', reward_system_yaml, 'Reward System Service')
         ]
-        
+
         for file_path, yaml_content, service_name in services:
             with open(file_path, 'w') as f:
                 f.write(yaml_content)
-            
+
             try:
                 subprocess.run(['kubectl', 'apply', '-f', file_path], check=True)
                 logger.info(f"✅ {service_name} deployed")
             except subprocess.CalledProcessError as e:
                 logger.warning(f"⚠️ {service_name} deployment warning: {e}")
-    
+
     async def configure_ptaas_ingress(self):
         """Configure PTaaS Ingress Rules"""
         ptaas_ingress_yaml = """
@@ -495,7 +495,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: ptaas-ingress
-  namespace: xorb-platform
+  namespace: xorb_platform
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
@@ -554,62 +554,62 @@ spec:
             port:
               number: 15672
 """
-        
+
         with open('/tmp/ptaas-ingress.yaml', 'w') as f:
             f.write(ptaas_ingress_yaml)
-        
+
         try:
             subprocess.run(['kubectl', 'apply', '-f', '/tmp/ptaas-ingress.yaml'], check=True)
             logger.info("✅ PTaaS Ingress configured")
         except subprocess.CalledProcessError as e:
             logger.warning(f"⚠️ PTaaS Ingress warning: {e}")
-    
+
     async def verify_ptaas_deployment(self):
         """Verify PTaaS deployment"""
         try:
             # Check pod status
-            result = subprocess.run(['kubectl', 'get', 'pods', '-n', 'xorb-platform', '-l', 'app in (neo4j,qdrant,rabbitmq,ptaas-bug-bounty,ptaas-exploit-validation,ptaas-reward-system)'], 
+            result = subprocess.run(['kubectl', 'get', 'pods', '-n', 'xorb_platform', '-l', 'app in (neo4j,qdrant,rabbitmq,ptaas-bug-bounty,ptaas-exploit-validation,ptaas-reward-system)'],
                                   capture_output=True, text=True, check=True)
-            
+
             logger.info("✅ PTaaS deployment verification completed")
             logger.info("📊 PTaaS Services Status:")
             print(result.stdout)
-            
+
         except subprocess.CalledProcessError as e:
             logger.warning(f"⚠️ PTaaS verification warning: {e}")
-    
+
     async def cleanup_temp_files(self):
         """Clean up temporary deployment files"""
         temp_files = [
             '/tmp/neo4j.yaml', '/tmp/qdrant.yaml', '/tmp/rabbitmq.yaml',
-            '/tmp/bug-bounty.yaml', '/tmp/exploit-validation.yaml', 
+            '/tmp/bug-bounty.yaml', '/tmp/exploit-validation.yaml',
             '/tmp/reward-system.yaml', '/tmp/ptaas-ingress.yaml'
         ]
-        
+
         for temp_file in temp_files:
             try:
                 if os.path.exists(temp_file):
                     os.remove(temp_file)
             except Exception:
                 pass
-        
+
         logger.info("✅ PTaaS deployment files cleaned up")
 
 async def main():
     """Main PTaaS deployment function"""
     deployer = PTaaSKubernetesDeployer()
-    
+
     try:
         await deployer.deploy_ptaas_services()
         await deployer.cleanup_temp_files()
-        
+
         print("\n" + "="*80)
         print("🎉 XORB PTaaS PLATFORM INTEGRATION SUCCESSFUL!")
         print("="*80)
         print(f"Deployment ID: {deployer.deployment_id}")
         print("PTaaS Services Deployed:")
         print("  ✅ Neo4j Graph Database")
-        print("  ✅ Qdrant Vector Database") 
+        print("  ✅ Qdrant Vector Database")
         print("  ✅ RabbitMQ Message Queue")
         print("  ✅ Bug Bounty Service")
         print("  ✅ Exploit Validation Engine")
@@ -622,7 +622,7 @@ async def main():
         print("  Qdrant API: https://ptaas.verteidiq.com/qdrant")
         print("  RabbitMQ Management: https://ptaas.verteidiq.com/rabbitmq")
         print("="*80)
-        
+
     except Exception as e:
         logger.error(f"❌ PTaaS deployment failed: {e}")
         sys.exit(1)

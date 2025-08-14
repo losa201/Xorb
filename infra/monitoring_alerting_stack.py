@@ -179,7 +179,7 @@ class MonitoringComponent:
 
 class XORBMonitoringStack:
     """Comprehensive monitoring and alerting stack"""
-    
+
     def __init__(self, namespace: str = "xorb-monitoring", platform: str = "kubernetes"):
         self.namespace = namespace
         self.platform = platform
@@ -187,18 +187,18 @@ class XORBMonitoringStack:
         self.deployment_id = f"monitoring_{int(time.time())}"
         self.dashboards = {}
         self.alert_rules = {}
-        
+
         # Initialize monitoring configurations
         self._initialize_monitoring_configs()
-        
+
         logger.info(f"📊 Monitoring stack initialized")
         logger.info(f"📋 Namespace: {self.namespace}")
         logger.info(f"🎯 Platform: {self.platform}")
         logger.info(f"🆔 Deployment ID: {self.deployment_id}")
-    
+
     def _initialize_monitoring_configs(self):
         """Initialize monitoring component configurations"""
-        
+
         # Prometheus
         prometheus_config = PrometheusConfig()
         self.components["prometheus"] = MonitoringComponent(
@@ -206,7 +206,7 @@ class XORBMonitoringStack:
             type=MonitoringComponentType.METRICS,
             config=prometheus_config
         )
-        
+
         # Grafana
         grafana_config = GrafanaConfig()
         self.components["grafana"] = MonitoringComponent(
@@ -214,7 +214,7 @@ class XORBMonitoringStack:
             type=MonitoringComponentType.VISUALIZATION,
             config=grafana_config
         )
-        
+
         # AlertManager
         alertmanager_config = AlertManagerConfig()
         self.components["alertmanager"] = MonitoringComponent(
@@ -222,7 +222,7 @@ class XORBMonitoringStack:
             type=MonitoringComponentType.ALERTING,
             config=alertmanager_config
         )
-        
+
         # Loki
         loki_config = LokiConfig()
         self.components["loki"] = MonitoringComponent(
@@ -230,7 +230,7 @@ class XORBMonitoringStack:
             type=MonitoringComponentType.LOGGING,
             config=loki_config
         )
-        
+
         # Jaeger
         jaeger_config = JaegerConfig()
         self.components["jaeger"] = MonitoringComponent(
@@ -238,7 +238,7 @@ class XORBMonitoringStack:
             type=MonitoringComponentType.TRACING,
             config=jaeger_config
         )
-        
+
         # Fluentd
         fluentd_config = FluentdConfig()
         self.components["fluentd"] = MonitoringComponent(
@@ -246,57 +246,57 @@ class XORBMonitoringStack:
             type=MonitoringComponentType.LOGGING,
             config=fluentd_config
         )
-        
+
         logger.info(f"🔧 Initialized {len(self.components)} monitoring components")
-    
+
     async def deploy_monitoring_stack(self) -> bool:
         """Deploy comprehensive monitoring stack"""
         try:
             logger.info("📊 Starting monitoring stack deployment")
-            
+
             # Create namespace
             if self.platform == "kubernetes":
                 await self._create_monitoring_namespace()
-            
+
             # Deploy components in dependency order
             deployment_order = [
                 "prometheus",
-                "loki", 
+                "loki",
                 "jaeger",
                 "fluentd",
                 "alertmanager",
                 "grafana"
             ]
-            
+
             for component_name in deployment_order:
                 component = self.components[component_name]
                 logger.info(f"🔧 Deploying {component_name}")
-                
+
                 success = await self._deploy_monitoring_component(component)
-                
+
                 if success:
                     logger.info(f"✅ {component_name} deployed successfully")
                     await self._wait_for_component_health(component)
                 else:
                     logger.error(f"❌ Failed to deploy {component_name}")
                     return False
-            
+
             # Setup monitoring configurations
             await self._setup_prometheus_configuration()
             await self._setup_grafana_dashboards()
             await self._setup_alert_rules()
             await self._setup_log_aggregation()
-            
+
             # Validate monitoring stack
             await self._validate_monitoring_stack()
-            
+
             logger.info("🎉 Monitoring stack deployment completed successfully!")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Monitoring stack deployment failed: {e}")
             return False
-    
+
     async def _create_monitoring_namespace(self) -> bool:
         """Create Kubernetes namespace for monitoring"""
         try:
@@ -340,19 +340,19 @@ spec:
       memory: "128Mi"
     type: Container
 """
-            
+
             return await self._kubectl_apply(namespace_yaml)
-            
+
         except Exception as e:
             logger.error(f"❌ Failed to create monitoring namespace: {e}")
             return False
-    
+
     async def _deploy_monitoring_component(self, component: MonitoringComponent) -> bool:
         """Deploy individual monitoring component"""
         try:
             component.status = "deploying"
             component.start_time = datetime.now()
-            
+
             if component.type == MonitoringComponentType.METRICS:
                 success = await self._deploy_prometheus(component)
             elif component.type == MonitoringComponentType.VISUALIZATION:
@@ -368,28 +368,28 @@ spec:
             else:
                 logger.warning(f"⚠️  Unknown component type: {component.type}")
                 success = False
-            
+
             component.end_time = datetime.now()
-            
+
             if success:
                 component.status = "running"
             else:
                 component.status = "failed"
-            
+
             return success
-            
+
         except Exception as e:
             component.status = "failed"
             component.error_message = str(e)
             component.end_time = datetime.now()
             logger.error(f"❌ Component deployment failed: {e}")
             return False
-    
+
     async def _deploy_prometheus(self, component: MonitoringComponent) -> bool:
         """Deploy Prometheus metrics server"""
         try:
             config = component.config
-            
+
             if self.platform == "kubernetes":
                 # Prometheus ConfigMap
                 prometheus_config_yaml = f"""
@@ -405,15 +405,15 @@ data:
       evaluation_interval: {config.evaluation_interval}
       external_labels:
 {self._format_yaml_dict(config.external_labels, 8)}
-    
+
     rule_files:
 {self._format_yaml_list([f'- "{rule}"' for rule in config.rule_files], 4)}
-    
+
     scrape_configs:
     - job_name: 'prometheus'
       static_configs:
       - targets: ['localhost:9090']
-    
+
     - job_name: 'kubernetes-pods'
       kubernetes_sd_configs:
       - role: pod
@@ -435,7 +435,7 @@ data:
         target_label: __address__
         regex: (.+)
         replacement: ${{__meta_kubernetes_pod_ip}}:$$1
-    
+
     - job_name: 'kubernetes-services'
       kubernetes_sd_configs:
       - role: service
@@ -457,7 +457,7 @@ data:
         target_label: __address__
         regex: (.+)
         replacement: ${{__meta_kubernetes_service_name}}.${{__meta_kubernetes_namespace}}.svc.cluster.local:$$1
-    
+
     - job_name: 'kubernetes-nodes'
       kubernetes_sd_configs:
       - role: node
@@ -470,7 +470,7 @@ data:
         regex: (.+)
         target_label: __metrics_path__
         replacement: /api/v1/nodes/$${1}/proxy/metrics
-    
+
     - job_name: 'kubernetes-cadvisor'
       kubernetes_sd_configs:
       - role: node
@@ -488,13 +488,13 @@ data:
         regex: (.+)
         target_label: __metrics_path__
         replacement: /api/v1/nodes/$${1}/proxy/metrics/cadvisor
-        
+
     {"remote_write:" if config.enable_remote_write else ""}
 {self._format_yaml_list([{"url": url} for url in config.remote_write_urls], 4) if config.enable_remote_write else ""}
 """
-                
+
                 await self._kubectl_apply(prometheus_config_yaml)
-                
+
                 # Prometheus Deployment
                 prometheus_deployment_yaml = f"""
 apiVersion: apps/v1
@@ -648,28 +648,28 @@ spec:
     protocol: TCP
   type: ClusterIP
 """
-                
+
                 success = await self._kubectl_apply(prometheus_deployment_yaml)
-                
+
                 if success:
                     component.endpoints = {
                         "web": f"prometheus.{self.namespace}.svc.cluster.local:9090",
                         "external": f"http://localhost:9090"
                     }
-                
+
                 return success
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Prometheus deployment failed: {e}")
             return False
-    
+
     async def _deploy_grafana(self, component: MonitoringComponent) -> bool:
         """Deploy Grafana visualization server"""
         try:
             config = component.config
-            
+
             if self.platform == "kubernetes":
                 # Grafana Configuration
                 grafana_config_yaml = f"""
@@ -683,48 +683,48 @@ data:
     [server]
     http_port = {config.port}
     root_url = http://localhost:{config.port}/
-    
+
     [database]
     type = sqlite3
     path = /var/lib/grafana/grafana.db
-    
+
     [security]
     admin_user = admin
     admin_password = {config.admin_password}
-    
+
     [users]
     allow_sign_up = false
     default_theme = dark
-    
+
     [auth]
     disable_login_form = false
-    
+
     [auth.anonymous]
     enabled = false
-    
+
     [smtp]
     enabled = {str(config.smtp_enabled).lower()}
     host = {config.smtp_host}
     user = {config.smtp_user}
     from_address = {config.smtp_user}
-    
+
     [alerting]
     enabled = true
     execute_alerts = true
-    
+
     [metrics]
     enabled = true
-    
+
     [log]
     mode = console
     level = info
-    
+
     [panels]
     disable_sanitize_html = false
-    
+
     [plugins]
     allow_loading_unsigned_plugins = false
-  
+
   datasources.yaml: |
     apiVersion: 1
     datasources:
@@ -748,9 +748,9 @@ data:
         tracesToLogsV2:
           datasourceUid: loki
 """
-                
+
                 await self._kubectl_apply(grafana_config_yaml)
-                
+
                 # Grafana Deployment
                 grafana_deployment_yaml = f"""
 apiVersion: apps/v1
@@ -870,28 +870,28 @@ spec:
     protocol: TCP
   type: ClusterIP
 """
-                
+
                 success = await self._kubectl_apply(grafana_deployment_yaml)
-                
+
                 if success:
                     component.endpoints = {
                         "web": f"grafana.{self.namespace}.svc.cluster.local:3000",
                         "external": f"http://localhost:3000"
                     }
-                
+
                 return success
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Grafana deployment failed: {e}")
             return False
-    
+
     async def _deploy_alertmanager(self, component: MonitoringComponent) -> bool:
         """Deploy AlertManager for alert handling"""
         try:
             config = component.config
-            
+
             if self.platform == "kubernetes":
                 # AlertManager Configuration
                 alertmanager_config_yaml = f"""
@@ -906,7 +906,7 @@ data:
       smtp_smarthost: '{config.notification_channels["email"]["smtp_server"]}'
       smtp_from: '{config.notification_channels["email"]["from"]}'
       smtp_require_tls: false
-    
+
     route:
       group_by: ['alertname']
       group_wait: 10s
@@ -920,12 +920,12 @@ data:
       - match:
           severity: warning
         receiver: 'warning-alerts'
-    
+
     receivers:
     - name: 'web.hook'
       webhook_configs:
       - url: 'http://localhost:5001/'
-    
+
     - name: 'critical-alerts'
       {"email_configs:" if config.notification_channels["email"]["enabled"] else ""}
       {"- to: '" + "', '".join(config.notification_channels["email"]["to"]) + "'" if config.notification_channels["email"]["enabled"] else ""}
@@ -941,12 +941,12 @@ data:
       {"  username: '" + config.notification_channels["slack"]["username"] + "'" if config.notification_channels["slack"]["enabled"] else ""}
       {"  title: 'CRITICAL Alert'" if config.notification_channels["slack"]["enabled"] else ""}
       {"  text: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'" if config.notification_channels["slack"]["enabled"] else ""}
-    
+
     - name: 'warning-alerts'
       {"email_configs:" if config.notification_channels["email"]["enabled"] else ""}
       {"- to: '" + "', '".join(config.notification_channels["email"]["to"]) + "'" if config.notification_channels["email"]["enabled"] else ""}
       {"  subject: 'WARNING Alert: {{ .GroupLabels.alertname }}'" if config.notification_channels["email"]["enabled"] else ""}
-    
+
     inhibit_rules:
     - source_match:
         severity: 'critical'
@@ -954,9 +954,9 @@ data:
         severity: 'warning'
       equal: ['alertname', 'dev', 'instance']
 """
-                
+
                 await self._kubectl_apply(alertmanager_config_yaml)
-                
+
                 # AlertManager Deployment
                 alertmanager_deployment_yaml = f"""
 apiVersion: apps/v1
@@ -1061,28 +1061,28 @@ spec:
     protocol: TCP
   type: ClusterIP
 """
-                
+
                 success = await self._kubectl_apply(alertmanager_deployment_yaml)
-                
+
                 if success:
                     component.endpoints = {
                         "web": f"alertmanager.{self.namespace}.svc.cluster.local:9093",
                         "external": f"http://localhost:9093"
                     }
-                
+
                 return success
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ AlertManager deployment failed: {e}")
             return False
-    
+
     async def _deploy_loki(self, component: MonitoringComponent) -> bool:
         """Deploy Loki log aggregation system"""
         try:
             config = component.config
-            
+
             if self.platform == "kubernetes":
                 # Loki Configuration
                 loki_config_yaml = f"""
@@ -1094,11 +1094,11 @@ metadata:
 data:
   loki.yaml: |
     auth_enabled: false
-    
+
     server:
       http_listen_port: {config.port}
       grpc_listen_port: 9096
-    
+
     common:
       path_prefix: /loki
       storage:
@@ -1110,14 +1110,14 @@ data:
         instance_addr: 127.0.0.1
         kvstore:
           store: inmemory
-    
+
     query_range:
       results_cache:
         cache:
           embedded_cache:
             enabled: true
             max_size_mb: 100
-    
+
     schema_config:
       configs:
         - from: 2020-10-24
@@ -1127,30 +1127,30 @@ data:
           index:
             prefix: index_
             period: 24h
-    
+
     ruler:
       alertmanager_url: http://alertmanager:9093
-    
+
     limits_config:
       retention_period: {config.retention}
       ingestion_rate_mb: 16
       ingestion_burst_size_mb: 32
-    
+
     chunk_store_config:
 {self._format_yaml_dict(config.chunk_store_config, 6)}
-    
+
     table_manager:
 {self._format_yaml_dict(config.table_manager, 6)}
-    
+
     compactor:
       working_directory: /loki/compactor
       shared_store: filesystem
       compaction_interval: 10m
       retention_enabled: {str(config.enable_compactor).lower()}
 """
-                
+
                 await self._kubectl_apply(loki_config_yaml)
-                
+
                 # Loki Deployment
                 loki_deployment_yaml = f"""
 apiVersion: apps/v1
@@ -1263,28 +1263,28 @@ spec:
     protocol: TCP
   type: ClusterIP
 """
-                
+
                 success = await self._kubectl_apply(loki_deployment_yaml)
-                
+
                 if success:
                     component.endpoints = {
                         "http": f"loki.{self.namespace}.svc.cluster.local:3100",
                         "grpc": f"loki.{self.namespace}.svc.cluster.local:9096"
                     }
-                
+
                 return success
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Loki deployment failed: {e}")
             return False
-    
+
     async def _deploy_jaeger(self, component: MonitoringComponent) -> bool:
         """Deploy Jaeger distributed tracing"""
         try:
             config = component.config
-            
+
             if self.platform == "kubernetes":
                 # Jaeger All-in-One Deployment
                 jaeger_deployment_yaml = f"""
@@ -1428,29 +1428,29 @@ spec:
     protocol: UDP
   type: ClusterIP
 """
-                
+
                 success = await self._kubectl_apply(jaeger_deployment_yaml)
-                
+
                 if success:
                     component.endpoints = {
                         "query": f"jaeger-query.{self.namespace}.svc.cluster.local:16686",
                         "collector": f"jaeger-collector.{self.namespace}.svc.cluster.local:14268",
                         "agent": f"jaeger-agent.{self.namespace}.svc.cluster.local:6831"
                     }
-                
+
                 return success
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Jaeger deployment failed: {e}")
             return False
-    
+
     async def _deploy_fluentd(self, component: MonitoringComponent) -> bool:
         """Deploy Fluentd log collection"""
         try:
             config = component.config
-            
+
             if self.platform == "kubernetes":
                 # Fluentd Configuration
                 fluentd_config_yaml = f"""
@@ -1466,7 +1466,7 @@ data:
       port {config.port}
       bind 0.0.0.0
     </source>
-    
+
     <source>
       @type tail
       path /var/log/containers/*.log
@@ -1478,11 +1478,11 @@ data:
         time_format %Y-%m-%dT%H:%M:%S.%NZ
       </parse>
     </source>
-    
+
     <filter kubernetes.**>
       @type kubernetes_metadata
     </filter>
-    
+
     <match kubernetes.**>
       @type copy
       <store>
@@ -1509,14 +1509,14 @@ data:
       {"  type_name _doc" if "elasticsearch" in config.output_plugins else ""}
       {"</store>" if "elasticsearch" in config.output_plugins else ""}
     </match>
-    
+
     {"<source>" if config.enable_prometheus else ""}
     {"  @type prometheus" if config.enable_prometheus else ""}
     {"  bind 0.0.0.0" if config.enable_prometheus else ""}
     {"  port 24231" if config.enable_prometheus else ""}
     {"  metrics_path /metrics" if config.enable_prometheus else ""}
     {"</source>" if config.enable_prometheus else ""}
-    
+
     {"<source>" if config.enable_prometheus else ""}
     {"  @type prometheus_output_monitor" if config.enable_prometheus else ""}
     {"  interval 10" if config.enable_prometheus else ""}
@@ -1525,9 +1525,9 @@ data:
     {"  </labels>" if config.enable_prometheus else ""}
     {"</source>" if config.enable_prometheus else ""}
 """
-                
+
                 await self._kubectl_apply(fluentd_config_yaml)
-                
+
                 # Fluentd DaemonSet
                 fluentd_daemonset_yaml = f"""
 apiVersion: apps/v1
@@ -1663,50 +1663,50 @@ spec:
   {"  protocol: TCP" if config.enable_prometheus else ""}
   type: ClusterIP
 """
-                
+
                 success = await self._kubectl_apply(fluentd_daemonset_yaml)
-                
+
                 if success:
                     component.endpoints = {
                         "forward": f"fluentd.{self.namespace}.svc.cluster.local:24224"
                     }
-                    
+
                     if config.enable_prometheus:
                         component.endpoints["metrics"] = f"fluentd.{self.namespace}.svc.cluster.local:24231"
-                
+
                 return success
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ Fluentd deployment failed: {e}")
             return False
-    
+
     async def _wait_for_component_health(self, component: MonitoringComponent, timeout: int = 300) -> bool:
         """Wait for monitoring component to become healthy"""
         try:
             logger.info(f"⏳ Waiting for {component.name} to become healthy...")
-            
+
             start_time = time.time()
-            
+
             while time.time() - start_time < timeout:
                 health_status = await self._check_component_health(component)
-                
+
                 if health_status:
                     component.health_status = True
                     logger.info(f"✅ {component.name} is healthy")
                     return True
-                
+
                 logger.info(f"⏳ {component.name} not ready yet, waiting...")
                 await asyncio.sleep(10)
-            
+
             logger.error(f"❌ Timeout waiting for {component.name} to become healthy")
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Health check failed for {component.name}: {e}")
             return False
-    
+
     async def _check_component_health(self, component: MonitoringComponent) -> bool:
         """Check monitoring component health"""
         try:
@@ -1719,22 +1719,22 @@ spec:
                     "--field-selector=status.phase=Running",
                     "--no-headers"
                 ], capture_output=True, text=True, timeout=30)
-                
+
                 if result.returncode == 0 and result.stdout.strip():
                     return True
-            
+
             return False
-            
+
         except Exception as e:
             logger.error(f"❌ Component health check failed: {e}")
             return False
-    
+
     # Additional helper methods
-    
+
     async def _setup_prometheus_configuration(self):
         """Setup Prometheus configuration and rules"""
         logger.info("⚙️  Setting up Prometheus configuration")
-        
+
         # Create Prometheus rules ConfigMap
         prometheus_rules_yaml = f"""
 apiVersion: v1
@@ -1755,7 +1755,7 @@ data:
         annotations:
           summary: "High CPU usage detected"
           description: "CPU usage is above 80% for more than 2 minutes"
-      
+
       - alert: HighMemoryUsage
         expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 90
         for: 2m
@@ -1764,7 +1764,7 @@ data:
         annotations:
           summary: "High memory usage detected"
           description: "Memory usage is above 90% for more than 2 minutes"
-      
+
       - alert: ServiceDown
         expr: up == 0
         for: 1m
@@ -1773,7 +1773,7 @@ data:
         annotations:
           summary: "Service {{ $labels.instance }} is down"
           description: "Service {{ $labels.instance }} has been down for more than 1 minute"
-      
+
       - alert: HighErrorRate
         expr: rate(http_requests_total{{status=~"5..+"}}[5m]) / rate(http_requests_total[5m]) > 0.1
         for: 5m
@@ -1783,13 +1783,13 @@ data:
           summary: "High error rate detected"
           description: "Error rate is above 10% for more than 5 minutes"
 """
-        
+
         await self._kubectl_apply(prometheus_rules_yaml)
-    
+
     async def _setup_grafana_dashboards(self):
         """Setup Grafana dashboards"""
         logger.info("📊 Setting up Grafana dashboards")
-        
+
         # Dashboard provisioning configuration
         dashboard_config_yaml = f"""
 apiVersion: v1
@@ -1811,9 +1811,9 @@ data:
       options:
         path: /var/lib/grafana/dashboards
 """
-        
+
         await self._kubectl_apply(dashboard_config_yaml)
-        
+
         # Sample dashboard
         dashboard_yaml = f"""
 apiVersion: v1
@@ -1866,38 +1866,38 @@ data:
       }}
     }}
 """
-        
+
         await self._kubectl_apply(dashboard_yaml)
-    
+
     async def _setup_alert_rules(self):
         """Setup alert rules"""
         logger.info("🚨 Setting up alert rules")
         # Alert rules are already configured in Prometheus rules
         pass
-    
+
     async def _setup_log_aggregation(self):
         """Setup log aggregation"""
         logger.info("📋 Setting up log aggregation")
         # Log aggregation is handled by Loki and Fluentd configurations
         pass
-    
+
     async def _validate_monitoring_stack(self):
         """Validate monitoring stack deployment"""
         logger.info("✅ Validating monitoring stack")
-        
+
         validation_tasks = [
             self._validate_prometheus_metrics(),
             self._validate_grafana_dashboards(),
             self._validate_alert_manager(),
             self._validate_log_collection()
         ]
-        
+
         results = await asyncio.gather(*validation_tasks, return_exceptions=True)
-        
+
         for i, result in enumerate(results):
             if isinstance(result, Exception) or not result:
                 logger.warning(f"⚠️  Monitoring validation {i+1} failed: {result}")
-    
+
     async def _validate_prometheus_metrics(self) -> bool:
         """Validate Prometheus is collecting metrics"""
         try:
@@ -1905,7 +1905,7 @@ data:
             return True
         except Exception:
             return False
-    
+
     async def _validate_grafana_dashboards(self) -> bool:
         """Validate Grafana dashboards are loaded"""
         try:
@@ -1913,7 +1913,7 @@ data:
             return True
         except Exception:
             return False
-    
+
     async def _validate_alert_manager(self) -> bool:
         """Validate AlertManager is processing alerts"""
         try:
@@ -1921,7 +1921,7 @@ data:
             return True
         except Exception:
             return False
-    
+
     async def _validate_log_collection(self) -> bool:
         """Validate log collection is working"""
         try:
@@ -1929,34 +1929,34 @@ data:
             return True
         except Exception:
             return False
-    
+
     async def _kubectl_apply(self, yaml_content: str) -> bool:
         """Apply Kubernetes YAML configuration"""
         try:
             with tempfile.NamedTemporaryFile(mode='w', suffix='.yml', delete=False) as f:
                 f.write(yaml_content)
                 temp_file = f.name
-            
+
             cmd = ["kubectl", "apply", "-f", temp_file]
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
-            
+
             os.unlink(temp_file)
-            
+
             if result.returncode == 0:
                 return True
             else:
                 logger.error(f"❌ kubectl apply failed: {result.stderr}")
                 return False
-                
+
         except Exception as e:
             logger.error(f"❌ kubectl apply failed: {e}")
             return False
-    
+
     def _format_yaml_dict(self, data: Dict[str, Any], indent: int) -> str:
         """Format dictionary as YAML with proper indentation"""
         if not data:
             return ""
-        
+
         spaces = " " * indent
         lines = []
         for key, value in data.items():
@@ -1965,14 +1965,14 @@ data:
                 lines.append(self._format_yaml_dict(value, indent + 2))
             else:
                 lines.append(f"{spaces}{key}: {value}")
-        
+
         return "\n".join(lines)
-    
+
     def _format_yaml_list(self, data: List[Any], indent: int) -> str:
         """Format list as YAML with proper indentation"""
         if not data:
             return ""
-        
+
         spaces = " " * indent
         lines = []
         for item in data:
@@ -1982,9 +1982,9 @@ data:
                     lines.append(f"{spaces}  {key}: {value}")
             else:
                 lines.append(f"{spaces}- {item}")
-        
+
         return "\n".join(lines)
-    
+
     def get_monitoring_status(self) -> Dict[str, Any]:
         """Get comprehensive monitoring stack status"""
         status = {
@@ -2000,7 +2000,7 @@ data:
                 "deploying": 0
             }
         }
-        
+
         for name, component in self.components.items():
             status["components"][name] = {
                 "type": component.type.value,
@@ -2011,14 +2011,14 @@ data:
                 "end_time": component.end_time.isoformat() if component.end_time else None,
                 "error_message": component.error_message
             }
-            
+
             if component.status == "running":
                 status["summary"]["running"] += 1
             elif component.status == "failed":
                 status["summary"]["failed"] += 1
             elif component.status == "deploying":
                 status["summary"]["deploying"] += 1
-        
+
         return status
 
 async def main():
@@ -2028,26 +2028,26 @@ async def main():
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-    
+
     # Initialize monitoring stack
     monitoring = XORBMonitoringStack(
         namespace="xorb-monitoring",
         platform="kubernetes"
     )
-    
+
     # Deploy monitoring stack
     success = await monitoring.deploy_monitoring_stack()
-    
+
     if success:
         print("🎉 Monitoring stack deployment completed successfully!")
-        
+
         # Get status
         status = monitoring.get_monitoring_status()
         print(f"📊 Monitoring Stack Status:")
         print(f"  Total Components: {status['summary']['total']}")
         print(f"  Running: {status['summary']['running']}")
         print(f"  Failed: {status['summary']['failed']}")
-        
+
         # Print component endpoints
         print(f"\n🔗 Monitoring Endpoints:")
         for name, component in status['components'].items():
@@ -2057,7 +2057,7 @@ async def main():
                     print(f"    {endpoint_type}: {endpoint_url}")
     else:
         print("❌ Monitoring stack deployment failed!")
-    
+
     return success
 
 if __name__ == "__main__":

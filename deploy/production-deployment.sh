@@ -49,61 +49,61 @@ print_banner() {
 # Prerequisites check
 check_prerequisites() {
     log_info "Checking deployment prerequisites..."
-    
+
     # Check kubectl
     if ! command -v kubectl &> /dev/null; then
         log_error "kubectl is not installed. Please install kubectl first."
         exit 1
     fi
-    
+
     # Check helm
     if ! command -v helm &> /dev/null; then
         log_error "Helm is not installed. Please install Helm first."
         exit 1
     fi
-    
+
     # Check docker
     if ! command -v docker &> /dev/null; then
         log_error "Docker is not installed. Please install Docker first."
         exit 1
     fi
-    
+
     # Check cluster connectivity
     if ! kubectl cluster-info &> /dev/null; then
         log_error "Cannot connect to Kubernetes cluster. Please check your kubeconfig."
         exit 1
     fi
-    
+
     # Check cluster version
     K8S_VERSION=$(kubectl version --output=json | jq -r '.serverVersion.gitVersion')
     log_info "Kubernetes cluster version: ${K8S_VERSION}"
-    
+
     # Check if namespace exists
     if kubectl get namespace "${NAMESPACE}" &> /dev/null; then
         log_warning "Namespace ${NAMESPACE} already exists."
     fi
-    
+
     log_success "Prerequisites check completed successfully"
 }
 
 # Generate secrets
 generate_secrets() {
     log_info "Generating production secrets..."
-    
+
     # Database credentials
     DB_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
     DB_URL="postgresql://xorb:${DB_PASSWORD}@postgres-primary:5432/xorb_production"
-    
+
     # Redis credentials
     REDIS_PASSWORD=$(openssl rand -base64 32 | tr -d "=+/" | cut -c1-25)
     REDIS_URL="redis://:${REDIS_PASSWORD}@redis:6379/0"
-    
+
     # JWT secret
     JWT_SECRET=$(openssl rand -base64 64 | tr -d "=+/" | cut -c1-64)
-    
+
     # Create secrets directory
     mkdir -p "${PROJECT_ROOT}/deploy/secrets"
-    
+
     # Write secrets to file (encrypted)
     cat > "${PROJECT_ROOT}/deploy/secrets/production-secrets.yaml" << EOF
 apiVersion: v1
@@ -155,23 +155,23 @@ EOF
 # Build and push images
 build_and_push_images() {
     log_info "Building and pushing Docker images..."
-    
+
     # Read image registry from environment
     IMAGE_REGISTRY="${IMAGE_REGISTRY:-docker.io/xorb}"
     IMAGE_TAG="${IMAGE_TAG:-1.0.0}"
-    
+
     # Build API image
     log_info "Building XORB API image..."
     docker build -t "${IMAGE_REGISTRY}/api:${IMAGE_TAG}" \
         -f "${PROJECT_ROOT}/src/api/Dockerfile" \
         "${PROJECT_ROOT}"
-    
+
     # Build Orchestrator image
     log_info "Building XORB Orchestrator image..."
     docker build -t "${IMAGE_REGISTRY}/orchestrator:${IMAGE_TAG}" \
         -f "${PROJECT_ROOT}/src/orchestrator/Dockerfile" \
         "${PROJECT_ROOT}"
-    
+
     # Push images if registry is not local
     if [[ "${IMAGE_REGISTRY}" != "localhost"* ]]; then
         log_info "Pushing images to registry..."
@@ -186,36 +186,36 @@ build_and_push_images() {
 # Deploy infrastructure
 deploy_infrastructure() {
     log_info "Deploying infrastructure components..."
-    
+
     # Create namespace
     kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
-    
+
     # Apply namespace configuration
     kubectl apply -f "${PROJECT_ROOT}/deploy/kubernetes/production/namespace.yaml"
-    
+
     # Deploy monitoring stack
     log_info "Deploying monitoring stack..."
     kubectl apply -f "${PROJECT_ROOT}/infra/monitoring/production-monitoring-stack.yaml"
-    
+
     # Wait for monitoring stack to be ready
     log_info "Waiting for monitoring stack to be ready..."
     kubectl wait --for=condition=available --timeout=300s deployment/prometheus -n monitoring
-    
+
     log_success "Infrastructure components deployed successfully"
 }
 
 # Deploy XORB platform using Helm
 deploy_xorb_platform() {
     log_info "Deploying XORB Enterprise Platform using Helm..."
-    
+
     # Add required Helm repositories
     helm repo add bitnami https://charts.bitnami.com/bitnami
     helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
     helm repo update
-    
+
     # Apply secrets first
     kubectl apply -f "${PROJECT_ROOT}/deploy/secrets/production-secrets.yaml"
-    
+
     # Create custom values file for production
     cat > "${PROJECT_ROOT}/deploy/helm/production-values.yaml" << EOF
 global:
@@ -226,7 +226,7 @@ api:
   image:
     repository: ${IMAGE_REGISTRY:-docker.io/xorb}/api
     tag: ${IMAGE_TAG:-1.0.0}
-  
+
   autoscaling:
     enabled: true
     minReplicas: 3
@@ -277,7 +277,7 @@ security:
   podSecurityPolicy:
     enabled: true
 EOF
-    
+
     # Deploy using Helm
     helm upgrade --install "${HELM_RELEASE_NAME}" \
         "${PROJECT_ROOT}/deploy/helm/xorb" \
@@ -285,44 +285,44 @@ EOF
         --values "${PROJECT_ROOT}/deploy/helm/production-values.yaml" \
         --timeout 20m \
         --wait
-    
+
     log_success "XORB Enterprise Platform deployed successfully"
 }
 
 # Verify deployment
 verify_deployment() {
     log_info "Verifying deployment..."
-    
+
     # Check pod status
     log_info "Checking pod status..."
     kubectl get pods -n "${NAMESPACE}"
-    
+
     # Wait for all deployments to be ready
     log_info "Waiting for deployments to be ready..."
     kubectl wait --for=condition=available --timeout=600s deployment/xorb-api -n "${NAMESPACE}"
     kubectl wait --for=condition=available --timeout=600s deployment/xorb-orchestrator -n "${NAMESPACE}"
-    
+
     # Check services
     log_info "Checking services..."
     kubectl get services -n "${NAMESPACE}"
-    
+
     # Check ingress
     if [[ "${INGRESS_ENABLED:-true}" == "true" ]]; then
         log_info "Checking ingress..."
         kubectl get ingress -n "${NAMESPACE}"
     fi
-    
+
     # Health check
     log_info "Performing health checks..."
     API_POD=$(kubectl get pods -n "${NAMESPACE}" -l app=xorb-api -o jsonpath='{.items[0].metadata.name}')
-    
+
     if kubectl exec -n "${NAMESPACE}" "${API_POD}" -- curl -f http://localhost:8000/api/v1/health > /dev/null 2>&1; then
         log_success "API health check passed"
     else
         log_error "API health check failed"
         return 1
     fi
-    
+
     log_success "Deployment verification completed successfully"
 }
 
@@ -334,7 +334,7 @@ display_deployment_info() {
     echo "Helm Release: ${HELM_RELEASE_NAME}"
     echo "Environment: ${DEPLOYMENT_ENV}"
     echo ""
-    
+
     # Get LoadBalancer IP
     if [[ "${INGRESS_ENABLED:-true}" == "true" ]]; then
         INGRESS_IP=$(kubectl get ingress -n "${NAMESPACE}" -o jsonpath='{.items[0].status.loadBalancer.ingress[0].ip}')
@@ -345,7 +345,7 @@ display_deployment_info() {
             echo "Ingress IP: Pending..."
         fi
     fi
-    
+
     echo ""
     echo "Useful Commands:"
     echo "  View pods: kubectl get pods -n ${NAMESPACE}"
@@ -364,7 +364,7 @@ cleanup() {
 # Main deployment function
 main() {
     print_banner
-    
+
     # Parse command line arguments
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -405,26 +405,26 @@ main() {
                 ;;
         esac
     done
-    
+
     # Trap cleanup on exit
     trap cleanup EXIT
-    
+
     # Execute deployment steps
     check_prerequisites
     generate_secrets
-    
+
     if [[ "${SKIP_BUILD:-false}" != "true" ]]; then
         build_and_push_images
     fi
-    
+
     if [[ "${SKIP_INFRA:-false}" != "true" ]]; then
         deploy_infrastructure
     fi
-    
+
     deploy_xorb_platform
     verify_deployment
     display_deployment_info
-    
+
     log_success "XORB Enterprise Platform deployment completed successfully!"
     log_info "The platform is now ready for production use."
 }

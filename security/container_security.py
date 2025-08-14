@@ -80,11 +80,11 @@ class ScanResult:
 
 class ContainerSecurityScanner:
     """Multi-engine container security scanner"""
-    
+
     def __init__(self, config_path: str = "security/container-security-config.yaml"):
         self.config = self._load_config(config_path)
         self.policies = self._load_policies()
-        
+
     def _load_config(self, config_path: str) -> Dict[str, Any]:
         """Load scanner configuration"""
         try:
@@ -107,7 +107,7 @@ class ContainerSecurityScanner:
                     "email_alerts": []
                 }
             }
-            
+
     def _load_policies(self) -> Dict[str, SecurityPolicy]:
         """Load security policies"""
         return {
@@ -151,46 +151,46 @@ class ContainerSecurityScanner:
                 enforce_read_only_fs=False
             )
         }
-        
+
     async def scan_image(
-        self, 
-        image_name: str, 
+        self,
+        image_name: str,
         policy_name: str = "production"
     ) -> ScanResult:
         """Scan container image for vulnerabilities"""
-        
+
         logger.info(f"Starting security scan for image: {image_name}")
-        
+
         # Get policy
         policy = self.policies.get(policy_name)
         if not policy:
             raise ValueError(f"Policy '{policy_name}' not found")
-            
+
         # Run vulnerability scans
         vulnerabilities = []
-        
+
         if self.config["scanners"]["trivy"]["enabled"]:
             trivy_vulns = await self._scan_with_trivy(image_name)
             vulnerabilities.extend(trivy_vulns)
-            
+
         if self.config["scanners"]["grype"]["enabled"]:
             grype_vulns = await self._scan_with_grype(image_name)
             vulnerabilities.extend(grype_vulns)
-            
+
         # Deduplicate vulnerabilities
         vulnerabilities = self._deduplicate_vulnerabilities(vulnerabilities)
-        
+
         # Check policy compliance
         policy_violations = self._check_policy_compliance(
             image_name, vulnerabilities, policy
         )
-        
+
         # Determine compliance status
         compliance_status = "compliant" if not policy_violations else "non_compliant"
-        
+
         # Get image metadata
         metadata = await self._get_image_metadata(image_name)
-        
+
         return ScanResult(
             image_name=image_name.split(':')[0],
             image_tag=image_name.split(':')[1] if ':' in image_name else 'latest',
@@ -202,7 +202,7 @@ class ContainerSecurityScanner:
             compliance_status=compliance_status,
             metadata=metadata
         )
-        
+
     async def _scan_with_trivy(self, image_name: str) -> List[Vulnerability]:
         """Scan image with Trivy"""
         try:
@@ -211,56 +211,56 @@ class ContainerSecurityScanner:
                 "--severity", "CRITICAL,HIGH,MEDIUM,LOW",
                 image_name
             ]
-            
+
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
+
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode != 0:
                 logger.error(f"Trivy scan failed: {stderr.decode()}")
                 return []
-                
+
             result = json.loads(stdout.decode())
             return self._parse_trivy_output(result)
-            
+
         except Exception as e:
             logger.error(f"Error running Trivy scan: {e}")
             return []
-            
+
     async def _scan_with_grype(self, image_name: str) -> List[Vulnerability]:
         """Scan image with Grype"""
         try:
             cmd = [
                 "grype", image_name, "-o", "json"
             ]
-            
+
             process = await asyncio.create_subprocess_exec(
                 *cmd,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
+
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode != 0:
                 logger.error(f"Grype scan failed: {stderr.decode()}")
                 return []
-                
+
             result = json.loads(stdout.decode())
             return self._parse_grype_output(result)
-            
+
         except Exception as e:
             logger.error(f"Error running Grype scan: {e}")
             return []
-            
+
     def _parse_trivy_output(self, trivy_result: Dict[str, Any]) -> List[Vulnerability]:
         """Parse Trivy output to vulnerability objects"""
         vulnerabilities = []
-        
+
         for result in trivy_result.get("Results", []):
             for vuln in result.get("Vulnerabilities", []):
                 vulnerabilities.append(Vulnerability(
@@ -273,17 +273,17 @@ class ContainerSecurityScanner:
                     cvss_score=vuln.get("CVSS", {}).get("nvd", {}).get("V3Score", 0.0),
                     vector=vuln.get("CVSS", {}).get("nvd", {}).get("V3Vector", "")
                 ))
-                
+
         return vulnerabilities
-        
+
     def _parse_grype_output(self, grype_result: Dict[str, Any]) -> List[Vulnerability]:
         """Parse Grype output to vulnerability objects"""
         vulnerabilities = []
-        
+
         for match in grype_result.get("matches", []):
             vuln = match.get("vulnerability", {})
             artifact = match.get("artifact", {})
-            
+
             vulnerabilities.append(Vulnerability(
                 cve_id=vuln.get("id", ""),
                 severity=VulnerabilitySeverity(vuln.get("severity", "unknown").lower()),
@@ -294,25 +294,25 @@ class ContainerSecurityScanner:
                 cvss_score=0.0,  # Grype doesn't always provide CVSS
                 vector=""
             ))
-            
+
         return vulnerabilities
-        
+
     def _deduplicate_vulnerabilities(
-        self, 
+        self,
         vulnerabilities: List[Vulnerability]
     ) -> List[Vulnerability]:
         """Remove duplicate vulnerabilities"""
         seen = set()
         unique_vulns = []
-        
+
         for vuln in vulnerabilities:
             key = (vuln.cve_id, vuln.package_name, vuln.package_version)
             if key not in seen:
                 seen.add(key)
                 unique_vulns.append(vuln)
-                
+
         return unique_vulns
-        
+
     def _check_policy_compliance(
         self,
         image_name: str,
@@ -321,53 +321,53 @@ class ContainerSecurityScanner:
     ) -> List[str]:
         """Check image compliance against security policy"""
         violations = []
-        
+
         # Count vulnerabilities by severity
         severity_counts = {}
         for severity in VulnerabilitySeverity:
             severity_counts[severity] = len([
                 v for v in vulnerabilities if v.severity == severity
             ])
-            
+
         # Check vulnerability thresholds
         if severity_counts[VulnerabilitySeverity.CRITICAL] > policy.max_critical:
             violations.append(
                 f"Critical vulnerabilities exceed limit: "
                 f"{severity_counts[VulnerabilitySeverity.CRITICAL]} > {policy.max_critical}"
             )
-            
+
         if severity_counts[VulnerabilitySeverity.HIGH] > policy.max_high:
             violations.append(
                 f"High vulnerabilities exceed limit: "
                 f"{severity_counts[VulnerabilitySeverity.HIGH]} > {policy.max_high}"
             )
-            
+
         if severity_counts[VulnerabilitySeverity.MEDIUM] > policy.max_medium:
             violations.append(
                 f"Medium vulnerabilities exceed limit: "
                 f"{severity_counts[VulnerabilitySeverity.MEDIUM]} > {policy.max_medium}"
             )
-            
+
         # Check base image compliance
         if policy.allowed_base_images:
             base_image_compliant = any(
-                image_name.startswith(allowed) 
+                image_name.startswith(allowed)
                 for allowed in policy.allowed_base_images
             )
             if not base_image_compliant:
                 violations.append(f"Base image not in allowed list: {image_name}")
-                
+
         # Check for forbidden packages
         if policy.forbidden_packages:
             forbidden_found = [
-                v.package_name for v in vulnerabilities 
+                v.package_name for v in vulnerabilities
                 if v.package_name in policy.forbidden_packages
             ]
             if forbidden_found:
                 violations.append(f"Forbidden packages found: {forbidden_found}")
-                
+
         return violations
-        
+
     async def _get_image_metadata(self, image_name: str) -> Dict[str, Any]:
         """Get image metadata using docker inspect"""
         try:
@@ -377,14 +377,14 @@ class ContainerSecurityScanner:
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE
             )
-            
+
             stdout, stderr = await process.communicate()
-            
+
             if process.returncode != 0:
                 return {}
-                
+
             inspect_data = json.loads(stdout.decode())[0]
-            
+
             return {
                 "digest": inspect_data.get("Id", ""),
                 "created": inspect_data.get("Created", ""),
@@ -394,31 +394,31 @@ class ContainerSecurityScanner:
                 "config": inspect_data.get("Config", {}),
                 "labels": inspect_data.get("Config", {}).get("Labels", {})
             }
-            
+
         except Exception as e:
             logger.error(f"Error getting image metadata: {e}")
             return {}
-            
+
     def generate_security_report(
-        self, 
+        self,
         scan_results: List[ScanResult]
     ) -> Dict[str, Any]:
         """Generate comprehensive security report"""
-        
+
         total_images = len(scan_results)
         compliant_images = len([r for r in scan_results if r.compliance_status == "compliant"])
-        
+
         # Vulnerability summary
         all_vulnerabilities = []
         for result in scan_results:
             all_vulnerabilities.extend(result.vulnerabilities)
-            
+
         vuln_by_severity = {}
         for severity in VulnerabilitySeverity:
             vuln_by_severity[severity.value] = len([
                 v for v in all_vulnerabilities if v.severity == severity
             ])
-            
+
         # Top vulnerabilities
         top_cves = {}
         for vuln in all_vulnerabilities:
@@ -426,9 +426,9 @@ class ContainerSecurityScanner:
                 top_cves[vuln.cve_id] += 1
             else:
                 top_cves[vuln.cve_id] = 1
-                
+
         top_cves_list = sorted(top_cves.items(), key=lambda x: x[1], reverse=True)[:10]
-        
+
         return {
             "summary": {
                 "total_images_scanned": total_images,
@@ -442,29 +442,29 @@ class ContainerSecurityScanner:
             "scan_results": [asdict(result) for result in scan_results],
             "recommendations": self._generate_recommendations(scan_results)
         }
-        
+
     def _generate_recommendations(self, scan_results: List[ScanResult]) -> List[str]:
         """Generate security recommendations"""
         recommendations = []
-        
+
         # Check for high vulnerability counts
         high_vuln_images = [
-            r for r in scan_results 
+            r for r in scan_results
             if len([v for v in r.vulnerabilities if v.severity in [VulnerabilitySeverity.CRITICAL, VulnerabilitySeverity.HIGH]]) > 5
         ]
-        
+
         if high_vuln_images:
             recommendations.append(
                 f"Update base images for {len(high_vuln_images)} images with high vulnerability counts"
             )
-            
+
         # Check for non-compliant images
         non_compliant = [r for r in scan_results if r.compliance_status == "non_compliant"]
         if non_compliant:
             recommendations.append(
                 f"Address policy violations in {len(non_compliant)} non-compliant images"
             )
-            
+
         # General recommendations
         recommendations.extend([
             "Implement automated vulnerability scanning in CI/CD pipeline",
@@ -472,7 +472,7 @@ class ContainerSecurityScanner:
             "Use minimal base images (Alpine, Distroless)",
             "Implement runtime security monitoring"
         ])
-        
+
         return recommendations
 
 
@@ -486,14 +486,14 @@ async def scan_container_image(image_name: str, policy: str = "production") -> D
 async def scan_all_images(policy: str = "production") -> Dict[str, Any]:
     """Scan all images in the system"""
     scanner = ContainerSecurityScanner()
-    
+
     # Get list of images (this would typically come from a registry)
     images = [
         "xorb/api:latest",
-        "xorb/frontend:latest", 
+        "xorb/frontend:latest",
         "xorb/orchestrator:latest"
     ]
-    
+
     results = []
     for image in images:
         try:
@@ -501,22 +501,22 @@ async def scan_all_images(policy: str = "production") -> Dict[str, Any]:
             results.append(result)
         except Exception as e:
             logger.error(f"Failed to scan {image}: {e}")
-            
+
     return scanner.generate_security_report(results)
 
 
 if __name__ == "__main__":
     import sys
-    
+
     async def main():
         if len(sys.argv) < 2:
             print("Usage: python container_security.py <image_name> [policy]")
             return
-            
+
         image_name = sys.argv[1]
         policy = sys.argv[2] if len(sys.argv) > 2 else "production"
-        
+
         result = await scan_container_image(image_name, policy)
         print(json.dumps(result, indent=2, default=str))
-        
+
     asyncio.run(main())

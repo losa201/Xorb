@@ -43,7 +43,7 @@ logger = logging.getLogger(__name__)
 
 class PristineIntelligenceEngine:
     """XORB Pristine Intelligence Engine with architectural excellence."""
-    
+
     def __init__(self, db_session: AsyncSession, llm_config: Optional[Dict[str, Any]] = None):
         self.app = web.Application(middlewares=[
             self.observability_middleware,
@@ -57,31 +57,31 @@ class PristineIntelligenceEngine:
         self.db_session = db_session
         self.ml_planner = MLCampaignPlanner()
         self.agent_orchestrator = None
-        
+
         # Database repositories
         self.campaign_repo = CampaignRepository(db_session)
         self.target_repo = TargetRepository(db_session)
         self.agent_repo = AgentRepository(db_session)
         self.threat_intel_repo = ThreatIntelligenceRepository(db_session)
-        
+
         # State management
         self.active_campaigns = {}
         self.threat_intelligence = {}
         self.cognitive_models = {}
         self.fusion_cache = {}
         self.logger = logging.getLogger(__name__)
-        
+
         # Architecture components
         self.service_mesh = None
         self.fault_tolerance = None
         self.observability = None
         self.epyc_optimization = None
-        
+
         # Strategic LLM Integration
         self.llm_config = llm_config or self._get_default_llm_config()
         self.llm_client = None
         self.llm_orchestrator = None
-        
+
         # Enhanced metrics
         self.campaign_operations = Counter(
             'xorb_intelligence_campaigns_total',
@@ -112,18 +112,18 @@ class PristineIntelligenceEngine:
             'xorb_intelligence_generation_rate',
             'Intelligence generation rate per minute'
         )
-        
+
     async def initialize(self):
         """Initialize the pristine intelligence engine."""
         # Redis connection
         self.redis = aioredis.from_url("redis://redis:6379")
-        
+
         # Get architecture components
         self.service_mesh = await get_service_mesh()
         self.fault_tolerance = await get_fault_tolerance()
         self.observability = await get_observability()
         self.epyc_optimization = await get_epyc_optimization()
-        
+
         # Initialize ML components with EPYC optimization
         if self.epyc_optimization:
             profile = self.epyc_optimization.get_optimal_workload_profile(WorkloadType.AI_INFERENCE)
@@ -134,7 +134,7 @@ class PristineIntelligenceEngine:
             )
         else:
             await self.ml_planner.initialize()
-        
+
         # Initialize Strategic LLM Integration with fault tolerance
         self.llm_client = StrategicLLMClient(self.llm_config)
         if self.fault_tolerance:
@@ -144,20 +144,20 @@ class PristineIntelligenceEngine:
             )
         else:
             await self.llm_client.initialize()
-        
+
         self.llm_orchestrator = IntelligenceLLMOrchestrator(self.llm_client)
-        
+
         # Initialize agent orchestrator with architecture integration
         self.agent_orchestrator = IntelligentAgentOrchestrator(self.db_session, self.redis)
-        
+
         # Initialize cognitive models
         await self._initialize_cognitive_models()
-        
+
         # Setup routes
         self.setup_routes()
-        
+
         self.logger.info("Pristine Intelligence Engine initialized with full architecture stack")
-    
+
     async def _initialize_cognitive_models(self):
         """Initialize cognitive AI models for advanced intelligence."""
         self.cognitive_models = {
@@ -166,9 +166,9 @@ class PristineIntelligenceEngine:
             'behavioral_analysis': await self._load_behavioral_model(),
             'decision_fusion': await self._load_decision_fusion_model()
         }
-        
+
         self.logger.info("Cognitive models initialized")
-    
+
     async def _load_threat_prediction_model(self):
         """Load threat prediction model."""
         # Placeholder for actual model loading
@@ -178,7 +178,7 @@ class PristineIntelligenceEngine:
             'accuracy': 0.94,
             'last_trained': datetime.utcnow().isoformat()
         }
-    
+
     async def _load_vulnerability_model(self):
         """Load vulnerability assessment model."""
         return {
@@ -187,7 +187,7 @@ class PristineIntelligenceEngine:
             'accuracy': 0.91,
             'cvss_correlation': 0.87
         }
-    
+
     async def _load_behavioral_model(self):
         """Load behavioral analysis model."""
         return {
@@ -196,7 +196,7 @@ class PristineIntelligenceEngine:
             'false_positive_rate': 0.03,
             'detection_rate': 0.96
         }
-    
+
     async def _load_decision_fusion_model(self):
         """Load decision fusion model."""
         return {
@@ -205,7 +205,7 @@ class PristineIntelligenceEngine:
             'fusion_accuracy': 0.97,
             'confidence_calibration': 0.94
         }
-    
+
     def setup_routes(self):
         """Setup API routes with pristine architecture patterns."""
         # Campaign management (enhanced)
@@ -216,7 +216,7 @@ class PristineIntelligenceEngine:
         self.app.router.add_post('/campaigns/{campaign_id}/pause', self.pause_campaign)
         self.app.router.add_post('/campaigns/{campaign_id}/stop', self.stop_campaign)
         self.app.router.add_delete('/campaigns/{campaign_id}', self.delete_campaign)
-        
+
         # AI-Enhanced intelligence endpoints
         self.app.router.add_post('/campaigns/{campaign_id}/ai-analysis', self.analyze_with_ai)
         self.app.router.add_post('/campaigns/{campaign_id}/cognitive-assessment', self.cognitive_assessment)
@@ -224,32 +224,32 @@ class PristineIntelligenceEngine:
         self.app.router.add_post('/intelligence/predictive-analysis', self.predictive_analysis)
         self.app.router.add_post('/payloads/generate', self.generate_ai_payloads)
         self.app.router.add_post('/payloads/optimize', self.optimize_payloads)
-        
+
         # Threat intelligence (enhanced)
         self.app.router.add_get('/threats', self.list_threats)
         self.app.router.add_post('/threats/analyze', self.analyze_threats)
         self.app.router.add_post('/threats/correlate', self.correlate_threats)
         self.app.router.add_get('/threats/statistics', self.get_threat_statistics)
-        
+
         # Agent management (enhanced)
         self.app.router.add_get('/agents', self.list_agents)
         self.app.router.add_post('/agents', self.create_agent)
         self.app.router.add_get('/agents/{agent_id}', self.get_agent)
         self.app.router.add_post('/agents/{agent_id}/deploy', self.deploy_agent)
         self.app.router.add_post('/agents/swarm-coordinate', self.coordinate_agent_swarm)
-        
+
         # Cognitive intelligence endpoints
         self.app.router.add_post('/cognitive/decision-support', self.cognitive_decision_support)
         self.app.router.add_post('/cognitive/behavior-analysis', self.behavioral_analysis)
         self.app.router.add_post('/cognitive/adaptive-learning', self.adaptive_learning)
-        
+
         # Architecture status endpoints
         self.app.router.add_get('/health', self.health_check)
         self.app.router.add_get('/status', self.get_status)
         self.app.router.add_get('/metrics', self.prometheus_metrics)
         self.app.router.add_get('/architecture', self.get_architecture_status)
         self.app.router.add_get('/intelligence/statistics', self.get_intelligence_statistics)
-    
+
     # Middleware stack
     async def observability_middleware(self, request: web.Request, handler):
         """Distributed tracing middleware."""
@@ -266,7 +266,7 @@ class PristineIntelligenceEngine:
                 return await handler(request)
         else:
             return await handler(request)
-    
+
     async def service_mesh_middleware(self, request: web.Request, handler):
         """Service mesh integration middleware."""
         # Add service mesh headers for cross-service communication
@@ -275,9 +275,9 @@ class PristineIntelligenceEngine:
             request.headers['X-Service-Mesh'] = 'enabled'
             request.headers['X-Service-Name'] = 'intelligence-engine'
             request.headers['X-Service-Tier'] = 'domain'
-        
+
         return await handler(request)
-    
+
     async def fault_tolerance_middleware(self, request: web.Request, handler):
         """Fault tolerance middleware with AI-specific patterns."""
         if self.fault_tolerance and request.path.startswith('/cognitive/'):
@@ -296,36 +296,36 @@ class PristineIntelligenceEngine:
                 raise
         else:
             return await handler(request)
-    
+
     async def epyc_optimization_middleware(self, request: web.Request, handler):
         """EPYC optimization middleware for AI workloads."""
         if self.epyc_optimization:
             # Determine workload type based on request
             workload_type = WorkloadType.BALANCED
-            
+
             if any(ai_path in request.path for ai_path in ['/cognitive/', '/ai-analysis', '/predictive-analysis']):
                 workload_type = WorkloadType.AI_INFERENCE
             elif '/fusion' in request.path:
                 workload_type = WorkloadType.MEMORY_INTENSIVE
             elif '/campaigns' in request.path:
                 workload_type = WorkloadType.BALANCED
-            
+
             @epyc_optimized(workload_type)
             async def optimized_handler():
                 return await handler(request)
-            
+
             return await optimized_handler()
         else:
             return await handler(request)
-    
+
     async def metrics_middleware(self, request: web.Request, handler):
         """Enhanced metrics collection for intelligence operations."""
         start_time = time.time()
-        
+
         try:
             response = await handler(request)
             duration = time.time() - start_time
-            
+
             # Update operation-specific metrics
             if request.path.startswith('/campaigns'):
                 operation = request.path.split('/')[-1] if len(request.path.split('/')) > 2 else 'campaign_management'
@@ -334,13 +334,13 @@ class PristineIntelligenceEngine:
                     status='success',
                     complexity='standard'
                 ).inc()
-            
+
             return response
         except Exception as e:
             duration = time.time() - start_time
             self.logger.error(f"Intelligence operation failed after {duration:.2f}s: {e}")
             raise
-    
+
     async def error_middleware(self, request: web.Request, handler):
         """Error handling with intelligence context."""
         try:
@@ -349,7 +349,7 @@ class PristineIntelligenceEngine:
             raise
         except Exception as e:
             self.logger.exception(f"Unhandled error in intelligence engine: {request.path}")
-            
+
             error_context = {
                 'error': 'Internal intelligence engine error',
                 'request_id': str(uuid4()),
@@ -359,21 +359,21 @@ class PristineIntelligenceEngine:
                 'cognitive_models': list(self.cognitive_models.keys()),
                 'fallback_intelligence': 'available'
             }
-            
+
             return web.json_response(error_context, status=500)
-    
+
     # Enhanced campaign management
     @trace("create_campaign")
     async def create_campaign(self, request: web.Request):
         """Create campaign with AI-enhanced planning."""
         try:
             data = await request.json()
-            
+
             # AI-enhanced campaign planning
             if self.llm_orchestrator:
                 campaign_strategy = await self._generate_ai_campaign_strategy(data)
                 data.update(campaign_strategy)
-            
+
             # Create campaign model
             campaign_model = UnifiedCampaign(
                 name=data['name'],
@@ -390,22 +390,22 @@ class PristineIntelligenceEngine:
                     'cognitive_analysis': True
                 }
             )
-            
+
             # Store campaign
             campaign_record = await self.campaign_repo.create_campaign(campaign_model)
-            
+
             # Generate AI-powered execution plan
             execution_plan = await self._generate_execution_plan(campaign_record)
             campaign_record.execution_plan = execution_plan
             await self.campaign_repo.update_campaign(campaign_record)
-            
+
             # Update metrics
             self.campaign_operations.labels(
                 operation='create',
                 status='success',
                 complexity=campaign_strategy.get('complexity', 'standard') if 'campaign_strategy' in locals() else 'standard'
             ).inc()
-            
+
             return web.json_response({
                 'campaign_id': campaign_record.id,
                 'name': campaign_record.name,
@@ -416,16 +416,16 @@ class PristineIntelligenceEngine:
                 'success_probability': execution_plan.get('success_probability', 0.75),
                 'architecture': 'pristine'
             })
-            
+
         except Exception as e:
             self.logger.error(f"Campaign creation error: {e}")
             return web.json_response({'error': str(e)}, status=500)
-    
+
     async def _generate_ai_campaign_strategy(self, campaign_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generate AI-powered campaign strategy."""
         if not self.llm_orchestrator:
             return {}
-        
+
         strategy_request = StrategicLLMRequest(
             task_type=SecurityTaskType.PENETRATION_PLANNING,
             complexity=TaskComplexity.COGNITIVE,
@@ -438,7 +438,7 @@ class PristineIntelligenceEngine:
             security_level="high",
             require_explanation=True
         )
-        
+
         try:
             strategy_response = await self.llm_orchestrator.generate_penetration_strategy(strategy_request)
             return {
@@ -450,7 +450,7 @@ class PristineIntelligenceEngine:
         except Exception as e:
             self.logger.warning(f"AI strategy generation failed: {e}")
             return {'ai_strategy_error': str(e)}
-    
+
     async def _generate_execution_plan(self, campaign: UnifiedCampaign) -> Dict[str, Any]:
         """Generate AI-powered execution plan."""
         # ML-based plan generation
@@ -458,10 +458,10 @@ class PristineIntelligenceEngine:
             ml_plan = await self.ml_planner.generate_campaign_plan(campaign)
         else:
             ml_plan = {}
-        
+
         # Cognitive fusion of multiple intelligence sources
         fusion_plan = await self._cognitive_plan_fusion(campaign, ml_plan)
-        
+
         return {
             'phases': fusion_plan.get('phases', []),
             'estimated_duration_hours': fusion_plan.get('duration', 24),
@@ -472,7 +472,7 @@ class PristineIntelligenceEngine:
             'ai_generated': True,
             'cognitive_fusion': True
         }
-    
+
     async def _cognitive_plan_fusion(self, campaign: UnifiedCampaign, ml_plan: Dict[str, Any]) -> Dict[str, Any]:
         """Perform cognitive fusion of planning intelligence."""
         # Simulate cognitive decision fusion
@@ -521,29 +521,29 @@ class PristineIntelligenceEngine:
                 'fallback_strategy': 'conservative'
             }
         }
-        
+
         # Update cognitive fusion metrics
         self.cognitive_fusion_score.labels(fusion_type='campaign_planning').set(
             fusion_result['success_probability']
         )
-        
+
         return fusion_result
-    
+
     @trace("cognitive_assessment")
     async def cognitive_assessment(self, request: web.Request):
         """Perform cognitive assessment of campaign."""
         try:
             campaign_id = request.match_info['campaign_id']
             data = await request.json()
-            
+
             # Get campaign
             campaign = await self.campaign_repo.get_campaign(campaign_id)
             if not campaign:
                 return web.json_response({'error': 'Campaign not found'}, status=404)
-            
+
             # Perform multi-modal cognitive assessment
             assessment = await self._perform_cognitive_assessment(campaign, data)
-            
+
             return web.json_response({
                 'campaign_id': campaign_id,
                 'cognitive_assessment': assessment,
@@ -551,35 +551,35 @@ class PristineIntelligenceEngine:
                 'confidence_score': assessment.get('overall_confidence', 0.8),
                 'recommendations': assessment.get('recommendations', [])
             })
-            
+
         except Exception as e:
             self.logger.error(f"Cognitive assessment error: {e}")
             return web.json_response({'error': str(e)}, status=500)
-    
+
     async def _perform_cognitive_assessment(self, campaign: UnifiedCampaign, context: Dict[str, Any]) -> Dict[str, Any]:
         """Perform comprehensive cognitive assessment."""
         assessments = {}
-        
+
         # Threat prediction assessment
         if 'threat_prediction' in self.cognitive_models:
             threat_assessment = await self._assess_threat_landscape(campaign, context)
             assessments['threat_landscape'] = threat_assessment
-        
+
         # Vulnerability assessment
         if 'vulnerability_assessment' in self.cognitive_models:
             vuln_assessment = await self._assess_vulnerability_profile(campaign, context)
             assessments['vulnerability_profile'] = vuln_assessment
-        
+
         # Behavioral analysis
         if 'behavioral_analysis' in self.cognitive_models:
             behavioral_assessment = await self._assess_behavioral_patterns(campaign, context)
             assessments['behavioral_patterns'] = behavioral_assessment
-        
+
         # Decision fusion
         if 'decision_fusion' in self.cognitive_models:
             fusion_result = await self._fuse_cognitive_assessments(assessments)
             assessments['fusion_result'] = fusion_result
-        
+
         return {
             'assessments': assessments,
             'overall_confidence': self._calculate_overall_confidence(assessments),
@@ -587,7 +587,7 @@ class PristineIntelligenceEngine:
             'cognitive_models_used': len(assessments),
             'processing_time': time.time()
         }
-    
+
     async def _assess_threat_landscape(self, campaign: UnifiedCampaign, context: Dict[str, Any]) -> Dict[str, Any]:
         """Assess threat landscape using AI."""
         return {
@@ -597,7 +597,7 @@ class PristineIntelligenceEngine:
             'confidence': 0.87,
             'model_version': self.cognitive_models['threat_prediction']['version']
         }
-    
+
     async def _assess_vulnerability_profile(self, campaign: UnifiedCampaign, context: Dict[str, Any]) -> Dict[str, Any]:
         """Assess vulnerability profile using AI."""
         return {
@@ -608,7 +608,7 @@ class PristineIntelligenceEngine:
             'confidence': 0.91,
             'model_version': self.cognitive_models['vulnerability_assessment']['version']
         }
-    
+
     async def _assess_behavioral_patterns(self, campaign: UnifiedCampaign, context: Dict[str, Any]) -> Dict[str, Any]:
         """Assess behavioral patterns using AI."""
         return {
@@ -619,7 +619,7 @@ class PristineIntelligenceEngine:
             'confidence': 0.94,
             'model_version': self.cognitive_models['behavioral_analysis']['version']
         }
-    
+
     async def _fuse_cognitive_assessments(self, assessments: Dict[str, Any]) -> Dict[str, Any]:
         """Fuse multiple cognitive assessments."""
         return {
@@ -630,16 +630,16 @@ class PristineIntelligenceEngine:
             'recommended_actions': ['proceed_with_enhanced_monitoring', 'apply_stealth_measures'],
             'model_version': self.cognitive_models['decision_fusion']['version']
         }
-    
+
     def _calculate_overall_confidence(self, assessments: Dict[str, Any]) -> float:
         """Calculate overall confidence score."""
         confidences = []
         for assessment in assessments.values():
             if isinstance(assessment, dict) and 'confidence' in assessment:
                 confidences.append(assessment['confidence'])
-        
+
         return sum(confidences) / len(confidences) if confidences else 0.8
-    
+
     def _generate_recommendations(self, assessments: Dict[str, Any]) -> List[str]:
         """Generate recommendations based on assessments."""
         recommendations = [
@@ -648,15 +648,15 @@ class PristineIntelligenceEngine:
             'Use adaptive exploitation techniques',
             'Maintain low detection profile'
         ]
-        
+
         # Add assessment-specific recommendations
         if 'threat_landscape' in assessments:
             threat_level = assessments['threat_landscape'].get('threat_level', 'medium')
             if threat_level == 'high':
                 recommendations.append('Implement maximum stealth protocols')
-        
+
         return recommendations
-    
+
     # AI-enhanced intelligence fusion
     @trace("fuse_intelligence")
     async def fuse_intelligence(self, request: web.Request):
@@ -665,19 +665,19 @@ class PristineIntelligenceEngine:
             data = await request.json()
             intelligence_sources = data.get('sources', [])
             fusion_strategy = data.get('strategy', 'comprehensive')
-            
+
             # Perform multi-source intelligence fusion
             fusion_result = await self._perform_intelligence_fusion(intelligence_sources, fusion_strategy)
-            
+
             # Cache fusion result
             fusion_id = str(uuid4())
             self.fusion_cache[fusion_id] = fusion_result
-            
+
             # Update metrics
             self.cognitive_fusion_score.labels(fusion_type='intelligence_fusion').set(
                 fusion_result.get('confidence_score', 0.8)
             )
-            
+
             return web.json_response({
                 'fusion_id': fusion_id,
                 'fusion_result': fusion_result,
@@ -685,11 +685,11 @@ class PristineIntelligenceEngine:
                 'fusion_strategy': fusion_strategy,
                 'cognitive_enhanced': True
             })
-            
+
         except Exception as e:
             self.logger.error(f"Intelligence fusion error: {e}")
             return web.json_response({'error': str(e)}, status=500)
-    
+
     async def _perform_intelligence_fusion(self, sources: List[Dict[str, Any]], strategy: str) -> Dict[str, Any]:
         """Perform comprehensive intelligence fusion."""
         fusion_algorithms = {
@@ -698,10 +698,10 @@ class PristineIntelligenceEngine:
             'consensus_based': self._consensus_based_fusion,
             'adaptive': self._adaptive_fusion
         }
-        
+
         fusion_func = fusion_algorithms.get(strategy, self._comprehensive_fusion)
         return await fusion_func(sources)
-    
+
     async def _comprehensive_fusion(self, sources: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Comprehensive intelligence fusion algorithm."""
         return {
@@ -718,7 +718,7 @@ class PristineIntelligenceEngine:
             'geospatial_correlation': self._analyze_geospatial_patterns(sources),
             'fusion_timestamp': datetime.utcnow().isoformat()
         }
-    
+
     def _merge_threat_indicators(self, sources: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Merge threat indicators from multiple sources."""
         return {
@@ -727,7 +727,7 @@ class PristineIntelligenceEngine:
             'ttps': [],
             'confidence': 0.89
         }
-    
+
     def _merge_vulnerability_data(self, sources: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Merge vulnerability data from multiple sources."""
         return {
@@ -736,7 +736,7 @@ class PristineIntelligenceEngine:
             'patch_status': {},
             'confidence': 0.91
         }
-    
+
     def _merge_behavioral_data(self, sources: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Merge behavioral analysis data."""
         return {
@@ -745,7 +745,7 @@ class PristineIntelligenceEngine:
             'risk_indicators': [],
             'confidence': 0.88
         }
-    
+
     def _identify_attack_vectors(self, sources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Identify potential attack vectors."""
         return [
@@ -762,11 +762,11 @@ class PristineIntelligenceEngine:
                 'difficulty': 'low'
             }
         ]
-    
+
     def _assess_source_reliability(self, sources: List[Dict[str, Any]]) -> Dict[str, float]:
         """Assess reliability of intelligence sources."""
         return {source.get('id', f'source_{i}'): 0.8 + (i * 0.02) for i, source in enumerate(sources)}
-    
+
     def _analyze_temporal_patterns(self, sources: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Analyze temporal patterns in intelligence."""
         return {
@@ -775,7 +775,7 @@ class PristineIntelligenceEngine:
             'time_window': '24_hours',
             'confidence': 0.86
         }
-    
+
     def _analyze_geospatial_patterns(self, sources: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Analyze geospatial patterns in intelligence."""
         return {
@@ -783,7 +783,7 @@ class PristineIntelligenceEngine:
             'primary_regions': ['north_america', 'europe'],
             'confidence': 0.78
         }
-    
+
     # Enhanced health and status endpoints
     async def health_check(self, request: web.Request):
         """Enhanced health check with architecture status."""
@@ -814,14 +814,14 @@ class PristineIntelligenceEngine:
                 'adaptive_learning': True
             }
         }
-        
+
         # Calculate overall health
         component_health = all(health_status['components'].values())
         architecture_health = all(health_status['architecture_stack'].values())
         health_status['status'] = 'healthy' if component_health and architecture_health else 'degraded'
-        
+
         return web.json_response(health_status)
-    
+
     async def _check_redis_health(self) -> bool:
         """Check Redis connectivity."""
         try:
@@ -831,13 +831,13 @@ class PristineIntelligenceEngine:
             return False
         except Exception:
             return False
-    
+
     async def prometheus_metrics(self, request: web.Request):
         """Prometheus metrics endpoint."""
         from prometheus_client import generate_latest
         metrics_data = generate_latest()
         return web.Response(text=metrics_data.decode('utf-8'), content_type='text/plain')
-    
+
     async def get_architecture_status(self, request: web.Request):
         """Get detailed architecture status."""
         return web.json_response({
@@ -867,7 +867,7 @@ class PristineIntelligenceEngine:
                 'real_time_analysis'
             ]
         })
-    
+
     def _get_default_llm_config(self) -> Dict[str, Any]:
         """Get default LLM configuration."""
         import os
@@ -879,97 +879,97 @@ class PristineIntelligenceEngine:
             "cost_optimization": True,
             "security_level": "high"
         }
-    
+
     # Placeholder implementations for remaining endpoints
     async def list_campaigns(self, request: web.Request):
         """List campaigns with enhanced intelligence."""
         campaigns = await self.campaign_repo.get_all_campaigns()
         return web.json_response([c.dict() for c in campaigns])
-    
+
     async def get_campaign(self, request: web.Request):
         """Get campaign with AI insights."""
         return web.json_response({'message': 'Campaign retrieval with AI insights pending'})
-    
+
     async def start_campaign(self, request: web.Request):
         """Start campaign with AI orchestration."""
         return web.json_response({'message': 'AI-orchestrated campaign start pending'})
-    
+
     async def pause_campaign(self, request: web.Request):
         """Pause campaign."""
         return web.json_response({'message': 'Campaign pause pending'})
-    
+
     async def stop_campaign(self, request: web.Request):
         """Stop campaign."""
         return web.json_response({'message': 'Campaign stop pending'})
-    
+
     async def delete_campaign(self, request: web.Request):
         """Delete campaign."""
         return web.json_response({'message': 'Campaign deletion pending'})
-    
+
     async def analyze_with_ai(self, request: web.Request):
         """AI analysis of campaign."""
         return web.json_response({'message': 'AI campaign analysis pending'})
-    
+
     async def predictive_analysis(self, request: web.Request):
         """Predictive threat analysis."""
         return web.json_response({'message': 'Predictive analysis pending'})
-    
+
     async def generate_ai_payloads(self, request: web.Request):
         """Generate AI-powered payloads."""
         return web.json_response({'message': 'AI payload generation pending'})
-    
+
     async def optimize_payloads(self, request: web.Request):
         """Optimize payloads with AI."""
         return web.json_response({'message': 'Payload optimization pending'})
-    
+
     async def list_threats(self, request: web.Request):
         """List threats with intelligence."""
         return web.json_response({'message': 'Threat listing pending'})
-    
+
     async def analyze_threats(self, request: web.Request):
         """Analyze threats with AI."""
         return web.json_response({'message': 'Threat analysis pending'})
-    
+
     async def correlate_threats(self, request: web.Request):
         """Correlate threats across sources."""
         return web.json_response({'message': 'Threat correlation pending'})
-    
+
     async def get_threat_statistics(self, request: web.Request):
         """Get threat statistics."""
         return web.json_response({'message': 'Threat statistics pending'})
-    
+
     async def list_agents(self, request: web.Request):
         """List intelligent agents."""
         return web.json_response({'message': 'Agent listing pending'})
-    
+
     async def create_agent(self, request: web.Request):
         """Create intelligent agent."""
         return web.json_response({'message': 'Agent creation pending'})
-    
+
     async def get_agent(self, request: web.Request):
         """Get agent details."""
         return web.json_response({'message': 'Agent retrieval pending'})
-    
+
     async def deploy_agent(self, request: web.Request):
         """Deploy intelligent agent."""
         return web.json_response({'message': 'Agent deployment pending'})
-    
+
     async def coordinate_agent_swarm(self, request: web.Request):
         """Coordinate agent swarm."""
         return web.json_response({'message': 'Swarm coordination pending'})
-    
+
     async def cognitive_decision_support(self, request: web.Request):
         """Cognitive decision support."""
         return web.json_response({'message': 'Cognitive decision support pending'})
-    
+
     async def behavioral_analysis(self, request: web.Request):
         """Behavioral analysis with AI."""
         return web.json_response({'message': 'Behavioral analysis pending'})
-    
+
     async def adaptive_learning(self, request: web.Request):
         """Adaptive learning system."""
         return web.json_response({'message': 'Adaptive learning pending'})
-    
+
     async def get_intelligence_statistics(self, request: web.Request):
         """Get intelligence statistics."""
         return web.json_response({
@@ -979,7 +979,7 @@ class PristineIntelligenceEngine:
             'ai_enhanced': True,
             'architecture': 'pristine'
         })
-    
+
     async def get_status(self, request: web.Request):
         """Get intelligence engine status."""
         return web.json_response({

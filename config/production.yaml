@@ -10,15 +10,15 @@ services:
   api:
     workers: 4
     timeout: 30
-  
+
   orchestrator:
     workers: 2
     timeout: 60
-  
+
   intelligence:
     workers: 4
     timeout: 45
-  
+
   worker:
     workers: 6
     timeout: 300

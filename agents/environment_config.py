@@ -6,15 +6,15 @@ load_dotenv()
 
 class EnvironmentConfig:
     """Configuration class to manage environment variables"""
-    
+
     @staticmethod
     def get_threat_intel_url() -> str:
         """
         Get the threat intelligence API URL from environment variables
-        
+
         Returns:
             str: The threat intel API URL
-            
+
         Raises:
             ValueError: If the URL is not set in environment variables
         """
@@ -27,7 +27,7 @@ class EnvironmentConfig:
     def get_api_timeout() -> float:
         """
         Get the API timeout value from environment variables
-        
+
         Returns:
             float: The API timeout in seconds
         """
@@ -37,7 +37,7 @@ class EnvironmentConfig:
     def get_max_retries() -> int:
         """
         Get the maximum number of retries for API calls
-        
+
         Returns:
             int: Maximum number of retries
         """
@@ -47,7 +47,7 @@ class EnvironmentConfig:
     def get_log_level() -> str:
         """
         Get the logging level from environment variables
-        
+
         Returns:
             str: Logging level (INFO, DEBUG, etc.)
         """
@@ -57,7 +57,7 @@ class EnvironmentConfig:
     def get_prometheus_enabled() -> bool:
         """
         Get whether Prometheus metrics are enabled
-        
+
         Returns:
             bool: True if Prometheus is enabled, False otherwise
         """

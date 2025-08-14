@@ -51,26 +51,26 @@ create_directories() {
 # Generate SSL certificates
 generate_certificates() {
     log "Generating SSL certificates..."
-    
+
     if [[ ! -f "${CERT_DIR}/ca.crt" ]]; then
         # Generate CA private key
         openssl genrsa -out "${CERT_DIR}/ca.key" 4096
-        
+
         # Generate CA certificate
         openssl req -new -x509 -days 3650 -key "${CERT_DIR}/ca.key" -out "${CERT_DIR}/ca.crt" \
             -subj "/C=US/ST=CA/L=San Francisco/O=XORB Security/CN=XORB Root CA"
-        
+
         log "Generated CA certificate"
     fi
-    
+
     if [[ ! -f "${CERT_DIR}/api.crt" ]]; then
         # Generate API server private key
         openssl genrsa -out "${CERT_DIR}/api.key" 2048
-        
+
         # Generate certificate signing request
         openssl req -new -key "${CERT_DIR}/api.key" -out "${CERT_DIR}/api.csr" \
             -subj "/C=US/ST=CA/L=San Francisco/O=XORB Security/CN=localhost"
-        
+
         # Generate API server certificate
         openssl x509 -req -days 365 -in "${CERT_DIR}/api.csr" -CA "${CERT_DIR}/ca.crt" \
             -CAkey "${CERT_DIR}/ca.key" -CAcreateserial -out "${CERT_DIR}/api.crt" \
@@ -89,13 +89,13 @@ IP.1 = 127.0.0.1
 IP.2 = 172.20.0.1
 EOF
 )
-        
+
         # Clean up CSR
         rm "${CERT_DIR}/api.csr"
-        
+
         log "Generated API server certificate"
     fi
-    
+
     # Set appropriate permissions
     chmod 600 "${CERT_DIR}"/*.key
     chmod 644 "${CERT_DIR}"/*.crt
@@ -104,7 +104,7 @@ EOF
 # Create configuration files
 create_configs() {
     log "Creating configuration files..."
-    
+
     # Database initialization script
     cat > "${SCRIPT_DIR}/init-learning-dbs.sql" << 'EOF'
 -- Initialize databases for XORB Learning Engine
@@ -192,53 +192,53 @@ events {
 http {
     include       /etc/nginx/mime.types;
     default_type  application/octet-stream;
-    
+
     log_format main '$remote_addr - $remote_user [$time_local] "$request" '
                     '$status $body_bytes_sent "$http_referer" '
                     '"$http_user_agent" "$http_x_forwarded_for"';
-    
+
     access_log /var/log/nginx/access.log main;
     error_log /var/log/nginx/error.log warn;
-    
+
     sendfile on;
     tcp_nopush on;
     tcp_nodelay on;
     keepalive_timeout 65;
     types_hash_max_size 2048;
-    
+
     # Rate limiting
     limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
     limit_req_zone $binary_remote_addr zone=telemetry:10m rate=100r/s;
-    
+
     # Upstream definitions
     upstream learning_api {
         server learning-api:8002 max_fails=3 fail_timeout=30s;
     }
-    
+
     upstream orchestrator {
         server adaptive-orchestrator:8003 max_fails=3 fail_timeout=30s;
     }
-    
+
     upstream security {
         server security-framework:8004 max_fails=3 fail_timeout=30s;
     }
-    
+
     upstream integration_bridge {
         server ptaas-integration-bridge:8005 max_fails=3 fail_timeout=30s;
     }
-    
+
     # Main server configuration
     server {
         listen 80;
         server_name localhost;
-        
+
         # Health check endpoint
         location /health {
             access_log off;
             return 200 "OK\n";
             add_header Content-Type text/plain;
         }
-        
+
         # Learning API endpoints
         location /api/v1/learning/ {
             limit_req zone=api burst=20 nodelay;
@@ -249,7 +249,7 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_timeout 30s;
         }
-        
+
         # Telemetry endpoints (higher rate limit)
         location /api/v1/telemetry {
             limit_req zone=telemetry burst=200 nodelay;
@@ -260,7 +260,7 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_timeout 10s;
         }
-        
+
         # Orchestrator endpoints
         location /api/v1/orchestration/ {
             limit_req zone=api burst=10 nodelay;
@@ -271,7 +271,7 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_timeout 60s;
         }
-        
+
         # Security endpoints
         location /api/v1/security/ {
             limit_req zone=api burst=5 nodelay;
@@ -282,7 +282,7 @@ http {
             proxy_set_header X-Forwarded-Proto $scheme;
             proxy_timeout 30s;
         }
-        
+
         # Integration bridge endpoints
         location /api/v1/bridge/ {
             limit_req zone=api burst=50 nodelay;
@@ -404,7 +404,7 @@ EOF
 # Build Docker images
 build_images() {
     log "Building Docker images..."
-    
+
     # Create Dockerfiles
     cat > "${SCRIPT_DIR}/Dockerfile.learning-engine" << 'EOF'
 FROM python:3.11-slim
@@ -615,25 +615,25 @@ EOF
 # Deploy services
 deploy_services() {
     log "Deploying XORB Learning Engine Integration services..."
-    
+
     # Check if Docker and Docker Compose are available
     if ! command -v docker &> /dev/null; then
         error "Docker is not installed or not in PATH"
         exit 1
     fi
-    
+
     if ! command -v docker-compose &> /dev/null && ! docker compose version &> /dev/null; then
         error "Docker Compose is not installed"
         exit 1
     fi
-    
+
     # Use docker compose or docker-compose based on availability
     if docker compose version &> /dev/null; then
         COMPOSE_CMD="docker compose"
     else
         COMPOSE_CMD="docker-compose"
     fi
-    
+
     # Pull base images
     log "Pulling base Docker images..."
     docker pull python:3.11-slim
@@ -646,15 +646,15 @@ deploy_services() {
     docker pull grafana/promtail:2.9.0
     docker pull qdrant/qdrant:v1.7.0
     docker pull nats:2.10-alpine
-    
+
     # Deploy services
     log "Starting XORB Learning Integration services..."
     $COMPOSE_CMD -f docker-compose-learning-integration.yml up -d --build
-    
+
     # Wait for services to be ready
     log "Waiting for services to be ready..."
     sleep 30
-    
+
     # Check service health
     check_service_health
 }
@@ -662,7 +662,7 @@ deploy_services() {
 # Check service health
 check_service_health() {
     log "Checking service health..."
-    
+
     services=(
         "postgres:5432"
         "redis:6379"
@@ -675,11 +675,11 @@ check_service_health() {
         "qdrant:6333"
         "nats:4222"
     )
-    
+
     for service in "${services[@]}"; do
         name=$(echo $service | cut -d: -f1)
         port=$(echo $service | cut -d: -f2)
-        
+
         if timeout 30 bash -c "until docker exec xorb-${name} nc -z localhost ${port}; do sleep 1; done" 2>/dev/null; then
             log "✓ Service ${name} is healthy"
         else
@@ -691,17 +691,17 @@ check_service_health() {
 # Run integration tests
 run_tests() {
     log "Running integration tests..."
-    
+
     if docker compose version &> /dev/null; then
         COMPOSE_CMD="docker compose"
     else
         COMPOSE_CMD="docker-compose"
     fi
-    
+
     # Run quick validation tests
     log "Running quick validation tests..."
     $COMPOSE_CMD -f docker-compose-learning-integration.yml run --rm integration-tests python -m xorb_learning_engine.tests.integration_test_suite quick
-    
+
     # Run comprehensive tests if quick tests pass
     if [[ $? -eq 0 ]]; then
         log "Quick tests passed. Running comprehensive test suite..."
@@ -715,16 +715,16 @@ run_tests() {
 show_status() {
     log "XORB Learning Engine Integration Deployment Status"
     echo "=================================================="
-    
+
     if docker compose version &> /dev/null; then
         COMPOSE_CMD="docker compose"
     else
         COMPOSE_CMD="docker-compose"
     fi
-    
+
     # Show running services
     $COMPOSE_CMD -f docker-compose-learning-integration.yml ps
-    
+
     echo ""
     log "Service Access URLs:"
     echo "  Learning API (Direct):          http://localhost:8002"
@@ -736,12 +736,12 @@ show_status() {
     echo "  Grafana:                        http://localhost:3001"
     echo "  Qdrant Vector DB:               http://localhost:6333"
     echo "  NATS JetStream:                 http://localhost:8222"
-    
+
     echo ""
     log "Default Credentials:"
     echo "  Grafana:                        admin / xorb_grafana_admin_2025"
     echo "  PostgreSQL:                     xorb / xorb_pass"
-    
+
     echo ""
     log "API Authentication:"
     echo "  Orchestrator API Key:           xorb_orchestrator_key_2025_secure"
@@ -752,13 +752,13 @@ show_status() {
 # Show logs
 show_logs() {
     local service=$1
-    
+
     if docker compose version &> /dev/null; then
         COMPOSE_CMD="docker compose"
     else
         COMPOSE_CMD="docker-compose"
     fi
-    
+
     if [[ -n "$service" ]]; then
         log "Showing logs for service: $service"
         $COMPOSE_CMD -f docker-compose-learning-integration.yml logs -f "$service"
@@ -771,35 +771,35 @@ show_logs() {
 # Stop services
 stop_services() {
     log "Stopping XORB Learning Engine Integration services..."
-    
+
     if docker compose version &> /dev/null; then
         COMPOSE_CMD="docker compose"
     else
         COMPOSE_CMD="docker-compose"
     fi
-    
+
     $COMPOSE_CMD -f docker-compose-learning-integration.yml down
 }
 
 # Cleanup deployment
 cleanup() {
     log "Cleaning up XORB Learning Engine Integration deployment..."
-    
+
     if docker compose version &> /dev/null; then
         COMPOSE_CMD="docker compose"
     else
         COMPOSE_CMD="docker-compose"
     fi
-    
+
     # Stop and remove containers, networks, and volumes
     $COMPOSE_CMD -f docker-compose-learning-integration.yml down -v --remove-orphans
-    
+
     # Remove custom images
     docker images | grep xorb | awk '{print $3}' | xargs -r docker rmi -f
-    
+
     # Clean up temporary files
     rm -f "${SCRIPT_DIR}/init-learning-dbs.sql"
-    
+
     log "Cleanup completed"
 }
 

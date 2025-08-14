@@ -27,10 +27,10 @@ class ComponentStatus:
 class ComprehensiveSystemValidator:
     """
     🔍 XORB Comprehensive System Validator
-    
+
     Validates all deployed XORB components and their integrations:
     - External Threat Intelligence Integration
-    - Advanced Explainable AI Module  
+    - Advanced Explainable AI Module
     - Federated Learning Framework
     - Zero-Trust Micro-Segmentation Controller
     - AI-Driven Self-Healing System
@@ -38,11 +38,11 @@ class ComprehensiveSystemValidator:
     - Website Launch System
     - Port Configuration Manager
     """
-    
+
     def __init__(self):
         self.validation_id = f"SYSTEM_VALIDATION_{int(time.time())}"
         self.start_time = datetime.now()
-        
+
         # Component registry
         self.components = {
             'external_threat_intelligence': {
@@ -51,7 +51,7 @@ class ComprehensiveSystemValidator:
                 'expected_metrics': ['correlation_accuracy', 'indicators_processed']
             },
             'explainable_ai': {
-                'file': 'advanced_explainable_ai_module.py', 
+                'file': 'advanced_explainable_ai_module.py',
                 'description': 'Transparent AI decision-making with SHAP/LIME',
                 'expected_metrics': ['explanation_fidelity', 'explanations_generated']
             },
@@ -86,16 +86,16 @@ class ComprehensiveSystemValidator:
                 'expected_metrics': ['ports_configured', 'validation_score']
             }
         }
-        
+
         self.validation_results = {}
         self.overall_health_score = 0.0
-        
+
     async def run_comprehensive_validation(self) -> Dict[str, Any]:
         """Main validation orchestrator"""
         logger.info("🔍 XORB Comprehensive System Validation")
         logger.info("=" * 80)
         logger.info("🚀 Starting comprehensive validation of all XORB components")
-        
+
         validation_report = {
             'validation_id': self.validation_id,
             'timestamp': self.start_time.isoformat(),
@@ -107,34 +107,34 @@ class ComprehensiveSystemValidator:
             'deployment_readiness': await self._assess_deployment_readiness(),
             'recommendations': await self._generate_recommendations()
         }
-        
+
         # Calculate overall health score
         validation_report['overall_health_score'] = await self._calculate_health_score(validation_report)
-        
+
         # Save validation report
         report_path = f"COMPREHENSIVE_VALIDATION_REPORT_{int(time.time())}.json"
         with open(report_path, 'w') as f:
             json.dump(validation_report, f, indent=2, default=str)
-        
+
         await self._display_validation_summary(validation_report)
         logger.info(f"💾 Validation Report: {report_path}")
-        
+
         return validation_report
-    
+
     async def _validate_all_components(self) -> Dict[str, Any]:
         """Validate all XORB components"""
         logger.info("🔧 Validating All Components...")
-        
+
         component_results = {}
-        
+
         for component_id, component_info in self.components.items():
             try:
                 component_status = await self._validate_component(component_id, component_info)
                 component_results[component_id] = asdict(component_status)
-                
+
                 status_emoji = "✅" if component_status.status == "operational" else "⚠️"
                 logger.info(f"  {status_emoji} {component_status.component_name}: {component_status.health_score:.1%}")
-                
+
             except Exception as e:
                 logger.warning(f"  ❌ {component_id}: Validation failed - {e}")
                 component_results[component_id] = {
@@ -145,7 +145,7 @@ class ComprehensiveSystemValidator:
                     'issues': [str(e)],
                     'metrics': {}
                 }
-        
+
         validation_summary = {
             'total_components': len(self.components),
             'operational_components': sum(1 for r in component_results.values() if r['status'] == 'operational'),
@@ -153,14 +153,14 @@ class ComprehensiveSystemValidator:
             'average_health_score': sum(r['health_score'] for r in component_results.values()) / len(component_results),
             'component_details': component_results
         }
-        
+
         logger.info(f"  🔧 Component validation: {validation_summary['operational_components']}/{validation_summary['total_components']} operational")
         return validation_summary
-    
+
     async def _validate_component(self, component_id: str, component_info: Dict[str, Any]) -> ComponentStatus:
         """Validate individual component"""
         file_path = f"/root/Xorb/{component_info['file']}"
-        
+
         # Check if component file exists
         if not os.path.exists(file_path):
             return ComponentStatus(
@@ -171,19 +171,19 @@ class ComprehensiveSystemValidator:
                 issues=[f"Component file not found: {file_path}"],
                 metrics={}
             )
-        
+
         # Simulate component health check (in production, this would call actual health endpoints)
         health_score = await self._simulate_component_health(component_id)
         issues = []
-        
+
         if health_score < 0.8:
             issues.append(f"Health score below threshold: {health_score:.1%}")
-        
+
         # Generate synthetic metrics based on component type
         metrics = await self._generate_component_metrics(component_id, component_info)
-        
+
         status = "operational" if health_score >= 0.8 and not issues else "degraded"
-        
+
         return ComponentStatus(
             component_name=component_info['description'],
             status=status,
@@ -192,7 +192,7 @@ class ComprehensiveSystemValidator:
             issues=issues,
             metrics=metrics
         )
-    
+
     async def _simulate_component_health(self, component_id: str) -> float:
         """Simulate component health check"""
         # Simulate different health scores based on component maturity
@@ -206,9 +206,9 @@ class ComprehensiveSystemValidator:
             'website_launch': 0.97,
             'port_configuration': 0.96
         }
-        
+
         return health_scores.get(component_id, 0.85)
-    
+
     async def _generate_component_metrics(self, component_id: str, component_info: Dict[str, Any]) -> Dict[str, Any]:
         """Generate component-specific metrics"""
         base_metrics = {
@@ -217,7 +217,7 @@ class ComprehensiveSystemValidator:
             'error_rate': 0.003,
             'throughput_ops_per_sec': 1247
         }
-        
+
         # Component-specific metrics
         specific_metrics = {
             'external_threat_intelligence': {
@@ -269,16 +269,16 @@ class ComprehensiveSystemValidator:
                 'security_hardening_score': 0.87
             }
         }
-        
+
         component_metrics = base_metrics.copy()
         component_metrics.update(specific_metrics.get(component_id, {}))
-        
+
         return component_metrics
-    
+
     async def _validate_integrations(self) -> Dict[str, Any]:
         """Validate component integrations"""
         logger.info("🔗 Validating Component Integrations...")
-        
+
         integration_tests = {
             'threat_intel_to_ai': {
                 'description': 'Threat intelligence feeds into AI analysis',
@@ -288,7 +288,7 @@ class ComprehensiveSystemValidator:
             },
             'ai_to_self_healing': {
                 'description': 'AI decisions trigger self-healing actions',
-                'status': 'operational', 
+                'status': 'operational',
                 'latency_ms': 45.7,
                 'response_rate': 0.97
             },
@@ -305,21 +305,21 @@ class ComprehensiveSystemValidator:
                 'privacy_compliance': 1.0
             }
         }
-        
+
         integration_summary = {
             'total_integrations_tested': len(integration_tests),
             'operational_integrations': sum(1 for t in integration_tests.values() if t['status'] == 'operational'),
             'average_latency_ms': sum(t.get('latency_ms', 0) for t in integration_tests.values()) / len(integration_tests),
             'integration_details': integration_tests
         }
-        
+
         logger.info(f"  🔗 Integration validation: {integration_summary['operational_integrations']}/{integration_summary['total_integrations_tested']} operational")
         return integration_summary
-    
+
     async def _validate_performance(self) -> Dict[str, Any]:
         """Validate system performance"""
         logger.info("⚡ Validating System Performance...")
-        
+
         performance_metrics = {
             'overall_system_performance': {
                 'cpu_utilization': 0.67,
@@ -343,9 +343,9 @@ class ComprehensiveSystemValidator:
                 'load_balancing_efficiency': 0.94
             }
         }
-        
+
         performance_score = 0.92  # Calculated based on metrics
-        
+
         performance_summary = {
             'performance_score': performance_score,
             'performance_grade': 'A' if performance_score >= 0.9 else 'B' if performance_score >= 0.8 else 'C',
@@ -353,14 +353,14 @@ class ComprehensiveSystemValidator:
             'optimization_opportunities': 3,
             'performance_details': performance_metrics
         }
-        
+
         logger.info(f"  ⚡ Performance validation: {performance_score:.1%} score (Grade {performance_summary['performance_grade']})")
         return performance_summary
-    
+
     async def _validate_security(self) -> Dict[str, Any]:
         """Validate security posture"""
         logger.info("🛡️ Validating Security Posture...")
-        
+
         security_assessments = {
             'cryptographic_security': {
                 'post_quantum_readiness': 1.0,
@@ -387,10 +387,10 @@ class ComprehensiveSystemValidator:
                 'backup_security': 'Encrypted and tested'
             }
         }
-        
+
         security_score = 0.94  # Calculated based on assessments
         vulnerabilities_found = 2
-        
+
         security_summary = {
             'security_score': security_score,
             'security_grade': 'A' if security_score >= 0.9 else 'B',
@@ -399,18 +399,18 @@ class ComprehensiveSystemValidator:
             'compliance_status': 'SOC 2 Type II ready',
             'security_details': security_assessments
         }
-        
+
         logger.info(f"  🛡️ Security validation: {security_score:.1%} score, {vulnerabilities_found} non-critical issues")
         return security_summary
-    
+
     async def _validate_operations(self) -> Dict[str, Any]:
         """Validate operational readiness"""
         logger.info("🔧 Validating Operational Readiness...")
-        
+
         operational_checks = {
             'monitoring_systems': {
                 'health_monitoring': 'Active',
-                'performance_monitoring': 'Active', 
+                'performance_monitoring': 'Active',
                 'security_monitoring': 'Active',
                 'business_monitoring': 'Active',
                 'alerting_system': 'Configured'
@@ -430,9 +430,9 @@ class ComprehensiveSystemValidator:
                 'documentation': 'Comprehensive and current'
             }
         }
-        
+
         operational_score = 0.91
-        
+
         operational_summary = {
             'operational_readiness_score': operational_score,
             'operational_grade': 'A' if operational_score >= 0.9 else 'B',
@@ -441,14 +441,14 @@ class ComprehensiveSystemValidator:
             'staff_readiness': 0.87,
             'operational_details': operational_checks
         }
-        
+
         logger.info(f"  🔧 Operational validation: {operational_score:.1%} readiness score")
         return operational_summary
-    
+
     async def _assess_deployment_readiness(self) -> Dict[str, Any]:
         """Assess overall deployment readiness"""
         logger.info("🚀 Assessing Deployment Readiness...")
-        
+
         readiness_criteria = {
             'functional_completeness': 0.96,
             'performance_requirements': 0.92,
@@ -459,9 +459,9 @@ class ComprehensiveSystemValidator:
             'reliability_requirements': 0.95,
             'maintainability_requirements': 0.88
         }
-        
+
         overall_readiness = sum(readiness_criteria.values()) / len(readiness_criteria)
-        
+
         deployment_recommendation = {
             'readiness_score': overall_readiness,
             'deployment_recommendation': 'READY FOR PRODUCTION' if overall_readiness >= 0.9 else 'NEEDS IMPROVEMENTS',
@@ -476,14 +476,14 @@ class ComprehensiveSystemValidator:
                 'Enhance staff training programs'
             ]
         }
-        
+
         logger.info(f"  🚀 Deployment readiness: {overall_readiness:.1%} - {deployment_recommendation['deployment_recommendation']}")
         return deployment_recommendation
-    
+
     async def _generate_recommendations(self) -> Dict[str, Any]:
         """Generate system improvement recommendations"""
         logger.info("💡 Generating Recommendations...")
-        
+
         recommendations = {
             'immediate_actions': [
                 'Address 2 non-critical security vulnerabilities',
@@ -515,14 +515,14 @@ class ComprehensiveSystemValidator:
                 'Strengthen insider threat detection'
             ]
         }
-        
+
         recommendation_priority = {
             'critical': 0,
             'high': 3,
             'medium': 8,
             'low': 12
         }
-        
+
         recommendation_summary = {
             'total_recommendations': sum(len(v) if isinstance(v, list) else 0 for v in recommendations.values()),
             'priority_breakdown': recommendation_priority,
@@ -536,10 +536,10 @@ class ComprehensiveSystemValidator:
             ],
             'detailed_recommendations': recommendations
         }
-        
+
         logger.info(f"  💡 Generated {recommendation_summary['total_recommendations']} recommendations")
         return recommendation_summary
-    
+
     async def _calculate_health_score(self, validation_report: Dict[str, Any]) -> float:
         """Calculate overall system health score"""
         # Weight different validation aspects
@@ -550,7 +550,7 @@ class ComprehensiveSystemValidator:
             'security_validation': 0.2,
             'operational_validation': 0.1
         }
-        
+
         scores = {
             'component_validation': validation_report['component_validation']['average_health_score'],
             'integration_validation': validation_report['integration_validation']['operational_integrations'] / validation_report['integration_validation']['total_integrations_tested'],
@@ -558,42 +558,42 @@ class ComprehensiveSystemValidator:
             'security_validation': validation_report['security_validation']['security_score'],
             'operational_validation': validation_report['operational_validation']['operational_readiness_score']
         }
-        
+
         overall_score = sum(scores[aspect] * weights[aspect] for aspect in weights.keys())
         return round(overall_score, 3)
-    
+
     async def _display_validation_summary(self, validation_report: Dict[str, Any]) -> None:
         """Display comprehensive validation summary"""
         duration = (datetime.now() - self.start_time).total_seconds()
-        
+
         logger.info("=" * 80)
         logger.info("✅ COMPREHENSIVE SYSTEM VALIDATION COMPLETE!")
         logger.info(f"🔍 Validation ID: {self.validation_id}")
         logger.info(f"⏱️ Validation Duration: {duration:.1f} seconds")
         logger.info(f"🎯 Overall Health Score: {validation_report['overall_health_score']:.1%}")
-        
+
         # Component summary
         comp_val = validation_report['component_validation']
         logger.info(f"🔧 Components: {comp_val['operational_components']}/{comp_val['total_components']} operational")
-        
+
         # Integration summary
         int_val = validation_report['integration_validation']
         logger.info(f"🔗 Integrations: {int_val['operational_integrations']}/{int_val['total_integrations_tested']} operational")
-        
+
         # Performance summary
         perf_val = validation_report['performance_validation']
         logger.info(f"⚡ Performance: {perf_val['performance_score']:.1%} (Grade {perf_val['performance_grade']})")
-        
+
         # Security summary
         sec_val = validation_report['security_validation']
         logger.info(f"🛡️ Security: {sec_val['security_score']:.1%} ({sec_val['vulnerabilities_found']} non-critical issues)")
-        
+
         # Deployment readiness
         deploy_val = validation_report['deployment_readiness']
         logger.info(f"🚀 Deployment: {deploy_val['deployment_recommendation']}")
-        
+
         logger.info("=" * 80)
-        
+
         # Health score interpretation
         health_score = validation_report['overall_health_score']
         if health_score >= 0.95:
@@ -604,7 +604,7 @@ class ComprehensiveSystemValidator:
             logger.info("⚠️ FAIR - System needs minor improvements before production!")
         else:
             logger.info("❌ POOR - System requires significant improvements!")
-        
+
         logger.info("=" * 80)
 
 async def main():

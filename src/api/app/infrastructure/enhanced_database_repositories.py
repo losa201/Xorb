@@ -47,10 +47,10 @@ logger = logging.getLogger(__name__)
 
 class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
     """Enhanced PostgreSQL-backed scan session repository with full functionality"""
-    
+
     def __init__(self, session: AsyncSession):
         self.session = session
-    
+
     async def create_session(self, session_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new scan session with full metadata support"""
         try:
@@ -67,13 +67,13 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
                 estimated_duration=session_data.get("estimated_duration", 1800),
                 created_at=datetime.utcnow()
             )
-            
+
             self.session.add(session_model)
             await self.session.commit()
             await self.session.refresh(session_model)
-            
+
             return self._model_to_dict(session_model)
-            
+
         except IntegrityError as e:
             await self.session.rollback()
             logger.error(f"Scan session creation failed - integrity error: {e}")
@@ -82,28 +82,28 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
             await self.session.rollback()
             logger.error(f"Error creating scan session: {e}")
             raise
-    
+
     async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get scan session by ID with full details"""
         try:
             stmt = select(ScanSessionModel).where(ScanSessionModel.session_id == session_id)
             result = await self.session.execute(stmt)
             session_model = result.scalar_one_or_none()
-            
+
             if session_model:
                 return self._model_to_dict(session_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting scan session {session_id}: {e}")
             return None
-    
+
     async def update_session(self, session_id: str, updates: Dict[str, Any]) -> bool:
         """Update scan session with comprehensive update support"""
         try:
             # Prepare update data
             update_data = {}
-            
+
             # Handle status updates
             if 'status' in updates:
                 update_data['status'] = updates['status']
@@ -111,19 +111,19 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
                     update_data['started_at'] = datetime.utcnow()
                 elif updates['status'] in ['completed', 'failed', 'cancelled']:
                     update_data['completed_at'] = datetime.utcnow()
-            
+
             # Handle progress updates
             if 'progress' in updates:
                 update_data['progress'] = updates['progress']
-            
+
             # Handle results
             if 'results' in updates:
                 update_data['results'] = json.dumps(updates['results'])
-            
+
             # Handle error information
             if 'error_message' in updates:
                 update_data['error_message'] = updates['error_message']
-            
+
             # Handle metadata updates
             if 'metadata' in updates:
                 existing_session = await self.get_session(session_id)
@@ -133,48 +133,48 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
                     update_data['metadata'] = json.dumps(existing_metadata)
                 else:
                     update_data['metadata'] = json.dumps(updates['metadata'])
-            
+
             update_data['updated_at'] = datetime.utcnow()
-            
+
             stmt = update(ScanSessionModel).where(
                 ScanSessionModel.session_id == session_id
             ).values(**update_data)
-            
+
             result = await self.session.execute(stmt)
             await self.session.commit()
-            
+
             return result.rowcount > 0
-            
+
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Error updating scan session {session_id}: {e}")
             return False
-    
+
     async def get_user_sessions(
-        self, 
-        user_id: UUID, 
-        limit: int = 50, 
+        self,
+        user_id: UUID,
+        limit: int = 50,
         offset: int = 0,
         status_filter: Optional[str] = None
     ) -> List[Dict[str, Any]]:
         """Get scan sessions for a user with filtering and pagination"""
         try:
             stmt = select(ScanSessionModel).where(ScanSessionModel.user_id == user_id)
-            
+
             if status_filter:
                 stmt = stmt.where(ScanSessionModel.status == status_filter)
-            
+
             stmt = stmt.order_by(ScanSessionModel.created_at.desc()).offset(offset).limit(limit)
-            
+
             result = await self.session.execute(stmt)
             sessions = result.scalars().all()
-            
+
             return [self._model_to_dict(session) for session in sessions]
-            
+
         except Exception as e:
             logger.error(f"Error getting user sessions for {user_id}: {e}")
             return []
-    
+
     async def get_active_sessions(self, limit: Optional[int] = None) -> List[Dict[str, Any]]:
         """Get all active scan sessions"""
         try:
@@ -183,30 +183,30 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
             )
             if limit:
                 stmt = stmt.limit(limit)
-            
+
             result = await self.session.execute(stmt)
             sessions = result.scalars().all()
-            
+
             return [self._model_to_dict(session) for session in sessions]
-            
+
         except Exception as e:
             logger.error(f"Error getting active sessions: {e}")
             return []
-    
+
     async def get_scan_statistics(self, tenant_id: Optional[UUID] = None) -> Dict[str, Any]:
         """Get comprehensive scan statistics"""
         try:
             base_query = select(ScanSessionModel)
-            
+
             if tenant_id:
                 base_query = base_query.where(ScanSessionModel.tenant_id == tenant_id)
-            
+
             # Total scans
             total_result = await self.session.execute(
                 select(func.count()).select_from(base_query.subquery())
             )
             total_scans = total_result.scalar()
-            
+
             # Status breakdown
             status_query = select(
                 ScanSessionModel.status,
@@ -214,12 +214,12 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
             )
             if tenant_id:
                 status_query = status_query.where(ScanSessionModel.tenant_id == tenant_id)
-            
+
             status_result = await self.session.execute(
                 status_query.group_by(ScanSessionModel.status)
             )
             status_counts = dict(status_result.all())
-            
+
             # Recent activity (last 24 hours)
             recent_cutoff = datetime.utcnow() - timedelta(hours=24)
             recent_query = select(func.count())
@@ -234,10 +234,10 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
                 recent_query = recent_query.where(
                     ScanSessionModel.created_at >= recent_cutoff
                 )
-            
+
             recent_result = await self.session.execute(recent_query)
             recent_scans = recent_result.scalar()
-            
+
             # Average duration for completed scans
             duration_query = select(
                 func.avg(
@@ -250,13 +250,13 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
                     ScanSessionModel.completed_at.isnot(None)
                 )
             )
-            
+
             if tenant_id:
                 duration_query = duration_query.where(ScanSessionModel.tenant_id == tenant_id)
-            
+
             duration_result = await self.session.execute(duration_query)
             avg_duration_seconds = duration_result.scalar() or 0
-            
+
             return {
                 "total_scans": total_scans,
                 "status_breakdown": status_counts,
@@ -267,7 +267,7 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
                 "failed_scans": status_counts.get("failed", 0),
                 "generated_at": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Error getting scan statistics: {e}")
             return {
@@ -278,7 +278,7 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
                 "generated_at": datetime.utcnow().isoformat(),
                 "error": str(e)
             }
-    
+
     async def delete_scan_session(self, session_id: str) -> bool:
         """Delete a scan session and associated data"""
         try:
@@ -288,43 +288,43 @@ class EnhancedPostgreSQLScanSessionRepository(ScanSessionRepository):
                     SecurityFindingModel.scan_session_id == session_id
                 )
             )
-            
+
             # Delete the session
             stmt = delete(ScanSessionModel).where(ScanSessionModel.session_id == session_id)
             result = await self.session.execute(stmt)
             await self.session.commit()
-            
+
             return result.rowcount > 0
-            
+
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Error deleting scan session {session_id}: {e}")
             return False
-    
+
     async def get_sessions_by_status(
-        self, 
-        status: str, 
+        self,
+        status: str,
         tenant_id: Optional[UUID] = None,
         limit: int = 100
     ) -> List[Dict[str, Any]]:
         """Get sessions by status with optional tenant filtering"""
         try:
             stmt = select(ScanSessionModel).where(ScanSessionModel.status == status)
-            
+
             if tenant_id:
                 stmt = stmt.where(ScanSessionModel.tenant_id == tenant_id)
-            
+
             stmt = stmt.order_by(ScanSessionModel.created_at.desc()).limit(limit)
-            
+
             result = await self.session.execute(stmt)
             sessions = result.scalars().all()
-            
+
             return [self._model_to_dict(session) for session in sessions]
-            
+
         except Exception as e:
             logger.error(f"Error getting sessions by status {status}: {e}")
             return []
-    
+
     def _model_to_dict(self, model: ScanSessionModel) -> Dict[str, Any]:
         """Convert SQLAlchemy model to dictionary with full metadata"""
         return {
@@ -374,13 +374,13 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
                 billing_email=tenant_data.get("billing_email"),
                 created_at=datetime.utcnow()
             )
-            
+
             self.session.add(tenant_model)
             await self.session.commit()
             await self.session.refresh(tenant_model)
-            
+
             return self._model_to_dict(tenant_model)
-            
+
         except IntegrityError as e:
             await self.session.rollback()
             logger.error(f"Tenant creation failed - integrity error: {e}")
@@ -396,11 +396,11 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
             stmt = select(TenantModel).where(TenantModel.id == tenant_id)
             result = await self.session.execute(stmt)
             tenant_model = result.scalar_one_or_none()
-            
+
             if tenant_model:
                 return self._model_to_dict(tenant_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting tenant by ID {tenant_id}: {e}")
             return None
@@ -411,11 +411,11 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
             stmt = select(TenantModel).where(TenantModel.slug == slug)
             result = await self.session.execute(stmt)
             tenant_model = result.scalar_one_or_none()
-            
+
             if tenant_model:
                 return self._model_to_dict(tenant_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting tenant by slug {slug}: {e}")
             return None
@@ -424,12 +424,12 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
         """Update tenant with comprehensive field support"""
         try:
             update_data = {}
-            
+
             # Handle direct field updates
             for field in ['name', 'plan', 'status', 'contact_email', 'billing_email']:
                 if field in updates:
                     update_data[field] = updates[field]
-            
+
             # Handle JSON field updates
             if 'settings' in updates:
                 existing_tenant = await self.get_tenant(tenant_id)
@@ -439,7 +439,7 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
                     update_data['settings'] = json.dumps(existing_settings)
                 else:
                     update_data['settings'] = json.dumps(updates['settings'])
-            
+
             if 'limits' in updates:
                 existing_tenant = await self.get_tenant(tenant_id)
                 if existing_tenant:
@@ -448,18 +448,18 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
                     update_data['limits'] = json.dumps(existing_limits)
                 else:
                     update_data['limits'] = json.dumps(updates['limits'])
-            
+
             update_data['updated_at'] = datetime.utcnow()
-            
+
             stmt = update(TenantModel).where(
                 TenantModel.id == tenant_id
             ).values(**update_data)
-            
+
             result = await self.session.execute(stmt)
             await self.session.commit()
-            
+
             return result.rowcount > 0
-            
+
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Error updating tenant {tenant_id}: {e}")
@@ -471,11 +471,11 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
             stmt = select(TenantModel).where(TenantModel.name == name)
             result = await self.session.execute(stmt)
             tenant_model = result.scalar_one_or_none()
-            
+
             if tenant_model:
                 return self._model_to_dict(tenant_model)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error getting tenant by name {name}: {e}")
             return None
@@ -490,19 +490,19 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
         """List tenants with filtering and pagination"""
         try:
             stmt = select(TenantModel)
-            
+
             if status:
                 stmt = stmt.where(TenantModel.status == status)
             if plan:
                 stmt = stmt.where(TenantModel.plan == plan)
-            
+
             stmt = stmt.order_by(TenantModel.created_at.desc()).offset(offset).limit(limit)
-            
+
             result = await self.session.execute(stmt)
             tenants = result.scalars().all()
-            
+
             return [self._model_to_dict(tenant) for tenant in tenants]
-            
+
         except Exception as e:
             logger.error(f"Error listing tenants: {e}")
             return []
@@ -515,7 +515,7 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
                 'status': 'inactive',
                 'deactivated_at': datetime.utcnow()
             })
-            
+
             # Cancel active scans for this tenant
             await self.session.execute(
                 update(ScanSessionModel).where(
@@ -525,10 +525,10 @@ class EnhancedPostgreSQLTenantRepository(TenantRepository):
                     )
                 ).values(status='cancelled', updated_at=datetime.utcnow())
             )
-            
+
             await self.session.commit()
             return True
-            
+
         except Exception as e:
             await self.session.rollback()
             logger.error(f"Error deactivating tenant {tenant_id}: {e}")
@@ -561,7 +561,7 @@ class EnhancedRedisCacheRepository(CacheRepository):
         self._redis_available = False
         self._pool_size = pool_size
         self._ttl_cache: Dict[str, float] = {}  # For in-memory TTL tracking
-        
+
     async def initialize(self) -> bool:
         """Initialize Redis connection with connection pooling"""
         try:
@@ -580,18 +580,18 @@ class EnhancedRedisCacheRepository(CacheRepository):
                 await self._redis_client.ping()
                 self._redis_available = True
                 logger.info(f"Enhanced Redis cache initialized successfully with pool size {self._pool_size}")
-                
+
                 # Start background cleanup for in-memory fallback
                 asyncio.create_task(self._cleanup_expired_keys())
                 return True
         except Exception as e:
             logger.warning(f"Redis unavailable, falling back to in-memory cache: {e}")
-        
+
         self._redis_available = False
         logger.info("Using enhanced in-memory cache as fallback")
         asyncio.create_task(self._cleanup_expired_keys())
         return True
-    
+
     async def _cleanup_expired_keys(self):
         """Background task to clean up expired keys in in-memory cache"""
         while True:
@@ -601,16 +601,16 @@ class EnhancedRedisCacheRepository(CacheRepository):
                     key for key, expire_time in self._ttl_cache.items()
                     if expire_time <= current_time
                 ]
-                
+
                 for key in expired_keys:
                     self._cache.pop(key, None)
                     self._ttl_cache.pop(key, None)
-                
+
                 await asyncio.sleep(60)  # Clean up every minute
             except Exception as e:
                 logger.error(f"Error in cache cleanup task: {e}")
                 await asyncio.sleep(60)
-        
+
     async def get(self, key: str) -> Optional[Any]:
         """Get value from cache with automatic JSON deserialization"""
         try:
@@ -629,12 +629,12 @@ class EnhancedRedisCacheRepository(CacheRepository):
                         self._cache.pop(key, None)
                         self._ttl_cache.pop(key, None)
                         return None
-                
+
                 return self._cache.get(key)
         except Exception as e:
             logger.error(f"Cache get error for key {key}: {e}")
             return self._cache.get(key)
-        
+
     async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
         """Set value in cache with optional TTL and automatic JSON serialization"""
         try:
@@ -658,7 +658,7 @@ class EnhancedRedisCacheRepository(CacheRepository):
                 expire_time = asyncio.get_event_loop().time() + ttl
                 self._ttl_cache[key] = expire_time
             return True
-        
+
     async def delete(self, key: str) -> bool:
         """Delete key from cache"""
         try:
@@ -674,7 +674,7 @@ class EnhancedRedisCacheRepository(CacheRepository):
             deleted = self._cache.pop(key, None) is not None
             self._ttl_cache.pop(key, None)
             return deleted
-        
+
     async def exists(self, key: str) -> bool:
         """Check if key exists in cache"""
         try:
@@ -687,12 +687,12 @@ class EnhancedRedisCacheRepository(CacheRepository):
                         self._cache.pop(key, None)
                         self._ttl_cache.pop(key, None)
                         return False
-                
+
                 return key in self._cache
         except Exception as e:
             logger.error(f"Cache exists error for key {key}: {e}")
             return key in self._cache
-        
+
     async def increment(self, key: str, amount: int = 1) -> int:
         """Increment numeric value in cache"""
         try:

@@ -15,12 +15,12 @@ class TestAuthEndpoints:
         with patch('src.api.app.controllers.auth_controller.AuthSecurityService') as mock_service:
             mock_service.return_value.authenticate_user = AsyncMock(return_value=sample_user_data)
             mock_service.return_value.create_access_token = AsyncMock(return_value='test.jwt.token')
-            
+
             response = api_client.post('/auth/token', data={
                 'username': 'testuser',
                 'password': 'password123'
             })
-            
+
             assert response.status_code == 200
             data = response.json()
             assert data['access_token'] == 'test.jwt.token'
@@ -33,12 +33,12 @@ class TestAuthEndpoints:
             mock_service.return_value.authenticate_user = AsyncMock(
                 side_effect=DomainException("Invalid credentials")
             )
-            
+
             response = api_client.post('/auth/token', data={
                 'username': 'baduser',
                 'password': 'badpassword'
             })
-            
+
             assert response.status_code == 401
 
     def test_protected_endpoint_without_token(self, api_client):
@@ -50,12 +50,12 @@ class TestAuthEndpoints:
         """Test accessing protected endpoint with valid token."""
         with patch('src.api.app.security.auth.authenticator.validate_token') as mock_validate:
             mock_validate.return_value = {'sub': 'testuser'}
-            
+
             response = api_client.get('/api/v1/protected', headers=auth_headers)
             # Note: This will return 404 if endpoint doesn't exist, which is fine for this test
 
 
-@pytest.mark.integration 
+@pytest.mark.integration
 class TestHealthEndpoints:
     """Test health check endpoints."""
 
@@ -87,18 +87,18 @@ class TestSecurityOpsEndpoints:
                 'aggressive': False
             }
         }
-        
+
         with patch('src.api.app.routers.security_ops.SecurityOpsService') as mock_service:
             mock_service.return_value.submit_scan = AsyncMock(
                 return_value={'scan_id': 'scan-123', 'status': 'queued'}
             )
-            
+
             response = api_client.post(
                 '/api/v1/security-ops/scans',
                 json=scan_data,
                 headers=auth_headers
             )
-            
+
             # Endpoint might not exist, so 404 is acceptable
 
     def test_scan_results_retrieval(self, api_client, auth_headers, sample_scan_result):
@@ -107,12 +107,12 @@ class TestSecurityOpsEndpoints:
             mock_service.return_value.get_scan_result = AsyncMock(
                 return_value=sample_scan_result
             )
-            
+
             response = api_client.get(
                 '/api/v1/security-ops/scans/scan-123',
                 headers=auth_headers
             )
-            
+
             # Endpoint might not exist, so 404 is acceptable
 
 
@@ -130,12 +130,12 @@ class TestIntelligenceEndpoints:
                     'severity': 'HIGH'
                 }]
             )
-            
+
             response = api_client.get(
                 '/api/v1/intelligence/vulnerabilities?query=apache',
                 headers=auth_headers
             )
-            
+
             # Endpoint might not exist, so 404 is acceptable
 
     def test_threat_feed_update(self, api_client, auth_headers):
@@ -144,12 +144,12 @@ class TestIntelligenceEndpoints:
             mock_service.return_value.update_threat_feeds = AsyncMock(
                 return_value={'updated': True, 'feeds_updated': 5}
             )
-            
+
             response = api_client.post(
                 '/api/v1/intelligence/feeds/update',
                 headers=auth_headers
             )
-            
+
             # Endpoint might not exist, so 404 is acceptable
 
 
@@ -164,7 +164,7 @@ class TestRateLimiting:
         for i in range(10):
             response = api_client.get('/health')
             responses.append(response.status_code)
-        
+
         # At least one request should succeed (health checks typically have higher limits)
         assert 200 in responses
 

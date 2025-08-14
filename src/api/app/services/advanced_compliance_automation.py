@@ -133,14 +133,14 @@ class AuditEvent:
 
 class ComplianceFrameworkLoader:
     """Loads and manages compliance framework definitions"""
-    
+
     def __init__(self):
         self.frameworks: Dict[ComplianceFramework, List[ComplianceRequirement]] = {}
         self._load_framework_definitions()
-    
+
     def _load_framework_definitions(self):
         """Load compliance framework definitions"""
-        
+
         # PCI-DSS Requirements
         pci_requirements = [
             ComplianceRequirement(
@@ -183,7 +183,7 @@ class ComplianceFrameworkLoader:
                 risk_level=RiskLevel.CRITICAL
             )
         ]
-        
+
         # HIPAA Requirements
         hipaa_requirements = [
             ComplianceRequirement(
@@ -213,7 +213,7 @@ class ComplianceFrameworkLoader:
                 risk_level=RiskLevel.HIGH
             )
         ]
-        
+
         # ISO 27001 Requirements
         iso_requirements = [
             ComplianceRequirement(
@@ -230,8 +230,8 @@ class ComplianceFrameworkLoader:
                 risk_level=RiskLevel.HIGH
             )
         ]
-        
-        # SOX Requirements  
+
+        # SOX Requirements
         sox_requirements = [
             ComplianceRequirement(
                 requirement_id="SOX-404",
@@ -247,16 +247,16 @@ class ComplianceFrameworkLoader:
                 risk_level=RiskLevel.HIGH
             )
         ]
-        
+
         self.frameworks[ComplianceFramework.PCI_DSS] = pci_requirements
         self.frameworks[ComplianceFramework.HIPAA] = hipaa_requirements
         self.frameworks[ComplianceFramework.ISO_27001] = iso_requirements
         self.frameworks[ComplianceFramework.SOX] = sox_requirements
-    
+
     def get_requirements(self, framework: ComplianceFramework) -> List[ComplianceRequirement]:
         """Get requirements for a specific framework"""
         return self.frameworks.get(framework, [])
-    
+
     def get_requirement(self, framework: ComplianceFramework, requirement_id: str) -> Optional[ComplianceRequirement]:
         """Get specific requirement by ID"""
         requirements = self.get_requirements(framework)
@@ -265,32 +265,32 @@ class ComplianceFrameworkLoader:
 
 class AutomatedComplianceAssessment:
     """Performs automated compliance assessments"""
-    
+
     def __init__(self, framework_loader: ComplianceFrameworkLoader):
         self.framework_loader = framework_loader
         self.scan_results_cache: Dict[str, Any] = {}
-    
+
     async def assess_requirement(
-        self, 
-        requirement: ComplianceRequirement, 
+        self,
+        requirement: ComplianceRequirement,
         organization_id: str,
         scan_results: Dict[str, Any]
     ) -> ComplianceAssessment:
         """Assess a single compliance requirement"""
-        
+
         assessment_id = str(uuid.uuid4())
         findings = []
         evidence_collected = []
         gaps_identified = []
         remediation_actions = []
-        
+
         # Run automated checks
         score = 0
         total_checks = len(requirement.automated_checks)
-        
+
         for check_name in requirement.automated_checks:
             check_result = await self._run_automated_check(check_name, scan_results)
-            
+
             if check_result["passed"]:
                 score += 1
                 evidence_collected.append(f"Automated check '{check_name}' passed")
@@ -298,10 +298,10 @@ class AutomatedComplianceAssessment:
                 findings.append(f"Automated check '{check_name}' failed: {check_result['details']}")
                 gaps_identified.append(check_result["gap"])
                 remediation_actions.extend(check_result["remediation_actions"])
-        
+
         # Calculate score percentage
         score_percentage = (score / total_checks * 100) if total_checks > 0 else 0
-        
+
         # Determine status
         if score_percentage >= 95:
             status = ComplianceStatus.COMPLIANT
@@ -309,7 +309,7 @@ class AutomatedComplianceAssessment:
             status = ComplianceStatus.PARTIALLY_COMPLIANT
         else:
             status = ComplianceStatus.NON_COMPLIANT
-        
+
         return ComplianceAssessment(
             assessment_id=assessment_id,
             requirement_id=requirement.requirement_id,
@@ -325,10 +325,10 @@ class AutomatedComplianceAssessment:
             next_assessment_due=datetime.utcnow() + timedelta(days=90),
             metadata={"automated_assessment": True, "check_count": total_checks}
         )
-    
+
     async def _run_automated_check(self, check_name: str, scan_results: Dict[str, Any]) -> Dict[str, Any]:
         """Run specific automated compliance check"""
-        
+
         if check_name == "firewall_config_scan":
             return await self._check_firewall_configuration(scan_results)
         elif check_name == "default_credential_scan":
@@ -346,23 +346,23 @@ class AutomatedComplianceAssessment:
                 "gap": "Check not implemented",
                 "remediation_actions": ["Implement automated check"]
             }
-    
+
     async def _check_firewall_configuration(self, scan_results: Dict[str, Any]) -> Dict[str, Any]:
         """Check firewall configuration compliance"""
-        
+
         nmap_results = scan_results.get("nmap", {})
         open_ports = []
-        
+
         for target, result in nmap_results.items():
             if "hosts" in result:
                 for host in result["hosts"]:
                     for port in host.get("ports", []):
                         if port.get("state") == "open":
                             open_ports.append(f"{target}:{port.get('portid')}")
-        
+
         # Check for unnecessary open ports
         unnecessary_ports = [p for p in open_ports if not self._is_necessary_port(p)]
-        
+
         if unnecessary_ports:
             return {
                 "passed": False,
@@ -374,28 +374,28 @@ class AutomatedComplianceAssessment:
                     "Implement deny-by-default policy"
                 ]
             }
-        
+
         return {
             "passed": True,
             "details": "Firewall configuration appears compliant",
             "gap": None,
             "remediation_actions": []
         }
-    
+
     async def _check_default_credentials(self, scan_results: Dict[str, Any]) -> Dict[str, Any]:
         """Check for default credentials"""
-        
+
         # Look for default credential findings in scan results
         nuclei_results = scan_results.get("nuclei", {})
         default_cred_findings = []
-        
+
         for target, result in nuclei_results.items():
             if "findings" in result:
                 for finding in result["findings"]:
                     template_id = finding.get("template-id", "")
                     if "default" in template_id.lower() or "credential" in template_id.lower():
                         default_cred_findings.append(f"{target}: {finding.get('info', {}).get('name', 'Unknown')}")
-        
+
         if default_cred_findings:
             return {
                 "passed": False,
@@ -407,17 +407,17 @@ class AutomatedComplianceAssessment:
                     "Force password changes on first login"
                 ]
             }
-        
+
         return {
             "passed": True,
             "details": "No default credentials detected",
             "gap": None,
             "remediation_actions": []
         }
-    
+
     async def _check_static_analysis(self, scan_results: Dict[str, Any]) -> Dict[str, Any]:
         """Check static analysis security findings"""
-        
+
         # This would integrate with SAST tools
         # For now, simulate based on generic vulnerability findings
         return {
@@ -426,13 +426,13 @@ class AutomatedComplianceAssessment:
             "gap": None,
             "remediation_actions": []
         }
-    
+
     async def _check_vulnerabilities(self, scan_results: Dict[str, Any]) -> Dict[str, Any]:
         """Check vulnerability scan results"""
-        
+
         high_vuln_count = 0
         critical_vuln_count = 0
-        
+
         # Count high and critical vulnerabilities
         nuclei_results = scan_results.get("nuclei", {})
         for target, result in nuclei_results.items():
@@ -443,7 +443,7 @@ class AutomatedComplianceAssessment:
                         high_vuln_count += 1
                     elif severity == "critical":
                         critical_vuln_count += 1
-        
+
         if critical_vuln_count > 0 or high_vuln_count > 5:
             return {
                 "passed": False,
@@ -455,17 +455,17 @@ class AutomatedComplianceAssessment:
                     "Regular security scanning"
                 ]
             }
-        
+
         return {
             "passed": True,
             "details": f"Vulnerability levels acceptable: {critical_vuln_count} critical, {high_vuln_count} high",
             "gap": None,
             "remediation_actions": []
         }
-    
+
     async def _check_access_controls(self, scan_results: Dict[str, Any]) -> Dict[str, Any]:
         """Check access control implementation"""
-        
+
         # This would integrate with identity management systems
         # For now, simulate based on open services
         return {
@@ -474,28 +474,28 @@ class AutomatedComplianceAssessment:
             "gap": None,
             "remediation_actions": []
         }
-    
+
     def _is_necessary_port(self, port_info: str) -> bool:
         """Check if a port is necessary for business operations"""
-        
+
         # Extract port number
         port = port_info.split(":")[-1]
-        
+
         # Define necessary ports (this would be configurable)
         necessary_ports = ["80", "443", "22", "25", "53", "465", "993", "995"]
-        
+
         return port in necessary_ports
 
 
 class ComplianceReportGenerator:
     """Generates comprehensive compliance reports"""
-    
+
     def __init__(self):
         self.template_env = jinja2.Environment(
             loader=jinja2.DictLoader({
                 "executive_summary": """
                 Based on the compliance assessment for {{ framework.value }}, the organization has achieved an overall compliance score of {{ overall_score }}%.
-                
+
                 {% if overall_status.value == "compliant" %}
                 The organization demonstrates strong compliance with {{ framework.value }} requirements.
                 {% elif overall_status.value == "partially_compliant" %}
@@ -503,32 +503,32 @@ class ComplianceReportGenerator:
                 {% else %}
                 The organization has significant compliance gaps that require immediate attention.
                 {% endif %}
-                
+
                 Key findings include:
                 {% for finding_type, count in findings_summary.items() %}
                 - {{ count }} {{ finding_type }} findings
                 {% endfor %}
-                
+
                 Priority remediation activities are outlined in the detailed remediation plan.
                 """,
-                
+
                 "remediation_plan": """
                 ## Remediation Plan for {{ framework.value }}
-                
+
                 {% for action in remediation_plan %}
                 ### {{ action.priority }} Priority: {{ action.title }}
                 **Due Date:** {{ action.due_date }}
                 **Owner:** {{ action.owner }}
                 **Description:** {{ action.description }}
                 **Success Criteria:** {{ action.success_criteria }}
-                
+
                 {% endfor %}
                 """
             })
         )
-    
+
     async def generate_compliance_report(
-        self, 
+        self,
         framework: ComplianceFramework,
         assessments: List[ComplianceAssessment],
         organization_id: str,
@@ -537,9 +537,9 @@ class ComplianceReportGenerator:
         generated_by: str
     ) -> ComplianceReport:
         """Generate comprehensive compliance report"""
-        
+
         report_id = str(uuid.uuid4())
-        
+
         # Calculate overall metrics
         total_assessments = len(assessments)
         if total_assessments == 0:
@@ -547,7 +547,7 @@ class ComplianceReportGenerator:
             overall_status = ComplianceStatus.NOT_ASSESSED
         else:
             overall_score = sum(a.score for a in assessments) / total_assessments
-            
+
             compliant_count = sum(1 for a in assessments if a.status == ComplianceStatus.COMPLIANT)
             if compliant_count == total_assessments:
                 overall_status = ComplianceStatus.COMPLIANT
@@ -555,7 +555,7 @@ class ComplianceReportGenerator:
                 overall_status = ComplianceStatus.PARTIALLY_COMPLIANT
             else:
                 overall_status = ComplianceStatus.NON_COMPLIANT
-        
+
         # Summarize findings
         findings_summary = {
             "critical": 0,
@@ -563,21 +563,21 @@ class ComplianceReportGenerator:
             "medium": 0,
             "low": 0
         }
-        
+
         all_remediation_actions = []
-        
+
         for assessment in assessments:
             # Count findings by severity (based on requirement risk level)
             if assessment.findings:
                 # This is simplified - in practice, you'd analyze finding severity
                 findings_summary["medium"] += len(assessment.findings)
-            
+
             # Collect remediation actions
             all_remediation_actions.extend(assessment.remediation_actions)
-        
+
         # Generate remediation plan
         remediation_plan = self._create_remediation_plan(all_remediation_actions, framework)
-        
+
         # Generate executive summary
         executive_summary = self.template_env.get_template("executive_summary").render(
             framework=framework,
@@ -585,7 +585,7 @@ class ComplianceReportGenerator:
             overall_status=overall_status,
             findings_summary=findings_summary
         )
-        
+
         return ComplianceReport(
             report_id=report_id,
             framework=framework,
@@ -601,18 +601,18 @@ class ComplianceReportGenerator:
             generated_by=generated_by,
             generated_at=datetime.utcnow()
         )
-    
+
     def _create_remediation_plan(self, remediation_actions: List[str], framework: ComplianceFramework) -> List[Dict[str, Any]]:
         """Create prioritized remediation plan"""
-        
+
         # Deduplicate and prioritize actions
         unique_actions = list(set(remediation_actions))
-        
+
         plan = []
         for i, action in enumerate(unique_actions[:10]):  # Top 10 actions
             priority = "High" if i < 3 else "Medium" if i < 7 else "Low"
             due_date = datetime.utcnow() + timedelta(days=30 if priority == "High" else 60 if priority == "Medium" else 90)
-            
+
             plan.append({
                 "title": action,
                 "description": f"Implement {action} to improve {framework.value} compliance",
@@ -622,16 +622,16 @@ class ComplianceReportGenerator:
                 "success_criteria": f"Successful implementation of {action}",
                 "estimated_effort": "2-4 weeks" if priority == "High" else "1-2 weeks"
             })
-        
+
         return plan
-    
+
     async def export_report_to_pdf(self, report: ComplianceReport, output_path: str):
         """Export compliance report to PDF"""
-        
+
         doc = SimpleDocTemplate(output_path, pagesize=letter)
         styles = getSampleStyleSheet()
         story = []
-        
+
         # Title
         title_style = ParagraphStyle(
             'CustomTitle',
@@ -640,10 +640,10 @@ class ComplianceReportGenerator:
             textColor=colors.HexColor('#2E86AB'),
             spaceAfter=30
         )
-        
+
         story.append(Paragraph(f"{report.framework.value} Compliance Report", title_style))
         story.append(Spacer(1, 12))
-        
+
         # Report metadata
         metadata_data = [
             ["Report ID", report.report_id],
@@ -654,7 +654,7 @@ class ComplianceReportGenerator:
             ["Generated By", report.generated_by],
             ["Generated At", report.generated_at.strftime('%Y-%m-%d %H:%M:%S UTC')]
         ]
-        
+
         metadata_table = Table(metadata_data)
         metadata_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -666,18 +666,18 @@ class ComplianceReportGenerator:
             ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
-        
+
         story.append(metadata_table)
         story.append(Spacer(1, 20))
-        
+
         # Executive Summary
         story.append(Paragraph("Executive Summary", styles['Heading2']))
         story.append(Paragraph(report.executive_summary, styles['Normal']))
         story.append(Spacer(1, 20))
-        
+
         # Assessment Summary
         story.append(Paragraph("Assessment Summary", styles['Heading2']))
-        
+
         assessment_data = [["Requirement ID", "Status", "Score", "Findings"]]
         for assessment in report.assessments:
             assessment_data.append([
@@ -686,7 +686,7 @@ class ComplianceReportGenerator:
                 f"{assessment.score:.1f}%",
                 str(len(assessment.findings))
             ])
-        
+
         assessment_table = Table(assessment_data)
         assessment_table.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -698,12 +698,12 @@ class ComplianceReportGenerator:
             ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
-        
+
         story.append(assessment_table)
-        
+
         # Build PDF
         doc.build(story)
-        
+
         logger.info(f"Compliance report exported to PDF: {output_path}")
 
 
@@ -712,30 +712,30 @@ class AdvancedComplianceAutomation:
     Advanced compliance automation system for XORB Enterprise Platform
     Provides comprehensive compliance framework automation and audit trail management
     """
-    
+
     def __init__(self):
         self.framework_loader = ComplianceFrameworkLoader()
         self.automated_assessment = AutomatedComplianceAssessment(self.framework_loader)
         self.report_generator = ComplianceReportGenerator()
         self.audit_events: List[AuditEvent] = []
-    
+
     async def assess_compliance(
-        self, 
-        framework: ComplianceFramework, 
+        self,
+        framework: ComplianceFramework,
         organization_id: str,
         scan_results: Dict[str, Any]
     ) -> ComplianceReport:
         """Perform comprehensive compliance assessment"""
-        
+
         requirements = self.framework_loader.get_requirements(framework)
         assessments = []
-        
+
         for requirement in requirements:
             assessment = await self.automated_assessment.assess_requirement(
                 requirement, organization_id, scan_results
             )
             assessments.append(assessment)
-        
+
         # Generate compliance report
         report = await self.report_generator.generate_compliance_report(
             framework=framework,
@@ -745,7 +745,7 @@ class AdvancedComplianceAutomation:
             reporting_period_end=datetime.utcnow(),
             generated_by="xorb_compliance_automation"
         )
-        
+
         # Log compliance assessment event
         await self.log_audit_event(
             user_id="system",
@@ -766,9 +766,9 @@ class AdvancedComplianceAutomation:
                 "assessments_count": len(assessments)
             }
         )
-        
+
         return report
-    
+
     async def log_audit_event(
         self,
         user_id: str,
@@ -788,7 +788,7 @@ class AdvancedComplianceAutomation:
         session_id: str = "system"
     ):
         """Log detailed audit event for compliance tracking"""
-        
+
         audit_event = AuditEvent(
             event_id=str(uuid.uuid4()),
             timestamp=datetime.utcnow(),
@@ -808,15 +808,15 @@ class AdvancedComplianceAutomation:
             risk_level=risk_level,
             details=details
         )
-        
+
         self.audit_events.append(audit_event)
-        
+
         # In production, this would be stored in database
         logger.info(f"Audit event logged: {audit_event.event_type} - {audit_event.action}")
-    
+
     async def get_compliance_status(self, organization_id: str) -> Dict[str, Any]:
         """Get current compliance status for organization"""
-        
+
         # This would query the database for latest assessments
         # For now, return a summary
         return {
@@ -832,23 +832,23 @@ class AdvancedComplianceAutomation:
                 for framework in ComplianceFramework
             }
         }
-    
+
     async def export_audit_trail(
-        self, 
-        organization_id: str, 
-        start_date: datetime, 
+        self,
+        organization_id: str,
+        start_date: datetime,
         end_date: datetime,
         output_path: str
     ):
         """Export audit trail for compliance purposes"""
-        
+
         # Filter audit events
         filtered_events = [
             event for event in self.audit_events
-            if (event.organization_id == organization_id and 
+            if (event.organization_id == organization_id and
                 start_date <= event.timestamp <= end_date)
         ]
-        
+
         # Convert to DataFrame for easy export
         event_data = []
         for event in filtered_events:
@@ -863,16 +863,16 @@ class AdvancedComplianceAutomation:
                 "IP Address": event.ip_address,
                 "Compliance Frameworks": ",".join([f.value for f in event.compliance_frameworks])
             })
-        
+
         df = pd.DataFrame(event_data)
         df.to_excel(output_path, index=False)
-        
+
         logger.info(f"Audit trail exported to: {output_path}")
-    
+
     def get_supported_frameworks(self) -> List[ComplianceFramework]:
         """Get list of supported compliance frameworks"""
         return list(ComplianceFramework)
-    
+
     def get_framework_requirements(self, framework: ComplianceFramework) -> List[ComplianceRequirement]:
         """Get requirements for specific framework"""
         return self.framework_loader.get_requirements(framework)

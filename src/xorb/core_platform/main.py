@@ -22,16 +22,16 @@ async def create_app():
 # Entry point for development
 if __name__ == '__main__':
     import sys
-    
+
     # Configure logging
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
-    
+
     # Run the application
     async def main():
         app = await create_app()
         web.run_app(app, host='0.0.0.0', port=8000)
-    
+
     asyncio.run(main())

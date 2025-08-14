@@ -64,7 +64,7 @@ class ComplianceStatus(Enum):
 
 class RiskLevel(Enum):
     CRITICAL = "critical"
-    HIGH = "high" 
+    HIGH = "high"
     MEDIUM = "medium"
     LOW = "low"
     NEGLIGIBLE = "negligible"
@@ -140,7 +140,7 @@ class ComplianceReport:
 class AfricanComplianceAutomationEngine(SecurityService):
     """
     Advanced Compliance Automation Engine for African Regulatory Frameworks
-    
+
     Capabilities:
     - Automated compliance assessment across multiple African frameworks
     - Risk-based compliance prioritization
@@ -151,34 +151,34 @@ class AfricanComplianceAutomationEngine(SecurityService):
     - Integration with African regulatory databases
     - Real-time compliance monitoring and alerting
     """
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="african_compliance_automation",
             dependencies=["database", "redis", "vault", "document_processor"],
             config=kwargs.get("config", {})
         )
-        
+
         # Compliance frameworks registry
         self.compliance_frameworks = {}
         self.requirements_database = {}
         self.assessment_templates = {}
-        
+
         # Assessment state and history
         self.active_assessments = {}
         self.assessment_history = []
         self.compliance_baselines = {}
-        
+
         # Regulatory intelligence
         self.regulatory_updates = {}
         self.penalty_database = {}
         self.precedent_cases = {}
-        
+
         # Evidence collection and management
         self.evidence_collectors = {}
         self.documentation_templates = {}
         self.audit_trails = {}
-        
+
         # African regulatory frameworks configuration
         self.african_frameworks = {
             ComplianceFramework.POPIA: {
@@ -210,7 +210,7 @@ class AfricanComplianceAutomationEngine(SecurityService):
             },
             ComplianceFramework.CBN_GUIDELINES: {
                 "name": "Central Bank of Nigeria Guidelines",
-                "country": "Nigeria", 
+                "country": "Nigeria",
                 "authority": "Central Bank of Nigeria",
                 "effective_date": datetime(2020, 1, 1),
                 "scope": ["banking", "fintech", "mobile_money", "cybersecurity"],
@@ -218,7 +218,7 @@ class AfricanComplianceAutomationEngine(SecurityService):
                 "update_frequency": "quarterly"
             }
         }
-        
+
         # Industry-specific compliance mappings
         self.industry_mappings = {
             "banking": [ComplianceFramework.CBN_GUIDELINES, ComplianceFramework.SARB_REGULATIONS, ComplianceFramework.PCI_DSS],
@@ -234,84 +234,84 @@ class AfricanComplianceAutomationEngine(SecurityService):
         """Initialize the African compliance automation engine"""
         try:
             logger.info("Initializing African Compliance Automation Engine...")
-            
+
             # Load compliance requirements database
             await self._load_compliance_requirements()
-            
+
             # Initialize assessment templates
             await self._initialize_assessment_templates()
-            
+
             # Set up evidence collection systems
             await self._setup_evidence_collection()
-            
+
             # Initialize regulatory monitoring
             await self._initialize_regulatory_monitoring()
-            
+
             # Load penalty and precedent databases
             await self._load_penalty_database()
-            
+
             # Set up automated reporting
             await self._setup_automated_reporting()
-            
+
             logger.info("African Compliance Automation Engine initialized successfully")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize compliance automation engine: {e}")
             return False
 
-    async def conduct_comprehensive_compliance_assessment(self, 
+    async def conduct_comprehensive_compliance_assessment(self,
                                                         organization_data: Dict[str, Any],
                                                         assessment_scope: str = "full") -> ComplianceReport:
         """Conduct comprehensive compliance assessment"""
         try:
             report_id = f"compliance_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
             start_time = datetime.now()
-            
+
             # Determine applicable frameworks
             applicable_frameworks = await self._determine_applicable_frameworks(organization_data)
-            
+
             # Initialize assessment results
             assessment_results = []
-            
+
             # Assess each applicable framework
             for framework in applicable_frameworks:
                 framework_results = await self._assess_framework_compliance(
                     framework, organization_data, assessment_scope
                 )
                 assessment_results.extend(framework_results)
-            
+
             # Calculate overall compliance metrics
             overall_metrics = await self._calculate_overall_compliance_metrics(assessment_results)
-            
+
             # Generate executive summary
             executive_summary = await self._generate_executive_summary(
                 organization_data, assessment_results, overall_metrics
             )
-            
+
             # Identify detailed findings
             detailed_findings = await self._analyze_detailed_findings(assessment_results)
-            
+
             # Create remediation roadmap
             remediation_roadmap = await self._create_remediation_roadmap(
                 assessment_results, organization_data
             )
-            
+
             # Perform cost analysis
             cost_analysis = await self._perform_cost_analysis(
                 remediation_roadmap, organization_data
             )
-            
+
             # Analyze regulatory implications
             regulatory_implications = await self._analyze_regulatory_implications(
                 assessment_results, applicable_frameworks
             )
-            
+
             # Generate recommendations
             recommendations = await self._generate_strategic_recommendations(
                 assessment_results, cost_analysis, regulatory_implications
             )
-            
+
             # Create comprehensive report
             compliance_report = ComplianceReport(
                 report_id=report_id,
@@ -331,13 +331,13 @@ class AfricanComplianceAutomationEngine(SecurityService):
                 report_generation_date=datetime.now(),
                 compliance_officer=organization_data.get("compliance_officer", "System Generated")
             )
-            
+
             # Store assessment for tracking
             self.assessment_history.append(compliance_report)
-            
+
             logger.info(f"Comprehensive compliance assessment completed: {overall_metrics['compliance_score']:.2f}% compliant")
             return compliance_report
-            
+
         except Exception as e:
             logger.error(f"Comprehensive compliance assessment failed: {e}")
             raise
@@ -346,30 +346,30 @@ class AfricanComplianceAutomationEngine(SecurityService):
         """Detailed POPIA (Protection of Personal Information Act) compliance assessment"""
         try:
             popia_results = []
-            
+
             # POPIA Chapter 3: Processing of Personal Information
             chapter3_results = await self._assess_popia_chapter3(organization_data)
             popia_results.extend(chapter3_results)
-            
+
             # POPIA Chapter 4: Responsibilities of Responsible Parties
             chapter4_results = await self._assess_popia_chapter4(organization_data)
             popia_results.extend(chapter4_results)
-            
+
             # POPIA Chapter 5: Operator Requirements
             chapter5_results = await self._assess_popia_chapter5(organization_data)
             popia_results.extend(chapter5_results)
-            
+
             # POPIA Chapter 6: Direct Marketing
             chapter6_results = await self._assess_popia_chapter6(organization_data)
             popia_results.extend(chapter6_results)
-            
+
             # POPIA Chapter 7: Transborder Information Flows
             chapter7_results = await self._assess_popia_chapter7(organization_data)
             popia_results.extend(chapter7_results)
-            
+
             logger.info(f"POPIA compliance assessment completed: {len(popia_results)} requirements assessed")
             return popia_results
-            
+
         except Exception as e:
             logger.error(f"POPIA compliance assessment failed: {e}")
             return []
@@ -378,34 +378,34 @@ class AfricanComplianceAutomationEngine(SecurityService):
         """Detailed NDPR (Nigeria Data Protection Regulation) compliance assessment"""
         try:
             ndpr_results = []
-            
+
             # NDPR Part II: Lawfulness of Processing
             part2_results = await self._assess_ndpr_lawfulness(organization_data)
             ndpr_results.extend(part2_results)
-            
+
             # NDPR Part III: Data Subject Rights
             part3_results = await self._assess_ndpr_data_subject_rights(organization_data)
             ndpr_results.extend(part3_results)
-            
+
             # NDPR Part IV: Data Controller and Processor Obligations
             part4_results = await self._assess_ndpr_controller_obligations(organization_data)
             ndpr_results.extend(part4_results)
-            
+
             # NDPR Part V: Transfer of Personal Data
             part5_results = await self._assess_ndpr_data_transfers(organization_data)
             ndpr_results.extend(part5_results)
-            
+
             # NDPR Part VI: Data Protection Officer
             part6_results = await self._assess_ndpr_dpo_requirements(organization_data)
             ndpr_results.extend(part6_results)
-            
+
             # NDPR Part VII: Data Protection Audit
             part7_results = await self._assess_ndpr_audit_requirements(organization_data)
             ndpr_results.extend(part7_results)
-            
+
             logger.info(f"NDPR compliance assessment completed: {len(ndpr_results)} requirements assessed")
             return ndpr_results
-            
+
         except Exception as e:
             logger.error(f"NDPR compliance assessment failed: {e}")
             return []
@@ -414,39 +414,39 @@ class AfricanComplianceAutomationEngine(SecurityService):
         """Detailed CBN Guidelines compliance assessment"""
         try:
             cbn_results = []
-            
+
             # Cybersecurity Framework
             cybersecurity_results = await self._assess_cbn_cybersecurity_framework(organization_data)
             cbn_results.extend(cybersecurity_results)
-            
+
             # Risk Management Framework
             risk_mgmt_results = await self._assess_cbn_risk_management(organization_data)
             cbn_results.extend(risk_mgmt_results)
-            
+
             # IT Governance Framework
             it_governance_results = await self._assess_cbn_it_governance(organization_data)
             cbn_results.extend(it_governance_results)
-            
+
             # Payment System Management
             payment_system_results = await self._assess_cbn_payment_systems(organization_data)
             cbn_results.extend(payment_system_results)
-            
+
             # Consumer Protection Framework
             consumer_protection_results = await self._assess_cbn_consumer_protection(organization_data)
             cbn_results.extend(consumer_protection_results)
-            
+
             # Mobile Money Guidelines
             mobile_money_results = await self._assess_cbn_mobile_money(organization_data)
             cbn_results.extend(mobile_money_results)
-            
+
             logger.info(f"CBN Guidelines compliance assessment completed: {len(cbn_results)} requirements assessed")
             return cbn_results
-            
+
         except Exception as e:
             logger.error(f"CBN Guidelines compliance assessment failed: {e}")
             return []
 
-    async def automated_evidence_collection(self, requirements: List[str], 
+    async def automated_evidence_collection(self, requirements: List[str],
                                           organization_data: Dict[str, Any]) -> Dict[str, Any]:
         """Automated evidence collection for compliance requirements"""
         try:
@@ -459,21 +459,21 @@ class AfricanComplianceAutomationEngine(SecurityService):
                 "collection_summary": {},
                 "confidence_scores": {}
             }
-            
+
             for requirement_id in requirements:
                 # Get requirement details
                 requirement = await self._get_requirement_details(requirement_id)
                 if not requirement:
                     continue
-                
+
                 # Automated evidence collection
                 automated_evidence = await self._collect_automated_evidence(requirement, organization_data)
                 evidence_collection_result["evidence_collected"][requirement_id] = automated_evidence
-                
+
                 # Automated compliance tests
                 automated_tests = await self._run_automated_compliance_tests(requirement, organization_data)
                 evidence_collection_result["automated_tests"][requirement_id] = automated_tests
-                
+
                 # Determine if manual review is required
                 if automated_tests.get("confidence_score", 0) < 0.8:
                     evidence_collection_result["manual_review_required"].append({
@@ -481,26 +481,26 @@ class AfricanComplianceAutomationEngine(SecurityService):
                         "reason": "Low confidence in automated assessment",
                         "confidence_score": automated_tests.get("confidence_score", 0)
                     })
-                
+
                 # Calculate confidence score
                 confidence_score = await self._calculate_evidence_confidence_score(
                     automated_evidence, automated_tests
                 )
                 evidence_collection_result["confidence_scores"][requirement_id] = confidence_score
-            
+
             # Generate collection summary
             evidence_collection_result["collection_summary"] = await self._generate_evidence_collection_summary(
                 evidence_collection_result
             )
-            
+
             logger.info(f"Automated evidence collection completed: {len(requirements)} requirements processed")
             return evidence_collection_result
-            
+
         except Exception as e:
             logger.error(f"Automated evidence collection failed: {e}")
             return {"error": str(e)}
 
-    async def generate_compliance_report(self, compliance_report: ComplianceReport, 
+    async def generate_compliance_report(self, compliance_report: ComplianceReport,
                                        output_format: str = "pdf") -> str:
         """Generate compliance report in specified format"""
         try:
@@ -513,10 +513,10 @@ class AfricanComplianceAutomationEngine(SecurityService):
             else:
                 # Fallback to JSON
                 report_path = await self._generate_json_report(compliance_report)
-            
+
             logger.info(f"Compliance report generated: {report_path}")
             return report_path
-            
+
         except Exception as e:
             logger.error(f"Compliance report generation failed: {e}")
             raise
@@ -532,39 +532,39 @@ class AfricanComplianceAutomationEngine(SecurityService):
                 "recommendations": [],
                 "next_review_dates": {}
             }
-            
+
             # Monitor each applicable framework
             applicable_frameworks = await self._determine_applicable_frameworks(organization_data)
-            
+
             for framework in applicable_frameworks:
                 # Real-time compliance check
                 current_status = await self._check_real_time_compliance(framework, organization_data)
                 monitoring_result["compliance_status"][framework.value] = current_status
-                
+
                 # Generate alerts for non-compliance
                 if current_status.get("status") == ComplianceStatus.NON_COMPLIANT:
                     alert = await self._generate_compliance_alert(framework, current_status, organization_data)
                     monitoring_result["alerts_generated"].append(alert)
-                
+
                 # Calculate next review date
                 next_review = await self._calculate_next_review_date(framework, current_status)
                 monitoring_result["next_review_dates"][framework.value] = next_review
-            
+
             # Trend analysis
             trend_analysis = await self._analyze_compliance_trends(
                 monitoring_result["compliance_status"], organization_data
             )
             monitoring_result["trend_analysis"] = trend_analysis
-            
+
             # Generate recommendations
             recommendations = await self._generate_monitoring_recommendations(
                 monitoring_result["compliance_status"], trend_analysis
             )
             monitoring_result["recommendations"] = recommendations
-            
+
             logger.info(f"Real-time compliance monitoring completed: {len(monitoring_result['alerts_generated'])} alerts generated")
             return monitoring_result
-            
+
         except Exception as e:
             logger.error(f"Real-time compliance monitoring failed: {e}")
             return {"error": str(e)}
@@ -573,7 +573,7 @@ class AfricanComplianceAutomationEngine(SecurityService):
     async def _assess_popia_chapter3(self, organization_data: Dict[str, Any]) -> List[ComplianceAssessmentResult]:
         """Assess POPIA Chapter 3: Processing of Personal Information"""
         results = []
-        
+
         # Condition 1: Accountability
         accountability_result = await self._assess_requirement(
             "popia_3_1_accountability",
@@ -590,7 +590,7 @@ class AfricanComplianceAutomationEngine(SecurityService):
             }
         )
         results.append(accountability_result)
-        
+
         # Condition 2: Processing Limitation
         processing_limitation_result = await self._assess_requirement(
             "popia_3_2_processing_limitation",
@@ -607,15 +607,15 @@ class AfricanComplianceAutomationEngine(SecurityService):
             }
         )
         results.append(processing_limitation_result)
-        
+
         # Continue with other conditions...
-        
+
         return results
 
     async def _assess_ndpr_lawfulness(self, organization_data: Dict[str, Any]) -> List[ComplianceAssessmentResult]:
         """Assess NDPR Part II: Lawfulness of Processing"""
         results = []
-        
+
         # Article 2.1: Lawful Basis
         lawful_basis_result = await self._assess_requirement(
             "ndpr_2_1_lawful_basis",
@@ -632,15 +632,15 @@ class AfricanComplianceAutomationEngine(SecurityService):
             }
         )
         results.append(lawful_basis_result)
-        
+
         # Continue with other articles...
-        
+
         return results
 
     async def _assess_cbn_cybersecurity_framework(self, organization_data: Dict[str, Any]) -> List[ComplianceAssessmentResult]:
         """Assess CBN Cybersecurity Framework requirements"""
         results = []
-        
+
         # Governance and Risk Management
         governance_result = await self._assess_requirement(
             "cbn_cyber_governance",
@@ -657,9 +657,9 @@ class AfricanComplianceAutomationEngine(SecurityService):
             }
         )
         results.append(governance_result)
-        
+
         # Continue with other framework elements...
-        
+
         return results
 
     # Report generation methods
@@ -668,23 +668,23 @@ class AfricanComplianceAutomationEngine(SecurityService):
         try:
             if not PDF_AVAILABLE:
                 raise Exception("PDF generation libraries not available")
-            
+
             report_filename = f"compliance_report_{compliance_report.report_id}.pdf"
             report_path = Path(f"/tmp/{report_filename}")
-            
+
             doc = SimpleDocTemplate(str(report_path), pagesize=A4)
             styles = getSampleStyleSheet()
             story = []
-            
+
             # Title
             title = Paragraph(f"Compliance Assessment Report", styles['Title'])
             story.append(title)
             story.append(Spacer(1, 12))
-            
+
             # Executive Summary
             exec_summary = Paragraph("Executive Summary", styles['Heading1'])
             story.append(exec_summary)
-            
+
             summary_text = f"""
             Organization: {compliance_report.organization_name}
             Assessment Date: {compliance_report.report_generation_date.strftime('%Y-%m-%d')}
@@ -692,10 +692,10 @@ class AfricanComplianceAutomationEngine(SecurityService):
             Risk Level: {compliance_report.overall_risk_level.value.title()}
             Frameworks Assessed: {', '.join([f.value for f in compliance_report.frameworks_assessed])}
             """
-            
+
             story.append(Paragraph(summary_text, styles['Normal']))
             story.append(Spacer(1, 12))
-            
+
             # Detailed findings table
             findings_data = [['Requirement', 'Status', 'Risk Level', 'Score']]
             for result in compliance_report.assessment_results[:20]:  # Limit for PDF
@@ -705,7 +705,7 @@ class AfricanComplianceAutomationEngine(SecurityService):
                     result.risk_level.value,
                     f"{result.compliance_score:.1f}%"
                 ])
-            
+
             findings_table = Table(findings_data)
             findings_table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -717,14 +717,14 @@ class AfricanComplianceAutomationEngine(SecurityService):
                 ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
                 ('GRID', (0, 0), (-1, -1), 1, colors.black)
             ]))
-            
+
             story.append(findings_table)
-            
+
             # Build PDF
             doc.build(story)
-            
+
             return str(report_path)
-            
+
         except Exception as e:
             logger.error(f"PDF report generation failed: {e}")
             raise
@@ -734,20 +734,20 @@ class AfricanComplianceAutomationEngine(SecurityService):
         try:
             if not EXCEL_AVAILABLE:
                 raise Exception("Excel generation libraries not available")
-            
+
             report_filename = f"compliance_report_{compliance_report.report_id}.xlsx"
             report_path = Path(f"/tmp/{report_filename}")
-            
+
             workbook = openpyxl.Workbook()
-            
+
             # Executive Summary Sheet
             exec_sheet = workbook.active
             exec_sheet.title = "Executive Summary"
-            
+
             # Headers
             exec_sheet['A1'] = "African Compliance Assessment Report"
             exec_sheet['A1'].font = Font(size=16, bold=True)
-            
+
             # Summary data
             exec_sheet['A3'] = "Organization:"
             exec_sheet['B3'] = compliance_report.organization_name
@@ -757,16 +757,16 @@ class AfricanComplianceAutomationEngine(SecurityService):
             exec_sheet['B5'] = f"{compliance_report.overall_compliance_score:.1f}%"
             exec_sheet['A6'] = "Risk Level:"
             exec_sheet['B6'] = compliance_report.overall_risk_level.value.title()
-            
+
             # Detailed Results Sheet
             results_sheet = workbook.create_sheet(title="Detailed Results")
-            
+
             headers = ['Requirement ID', 'Status', 'Score', 'Risk Level', 'Findings', 'Remediation Actions']
             for col, header in enumerate(headers, 1):
                 cell = results_sheet.cell(row=1, column=col, value=header)
                 cell.font = Font(bold=True)
                 cell.fill = PatternFill(start_color="CCCCCC", end_color="CCCCCC", fill_type="solid")
-            
+
             # Add results data
             for row, result in enumerate(compliance_report.assessment_results, 2):
                 results_sheet.cell(row=row, column=1, value=result.requirement_id)
@@ -775,12 +775,12 @@ class AfricanComplianceAutomationEngine(SecurityService):
                 results_sheet.cell(row=row, column=4, value=result.risk_level.value)
                 results_sheet.cell(row=row, column=5, value='; '.join(result.findings))
                 results_sheet.cell(row=row, column=6, value='; '.join(result.remediation_actions))
-            
+
             # Save workbook
             workbook.save(report_path)
-            
+
             return str(report_path)
-            
+
         except Exception as e:
             logger.error(f"Excel report generation failed: {e}")
             raise
@@ -799,19 +799,19 @@ class AfricanComplianceAutomationEngine(SecurityService):
                 "active_assessments": len(self.active_assessments),
                 "regulatory_updates_current": len(self.regulatory_updates)
             }
-            
+
             status = ServiceStatus.HEALTHY if all([
                 checks["frameworks_loaded"] > 0,
                 checks["requirements_database_size"] > 0
             ]) else ServiceStatus.DEGRADED
-            
+
             return ServiceHealth(
                 service_id=self.service_id,
                 status=status,
                 checks=checks,
                 timestamp=datetime.utcnow()
             )
-            
+
         except Exception as e:
             return ServiceHealth(
                 service_id=self.service_id,
@@ -823,10 +823,10 @@ class AfricanComplianceAutomationEngine(SecurityService):
 # Export the African compliance automation engine
 __all__ = [
     "AfricanComplianceAutomationEngine",
-    "ComplianceRequirement", 
+    "ComplianceRequirement",
     "ComplianceAssessmentResult",
     "ComplianceReport",
     "ComplianceStatus",
-    "RiskLevel", 
+    "RiskLevel",
     "ComplianceFramework"
 ]

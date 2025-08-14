@@ -20,24 +20,24 @@ async def get_current_user(
     """Extract current user from JWT token using unified auth service."""
     if not credentials:
         return None
-    
+
     try:
         # Get unified authentication service
         container = get_container()
         auth_service: AuthenticationService = container.get(AuthenticationService)
-        
+
         # Validate token using unified service
         validation_result = await auth_service.validate_token(credentials.credentials)
-        
+
         if not validation_result.valid:
             return None
-        
+
         # Create user context from validation result
         user_context = await auth_service.create_user_context(
-            validation_result.user, 
+            validation_result.user,
             validation_result.claims
         )
-        
+
         # Create UserClaims from user context for compatibility
         user_claims = UserClaims(
             user_id=user_context.user_id,
@@ -47,11 +47,11 @@ async def get_current_user(
             permissions=user_context.permissions,
             is_admin=user_context.is_admin
         )
-        
+
         # Store in request state for downstream middleware
         request.state.user = user_claims
         return user_claims
-        
+
     except Exception:
         return None
 
@@ -83,7 +83,7 @@ def require_permissions(
                 detail=f"Missing permissions: {', '.join(missing_perms)}"
             )
         return current_user
-    
+
     return dependency
 
 
@@ -100,7 +100,7 @@ def require_roles(
                 detail=f"Requires one of roles: {', '.join(roles)}"
             )
         return current_user
-    
+
     return dependency
 
 
@@ -136,13 +136,13 @@ def rbac(
     require_super_admin: bool = False
 ):
     """RBAC decorator for route functions.
-    
+
     Usage:
         @app.get("/sensitive")
         @rbac(permissions=[Permission.EVIDENCE_READ])
         async def get_evidence():
             ...
-            
+
         @app.post("/admin")
         @rbac(require_tenant_admin=True)
         async def admin_action():
@@ -157,22 +157,22 @@ def rbac(
                 if isinstance(arg, Request):
                     request = arg
                     break
-            
+
             if not request or not hasattr(request.state, 'user'):
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Authentication required"
                 )
-            
+
             user: UserClaims = request.state.user
-            
+
             # Check super admin requirement
             if require_super_admin and not user.has_role(Role.SUPER_ADMIN):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Super admin access required"
                 )
-            
+
             # Check tenant admin requirement
             if require_tenant_admin and not (
                 user.has_role(Role.TENANT_ADMIN) or user.has_role(Role.SUPER_ADMIN)
@@ -181,14 +181,14 @@ def rbac(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Tenant admin access required"
                 )
-            
+
             # Check role requirements
             if roles and not any(user.has_role(role) for role in roles):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail=f"Requires one of roles: {', '.join(roles)}"
                 )
-            
+
             # Check permission requirements
             if permissions:
                 missing_perms = set(permissions) - user.permissions
@@ -197,9 +197,9 @@ def rbac(
                         status_code=status.HTTP_403_FORBIDDEN,
                         detail=f"Missing permissions: {', '.join(missing_perms)}"
                     )
-            
+
             return await func(*args, **kwargs)
-        
+
         return wrapper
     return decorator
 

@@ -5,7 +5,7 @@
     "ai_model": "qwen/qwen3-coder:free",
     "api_provider": "OpenRouter.ai",
     "enhancement_mode": "autonomous",
-    
+
     "scan_configuration": {
       "target_extensions": [".py", ".sh", ".yaml", ".yml", ".json", ".env", ".dockerfile"],
       "priority_folders": ["orchestrator", "agents", "scripts", "services", "configs", "xorb_core", "packages"],
@@ -13,11 +13,11 @@
       "max_files_per_cycle": 20,
       "max_file_size_mb": 5
     },
-    
+
     "analysis_configuration": {
       "focus_areas": [
         "python_3_12_compatibility",
-        "asyncio_optimization", 
+        "asyncio_optimization",
         "error_handling_resilience",
         "security_vulnerabilities",
         "performance_bottlenecks",
@@ -31,7 +31,7 @@
         "low": ["optimization", "minor_improvements"]
       }
     },
-    
+
     "enhancement_configuration": {
       "max_enhancements_per_file": 3,
       "max_enhancements_per_cycle": 50,
@@ -63,21 +63,21 @@
         }
       }
     },
-    
+
     "testing_configuration": {
       "run_tests_after_changes": true,
       "test_frameworks": ["pytest", "make test", "python -m unittest"],
       "test_timeout_seconds": 300,
       "rollback_on_test_failure": true
     },
-    
+
     "git_configuration": {
       "auto_commit": true,
       "commit_message_template": "✨ [Auto-Qwen3] {enhancement_summary}\n\n{details}\n\n🧠 Generated with Qwen3-Coder autonomous enhancement\n🤖 XORB Self-Improving Codebase\n\nCo-Authored-By: Qwen3-Coder <noreply@qwen.ai>",
       "branch_strategy": "main",
       "create_backup_branch": false
     },
-    
+
     "logging_configuration": {
       "log_level": "INFO",
       "log_file": "logs/qwen3_enhancement.log",
@@ -86,7 +86,7 @@
       "detailed_diffs": true,
       "performance_metrics": true
     },
-    
+
     "scheduling_configuration": {
       "cycle_interval_seconds": 600,
       "max_cycles": null,
@@ -98,7 +98,7 @@
         "end_hour": 6
       }
     },
-    
+
     "safety_configuration": {
       "max_changes_per_cycle": 20,
       "backup_before_changes": true,
@@ -109,14 +109,14 @@
         "critical_files": ["main.py", "config.py", "__init__.py"]
       }
     },
-    
+
     "performance_targets": {
       "analysis_time_per_file_ms": 500,
       "max_cycle_duration_minutes": 30,
       "memory_usage_limit_mb": 1000,
       "concurrent_analyses": 5
     },
-    
+
     "integration_configuration": {
       "openrouter_api": {
         "base_url": "https://openrouter.ai/api/v1",
@@ -132,19 +132,19 @@
       }
     }
   },
-  
+
   "prompts": {
     "code_analysis_prompt": "As Qwen3-Coder, perform comprehensive code analysis on this {file_type} file: {file_path}\n\nCODE TO ANALYZE:\n```{file_type}\n{file_content}\n```\n\nProvide detailed analysis in JSON format focusing on:\n1. Python 3.12+ compatibility\n2. Asyncio optimization\n3. Error handling and resilience\n4. Security vulnerabilities\n5. Performance bottlenecks\n6. Memory usage optimization\n7. Code maintainability",
-    
+
     "fix_generation_prompt": "As Qwen3-Coder, generate a specific code fix for this issue:\n\nISSUE: {issue_description}\nTYPE: {issue_type}\nSEVERITY: {issue_severity}\nRECOMMENDATION: {recommendation}\n\nORIGINAL CODE CONTEXT:\n```python\n{code_context}\n```\n\nProvide ONLY the fixed code snippet (no explanations):",
-    
+
     "enhancement_prompt": "As Qwen3-Coder, implement this enhancement:\n\nENHANCEMENT: {enhancement_description}\nTYPE: {enhancement_type}\nPRIORITY: {priority}\nIMPLEMENTATION: {implementation_steps}\n\nORIGINAL CODE:\n```python\n{original_code}\n```\n\nProvide the enhanced code:"
   },
-  
+
   "metrics": {
     "tracked_metrics": [
       "files_analyzed_per_cycle",
-      "issues_found_per_cycle", 
+      "issues_found_per_cycle",
       "enhancements_applied_per_cycle",
       "test_success_rate",
       "commit_success_rate",

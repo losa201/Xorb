@@ -219,7 +219,7 @@ class BusinessIntelligenceDemo:
 
         with sqlite3.connect(data_source.db_path) as conn:
             conn.executemany("""
-                INSERT INTO vulnerabilities 
+                INSERT INTO vulnerabilities
                 (vuln_id, severity, cvss_score, category, discovered_at, resolved_at, status, affected_systems, remediation_time)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, vulnerabilities)
@@ -238,7 +238,7 @@ class BusinessIntelligenceDemo:
 
         with sqlite3.connect(data_source.db_path) as conn:
             conn.executemany("""
-                INSERT INTO threat_intelligence 
+                INSERT INTO threat_intelligence
                 (intel_id, source, indicator_type, indicator_value, confidence, severity, first_seen, last_seen, tags)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, threats)
@@ -257,7 +257,7 @@ class BusinessIntelligenceDemo:
 
         with sqlite3.connect(data_source.db_path) as conn:
             conn.executemany("""
-                INSERT INTO compliance_events 
+                INSERT INTO compliance_events
                 (event_id, framework, control_id, status, assessment_date, evidence, findings, remediation_plan)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """, compliance_events)

@@ -54,11 +54,11 @@ class SecurityFinding:
 
 class SecurityMonitor:
     """Main security monitoring system for real-time threat detection"""
-    
+
     def __init__(self, config: Dict[str, Any], alert_callback: Optional[Callable] = None):
         """
         Initialize the security monitor
-        
+
         Args:
             config: Configuration for the monitoring system
             alert_callback: Optional callback function for handling alerts
@@ -73,7 +73,7 @@ class SecurityMonitor:
         self.threat_intel_sources = config.get("threat_intel_sources", [])
         self.alert_threshold = config.get("alert_threshold", "medium")
         self.baselines = self._load_baselines()
-        
+
         # Initialize connections to monitoring tools
         self._init_monitoring_tools()
 
@@ -91,7 +91,7 @@ class SecurityMonitor:
         """Start the security monitoring system"""
         if self.running:
             return
-            
+
         self.running = True
         self.monitoring_thread = threading.Thread(target=self._monitoring_loop)
         self.monitoring_thread.daemon = True
@@ -111,17 +111,17 @@ class SecurityMonitor:
             try:
                 # Get new security events
                 events = self._get_new_events()
-                
+
                 # Process each event
                 for event in events:
                     self.process_event(event)
-                
+
                 # Run scheduled checks
                 self._run_scheduled_checks()
-                
+
                 # Sleep for configured interval
                 time.sleep(self.config.get("monitoring_interval", 10))
-                
+
             except Exception as e:
                 logger.error(f"Error in monitoring loop: {e}")
 
@@ -134,10 +134,10 @@ class SecurityMonitor:
         """Run scheduled security checks and analyses"""
         # Update threat intelligence
         self.update_threat_intel()
-        
+
         # Run compliance checks
         self.run_compliance_checks()
-        
+
         # Perform system health checks
         self._perform_health_checks()
 
@@ -161,26 +161,26 @@ class SecurityMonitor:
         try:
             # Log the event
             self._log_event(event)
-            
+
             # Check against threat intelligence
             threat_match = self._check_threat_intel(event)
-            
+
             # Detect anomalies
             anomaly_score = self._detect_anomalies(event)
-            
+
             # Correlate with other events
             related_events = self._correlate_events(event)
-            
+
             # Evaluate security rules
             findings = self._evaluate_security_rules(event, threat_match, anomaly_score, related_events)
-            
+
             # Handle any findings
             for finding in findings:
                 self.handle_finding(finding)
-                
+
             # Trigger any event handlers
             self._trigger_event_handlers(event)
-            
+
         except Exception as e:
             logger.error(f"Error processing event {event.event_id}: {e}")
 
@@ -204,7 +204,7 @@ class SecurityMonitor:
         # Implementation details for event correlation
         return []
 
-    def _evaluate_security_rules(self, event: SecurityEvent, threat_match: Optional[ThreatIntel], 
+    def _evaluate_security_rules(self, event: SecurityEvent, threat_match: Optional[ThreatIntel],
                                 anomaly_score: float, related_events: List[SecurityEvent]) -> List[SecurityFinding]:
         """Evaluate security rules against the event and its context"""
         # Implementation details for security rule evaluation
@@ -214,7 +214,7 @@ class SecurityMonitor:
         """Handle a security finding (alert)"""
         # Add to findings list
         self.security_findings.append(finding)
-        
+
         # Check if finding meets alert threshold
         if self._should_alert(finding):
             # Trigger alert callback if available
@@ -223,7 +223,7 @@ class SecurityMonitor:
                     self.alert_callback(finding)
                 except Exception as e:
                     logger.error(f"Error in alert callback: {e}")
-            
+
             # Store alert for later analysis
             self._store_alert(finding)
 
@@ -249,7 +249,7 @@ class SecurityMonitor:
                 handler(event)
             except Exception as e:
                 logger.error(f"Error in event handler {handler.__name__}: {e}")
-        
+
         # Trigger handlers for all event types
         for handler in self.event_handlers.get("all", []):
             try:
@@ -305,8 +305,8 @@ class SecurityMonitor:
             "top_sources": []
         }
 
-    def generate_security_report(self, report_type: str = "daily", 
-                                start_time: Optional[datetime] = None, 
+    def generate_security_report(self, report_type: str = "daily",
+                                start_time: Optional[datetime] = None,
                                 end_time: Optional[datetime] = None) -> Dict[str, Any]:
         """Generate a security report"""
         # Implementation details for security reporting
@@ -373,13 +373,13 @@ if __name__ == "__main__":
         "alert_threshold": "medium",
         "threat_intel_sources": []  # Configure via environment variables
     }
-    
+
     # Create security monitor
     monitor = SecurityMonitor(config)
-    
+
     # Start monitoring
     monitor.start()
-    
+
     # Keep running until keyboard interrupt
     try:
         while True:

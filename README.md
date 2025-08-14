@@ -20,7 +20,7 @@ XORB has been **strategically enhanced** with advanced AI-powered capabilities, 
 - **🔧 Advanced Security Tools**: Real-world integration with 12+ security scanners and tools
 - **🚀 Intelligent Orchestration**: Complex workflow automation with AI optimization
 - **📊 Advanced Reporting**: AI-generated insights with executive dashboards and visualizations
-- **🏢 Enterprise-Grade**: Multi-tenant architecture with complete data isolation  
+- **🏢 Enterprise-Grade**: Multi-tenant architecture with complete data isolation
 - **📋 Compliance Automation**: Built-in PCI-DSS, HIPAA, SOX, and ISO-27001 support
 - **⚡ Production Performance**: 10+ concurrent scans with intelligent load balancing
 - **🛡️ Advanced Security**: JWT auth, rate limiting, audit logging, and RBAC
@@ -57,12 +57,13 @@ cd src/api
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Alternative: Full Docker deployment
-docker-compose -f docker-compose.enterprise.yml up -d
+docker compose -f compose/dev.yml up
+docker compose -f compose/prod.yml up
 ```
 
 ### **3. Access the Platform**
 - **API Documentation**: http://localhost:8000/docs
-- **API Health Check**: http://localhost:8000/api/v1/health  
+- **API Health Check**: http://localhost:8000/api/v1/health
 - **Platform Status**: http://localhost:8000/api/v1/info
 - **PTaaS Endpoints**: http://localhost:8000/api/v1/ptaas
 
@@ -89,6 +90,146 @@ curl -X POST "http://localhost:8000/api/v1/ptaas/sessions" \
 # Check scan status
 curl "http://localhost:8000/api/v1/ptaas/sessions/{session_id}" \
   -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+---
+
+## 🛠️ **Developer Quickstart**
+
+### **Prerequisites for Development**
+- **Python 3.12+** with pip and venv
+- **Git** for version control
+- **Make** for build automation
+- **Docker** (optional, for full stack development)
+- **Pre-commit** for code quality hooks
+
+### **1. Development Environment Setup**
+```bash
+# Clone and enter repository
+git clone https://github.com/your-org/xorb.git
+cd xorb
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.lock
+
+# Install pre-commit hooks for code quality
+pre-commit install
+```
+
+### **2. Quick Development Commands**
+```bash
+# XORB Developer CLI (recommended)
+./tools/xorbctl/xorbctl --help           # Show all available commands
+./tools/xorbctl/xorbctl init             # Initialize development environment
+./tools/xorbctl/xorbctl test-fast        # Run fast unit tests
+./tools/xorbctl/xorbctl ci-fast          # Run lint + test-fast
+./tools/xorbctl/xorbctl security-scan    # Run comprehensive security scan
+./tools/xorbctl/xorbctl status           # Show platform status
+./tools/xorbctl/xorbctl up               # Start services with Docker
+
+# Traditional Make commands
+make doctor                              # Run repository health checks
+make lint                                # Run pre-commit linting
+make test-fast                          # Run fast unit tests without coverage
+make security-scan                      # Run comprehensive security scan
+make up                                 # Start development services
+make api                                # Start API server locally
+```
+
+### **3. Development Workflow**
+```bash
+# 1. Check repository health
+./tools/xorbctl/xorbctl doctor
+
+# 2. Run security scan
+./tools/xorbctl/xorbctl security-scan
+
+# 3. Start API server for development
+cd src/api && uvicorn app.main:app --reload --port 8000
+
+# 4. Run tests during development
+./tools/xorbctl/xorbctl test-fast
+
+# 5. Before committing, run full CI checks
+./tools/xorbctl/xorbctl ci-fast
+```
+
+### **4. Code Quality Standards**
+- **Pre-commit Hooks**: Automatic linting, secret detection, security checks
+- **Security Scanning**: gitleaks, bandit, ruff security rules, Dockerfile scanning
+- **ADR Compliance**: Automatic enforcement of Architecture Decision Records
+- **Test Coverage**: Minimum 75% coverage required for CI
+- **Conventional Commits**: Use conventional commit message format
+
+### **5. Testing Strategy**
+```bash
+# Fast unit tests (no coverage)
+pytest -m unit -q
+
+# Integration tests (requires services)
+pytest -m integration -v
+
+# Security-focused tests
+pytest -m security -v
+
+# End-to-end tests
+pytest -m e2e -v
+
+# All tests with coverage
+pytest --cov=src --cov-report=xml --cov-fail-under=75
+```
+
+### **6. Development Environment Validation**
+```bash
+# Validate development setup
+python tools/scripts/validate_environment.py
+
+# Check service health
+curl http://localhost:8000/api/v1/health
+
+# Test PTaaS endpoints
+curl http://localhost:8000/api/v1/ptaas/profiles
+```
+
+### **7. Common Development Tasks**
+```bash
+# Add new API endpoint
+# 1. Create route in src/api/app/routers/
+# 2. Add service logic in src/api/app/services/
+# 3. Update tests in tests/unit/ and tests/integration/
+# 4. Run ./tools/xorbctl/xorbctl ci-fast
+
+# Update security configuration
+# 1. Modify .pre-commit-config.yaml for new hooks
+# 2. Update tools/security/security_scan.py for new checks
+# 3. Test with make security-scan
+
+# Add new Make target
+# 1. Add target to Makefile with ## comment for help
+# 2. Optionally add to tools/xorbctl/cli.py for CLI access
+# 3. Test with make <target> and ./tools/xorbctl/xorbctl make <target>
+```
+
+### **8. Troubleshooting**
+```bash
+# Check repository status
+./tools/xorbctl/xorbctl status
+
+# Validate environment setup
+python tools/scripts/validate_environment.py
+
+# Check for common issues
+make doctor
+
+# View API logs
+cd src/api && uvicorn app.main:app --log-level debug
+
+# Check Docker services
+docker-compose -f deploy/configs/docker-compose.dev.yml logs -f
 ```
 
 ---
@@ -139,7 +280,7 @@ XORB Enterprise Platform/
 import requests
 
 # Create comprehensive security scan
-response = requests.post('http://localhost:8000/api/v1/ptaas/sessions', 
+response = requests.post('http://localhost:8000/api/v1/ptaas/sessions',
   headers={'Authorization': 'Bearer TOKEN'},
   json={
     'targets': [{
@@ -193,7 +334,7 @@ print(f"Scan started: {session['session_id']}")
 ### **Advanced Machine Learning Threat Analysis**
 ```python
 # Enhanced AI-powered threat correlation with 87%+ accuracy
-response = requests.post('http://localhost:8000/api/v1/intelligence/analyze', 
+response = requests.post('http://localhost:8000/api/v1/intelligence/analyze',
   json={
     'indicators': ['192.0.2.1', 'malicious-domain.com', 'hash_value'],
     'context': {
@@ -205,14 +346,14 @@ response = requests.post('http://localhost:8000/api/v1/intelligence/analyze',
 )
 
 analysis = response.json()
-# Enhanced Returns: ML confidence scores, threat actor attribution, 
+# Enhanced Returns: ML confidence scores, threat actor attribution,
 # MITRE ATT&CK mapping, risk predictions, automated recommendations
 ```
 
 ### **Advanced Behavioral Analytics Engine**
 - **🧠 ML-Powered Profiling**: Advanced user and entity behavior analysis with neural networks
 - **🔍 Anomaly Detection**: Multi-algorithm approach (Isolation Forest, DBSCAN, Random Forest)
-- **📊 Risk Scoring**: Dynamic risk assessment with temporal decay and context awareness  
+- **📊 Risk Scoring**: Dynamic risk assessment with temporal decay and context awareness
 - **🎯 Pattern Recognition**: Deep learning pattern identification for APT detection
 - **⚡ Real-Time Processing**: Stream processing with sub-second latency
 - **🔗 Integration Ready**: sklearn, numpy, pandas, PyTorch support with graceful fallbacks
@@ -336,7 +477,7 @@ Enhanced API Response Times:
   Status Queries: < 50ms (33% improvement)
   ML Vulnerability Analysis: < 2 seconds
   Report Generation: < 60 seconds (comprehensive)
-  
+
 Enhanced Scanning Performance:
   Parallel Execution: Up to 15 concurrent scans
   Network Discovery: 2000+ ports/minute
@@ -359,7 +500,7 @@ Advanced Vulnerability Detection:
   Zero-Day Discovery: ML-powered pattern recognition
   Compliance Coverage: 100% framework support
   AI Risk Scoring: Dynamic risk quantification
-  
+
 Enhanced Threat Intelligence:
   ML Accuracy: 87%+ confidence scores
   Correlation Speed: < 50ms analysis
@@ -367,7 +508,7 @@ Enhanced Threat Intelligence:
   Behavioral Analytics: Real-time ML profiling
   Threat Actor Attribution: 85%+ accuracy
   Predictive Accuracy: 82% threat forecasting
-  
+
 Advanced Analytics Performance:
   IOC Processing: 1000+ indicators/second
   Graph Analysis: 1M+ node networks
@@ -419,20 +560,49 @@ pytest tests/performance/ -v
 pytest tests/e2e/ -v
 ```
 
+### **New Developer Workflow**
+```bash
+# Run repository doctor checks
+make doctor
+
+# Run pre-commit linting
+make lint
+
+# Run fast unit tests
+make test-fast
+
+# Run full CI pipeline
+make ci
+```
+
+To validate NATS subjects against the taxonomy:
+```bash
+# Check a specific file for off-paved subjects
+python tools/backplane/subject_lint.py --check-file src/ --fail-on-offpaved
+
+# Run repo doctor to check for issues
+python tools/repo_doctor.py --fail-on-redis-pubsub --fail-on-dup
+```
+
+For more details, see [REPOSITORY_INDEX.md](docs/REPOSITORY_INDEX.md) for the canonical structure.
+
 ---
 
 ## 🚀 **Deployment Options**
 
 ### **Docker Deployment**
 ```bash
-# Production deployment
-docker-compose -f docker-compose.enterprise.yml up -d
-
 # Development environment
-docker-compose -f docker-compose.development.yml up -d
+docker compose -f compose/dev.yml up
+
+# Production deployment
+docker compose -f compose/prod.yml up
 
 # Monitoring stack
-docker-compose -f docker-compose.monitoring.yml up -d
+docker compose -f compose/monitoring.yml up
+
+# Hardened security deployment
+docker compose -f compose/hardened.yml up
 ```
 
 ### **Kubernetes Deployment**
@@ -441,7 +611,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 kubectl apply -f deploy/kubernetes/
 
 # Using Helm charts
-helm install xorb-platform ./deploy/helm/xorb/
+helm install xorb_platform ./deploy/helm/xorb/
 
 # Production hardened deployment
 kubectl apply -f deploy/kubernetes/production/
@@ -449,7 +619,7 @@ kubectl apply -f deploy/kubernetes/production/
 
 ### **Cloud Deployment**
 - **AWS**: CloudFormation and EKS deployment
-- **Azure**: ARM templates and AKS deployment  
+- **Azure**: ARM templates and AKS deployment
 - **GCP**: Deployment Manager and GKE deployment
 - **Multi-Cloud**: Terraform modules for hybrid deployment
 
@@ -464,6 +634,12 @@ kubectl apply -f deploy/kubernetes/production/
 - 🚀 **[Deployment Guide](docs/deployment/)** - Production deployment instructions
 - 🔧 **[Development Guide](docs/development/)** - Developer documentation
 - 📋 **[Compliance Guide](docs/enterprise/)** - Compliance and certification docs
+
+### **Operations Pack (v2025.08-rc1)**
+- 🚨 **[Incident Response Runbook](RUNBOOK_INCIDENT_RESPONSE.md)** - 4 critical incident response procedures
+- 🔄 **[Rollback Runbook](RUNBOOK_ROLLBACK.md)** - Emergency and comprehensive rollback procedures
+- 🧪 **[Chaos Engineering Drills](docs/CHAOS_DRILLS.md)** - 3 chaos experiments with auto-remediation paths
+- 📊 **[Release Confidence Report](docs/RELEASE_CONFIDENCE_REPORT.md)** - 91.2% confidence score production readiness assessment
 
 ### **API Examples**
 ```bash
@@ -507,12 +683,36 @@ curl -X POST http://localhost:8000/api/v1/intelligence/analyze \
 
 ### **Security Audit Results**
 > **Latest Security Audit** (January 2025): ✅ **PRODUCTION-READY APPROVED**
-> 
+
 > - Production-grade security architecture validated
 > - Real-world penetration testing capabilities confirmed
 > - Enterprise multi-tenant isolation verified
 > - Compliance automation framework approved
 > - Advanced threat detection capabilities validated
+
+## 📊 **Monitoring, Alerting & Chaos Engineering**
+
+### **Post-Release Observability**
+- **Prometheus Alert Rules** for critical post-release metrics:
+  - Latency thresholds (`bus_publish_to_deliver_p95_ms > 50ms`)
+  - Evidence verification failures (`evidence_verify_fail_total` increase)
+  - System fairness (`fairness_jain_index < 0.85`)
+  - Replay impact (`replay_backlog_depth > 10k` with active replay)
+- **Grafana Dashboards** for release readiness monitoring
+- **Comprehensive Metrics Exposure** at `/metrics` endpoint
+
+### **CI/CD Guardrails**
+- **Automated Security Scanning** in GitHub Actions workflows
+- **Focused Test Coverage** requirements (40% minimum on key modules)
+- **Chaos Testing Integration** with dry-run validation in CI
+
+### **Chaos Engineering Framework**
+- **NATS Resilience Testing** with node kill scenarios
+- **Replay System Validation** under high-load conditions
+- **Evidence Verification Resilience** with corruption injection
+- **Deterministic Chaos Scenarios** with SLO validation
+
+For detailed operational procedures, see [RELEASE_OPERATIONS_QUICKSTART.md](docs/RELEASE_OPERATIONS_QUICKSTART.md)
 
 ---
 

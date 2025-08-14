@@ -25,7 +25,7 @@ class MultiEngineScanner:
             max_workers=EPYCExecutionConfig.MAX_CONCURRENT_SCANS
         )
         self.logger = logging.getLogger(__name__)
-    
+
     async def run_nmap_scan(self, target: str, scan_type: str = "comprehensive") -> Dict[str, Any]:
         """Run Nmap scan with EPYC optimization."""
         try:
@@ -48,7 +48,7 @@ class MultiEngineScanner:
                 ]
             else:
                 cmd = ["nmap", "-sS", "-T4", target]
-            
+
             # Run scan in thread pool to avoid blocking
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
@@ -56,21 +56,21 @@ class MultiEngineScanner:
                 self._run_subprocess,
                 cmd
             )
-            
+
             # Parse XML output if available
             if result.get('stdout') and result['stdout'].startswith('<?xml'):
                 return self._parse_nmap_xml(result['stdout'])
-            
+
             return {
                 'raw_output': result.get('stdout', ''),
                 'error': result.get('stderr', ''),
                 'return_code': result.get('return_code', 0)
             }
-            
+
         except Exception as e:
             self.logger.error(f"Nmap scan error: {e}")
             return {'error': str(e)}
-    
+
     async def run_nuclei_scan(self, target: str, templates: List[str] = None) -> Dict[str, Any]:
         """Run Nuclei vulnerability scan."""
         try:
@@ -78,20 +78,20 @@ class MultiEngineScanner:
                 "nuclei", "-u", target, "-j", "-c", str(EPYCExecutionConfig.NUCLEI_CONCURRENCY),
                 "-rate-limit", "50", "-timeout", "10"
             ]
-            
+
             if templates:
                 for template in templates:
                     cmd.extend(["-t", template])
             else:
                 cmd.extend(["-t", "cves/", "-t", "vulnerabilities/"])
-            
+
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
                 self.executor,
                 self._run_subprocess,
                 cmd
             )
-            
+
             # Parse JSON output
             findings = []
             if result.get('stdout'):
@@ -102,18 +102,18 @@ class MultiEngineScanner:
                             findings.append(finding)
                         except json.JSONDecodeError:
                             continue
-            
+
             return {
                 'findings': findings,
                 'total_findings': len(findings),
                 'raw_output': result.get('stdout', ''),
                 'error': result.get('stderr', '')
             }
-            
+
         except Exception as e:
             self.logger.error(f"Nuclei scan error: {e}")
             return {'error': str(e)}
-    
+
     async def run_zap_scan(self, target: str, scan_type: str = "baseline") -> Dict[str, Any]:
         """Run OWASP ZAP web application scan."""
         try:
@@ -122,17 +122,17 @@ class MultiEngineScanner:
                 "zap-baseline.py", "-t", target, "-J", "/tmp/zap-report.json",
                 "-m", "5"  # 5 minute timeout
             ]
-            
+
             if scan_type == "full":
                 cmd.extend(["-a", "-d"])  # Full scan with AJAX spider
-            
+
             loop = asyncio.get_event_loop()
             result = await loop.run_in_executor(
                 self.executor,
                 self._run_subprocess,
                 cmd
             )
-            
+
             # Read ZAP JSON report
             zap_results = {}
             try:
@@ -141,17 +141,17 @@ class MultiEngineScanner:
                     zap_results = json.loads(zap_content)
             except Exception:
                 pass
-            
+
             return {
                 'zap_results': zap_results,
                 'raw_output': result.get('stdout', ''),
                 'error': result.get('stderr', '')
             }
-            
+
         except Exception as e:
             self.logger.error(f"ZAP scan error: {e}")
             return {'error': str(e)}
-    
+
     def _run_subprocess(self, cmd: List[str]) -> Dict[str, Any]:
         """Run subprocess and return results."""
         try:
@@ -161,7 +161,7 @@ class MultiEngineScanner:
                 text=True,
                 timeout=1800  # 30 minute timeout
             )
-            
+
             return {
                 'stdout': result.stdout,
                 'stderr': result.stderr,
@@ -171,7 +171,7 @@ class MultiEngineScanner:
             return {'error': 'Command timeout', 'return_code': -1}
         except Exception as e:
             return {'error': str(e), 'return_code': -1}
-    
+
     def _parse_nmap_xml(self, xml_content: str) -> Dict[str, Any]:
         """Parse Nmap XML output."""
         try:
@@ -180,13 +180,13 @@ class MultiEngineScanner:
                 'scan_summary': {},
                 'hosts': []
             }
-            
+
             # Parse scan summary
             for runstats in root.findall('runstats'):
                 for finished in runstats.findall('finished'):
                     results['scan_summary']['elapsed'] = finished.get('elapsed')
                     results['scan_summary']['summary'] = finished.get('summary')
-            
+
             # Parse hosts
             for host in root.findall('host'):
                 host_info = {
@@ -195,14 +195,14 @@ class MultiEngineScanner:
                     'os': {},
                     'scripts': []
                 }
-                
+
                 # Get addresses
                 for address in host.findall('address'):
                     host_info['addresses'].append({
                         'addr': address.get('addr'),
                         'addrtype': address.get('addrtype')
                     })
-                
+
                 # Get ports
                 for ports in host.findall('ports'):
                     for port in ports.findall('port'):
@@ -211,7 +211,7 @@ class MultiEngineScanner:
                             'protocol': port.get('protocol'),
                             'state': port.find('state').get('state') if port.find('state') is not None else 'unknown'
                         }
-                        
+
                         # Get service info
                         service = port.find('service')
                         if service is not None:
@@ -220,11 +220,11 @@ class MultiEngineScanner:
                                 'product': service.get('product'),
                                 'version': service.get('version')
                             }
-                        
+
                         host_info['ports'].append(port_info)
-                
+
                 results['hosts'].append(host_info)
-            
+
             return results
         except Exception as e:
             return {'error': f'XML parsing error: {e}', 'raw_xml': xml_content}

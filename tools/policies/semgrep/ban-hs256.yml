@@ -1,0 +1,101 @@
+rules:
+  - id: ban-hs256-jwt-algorithm
+    message: |
+      HS256 JWT algorithm detected. This is a security vulnerability as HS256 uses
+      symmetric key signing which is vulnerable to key confusion attacks.
+      Use asymmetric algorithms like RS256, ES256, or PS256 instead.
+    severity: ERROR
+    languages:
+      - python
+      - javascript
+      - typescript
+      - json
+      - yaml
+    patterns:
+      - pattern: '"HS256"'
+      - pattern: "'HS256'"
+      - pattern: HS256
+    pattern-either:
+      - pattern: |
+          jwt.encode(..., algorithm="HS256", ...)
+      - pattern: |
+          jwt.encode(..., algorithm='HS256', ...)
+      - pattern: |
+          jwt.decode(..., algorithms=["HS256"], ...)
+      - pattern: |
+          jwt.decode(..., algorithms=['HS256'], ...)
+      - pattern: |
+          algorithm: "HS256"
+      - pattern: |
+          algorithm: 'HS256'
+      - pattern: |
+          "algorithm": "HS256"
+      - pattern: |
+          'algorithm': 'HS256'
+      - pattern: |
+          alg: "HS256"
+      - pattern: |
+          alg: 'HS256'
+    fix: |
+      Use RS256, ES256, or PS256 instead:
+      - RS256 (RSA with SHA-256)
+      - ES256 (ECDSA with SHA-256)
+      - PS256 (RSA-PSS with SHA-256)
+
+  - id: ban-hs256-in-config
+    message: |
+      HS256 JWT algorithm found in configuration. Replace with secure asymmetric algorithm.
+    severity: ERROR
+    languages:
+      - json
+      - yaml
+    patterns:
+      - pattern: HS256
+    pattern-either:
+      - pattern: |
+          jwt_algorithm: "HS256"
+      - pattern: |
+          jwt_algorithm: 'HS256'
+      - pattern: |
+          algorithm: "HS256"
+      - pattern: |
+          algorithm: 'HS256'
+      - pattern: |
+          signing_algorithm: "HS256"
+      - pattern: |
+          signing_algorithm: 'HS256'
+
+  - id: ban-hs256-header-constant
+    message: |
+      HS256 constant or header value detected. Use RS256/ES256/PS256 instead.
+    severity: ERROR
+    languages:
+      - python
+      - javascript
+      - typescript
+    patterns:
+      - pattern: $VAR = "HS256"
+      - pattern: $VAR = 'HS256'
+      - pattern: |
+          { ..., "alg": "HS256", ... }
+      - pattern: |
+          { ..., 'alg': 'HS256', ... }
+      - pattern: |
+          headers = {..., "alg": "HS256", ...}
+      - pattern: |
+          headers = {..., 'alg': 'HS256', ...}
+
+metadata:
+  category: security
+  cwe: "CWE-327: Use of a Broken or Risky Cryptographic Algorithm"
+  owasp: "A02:2021 - Cryptographic Failures"
+  confidence: HIGH
+  impact: HIGH
+  likelihood: MEDIUM
+  technology:
+    - jwt
+    - authentication
+    - cryptography
+  references:
+    - https://auth0.com/blog/a-look-at-the-latest-draft-for-jwt-bcp/
+    - https://tools.ietf.org/html/rfc8725#section-3.1

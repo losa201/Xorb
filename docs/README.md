@@ -92,7 +92,7 @@ Historical documentation preserved for reference:
 
 Examples:
 - API_DOCUMENTATION.md
-- DEPLOYMENT_GUIDE.md  
+- DEPLOYMENT_GUIDE.md
 - ARCHITECTURE_OVERVIEW.md
 - SECURITY_COMPLIANCE_REPORT.md
 ```
@@ -173,6 +173,6 @@ Links to related documentation
 
 ---
 
-**Last Updated**: January 15, 2025  
-**Next Review**: April 15, 2025  
+**Last Updated**: January 15, 2025
+**Next Review**: April 15, 2025
 **Maintained By**: XORB Documentation Team

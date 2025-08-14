@@ -17,7 +17,7 @@ depends_on = None
 
 def upgrade():
     """Apply performance optimizations for PTaaS scanning"""
-    
+
     # Create scan sessions table for PTaaS orchestration
     op.create_table(
         'scan_sessions',
@@ -36,7 +36,7 @@ def upgrade():
         sa.Column('results', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.PrimaryKey('session_id')
     )
-    
+
     # Create scan targets table
     op.create_table(
         'scan_targets',
@@ -55,7 +55,7 @@ def upgrade():
         sa.PrimaryKey('target_id'),
         sa.ForeignKey('scan_sessions.session_id', ondelete='CASCADE')
     )
-    
+
     # Create scan results table for detailed findings
     op.create_table(
         'scan_results',
@@ -79,7 +79,7 @@ def upgrade():
         sa.ForeignKey('scan_targets.target_id', ondelete='CASCADE'),
         sa.ForeignKey('scan_sessions.session_id', ondelete='CASCADE')
     )
-    
+
     # Create threat indicators table for enhanced threat intelligence
     op.create_table(
         'threat_indicators',
@@ -99,7 +99,7 @@ def upgrade():
         sa.Column('metadata', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.PrimaryKey('indicator_id')
     )
-    
+
     # Create threat feeds table
     op.create_table(
         'threat_feeds',
@@ -118,7 +118,7 @@ def upgrade():
         sa.Column('config', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.PrimaryKey('feed_id')
     )
-    
+
     # Create API keys table for authentication
     op.create_table(
         'api_keys',
@@ -135,9 +135,9 @@ def upgrade():
         sa.Column('metadata', postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         sa.PrimaryKey('key_id')
     )
-    
+
     # High-performance indexes for scanning workloads
-    
+
     # Scan sessions indexes
     op.create_index(
         'idx_scan_sessions_tenant_status',
@@ -145,21 +145,21 @@ def upgrade():
         ['tenant_id', 'status'],
         postgresql_using='btree'
     )
-    
+
     op.create_index(
         'idx_scan_sessions_created_at',
         'scan_sessions',
         ['created_at'],
         postgresql_using='btree'
     )
-    
+
     op.create_index(
         'idx_scan_sessions_priority_status',
         'scan_sessions',
         ['priority', 'status'],
         postgresql_using='btree'
     )
-    
+
     # Scan targets indexes
     op.create_index(
         'idx_scan_targets_session_status',
@@ -167,14 +167,14 @@ def upgrade():
         ['session_id', 'status'],
         postgresql_using='btree'
     )
-    
+
     op.create_index(
         'idx_scan_targets_host_tenant',
         'scan_targets',
         ['host', 'tenant_id'],
         postgresql_using='btree'
     )
-    
+
     # Scan results indexes for fast vulnerability queries
     op.create_index(
         'idx_scan_results_tenant_severity',
@@ -182,7 +182,7 @@ def upgrade():
         ['tenant_id', 'severity', 'created_at'],
         postgresql_using='btree'
     )
-    
+
     op.create_index(
         'idx_scan_results_cve_id',
         'scan_results',
@@ -190,14 +190,14 @@ def upgrade():
         postgresql_using='btree',
         postgresql_where=sa.text('cve_id IS NOT NULL')
     )
-    
+
     op.create_index(
         'idx_scan_results_scanner_tenant',
         'scan_results',
         ['scanner', 'tenant_id'],
         postgresql_using='btree'
     )
-    
+
     # GIN indexes for JSONB columns
     op.create_index(
         'idx_scan_results_evidence_gin',
@@ -205,14 +205,14 @@ def upgrade():
         ['evidence'],
         postgresql_using='gin'
     )
-    
+
     op.create_index(
         'idx_scan_results_raw_data_gin',
         'scan_results',
         ['raw_data'],
         postgresql_using='gin'
     )
-    
+
     # Threat indicators indexes
     op.create_index(
         'idx_threat_indicators_ioc_type_tenant',
@@ -220,28 +220,28 @@ def upgrade():
         ['ioc_type', 'tenant_id'],
         postgresql_using='btree'
     )
-    
+
     op.create_index(
         'idx_threat_indicators_ioc_hash',
         'threat_indicators',
         ['ioc_hash'],
         postgresql_using='btree'
     )
-    
+
     op.create_index(
         'idx_threat_indicators_severity_confidence',
         'threat_indicators',
         ['severity', 'confidence'],
         postgresql_using='btree'
     )
-    
+
     op.create_index(
         'idx_threat_indicators_last_seen',
         'threat_indicators',
         ['last_seen'],
         postgresql_using='btree'
     )
-    
+
     # GIN index for tags array
     op.create_index(
         'idx_threat_indicators_tags_gin',
@@ -249,7 +249,7 @@ def upgrade():
         ['tags'],
         postgresql_using='gin'
     )
-    
+
     # API keys indexes
     op.create_index(
         'idx_api_keys_key_hash',
@@ -257,23 +257,23 @@ def upgrade():
         ['key_hash'],
         postgresql_using='btree'
     )
-    
+
     op.create_index(
         'idx_api_keys_user_tenant',
         'api_keys',
         ['user_id', 'tenant_id'],
         postgresql_using='btree'
     )
-    
+
     op.create_index(
         'idx_api_keys_active_expires',
         'api_keys',
         ['is_active', 'expires_at'],
         postgresql_using='btree'
     )
-    
+
     # Partitioning setup for large tables
-    
+
     # Create partitioned tables for scan results by month
     op.execute("""
         -- Create monthly partitions for scan_results
@@ -289,28 +289,28 @@ def upgrade():
             partition_name := 'scan_results_' || partition_date;
             start_date := date_trunc('month', NEW.created_at);
             end_date := start_date + INTERVAL '1 month';
-            
+
             -- Create partition if it doesn't exist
             PERFORM 1 FROM pg_class WHERE relname = partition_name;
             IF NOT FOUND THEN
-                EXECUTE format('CREATE TABLE %I PARTITION OF scan_results 
+                EXECUTE format('CREATE TABLE %I PARTITION OF scan_results
                                FOR VALUES FROM (%L) TO (%L)',
                                partition_name, start_date, end_date);
-                               
+
                 -- Create indexes on the new partition
                 EXECUTE format('CREATE INDEX %I ON %I (tenant_id, severity, created_at)',
                                'idx_' || partition_name || '_tenant_severity', partition_name);
                 EXECUTE format('CREATE INDEX %I ON %I (scanner, tenant_id)',
                                'idx_' || partition_name || '_scanner_tenant', partition_name);
             END IF;
-            
+
             RETURN NEW;
         END;
         $$ LANGUAGE plpgsql;
     """)
-    
+
     # Performance optimization functions
-    
+
     # Function to clean old scan data
     op.execute("""
         CREATE OR REPLACE FUNCTION cleanup_old_scan_data(days_to_keep INTEGER DEFAULT 90)
@@ -319,21 +319,21 @@ def upgrade():
             deleted_count INTEGER;
         BEGIN
             -- Delete old scan sessions and cascade to related data
-            DELETE FROM scan_sessions 
+            DELETE FROM scan_sessions
             WHERE created_at < NOW() - INTERVAL '1 day' * days_to_keep;
-            
+
             GET DIAGNOSTICS deleted_count = ROW_COUNT;
-            
+
             -- Vacuum analyze to reclaim space
             PERFORM pg_advisory_lock(12345);
             EXECUTE 'VACUUM ANALYZE scan_sessions, scan_targets, scan_results';
             PERFORM pg_advisory_unlock(12345);
-            
+
             RETURN deleted_count;
         END;
         $$ LANGUAGE plpgsql;
     """)
-    
+
     # Function to get scan statistics
     op.execute("""
         CREATE OR REPLACE FUNCTION get_scan_statistics(tenant_uuid UUID, days_back INTEGER DEFAULT 30)
@@ -345,26 +345,26 @@ def upgrade():
                 'total_scans', COUNT(*),
                 'completed_scans', COUNT(*) FILTER (WHERE status = 'completed'),
                 'failed_scans', COUNT(*) FILTER (WHERE status = 'failed'),
-                'avg_duration_minutes', 
-                    COALESCE(AVG(EXTRACT(EPOCH FROM (completed_at - started_at))/60.0) 
+                'avg_duration_minutes',
+                    COALESCE(AVG(EXTRACT(EPOCH FROM (completed_at - started_at))/60.0)
                     FILTER (WHERE status = 'completed'), 0),
                 'total_vulnerabilities', (
-                    SELECT COUNT(*) 
-                    FROM scan_results sr 
-                    WHERE sr.tenant_id = tenant_uuid 
+                    SELECT COUNT(*)
+                    FROM scan_results sr
+                    WHERE sr.tenant_id = tenant_uuid
                     AND sr.created_at > NOW() - INTERVAL '1 day' * days_back
                 ),
                 'critical_vulnerabilities', (
-                    SELECT COUNT(*) 
-                    FROM scan_results sr 
-                    WHERE sr.tenant_id = tenant_uuid 
+                    SELECT COUNT(*)
+                    FROM scan_results sr
+                    WHERE sr.tenant_id = tenant_uuid
                     AND sr.severity = 'critical'
                     AND sr.created_at > NOW() - INTERVAL '1 day' * days_back
                 ),
                 'high_vulnerabilities', (
-                    SELECT COUNT(*) 
-                    FROM scan_results sr 
-                    WHERE sr.tenant_id = tenant_uuid 
+                    SELECT COUNT(*)
+                    FROM scan_results sr
+                    WHERE sr.tenant_id = tenant_uuid
                     AND sr.severity = 'high'
                     AND sr.created_at > NOW() - INTERVAL '1 day' * days_back
                 )
@@ -372,34 +372,34 @@ def upgrade():
             FROM scan_sessions ss
             WHERE ss.tenant_id = tenant_uuid
             AND ss.created_at > NOW() - INTERVAL '1 day' * days_back;
-            
+
             RETURN COALESCE(stats, '{}'::jsonb);
         END;
         $$ LANGUAGE plpgsql;
     """)
-    
+
     # Materialized view for dashboard statistics
     op.execute("""
         CREATE MATERIALIZED VIEW scan_dashboard_stats AS
-        SELECT 
+        SELECT
             tenant_id,
             DATE(created_at) as scan_date,
             COUNT(*) as total_scans,
             COUNT(*) FILTER (WHERE status = 'completed') as completed_scans,
             COUNT(*) FILTER (WHERE status = 'failed') as failed_scans,
-            AVG(EXTRACT(EPOCH FROM (completed_at - started_at))/60.0) 
+            AVG(EXTRACT(EPOCH FROM (completed_at - started_at))/60.0)
                 FILTER (WHERE status = 'completed') as avg_duration_minutes,
             MAX(created_at) as last_updated
         FROM scan_sessions
         GROUP BY tenant_id, DATE(created_at);
-        
-        CREATE UNIQUE INDEX idx_scan_dashboard_stats_unique 
+
+        CREATE UNIQUE INDEX idx_scan_dashboard_stats_unique
         ON scan_dashboard_stats (tenant_id, scan_date);
-        
-        CREATE INDEX idx_scan_dashboard_stats_date 
+
+        CREATE INDEX idx_scan_dashboard_stats_date
         ON scan_dashboard_stats (scan_date);
     """)
-    
+
     # Function to refresh dashboard stats
     op.execute("""
         CREATE OR REPLACE FUNCTION refresh_scan_dashboard_stats()
@@ -409,37 +409,37 @@ def upgrade():
         END;
         $$ LANGUAGE plpgsql;
     """)
-    
+
     # Row-level security for multi-tenancy
-    
+
     # Enable RLS on new tables
     op.execute("ALTER TABLE scan_sessions ENABLE ROW LEVEL SECURITY")
     op.execute("ALTER TABLE scan_targets ENABLE ROW LEVEL SECURITY")
     op.execute("ALTER TABLE scan_results ENABLE ROW LEVEL SECURITY")
     op.execute("ALTER TABLE threat_indicators ENABLE ROW LEVEL SECURITY")
     op.execute("ALTER TABLE api_keys ENABLE ROW LEVEL SECURITY")
-    
+
     # Create RLS policies
     op.execute("""
         CREATE POLICY tenant_isolation_scan_sessions ON scan_sessions
         USING (tenant_id = current_setting('app.tenant_id')::uuid)
     """)
-    
+
     op.execute("""
         CREATE POLICY tenant_isolation_scan_targets ON scan_targets
         USING (tenant_id = current_setting('app.tenant_id')::uuid)
     """)
-    
+
     op.execute("""
         CREATE POLICY tenant_isolation_scan_results ON scan_results
         USING (tenant_id = current_setting('app.tenant_id')::uuid)
     """)
-    
+
     op.execute("""
         CREATE POLICY tenant_isolation_threat_indicators ON threat_indicators
         USING (tenant_id = current_setting('app.tenant_id')::uuid)
     """)
-    
+
     op.execute("""
         CREATE POLICY tenant_isolation_api_keys ON api_keys
         USING (tenant_id = current_setting('app.tenant_id')::uuid)
@@ -447,16 +447,16 @@ def upgrade():
 
 def downgrade():
     """Remove performance optimizations"""
-    
+
     # Drop materialized view
     op.execute("DROP MATERIALIZED VIEW IF EXISTS scan_dashboard_stats")
-    
+
     # Drop functions
     op.execute("DROP FUNCTION IF EXISTS cleanup_old_scan_data(INTEGER)")
     op.execute("DROP FUNCTION IF EXISTS get_scan_statistics(UUID, INTEGER)")
     op.execute("DROP FUNCTION IF EXISTS refresh_scan_dashboard_stats()")
     op.execute("DROP FUNCTION IF EXISTS create_scan_results_partition()")
-    
+
     # Drop tables (will cascade and remove indexes)
     op.drop_table('api_keys')
     op.drop_table('threat_feeds')

@@ -1,0 +1,300 @@
+groups:
+  - name: xorb.slo.error_budget_burn_rate
+    rules:
+      # Critical: Fast burn rate alerts (2% budget in 1 hour)
+      - alert: XORBSLOBusLatencyFastBurn
+        expr: |
+          (
+            slo_error_budget_burn_rate{sli_name="bus_publish_to_deliver_p95_ms"} > 14.4
+          and
+            slo_error_budget_remaining_percent{sli_name="bus_publish_to_deliver_p95_ms"} < 98
+          )
+        for: 2m
+        labels:
+          severity: critical
+          service: xorb-backplane
+          sli: bus_publish_to_deliver_p95_ms
+          alert_type: fast_burn
+        annotations:
+          summary: "XORB Bus Latency SLO fast burn rate detected"
+          description: "Bus publish-to-deliver P95 latency is burning error budget at {{ $value }}x rate. Only {{ $labels.remaining_budget }}% budget remaining for tenant {{ $labels.tenant_id }}."
+          runbook_url: "https://wiki.xorb.io/runbooks/slo-bus-latency-fast-burn"
+          dashboard_url: "http://localhost:3000/d/xorb-slo-error-budgets/xorb-phase-g5-slo-error-budget-dashboard"
+
+      - alert: XORBSLOEvidenceIngestFastBurn
+        expr: |
+          (
+            slo_error_budget_burn_rate{sli_name="evidence_ingest_p95_ms"} > 14.4
+          and
+            slo_error_budget_remaining_percent{sli_name="evidence_ingest_p95_ms"} < 99
+          )
+        for: 2m
+        labels:
+          severity: critical
+          service: xorb-evidence
+          sli: evidence_ingest_p95_ms
+          alert_type: fast_burn
+        annotations:
+          summary: "XORB Evidence Ingest SLO fast burn rate detected"
+          description: "Evidence ingest P95 latency is burning error budget at {{ $value }}x rate. Only {{ $labels.remaining_budget }}% budget remaining for tenant {{ $labels.tenant_id }}."
+          runbook_url: "https://wiki.xorb.io/runbooks/slo-evidence-ingest-fast-burn"
+
+      - alert: XORBSLOAuthErrorRateFastBurn
+        expr: |
+          (
+            slo_error_budget_burn_rate{sli_name="auth_error_rate"} > 14.4
+          and
+            slo_error_budget_remaining_percent{sli_name="auth_error_rate"} < 99.8
+          )
+        for: 2m
+        labels:
+          severity: critical
+          service: xorb-auth
+          sli: auth_error_rate
+          alert_type: fast_burn
+        annotations:
+          summary: "XORB Authentication SLO fast burn rate detected"
+          description: "Authentication error rate is burning error budget at {{ $value }}x rate. Only {{ $labels.remaining_budget }}% budget remaining for tenant {{ $labels.tenant_id }}."
+          runbook_url: "https://wiki.xorb.io/runbooks/slo-auth-error-fast-burn"
+
+      - alert: XORBSLOMTLSHandshakeFastBurn
+        expr: |
+          (
+            slo_error_budget_burn_rate{sli_name="mtls_handshake_fail_rate"} > 14.4
+          and
+            slo_error_budget_remaining_percent{sli_name="mtls_handshake_fail_rate"} < 99.8
+          )
+        for: 2m
+        labels:
+          severity: critical
+          service: xorb-tls
+          sli: mtls_handshake_fail_rate
+          alert_type: fast_burn
+        annotations:
+          summary: "XORB mTLS Handshake SLO fast burn rate detected"
+          description: "mTLS handshake failure rate is burning error budget at {{ $value }}x rate. Only {{ $labels.remaining_budget }}% budget remaining."
+          runbook_url: "https://wiki.xorb.io/runbooks/slo-mtls-handshake-fast-burn"
+
+      # Warning: Medium burn rate alerts (5% budget in 6 hours)
+      - alert: XORBSLOBusLatencyMediumBurn
+        expr: |
+          (
+            slo_error_budget_burn_rate{sli_name="bus_publish_to_deliver_p95_ms"} > 6.0
+          and
+            slo_error_budget_remaining_percent{sli_name="bus_publish_to_deliver_p95_ms"} < 95
+          )
+        for: 15m
+        labels:
+          severity: warning
+          service: xorb-backplane
+          sli: bus_publish_to_deliver_p95_ms
+          alert_type: medium_burn
+        annotations:
+          summary: "XORB Bus Latency SLO medium burn rate detected"
+          description: "Bus publish-to-deliver P95 latency is burning error budget at {{ $value }}x rate over 15 minutes. {{ $labels.remaining_budget }}% budget remaining for tenant {{ $labels.tenant_id }}."
+          runbook_url: "https://wiki.xorb.io/runbooks/slo-bus-latency-medium-burn"
+
+      - alert: XORBSLOEvidenceIngestMediumBurn
+        expr: |
+          (
+            slo_error_budget_burn_rate{sli_name="evidence_ingest_p95_ms"} > 6.0
+          and
+            slo_error_budget_remaining_percent{sli_name="evidence_ingest_p95_ms"} < 95
+          )
+        for: 15m
+        labels:
+          severity: warning
+          service: xorb-evidence
+          sli: evidence_ingest_p95_ms
+          alert_type: medium_burn
+        annotations:
+          summary: "XORB Evidence Ingest SLO medium burn rate detected"
+          description: "Evidence ingest P95 latency is burning error budget at {{ $value }}x rate over 15 minutes. {{ $labels.remaining_budget }}% budget remaining for tenant {{ $labels.tenant_id }}."
+          runbook_url: "https://wiki.xorb.io/runbooks/slo-evidence-ingest-medium-burn"
+
+      # Low budget remaining alerts
+      - alert: XORBSLOBusLatencyBudgetLow
+        expr: slo_error_budget_remaining_percent{sli_name="bus_publish_to_deliver_p95_ms"} < 10
+        for: 5m
+        labels:
+          severity: warning
+          service: xorb-backplane
+          sli: bus_publish_to_deliver_p95_ms
+          alert_type: low_budget
+        annotations:
+          summary: "XORB Bus Latency SLO error budget critically low"
+          description: "Only {{ $value }}% error budget remaining for bus publish-to-deliver P95 latency SLO for tenant {{ $labels.tenant_id }}. Current burn rate exceeds threshold."
+          runbook_url: "https://wiki.xorb.io/runbooks/slo-bus-latency-low-budget"
+
+      - alert: XORBSLOEvidenceIngestBudgetLow
+        expr: slo_error_budget_remaining_percent{sli_name="evidence_ingest_p95_ms"} < 5
+        for: 5m
+        labels:
+          severity: critical
+          service: xorb-evidence
+          sli: evidence_ingest_p95_ms
+          alert_type: low_budget
+        annotations:
+          summary: "XORB Evidence Ingest SLO error budget critically low"
+          description: "Only {{ $value }}% error budget remaining for evidence ingest P95 latency SLO for tenant {{ $labels.tenant_id }}. Higher SLO bar (99.5%)."
+          runbook_url: "https://wiki.xorb.io/runbooks/slo-evidence-ingest-low-budget"
+
+  - name: xorb.slo.availability
+    rules:
+      # Platform availability composite alert
+      - alert: XORBSLOPlatformAvailabilityDegraded
+        expr: |
+          (
+            count(slo_error_budget_alert_level{alert_level="critical"} == 2) >= 1
+          or
+            count(slo_error_budget_alert_level{alert_level="warning"} == 1) >= 3
+          )
+        for: 5m
+        labels:
+          severity: warning
+          service: xorb-platform
+          alert_type: availability_degraded
+        annotations:
+          summary: "XORB Platform SLO availability degraded"
+          description: "Multiple SLIs are breaching error budgets. Platform reliability is degraded. Check individual SLI dashboards."
+          runbook_url: "https://wiki.xorb.io/runbooks/platform-availability-degraded"
+          dashboard_url: "http://localhost:3000/d/xorb-slo-error-budgets/xorb-phase-g5-slo-error-budget-dashboard"
+
+      - alert: XORBSLOPlatformAvailabilityCritical
+        expr: count(slo_error_budget_alert_level{alert_level="critical"} == 2) >= 2
+        for: 2m
+        labels:
+          severity: critical
+          service: xorb-platform
+          alert_type: availability_critical
+        annotations:
+          summary: "XORB Platform SLO availability critical"
+          description: "Multiple critical SLIs are breaching error budgets. Platform availability is severely impacted. Immediate intervention required."
+          runbook_url: "https://wiki.xorb.io/runbooks/platform-availability-critical"
+
+  - name: xorb.slo.replay_monitoring
+    rules:
+      # Replay backlog monitoring (read-only from G4 system)
+      - alert: XORBReplayBacklogHigh
+        expr: replay_backlog_depth_messages > 10000
+        for: 10m
+        labels:
+          severity: warning
+          service: xorb-replay
+          alert_type: backlog_high
+        annotations:
+          summary: "XORB Replay stream backlog high"
+          description: "Replay stream {{ $labels.stream_name }} for tenant {{ $labels.tenant_id }} has {{ $value }} messages in backlog."
+          runbook_url: "https://wiki.xorb.io/runbooks/replay-backlog-high"
+
+      - alert: XORBReplayBacklogCritical
+        expr: replay_backlog_depth_messages > 50000
+        for: 5m
+        labels:
+          severity: critical
+          service: xorb-replay
+          alert_type: backlog_critical
+        annotations:
+          summary: "XORB Replay stream backlog critical"
+          description: "Replay stream {{ $labels.stream_name }} for tenant {{ $labels.tenant_id }} has {{ $value }} messages in backlog. Risk of data loss."
+          runbook_url: "https://wiki.xorb.io/runbooks/replay-backlog-critical"
+
+  - name: xorb.slo.burn_rate_multiwindow
+    rules:
+      # Multi-window burn rate alerting (Google SRE best practices)
+      - alert: XORBSLOBusLatencyBurnRateMultiWindow
+        expr: |
+          (
+            # 1 hour window: 14.4x burn rate
+            (
+              slo_error_budget_burn_rate{sli_name="bus_publish_to_deliver_p95_ms"} > 14.4
+            and
+              slo_error_budget_remaining_percent{sli_name="bus_publish_to_deliver_p95_ms"} < 98
+            )
+          or
+            # 6 hour window: 6x burn rate
+            (
+              avg_over_time(slo_error_budget_burn_rate{sli_name="bus_publish_to_deliver_p95_ms"}[6h]) > 6.0
+            and
+              slo_error_budget_remaining_percent{sli_name="bus_publish_to_deliver_p95_ms"} < 95
+            )
+          or
+            # 3 day window: 1x burn rate
+            (
+              avg_over_time(slo_error_budget_burn_rate{sli_name="bus_publish_to_deliver_p95_ms"}[3d]) > 1.0
+            and
+              slo_error_budget_remaining_percent{sli_name="bus_publish_to_deliver_p95_ms"} < 90
+            )
+          )
+        for: 0s
+        labels:
+          severity: page
+          service: xorb-backplane
+          sli: bus_publish_to_deliver_p95_ms
+          alert_type: multiwindow_burn
+        annotations:
+          summary: "XORB Bus Latency SLO multi-window burn rate alert"
+          description: |
+            Bus latency SLO is burning error budget across multiple time windows.
+            Current burn rate: {{ query 'slo_error_budget_burn_rate{sli_name="bus_publish_to_deliver_p95_ms",tenant_id="' }}{{ $labels.tenant_id }}{{ query '"}' }}x
+            Remaining budget: {{ query 'slo_error_budget_remaining_percent{sli_name="bus_publish_to_deliver_p95_ms",tenant_id="' }}{{ $labels.tenant_id }}{{ query '"}' }}%
+            Tenant: {{ $labels.tenant_id }}
+          runbook_url: "https://wiki.xorb.io/runbooks/slo-multiwindow-burn-rate"
+          playbook_url: "https://wiki.xorb.io/playbooks/slo-incident-response"
+
+  # New alert groups for post-release monitoring
+  - name: xorb.post_release.latency
+    rules:
+      - alert: PostReleaseLatency
+        expr: bus_publish_to_deliver_p95_ms > 50
+        for: 10m
+        labels:
+          severity: warning
+          service: xorb-backplane
+          alert_type: post_release_latency
+        annotations:
+          summary: "Post-release bus latency exceeds threshold"
+          description: "Bus publish-to-deliver P95 latency ({{ $value }}ms) has exceeded 50ms threshold for 10 minutes after release."
+          runbook_url: "https://wiki.xorb.io/runbooks/post-release-latency"
+
+  - name: xorb.post_release.evidence
+    rules:
+      - alert: EvidenceFailures
+        expr: increase(evidence_verify_fail_total[15m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: xorb-evidence
+          alert_type: evidence_verification_failure
+        annotations:
+          summary: "Evidence verification failures detected"
+          description: "Evidence verification failures have increased ({{ $value }}) in the last 15 minutes, indicating potential data corruption or signature issues."
+          runbook_url: "https://wiki.xorb.io/runbooks/evidence-verification-failures"
+
+  - name: xorb.post_release.fairness
+    rules:
+      - alert: FairnessImbalance
+        expr: fairness_jain_index < 0.85
+        for: 15m
+        labels:
+          severity: warning
+          service: xorb-platform
+          alert_type: fairness_imbalance
+        annotations:
+          summary: "System fairness imbalance detected"
+          description: "Jain's fairness index ({{ $value }}) has dropped below 0.85 threshold for 15 minutes, indicating uneven resource distribution."
+          runbook_url: "https://wiki.xorb.io/runbooks/fairness-imbalance"
+
+  - name: xorb.post_release.replay
+    rules:
+      - alert: ReplayImpact
+        expr: replay_backlog_depth_messages > 10000 and replay_lane_active == 1
+        for: 5m
+        labels:
+          severity: critical
+          service: xorb-replay
+          alert_type: replay_impact
+        annotations:
+          summary: "Replay system impacting live operations"
+          description: "Replay backlog depth ({{ $value }} messages) exceeds 10k threshold while replay lane is active, risking live operation impact."
+          runbook_url: "https://wiki.xorb.io/runbooks/replay-impact"

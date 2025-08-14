@@ -47,7 +47,7 @@ class Alert(BaseModel):
 
 class XORBLoggingSystem:
     """Centralized logging and alerting system"""
-    
+
     def __init__(self):
         self.log_buffer = []
         self.alerts = []
@@ -59,7 +59,7 @@ class XORBLoggingSystem:
             },
             "high_response_time": {
                 "condition": "response_time > 10000",
-                "severity": "warning", 
+                "severity": "warning",
                 "cooldown": 600  # 10 minutes
             },
             "high_cpu_usage": {
@@ -84,18 +84,18 @@ class XORBLoggingSystem:
             }
         }
         self.alert_history = []
-        
+
     async def collect_logs_from_services(self):
         """Collect logs from all XORB services"""
         services = [
             ("api_gateway", "http://localhost:8000"),
-            ("neural_orchestrator", "http://localhost:8003"), 
+            ("neural_orchestrator", "http://localhost:8003"),
             ("learning_service", "http://localhost:8004"),
             ("threat_detection", "http://localhost:8005"),
             ("evolution_accelerator", "http://localhost:8008"),
             ("auto_scaler", "http://localhost:9001")
         ]
-        
+
         for service_name, base_url in services:
             try:
                 async with aiohttp.ClientSession() as session:
@@ -103,7 +103,7 @@ class XORBLoggingSystem:
                     async with session.get(f"{base_url}/health", timeout=aiohttp.ClientTimeout(total=5)) as response:
                         if response.status == 200:
                             health_data = await response.json()
-                            
+
                             log_entry = LogEntry(
                                 timestamp=datetime.now().isoformat(),
                                 service=service_name,
@@ -111,12 +111,12 @@ class XORBLoggingSystem:
                                 message=f"Service health check successful",
                                 details=health_data
                             )
-                            
+
                             await self.add_log_entry(log_entry)
-                            
+
                             # Check for alert conditions
                             await self.evaluate_alert_conditions(service_name, health_data)
-                            
+
                         else:
                             # Service unavailable
                             log_entry = LogEntry(
@@ -126,34 +126,34 @@ class XORBLoggingSystem:
                                 message=f"Service health check failed: HTTP {response.status}",
                                 details={"status_code": response.status, "url": base_url}
                             )
-                            
+
                             await self.add_log_entry(log_entry)
                             await self.trigger_alert("service_down", service_name, f"Service {service_name} is unavailable")
-                            
+
             except Exception as e:
                 # Connection error
                 log_entry = LogEntry(
                     timestamp=datetime.now().isoformat(),
                     service=service_name,
-                    level="ERROR", 
+                    level="ERROR",
                     message=f"Failed to connect to service: {str(e)}",
                     details={"error": str(e), "url": base_url}
                 )
-                
+
                 await self.add_log_entry(log_entry)
                 await self.trigger_alert("service_down", service_name, f"Cannot connect to {service_name}: {str(e)}")
-    
+
     async def add_log_entry(self, log_entry: LogEntry):
         """Add log entry to buffer"""
         self.log_buffer.append(log_entry)
-        
+
         # Keep only last 1000 log entries in memory
         if len(self.log_buffer) > 1000:
             self.log_buffer = self.log_buffer[-1000:]
-        
+
         # Print to console for immediate visibility
         print(f"[{log_entry.timestamp}] {log_entry.service} - {log_entry.level}: {log_entry.message}")
-    
+
     async def evaluate_alert_conditions(self, service_name: str, health_data: Dict):
         """Evaluate if alert conditions are met"""
         # Check response time
@@ -161,21 +161,21 @@ class XORBLoggingSystem:
             response_time = health_data["response_time_ms"]
             if response_time > 10000:  # 10 seconds
                 await self.trigger_alert(
-                    "high_response_time", 
+                    "high_response_time",
                     service_name,
                     f"High response time: {response_time}ms"
                 )
-        
+
         # Check CPU usage (if available)
         if "cpu_usage_percent" in health_data:
             cpu_usage = health_data["cpu_usage_percent"]
             if cpu_usage > 90:
                 await self.trigger_alert(
                     "high_cpu_usage",
-                    service_name, 
+                    service_name,
                     f"High CPU usage: {cpu_usage}%"
                 )
-        
+
         # Check memory usage (if available)
         if "memory_usage_percent" in health_data:
             memory_usage = health_data["memory_usage_percent"]
@@ -185,24 +185,24 @@ class XORBLoggingSystem:
                     service_name,
                     f"Critical memory usage: {memory_usage}%"
                 )
-    
+
     async def trigger_alert(self, alert_type: str, service: str, description: str):
         """Trigger alert if not in cooldown"""
         alert_rule = self.alert_rules.get(alert_type)
         if not alert_rule:
             return
-        
+
         # Check cooldown
         recent_alerts = [
-            a for a in self.alert_history 
-            if a["type"] == alert_type 
+            a for a in self.alert_history
+            if a["type"] == alert_type
             and a["service"] == service
             and (datetime.now() - datetime.fromisoformat(a["timestamp"])).seconds < alert_rule["cooldown"]
         ]
-        
+
         if recent_alerts:
             return  # Still in cooldown
-        
+
         # Create alert
         alert_id = f"{alert_type}_{service}_{int(datetime.now().timestamp())}"
         alert = Alert(
@@ -213,7 +213,7 @@ class XORBLoggingSystem:
             service=service,
             timestamp=datetime.now().isoformat()
         )
-        
+
         self.alerts.append(alert)
         self.alert_history.append({
             "type": alert_type,
@@ -221,10 +221,10 @@ class XORBLoggingSystem:
             "timestamp": alert.timestamp,
             "severity": alert.severity
         })
-        
+
         # Send notifications
         await self.send_alert_notifications(alert)
-        
+
         # Log the alert
         log_entry = LogEntry(
             timestamp=alert.timestamp,
@@ -233,19 +233,19 @@ class XORBLoggingSystem:
             message=f"Alert triggered: {alert.title}",
             details={"alert_id": alert_id, "description": description}
         )
-        
+
         await self.add_log_entry(log_entry)
-    
+
     async def send_alert_notifications(self, alert: Alert):
         """Send alert notifications via configured channels"""
         # Email notifications
         if self.notification_channels["email"]["enabled"]:
             await self.send_email_alert(alert)
-        
-        # Webhook notifications  
+
+        # Webhook notifications
         if self.notification_channels["webhook"]["enabled"]:
             await self.send_webhook_alert(alert)
-    
+
     async def send_email_alert(self, alert: Alert):
         """Send email alert (simulated - would use real SMTP in production)"""
         try:
@@ -265,10 +265,10 @@ Please investigate and take appropriate action.
 Dashboard: http://localhost:3001
 Monitoring: http://localhost:3002
             """
-            
+
             # In production, would send actual email
             print(f"📧 EMAIL ALERT SENT: {alert.severity.upper()} - {alert.title}")
-            
+
             # Log email sent
             log_entry = LogEntry(
                 timestamp=datetime.now().isoformat(),
@@ -278,10 +278,10 @@ Monitoring: http://localhost:3002
                 details={"recipients": self.notification_channels["email"]["recipients"]}
             )
             await self.add_log_entry(log_entry)
-            
+
         except Exception as e:
             print(f"❌ Failed to send email alert: {e}")
-    
+
     async def send_webhook_alert(self, alert: Alert):
         """Send webhook alert"""
         try:
@@ -294,70 +294,70 @@ Monitoring: http://localhost:3002
                 "service": alert.service,
                 "timestamp": alert.timestamp
             }
-            
+
             async with aiohttp.ClientSession() as session:
                 async with session.post(webhook_url, json=alert_data, timeout=aiohttp.ClientTimeout(total=10)) as response:
                     if response.status == 200:
                         print(f"🔗 WEBHOOK ALERT SENT: {alert.severity.upper()} - {alert.title}")
                     else:
                         print(f"⚠️  Webhook alert failed: HTTP {response.status}")
-                        
+
         except Exception as e:
             print(f"❌ Failed to send webhook alert: {e}")
-    
+
     async def monitoring_loop(self):
         """Main monitoring loop for log collection"""
         print("📊 Starting XORB Logging & Alerting Monitor")
-        
+
         while True:
             try:
                 await self.collect_logs_from_services()
                 await asyncio.sleep(60)  # Check every minute
-                
+
             except Exception as e:
                 print(f"❌ Monitoring loop error: {e}")
                 await asyncio.sleep(30)
-    
+
     def get_logs(self, service: Optional[str] = None, level: Optional[str] = None, limit: int = 100) -> List[LogEntry]:
         """Get filtered logs"""
         logs = self.log_buffer
-        
+
         if service:
             logs = [log for log in logs if log.service == service]
-        
+
         if level:
             logs = [log for log in logs if log.level == level]
-        
+
         return logs[-limit:]
-    
+
     def get_alerts(self, status: Optional[str] = None, severity: Optional[str] = None) -> List[Alert]:
         """Get filtered alerts"""
         alerts = self.alerts
-        
+
         if status:
             alerts = [alert for alert in alerts if alert.status == status]
-        
+
         if severity:
             alerts = [alert for alert in alerts if alert.severity == severity]
-        
+
         return alerts
-    
+
     def get_system_health(self) -> Dict:
         """Get overall system health summary"""
         now = datetime.now()
         last_hour = now - timedelta(hours=1)
-        
+
         recent_logs = [
-            log for log in self.log_buffer 
+            log for log in self.log_buffer
             if datetime.fromisoformat(log.timestamp) > last_hour
         ]
-        
+
         error_logs = [log for log in recent_logs if log.level == "ERROR"]
         warning_logs = [log for log in recent_logs if log.level == "WARN"]
-        
+
         active_alerts = [alert for alert in self.alerts if alert.status == "active"]
         critical_alerts = [alert for alert in active_alerts if alert.severity == "critical"]
-        
+
         health_score = 100
         if critical_alerts:
             health_score -= len(critical_alerts) * 20
@@ -365,9 +365,9 @@ Monitoring: http://localhost:3002
             health_score -= 15
         if len(warning_logs) > 20:
             health_score -= 10
-        
+
         health_score = max(health_score, 0)
-        
+
         return {
             "overall_health_score": health_score,
             "status": "healthy" if health_score > 80 else "degraded" if health_score > 50 else "critical",
@@ -418,7 +418,7 @@ async def acknowledge_alert(alert_id: str):
     for alert in logging_system.alerts:
         if alert.id == alert_id:
             alert.status = "acknowledged"
-            
+
             # Log acknowledgment
             log_entry = LogEntry(
                 timestamp=datetime.now().isoformat(),
@@ -428,9 +428,9 @@ async def acknowledge_alert(alert_id: str):
                 details={"alert_title": alert.title}
             )
             await logging_system.add_log_entry(log_entry)
-            
+
             return {"message": f"Alert {alert_id} acknowledged"}
-    
+
     return {"error": f"Alert {alert_id} not found"}
 
 @app.post("/logs/manual")
@@ -443,7 +443,7 @@ async def add_manual_log(log_entry: LogEntry):
 async def get_metrics_summary():
     """Get logging and alerting metrics summary"""
     now = datetime.now()
-    
+
     return {
         "timestamp": now.isoformat(),
         "log_buffer_size": len(logging_system.log_buffer),

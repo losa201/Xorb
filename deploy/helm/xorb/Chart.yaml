@@ -24,7 +24,7 @@ annotations:
   images: |
     - name: xorb-api
       image: xorb/api:1.0.0
-    - name: xorb-orchestrator  
+    - name: xorb-orchestrator
       image: xorb/orchestrator:1.0.0
     - name: postgres
       image: postgres:15-alpine
@@ -36,7 +36,7 @@ dependencies:
     repository: https://charts.bitnami.com/bitnami
     condition: postgresql.enabled
   - name: redis
-    version: "17.3.14"  
+    version: "17.3.14"
     repository: https://charts.bitnami.com/bitnami
     condition: redis.enabled
   - name: ingress-nginx

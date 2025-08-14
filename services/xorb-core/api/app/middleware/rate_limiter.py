@@ -447,7 +447,7 @@ async def rate_limit_middleware(request: Request, call_next):
         # Create organization entity from headers
         org = Organization.create(name=f"Org-{org_id}", plan_type=plan_type)
         org.id = org_id  # Override with actual ID from header
-        
+
         # Use legacy rate limiter for now - in a full implementation,
         # this would use a proper RateLimitService from the container
         result = await resource_manager.check_rate_limit(
@@ -465,7 +465,7 @@ async def rate_limit_middleware(request: Request, call_next):
                 remaining=result.remaining,
                 reset_time=result.reset_time
             )
-            
+
             # Record metrics
             rate_limit_requests_total.labels(
                 org_id=org_id,
@@ -506,7 +506,7 @@ async def rate_limit_middleware(request: Request, call_next):
         response.headers["X-RateLimit-Resource"] = result.resource_type
 
         return response
-        
+
     except Exception as e:
         logger.error("Rate limiting failed", error=str(e))
         # Fail open - allow request if rate limiting fails

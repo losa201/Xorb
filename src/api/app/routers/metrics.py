@@ -136,7 +136,7 @@ async def get_metrics_dashboard(
         ptaas_metrics = await metrics_service.get_ptaas_metrics(hours=hours)
         security_metrics = await metrics_service.get_security_metrics(hours=hours)
         health_status = await health_service.get_system_health()
-        
+
         # Compile dashboard
         dashboard = {
             "overview": {
@@ -158,9 +158,9 @@ async def get_metrics_dashboard(
             "timestamp": health_status.get("timestamp"),
             "timeframe_hours": hours
         }
-        
+
         return dashboard
-        
+
     except Exception as e:
         logger.error(f"Failed to get dashboard data: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve dashboard data")

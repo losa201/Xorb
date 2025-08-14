@@ -96,14 +96,14 @@ class AccessDecision:
 
 class ZeroTrustEngine:
     """Core Zero Trust security engine"""
-    
+
     def __init__(self):
         self.policies = self._load_default_policies()
         self.trust_cache = {}
         self.risk_engine = RiskAssessmentEngine()
         self.device_manager = DeviceTrustManager()
         self.network_analyzer = NetworkTrustAnalyzer()
-        
+
     def _load_default_policies(self) -> List[PolicyRule]:
         """Load default Zero Trust policies"""
         return [
@@ -122,7 +122,7 @@ class ZeroTrustEngine:
                 required_trust_level=TrustLevel.VERIFIED,
                 risk_threshold=30
             ),
-            
+
             # Sensitive data access requires high trust
             PolicyRule(
                 rule_id="sensitive_data",
@@ -137,7 +137,7 @@ class ZeroTrustEngine:
                 required_trust_level=TrustLevel.HIGH,
                 risk_threshold=50
             ),
-            
+
             # External API access requires medium trust
             PolicyRule(
                 rule_id="external_api",
@@ -152,7 +152,7 @@ class ZeroTrustEngine:
                 required_trust_level=TrustLevel.MEDIUM,
                 risk_threshold=60
             ),
-            
+
             # Financial operations require verified trust
             PolicyRule(
                 rule_id="financial_operations",
@@ -169,14 +169,14 @@ class ZeroTrustEngine:
                 risk_threshold=20
             )
         ]
-        
+
     async def evaluate_access(self, request: AccessRequest) -> AccessDecision:
         """Evaluate access request using Zero Trust principles"""
         logger.info(f"Evaluating Zero Trust access for request: {request.request_id}")
-        
+
         # Find applicable policies
         applicable_policies = self._find_applicable_policies(request)
-        
+
         if not applicable_policies:
             # Default deny - no applicable policy
             return AccessDecision(
@@ -188,64 +188,64 @@ class ZeroTrustEngine:
                 conditions=[],
                 expires_at=None
             )
-            
+
         # Evaluate each policy
         policy_results = []
         for policy in applicable_policies:
             result = await self._evaluate_policy(request, policy)
             policy_results.append(result)
-            
+
         # Combine results (most restrictive wins)
         final_decision = self._combine_policy_results(request, policy_results)
-        
+
         # Log decision for audit
         await self._log_access_decision(request, final_decision)
-        
+
         return final_decision
-        
+
     def _find_applicable_policies(self, request: AccessRequest) -> List[PolicyRule]:
         """Find policies applicable to the access request"""
         applicable = []
-        
+
         for policy in self.policies:
             if not policy.enabled:
                 continue
-                
+
             # Check resource pattern
             if self._matches_pattern(request.resource, policy.resource_pattern):
                 # Check action pattern
                 if self._matches_pattern(request.action, policy.action_pattern):
                     applicable.append(policy)
-                    
+
         return applicable
-        
+
     def _matches_pattern(self, value: str, pattern: str) -> bool:
         """Check if value matches pattern (supports wildcards)"""
         if pattern == "*":
             return True
-            
+
         if "*" in pattern:
             import re
             regex_pattern = pattern.replace("*", ".*")
             return bool(re.match(f"^{regex_pattern}$", value))
-            
+
         return value == pattern
-        
+
     async def _evaluate_policy(self, request: AccessRequest, policy: PolicyRule) -> Dict[str, Any]:
         """Evaluate a single policy against the request"""
-        
+
         # Check trust level requirement
         trust_sufficient = request.context.trust_level.value >= policy.required_trust_level.value
-        
+
         # Check risk threshold
         risk_acceptable = request.context.risk_score <= policy.risk_threshold
-        
+
         # Evaluate conditions
         conditions_met = await self._evaluate_conditions(request, policy.conditions)
-        
+
         # Determine if policy allows access
         policy_allows = trust_sufficient and risk_acceptable and conditions_met
-        
+
         return {
             "policy": policy,
             "allows": policy_allows,
@@ -256,108 +256,108 @@ class ZeroTrustEngine:
                 trust_sufficient, risk_acceptable, conditions_met, policy
             )
         }
-        
+
     async def _evaluate_conditions(self, request: AccessRequest, conditions: List[Dict[str, Any]]) -> bool:
         """Evaluate policy conditions"""
         for condition in conditions:
             condition_type = condition["type"]
             expected_value = condition["value"]
-            
+
             if condition_type == "mfa_verified":
                 if request.context.mfa_verified != expected_value:
                     return False
-                    
+
             elif condition_type == "device_trusted":
                 if request.context.device_trusted != expected_value:
                     return False
-                    
+
             elif condition_type == "session_age_max":
                 session_age = (datetime.utcnow() - request.context.created_at).seconds
                 if session_age > expected_value:
                     return False
-                    
+
             elif condition_type == "location_verified":
                 location_verified = await self._verify_location(request.context)
                 if location_verified != expected_value:
                     return False
-                    
+
             elif condition_type == "time_restriction":
                 if not await self._check_time_restriction(expected_value):
                     return False
-                    
+
         return True
-        
+
     async def _verify_location(self, context: SecurityContext) -> bool:
         """Verify if user location is trusted"""
         # Check against known good locations
         user_location = context.location
-        
+
         # For demo, assume location is verified if country is known
         return user_location.get("country") in ["US", "CA", "GB", "DE", "AU"]
-        
+
     async def _check_time_restriction(self, restriction: str) -> bool:
         """Check time-based restrictions"""
         if restriction == "business_hours":
             current_hour = datetime.utcnow().hour
             return 8 <= current_hour <= 18  # 8 AM to 6 PM UTC
-            
+
         return True
-        
+
     def _get_policy_failure_reasons(
-        self, 
+        self,
         trust_sufficient: bool,
-        risk_acceptable: bool, 
+        risk_acceptable: bool,
         conditions_met: bool,
         policy: PolicyRule
     ) -> List[str]:
         """Get reasons why policy evaluation failed"""
         reasons = []
-        
+
         if not trust_sufficient:
             reasons.append(f"Insufficient trust level (required: {policy.required_trust_level.name})")
-            
+
         if not risk_acceptable:
             reasons.append(f"Risk score too high (max: {policy.risk_threshold})")
-            
+
         if not conditions_met:
             reasons.append("Policy conditions not met")
-            
+
         return reasons
-        
+
     def _combine_policy_results(
-        self, 
-        request: AccessRequest, 
+        self,
+        request: AccessRequest,
         policy_results: List[Dict[str, Any]]
     ) -> AccessDecision:
         """Combine multiple policy evaluation results"""
-        
+
         # Check if any policy explicitly allows
         allows_access = any(result["allows"] for result in policy_results)
-        
+
         # Collect all reasons
         all_reasons = []
         for result in policy_results:
             all_reasons.extend(result["reasons"])
-            
+
         # Determine if step-up authentication is needed
         requires_step_up = (
             request.context.trust_level.value < TrustLevel.HIGH.value and
-            any(r["policy"].required_trust_level.value >= TrustLevel.HIGH.value 
+            any(r["policy"].required_trust_level.value >= TrustLevel.HIGH.value
                 for r in policy_results)
         )
-        
+
         if allows_access:
             decision = "allow"
         elif requires_step_up:
             decision = "challenge"
         else:
             decision = "deny"
-            
+
         # Set expiration for temporary access
         expires_at = None
         if decision == "allow":
             expires_at = datetime.utcnow() + timedelta(hours=1)
-            
+
         return AccessDecision(
             request_id=request.request_id,
             decision=decision,
@@ -368,7 +368,7 @@ class ZeroTrustEngine:
             expires_at=expires_at,
             requires_step_up=requires_step_up
         )
-        
+
     async def _log_access_decision(self, request: AccessRequest, decision: AccessDecision):
         """Log access decision for audit trail"""
         audit_log = {
@@ -385,67 +385,67 @@ class ZeroTrustEngine:
             "ip_address": request.context.ip_address,
             "device_id": request.context.device_id
         }
-        
+
         # In production, this would go to a secure audit log
         logger.info(f"Zero Trust Decision: {json.dumps(audit_log)}")
-        
+
     async def continuous_verification(self, session_id: str) -> SecurityContext:
         """Continuously verify user session and update trust level"""
-        
+
         # Get current context
         context = await self._get_session_context(session_id)
         if not context:
             raise ValueError(f"Session not found: {session_id}")
-            
+
         # Perform continuous checks
         new_risk_score = await self.risk_engine.calculate_risk(context)
         device_still_trusted = await self.device_manager.verify_device(context.device_id)
         network_still_trusted = await self.network_analyzer.analyze_network(context.ip_address)
-        
+
         # Update context
         context.risk_score = new_risk_score
         context.device_trusted = device_still_trusted
         context.network_trusted = network_still_trusted
         context.last_verified = datetime.utcnow()
-        
+
         # Recalculate trust level
         context.trust_level = await self._calculate_trust_level(context)
-        
+
         # Cache updated context
         self.trust_cache[session_id] = context
-        
+
         return context
-        
+
     async def _get_session_context(self, session_id: str) -> Optional[SecurityContext]:
         """Get security context for session"""
         return self.trust_cache.get(session_id)
-        
+
     async def _calculate_trust_level(self, context: SecurityContext) -> TrustLevel:
         """Calculate trust level based on security context"""
         base_score = 0
-        
+
         # Authentication factors
         if context.mfa_verified:
             base_score += 30
         else:
             base_score += 10
-            
+
         # Device trust
         if context.device_trusted:
             base_score += 25
         else:
             base_score += 5
-            
+
         # Network trust
         if context.network_trusted:
             base_score += 20
         else:
             base_score += 5
-            
+
         # Risk adjustment
         risk_adjustment = max(0, 50 - context.risk_score)
         base_score += risk_adjustment
-        
+
         # Session freshness
         session_age = (datetime.utcnow() - context.created_at).seconds
         if session_age < 3600:  # Less than 1 hour
@@ -454,7 +454,7 @@ class ZeroTrustEngine:
             base_score += 10
         else:
             base_score += 0
-            
+
         # Map to trust level
         if base_score >= 90:
             return TrustLevel.VERIFIED
@@ -470,99 +470,99 @@ class ZeroTrustEngine:
 
 class RiskAssessmentEngine:
     """Risk assessment for Zero Trust decisions"""
-    
+
     async def calculate_risk(self, context: SecurityContext) -> int:
         """Calculate risk score based on multiple factors"""
         risk_score = 0
-        
+
         # Location-based risk
         risk_score += await self._assess_location_risk(context.location)
-        
+
         # Device-based risk
         risk_score += await self._assess_device_risk(context.device_id)
-        
+
         # Behavioral risk
         risk_score += await self._assess_behavioral_risk(context.user_id)
-        
+
         # Network risk
         risk_score += await self._assess_network_risk(context.ip_address)
-        
+
         return min(risk_score, 100)  # Cap at 100
-        
+
     async def _assess_location_risk(self, location: Dict[str, Any]) -> int:
         """Assess risk based on location"""
         country = location.get("country", "Unknown")
-        
+
         # High-risk countries
         high_risk_countries = ["XX", "YY", "ZZ"]  # Placeholder
         if country in high_risk_countries:
             return 40
-            
+
         # Unknown location
         if country == "Unknown":
             return 20
-            
+
         return 0
-        
+
     async def _assess_device_risk(self, device_id: str) -> int:
         """Assess risk based on device characteristics"""
         # Check device reputation
         device_info = await self._get_device_info(device_id)
-        
+
         if device_info.get("jailbroken", False):
             return 30
-            
+
         if device_info.get("unknown_device", True):
             return 15
-            
+
         return 0
-        
+
     async def _assess_behavioral_risk(self, user_id: str) -> int:
         """Assess risk based on user behavior"""
         # Analyze user behavior patterns
         behavior = await self._get_user_behavior(user_id)
-        
+
         if behavior.get("unusual_activity", False):
             return 25
-            
+
         if behavior.get("off_hours_access", False):
             return 10
-            
+
         return 0
-        
+
     async def _assess_network_risk(self, ip_address: str) -> int:
         """Assess risk based on network characteristics"""
         try:
             ip = ipaddress.ip_address(ip_address)
-            
+
             # Check if it's a private IP
             if ip.is_private:
                 return 0
-                
+
             # Check threat intelligence
             threat_info = await self._check_threat_intelligence(ip_address)
             if threat_info.get("malicious", False):
                 return 50
-                
+
             # Check if it's a known VPN/proxy
             if threat_info.get("proxy", False):
                 return 15
-                
+
         except ValueError:
             return 20  # Invalid IP address
-            
+
         return 5  # Default for external IPs
-        
+
     async def _get_device_info(self, device_id: str) -> Dict[str, Any]:
         """Get device information"""
         # In production, this would query device management system
         return {"jailbroken": False, "unknown_device": False}
-        
+
     async def _get_user_behavior(self, user_id: str) -> Dict[str, Any]:
         """Get user behavior analysis"""
         # In production, this would analyze user behavior patterns
         return {"unusual_activity": False, "off_hours_access": False}
-        
+
     async def _check_threat_intelligence(self, ip_address: str) -> Dict[str, Any]:
         """Check IP against threat intelligence feeds"""
         # In production, this would query threat intelligence APIs
@@ -571,11 +571,11 @@ class RiskAssessmentEngine:
 
 class DeviceTrustManager:
     """Manages device trust and compliance"""
-    
+
     async def verify_device(self, device_id: str) -> bool:
         """Verify device trust status"""
         device_info = await self._get_device_compliance(device_id)
-        
+
         # Check compliance requirements
         return (
             device_info.get("encryption_enabled", False) and
@@ -583,7 +583,7 @@ class DeviceTrustManager:
             device_info.get("antivirus_active", False) and
             not device_info.get("jailbroken", True)
         )
-        
+
     async def _get_device_compliance(self, device_id: str) -> Dict[str, Any]:
         """Get device compliance status"""
         # In production, this would integrate with MDM solutions
@@ -597,37 +597,37 @@ class DeviceTrustManager:
 
 class NetworkTrustAnalyzer:
     """Analyzes network trust and security"""
-    
+
     async def analyze_network(self, ip_address: str) -> bool:
         """Analyze network trust level"""
         try:
             ip = ipaddress.ip_address(ip_address)
-            
+
             # Corporate networks are trusted
             if ip.is_private:
                 return True
-                
+
             # Check against trusted external networks
             trusted_networks = await self._get_trusted_networks()
             for network in trusted_networks:
                 if ip in ipaddress.ip_network(network):
                     return True
-                    
+
             # Check threat intelligence
             threat_info = await self._check_network_threats(ip_address)
             return not threat_info.get("malicious", False)
-            
+
         except ValueError:
             return False
-            
+
     async def _get_trusted_networks(self) -> List[str]:
         """Get list of trusted network ranges"""
         return [
             "10.0.0.0/8",
-            "172.16.0.0/12", 
+            "172.16.0.0/12",
             "192.168.0.0/16"
         ]
-        
+
     async def _check_network_threats(self, ip_address: str) -> Dict[str, Any]:
         """Check network against threat feeds"""
         # In production, integrate with threat intelligence
@@ -645,7 +645,7 @@ async def evaluate_zero_trust_access(
     context: Dict[str, Any]
 ) -> Dict[str, Any]:
     """API endpoint for Zero Trust access evaluation"""
-    
+
     # Create security context
     security_context = SecurityContext(
         user_id=user_id,
@@ -663,7 +663,7 @@ async def evaluate_zero_trust_access(
         last_verified=datetime.utcnow(),
         created_at=datetime.utcnow()
     )
-    
+
     # Create access request
     request = AccessRequest(
         request_id=str(uuid.uuid4()),
@@ -674,10 +674,10 @@ async def evaluate_zero_trust_access(
         timestamp=datetime.utcnow(),
         metadata=context.get("metadata", {})
     )
-    
+
     # Evaluate access
     decision = await zero_trust_engine.evaluate_access(request)
-    
+
     return asdict(decision)
 
 

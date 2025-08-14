@@ -100,21 +100,21 @@ impl NmapTool {
             binary_path: "nmap".to_string(),
         }
     }
-    
+
     /// Create with custom binary path
     pub fn with_binary_path(path: &str) -> Self {
         Self {
             binary_path: path.to_string(),
         }
     }
-    
+
     /// Build nmap command arguments
     fn build_args(&self, target: &str, options: &ToolOptions) -> Vec<String> {
         let mut args = vec![
             "-oX".to_string(), // XML output
             "-".to_string(),   // Output to stdout
         ];
-        
+
         // Scan mode based on options
         if options.stealth {
             args.extend(vec!["-sS".to_string(), "-T2".to_string()]);
@@ -123,28 +123,28 @@ impl NmapTool {
         } else {
             args.extend(vec!["-sV".to_string(), "-T3".to_string()]);
         }
-        
+
         // Service detection
         args.push("-sV".to_string());
-        
+
         // OS detection (if not stealth)
         if !options.stealth {
             args.push("-O".to_string());
         }
-        
+
         // Add extra arguments
         args.extend(options.extra_args.clone());
-        
+
         // Add target
         args.push(target.to_string());
-        
+
         args
     }
-    
+
     /// Parse Nmap XML output
     fn parse_xml_output(&self, output: &str, target: &str) -> Result<Vec<Finding>> {
         let mut findings = Vec::new();
-        
+
         match from_str::<NmapRun>(output) {
             Ok(nmap_run) => {
                 for host in nmap_run.hosts {
@@ -154,7 +154,7 @@ impl NmapTool {
                         .find(|addr| addr.addrtype == "ipv4")
                         .map(|addr| addr.addr.clone())
                         .unwrap_or_else(|| target.to_string());
-                    
+
                     // Process ports
                     if let Some(ports) = host.ports {
                         for port in ports.port {
@@ -162,7 +162,7 @@ impl NmapTool {
                                 let mut metadata = std::collections::HashMap::new();
                                 metadata.insert("protocol".to_string(), port.protocol.clone());
                                 metadata.insert("state".to_string(), port.state.state.clone());
-                                
+
                                 let (service_name, service_version) = if let Some(service) = &port.service {
                                     let name = service.name.clone().unwrap_or("unknown".to_string());
                                     let version = service.version.clone().unwrap_or_else(|| {
@@ -174,7 +174,7 @@ impl NmapTool {
                                 } else {
                                     ("unknown".to_string(), "unknown".to_string())
                                 };
-                                
+
                                 findings.push(Finding {
                                     id: Uuid::new_v4().to_string(),
                                     title: format!("Open Port: {}/{}", port.portid, port.protocol),
@@ -189,7 +189,7 @@ impl NmapTool {
                             }
                         }
                     }
-                    
+
                     // Process OS detection
                     if let Some(os) = host.os {
                         for os_match in os.osmatch {
@@ -197,7 +197,7 @@ impl NmapTool {
                                 let mut metadata = std::collections::HashMap::new();
                                 metadata.insert("accuracy".to_string(), os_match.accuracy.to_string());
                                 metadata.insert("os_type".to_string(), "operating_system".to_string());
-                                
+
                                 findings.push(Finding {
                                     id: Uuid::new_v4().to_string(),
                                     title: "OS Detection".to_string(),
@@ -220,14 +220,14 @@ impl NmapTool {
                 findings.extend(self.parse_text_output(output, target)?);
             }
         }
-        
+
         Ok(findings)
     }
-    
+
     /// Fallback text parsing for Nmap output
     fn parse_text_output(&self, output: &str, target: &str) -> Result<Vec<Finding>> {
         let mut findings = Vec::new();
-        
+
         for line in output.lines() {
             if line.contains("/tcp") && line.contains("open") {
                 // Parse line like "80/tcp open  http    nginx 1.18.0"
@@ -236,11 +236,11 @@ impl NmapTool {
                     let port_proto = parts[0];
                     let port = port_proto.split('/').next().unwrap_or("unknown");
                     let service = if parts.len() > 3 { parts[3] } else { "unknown" };
-                    
+
                     let mut metadata = std::collections::HashMap::new();
                     metadata.insert("protocol".to_string(), "tcp".to_string());
                     metadata.insert("service".to_string(), service.to_string());
-                    
+
                     findings.push(Finding {
                         id: Uuid::new_v4().to_string(),
                         title: format!("Open Port: {}", port_proto),
@@ -252,7 +252,7 @@ impl NmapTool {
                 }
             }
         }
-        
+
         Ok(findings)
     }
 }
@@ -268,18 +268,18 @@ impl SecurityTool for NmapTool {
     fn name(&self) -> &str {
         "nmap"
     }
-    
+
     #[instrument(skip(self, options), fields(tool = "nmap", target = %target))]
     async fn scan(&self, target: &str, options: &ToolOptions) -> Result<ToolResult> {
         let start_time = chrono::Utc::now();
         let start_instant = std::time::Instant::now();
-        
+
         info!(target = %target, "Starting Nmap scan");
-        
+
         // Build command arguments
         let args = self.build_args(target, options);
         let command_line = format!("{} {}", self.binary_path, args.join(" "));
-        
+
         // Execute nmap with timeout
         let result = timeout(
             options.timeout,
@@ -289,28 +289,28 @@ impl SecurityTool for NmapTool {
                 .stderr(Stdio::piped())
                 .output()
         ).await;
-        
+
         let execution_time = start_instant.elapsed();
         let end_time = chrono::Utc::now();
-        
+
         match result {
             Ok(Ok(output)) => {
                 let stdout = String::from_utf8_lossy(&output.stdout);
                 let stderr = String::from_utf8_lossy(&output.stderr);
-                
+
                 if output.status.success() {
                     info!(
                         target = %target,
                         duration_ms = %execution_time.as_millis(),
                         "Nmap scan completed successfully"
                     );
-                    
+
                     let findings = self.parse_xml_output(&stdout, target)
                         .unwrap_or_else(|e| {
                             warn!(error = %e, "Failed to parse output, returning empty findings");
                             Vec::new()
                         });
-                    
+
                     Ok(ToolResult {
                         tool_name: self.name().to_string(),
                         target: target.to_string(),
@@ -332,13 +332,13 @@ impl SecurityTool for NmapTool {
                     } else {
                         stderr.to_string()
                     };
-                    
+
                     error!(
                         target = %target,
                         error = %error_msg,
                         "Nmap scan failed"
                     );
-                    
+
                     Ok(ToolResult {
                         tool_name: self.name().to_string(),
                         target: target.to_string(),
@@ -394,7 +394,7 @@ impl SecurityTool for NmapTool {
             }
         }
     }
-    
+
     async fn is_available(&self) -> bool {
         Command::new(&self.binary_path)
             .arg("--version")
@@ -403,14 +403,14 @@ impl SecurityTool for NmapTool {
             .map(|output| output.status.success())
             .unwrap_or(false)
     }
-    
+
     async fn version(&self) -> Result<String> {
         let output = Command::new(&self.binary_path)
             .arg("--version")
             .output()
             .await
             .map_err(|e| anyhow!("Failed to get Nmap version: {}", e))?;
-            
+
         if output.status.success() {
             let version_output = String::from_utf8_lossy(&output.stdout);
             // Parse version from output like "Nmap version 7.80"
@@ -430,17 +430,17 @@ impl SecurityTool for NmapTool {
 mod tests {
     use super::*;
     use crate::{ToolOptions, OutputFormat};
-    
+
     #[test]
     fn test_nmap_tool_creation() {
         let tool = NmapTool::new();
         assert_eq!(tool.name(), "nmap");
         assert_eq!(tool.binary_path, "nmap");
-        
+
         let tool_custom = NmapTool::with_binary_path("/usr/local/bin/nmap");
         assert_eq!(tool_custom.binary_path, "/usr/local/bin/nmap");
     }
-    
+
     #[test]
     fn test_build_args() {
         let tool = NmapTool::new();
@@ -450,14 +450,14 @@ mod tests {
             extra_args: vec!["-p".to_string(), "80,443".to_string()],
             ..Default::default()
         };
-        
+
         let args = tool.build_args("192.168.1.1", &options);
         assert!(args.contains(&"-oX".to_string()));
         assert!(args.contains(&"-sV".to_string()));
         assert!(args.contains(&"-p".to_string()));
         assert!(args.contains(&"192.168.1.1".to_string()));
     }
-    
+
     #[test]
     fn test_parse_text_output() {
         let tool = NmapTool::new();
@@ -466,16 +466,16 @@ mod tests {
 80/tcp open  http    nginx 1.18.0
 443/tcp open  https   nginx 1.18.0
         "#;
-        
+
         let findings = tool.parse_text_output(output, "192.168.1.1").unwrap();
         assert_eq!(findings.len(), 3);
-        
+
         let ssh_finding = &findings[0];
         assert!(ssh_finding.title.contains("22/tcp"));
         assert!(ssh_finding.description.contains("ssh"));
         assert_eq!(ssh_finding.severity, Severity::Info);
     }
-    
+
     #[tokio::test]
     async fn test_tool_availability() {
         let tool = NmapTool::new();

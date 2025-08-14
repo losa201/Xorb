@@ -39,7 +39,7 @@ class ScanTarget:
     scan_profile: str = "quick"
     stealth_mode: bool = False
 
-@dataclass  
+@dataclass
 class ScanResult:
     scan_id: str
     target: str
@@ -86,7 +86,7 @@ logger = logging.getLogger(__name__)
 
 class ProductionPTaaSService(XORBService, PTaaSService):
     """Production-ready PTaaS service implementation"""
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="production_ptaas",
@@ -96,7 +96,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
         self.active_sessions: Dict[str, Dict[str, Any]] = {}
         self.session_results: Dict[str, Dict[str, Any]] = {}
         self.scan_profiles = self._initialize_scan_profiles()
-        
+
     def _initialize_scan_profiles(self) -> Dict[str, Dict[str, Any]]:
         """Initialize available scan profiles"""
         return {
@@ -109,7 +109,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
             },
             "comprehensive": {
                 "name": "Comprehensive Security Assessment",
-                "duration_estimate": "30-45 minutes", 
+                "duration_estimate": "30-45 minutes",
                 "tools": ["nmap_full", "nuclei", "nikto"],
                 "scope": "full_assessment",
                 "intensity": "high"
@@ -139,9 +139,9 @@ class ProductionPTaaSService(XORBService, PTaaSService):
         metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Create a new PTaaS scan session with enhanced validation"""
-        
+
         session_id = str(uuid4())
-        
+
         try:
             # Validate targets
             validated_targets = []
@@ -150,10 +150,10 @@ class ProductionPTaaSService(XORBService, PTaaSService):
                     validated_targets.append(target)
                 else:
                     logger.warning(f"Invalid target rejected: {target}")
-            
+
             if not validated_targets:
                 raise ValueError("No valid targets provided")
-            
+
             # Create scan session
             session = {
                 "session_id": session_id,
@@ -167,14 +167,14 @@ class ProductionPTaaSService(XORBService, PTaaSService):
                 "progress": 0,
                 "estimated_duration": self._get_estimated_duration(scan_type, len(validated_targets))
             }
-            
+
             self.active_sessions[session_id] = session
-            
+
             # Queue scan for execution
             asyncio.create_task(self._execute_scan(session_id))
-            
+
             logger.info(f"Created PTaaS session {session_id} for user {user.username}")
-            
+
             return {
                 "session_id": session_id,
                 "status": "queued",
@@ -182,14 +182,14 @@ class ProductionPTaaSService(XORBService, PTaaSService):
                 "targets_rejected": len(targets) - len(validated_targets),
                 "estimated_duration_minutes": session["estimated_duration"]
             }
-            
+
         except Exception as e:
             logger.error(f"Failed to create scan session: {e}")
             raise
 
     async def get_scan_status(self, session_id: str, user: User) -> Dict[str, Any]:
         """Get status of a scan session with detailed progress"""
-        
+
         if session_id not in self.active_sessions:
             if session_id in self.session_results:
                 result = self.session_results[session_id]
@@ -202,9 +202,9 @@ class ProductionPTaaSService(XORBService, PTaaSService):
                 }
             else:
                 return {"session_id": session_id, "status": "not_found"}
-        
+
         session = self.active_sessions[session_id]
-        
+
         return {
             "session_id": session_id,
             "status": session["status"],
@@ -218,15 +218,15 @@ class ProductionPTaaSService(XORBService, PTaaSService):
 
     async def get_scan_results(self, session_id: str, user: User) -> Dict[str, Any]:
         """Get comprehensive scan results"""
-        
+
         if session_id not in self.session_results:
             return {"session_id": session_id, "error": "Results not available"}
-        
+
         results = self.session_results[session_id]
-        
+
         # Generate executive summary
         summary = self._generate_executive_summary(results)
-        
+
         return {
             "session_id": session_id,
             "scan_metadata": results.get("metadata", {}),
@@ -241,29 +241,29 @@ class ProductionPTaaSService(XORBService, PTaaSService):
 
     async def cancel_scan(self, session_id: str, user: User) -> bool:
         """Cancel an active scan session"""
-        
+
         if session_id not in self.active_sessions:
             return False
-        
+
         try:
             session = self.active_sessions[session_id]
             session["status"] = "cancelled"
             session["cancelled_at"] = datetime.utcnow().isoformat()
-            
+
             # Move to results for record keeping
             self.session_results[session_id] = session
             del self.active_sessions[session_id]
-            
+
             logger.info(f"Cancelled scan session {session_id}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to cancel scan {session_id}: {e}")
             return False
 
     async def get_available_scan_profiles(self) -> List[Dict[str, Any]]:
         """Get available scan profiles with detailed information"""
-        
+
         profiles = []
         for profile_id, profile_data in self.scan_profiles.items():
             profiles.append({
@@ -276,7 +276,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
                 "intensity_level": profile_data.get("intensity", "medium"),
                 "compliance_frameworks": profile_data.get("framework", [])
             })
-        
+
         return profiles
 
     async def create_compliance_scan(
@@ -287,23 +287,23 @@ class ProductionPTaaSService(XORBService, PTaaSService):
         org: Organization
     ) -> Dict[str, Any]:
         """Create compliance-specific scan with framework validation"""
-        
+
         # Map framework to appropriate scan profile
         framework_profiles = {
             "PCI-DSS": "compliance_pci",
-            "HIPAA": "compliance_hipaa", 
+            "HIPAA": "compliance_hipaa",
             "SOX": "compliance_sox",
             "ISO-27001": "compliance_iso27001"
         }
-        
+
         if compliance_framework not in framework_profiles:
             raise ValueError(f"Unsupported compliance framework: {compliance_framework}")
-        
+
         scan_type = framework_profiles[compliance_framework]
-        
+
         # Convert targets to proper format
         formatted_targets = [{"host": target, "compliance_scope": True} for target in targets]
-        
+
         return await self.create_scan_session(
             targets=formatted_targets,
             scan_type=scan_type,
@@ -318,27 +318,27 @@ class ProductionPTaaSService(XORBService, PTaaSService):
     # Private helper methods
     async def _validate_scan_target(self, target: Dict[str, Any], org: Organization) -> bool:
         """Validate scan target with enhanced security checks"""
-        
+
         host = target.get("host")
         if not host:
             return False
-        
+
         try:
             # Basic IP/hostname validation
             if not self._is_valid_target_format(host):
                 return False
-            
+
             # Check against organization's allowed scope
             if not await self._check_organization_scope(host, org):
                 return False
-            
+
             # Security validation - prevent scanning of internal/private networks
             if self._is_internal_target(host) and not target.get("authorized_internal", False):
                 logger.warning(f"Internal target requires explicit authorization: {host}")
                 return False
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Target validation failed for {host}: {e}")
             return False
@@ -387,49 +387,49 @@ class ProductionPTaaSService(XORBService, PTaaSService):
             "compliance_sox": 20,
             "compliance_iso27001": 40
         }
-        
+
         base_time = base_durations.get(scan_type, 30)
         # Add time for additional targets (diminishing returns)
         additional_time = (target_count - 1) * base_time * 0.3
-        
+
         return int(base_time + additional_time)
 
     async def _execute_scan(self, session_id: str):
         """Execute the actual scan (simplified implementation)"""
-        
+
         session = self.active_sessions[session_id]
-        
+
         try:
             session["status"] = "running"
             session["current_stage"] = "initialization"
             session["progress"] = 5
-            
+
             # Simulate scan execution stages
             stages = [
                 ("discovery", 20),
-                ("port_scanning", 40), 
+                ("port_scanning", 40),
                 ("service_detection", 60),
                 ("vulnerability_assessment", 80),
                 ("analysis", 95),
                 ("reporting", 100)
             ]
-            
+
             for stage, progress in stages:
                 session["current_stage"] = stage
                 session["progress"] = progress
                 session["last_updated"] = datetime.utcnow().isoformat()
-                
+
                 # Simulate processing time
                 await asyncio.sleep(2)
-            
+
             # Generate results
             results = await self._generate_scan_results(session)
             self.session_results[session_id] = results
-            
+
             # Clean up active session
             if session_id in self.active_sessions:
                 del self.active_sessions[session_id]
-            
+
         except Exception as e:
             logger.error(f"Scan execution failed for {session_id}: {e}")
             session["status"] = "failed"
@@ -437,7 +437,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
 
     async def _generate_scan_results(self, session: Dict[str, Any]) -> Dict[str, Any]:
         """Generate realistic scan results"""
-        
+
         return {
             "session_id": session["session_id"],
             "metadata": session.get("metadata", {}),
@@ -477,7 +477,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
                 "scanner": "nmap"
             },
             {
-                "id": "VULN-2025-002", 
+                "id": "VULN-2025-002",
                 "name": "Outdated SSH Version",
                 "severity": "high",
                 "cvss_score": 7.8,
@@ -492,7 +492,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
     def _generate_compliance_status(self, session: Dict[str, Any]) -> Dict[str, Any]:
         """Generate compliance assessment results"""
         framework = session.get("metadata", {}).get("compliance_framework")
-        
+
         if framework:
             return {
                 "framework": framework,
@@ -503,7 +503,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
                 "critical_gaps": 3,
                 "remediation_priority": "high"
             }
-        
+
         return {}
 
     def _generate_recommendations(self) -> List[Dict[str, Any]]:
@@ -517,7 +517,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
                 "impact": "Prevents data interception and tampering"
             },
             {
-                "priority": "medium", 
+                "priority": "medium",
                 "category": "access_control",
                 "title": "Update SSH Configuration",
                 "description": "Disable password authentication and use key-based auth only",
@@ -528,7 +528,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
     def _generate_executive_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Generate executive summary of scan results"""
         summary = results.get("summary", {})
-        
+
         return {
             "risk_score": self._calculate_risk_score(results),
             "security_posture": self._assess_security_posture(summary),
@@ -543,7 +543,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
         critical = summary.get("critical_issues", 0)
         high = summary.get("high_risk_issues", 0)
         medium = summary.get("medium_risk_issues", 0)
-        
+
         # Weighted risk calculation
         risk_score = (critical * 25) + (high * 10) + (medium * 3)
         return min(risk_score, 100)
@@ -552,7 +552,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
         """Assess overall security posture"""
         critical = summary.get("critical_issues", 0)
         high = summary.get("high_risk_issues", 0)
-        
+
         if critical > 0:
             return "critical"
         elif high > 3:
@@ -566,49 +566,49 @@ class ProductionPTaaSService(XORBService, PTaaSService):
         """Get list of critical actions required"""
         actions = []
         summary = results.get("summary", {})
-        
+
         if summary.get("critical_issues", 0) > 0:
             actions.append("Address critical vulnerabilities immediately")
-        
+
         if summary.get("high_risk_issues", 0) > 0:
             actions.append("Remediate high-risk security issues")
-        
+
         compliance = results.get("compliance", {})
         if compliance.get("critical_gaps", 0) > 0:
             actions.append("Address compliance gaps")
-        
+
         return actions
 
     def _get_compliance_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Get compliance summary"""
         compliance = results.get("compliance", {})
-        
+
         if compliance:
             return {
                 "framework": compliance.get("framework"),
                 "score": compliance.get("overall_score", 0),
                 "status": "compliant" if compliance.get("overall_score", 0) >= 80 else "non_compliant"
             }
-        
+
         return {"status": "not_assessed"}
 
     def _identify_improvement_areas(self, results: Dict[str, Any]) -> List[str]:
         """Identify key improvement areas"""
         areas = []
-        
+
         vulnerabilities = results.get("vulnerabilities", [])
         vuln_categories = {}
-        
+
         for vuln in vulnerabilities:
             category = vuln.get("category", "general")
             vuln_categories[category] = vuln_categories.get(category, 0) + 1
-        
+
         # Identify top categories
         top_categories = sorted(vuln_categories.items(), key=lambda x: x[1], reverse=True)[:3]
-        
+
         for category, count in top_categories:
             areas.append(f"{category.replace('_', ' ').title()} Security")
-        
+
         return areas
 
     def _get_profile_description(self, profile_id: str) -> str:
@@ -634,7 +634,7 @@ class ProductionPTaaSService(XORBService, PTaaSService):
 
 class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService):
     """Production-ready threat intelligence service"""
-    
+
     def __init__(self, **kwargs):
         super().__init__(
             service_id="threat_intelligence",
@@ -652,27 +652,27 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
         user: User
     ) -> Dict[str, Any]:
         """Analyze threat indicators using advanced AI correlation"""
-        
+
         analysis_id = str(uuid4())
-        
+
         try:
             # Process each indicator
             indicator_results = []
             for indicator in indicators:
                 result = await self._analyze_single_indicator(indicator, context)
                 indicator_results.append(result)
-            
+
             # Correlation analysis
             correlation_results = await self._correlate_indicators(indicator_results, context)
-            
+
             # Risk assessment
             risk_assessment = self._assess_threat_risk(indicator_results, correlation_results)
-            
+
             # Generate actionable intelligence
             intelligence = self._generate_threat_intelligence(
                 indicator_results, correlation_results, risk_assessment
             )
-            
+
             return {
                 "analysis_id": analysis_id,
                 "indicators_analyzed": len(indicators),
@@ -684,7 +684,7 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
                 "recommendations": self._generate_threat_recommendations(risk_assessment),
                 "timestamp": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Threat analysis failed: {e}")
             raise
@@ -695,22 +695,22 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
         threat_feeds: List[str] = None
     ) -> Dict[str, Any]:
         """Correlate scan results with threat intelligence"""
-        
+
         correlation_id = str(uuid4())
-        
+
         try:
             # Extract IOCs from scan results
             iocs = self._extract_iocs_from_scan(scan_results)
-            
+
             # Query threat feeds
             feed_matches = await self._query_threat_feeds(iocs, threat_feeds)
-            
+
             # Advanced correlation
             correlations = await self._perform_advanced_correlation(scan_results, feed_matches)
-            
+
             # Attribution analysis
             attribution = self._analyze_threat_attribution(correlations)
-            
+
             return {
                 "correlation_id": correlation_id,
                 "scan_session_id": scan_results.get("session_id"),
@@ -721,7 +721,7 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
                 "threat_landscape": self._analyze_threat_landscape(correlations),
                 "recommended_actions": self._recommend_threat_actions(correlations)
             }
-            
+
         except Exception as e:
             logger.error(f"Threat correlation failed: {e}")
             raise
@@ -732,22 +732,22 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
         timeframe: str = "24h"
     ) -> Dict[str, Any]:
         """Generate AI-powered threat predictions"""
-        
+
         prediction_id = str(uuid4())
-        
+
         try:
             # Analyze environment baseline
             baseline = self._analyze_environment_baseline(environment_data)
-            
+
             # Threat landscape analysis
             landscape = await self._analyze_current_threat_landscape()
-            
+
             # Predictive modeling
             predictions = await self._generate_threat_predictions(baseline, landscape, timeframe)
-            
+
             # Risk forecasting
             risk_forecast = self._generate_risk_forecast(predictions, timeframe)
-            
+
             return {
                 "prediction_id": prediction_id,
                 "timeframe": timeframe,
@@ -758,7 +758,7 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
                 "confidence_metrics": self._calculate_prediction_confidence(predictions),
                 "generated_at": datetime.utcnow().isoformat()
             }
-            
+
         except Exception as e:
             logger.error(f"Threat prediction failed: {e}")
             raise
@@ -769,9 +769,9 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
         report_format: str = "json"
     ) -> Dict[str, Any]:
         """Generate comprehensive threat intelligence report"""
-        
+
         report_id = str(uuid4())
-        
+
         try:
             # Compile comprehensive data
             report_data = {
@@ -783,10 +783,10 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
                 "mitigation_strategies": self._generate_mitigation_strategies(analysis_results),
                 "appendices": self._generate_report_appendices(analysis_results)
             }
-            
+
             # Format report
             formatted_report = await self._format_threat_report(report_data, report_format)
-            
+
             return {
                 "report_id": report_id,
                 "format": report_format,
@@ -797,7 +797,7 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
                     "confidence_level": self._calculate_report_confidence(analysis_results)
                 }
             }
-            
+
         except Exception as e:
             logger.error(f"Threat report generation failed: {e}")
             raise
@@ -960,7 +960,7 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
                 {
                     "threat_type": "phishing",
                     "probability": 0.65,
-                    "impact": "medium", 
+                    "impact": "medium",
                     "timeframe": "1-3 days"
                 }
             ],
@@ -1070,17 +1070,17 @@ class ProductionThreatIntelligenceService(XORBService, ThreatIntelligenceService
 # Register services with the container
 def register_concrete_services(container):
     """Register concrete service implementations with the container"""
-    
+
     # Register PTaaS service
     container.register_singleton(
         PTaaSService,
         lambda: ProductionPTaaSService()
     )
-    
+
     # Register Threat Intelligence service
     container.register_singleton(
         ThreatIntelligenceService,
         lambda: ProductionThreatIntelligenceService()
     )
-    
+
     logger.info("Registered concrete service implementations")

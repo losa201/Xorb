@@ -5,12 +5,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: xorb-api
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app.kubernetes.io/name: xorb-api
     app.kubernetes.io/version: "3.1.0"
     app.kubernetes.io/component: api
-    app.kubernetes.io/part-of: xorb-platform
+    app.kubernetes.io/part-of: xorb_platform
 spec:
   replicas: 3
   strategy:
@@ -40,17 +40,17 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
-      
+
       # Service Account
       serviceAccountName: xorb-api
       automountServiceAccountToken: false
-      
+
       # Container Specification
       containers:
       - name: xorb-api
         image: ghcr.io/xorb/platform:latest
         imagePullPolicy: Always
-        
+
         # Security Context
         securityContext:
           allowPrivilegeEscalation: false
@@ -60,7 +60,7 @@ spec:
           capabilities:
             drop:
             - ALL
-        
+
         # Resource Management
         resources:
           requests:
@@ -69,7 +69,7 @@ spec:
           limits:
             cpu: 1000m
             memory: 1Gi
-        
+
         # Environment Variables
         env:
         - name: ENVIRONMENT
@@ -91,7 +91,7 @@ spec:
             secretKeyRef:
               name: xorb-jwt-secret
               key: secret
-        
+
         # Volume Mounts
         volumeMounts:
         - name: tmp
@@ -101,7 +101,7 @@ spec:
           readOnly: true
         - name: logs
           mountPath: /app/logs
-        
+
         # Health Checks
         livenessProbe:
           httpGet:
@@ -113,7 +113,7 @@ spec:
           timeoutSeconds: 5
           failureThreshold: 3
           successThreshold: 1
-        
+
         readinessProbe:
           httpGet:
             path: /ready
@@ -124,7 +124,7 @@ spec:
           timeoutSeconds: 3
           failureThreshold: 3
           successThreshold: 1
-        
+
         # Startup Probe
         startupProbe:
           httpGet:
@@ -134,7 +134,7 @@ spec:
           periodSeconds: 5
           timeoutSeconds: 3
           failureThreshold: 30
-        
+
         # Ports
         ports:
         - name: http
@@ -143,7 +143,7 @@ spec:
         - name: metrics
           containerPort: 9090
           protocol: TCP
-      
+
       # Volumes
       volumes:
       - name: tmp
@@ -154,12 +154,12 @@ spec:
         configMap:
           name: xorb-config
           defaultMode: 0444
-      
+
       # Node Selection and Affinity
       nodeSelector:
         kubernetes.io/os: linux
         node-type: application
-      
+
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -172,14 +172,14 @@ spec:
                   values:
                   - xorb-api
               topologyKey: kubernetes.io/hostname
-      
+
       # Tolerations
       tolerations:
       - key: "application"
         operator: "Equal"
         value: "true"
         effect: "NoSchedule"
-      
+
       # DNS Config
       dnsPolicy: ClusterFirst
       dnsConfig:
@@ -187,7 +187,7 @@ spec:
         - name: ndots
           value: "2"
         - name: edns0
-      
+
       # Termination Grace Period
       terminationGracePeriodSeconds: 30
 
@@ -197,7 +197,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: xorb-api-service
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app.kubernetes.io/name: xorb-api
     app.kubernetes.io/component: api
@@ -222,7 +222,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: xorb-api
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app.kubernetes.io/name: xorb-api
 automountServiceAccountToken: false
@@ -233,7 +233,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: xorb-api-hpa
-  namespace: xorb-platform
+  namespace: xorb_platform
   labels:
     app.kubernetes.io/name: xorb-api
 spec:
@@ -276,7 +276,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: xorb-api-pdb
-  namespace: xorb-platform
+  namespace: xorb_platform
 spec:
   minAvailable: 2
   selector:

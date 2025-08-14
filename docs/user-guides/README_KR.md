@@ -15,7 +15,7 @@
 <a href="https://discord.gg/projectdiscovery"><img src="https://img.shields.io/discord/695645237418131507.svg?logo=discord"></a>
 <a href="https://twitter.com/pdnuclei"><img src="https://img.shields.io/twitter/follow/pdnuclei.svg?logo=twitter"></a>
 </p>
-      
+
 <p align="center">
   <a href="#작동-방식">작동 방식</a> •
   <a href="#설치">설치</a> •
@@ -62,7 +62,7 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <table>
 <tr>
-<td>  
+<td>
 
 ### Nuclei 템플릿
 
@@ -330,7 +330,7 @@ Nuclei는 보안 엔지니어가 조직에서 워크플로를 커스텀하는 �
 
 <table>
 <tr>
-<td>  
+<td>
 
 **Bug Bounty hunter들을 위해:**
 
@@ -350,7 +350,7 @@ Nuclei를 사용하면 자체 검사 모음으로 테스트 접근 방식을 사
 <table>
 <tr>
 <td>
-  
+
 **침투 테스터들을 위해:**
 
 Nuclei는 수동적이고 반복적인 프로세스를 보강하여 보안 평가에 접근하는 방식을 크게 개선합니다.
@@ -390,7 +390,7 @@ Nuclei는 단순성을 염두에 두고 구축되었으며 수백 명의 보안 
 
 ### Resources
 
-- [Finding bugs with Nuclei with PinkDraconian (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) by **[@PinkDraconian](https://twitter.com/PinkDraconian)** 
+- [Finding bugs with Nuclei with PinkDraconian (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) by **[@PinkDraconian](https://twitter.com/PinkDraconian)**
 - [Nuclei: Packing a Punch with Vulnerability Scanning](https://bishopfox.com/blog/nuclei-vulnerability-scan) by **Bishopfox**
 - [The WAF efficacy framework](https://www.fastly.com/blog/the-waf-efficacy-framework-measuring-the-effectiveness-of-your-waf) by **Fastly**
 - [Scanning Live Web Applications with Nuclei in CI/CD Pipeline](https://blog.escape.tech/devsecops-part-iii-scanning-live-web-applications/) by **[@TristanKalos](https://twitter.com/TristanKalos)**

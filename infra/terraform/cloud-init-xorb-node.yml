@@ -64,7 +64,7 @@ runcmd:
   # Configure audit daemon
   - systemctl enable auditd
   - systemctl start auditd
-  
+
   # Firewall configuration (UFW)
   - ufw --force reset
   - ufw default deny incoming
@@ -84,7 +84,7 @@ runcmd:
   - usermod -aG docker xorb
   - systemctl enable docker
   - systemctl start docker
-  
+
   # Docker daemon security configuration
   - mkdir -p /etc/docker
   - |
@@ -122,16 +122,16 @@ runcmd:
       # Create encrypted volume (LUKS)
       echo -n "${node_id}" | cryptsetup luksFormat /dev/sdb -
       echo -n "${node_id}" | cryptsetup luksOpen /dev/sdb xorb-data -
-      
+
       # Create filesystem
       mkfs.ext4 /dev/mapper/xorb-data
-      
+
       # Mount encrypted volume
       mkdir -p /opt/xorb/encrypted-data
       mount /dev/mapper/xorb-data /opt/xorb/encrypted-data
       chown xorb-service:xorb-service /opt/xorb/encrypted-data
       chmod 750 /opt/xorb/encrypted-data
-      
+
       # Add to fstab for persistence
       echo "/dev/mapper/xorb-data /opt/xorb/encrypted-data ext4 defaults 0 0" >> /etc/fstab
     fi
@@ -157,7 +157,7 @@ runcmd:
 
   # Download XORB node bootstrap script
   - |
-    curl -fsSL https://raw.githubusercontent.com/xorb-platform/bootstrap/main/bootstrap_xorb_node.sh -o /opt/xorb/bootstrap_xorb_node.sh
+    curl -fsSL https://raw.githubusercontent.com/xorb_platform/bootstrap/main/bootstrap_xorb_node.sh -o /opt/xorb/bootstrap_xorb_node.sh
     chmod +x /opt/xorb/bootstrap_xorb_node.sh
     chown xorb:xorb /opt/xorb/bootstrap_xorb_node.sh
 
@@ -185,19 +185,19 @@ runcmd:
     server {
         listen 8080;
         listen [::]:8080;
-        
+
         location /health {
             access_log off;
             return 200 "healthy\n";
             add_header Content-Type text/plain;
         }
-        
+
         location /ready {
             access_log off;
             return 200 "ready\n";
             add_header Content-Type text/plain;
         }
-        
+
         location / {
             return 503 "XORB Node Initializing";
         }
@@ -215,7 +215,7 @@ runcmd:
     Description=XORB Federated Node
     After=docker.service
     Requires=docker.service
-    
+
     [Service]
     Type=notify
     User=xorb-service
@@ -229,18 +229,18 @@ runcmd:
     KillMode=mixed
     TimeoutStartSec=300
     TimeoutStopSec=120
-    
+
     # Security settings
     NoNewPrivileges=true
     PrivateTmp=true
     ProtectHome=true
     ProtectSystem=strict
     ReadWritePaths=/opt/xorb
-    
+
     # Resource limits
     LimitNOFILE=65536
     LimitNPROC=4096
-    
+
     [Install]
     WantedBy=multi-user.target
     EOF
@@ -293,15 +293,15 @@ write_files:
     permissions: '0644'
     content: |
       #include <tunables/global>
-      
+
       profile xorb-container flags=(attach_disconnected,mediate_deleted) {
         #include <abstractions/base>
-        
+
         capability setuid,
         capability setgid,
         capability kill,
         capability net_bind_service,
-        
+
         deny @{PROC}/* w,
         deny /sys/[^f]** wklx,
         deny /sys/f[^s]** wklx,
@@ -310,7 +310,7 @@ write_files:
         deny /sys/fs/cg[^r]** wklx,
         deny /sys/firmware/** rwklx,
         deny /sys/kernel/security/** rwklx,
-        
+
         /opt/xorb/** rw,
         /tmp/** rw,
         /var/log/** w,
@@ -401,12 +401,12 @@ final_message: |
   Node ID: ${node_id}
   Region: ${node_region}
   Tier: ${node_tier}
-  
+
   Next Steps:
   1. Run bootstrap script: sudo -u xorb /opt/xorb/bootstrap_xorb_node.sh
   2. Verify services: systemctl status xorb-node
   3. Check health: curl http://localhost:8080/health
-  
+
   Security Features Enabled:
   - AppArmor profiles active
   - UFW firewall configured
@@ -414,7 +414,7 @@ final_message: |
   - Audit logging configured
   - Encrypted storage mounted
   - Docker daemon hardened
-  
+
   Compliance: ${compliance_frameworks}
   Federation: ${federation_enabled}
   Quantum Crypto: ${quantum_crypto_enabled}

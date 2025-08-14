@@ -77,8 +77,8 @@ The XORB platform follows a microservices architecture with clear separation of 
 ## Data Flow Architecture
 
 ```
-User Action (PTaaS) → API Gateway (XORB) → Service Layer → 
-Orchestrator (Workflows) → Executors → Database → 
+User Action (PTaaS) → API Gateway (XORB) → Service Layer →
+Orchestrator (Workflows) → Executors → Database →
 Cache (Redis) → Response → Real-time Updates (WebSocket)
 ```
 
@@ -106,7 +106,7 @@ Cache (Redis) → Response → Real-time Updates (WebSocket)
 # PTaaS Frontend
 cd services/ptaas/web && npm run dev
 
-# XORB API Gateway  
+# XORB API Gateway
 cd services/xorb-core/api && uvicorn app.main:app --reload
 
 # Infrastructure

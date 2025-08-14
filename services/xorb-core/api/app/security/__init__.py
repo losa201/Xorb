@@ -19,7 +19,7 @@ from .auth import (
 
 __all__ = [
     "XORBAuthenticator",
-    "SecurityContext", 
+    "SecurityContext",
     "Role",
     "Permission",
     "authenticator",
@@ -27,7 +27,7 @@ __all__ = [
     "require_permission",
     "require_role",
     "require_admin",
-    "require_orchestrator", 
+    "require_orchestrator",
     "require_agent_management",
     "require_security_ops",
     "require_config_access"

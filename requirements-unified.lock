@@ -21,7 +21,7 @@ aiohttp==3.9.1
 aiofiles==23.2.0
 
 # ==============================================================================
-# DATA LAYER & PERSISTENCE  
+# DATA LAYER & PERSISTENCE
 # ==============================================================================
 
 # Database Drivers
@@ -43,7 +43,7 @@ argon2-cffi==23.1.0
 python-jose[cryptography]==3.3.0
 cryptography==42.0.1
 
-# Authentication & Authorization  
+# Authentication & Authorization
 authlib==1.3.1
 pyotp==2.9.0
 qrcode[pil]==7.4.2
@@ -162,7 +162,7 @@ pre-commit==3.6.0
 # PRODUCTION DEPLOYMENT
 # ==============================================================================
 
-# Process Management  
+# Process Management
 gunicorn==21.2.0
 
 # Performance Monitoring

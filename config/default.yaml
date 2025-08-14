@@ -10,7 +10,7 @@ services:
     workers: 2
     timeout: 30
     enabled: true
-  
+
   orchestrator:
     name: "xorb-orchestrator"
     host: "0.0.0.0"
@@ -18,7 +18,7 @@ services:
     workers: 1
     timeout: 60
     enabled: true
-  
+
   intelligence:
     name: "xorb-intelligence"
     host: "0.0.0.0"
@@ -26,7 +26,7 @@ services:
     workers: 2
     timeout: 45
     enabled: true
-  
+
   worker:
     name: "xorb-worker"
     host: "0.0.0.0"

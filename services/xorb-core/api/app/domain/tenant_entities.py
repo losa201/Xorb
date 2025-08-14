@@ -37,28 +37,28 @@ class Tenant(Base):
     slug = Column(String(100), unique=True, nullable=False)
     status = Column(String(50), nullable=False, default=TenantStatus.ACTIVE.value)
     plan = Column(String(50), nullable=False, default=TenantPlan.STARTER.value)
-    
+
     # Metadata
     settings = Column(JSON, default=dict)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+
     # Contact information
     contact_email = Column(String(255))
     contact_name = Column(String(255))
-    
+
     # Billing and limits
     max_users = Column(String(20), default="10")
     max_storage_gb = Column(String(20), default="100")
-    
+
     # Security settings
     require_mfa = Column(Boolean, default=False)
     allowed_domains = Column(JSON, default=list)  # Email domains for auto-enrollment
-    
+
     # Custom branding
     logo_url = Column(String(500))
     primary_color = Column(String(7))  # Hex color
-    
+
     def __repr__(self):
         return f"<Tenant(id={self.id}, name={self.name}, status={self.status})>"
 
@@ -72,13 +72,13 @@ class TenantUser(Base):
     user_id = Column(String(255), nullable=False)  # OIDC sub claim
     email = Column(String(255), nullable=False)
     roles = Column(JSON, default=list)  # List of role strings
-    
+
     # Status
     is_active = Column(Boolean, default=True)
     invited_at = Column(DateTime(timezone=True))
     joined_at = Column(DateTime(timezone=True))
     last_login = Column(DateTime(timezone=True))
-    
+
     # Metadata
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -93,24 +93,24 @@ class Evidence(Base):
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     tenant_id = Column(PGUUID(as_uuid=True), nullable=False)
-    
+
     # Evidence metadata
     filename = Column(String(500), nullable=False)
     content_type = Column(String(100))
     size_bytes = Column(String(20))
     sha256_hash = Column(String(64))
-    
+
     # Storage information
     storage_path = Column(String(1000))
     storage_backend = Column(String(50), default="filesystem")
-    
+
     # Processing status
     status = Column(String(50), default="uploaded")
     processed_at = Column(DateTime(timezone=True))
-    
+
     # User tracking
     uploaded_by = Column(String(255))  # User ID
-    
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -125,28 +125,28 @@ class Finding(Base):
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     tenant_id = Column(PGUUID(as_uuid=True), nullable=False)
-    
+
     # Finding details
     title = Column(String(500), nullable=False)
     description = Column(Text)
     severity = Column(String(20))  # low, medium, high, critical
     status = Column(String(50), default="open")
-    
+
     # Classification
     category = Column(String(100))
     tags = Column(JSON, default=list)
-    
+
     # Evidence relationship
     evidence_ids = Column(JSON, default=list)  # List of evidence UUIDs
-    
+
     # MITRE ATT&CK mapping
     attack_techniques = Column(JSON, default=list)
     attack_tactics = Column(JSON, default=list)
-    
+
     # User tracking
     created_by = Column(String(255))  # User ID
     assigned_to = Column(String(255))  # User ID
-    
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
@@ -162,19 +162,19 @@ class EmbeddingVector(Base):
 
     id = Column(PGUUID(as_uuid=True), primary_key=True, default=uuid4)
     tenant_id = Column(PGUUID(as_uuid=True), nullable=False)
-    
+
     # Source reference
     source_type = Column(String(50))  # evidence, finding, text
     source_id = Column(PGUUID(as_uuid=True))
-    
+
     # Embedding data
     content_hash = Column(String(64))
     embedding_model = Column(String(100))
     # Note: vector column will be added in migration with pgvector
-    
+
     # Vector metadata
     vector_metadata = Column(JSON, default=dict)
-    
+
     # Timestamps
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

@@ -75,12 +75,12 @@ class WorkflowExecution:
 
 class TaskExecutor(ABC):
     """Abstract base class for task executors"""
-    
+
     @abstractmethod
     async def execute(self, task: WorkflowTask, context: Dict[str, Any]) -> Dict[str, Any]:
         """Execute a workflow task"""
         pass
-    
+
     @abstractmethod
     def validate_parameters(self, parameters: Dict[str, Any]) -> bool:
         """Validate task parameters"""
@@ -88,33 +88,33 @@ class TaskExecutor(ABC):
 
 class WorkflowOrchestrator(ABC):
     """Main workflow orchestration interface"""
-    
+
     @abstractmethod
     async def initialize(self):
         """Initialize the orchestrator"""
         pass
-    
+
     @abstractmethod
     async def create_workflow(self, workflow_def: WorkflowDefinition) -> str:
         """Create a new workflow definition"""
         pass
-    
+
     @abstractmethod
-    async def execute_workflow(self, workflow_id: str, trigger_data: Dict[str, Any] = None, 
+    async def execute_workflow(self, workflow_id: str, trigger_data: Dict[str, Any] = None,
                              triggered_by: str = "manual") -> str:
         """Execute a workflow"""
         pass
-    
+
     @abstractmethod
     async def get_execution_status(self, execution_id: str) -> Optional[WorkflowExecution]:
         """Get workflow execution status"""
         pass
-    
+
     @abstractmethod
     async def cancel_execution(self, execution_id: str) -> bool:
         """Cancel workflow execution"""
         pass
-    
+
     @abstractmethod
     async def shutdown(self):
         """Shutdown the orchestrator"""

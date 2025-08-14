@@ -24,7 +24,7 @@ try:
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
-    
+
 try:
     import httpx
     HTTPX_AVAILABLE = True
@@ -75,18 +75,18 @@ class AIDecisionRequest:
     timeout_seconds: int = 30
     priority: str = "medium"
     created_at: datetime = None
-    
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = datetime.utcnow()
-        
+
         # Validate inputs
         if not self.decision_id:
             self.decision_id = f"decision_{uuid.uuid4().hex[:8]}"
-        
+
         if self.timeout_seconds > 120:
             self.timeout_seconds = 120  # Max 2 minutes
-            
+
         if not self.constraints:
             self.constraints = []
 
@@ -105,17 +105,17 @@ class AIDecisionResponse:
     token_usage: Dict[str, int]
     metadata: Dict[str, Any]
     created_at: datetime = None
-    
+
     def __post_init__(self):
         if self.created_at is None:
             self.created_at = datetime.utcnow()
-        
+
         # Ensure confidence is valid
         self.confidence = max(0.0, min(1.0, self.confidence))
 
 class ProviderConfig:
     """Enhanced provider configuration with circuit breaker"""
-    def __init__(self, provider: AIProvider, base_url: str, api_key: str, 
+    def __init__(self, provider: AIProvider, base_url: str, api_key: str,
                  model_name: str, max_tokens: int = 2000, temperature: float = 0.3):
         self.provider = provider
         self.base_url = base_url
@@ -135,7 +135,7 @@ class ProviderConfig:
 
 class ProductionLLMOrchestrator:
     """Production-grade LLM orchestrator with enhanced reliability"""
-    
+
     def __init__(self, config: Dict[str, Any] = None):
         self.config = config or {}
         self.providers: Dict[AIProvider, ProviderConfig] = {}
@@ -146,7 +146,7 @@ class ProductionLLMOrchestrator:
         self.max_retries = 3
         self.circuit_breaker_threshold = 5
         self.circuit_breaker_timeout = 300  # 5 minutes
-        
+
         # Enhanced fallback chain with local options
         self.fallback_chain = [
             AIProvider.OPENROUTER_QWEN,
@@ -156,7 +156,7 @@ class ProductionLLMOrchestrator:
             AIProvider.NVIDIA_LLAMA,
             AIProvider.LOCAL_FALLBACK
         ]
-        
+
         # Initialize token counting
         self.token_encoder = None
         if TIKTOKEN_AVAILABLE:
@@ -164,34 +164,34 @@ class ProductionLLMOrchestrator:
                 self.token_encoder = tiktoken.get_encoding("cl100k_base")
             except Exception:
                 pass
-    
+
     async def initialize(self) -> bool:
         """Initialize the orchestrator with enhanced error handling"""
         try:
             logger.info("Initializing Production LLM Orchestrator...")
-            
+
             # Initialize provider configurations
             await self._setup_providers()
-            
+
             # Initialize HTTP clients with proper configuration
             await self._setup_clients()
-            
+
             # Test connectivity with circuit breaker logic
             await self._test_provider_connectivity()
-            
+
             # Initialize local fallback capabilities
             await self._initialize_local_fallback()
-            
-            active_providers = sum(1 for p in self.providers.values() 
+
+            active_providers = sum(1 for p in self.providers.values()
                                  if p.circuit_breaker_state == "closed")
-            
+
             logger.info(f"LLM Orchestrator initialized with {active_providers} active providers")
             return True
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize LLM Orchestrator: {e}")
             return False
-    
+
     async def _setup_providers(self):
         """Setup provider configurations with production settings"""
         # OpenRouter providers with API key validation
@@ -205,7 +205,7 @@ class ProductionLLMOrchestrator:
                 max_tokens=2000,
                 temperature=0.2
             )
-            
+
             self.providers[AIProvider.OPENROUTER_DEEPSEEK] = ProviderConfig(
                 provider=AIProvider.OPENROUTER_DEEPSEEK,
                 base_url="https://openrouter.ai/api/v1",
@@ -214,7 +214,7 @@ class ProductionLLMOrchestrator:
                 max_tokens=2000,
                 temperature=0.3
             )
-            
+
             self.providers[AIProvider.OPENROUTER_ANTHROPIC] = ProviderConfig(
                 provider=AIProvider.OPENROUTER_ANTHROPIC,
                 base_url="https://openrouter.ai/api/v1",
@@ -223,7 +223,7 @@ class ProductionLLMOrchestrator:
                 max_tokens=2000,
                 temperature=0.2
             )
-        
+
         # NVIDIA providers with API key validation
         nvidia_key = os.getenv("NVIDIA_API_KEY", "")
         if nvidia_key and nvidia_key != "nvapi-dummy":
@@ -235,7 +235,7 @@ class ProductionLLMOrchestrator:
                 max_tokens=2000,
                 temperature=0.2
             )
-            
+
             self.providers[AIProvider.NVIDIA_LLAMA] = ProviderConfig(
                 provider=AIProvider.NVIDIA_LLAMA,
                 base_url="https://integrate.api.nvidia.com/v1",
@@ -244,7 +244,7 @@ class ProductionLLMOrchestrator:
                 max_tokens=2000,
                 temperature=0.3
             )
-        
+
         # Always add local fallback
         self.providers[AIProvider.LOCAL_FALLBACK] = ProviderConfig(
             provider=AIProvider.LOCAL_FALLBACK,
@@ -254,17 +254,17 @@ class ProductionLLMOrchestrator:
             max_tokens=2000,
             temperature=0.5
         )
-    
+
     async def _setup_clients(self):
         """Setup API clients with production configurations"""
         if not OPENAI_AVAILABLE:
             logger.warning("OpenAI library not available - using local fallback only")
             return
-        
+
         for provider, config in self.providers.items():
             if provider == AIProvider.LOCAL_FALLBACK:
                 continue
-                
+
             try:
                 timeout = aiohttp.ClientTimeout(total=30, connect=10)
                 client = AsyncOpenAI(
@@ -278,26 +278,26 @@ class ProductionLLMOrchestrator:
             except Exception as e:
                 logger.warning(f"Failed to initialize client for {provider.value}: {e}")
                 config.circuit_breaker_state = "open"
-    
+
     async def _test_provider_connectivity(self):
         """Test provider connectivity with circuit breaker logic"""
         for provider, client in self.clients.items():
             try:
                 config = self.providers[provider]
-                
+
                 # Skip if circuit breaker is open
                 if config.circuit_breaker_state == "open":
                     if time.time() - config.circuit_breaker_last_failure < self.circuit_breaker_timeout:
                         continue
                     else:
                         config.circuit_breaker_state = "half_open"
-                
+
                 # Simple connectivity test
                 test_messages = [
                     {"role": "system", "content": "You are XORB AI. Respond with 'OK' only."},
                     {"role": "user", "content": "Test connectivity"}
                 ]
-                
+
                 response = await asyncio.wait_for(
                     client.chat.completions.create(
                         model=config.model_name,
@@ -307,7 +307,7 @@ class ProductionLLMOrchestrator:
                     ),
                     timeout=10.0
                 )
-                
+
                 if response.choices and response.choices[0].message.content:
                     logger.info(f"Provider {provider.value} connectivity: OK")
                     config.circuit_breaker_state = "closed"
@@ -315,23 +315,23 @@ class ProductionLLMOrchestrator:
                     self._update_provider_performance(provider, True, 0.5)
                 else:
                     self._handle_provider_failure(config)
-                    
+
             except Exception as e:
                 logger.warning(f"Provider {provider.value} connectivity test failed: {e}")
                 self._handle_provider_failure(self.providers[provider])
-    
+
     def _handle_provider_failure(self, config: ProviderConfig):
         """Handle provider failure with circuit breaker logic"""
         config.error_count += 1
         config.circuit_breaker_failures += 1
         config.circuit_breaker_last_failure = time.time()
-        
+
         if config.circuit_breaker_failures >= self.circuit_breaker_threshold:
             config.circuit_breaker_state = "open"
             logger.warning(f"Circuit breaker opened for {config.provider.value}")
-        
+
         self._update_provider_performance(config.provider, False, 0)
-    
+
     async def _initialize_local_fallback(self):
         """Initialize local decision-making capabilities"""
         try:
@@ -345,121 +345,121 @@ class ProductionLLMOrchestrator:
                 DecisionDomain.COMPLIANCE_VALIDATION: self._local_compliance_validation,
                 DecisionDomain.ARCHITECTURE_OPTIMIZATION: self._local_architecture_optimization
             }
-            
+
             logger.info("Local fallback decision engine initialized")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize local fallback: {e}")
-    
+
     async def make_decision(self, request: AIDecisionRequest) -> AIDecisionResponse:
         """Make AI-powered decision with enhanced reliability"""
         start_time = time.time()
-        
+
         try:
             logger.info(f"Processing decision request: {request.decision_id} ({request.domain.value})")
-            
+
             # Validate request
             if not self._validate_request(request):
                 return self._create_error_response(
-                    request, 
-                    "Invalid request parameters", 
+                    request,
+                    "Invalid request parameters",
                     time.time() - start_time
                 )
-            
+
             # Choose strategy based on requirements
             if request.require_consensus:
                 return await self._make_consensus_decision(request)
             else:
                 return await self._make_single_decision(request)
-                
+
         except Exception as e:
             logger.error(f"Decision making failed for {request.decision_id}: {e}")
             return self._create_error_response(request, str(e), time.time() - start_time)
-    
+
     def _validate_request(self, request: AIDecisionRequest) -> bool:
         """Validate decision request parameters"""
         try:
             # Check required fields
             if not request.decision_id or not request.context:
                 return False
-            
+
             # Validate domain and complexity
             if not isinstance(request.domain, DecisionDomain):
                 return False
-                
+
             if not isinstance(request.complexity, DecisionComplexity):
                 return False
-            
+
             # Check context size (prevent token overflow)
             context_str = json.dumps(request.context)
             if len(context_str) > 10000:  # Limit context size
                 return False
-            
+
             return True
-            
+
         except Exception as e:
             logger.error(f"Request validation failed: {e}")
             return False
-    
+
     async def _make_single_decision(self, request: AIDecisionRequest) -> AIDecisionResponse:
         """Make decision using best available provider with fallback"""
         start_time = time.time()
-        
+
         # Select best provider based on performance and availability
         provider = self._select_best_provider(request.complexity)
-        
+
         if not provider:
             # Use local fallback
             return await self._make_local_decision(request, start_time)
-        
+
         # Attempt decision with retries and fallback
         for attempt in range(self.max_retries):
             try:
                 if provider == AIProvider.LOCAL_FALLBACK:
                     return await self._make_local_decision(request, start_time)
-                
+
                 response = await self._query_provider(provider, request)
-                
+
                 # Update performance metrics
                 execution_time = time.time() - start_time
                 self._update_provider_performance(provider, True, response.confidence)
-                
+
                 # Store in history
                 self.decision_history.append(response)
                 if len(self.decision_history) > 1000:
                     self.decision_history = self.decision_history[-500:]  # Keep last 500
-                
+
                 return response
-                
+
             except Exception as e:
                 logger.warning(f"Attempt {attempt + 1} failed for provider {provider.value}: {e}")
                 self._handle_provider_failure(self.providers[provider])
-                
+
                 if attempt < self.max_retries - 1:
                     # Try next provider in fallback chain
                     provider = self._get_next_fallback_provider(provider)
                     if not provider:
                         break
-        
+
         # All providers failed - use local fallback
         return await self._make_local_decision(request, start_time)
-    
+
     async def _make_local_decision(self, request: AIDecisionRequest, start_time: float) -> AIDecisionResponse:
         """Make decision using local decision engine"""
         try:
             logger.info(f"Using local decision engine for {request.decision_id}")
-            
+
             # Get domain-specific decision handler
             decision_handler = self.local_decision_rules.get(
-                request.domain, 
+                request.domain,
                 self._local_generic_decision
             )
-            
+
             # Execute local decision logic
             decision_data = await decision_handler(request)
-            
+
             execution_time = time.time() - start_time
-            
+
             return AIDecisionResponse(
                 decision_id=request.decision_id,
                 decision=decision_data["decision"],
@@ -477,34 +477,34 @@ class ProductionLLMOrchestrator:
                     "complexity": request.complexity.value
                 }
             )
-            
+
         except Exception as e:
             logger.error(f"Local decision failed: {e}")
             return self._create_error_response(request, f"Local decision failed: {e}", time.time() - start_time)
-    
+
     # Local decision handlers
     async def _local_security_analysis(self, request: AIDecisionRequest) -> Dict[str, Any]:
         """Local security analysis decision logic"""
         context = request.context
-        
+
         # Analyze threat indicators
         threat_score = 0
         risk_factors = []
-        
+
         if "vulnerability" in context:
             vuln = context["vulnerability"]
             cvss_score = vuln.get("cvss_score", 0)
             threat_score += cvss_score / 10
-            
+
             if cvss_score >= 7.0:
                 risk_factors.append("High CVSS score vulnerability detected")
-        
+
         if "network_activity" in context:
             activity = context["network_activity"]
             if activity.get("external_connections", 0) > 10:
                 threat_score += 0.3
                 risk_factors.append("High volume of external connections")
-        
+
         # Make decision based on threat score
         if threat_score >= 0.8:
             decision = "block"
@@ -515,7 +515,7 @@ class ProductionLLMOrchestrator:
         else:
             decision = "monitor"
             confidence = 0.6
-        
+
         return {
             "decision": decision,
             "confidence": confidence,
@@ -531,29 +531,29 @@ class ProductionLLMOrchestrator:
                 "Review access policies"
             ]
         }
-    
+
     async def _local_threat_assessment(self, request: AIDecisionRequest) -> Dict[str, Any]:
         """Local threat assessment logic"""
         context = request.context
-        
+
         # Basic threat classification
         threat_indicators = context.get("indicators", [])
         threat_level = "low"
         confidence = 0.5
-        
+
         high_risk_indicators = ["malware", "exploit", "c2", "exfiltration"]
         medium_risk_indicators = ["scanning", "reconnaissance", "bruteforce"]
-        
+
         high_count = sum(1 for indicator in threat_indicators if any(risk in str(indicator).lower() for risk in high_risk_indicators))
         medium_count = sum(1 for indicator in threat_indicators if any(risk in str(indicator).lower() for risk in medium_risk_indicators))
-        
+
         if high_count > 0:
             threat_level = "high"
             confidence = 0.8
         elif medium_count > 2:
             threat_level = "medium"
             confidence = 0.7
-        
+
         return {
             "decision": f"threat_level_{threat_level}",
             "confidence": confidence,
@@ -570,15 +570,15 @@ class ProductionLLMOrchestrator:
                 "Review detection rules"
             ]
         }
-    
+
     async def _local_incident_response(self, request: AIDecisionRequest) -> Dict[str, Any]:
         """Local incident response decision logic"""
         context = request.context
-        
+
         incident_type = context.get("incident_type", "unknown")
         severity = context.get("severity", "medium")
         affected_systems = context.get("affected_systems", [])
-        
+
         # Determine response action
         if severity == "critical" or len(affected_systems) > 10:
             decision = "immediate_containment"
@@ -589,7 +589,7 @@ class ProductionLLMOrchestrator:
         else:
             decision = "standard_investigation"
             confidence = 0.6
-        
+
         return {
             "decision": decision,
             "confidence": confidence,
@@ -607,12 +607,12 @@ class ProductionLLMOrchestrator:
                 "Notify stakeholders as appropriate"
             ]
         }
-    
+
     async def _local_vuln_prioritization(self, request: AIDecisionRequest) -> Dict[str, Any]:
         """Local vulnerability prioritization logic"""
         context = request.context
         vulnerabilities = context.get("vulnerabilities", [])
-        
+
         # Priority scoring
         priority_scores = []
         for vuln in vulnerabilities:
@@ -620,24 +620,24 @@ class ProductionLLMOrchestrator:
             cvss = vuln.get("cvss_score", 0)
             exploitability = vuln.get("exploitability", "unknown")
             asset_criticality = vuln.get("asset_criticality", "medium")
-            
+
             score += cvss * 10  # CVSS base score
-            
+
             if exploitability == "high":
                 score += 30
             elif exploitability == "medium":
                 score += 15
-            
+
             if asset_criticality == "critical":
                 score += 25
             elif asset_criticality == "high":
                 score += 15
-            
+
             priority_scores.append((vuln.get("id", "unknown"), score))
-        
+
         # Sort by priority
         priority_scores.sort(key=lambda x: x[1], reverse=True)
-        
+
         if priority_scores:
             top_vuln_score = priority_scores[0][1]
             if top_vuln_score > 80:
@@ -652,7 +652,7 @@ class ProductionLLMOrchestrator:
         else:
             decision = "no_action_required"
             confidence = 0.5
-        
+
         return {
             "decision": decision,
             "confidence": confidence,
@@ -670,15 +670,15 @@ class ProductionLLMOrchestrator:
                 "Update vulnerability scanning frequency"
             ]
         }
-    
+
     async def _local_attack_simulation(self, request: AIDecisionRequest) -> Dict[str, Any]:
         """Local attack simulation decision logic"""
         context = request.context
-        
+
         simulation_type = context.get("simulation_type", "basic")
         target_environment = context.get("target_environment", "development")
         objectives = context.get("objectives", [])
-        
+
         # Determine simulation approach
         if target_environment == "production":
             decision = "limited_simulation"
@@ -692,7 +692,7 @@ class ProductionLLMOrchestrator:
             decision = "standard_simulation"
             confidence = 0.6
             risk_factors = []
-        
+
         return {
             "decision": decision,
             "confidence": confidence,
@@ -710,24 +710,24 @@ class ProductionLLMOrchestrator:
                 "Document all activities"
             ]
         }
-    
+
     async def _local_compliance_validation(self, request: AIDecisionRequest) -> Dict[str, Any]:
         """Local compliance validation logic"""
         context = request.context
-        
+
         framework = context.get("framework", "unknown")
         controls = context.get("controls", [])
         findings = context.get("findings", [])
-        
+
         # Calculate compliance score
         total_controls = len(controls)
         compliant_controls = len([c for c in controls if c.get("status") == "compliant"])
-        
+
         if total_controls > 0:
             compliance_score = compliant_controls / total_controls
         else:
             compliance_score = 0.0
-        
+
         if compliance_score >= 0.95:
             decision = "compliant"
             confidence = 0.9
@@ -737,7 +737,7 @@ class ProductionLLMOrchestrator:
         else:
             decision = "non_compliant"
             confidence = 0.8
-        
+
         return {
             "decision": decision,
             "confidence": confidence,
@@ -755,34 +755,34 @@ class ProductionLLMOrchestrator:
                 "Update policies and procedures"
             ]
         }
-    
+
     async def _local_architecture_optimization(self, request: AIDecisionRequest) -> Dict[str, Any]:
         """Local architecture optimization logic"""
         context = request.context
-        
+
         current_architecture = context.get("current_architecture", {})
         performance_metrics = context.get("performance_metrics", {})
         security_requirements = context.get("security_requirements", [])
-        
+
         # Basic optimization recommendations
         optimizations = []
-        
+
         if performance_metrics.get("cpu_usage", 0) > 80:
             optimizations.append("Scale compute resources")
-        
+
         if performance_metrics.get("memory_usage", 0) > 85:
             optimizations.append("Optimize memory allocation")
-        
+
         if len(security_requirements) > len(current_architecture.get("security_controls", [])):
             optimizations.append("Enhance security controls")
-        
+
         if optimizations:
             decision = "optimization_recommended"
             confidence = 0.8
         else:
             decision = "architecture_acceptable"
             confidence = 0.6
-        
+
         return {
             "decision": decision,
             "confidence": confidence,
@@ -799,7 +799,7 @@ class ProductionLLMOrchestrator:
                 "Regular architecture reviews"
             ]
         }
-    
+
     async def _local_generic_decision(self, request: AIDecisionRequest) -> Dict[str, Any]:
         """Generic local decision handler"""
         return {
@@ -817,33 +817,33 @@ class ProductionLLMOrchestrator:
                 "Implement additional data collection"
             ]
         }
-    
+
     # Enhanced provider management and selection methods
     def _select_best_provider(self, complexity: DecisionComplexity) -> Optional[AIProvider]:
         """Select the best provider based on complexity and performance"""
         available_providers = [
-            p for p in self.fallback_chain 
+            p for p in self.fallback_chain
             if p in self.providers and self.providers[p].circuit_breaker_state != "open"
         ]
-        
+
         if not available_providers:
             return AIProvider.LOCAL_FALLBACK
-        
+
         # Score providers based on performance and suitability
         provider_scores = {}
-        
+
         for provider in available_providers:
             config = self.providers[provider]
             performance = self.provider_performance.get(provider, {})
-            
+
             score = 0.0
-            
+
             # Performance metrics (0-40 points)
             success_rate = performance.get("success_rate", 0.5)
             avg_response_time = performance.get("avg_response_time", 5.0)
             score += success_rate * 30
             score += max(0, 10 - avg_response_time) * 1
-            
+
             # Complexity suitability (0-30 points)
             complexity_scores = {
                 DecisionComplexity.SIMPLE: {
@@ -879,60 +879,60 @@ class ProductionLLMOrchestrator:
                     AIProvider.LOCAL_FALLBACK: 10  # Local fallback is reliable for critical decisions
                 }
             }
-            
+
             score += complexity_scores.get(complexity, {}).get(provider, 0)
-            
+
             # Availability bonus (0-20 points)
             if config.circuit_breaker_state == "closed":
                 score += 20
             elif config.circuit_breaker_state == "half_open":
                 score += 10
-            
+
             provider_scores[provider] = score
-        
+
         # Return provider with highest score
         if provider_scores:
             best_provider = max(provider_scores.items(), key=lambda x: x[1])[0]
             logger.debug(f"Selected provider {best_provider.value} with score {provider_scores[best_provider]}")
             return best_provider
-        
+
         return AIProvider.LOCAL_FALLBACK
-    
+
     def _get_next_fallback_provider(self, failed_provider: AIProvider) -> Optional[AIProvider]:
         """Get next provider in fallback chain"""
         try:
             current_index = self.fallback_chain.index(failed_provider)
             for i in range(current_index + 1, len(self.fallback_chain)):
                 next_provider = self.fallback_chain[i]
-                if (next_provider in self.providers and 
+                if (next_provider in self.providers and
                     self.providers[next_provider].circuit_breaker_state != "open"):
                     return next_provider
         except (ValueError, IndexError):
             pass
-        
+
         return AIProvider.LOCAL_FALLBACK
-    
+
     async def _query_provider(self, provider: AIProvider, request: AIDecisionRequest) -> AIDecisionResponse:
         """Query a specific provider with enhanced error handling"""
         if provider not in self.clients:
             raise Exception(f"Provider {provider.value} not available")
-        
+
         client = self.clients[provider]
         config = self.providers[provider]
-        
+
         # Check rate limits and circuit breaker
         if not self._check_rate_limit(config):
             raise Exception(f"Rate limit exceeded for {provider.value}")
-        
+
         if config.circuit_breaker_state == "open":
             raise Exception(f"Circuit breaker open for {provider.value}")
-        
+
         # Construct enhanced prompt
         prompt = self._construct_enhanced_prompt(request)
-        
+
         # Track token usage
         input_tokens = self._count_tokens(prompt)
-        
+
         try:
             response = await client.chat.completions.create(
                 model=config.model_name,
@@ -944,16 +944,16 @@ class ProductionLLMOrchestrator:
                 temperature=config.temperature,
                 timeout=request.timeout_seconds
             )
-            
+
             if not response.choices or not response.choices[0].message.content:
                 raise Exception("Empty response from provider")
-            
+
             content = response.choices[0].message.content
             output_tokens = self._count_tokens(content)
-            
+
             # Parse response with enhanced validation
             parsed_response = self._parse_ai_response(content, request)
-            
+
             # Create response object
             ai_response = AIDecisionResponse(
                 decision_id=request.decision_id,
@@ -977,18 +977,18 @@ class ProductionLLMOrchestrator:
                     "circuit_breaker_state": config.circuit_breaker_state
                 }
             )
-            
+
             # Update provider stats
             config.success_count += 1
             config.last_request = time.time()
-            
+
             return ai_response
-            
+
         except Exception as e:
             config.error_count += 1
             self._handle_provider_failure(config)
             raise Exception(f"Provider {provider.value} failed: {e}")
-    
+
     def _construct_enhanced_prompt(self, request: AIDecisionRequest) -> str:
         """Construct enhanced prompt with better structure"""
         prompt = f"""
@@ -1042,29 +1042,29 @@ ANALYSIS GUIDELINES:
 Respond ONLY with valid JSON in the specified format.
 """
         return prompt.strip()
-    
+
     def _get_system_prompt(self, domain: DecisionDomain) -> str:
         """Get enhanced domain-specific system prompt"""
         base_system = """You are XORB-AI, an advanced cybersecurity decision engine with expertise in threat analysis, incident response, vulnerability management, and security operations. You make precise, actionable decisions based on security frameworks, threat intelligence, and risk assessment methodologies."""
-        
+
         domain_prompts = {
             DecisionDomain.SECURITY_ANALYSIS: """Specialize in technical security analysis using CVSS scoring, vulnerability correlation, and threat landscape assessment. Consider attack vectors, exploitation probability, and defense effectiveness.""",
-            
+
             DecisionDomain.THREAT_ASSESSMENT: """Expert in threat intelligence analysis using MITRE ATT&CK framework, threat actor profiling, and campaign attribution. Focus on IOC validation, TTP analysis, and threat hunting methodologies.""",
-            
+
             DecisionDomain.INCIDENT_RESPONSE: """Master of incident response following NIST and SANS frameworks. Prioritize containment strategies, evidence preservation, stakeholder communication, and recovery planning with minimal business disruption.""",
-            
+
             DecisionDomain.VULNERABILITY_PRIORITIZATION: """Authority on vulnerability management using CVSS v3.1, EPSS scoring, and business context. Consider exploit availability, asset criticality, compensating controls, and patch management windows.""",
-            
+
             DecisionDomain.ATTACK_SIMULATION: """Specialist in red team exercises and attack simulation design. Focus on realistic attack scenarios, defense testing, purple team integration, and security control validation.""",
-            
+
             DecisionDomain.COMPLIANCE_VALIDATION: """Expert in regulatory compliance including PCI-DSS, HIPAA, SOX, GDPR, and ISO-27001. Provide gap analysis, control effectiveness assessment, and remediation guidance.""",
-            
+
             DecisionDomain.ARCHITECTURE_OPTIMIZATION: """Authority on security architecture design using zero-trust principles, defense-in-depth, and operational efficiency. Consider scalability, maintainability, and threat model alignment."""
         }
-        
+
         return f"{base_system} {domain_prompts.get(domain, '')}"
-    
+
     def _parse_ai_response(self, content: str, request: AIDecisionRequest) -> Dict[str, Any]:
         """Parse AI response with enhanced validation"""
         try:
@@ -1073,21 +1073,21 @@ Respond ONLY with valid JSON in the specified format.
             if json_match:
                 json_str = json_match.group()
                 parsed = json.loads(json_str)
-                
+
                 # Validate and sanitize response
                 validated_response = self._validate_and_sanitize_response(parsed)
                 return validated_response
-            
+
             # Fallback parsing for non-JSON responses
             return self._fallback_parse_response(content)
-            
+
         except json.JSONDecodeError as e:
             logger.warning(f"Failed to parse JSON response: {e}")
             return self._fallback_parse_response(content)
         except Exception as e:
             logger.error(f"Response parsing error: {e}")
             return self._fallback_parse_response(content)
-    
+
     def _validate_and_sanitize_response(self, parsed: Dict[str, Any]) -> Dict[str, Any]:
         """Validate and sanitize parsed response"""
         # Ensure required fields exist
@@ -1099,29 +1099,29 @@ Respond ONLY with valid JSON in the specified format.
             "risk_factors": parsed.get("risk_factors", []),
             "recommendations": parsed.get("recommendations", [])
         }
-        
+
         # Validate decision value
         valid_decisions = ["approve", "reject", "defer", "investigate", "block", "monitor"]
         if validated["decision"] not in valid_decisions:
             validated["decision"] = "defer"
             validated["reasoning"].append(f"Invalid decision value corrected to 'defer'")
-        
+
         # Ensure lists are actually lists
         for list_field in ["reasoning", "alternatives", "risk_factors", "recommendations"]:
             if not isinstance(validated[list_field], list):
                 validated[list_field] = [str(validated[list_field])] if validated[list_field] else []
-        
+
         # Limit list sizes to prevent abuse
         for list_field in ["reasoning", "alternatives", "risk_factors", "recommendations"]:
             validated[list_field] = validated[list_field][:10]  # Max 10 items per list
-        
+
         return validated
-    
+
     def _fallback_parse_response(self, content: str) -> Dict[str, Any]:
         """Fallback parsing when structured parsing fails"""
         # Simple heuristic parsing
         content_lower = content.lower()
-        
+
         # Determine decision based on keywords
         if any(word in content_lower for word in ["approve", "accept", "yes", "proceed"]):
             decision = "approve"
@@ -1135,11 +1135,11 @@ Respond ONLY with valid JSON in the specified format.
         else:
             decision = "defer"
             confidence = 0.3
-        
+
         # Extract sentences as reasoning
         sentences = [s.strip() for s in content.split('.') if len(s.strip()) > 10]
         reasoning = sentences[:3] if sentences else ["Heuristic parsing of unstructured response"]
-        
+
         return {
             "decision": decision,
             "confidence": confidence,
@@ -1148,7 +1148,7 @@ Respond ONLY with valid JSON in the specified format.
             "risk_factors": ["Unstructured AI response"],
             "recommendations": ["Review original AI response", "Implement structured prompting"]
         }
-    
+
     def _count_tokens(self, text: str) -> int:
         """Count tokens in text"""
         if self.token_encoder:
@@ -1156,25 +1156,25 @@ Respond ONLY with valid JSON in the specified format.
                 return len(self.token_encoder.encode(text))
             except Exception:
                 pass
-        
+
         # Fallback: rough estimation (4 chars per token)
         return max(1, len(text) // 4)
-    
+
     def _check_rate_limit(self, config: ProviderConfig) -> bool:
         """Check if provider is within rate limits"""
         current_time = time.time()
-        
+
         # Reset counters if more than a minute has passed
         if current_time - config.last_request > 60:
             config.request_count = 0
-        
+
         # Check RPM limit
         if config.request_count >= config.rate_limit_rpm:
             return False
-        
+
         config.request_count += 1
         return True
-    
+
     def _update_provider_performance(self, provider: AIProvider, success: bool, confidence: float):
         """Update provider performance metrics"""
         if provider not in self.provider_performance:
@@ -1185,10 +1185,10 @@ Respond ONLY with valid JSON in the specified format.
                 "request_count": 0,
                 "avg_confidence": 0.0
             }
-        
+
         metrics = self.provider_performance[provider]
         metrics["request_count"] += 1
-        
+
         if success:
             metrics["success_count"] += 1
             # Update average confidence with exponential moving average
@@ -1198,11 +1198,11 @@ Respond ONLY with valid JSON in the specified format.
                 metrics["avg_confidence"] = (metrics["avg_confidence"] * 0.8) + (confidence * 0.2)
         else:
             metrics["error_count"] += 1
-        
+
         # Calculate derived metrics
         total_requests = metrics["success_count"] + metrics["error_count"]
         metrics["success_rate"] = metrics["success_count"] / total_requests if total_requests > 0 else 0
-    
+
     def _create_error_response(self, request: AIDecisionRequest, error_message: str, execution_time: float) -> AIDecisionResponse:
         """Create error response with local fallback attempt"""
         try:
@@ -1224,7 +1224,7 @@ Respond ONLY with valid JSON in the specified format.
                 token_usage={"total_tokens": 0},
                 metadata={"error": error_message, "fallback_used": True}
             )
-    
+
     def _create_local_error_response(self, request: AIDecisionRequest, error_message: str) -> AIDecisionResponse:
         """Create local error response with domain-specific logic"""
         # Use domain-specific safe defaults
@@ -1237,12 +1237,12 @@ Respond ONLY with valid JSON in the specified format.
             DecisionDomain.COMPLIANCE_VALIDATION: ("defer", 0.5, ["Compliance validation requires expert review"]),
             DecisionDomain.ARCHITECTURE_OPTIMIZATION: ("defer", 0.4, ["Architecture changes require thorough analysis"])
         }
-        
+
         decision, confidence, reasoning = domain_defaults.get(
             request.domain,
             ("defer", 0.3, ["Unknown domain requires manual review"])
         )
-        
+
         return AIDecisionResponse(
             decision_id=request.decision_id,
             decision=decision,
@@ -1256,7 +1256,7 @@ Respond ONLY with valid JSON in the specified format.
             token_usage={"total_tokens": 0},
             metadata={"error": error_message, "domain": request.domain.value, "local_fallback": True}
         )
-    
+
     async def get_orchestrator_health(self) -> Dict[str, Any]:
         """Get comprehensive orchestrator health metrics"""
         try:
@@ -1266,7 +1266,7 @@ Respond ONLY with valid JSON in the specified format.
                 "providers": {},
                 "performance": {
                     "total_decisions": len(self.decision_history),
-                    "recent_decisions": len([d for d in self.decision_history 
+                    "recent_decisions": len([d for d in self.decision_history
                                            if d.created_at > datetime.utcnow() - timedelta(hours=1)]),
                     "avg_confidence": sum(d.confidence for d in self.decision_history[-100:]) / min(100, len(self.decision_history)) if self.decision_history else 0,
                     "avg_response_time": sum(d.execution_time_ms for d in self.decision_history[-100:]) / min(100, len(self.decision_history)) if self.decision_history else 0
@@ -1277,7 +1277,7 @@ Respond ONLY with valid JSON in the specified format.
                     "error_fallbacks": len([d for d in self.decision_history if "error" in d.provider_used])
                 }
             }
-            
+
             # Provider health
             for provider, config in self.providers.items():
                 health_data["providers"][provider.value] = {
@@ -1287,22 +1287,22 @@ Respond ONLY with valid JSON in the specified format.
                     "error_count": config.error_count,
                     "success_rate": config.success_count / max(1, config.success_count + config.error_count)
                 }
-                
+
                 health_data["circuit_breakers"][provider.value] = {
                     "state": config.circuit_breaker_state,
                     "failure_count": config.circuit_breaker_failures,
                     "last_failure": config.circuit_breaker_last_failure
                 }
-            
+
             # Overall health assessment
             active_providers = sum(1 for p in self.providers.values() if p.circuit_breaker_state == "closed")
             if active_providers == 0:
                 health_data["status"] = "degraded"
             elif active_providers < len(self.providers) // 2:
                 health_data["status"] = "warning"
-            
+
             return health_data
-            
+
         except Exception as e:
             logger.error(f"Health check failed: {e}")
             return {
@@ -1310,7 +1310,7 @@ Respond ONLY with valid JSON in the specified format.
                 "error": str(e),
                 "timestamp": datetime.utcnow().isoformat()
             }
-    
+
     async def cleanup(self):
         """Cleanup orchestrator resources"""
         try:
@@ -1318,13 +1318,13 @@ Respond ONLY with valid JSON in the specified format.
             for client in self.clients.values():
                 if hasattr(client, 'close'):
                     await client.close()
-            
+
             # Save decision history if needed
             if self.decision_history:
                 logger.info(f"Processed {len(self.decision_history)} decisions during session")
-            
+
             logger.info("Production LLM Orchestrator cleanup completed")
-            
+
         except Exception as e:
             logger.error(f"Error during orchestrator cleanup: {e}")
 
@@ -1334,18 +1334,18 @@ _production_orchestrator: Optional[ProductionLLMOrchestrator] = None
 async def get_production_llm_orchestrator() -> ProductionLLMOrchestrator:
     """Get global production LLM orchestrator instance"""
     global _production_orchestrator
-    
+
     if _production_orchestrator is None:
         _production_orchestrator = ProductionLLMOrchestrator()
         await _production_orchestrator.initialize()
-    
+
     return _production_orchestrator
 
 # Enhanced convenience functions with better error handling
 async def analyze_security_incident(incident_data: Dict[str, Any], priority: str = "high") -> AIDecisionResponse:
     """Analyze security incident with production reliability"""
     orchestrator = await get_production_llm_orchestrator()
-    
+
     request = AIDecisionRequest(
         decision_id=f"incident_{uuid.uuid4().hex[:8]}",
         domain=DecisionDomain.INCIDENT_RESPONSE,
@@ -1355,13 +1355,13 @@ async def analyze_security_incident(incident_data: Dict[str, Any], priority: str
         priority=priority,
         timeout_seconds=45
     )
-    
+
     return await orchestrator.make_decision(request)
 
 async def prioritize_vulnerabilities(vulnerability_data: List[Dict[str, Any]]) -> AIDecisionResponse:
     """Prioritize vulnerabilities with enhanced analysis"""
     orchestrator = await get_production_llm_orchestrator()
-    
+
     request = AIDecisionRequest(
         decision_id=f"vuln_prioritization_{uuid.uuid4().hex[:8]}",
         domain=DecisionDomain.VULNERABILITY_PRIORITIZATION,
@@ -1370,13 +1370,13 @@ async def prioritize_vulnerabilities(vulnerability_data: List[Dict[str, Any]]) -
         constraints=["Limited maintenance windows", "Business critical systems", "Resource constraints"],
         priority="medium"
     )
-    
+
     return await orchestrator.make_decision(request)
 
 async def validate_compliance_controls(framework: str, controls_data: Dict[str, Any]) -> AIDecisionResponse:
     """Validate compliance with enhanced framework support"""
     orchestrator = await get_production_llm_orchestrator()
-    
+
     request = AIDecisionRequest(
         decision_id=f"compliance_{framework}_{uuid.uuid4().hex[:8]}",
         domain=DecisionDomain.COMPLIANCE_VALIDATION,
@@ -1385,7 +1385,7 @@ async def validate_compliance_controls(framework: str, controls_data: Dict[str, 
         constraints=["Regulatory requirements", "Audit timeline", "Documentation needs"],
         priority="high"
     )
-    
+
     return await orchestrator.make_decision(request)
 
 # Example usage demonstrating production reliability
@@ -1394,7 +1394,7 @@ if __name__ == "__main__":
         """Demonstrate production LLM orchestrator capabilities"""
         orchestrator = ProductionLLMOrchestrator()
         await orchestrator.initialize()
-        
+
         # Test with various scenarios
         test_scenarios = [
             {
@@ -1414,11 +1414,11 @@ if __name__ == "__main__":
                 "detected_by": "endpoint_protection"
             }
         ]
-        
+
         for i, scenario in enumerate(test_scenarios):
             try:
                 response = await analyze_security_incident(scenario, priority="critical")
-                
+
                 print(f"\n=== SCENARIO {i+1} ANALYSIS ===")
                 print(f"Decision: {response.decision}")
                 print(f"Confidence: {response.confidence:.2f}")
@@ -1426,10 +1426,10 @@ if __name__ == "__main__":
                 print(f"Execution Time: {response.execution_time_ms:.2f}ms")
                 print(f"Reasoning: {', '.join(response.reasoning[:2])}")
                 print(f"Recommendations: {', '.join(response.recommendations[:3])}")
-                
+
             except Exception as e:
                 print(f"Scenario {i+1} failed: {e}")
-        
+
         # Get health metrics
         health = await orchestrator.get_orchestrator_health()
         print(f"\n=== ORCHESTRATOR HEALTH ===")
@@ -1437,7 +1437,7 @@ if __name__ == "__main__":
         print(f"Total Decisions: {health['performance']['total_decisions']}")
         print(f"Active Providers: {sum(1 for p in health['providers'].values() if p['available'])}")
         print(f"Local Fallback Usage: {health['fallback_usage']['local_decisions']}")
-        
+
         await orchestrator.cleanup()
-    
+
     asyncio.run(production_demo())

@@ -22,18 +22,18 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
     try:
         container = get_container()
         auth_service = container.get(AuthenticationService)
-        
+
         # Authenticate user
         user = await auth_service.authenticate_user(
             username=form_data.username,
             password=form_data.password
         )
-        
+
         # Create access token
         access_token = await auth_service.create_access_token(user)
-        
+
         return Token(access_token=access_token, token_type="bearer")
-        
+
     except DomainException as e:
         if "Invalid" in str(e) or "credentials" in str(e).lower():
             raise HTTPException(
@@ -65,14 +65,14 @@ async def logout(token: str = Depends(get_current_token)):
     try:
         container = get_container()
         auth_service = container.get(AuthenticationService)
-        
+
         success = await auth_service.revoke_token(token)
-        
+
         return {
             "message": "Successfully logged out" if success else "Token not found",
             "revoked": success
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

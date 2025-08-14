@@ -18,17 +18,17 @@
 <body>
     <div class="container">
         <h1>SecureCorp Internal Portal</h1>
-        
+
         <?php
         // Vulnerable login system
         if (isset($_POST['username']) && isset($_POST['password'])) {
             $username = $_POST['username'];
             $password = $_POST['password'];
-            
+
             // SQL Injection vulnerability
             $query = "SELECT * FROM users WHERE username = '$username' AND password = '$password'";
             echo "<div style='color: #666; font-size: 12px;'>Debug: $query</div>";
-            
+
             // Simulate login check with vulnerability
             if ($username == "admin' OR '1'='1" || $username == "admin'--" || strpos($username, "UNION") !== false) {
                 echo "<div class='admin-panel'>";
@@ -47,34 +47,34 @@
                 echo "<div style='color: red;'>Invalid credentials</div>";
             }
         }
-        
+
         // Command injection vulnerability
         if (isset($_GET['cmd'])) {
             $cmd = $_GET['cmd'];
             echo "<div class='admin-panel'>";
             echo "<h4>Command Output:</h4>";
             echo "<pre style='background: #000; color: #0f0; padding: 10px;'>";
-            
+
             // Dangerous command execution
             $output = shell_exec($cmd . " 2>&1");
             echo htmlspecialchars($output);
             echo "</pre>";
             echo "</div>";
         }
-        
+
         // File inclusion vulnerability
         if (isset($_GET['page'])) {
             $page = $_GET['page'];
             echo "<div class='admin-panel'>";
             echo "<h4>Page Content:</h4>";
             echo "<div style='border: 1px solid #ccc; padding: 10px;'>";
-            
+
             // Dangerous file inclusion
             include($page);
             echo "</div>";
             echo "</div>";
         }
-        
+
         // XSS vulnerability in search
         if (isset($_GET['search'])) {
             $search = $_GET['search'];
@@ -84,7 +84,7 @@
             echo "</div>";
         }
         ?>
-        
+
         <div class="login-form">
             <h3>Employee Login</h3>
             <form method="POST">
@@ -105,7 +105,7 @@
                 For testing: Try SQL injection payloads
             </p>
         </div>
-        
+
         <div class="search-box">
             <h3>Employee Search</h3>
             <form method="GET">
@@ -116,7 +116,7 @@
                 Try: &lt;script&gt;alert('XSS')&lt;/script&gt;
             </p>
         </div>
-        
+
         <div style="margin-top: 40px; font-size: 12px; color: #999;">
             <p><strong>Vulnerabilities in this application:</strong></p>
             <ul>

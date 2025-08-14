@@ -46,7 +46,7 @@ class ParsedLog:
     fields: Dict[str, Any] = None
     metadata: Dict[str, Any] = None
     raw_log: str = ""
-    
+
     def __post_init__(self):
         if self.fields is None:
             self.fields = {}
@@ -56,12 +56,12 @@ class ParsedLog:
 
 class BaseLogParser:
     """Base class for log parsers"""
-    
+
     def __init__(self, format_type: LogFormat):
         self.format_type = format_type
         self.patterns = {}
         self.field_mappings = {}
-    
+
     def parse(self, log_line: str) -> Optional[ParsedLog]:
         """Parse a log line into structured data"""
         try:
@@ -70,16 +70,16 @@ class BaseLogParser:
                 timestamp=datetime.now(),
                 raw_log=log_line.strip()
             )
-            
+
             # Extract basic information common to most logs
             self._extract_common_fields(parsed_log, log_line)
-            
+
             return parsed_log
-            
+
         except Exception as e:
             logger.warning(f"Failed to parse log line: {e}")
             return None
-    
+
     def _extract_common_fields(self, parsed_log: ParsedLog, log_line: str):
         """Extract common fields from log line"""
         # Extract IP addresses
@@ -88,7 +88,7 @@ class BaseLogParser:
             parsed_log.source_ip = ips[0]
         if len(ips) >= 2:
             parsed_log.destination_ip = ips[1]
-        
+
         # Extract common port patterns
         port_pattern = r':(\d{1,5})\b'
         ports = re.findall(port_pattern, log_line)
@@ -99,27 +99,27 @@ class BaseLogParser:
                     parsed_log.destination_port = int(ports[1])
             except ValueError:
                 pass
-        
+
         # Extract severity keywords
         severity_keywords = {
             'emerg': 'emergency', 'alert': 'alert', 'crit': 'critical',
             'err': 'error', 'warn': 'warning', 'notice': 'notice',
             'info': 'info', 'debug': 'debug'
         }
-        
+
         log_lower = log_line.lower()
         for keyword, severity in severity_keywords.items():
             if keyword in log_lower:
                 parsed_log.severity = severity
                 break
-        
+
         # Extract protocol information
         protocols = ['tcp', 'udp', 'icmp', 'http', 'https', 'ftp', 'ssh']
         for protocol in protocols:
             if protocol.lower() in log_lower:
                 parsed_log.protocol = protocol.upper()
                 break
-    
+
     def extract_timestamp(self, timestamp_str: str) -> Optional[datetime]:
         """Extract timestamp from string"""
         timestamp_patterns = [
@@ -131,20 +131,20 @@ class BaseLogParser:
             "%Y/%m/%d %H:%M:%S",
             "%d/%b/%Y:%H:%M:%S",
         ]
-        
+
         for pattern in timestamp_patterns:
             try:
                 return datetime.strptime(timestamp_str, pattern)
             except ValueError:
                 continue
-        
+
         return None
-    
+
     def extract_ip_addresses(self, text: str) -> List[str]:
         """Extract IP addresses from text"""
         ip_pattern = r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b'
         ips = re.findall(ip_pattern, text)
-        
+
         # Validate IP addresses
         valid_ips = []
         for ip in ips:
@@ -153,13 +153,13 @@ class BaseLogParser:
                 valid_ips.append(ip)
             except ValueError:
                 continue
-        
+
         return valid_ips
 
 
 class SyslogParser(BaseLogParser):
     """RFC5424 Syslog parser"""
-    
+
     def __init__(self):
         super().__init__(LogFormat.SYSLOG)
         # RFC5424 pattern
@@ -173,7 +173,7 @@ class SyslogParser(BaseLogParser):
             r'(?P<structured_data>\[.*?\])?\s*'
             r'(?P<message>.*)'
         )
-        
+
         # BSD Syslog pattern
         self.patterns['bsd'] = re.compile(
             r'^<(?P<priority>\d+)>'
@@ -182,7 +182,7 @@ class SyslogParser(BaseLogParser):
             r'(?P<tag>[^:\[\]]+)(\[(?P<pid>\d+)\])?:\s*'
             r'(?P<message>.*)'
         )
-    
+
     def parse(self, log_line: str) -> Optional[ParsedLog]:
         """Parse syslog format"""
         try:
@@ -191,29 +191,29 @@ class SyslogParser(BaseLogParser):
             if not match:
                 # Try BSD syslog
                 match = self.patterns['bsd'].match(log_line.strip())
-            
+
             if not match:
                 return None
-            
+
             groups = match.groupdict()
-            
+
             # Extract priority and calculate facility/severity
             priority = int(groups.get('priority', 0))
             facility = priority // 8
             severity = priority % 8
-            
+
             # Map severity to text
             severity_map = {
                 0: "Emergency", 1: "Alert", 2: "Critical", 3: "Error",
                 4: "Warning", 5: "Notice", 6: "Info", 7: "Debug"
             }
-            
+
             # Parse timestamp
             timestamp_str = groups.get('timestamp', '')
             timestamp = self.extract_timestamp(timestamp_str)
             if not timestamp:
                 timestamp = datetime.utcnow()
-            
+
             # Extract process info
             process = groups.get('app_name') or groups.get('tag', '')
             pid = groups.get('proc_id') or groups.get('pid')
@@ -224,14 +224,14 @@ class SyslogParser(BaseLogParser):
                     pid = None
             else:
                 pid = None
-            
+
             message = groups.get('message', '').strip()
-            
+
             # Extract IP addresses from message
             ips = self.extract_ip_addresses(message)
             source_ip = ips[0] if ips else None
             destination_ip = ips[1] if len(ips) > 1 else None
-            
+
             parsed_log = ParsedLog(
                 timestamp=timestamp,
                 source_ip=source_ip,
@@ -252,9 +252,9 @@ class SyslogParser(BaseLogParser):
                 },
                 raw_log=log_line
             )
-            
+
             return parsed_log
-            
+
         except Exception as e:
             logger.error(f"Error parsing syslog: {e}")
             return None
@@ -262,21 +262,21 @@ class SyslogParser(BaseLogParser):
 
 class JSONParser(BaseLogParser):
     """JSON log parser"""
-    
+
     def __init__(self):
         super().__init__(LogFormat.JSON)
-    
+
     def parse(self, log_line: str) -> Optional[ParsedLog]:
         """Parse JSON format"""
         try:
             data = json.loads(log_line.strip())
-            
+
             # Extract common fields
             timestamp_str = data.get('timestamp') or data.get('time') or data.get('@timestamp')
             timestamp = self.extract_timestamp(timestamp_str) if timestamp_str else datetime.utcnow()
-            
+
             message = data.get('message') or data.get('msg') or str(data)
-            
+
             parsed_log = ParsedLog(
                 timestamp=timestamp,
                 source_ip=data.get('source_ip') or data.get('src_ip'),
@@ -293,9 +293,9 @@ class JSONParser(BaseLogParser):
                 fields=data,
                 raw_log=log_line
             )
-            
+
             return parsed_log
-            
+
         except json.JSONDecodeError as e:
             logger.error(f"Error parsing JSON log: {e}")
             return None
@@ -306,7 +306,7 @@ class JSONParser(BaseLogParser):
 
 class CEFParser(BaseLogParser):
     """Common Event Format (CEF) parser"""
-    
+
     def __init__(self):
         super().__init__(LogFormat.CEF)
         self.cef_pattern = re.compile(
@@ -319,24 +319,24 @@ class CEFParser(BaseLogParser):
             r'(?P<severity>[^|]*)\|'
             r'(?P<extension>.*)'
         )
-    
+
     def parse(self, log_line: str) -> Optional[ParsedLog]:
         """Parse CEF format"""
         try:
             match = self.cef_pattern.match(log_line.strip())
             if not match:
                 return None
-            
+
             groups = match.groupdict()
-            
+
             # Parse extension fields
             extension = groups.get('extension', '')
             extension_fields = self._parse_cef_extension(extension)
-            
+
             # Extract timestamp
             timestamp_str = extension_fields.get('rt') or extension_fields.get('end')
             timestamp = self.extract_timestamp(timestamp_str) if timestamp_str else datetime.utcnow()
-            
+
             parsed_log = ParsedLog(
                 timestamp=timestamp,
                 source_ip=extension_fields.get('src'),
@@ -358,13 +358,13 @@ class CEFParser(BaseLogParser):
                 },
                 raw_log=log_line
             )
-            
+
             return parsed_log
-            
+
         except Exception as e:
             logger.error(f"Error parsing CEF log: {e}")
             return None
-    
+
     def _parse_cef_extension(self, extension: str) -> Dict[str, str]:
         """Parse CEF extension fields"""
         fields = {}
@@ -374,7 +374,7 @@ class CEFParser(BaseLogParser):
                 key, value = pair.split('=', 1)
                 fields[key] = value
         return fields
-    
+
     def _safe_int(self, value: str) -> Optional[int]:
         """Safely convert string to int"""
         try:
@@ -385,7 +385,7 @@ class CEFParser(BaseLogParser):
 
 class ApacheParser(BaseLogParser):
     """Apache access log parser"""
-    
+
     def __init__(self):
         super().__init__(LogFormat.APACHE)
         # Common Log Format
@@ -398,7 +398,7 @@ class ApacheParser(BaseLogParser):
             r'(?P<status>\d+)\s+'
             r'(?P<bytes_sent>\S+)'
         )
-        
+
         # Combined Log Format
         self.patterns['combined'] = re.compile(
             r'^(?P<remote_host>\S+)\s+'
@@ -411,7 +411,7 @@ class ApacheParser(BaseLogParser):
             r'"(?P<referer>[^"]*)"\s+'
             r'"(?P<user_agent>[^"]*)"'
         )
-    
+
     def parse(self, log_line: str) -> Optional[ParsedLog]:
         """Parse Apache log format"""
         try:
@@ -419,16 +419,16 @@ class ApacheParser(BaseLogParser):
             match = self.patterns['combined'].match(log_line.strip())
             if not match:
                 match = self.patterns['common'].match(log_line.strip())
-            
+
             if not match:
                 return None
-            
+
             groups = match.groupdict()
-            
+
             # Parse timestamp (Apache format: day/month/year:hour:minute:second zone)
             timestamp_str = groups.get('timestamp', '')
             timestamp = self.extract_timestamp(timestamp_str.split(' ')[0]) if timestamp_str else datetime.utcnow()
-            
+
             # Extract request details
             request = groups.get('request', '')
             method, url, protocol = '', '', ''
@@ -437,7 +437,7 @@ class ApacheParser(BaseLogParser):
                 method = parts[0] if len(parts) > 0 else ''
                 url = parts[1] if len(parts) > 1 else ''
                 protocol = parts[2] if len(parts) > 2 else ''
-            
+
             parsed_log = ParsedLog(
                 timestamp=timestamp,
                 source_ip=groups.get('remote_host'),
@@ -455,13 +455,13 @@ class ApacheParser(BaseLogParser):
                 },
                 raw_log=log_line
             )
-            
+
             return parsed_log
-            
+
         except Exception as e:
             logger.error(f"Error parsing Apache log: {e}")
             return None
-    
+
     def _safe_int(self, value: str) -> Optional[int]:
         """Safely convert string to int"""
         try:
@@ -472,7 +472,7 @@ class ApacheParser(BaseLogParser):
 
 class LogParserFactory:
     """Factory for creating log parsers"""
-    
+
     def __init__(self):
         self.parsers = {
             LogFormat.SYSLOG: SyslogParser(),
@@ -486,24 +486,24 @@ class LogParserFactory:
             (LogFormat.SYSLOG, lambda line: re.match(r'^<\d+>', line.strip())),
             (LogFormat.APACHE, lambda line: '[' in line and '"' in line),
         ]
-    
+
     def parse_log(self, log_line: str, format_hint: Optional[LogFormat] = None) -> Optional[ParsedLog]:
         """Parse log line with optional format hint"""
         if not log_line or not log_line.strip():
             return None
-        
+
         # Use specific parser if format is provided
         if format_hint and format_hint in self.parsers:
             return self.parsers[format_hint].parse(log_line)
-        
+
         # Auto-detect format
         detected_format = self.detect_format(log_line)
         if detected_format and detected_format in self.parsers:
             return self.parsers[detected_format].parse(log_line)
-        
+
         # Fallback to simple parsing
         return self._simple_parse(log_line)
-    
+
     def detect_format(self, log_line: str) -> Optional[LogFormat]:
         """Auto-detect log format"""
         for log_format, pattern_func in self.auto_detect_patterns:
@@ -512,9 +512,9 @@ class LogParserFactory:
                     return log_format
             except Exception:
                 continue
-        
+
         return None
-    
+
     def _simple_parse(self, log_line: str) -> ParsedLog:
         """Simple fallback parser for unknown formats"""
         # Extract timestamp from beginning if present
@@ -525,22 +525,22 @@ class LogParserFactory:
                 timestamp = datetime.fromisoformat(timestamp_match.group(1).replace('T', ' '))
             except ValueError:
                 pass
-        
+
         if not timestamp:
             timestamp = datetime.utcnow()
-        
+
         # Extract severity/level
         severity = None
         for level in ['CRITICAL', 'ERROR', 'WARN', 'INFO', 'DEBUG']:
             if level in log_line.upper():
                 severity = level
                 break
-        
+
         # Extract IP addresses
         ips = re.findall(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', log_line)
         source_ip = ips[0] if ips else None
         destination_ip = ips[1] if len(ips) > 1 else None
-        
+
         return ParsedLog(
             timestamp=timestamp,
             source_ip=source_ip,
@@ -549,11 +549,11 @@ class LogParserFactory:
             message=log_line.strip(),
             raw_log=log_line
         )
-    
+
     def add_parser(self, format_type: LogFormat, parser: BaseLogParser):
         """Add custom parser"""
         self.parsers[format_type] = parser
-    
+
     def get_supported_formats(self) -> List[LogFormat]:
         """Get list of supported log formats"""
         return list(self.parsers.keys())

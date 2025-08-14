@@ -61,26 +61,26 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <details>
   <summary>Brew</summary>
-  
+
   ```sh
   brew install nuclei
   ```
-  
+
 </details>
 <details>
   <summary>Docker</summary>
-  
+
   ```sh
   docker pull projectdiscovery/nuclei:latest
   ```
-  
+
 </details>
 
 **より多くのインストール方法は[こちら](https://docs.projectdiscovery.io/tools/nuclei/install)で見つけることができます。**
 
 <table>
 <tr>
-<td>  
+<td>
 
 ### Nucleiテンプレート
 
@@ -170,4 +170,4 @@ Nucleiは、広範な設定可能性、大規模な拡張性、および使い�
 設定:
    -config string                        Nucleiの設定ファイルへのパス
    -fr, -follow-redirects                HTTPテンプレートのリダイレクトをフォローすることを有効にする
-   -fhr, -follow-host-redirects         
+   -fhr, -follow-host-redirects

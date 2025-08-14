@@ -50,7 +50,7 @@ async def make_orchestration_decision(request: Dict[str, Any]):
     """Make neural orchestration decision"""
     try:
         decision_id = f"decision_{int(time.time())}"
-        
+
         # Simulate neural network decision making
         decision = {
             "decision_id": decision_id,
@@ -68,10 +68,10 @@ async def make_orchestration_decision(request: Dict[str, Any]):
             "estimated_success_rate": 0.87,
             "timestamp": datetime.now().isoformat()
         }
-        
+
         orchestration_state["last_decision"] = decision
         return decision
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Orchestration failed: {str(e)}")
 
@@ -90,7 +90,7 @@ async def trigger_agent_evolution(request: Dict[str, Any]):
     try:
         agent_id = request.get("agent_id", "all")
         evolution_type = request.get("evolution_type", "performance_optimization")
-        
+
         evolution_result = {
             "evolution_id": f"evolution_{int(time.time())}",
             "agent_id": agent_id,
@@ -103,9 +103,9 @@ async def trigger_agent_evolution(request: Dict[str, Any]):
             },
             "timestamp": datetime.now().isoformat()
         }
-        
+
         return evolution_result
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Evolution failed: {str(e)}")
 

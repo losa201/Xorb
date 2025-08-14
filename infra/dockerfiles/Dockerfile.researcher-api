@@ -48,7 +48,7 @@ class XORBPTaaSResearcherAPI:
         self.postgres_pool = None
         self.neo4j_driver = None
         self.qdrant_client = None
-        
+
     async def init_connections(self):
         """Initialize all database connections"""
         try:
@@ -56,21 +56,21 @@ class XORBPTaaSResearcherAPI:
             redis_host = os.getenv('REDIS_HOST', 'xorb-redis')
             redis_port = int(os.getenv('REDIS_PORT', 6379))
             redis_password = os.getenv('REDIS_PASSWORD', 'xorb_redis_2024')
-            
+
             self.redis = await aioredis.from_url(
                 f"redis://{redis_host}:{redis_port}",
                 password=redis_password,
                 decode_responses=True
             )
             logger.info("✅ Researcher API connected to Redis")
-            
+
             # PostgreSQL connection
             postgres_host = os.getenv('POSTGRES_HOST', 'xorb-postgres')
             postgres_port = int(os.getenv('POSTGRES_PORT', 5432))
             postgres_db = os.getenv('POSTGRES_DB', 'xorb_platform')
             postgres_user = os.getenv('POSTGRES_USER', 'xorb_user')
             postgres_password = os.getenv('POSTGRES_PASSWORD', 'xorb_secure_2024')
-            
+
             self.postgres_pool = await asyncpg.create_pool(
                 host=postgres_host,
                 port=postgres_port,
@@ -81,31 +81,31 @@ class XORBPTaaSResearcherAPI:
                 max_size=10
             )
             logger.info("✅ Researcher API connected to PostgreSQL")
-            
+
             # Neo4j connection
             neo4j_uri = os.getenv('NEO4J_URI', 'bolt://xorb-neo4j:7687')
             neo4j_user = os.getenv('NEO4J_USER', 'neo4j')
             neo4j_password = os.getenv('NEO4J_PASSWORD', 'xorb_graph_2024')
-            
+
             self.neo4j_driver = AsyncGraphDatabase.driver(
                 neo4j_uri, auth=(neo4j_user, neo4j_password)
             )
             logger.info("✅ Researcher API connected to Neo4j")
-            
+
             # Qdrant connection
             qdrant_host = os.getenv('QDRANT_HOST', 'xorb-qdrant')
             qdrant_port = int(os.getenv('QDRANT_PORT', 6333))
-            
+
             self.qdrant_client = QdrantClient(
                 host=qdrant_host,
                 port=qdrant_port
             )
             logger.info("✅ Researcher API connected to Qdrant")
-            
+
         except Exception as e:
             logger.error(f"❌ Researcher API database connection failed: {e}")
             raise
-    
+
     async def health_check(self, request: web_request) -> web_response:
         """Health check endpoint"""
         health_status = {
@@ -121,14 +121,14 @@ class XORBPTaaSResearcherAPI:
                 "collaboration_tools"
             ]
         }
-        
+
         return web.json_response(health_status)
-    
+
     async def register_researcher(self, request: web_request) -> web_response:
         """Register new security researcher"""
         try:
             data = await request.json()
-            
+
             # Validate required fields
             required_fields = ['username', 'email', 'password', 'full_name']
             for field in required_fields:
@@ -137,16 +137,16 @@ class XORBPTaaSResearcherAPI:
                         {"success": False, "error": f"Missing required field: {field}"},
                         status=400
                     )
-            
+
             # Hash password
             password_hash = bcrypt.hashpw(
-                data['password'].encode('utf-8'), 
+                data['password'].encode('utf-8'),
                 bcrypt.gensalt()
             ).decode('utf-8')
-            
+
             # Generate researcher ID
             researcher_id = f"RES-{hashlib.md5(data['email'].encode()).hexdigest()[:8].upper()}"
-            
+
             researcher = {
                 "id": researcher_id,
                 "username": data['username'],
@@ -162,9 +162,9 @@ class XORBPTaaSResearcherAPI:
                 "last_activity": datetime.now().isoformat(),
                 "status": "active"
             }
-            
+
             return web.json_response({
-                "success": True, 
+                "success": True,
                 "data": {
                     "researcher_id": researcher_id,
                     "message": "Registration successful",
@@ -176,14 +176,14 @@ class XORBPTaaSResearcherAPI:
                     ]
                 }
             })
-            
+
         except Exception as e:
             logger.error(f"Registration error: {e}")
             return web.json_response(
                 {"success": False, "error": "Registration failed"},
                 status=500
             )
-    
+
     async def get_researcher_dashboard(self, request: web_request) -> web_response:
         """Get researcher dashboard data"""
         researcher_data = {
@@ -210,7 +210,7 @@ class XORBPTaaSResearcherAPI:
                     "potential_bounty": "$2000-$5000"
                 },
                 {
-                    "id": "SUB-002", 
+                    "id": "SUB-002",
                     "title": "XSS in Comment Section",
                     "program": "StartupXYZ Security Research",
                     "severity": "medium",
@@ -255,17 +255,17 @@ class XORBPTaaSResearcherAPI:
                 "mentorship_sessions": 2
             }
         }
-        
+
         return web.json_response({"success": True, "data": researcher_data})
-    
+
     async def submit_vulnerability(self, request: web_request) -> web_response:
         """Submit vulnerability report"""
         try:
             data = await request.json()
-            
+
             # Generate submission ID
             submission_id = f"VUL-{datetime.now().strftime('%Y%m%d')}-{hashlib.md5(str(datetime.now()).encode()).hexdigest()[:6].upper()}"
-            
+
             vulnerability = {
                 "id": submission_id,
                 "title": data.get('title'),
@@ -285,7 +285,7 @@ class XORBPTaaSResearcherAPI:
                 "attachments": data.get('attachments', []),
                 "collaboration_allowed": data.get('collaboration_allowed', True)
             }
-            
+
             return web.json_response({
                 "success": True,
                 "data": {
@@ -301,14 +301,14 @@ class XORBPTaaSResearcherAPI:
                     ]
                 }
             })
-            
+
         except Exception as e:
             logger.error(f"Vulnerability submission error: {e}")
             return web.json_response(
                 {"success": False, "error": "Submission failed"},
                 status=500
             )
-    
+
     async def get_bounty_programs(self, request: web_request) -> web_response:
         """Get available bounty programs"""
         programs = [
@@ -348,13 +348,13 @@ class XORBPTaaSResearcherAPI:
             }
             for i in range(12)
         ]
-        
+
         return web.json_response({"success": True, "data": programs})
-    
+
     async def get_submission_status(self, request: web_request) -> web_response:
         """Get vulnerability submission status"""
         submission_id = request.match_info.get('submission_id')
-        
+
         status_data = {
             "submission_id": submission_id,
             "current_status": "under_review",
@@ -381,16 +381,16 @@ class XORBPTaaSResearcherAPI:
                 }
             ]
         }
-        
+
         return web.json_response({"success": True, "data": status_data})
 
 async def create_app():
     """Create researcher API application"""
     researcher_api = XORBPTaaSResearcherAPI()
     await researcher_api.init_connections()
-    
+
     app = web.Application()
-    
+
     # Add CORS middleware
     @web.middleware
     async def cors_middleware(request, handler):
@@ -399,9 +399,9 @@ async def create_app():
         response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
         response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
         return response
-    
+
     app.middlewares.append(cors_middleware)
-    
+
     # Routes
     app.router.add_get('/health', researcher_api.health_check)
     app.router.add_post('/api/v1/researchers/register', researcher_api.register_researcher)
@@ -409,7 +409,7 @@ async def create_app():
     app.router.add_post('/api/v1/vulnerabilities/submit', researcher_api.submit_vulnerability)
     app.router.add_get('/api/v1/programs', researcher_api.get_bounty_programs)
     app.router.add_get('/api/v1/submissions/{submission_id}', researcher_api.get_submission_status)
-    
+
     return app
 
 if __name__ == '__main__':

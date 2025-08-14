@@ -60,35 +60,35 @@ create_auth_directory() {
 # Generate credentials
 generate_credentials() {
     log_info "Generating authentication credentials..."
-    
+
     # Dashboard credentials
     local dashboard_admin_pass=$(generate_password 24)
     local dashboard_user_pass=$(generate_password 24)
-    
+
     # Metrics credentials
     local metrics_admin_pass=$(generate_password 24)
     local metrics_user_pass=$(generate_password 24)
-    
+
     # API Keys
     local neural_api_key="xorb_neural_$(generate_password 32)"
     local learning_api_key="xorb_learning_$(generate_password 32)"
-    
+
     # Database passwords
     local postgres_password=$(generate_password 24)
     local redis_password=$(generate_password 24)
     local grafana_secret_key=$(generate_password 48)
-    
+
     # Generate bcrypt hashes for Caddy Basic Auth
     local dashboard_admin_hash=$(generate_bcrypt_hash "${dashboard_admin_pass}")
     local dashboard_user_hash=$(generate_bcrypt_hash "${dashboard_user_pass}")
     local metrics_admin_hash=$(generate_bcrypt_hash "${metrics_admin_pass}")
     local metrics_user_hash=$(generate_bcrypt_hash "${metrics_user_pass}")
-    
+
     # Create credentials file
     cat > "${AUTH_DIR}/credentials.txt" <<EOF
 # XORB Telemetry Authentication Credentials
 # Generated: $(date)
-# 
+#
 # IMPORTANT: Store these credentials securely and do not commit to version control!
 
 # Dashboard Access (Grafana)
@@ -118,9 +118,9 @@ DASHBOARD_USER_HASH=${dashboard_user_hash}
 METRICS_ADMIN_HASH=${metrics_admin_hash}
 METRICS_USER_HASH=${metrics_user_hash}
 EOF
-    
+
     chmod 600 "${AUTH_DIR}/credentials.txt"
-    
+
     # Create environment file for Docker Compose
     cat > "${AUTH_DIR}/.env" <<EOF
 # XORB Telemetry Environment Variables
@@ -138,12 +138,12 @@ LEARNING_API_KEY=${learning_api_key}
 POSTGRES_PASSWORD=${postgres_password}
 REDIS_PASSWORD=${redis_password}
 EOF
-    
+
     chmod 600 "${AUTH_DIR}/.env"
-    
+
     # Create updated Caddyfile with real hashes
     create_updated_caddyfile "${dashboard_admin_hash}" "${dashboard_user_hash}" "${metrics_admin_hash}" "${metrics_user_hash}"
-    
+
     log_success "Credentials generated successfully!"
     log_info "Files created:"
     log_info "  📋 Credentials: ${AUTH_DIR}/credentials.txt"
@@ -157,9 +157,9 @@ create_updated_caddyfile() {
     local dashboard_user_hash=$2
     local metrics_admin_hash=$3
     local metrics_user_hash=$4
-    
+
     log_info "Creating secure Caddyfile with real authentication hashes..."
-    
+
     cat > "/root/Xorb/Caddyfile.secure" <<EOF
 # XORB Secure Telemetry Exposure Configuration
 # Caddy reverse proxy with TLS and real authentication
@@ -170,13 +170,13 @@ dashboard.xorb.local:443 {
     tls internal {
         on_demand
     }
-    
+
     # Basic authentication with real hashes
     basicauth {
         admin ${dashboard_admin_hash}
         xorb_user ${dashboard_user_hash}
     }
-    
+
     # Reverse proxy to Grafana
     reverse_proxy localhost:3002 {
         header_up Host {upstream_hostport}
@@ -184,7 +184,7 @@ dashboard.xorb.local:443 {
         header_up X-Forwarded-For {remote_host}
         header_up X-Forwarded-Proto {scheme}
     }
-    
+
     # Security headers
     header {
         X-Frame-Options DENY
@@ -193,7 +193,7 @@ dashboard.xorb.local:443 {
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
         Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval'"
     }
-    
+
     # Rate limiting
     rate_limit {
         zone dashboard_ip {
@@ -202,7 +202,7 @@ dashboard.xorb.local:443 {
             window 1m
         }
     }
-    
+
     # Logging
     log {
         output file /var/log/caddy/dashboard.log
@@ -216,13 +216,13 @@ metrics.xorb.local:443 {
     tls internal {
         on_demand
     }
-    
+
     # Basic authentication with real hashes
     basicauth {
         admin ${metrics_admin_hash}
         metrics_user ${metrics_user_hash}
     }
-    
+
     # Reverse proxy to Prometheus
     reverse_proxy localhost:9092 {
         header_up Host {upstream_hostport}
@@ -230,7 +230,7 @@ metrics.xorb.local:443 {
         header_up X-Forwarded-For {remote_host}
         header_up X-Forwarded-Proto {scheme}
     }
-    
+
     # Security headers
     header {
         X-Frame-Options DENY
@@ -238,7 +238,7 @@ metrics.xorb.local:443 {
         X-XSS-Protection "1; mode=block"
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
     }
-    
+
     # Rate limiting for metrics scraping
     rate_limit {
         zone metrics_ip {
@@ -247,7 +247,7 @@ metrics.xorb.local:443 {
             window 1m
         }
     }
-    
+
     # Logging
     log {
         output file /var/log/caddy/metrics.log
@@ -261,12 +261,12 @@ orchestrator.xorb.local:443 {
     tls internal {
         on_demand
     }
-    
+
     # API key authentication middleware
     @api_auth {
         header Authorization "Bearer $(cat ${AUTH_DIR}/.env | grep NEURAL_API_KEY | cut -d= -f2)"
     }
-    
+
     handle @api_auth {
         # Reverse proxy to Neural Orchestrator
         reverse_proxy localhost:8003 {
@@ -276,11 +276,11 @@ orchestrator.xorb.local:443 {
             header_up X-Forwarded-Proto {scheme}
         }
     }
-    
+
     handle {
         respond "Unauthorized: Valid API key required" 401
     }
-    
+
     # Security headers
     header {
         X-Frame-Options DENY
@@ -288,7 +288,7 @@ orchestrator.xorb.local:443 {
         X-XSS-Protection "1; mode=block"
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
     }
-    
+
     # Rate limiting for API calls
     rate_limit {
         zone orchestrator_ip {
@@ -297,7 +297,7 @@ orchestrator.xorb.local:443 {
             window 1m
         }
     }
-    
+
     # Logging
     log {
         output file /var/log/caddy/orchestrator.log
@@ -311,12 +311,12 @@ learning.xorb.local:443 {
     tls internal {
         on_demand
     }
-    
+
     # API key authentication middleware
     @api_auth {
         header Authorization "Bearer $(cat ${AUTH_DIR}/.env | grep LEARNING_API_KEY | cut -d= -f2)"
     }
-    
+
     handle @api_auth {
         # Reverse proxy to Learning Service
         reverse_proxy localhost:8004 {
@@ -326,11 +326,11 @@ learning.xorb.local:443 {
             header_up X-Forwarded-Proto {scheme}
         }
     }
-    
+
     handle {
         respond "Unauthorized: Valid API key required" 401
     }
-    
+
     # Security headers
     header {
         X-Frame-Options DENY
@@ -338,7 +338,7 @@ learning.xorb.local:443 {
         X-XSS-Protection "1; mode=block"
         Strict-Transport-Security "max-age=31536000; includeSubDomains"
     }
-    
+
     # Rate limiting for API calls
     rate_limit {
         zone learning_ip {
@@ -347,7 +347,7 @@ learning.xorb.local:443 {
             window 1m
         }
     }
-    
+
     # Logging
     log {
         output file /var/log/caddy/learning.log
@@ -360,18 +360,18 @@ health.xorb.local:443 {
     tls internal {
         on_demand
     }
-    
+
     respond /health \`{
         "status": "healthy",
         "services": {
             "dashboard": "https://dashboard.xorb.local",
-            "metrics": "https://metrics.xorb.local", 
+            "metrics": "https://metrics.xorb.local",
             "orchestrator": "https://orchestrator.xorb.local",
             "learning": "https://learning.xorb.local"
         },
         "timestamp": "{{.now.Format \"2006-01-02T15:04:05Z\"}}"
     }\`
-    
+
     log {
         output file /var/log/caddy/health.log
         format json
@@ -382,10 +382,10 @@ health.xorb.local:443 {
 {
     # Security settings
     auto_https disable_redirects
-    
+
     # Admin endpoint (local only)
     admin localhost:2019
-    
+
     # Global logging
     log {
         level INFO
@@ -398,14 +398,14 @@ health.xorb.local:443 {
     }
 }
 EOF
-    
+
     log_success "Secure Caddyfile created: /root/Xorb/Caddyfile.secure"
 }
 
 # Create authentication test script
 create_auth_test_script() {
     log_info "Creating authentication test script..."
-    
+
     cat > "${AUTH_DIR}/test-auth.sh" <<'EOF'
 #!/bin/bash
 
@@ -446,7 +446,7 @@ curl -k -s -H "Authorization: Bearer ${LEARNING_API_KEY}" "https://learning.xorb
 echo ""
 echo "🔍 Authentication testing complete"
 EOF
-    
+
     chmod +x "${AUTH_DIR}/test-auth.sh"
     log_success "Authentication test script created: ${AUTH_DIR}/test-auth.sh"
 }
@@ -454,7 +454,7 @@ EOF
 # Create credential rotation script
 create_rotation_script() {
     log_info "Creating credential rotation script..."
-    
+
     cat > "${AUTH_DIR}/rotate-credentials.sh" <<'EOF'
 #!/bin/bash
 
@@ -485,7 +485,7 @@ docker-compose -f docker-compose.telemetry-secure.yml --env-file="${AUTH_DIR}/.e
 echo "✅ Credential rotation complete"
 echo "📦 Backup stored in: ${BACKUP_DIR}"
 EOF
-    
+
     chmod +x "${AUTH_DIR}/rotate-credentials.sh"
     log_success "Credential rotation script created: ${AUTH_DIR}/rotate-credentials.sh"
 }
@@ -493,14 +493,14 @@ EOF
 # Install required Python packages
 install_dependencies() {
     log_info "Installing required Python packages..."
-    
+
     if ! python3 -c "import bcrypt" 2>/dev/null; then
         pip3 install bcrypt || {
             log_warning "Failed to install bcrypt via pip, trying apt..."
             apt-get update && apt-get install -y python3-bcrypt
         }
     fi
-    
+
     log_success "Dependencies installed"
 }
 
@@ -508,13 +508,13 @@ install_dependencies() {
 main() {
     log_info "🔐 XORB Telemetry Authentication Setup"
     log_info "====================================="
-    
+
     install_dependencies
     create_auth_directory
     generate_credentials
     create_auth_test_script
     create_rotation_script
-    
+
     log_success "🎉 Authentication setup complete!"
     log_info ""
     log_info "📋 Files created:"

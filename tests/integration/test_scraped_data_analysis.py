@@ -268,7 +268,7 @@ OUTPUT FORMAT (JSON):
   "economics": {{
     "roi_potential": {{
       "beginner": "ROI for new researchers",
-      "intermediate": "ROI for experienced researchers", 
+      "intermediate": "ROI for experienced researchers",
       "expert": "ROI for security experts"
     }},
     "efficiency_score": 1-10,

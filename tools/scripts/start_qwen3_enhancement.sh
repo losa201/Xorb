@@ -102,14 +102,14 @@ sleep 5
 # Function to handle cleanup on exit
 cleanup() {
     echo -e "\n${YELLOW}🛑 Shutting down Qwen3-Coder enhancement...${NC}"
-    
+
     # Kill any background processes
     jobs -p | xargs -r kill
-    
+
     # Final Git status
     echo -e "${BLUE}📝 Final Git status:${NC}"
     git status --short
-    
+
     # Enhancement summary
     if [ -f "logs/qwen3_enhancement.log" ]; then
         echo -e "${BLUE}📊 Enhancement summary:${NC}"
@@ -117,7 +117,7 @@ cleanup() {
         echo -e "   Files analyzed: $(grep -c "analyzed" logs/qwen3_enhancement.log || echo "0")"
         echo -e "   Enhancements applied: $(grep -c "Applied enhancement" logs/qwen3_enhancement.log || echo "0")"
     fi
-    
+
     echo -e "${GREEN}✅ Qwen3-Coder enhancement stopped cleanly${NC}"
     exit 0
 }

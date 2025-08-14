@@ -104,21 +104,21 @@ class TestCase:
 
 class XORBResilienceTestSuite:
     """Comprehensive testing suite for XORB resilience components"""
-    
+
     def __init__(self, config_path: str = "config/test_config.json"):
         self.config_path = config_path
         self.test_config = self._load_test_config()
         self.test_session_id = str(uuid.uuid4())
-        
+
         # Test management
         self.test_suites: Dict[str, TestSuite] = {}
         self.test_results: Dict[str, TestResult] = {}
         self.test_components = {}
-        
+
         # Performance tracking
         self.performance_baseline = {}
         self.load_test_metrics = {}
-        
+
         # Setup logging
         logging.basicConfig(
             level=logging.INFO,
@@ -129,11 +129,11 @@ class XORBResilienceTestSuite:
             ]
         )
         self.logger = logging.getLogger(__name__)
-        
+
         # Initialize test environment
         self._initialize_test_environment()
         self._register_test_suites()
-        
+
         self.logger.info(f"XORB Resilience Test Suite initialized: {self.test_session_id}")
 
     def _load_test_config(self) -> Dict[str, Any]:
@@ -164,7 +164,7 @@ class XORBResilienceTestSuite:
                 "grafana": "http://localhost:3000"
             }
         }
-        
+
         try:
             if os.path.exists(self.config_path):
                 with open(self.config_path, 'r') as f:
@@ -186,7 +186,7 @@ class XORBResilienceTestSuite:
             test_dirs = ['logs', 'test_data', 'test_reports', 'test_artifacts']
             for directory in test_dirs:
                 os.makedirs(directory, exist_ok=True)
-            
+
             # Initialize XORB components for testing
             try:
                 self.test_components = {
@@ -201,7 +201,7 @@ class XORBResilienceTestSuite:
                 self.logger.info("Test environment components initialized")
             except Exception as e:
                 self.logger.warning(f"Some test components unavailable: {e}")
-                
+
         except Exception as e:
             self.logger.error(f"Failed to initialize test environment: {e}")
             raise e
@@ -217,19 +217,19 @@ class XORBResilienceTestSuite:
             self._register_performance_tests()
             self._register_security_tests()
             self._register_network_tests()
-            
+
             # Integration test suites
             self._register_integration_tests()
-            
+
             # Load and stress test suites
             self._register_load_tests()
             self._register_stress_tests()
-            
+
             # End-to-end test suites
             self._register_e2e_tests()
-            
+
             self.logger.info(f"Registered {len(self.test_suites)} test suites")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to register test suites: {e}")
             raise e
@@ -242,7 +242,7 @@ class XORBResilienceTestSuite:
             description="Unit tests for load balancing functionality",
             category=TestCategory.UNIT
         )
-        
+
         # Test cases
         test_cases = [
             TestCase(
@@ -291,7 +291,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=300
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -303,7 +303,7 @@ class XORBResilienceTestSuite:
             description="Unit tests for circuit breaker functionality",
             category=TestCategory.UNIT
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="cb_01",
@@ -342,7 +342,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=120
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -354,7 +354,7 @@ class XORBResilienceTestSuite:
             description="Unit tests for data replication functionality",
             category=TestCategory.UNIT
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="dr_01",
@@ -393,7 +393,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=240
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -405,7 +405,7 @@ class XORBResilienceTestSuite:
             description="Unit tests for monitoring functionality",
             category=TestCategory.UNIT
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="mon_01",
@@ -444,7 +444,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=120
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -456,7 +456,7 @@ class XORBResilienceTestSuite:
             description="Unit tests for performance optimization",
             category=TestCategory.PERFORMANCE
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="perf_01",
@@ -495,7 +495,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=120
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -507,7 +507,7 @@ class XORBResilienceTestSuite:
             description="Unit tests for security hardening",
             category=TestCategory.SECURITY
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="sec_01",
@@ -546,7 +546,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=90
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -558,7 +558,7 @@ class XORBResilienceTestSuite:
             description="Unit tests for network configuration",
             category=TestCategory.UNIT
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="net_01",
@@ -588,7 +588,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=90
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -600,7 +600,7 @@ class XORBResilienceTestSuite:
             description="Integration tests for component interactions",
             category=TestCategory.INTEGRATION
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="int_01",
@@ -639,7 +639,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=300
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -651,7 +651,7 @@ class XORBResilienceTestSuite:
             description="Load testing for performance validation",
             category=TestCategory.LOAD
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="load_01",
@@ -681,7 +681,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=900
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -693,7 +693,7 @@ class XORBResilienceTestSuite:
             description="Stress testing for resilience validation",
             category=TestCategory.STRESS
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="stress_01",
@@ -723,7 +723,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=1200
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -735,7 +735,7 @@ class XORBResilienceTestSuite:
             description="End-to-end testing scenarios",
             category=TestCategory.END_TO_END
         )
-        
+
         test_cases = [
             TestCase(
                 test_id="e2e_01",
@@ -765,7 +765,7 @@ class XORBResilienceTestSuite:
                 timeout_seconds=1800
             )
         ]
-        
+
         suite.tests = test_cases
         self.test_suites[suite.suite_id] = suite
 
@@ -774,7 +774,7 @@ class XORBResilienceTestSuite:
         """Run all test suites"""
         self.logger.info("Starting comprehensive test execution")
         start_time = time.time()
-        
+
         try:
             # Run test suites in order of priority
             suite_execution_order = [
@@ -790,7 +790,7 @@ class XORBResilienceTestSuite:
                 "stress_tests",
                 "e2e_tests"
             ]
-            
+
             results = {}
             for suite_id in suite_execution_order:
                 if suite_id in self.test_suites:
@@ -799,19 +799,19 @@ class XORBResilienceTestSuite:
                     results[suite_id] = suite_result
                 else:
                     self.logger.warning(f"Test suite not found: {suite_id}")
-            
+
             end_time = time.time()
             total_duration = end_time - start_time
-            
+
             # Generate comprehensive report
             report = self._generate_test_report(results, total_duration)
-            
+
             # Save test results
             await self._save_test_results(report)
-            
+
             self.logger.info(f"Test execution completed in {total_duration:.2f} seconds")
             return report
-            
+
         except Exception as e:
             self.logger.error(f"Test execution failed: {e}")
             raise e
@@ -820,30 +820,30 @@ class XORBResilienceTestSuite:
         """Run a specific test suite"""
         if suite_id not in self.test_suites:
             raise ValueError(f"Test suite not found: {suite_id}")
-        
+
         suite = self.test_suites[suite_id]
         self.logger.info(f"Running test suite: {suite.name}")
-        
+
         try:
             # Execute suite setup if available
             if suite.setup_function:
                 await suite.setup_function()
-            
+
             # Execute tests
             if self.test_config["parallel_execution"]:
                 results = await self._run_tests_parallel(suite.tests)
             else:
                 results = await self._run_tests_sequential(suite.tests)
-            
+
             # Execute suite teardown if available
             if suite.teardown_function:
                 await suite.teardown_function()
-            
+
             # Calculate suite statistics
             total_tests = len(results)
             passed_tests = len([r for r in results.values() if r.status == TestStatus.PASSED])
             failed_tests = len([r for r in results.values() if r.status == TestStatus.FAILED])
-            
+
             suite_result = {
                 "suite_id": suite_id,
                 "suite_name": suite.name,
@@ -853,10 +853,10 @@ class XORBResilienceTestSuite:
                 "success_rate": (passed_tests / total_tests) * 100 if total_tests > 0 else 0,
                 "test_results": {test_id: result.__dict__ for test_id, result in results.items()}
             }
-            
+
             self.logger.info(f"Test suite completed: {suite.name} - {passed_tests}/{total_tests} passed")
             return suite_result
-            
+
         except Exception as e:
             self.logger.error(f"Test suite execution failed: {suite.name} - {e}")
             raise e
@@ -865,14 +865,14 @@ class XORBResilienceTestSuite:
         """Run tests in parallel"""
         max_workers = self.test_config["max_workers"]
         results = {}
-        
+
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Submit test tasks
             future_to_test = {
                 executor.submit(self._execute_test_case, test_case): test_case
                 for test_case in test_cases
             }
-            
+
             # Collect results
             for future in as_completed(future_to_test):
                 test_case = future_to_test[future]
@@ -890,13 +890,13 @@ class XORBResilienceTestSuite:
                         error_message=str(e)
                     )
                     results[test_case.test_id] = error_result
-        
+
         return results
 
     async def _run_tests_sequential(self, test_cases: List[TestCase]) -> Dict[str, TestResult]:
         """Run tests sequentially"""
         results = {}
-        
+
         for test_case in test_cases:
             try:
                 result = await self._execute_test_case_async(test_case)
@@ -911,7 +911,7 @@ class XORBResilienceTestSuite:
                     error_message=str(e)
                 )
                 results[test_case.test_id] = error_result
-        
+
         return results
 
     def _execute_test_case(self, test_case: TestCase) -> TestResult:
@@ -927,15 +927,15 @@ class XORBResilienceTestSuite:
             severity=test_case.severity,
             status=TestStatus.RUNNING
         )
-        
+
         try:
             self.logger.info(f"Executing test: {test_case.name}")
             result.start_time = time.time()
-            
+
             # Execute test setup if available
             if test_case.setup_function:
                 await test_case.setup_function()
-            
+
             # Execute the actual test function
             if asyncio.iscoroutinefunction(test_case.test_function):
                 test_result = await asyncio.wait_for(
@@ -944,14 +944,14 @@ class XORBResilienceTestSuite:
                 )
             else:
                 test_result = test_case.test_function(result)
-            
+
             # Execute test teardown if available
             if test_case.teardown_function:
                 await test_case.teardown_function()
-            
+
             result.end_time = time.time()
             result.duration = result.end_time - result.start_time
-            
+
             # Determine final status based on test result and assertions
             if result.assertions_failed > 0:
                 result.status = TestStatus.FAILED
@@ -959,23 +959,23 @@ class XORBResilienceTestSuite:
                 result.status = TestStatus.FAILED
             else:
                 result.status = TestStatus.PASSED
-            
+
             self.logger.info(f"Test completed: {test_case.name} - {result.status.value}")
-            
+
         except asyncio.TimeoutError:
             result.status = TestStatus.FAILED
             result.error_message = f"Test timed out after {test_case.timeout_seconds} seconds"
             result.end_time = time.time()
             result.duration = result.end_time - result.start_time
             self.logger.error(f"Test timeout: {test_case.name}")
-            
+
         except Exception as e:
             result.status = TestStatus.ERROR
             result.error_message = str(e)
             result.end_time = time.time()
             result.duration = result.end_time - result.start_time
             self.logger.error(f"Test error: {test_case.name} - {e}")
-            
+
         return result
 
     # Test implementation methods
@@ -985,19 +985,19 @@ class XORBResilienceTestSuite:
             if 'load_balancer' not in self.test_components:
                 result.error_message = "Load balancer component not available"
                 return False
-            
+
             lb = self.test_components['load_balancer']
-            
+
             # Test initialization
             self._assert_not_none(lb, "Load balancer should be initialized", result)
-            
+
             # Test configuration
             config = lb.config if hasattr(lb, 'config') else None
             self._assert_not_none(config, "Load balancer should have configuration", result)
-            
+
             result.details["initialization"] = "successful"
             return True
-            
+
         except Exception as e:
             result.error_message = str(e)
             return False
@@ -1008,27 +1008,27 @@ class XORBResilienceTestSuite:
             if 'load_balancer' not in self.test_components:
                 result.error_message = "Load balancer component not available"
                 return False
-            
+
             lb = self.test_components['load_balancer']
-            
+
             # Test service registration
             service_name = "test_service"
             instance_id = "test_instance_1"
             host = "localhost"
             port = 8080
-            
+
             await lb.register_service(service_name, instance_id, host, port)
-            
+
             # Verify registration
             services = lb.get_registered_services() if hasattr(lb, 'get_registered_services') else {}
             self._assert_true(service_name in services, f"Service {service_name} should be registered", result)
-            
+
             # Test deregistration
             await lb.deregister_service(service_name, instance_id)
-            
+
             result.details["registration_test"] = "successful"
             return True
-            
+
         except Exception as e:
             result.error_message = str(e)
             return False
@@ -1039,13 +1039,13 @@ class XORBResilienceTestSuite:
             if 'load_balancer' not in self.test_components:
                 result.error_message = "Load balancer component not available"
                 return False
-            
+
             lb = self.test_components['load_balancer']
-            
+
             # Test each strategy
-            strategies = [LoadBalancingStrategy.ROUND_ROBIN, LoadBalancingStrategy.WEIGHTED_ROUND_ROBIN, 
+            strategies = [LoadBalancingStrategy.ROUND_ROBIN, LoadBalancingStrategy.WEIGHTED_ROUND_ROBIN,
                          LoadBalancingStrategy.LEAST_CONNECTIONS, LoadBalancingStrategy.PERFORMANCE_BASED]
-            
+
             strategy_results = {}
             for strategy in strategies:
                 try:
@@ -1055,15 +1055,15 @@ class XORBResilienceTestSuite:
                     strategy_results[strategy.value] = "method_not_available"
                 except Exception as e:
                     strategy_results[strategy.value] = f"error: {str(e)}"
-            
+
             result.details["strategy_tests"] = strategy_results
-            
+
             # At least some strategies should work
             successful_strategies = [k for k, v in strategy_results.items() if v == "success"]
             self._assert_true(len(successful_strategies) > 0, "At least one load balancing strategy should work", result)
-            
+
             return True
-            
+
         except Exception as e:
             result.error_message = str(e)
             return False
@@ -1074,22 +1074,22 @@ class XORBResilienceTestSuite:
             if 'load_balancer' not in self.test_components:
                 result.error_message = "Load balancer component not available"
                 return False
-            
+
             lb = self.test_components['load_balancer']
-            
+
             # Test health check configuration
             health_check_config = {
                 "interval": 30,
                 "timeout": 10,
                 "path": "/health"
             }
-            
+
             if hasattr(lb, 'configure_health_checks'):
                 await lb.configure_health_checks(health_check_config)
                 result.details["health_check_configuration"] = "successful"
-            
+
             return True
-            
+
         except Exception as e:
             result.error_message = str(e)
             return False
@@ -1100,9 +1100,9 @@ class XORBResilienceTestSuite:
             if 'load_balancer' not in self.test_components:
                 result.error_message = "Load balancer component not available"
                 return False
-            
+
             lb = self.test_components['load_balancer']
-            
+
             # Test auto-scaling configuration
             if hasattr(lb, 'configure_auto_scaling'):
                 scaling_config = {
@@ -1113,9 +1113,9 @@ class XORBResilienceTestSuite:
                 }
                 await lb.configure_auto_scaling(scaling_config)
                 result.details["auto_scaling_configuration"] = "successful"
-            
+
             return True
-            
+
         except Exception as e:
             result.error_message = str(e)
             return False
@@ -1126,21 +1126,21 @@ class XORBResilienceTestSuite:
             if 'fault_tolerance' not in self.test_components:
                 result.error_message = "Fault tolerance component not available"
                 return False
-            
+
             ft = self.test_components['fault_tolerance']
-            
+
             # Create circuit breaker
             service_name = "test_service"
             await ft.create_circuit_breaker(service_name)
-            
+
             # Test state transitions
             if hasattr(ft, 'get_circuit_breaker_state'):
                 initial_state = await ft.get_circuit_breaker_state(service_name)
                 self._assert_equal(initial_state, CircuitBreakerState.CLOSED, "Initial state should be CLOSED", result)
-            
+
             result.details["circuit_breaker_test"] = "successful"
             return True
-            
+
         except Exception as e:
             result.error_message = str(e)
             return False
@@ -1153,7 +1153,7 @@ class XORBResilienceTestSuite:
         try:
             endpoints = self.test_config["service_endpoints"]
             communication_results = {}
-            
+
             for service_name, endpoint in endpoints.items():
                 try:
                     # Test health endpoint
@@ -1164,21 +1164,21 @@ class XORBResilienceTestSuite:
                         communication_results[service_name] = f"unhealthy: {response.status_code}"
                 except requests.RequestException as e:
                     communication_results[service_name] = f"connection_error: {str(e)}"
-            
+
             result.details["service_communication"] = communication_results
-            
+
             # Check if majority of services are healthy
             healthy_services = [k for k, v in communication_results.items() if v == "healthy"]
             total_services = len(communication_results)
-            
+
             self._assert_true(
                 len(healthy_services) >= total_services * 0.7,
                 "At least 70% of services should be healthy",
                 result
             )
-            
+
             return True
-            
+
         except Exception as e:
             result.error_message = str(e)
             return False
@@ -1212,9 +1212,9 @@ class XORBResilienceTestSuite:
             total_tests = sum(suite_result["total_tests"] for suite_result in results.values())
             total_passed = sum(suite_result["passed_tests"] for suite_result in results.values())
             total_failed = sum(suite_result["failed_tests"] for suite_result in results.values())
-            
+
             overall_success_rate = (total_passed / total_tests) * 100 if total_tests > 0 else 0
-            
+
             # Categorize results
             category_stats = {}
             for category in TestCategory:
@@ -1223,7 +1223,7 @@ class XORBResilienceTestSuite:
                     for test_result in suite_result["test_results"].values():
                         if test_result["category"] == category.value:
                             category_tests.append(test_result)
-                
+
                 if category_tests:
                     passed = len([t for t in category_tests if t["status"] == TestStatus.PASSED.value])
                     failed = len([t for t in category_tests if t["status"] == TestStatus.FAILED.value])
@@ -1233,14 +1233,14 @@ class XORBResilienceTestSuite:
                         "failed": failed,
                         "success_rate": (passed / len(category_tests)) * 100
                     }
-            
+
             # Performance metrics
             performance_metrics = {
                 "total_execution_time": total_duration,
                 "average_test_duration": total_duration / total_tests if total_tests > 0 else 0,
                 "tests_per_second": total_tests / total_duration if total_duration > 0 else 0
             }
-            
+
             report = {
                 "test_session_id": self.test_session_id,
                 "generated_at": time.time(),
@@ -1255,9 +1255,9 @@ class XORBResilienceTestSuite:
                 "suite_results": results,
                 "recommendations": self._generate_test_recommendations(results)
             }
-            
+
             return report
-            
+
         except Exception as e:
             self.logger.error(f"Failed to generate test report: {e}")
             raise e
@@ -1265,18 +1265,18 @@ class XORBResilienceTestSuite:
     def _generate_test_recommendations(self, results: Dict[str, Any]) -> List[str]:
         """Generate test recommendations based on results"""
         recommendations = []
-        
+
         # Check for failed critical tests
         critical_failures = []
         for suite_result in results.values():
             for test_result in suite_result["test_results"].values():
-                if (test_result["severity"] == TestSeverity.CRITICAL.value and 
+                if (test_result["severity"] == TestSeverity.CRITICAL.value and
                     test_result["status"] == TestStatus.FAILED.value):
                     critical_failures.append(test_result["test_name"])
-        
+
         if critical_failures:
             recommendations.append(f"CRITICAL: Resolve {len(critical_failures)} critical test failures immediately")
-        
+
         # Check success rates by category
         for category in TestCategory:
             category_tests = []
@@ -1284,14 +1284,14 @@ class XORBResilienceTestSuite:
                 for test_result in suite_result["test_results"].values():
                     if test_result["category"] == category.value:
                         category_tests.append(test_result)
-            
+
             if category_tests:
                 passed = len([t for t in category_tests if t["status"] == TestStatus.PASSED.value])
                 success_rate = (passed / len(category_tests)) * 100
-                
+
                 if success_rate < 80:
                     recommendations.append(f"Review {category.value} tests - success rate is {success_rate:.1f}%")
-        
+
         # Performance recommendations
         recommendations.extend([
             "Set up continuous integration for automated testing",
@@ -1299,7 +1299,7 @@ class XORBResilienceTestSuite:
             "Implement test result trending and analysis",
             "Consider expanding test coverage for edge cases"
         ])
-        
+
         return recommendations
 
     async def _save_test_results(self, report: Dict[str, Any]):
@@ -1309,7 +1309,7 @@ class XORBResilienceTestSuite:
             report_file = f"test_reports/test_report_{self.test_session_id}.json"
             with open(report_file, 'w') as f:
                 json.dump(report, f, indent=2, default=str)
-            
+
             # Save summary report
             summary_file = f"test_reports/test_summary_{self.test_session_id}.txt"
             with open(summary_file, 'w') as f:
@@ -1328,9 +1328,9 @@ class XORBResilienceTestSuite:
                 f.write("\nRecommendations:\n")
                 for rec in report['recommendations']:
                     f.write(f"  - {rec}\n")
-            
+
             self.logger.info(f"Test results saved: {report_file}, {summary_file}")
-            
+
         except Exception as e:
             self.logger.error(f"Failed to save test results: {e}")
             raise e
@@ -1341,14 +1341,14 @@ async def main():
     try:
         print("🧪 XORB Resilience Testing Suite")
         print("=" * 40)
-        
+
         # Initialize test suite
         test_suite = XORBResilienceTestSuite()
-        
+
         # Run all tests
         print("🚀 Starting comprehensive test execution...")
         results = await test_suite.run_all_tests()
-        
+
         # Print summary
         print(f"\n✅ Test execution completed!")
         print(f"📊 Results Summary:")
@@ -1357,10 +1357,10 @@ async def main():
         print(f"   Failed: {results['summary']['failed_tests']}")
         print(f"   Success Rate: {results['summary']['overall_success_rate']}%")
         print(f"   Execution Time: {results['performance_metrics']['total_execution_time']:.2f}s")
-        
+
         # Return success based on overall results
         return results['summary']['overall_success_rate'] >= 80
-        
+
     except Exception as e:
         print(f"❌ Test execution failed: {e}")
         return False

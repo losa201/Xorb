@@ -3,27 +3,27 @@ info:
   title: XORB Cybersecurity Platform API
   description: |
     XORB API for autonomous cybersecurity operations, orchestration, and multi-agent coordination.
-    
+
     ## Security
     - All endpoints require mTLS authentication
     - JWT bearer tokens for authorization
     - Role-based access control (RBAC)
     - Request signing for response integrity
-    
+
     ## Rate Limiting
     - Admin: 10,000 req/min
-    - Orchestrator: 5,000 req/min  
+    - Orchestrator: 5,000 req/min
     - Agent: 2,000 req/min
     - Analyst: 1,000 req/min
     - Readonly: 500 req/min
-    
+
   version: 1.0.0
   contact:
     name: XORB Platform Team
     email: platform@xorb.security
   license:
     name: Proprietary
-    
+
 servers:
   - url: https://api.xorb.security/v1
     description: Production API
@@ -43,7 +43,7 @@ paths:
       summary: Obtain JWT token
       description: Exchange client credentials for JWT token
       tags: [Authentication]
-      security: 
+      security:
         - mTLS: []
       requestBody:
         required: true
@@ -441,7 +441,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/SystemConfig'
 
-  # Intelligence Integration Endpoints  
+  # Intelligence Integration Endpoints
   /intelligence/decisions:
     post:
       summary: Request AI decision

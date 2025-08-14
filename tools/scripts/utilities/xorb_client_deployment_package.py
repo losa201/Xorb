@@ -25,20 +25,20 @@ logger = logging.getLogger(__name__)
 
 class XORBClientPackager:
     """XORB Client Deployment Package Generator"""
-    
+
     def __init__(self):
         self.packager_id = f"CLIENT-PACKAGER-{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.base_dir = Path.cwd()
         self.packages_dir = self.base_dir / "packages"
         self.packages_dir.mkdir(exist_ok=True)
-        
+
         # Package configurations
         self.package_configs = {
             "enterprise": {
                 "name": "XORB-Enterprise-Edition",
                 "description": "Full enterprise deployment with all security features",
                 "includes": [
-                    "core_engines", "enterprise_apis", "monitoring", 
+                    "core_engines", "enterprise_apis", "monitoring",
                     "threat_intelligence", "red_team_infra", "documentation"
                 ],
                 "security_level": "maximum",
@@ -74,15 +74,15 @@ class XORBClientPackager:
                 "support_level": "academic"
             }
         }
-        
+
         logger.info(f"🛡️ XORB Client Packager initialized - ID: {self.packager_id}")
-    
+
     def create_all_packages(self) -> Dict[str, str]:
         """Create all deployment packages"""
         logger.info("📦 Creating XORB client deployment packages...")
-        
+
         package_paths = {}
-        
+
         for package_type, config in self.package_configs.items():
             try:
                 package_path = self.create_package(package_type, config)
@@ -91,38 +91,38 @@ class XORBClientPackager:
             except Exception as e:
                 logger.error(f"❌ Failed to create {package_type} package: {e}")
                 package_paths[package_type] = f"ERROR: {e}"
-        
+
         return package_paths
-    
+
     def create_package(self, package_type: str, config: Dict[str, Any]) -> str:
         """Create individual deployment package"""
         logger.info(f"📦 Creating {package_type} package...")
-        
+
         # Create temporary directory for package assembly
         with tempfile.TemporaryDirectory() as temp_dir:
             package_dir = Path(temp_dir) / config["name"]
             package_dir.mkdir()
-            
+
             # Create package structure
             self._create_package_structure(package_dir, package_type, config)
-            
+
             # Copy core files based on package type
             self._copy_package_files(package_dir, package_type, config)
-            
+
             # Generate package documentation
             self._generate_package_docs(package_dir, package_type, config)
-            
+
             # Create deployment scripts
             self._create_deployment_scripts(package_dir, package_type, config)
-            
+
             # Generate package manifest
             self._generate_manifest(package_dir, package_type, config)
-            
+
             # Create compressed package
             package_path = self._compress_package(package_dir, package_type)
-            
+
             return package_path
-    
+
     def _create_package_structure(self, package_dir: Path, package_type: str, config: Dict[str, Any]):
         """Create package directory structure"""
         structure = [
@@ -137,42 +137,42 @@ class XORBClientPackager:
             "security",      # Security configurations
             "tests"          # Test suites
         ]
-        
+
         for dir_name in structure:
             (package_dir / dir_name).mkdir(exist_ok=True)
-    
+
     def _copy_package_files(self, package_dir: Path, package_type: str, config: Dict[str, Any]):
         """Copy files based on package configuration"""
         includes = config["includes"]
-        
+
         # Core engine files
         if "core_engines" in includes or "core_engines_limited" in includes:
             self._copy_core_engines(package_dir, package_type == "evaluation")
-        
+
         # Enterprise API files
         if "enterprise_apis" in includes:
             self._copy_enterprise_apis(package_dir)
-        
+
         # Monitoring components
         if "monitoring" in includes or "basic_monitoring" in includes:
             self._copy_monitoring_files(package_dir, includes)
-        
+
         # Documentation
         if "documentation" in includes:
             self._copy_documentation(package_dir)
-        
+
         # Docker configurations
         if "red_team_infra" in includes:
             self._copy_docker_configs(package_dir)
-        
+
         # Development tools
         if "development_tools" in includes:
             self._copy_development_tools(package_dir)
-        
+
         # Research tools
         if "research_tools" in includes:
             self._copy_research_tools(package_dir)
-    
+
     def _copy_core_engines(self, package_dir: Path, limited: bool = False):
         """Copy core XORB engine files"""
         core_files = [
@@ -182,9 +182,9 @@ class XORBClientPackager:
             "XORB_SYNTHETIC_MALWARE_GENERATOR.py",
             "XORB_PRKMT_12_9_ENHANCED_ORCHESTRATOR.py"
         ]
-        
+
         src_dir = package_dir / "src"
-        
+
         for file_name in core_files:
             if self.base_dir.joinpath(file_name).exists():
                 if limited and "SYNTHETIC_MALWARE" in file_name:
@@ -195,28 +195,28 @@ class XORBClientPackager:
                     )
                 else:
                     shutil.copy2(self.base_dir / file_name, src_dir / file_name)
-        
+
         # Copy requirements
         if self.base_dir.joinpath("requirements.txt").exists():
             shutil.copy2(self.base_dir / "requirements.txt", src_dir / "requirements.txt")
-    
+
     def _copy_enterprise_apis(self, package_dir: Path):
         """Copy enterprise API components"""
         api_files = [
             "xorb_enterprise_api.py",
             "xorb_threat_intelligence_feeds.py"
         ]
-        
+
         src_dir = package_dir / "src"
-        
+
         for file_name in api_files:
             if self.base_dir.joinpath(file_name).exists():
                 shutil.copy2(self.base_dir / file_name, src_dir / file_name)
-    
+
     def _copy_monitoring_files(self, package_dir: Path, includes: List[str]):
         """Copy monitoring and dashboard files"""
         monitoring_files = ["xorb_tactical_dashboard.py"]
-        
+
         if "monitoring" in includes:
             # Full monitoring stack
             monitoring_files.extend([
@@ -224,10 +224,10 @@ class XORBClientPackager:
                 "config/grafana_dashboard.json",
                 "config/monitoring_config.json"
             ])
-        
+
         src_dir = package_dir / "src"
         config_dir = package_dir / "config"
-        
+
         for file_path in monitoring_files:
             source_path = self.base_dir / file_path
             if source_path.exists():
@@ -236,7 +236,7 @@ class XORBClientPackager:
                 else:
                     dest_path = src_dir / source_path.name
                 shutil.copy2(source_path, dest_path)
-    
+
     def _copy_documentation(self, package_dir: Path):
         """Copy documentation files"""
         doc_files = [
@@ -245,24 +245,24 @@ class XORBClientPackager:
             "docs/README_COMPLETE.md",
             "docs/OPERATIONAL_GUIDE.md"
         ]
-        
+
         docs_dir = package_dir / "docs"
-        
+
         for file_path in doc_files:
             source_path = self.base_dir / file_path
             if source_path.exists():
                 shutil.copy2(source_path, docs_dir / source_path.name)
-    
+
     def _copy_docker_configs(self, package_dir: Path):
         """Copy Docker and infrastructure configurations"""
         docker_files = [
             "docker-compose-redteam-infrastructure.yml",
             "deploy_redteam_infrastructure.sh"
         ]
-        
+
         docker_dir = package_dir / "docker"
         scripts_dir = package_dir / "scripts"
-        
+
         for file_name in docker_files:
             source_path = self.base_dir / file_name
             if source_path.exists():
@@ -271,23 +271,23 @@ class XORBClientPackager:
                 else:
                     dest_path = scripts_dir / file_name
                 shutil.copy2(source_path, dest_path)
-                
+
                 # Make scripts executable
                 if file_name.endswith(".sh"):
                     dest_path.chmod(0o755)
-    
+
     def _copy_development_tools(self, package_dir: Path):
         """Copy development and debugging tools"""
         # Create development helper scripts
         self._create_dev_scripts(package_dir)
-        
+
         # Copy test configurations
         test_files = []
         for test_file in test_files:
             source_path = self.base_dir / test_file
             if source_path.exists():
                 shutil.copy2(source_path, package_dir / "tests" / source_path.name)
-    
+
     def _copy_research_tools(self, package_dir: Path):
         """Copy research and academic tools"""
         # Create research-specific configurations
@@ -297,16 +297,16 @@ class XORBClientPackager:
             "academic_reporting": True,
             "anonymization": True
         }
-        
+
         config_path = package_dir / "config" / "research_config.json"
         with open(config_path, 'w') as f:
             json.dump(research_config, f, indent=2)
-    
+
     def _create_limited_version(self, source_path: Path, dest_path: Path):
         """Create limited version of a file for evaluation"""
         with open(source_path, 'r') as f:
             content = f.read()
-        
+
         # Add evaluation limitations
         limited_content = f'''#!/usr/bin/env python3
 """
@@ -329,14 +329,14 @@ MAX_RUNTIME_MINUTES = 30
 if EVALUATION_MODE:
     print("⚠️  EVALUATION MODE: Limited to 5 campaigns, 8 agents, 30 minutes runtime")
 '''
-        
+
         with open(dest_path, 'w') as f:
             f.write(limited_content)
-    
+
     def _create_dev_scripts(self, package_dir: Path):
         """Create development helper scripts"""
         scripts_dir = package_dir / "scripts"
-        
+
         # Development setup script
         dev_setup = scripts_dir / "dev_setup.sh"
         with open(dev_setup, 'w') as f:
@@ -362,7 +362,7 @@ echo "✅ Development environment ready!"
 echo "Run: python src/XORB_PRKMT_12_9_ENHANCED_ORCHESTRATOR.py"
 ''')
         dev_setup.chmod(0o755)
-        
+
         # Debug launcher
         debug_launcher = scripts_dir / "debug_launcher.py"
         with open(debug_launcher, 'w') as f:
@@ -386,12 +386,12 @@ if __name__ == "__main__":
     print("🛡️ XORB Debug Launcher")
     print("Available engines:")
     print("1. APT Emulation Engine")
-    print("2. Zero Trust Breach Simulator") 
+    print("2. Zero Trust Breach Simulator")
     print("3. Behavioral Drift Detection")
     print("4. Enhanced Orchestrator")
-    
+
     choice = input("Select engine (1-4): ")
-    
+
     if choice == "1":
         from XORB_AUTONOMOUS_APT_EMULATION_ENGINE import main
         main()
@@ -408,11 +408,11 @@ if __name__ == "__main__":
         print("Invalid selection")
 ''')
         debug_launcher.chmod(0o755)
-    
+
     def _generate_package_docs(self, package_dir: Path, package_type: str, config: Dict[str, Any]):
         """Generate package-specific documentation"""
         docs_dir = package_dir / "docs"
-        
+
         # Main README
         readme_path = package_dir / "README.md"
         with open(readme_path, 'w') as f:
@@ -421,9 +421,9 @@ if __name__ == "__main__":
 ## Overview
 {config["description"]}
 
-**Package Type:** {package_type.title()}  
-**Security Level:** {config["security_level"].title()}  
-**Support Level:** {config["support_level"].title()}  
+**Package Type:** {package_type.title()}
+**Security Level:** {config["security_level"].title()}
+**Support Level:** {config["support_level"].title()}
 
 ## Quick Start
 
@@ -475,7 +475,7 @@ if __name__ == "__main__":
 
 ### Core Components
 - **APT Emulation Engine:** Nation-state attack simulation
-- **Zero Trust Simulator:** Breach testing framework  
+- **Zero Trust Simulator:** Breach testing framework
 - **Drift Detection:** Behavioral anomaly monitoring
 - **Orchestrator:** Multi-agent coordination
 
@@ -508,17 +508,17 @@ See `docs/CONFIGURATION.md` for detailed configuration options.
 XORB PRKMT 12.9 Enhanced - {package_type.title()} Edition
 Copyright 2025 XORB Security Platform
 ''')
-        
+
         # Installation guide
         install_guide = docs_dir / "INSTALLATION.md"
         with open(install_guide, 'w') as f:
             f.write(self._generate_installation_guide(package_type, config))
-        
+
         # Configuration guide
         config_guide = docs_dir / "CONFIGURATION.md"
         with open(config_guide, 'w') as f:
             f.write(self._generate_configuration_guide(package_type, config))
-    
+
     def _generate_installation_guide(self, package_type: str, config: Dict[str, Any]) -> str:
         """Generate detailed installation guide"""
         return f'''# XORB {package_type.title()} Installation Guide
@@ -532,7 +532,7 @@ Copyright 2025 XORB Security Platform
 - **Storage:** 50GB available space
 - **Network:** Isolated VLAN recommended
 
-### Recommended Requirements  
+### Recommended Requirements
 - **OS:** Ubuntu 22.04 LTS
 - **CPU:** 8+ cores
 - **RAM:** 16GB+
@@ -695,7 +695,7 @@ For {config["support_level"]} support, refer to:
 - Example configurations in `examples/`
 - Troubleshooting guide in `docs/TROUBLESHOOTING.md`
 '''
-    
+
     def _generate_configuration_guide(self, package_type: str, config: Dict[str, Any]) -> str:
         """Generate configuration guide"""
         return f'''# XORB {package_type.title()} Configuration Guide
@@ -709,7 +709,7 @@ XORB_MODE={package_type}
 XORB_LOG_LEVEL=INFO
 XORB_DATA_DIR=/opt/xorb/data
 
-# Security settings  
+# Security settings
 XORB_SECRET_KEY=your-secret-key-here
 XORB_JWT_EXPIRY=3600
 XORB_ENCRYPTION_KEY=your-encryption-key
@@ -862,11 +862,11 @@ scrape_configs:
 
 ### {package_type.title()} Mode
 '''
-    
+
     def _create_deployment_scripts(self, package_dir: Path, package_type: str, config: Dict[str, Any]):
         """Create deployment scripts"""
         scripts_dir = package_dir / "scripts"
-        
+
         # Main deployment script
         deploy_script = scripts_dir / "deploy.sh"
         with open(deploy_script, 'w') as f:
@@ -906,7 +906,7 @@ echo "📊 Dashboard: http://localhost:8080"
 echo "🔧 API: http://localhost:9000/api/docs"
 ''')
         deploy_script.chmod(0o755)
-        
+
         # Prerequisites check script
         prereq_script = scripts_dir / "check_prereqs.sh"
         with open(prereq_script, 'w') as f:
@@ -948,7 +948,7 @@ fi
 echo "✅ Prerequisites check complete."
 ''')
         prereq_script.chmod(0o755)
-        
+
         # Health check script
         health_script = scripts_dir / "health_check.sh"
         with open(health_script, 'w') as f:
@@ -978,7 +978,7 @@ docker-compose ps
 echo "🏥 Health check complete."
 ''')
         health_script.chmod(0o755)
-    
+
     def _generate_manifest(self, package_dir: Path, package_type: str, config: Dict[str, Any]):
         """Generate package manifest"""
         manifest = {
@@ -1010,77 +1010,77 @@ echo "🏥 Health check complete."
             "files": self._generate_file_manifest(package_dir),
             "checksums": self._generate_checksums(package_dir)
         }
-        
+
         manifest_path = package_dir / "MANIFEST.json"
         with open(manifest_path, 'w') as f:
             json.dump(manifest, f, indent=2)
-    
+
     def _generate_file_manifest(self, package_dir: Path) -> Dict[str, List[str]]:
         """Generate file manifest"""
         manifest = {}
-        
+
         for root, dirs, files in os.walk(package_dir):
             rel_root = Path(root).relative_to(package_dir)
             for file in files:
                 file_path = rel_root / file
                 category = str(rel_root).split('/')[0] if '/' in str(rel_root) else 'root'
-                
+
                 if category not in manifest:
                     manifest[category] = []
                 manifest[category].append(str(file_path))
-        
+
         return manifest
-    
+
     def _generate_checksums(self, package_dir: Path) -> Dict[str, str]:
         """Generate file checksums"""
         checksums = {}
-        
+
         for root, dirs, files in os.walk(package_dir):
             for file in files:
                 file_path = Path(root) / file
                 rel_path = file_path.relative_to(package_dir)
-                
+
                 with open(file_path, 'rb') as f:
                     file_hash = hashlib.sha256(f.read()).hexdigest()
                     checksums[str(rel_path)] = file_hash
-        
+
         return checksums
-    
+
     def _compress_package(self, package_dir: Path, package_type: str) -> str:
         """Compress package into distributable archive"""
         package_name = package_dir.name
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
+
         # Create tar.gz archive
         tar_path = self.packages_dir / f"{package_name}_{package_type}_{timestamp}.tar.gz"
-        
+
         with tarfile.open(tar_path, "w:gz") as tar:
             tar.add(package_dir, arcname=package_name)
-        
+
         # Create zip archive for Windows compatibility
         zip_path = self.packages_dir / f"{package_name}_{package_type}_{timestamp}.zip"
-        
+
         with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for root, dirs, files in os.walk(package_dir):
                 for file in files:
                     file_path = Path(root) / file
                     arc_path = Path(package_name) / file_path.relative_to(package_dir)
                     zipf.write(file_path, arc_path)
-        
+
         # Generate checksums for archives
         self._generate_archive_checksums(tar_path, zip_path)
-        
+
         return str(tar_path)
-    
+
     def _generate_archive_checksums(self, tar_path: Path, zip_path: Path):
         """Generate checksums for archive files"""
         checksums = {}
-        
+
         for archive_path in [tar_path, zip_path]:
             with open(archive_path, 'rb') as f:
                 checksum = hashlib.sha256(f.read()).hexdigest()
                 checksums[archive_path.name] = checksum
-        
+
         # Save checksums
         checksum_file = tar_path.parent / f"{tar_path.stem}_checksums.txt"
         with open(checksum_file, 'w') as f:
@@ -1090,22 +1090,22 @@ echo "🏥 Health check complete."
 def main():
     """Generate XORB client deployment packages"""
     logger.info("🛡️ Starting XORB Client Package Generation")
-    
+
     packager = XORBClientPackager()
-    
+
     # Create all packages
     package_paths = packager.create_all_packages()
-    
+
     # Summary report
     logger.info("📦 Package Generation Complete!")
     logger.info("Generated packages:")
-    
+
     for package_type, path in package_paths.items():
         if path.startswith("ERROR"):
             logger.error(f"  ❌ {package_type}: {path}")
         else:
             logger.info(f"  ✅ {package_type}: {path}")
-    
+
     # Create distribution summary
     summary = {
         "generation_timestamp": datetime.now().isoformat(),
@@ -1114,14 +1114,14 @@ def main():
         "total_packages": len([p for p in package_paths.values() if not p.startswith("ERROR")]),
         "package_directory": str(packager.packages_dir)
     }
-    
+
     summary_path = packager.packages_dir / "package_generation_summary.json"
     with open(summary_path, 'w') as f:
         json.dump(summary, f, indent=2)
-    
+
     logger.info(f"📋 Summary saved: {summary_path}")
     logger.info("🎯 XORB Client Packages Ready for Distribution!")
-    
+
     return summary
 
 if __name__ == "__main__":

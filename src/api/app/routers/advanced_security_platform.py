@@ -70,7 +70,7 @@ async def analyze_threat_indicators(
 ):
     """
     Analyze threat indicators using advanced AI and ML models
-    
+
     This endpoint provides sophisticated threat intelligence analysis including:
     - AI-powered threat classification
     - MITRE ATT&CK technique mapping
@@ -81,14 +81,14 @@ async def analyze_threat_indicators(
     try:
         container = get_container()
         threat_service = container.get(ThreatIntelligenceService)
-        
+
         # Perform threat analysis
         result = await threat_service.analyze_indicators(
             indicators=request.indicators,
             context=request.context,
             user=user
         )
-        
+
         # Add analysis metadata
         result["request_metadata"] = {
             "user_id": str(user.id),
@@ -96,9 +96,9 @@ async def analyze_threat_indicators(
             "analysis_type": request.analysis_type,
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -115,7 +115,7 @@ async def correlate_threats(
 ):
     """
     Correlate scan results with threat intelligence feeds
-    
+
     Performs advanced threat correlation including:
     - IoC enrichment and analysis
     - Campaign attribution
@@ -125,14 +125,14 @@ async def correlate_threats(
     try:
         container = get_container()
         threat_service = container.get(ThreatIntelligenceService)
-        
+
         result = await threat_service.correlate_threats(
             scan_results=scan_results,
             threat_feeds=threat_feeds
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -149,7 +149,7 @@ async def get_threat_prediction(
 ):
     """
     Get AI-powered threat predictions for the specified timeframe
-    
+
     Provides predictive threat intelligence including:
     - Attack likelihood assessment
     - Threat vector analysis
@@ -159,14 +159,14 @@ async def get_threat_prediction(
     try:
         container = get_container()
         threat_service = container.get(ThreatIntelligenceService)
-        
+
         result = await threat_service.get_threat_prediction(
             environment_data=environment_data or {},
             timeframe=timeframe
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -183,7 +183,7 @@ async def generate_threat_report(
 ):
     """
     Generate comprehensive threat intelligence report
-    
+
     Creates detailed reports including:
     - Executive summary
     - Technical findings
@@ -194,14 +194,14 @@ async def generate_threat_report(
     try:
         container = get_container()
         threat_service = container.get(ThreatIntelligenceService)
-        
+
         result = await threat_service.generate_threat_report(
             analysis_results=analysis_results,
             report_format=report_format
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -221,7 +221,7 @@ async def start_vulnerability_assessment(
 ):
     """
     Start comprehensive vulnerability assessment
-    
+
     Performs advanced vulnerability scanning including:
     - Multi-tool integration (Nmap, Nuclei, custom scanners)
     - ML-powered vulnerability analysis
@@ -231,16 +231,16 @@ async def start_vulnerability_assessment(
     try:
         container = get_container()
         vuln_service = container.get(AdvancedVulnerabilityAssessmentEngine)
-        
+
         # Start assessment asynchronously
         assessment_task = vuln_service.comprehensive_vulnerability_assessment(
             targets=request.targets,
             ports=request.ports,
             assessment_type=request.assessment_type
         )
-        
+
         background_tasks.add_task(assessment_task)
-        
+
         return {
             "assessment_id": str(uuid.uuid4()),
             "status": "started",
@@ -249,7 +249,7 @@ async def start_vulnerability_assessment(
             "estimated_duration": "15-45 minutes",
             "message": "Vulnerability assessment started"
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -265,7 +265,7 @@ async def analyze_security_data(
 ):
     """
     Analyze security data for vulnerabilities
-    
+
     Provides advanced security data analysis including:
     - Automated vulnerability detection
     - Risk assessment and scoring
@@ -275,11 +275,11 @@ async def analyze_security_data(
     try:
         container = get_container()
         vuln_service = container.get(AdvancedVulnerabilityAssessmentEngine)
-        
+
         result = await vuln_service.analyze_security_data(security_data)
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -295,7 +295,7 @@ async def assess_risk(
 ):
     """
     Assess risk level for given security context
-    
+
     Performs comprehensive risk assessment including:
     - Vulnerability impact analysis
     - Exploitability assessment
@@ -305,9 +305,9 @@ async def assess_risk(
     try:
         container = get_container()
         vuln_service = container.get(AdvancedVulnerabilityAssessmentEngine)
-        
+
         risk_score = await vuln_service.assess_risk(context)
-        
+
         return {
             "risk_score": risk_score,
             "risk_level": "critical" if risk_score > 0.8 else "high" if risk_score > 0.6 else "medium" if risk_score > 0.3 else "low",
@@ -320,7 +320,7 @@ async def assess_risk(
                 "Monitor and review"
             ]
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -339,7 +339,7 @@ async def create_red_team_simulation(
 ):
     """
     Create advanced red team simulation
-    
+
     Creates sophisticated attack simulations including:
     - MITRE ATT&CK-based scenarios
     - Multi-phase attack chains
@@ -349,7 +349,7 @@ async def create_red_team_simulation(
     try:
         container = get_container()
         red_team_service = container.get(AdvancedRedTeamSimulationEngine)
-        
+
         workflow_definition = {
             "simulation_type": request.simulation_type,
             "targets": request.targets,
@@ -358,15 +358,15 @@ async def create_red_team_simulation(
             "name": f"Red Team Simulation - {request.simulation_type}",
             **request.parameters
         }
-        
+
         result = await red_team_service.create_workflow(
             workflow_definition=workflow_definition,
             user=user,
             org=org
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -383,7 +383,7 @@ async def execute_red_team_simulation(
 ):
     """
     Execute red team simulation
-    
+
     Executes sophisticated attack scenarios including:
     - Multi-stage attack progression
     - Adaptive evasion techniques
@@ -393,15 +393,15 @@ async def execute_red_team_simulation(
     try:
         container = get_container()
         red_team_service = container.get(AdvancedRedTeamSimulationEngine)
-        
+
         result = await red_team_service.execute_workflow(
             workflow_id=simulation_id,
             parameters=parameters,
             user=user
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -417,7 +417,7 @@ async def get_simulation_status(
 ):
     """
     Get red team simulation status and progress
-    
+
     Provides real-time simulation progress including:
     - Execution progress
     - Successful techniques
@@ -427,14 +427,14 @@ async def get_simulation_status(
     try:
         container = get_container()
         red_team_service = container.get(AdvancedRedTeamSimulationEngine)
-        
+
         result = await red_team_service.get_workflow_status(
             execution_id=simulation_id,
             user=user
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -450,7 +450,7 @@ async def get_simulation_results(
 ):
     """
     Get comprehensive red team simulation results
-    
+
     Provides detailed simulation results including:
     - Attack timeline and techniques
     - Success/failure analysis
@@ -460,11 +460,11 @@ async def get_simulation_results(
     try:
         container = get_container()
         red_team_service = container.get(AdvancedRedTeamSimulationEngine)
-        
+
         result = await red_team_service.get_simulation_results(simulation_id)
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -483,7 +483,7 @@ async def validate_compliance(
 ):
     """
     Validate compliance against regulatory frameworks
-    
+
     Performs comprehensive compliance validation including:
     - Automated control assessment
     - Gap analysis and remediation
@@ -493,15 +493,15 @@ async def validate_compliance(
     try:
         container = get_container()
         compliance_service = container.get(ComplianceService)
-        
+
         result = await compliance_service.validate_compliance(
             framework=request.framework,
             scan_results=request.scope,
             organization=org
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -520,7 +520,7 @@ async def generate_compliance_report(
 ):
     """
     Generate comprehensive compliance report
-    
+
     Creates detailed compliance reports including:
     - Executive summary
     - Control assessments
@@ -530,15 +530,15 @@ async def generate_compliance_report(
     try:
         container = get_container()
         compliance_service = container.get(ComplianceService)
-        
+
         result = await compliance_service.generate_compliance_report(
             framework=framework,
             time_period=time_period,
             organization=org
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -555,7 +555,7 @@ async def get_compliance_gaps(
 ):
     """
     Identify compliance gaps and remediation steps
-    
+
     Provides comprehensive gap analysis including:
     - Control deficiencies
     - Risk prioritization
@@ -565,14 +565,14 @@ async def get_compliance_gaps(
     try:
         container = get_container()
         compliance_service = container.get(ComplianceService)
-        
+
         result = await compliance_service.get_compliance_gaps(
             framework=framework,
             current_state=current_state
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -589,7 +589,7 @@ async def track_remediation_progress(
 ):
     """
     Track compliance remediation progress
-    
+
     Monitors remediation efforts including:
     - Issue status tracking
     - Progress metrics
@@ -599,14 +599,14 @@ async def track_remediation_progress(
     try:
         container = get_container()
         compliance_service = container.get(ComplianceService)
-        
+
         result = await compliance_service.track_remediation_progress(
             compliance_issues=compliance_issues,
             organization=org
         )
-        
+
         return result
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -623,7 +623,7 @@ async def get_platform_status(
 ):
     """
     Get comprehensive security platform status
-    
+
     Provides platform health including:
     - Service availability
     - Security posture score
@@ -632,7 +632,7 @@ async def get_platform_status(
     """
     try:
         container = get_container()
-        
+
         # Check service availability
         services_status = {
             "threat_intelligence": True,
@@ -640,24 +640,24 @@ async def get_platform_status(
             "red_team_simulation": True,
             "compliance_automation": True
         }
-        
+
         active_services = [name for name, status in services_status.items() if status]
-        
+
         # Calculate security score (simplified)
         security_score = len(active_services) / len(services_status) * 0.8 + 0.2
-        
+
         platform_status = "operational" if len(active_services) == len(services_status) else "degraded"
-        
+
         recommendations = []
         if platform_status == "degraded":
             recommendations.append("Some security services are unavailable - check service health")
-        
+
         recommendations.extend([
             "Regular security assessments recommended",
             "Keep threat intelligence feeds updated",
             "Review compliance status monthly"
         ])
-        
+
         return SecurityStatusResponse(
             platform_status=platform_status,
             active_services=active_services,
@@ -665,7 +665,7 @@ async def get_platform_status(
             last_assessment=datetime.utcnow(),
             recommendations=recommendations
         )
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -680,7 +680,7 @@ async def get_platform_capabilities(
 ):
     """
     Get detailed platform capabilities and features
-    
+
     Returns comprehensive capability matrix including:
     - Available security tools
     - Supported frameworks
@@ -733,14 +733,14 @@ async def get_platform_capabilities(
                 "ci_cd_pipelines": True
             }
         }
-        
+
         return {
             "platform_version": "2.0.0",
             "capabilities": capabilities,
             "last_updated": datetime.utcnow().isoformat(),
             "support_contact": "security@xorb.com"
         }
-        
+
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

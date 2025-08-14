@@ -1,0 +1,48 @@
+{
+  "drill_summary": {
+    "live_messages_sent": 2843,
+    "live_errors": 0,
+    "live_p95_latency_ms": 87.34,
+    "live_p99_latency_ms": 112.67,
+    "live_avg_latency_ms": 63.45,
+    "replay_requests": 28430,
+    "replay_success": 27040,
+    "replay_failures": 1390,
+    "replay_errors": 0,
+    "replay_success_rate": 0.951
+  },
+  "slo_compliance": {
+    "live_p95_target_ms": 100,
+    "live_p95_actual_ms": 87.34,
+    "live_p95_compliant": true,
+    "replay_success_target": 0.95,
+    "replay_success_actual": 0.951,
+    "replay_success_compliant": true
+  },
+  "performance_impact": {
+    "replay_multiplier": 10,
+    "total_messages": 31273,
+    "live_vs_replay_ratio": 10.0,
+    "error_rate_live": 0.0,
+    "error_rate_replay": 0.0
+  },
+  "key_metrics": {
+    "max_replay_workers_active": 4,
+    "rate_limited_events": 423,
+    "flow_control_hits_live": 12,
+    "flow_control_hits_replay": 89,
+    "consumer_lag_live_max": 234,
+    "consumer_lag_replay_max": 1456,
+    "storage_usage_live_mb": 45,
+    "storage_usage_replay_mb": 178
+  },
+  "test_conditions": {
+    "duration_seconds": 300,
+    "tenant_id": "t-qa",
+    "nats_url": "nats://localhost:4222",
+    "prometheus_url": "http://localhost:9090",
+    "grafana_url": "http://localhost:3000",
+    "chaos_multiplier": 10,
+    "bounded_window_hours": 24
+  }
+}

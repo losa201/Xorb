@@ -24,7 +24,7 @@ class UserRole(Enum):
 class WorkflowStatus(Enum):
     """Workflow execution status"""
     PENDING = "pending"
-    RUNNING = "running" 
+    RUNNING = "running"
     COMPLETED = "completed"
     FAILED = "failed"
 
@@ -45,11 +45,11 @@ class InputType(Enum):
 class Email:
     """Email value object"""
     value: str
-    
+
     def __post_init__(self):
         if not self._is_valid_email(self.value):
             raise ValueError(f"Invalid email format: {self.value}")
-    
+
     def _is_valid_email(self, email: str) -> bool:
         """Basic email validation"""
         return "@" in email and "." in email.split("@")[1]
@@ -59,11 +59,11 @@ class Email:
 class Username:
     """Username value object"""
     value: str
-    
+
     def __post_init__(self):
         if not (3 <= len(self.value) <= 50):
             raise ValueError("Username must be between 3 and 50 characters")
-        
+
         if not self.value.replace("_", "").replace("-", "").isalnum():
             raise ValueError("Username can only contain letters, numbers, hyphens and underscores")
 
@@ -72,11 +72,11 @@ class Username:
 class Domain:
     """Domain name value object"""
     value: str
-    
+
     def __post_init__(self):
         if not self._is_valid_domain(self.value):
             raise ValueError(f"Invalid domain format: {self.value}")
-    
+
     def _is_valid_domain(self, domain: str) -> bool:
         """Basic domain validation"""
         return "." in domain and len(domain) > 3 and not domain.startswith(".")
@@ -87,11 +87,11 @@ class EmbeddingVector:
     """Embedding vector value object"""
     values: List[float]
     dimension: int
-    
+
     def __post_init__(self):
         if len(self.values) != self.dimension:
             raise ValueError(f"Vector length {len(self.values)} doesn't match dimension {self.dimension}")
-        
+
         if not all(isinstance(v, (int, float)) for v in self.values):
             raise ValueError("All vector values must be numeric")
 
@@ -102,11 +102,11 @@ class UsageStats:
     prompt_tokens: int
     total_tokens: int
     processing_time_ms: int
-    
+
     def __post_init__(self):
         if self.prompt_tokens < 0 or self.total_tokens < 0:
             raise ValueError("Token counts cannot be negative")
-        
+
         if self.processing_time_ms < 0:
             raise ValueError("Processing time cannot be negative")
 
@@ -118,11 +118,11 @@ class RateLimitInfo:
     remaining: int
     reset_time: int
     resource_type: str
-    
+
     def __post_init__(self):
         if self.limit < 0 or self.remaining < 0:
             raise ValueError("Limit values cannot be negative")
-        
+
         if self.remaining > self.limit:
             raise ValueError("Remaining cannot be greater than limit")
 
@@ -133,11 +133,11 @@ class ApiResponse:
     data: Any
     status_code: int = 200
     headers: Dict[str, str] = None
-    
+
     def __post_init__(self):
         if self.headers is None:
             object.__setattr__(self, 'headers', {})
-        
+
         if not (100 <= self.status_code <= 599):
             raise ValueError("Invalid HTTP status code")
 
@@ -148,7 +148,7 @@ class ErrorDetails:
     code: str
     message: str
     details: Dict[str, Any] = None
-    
+
     def __post_init__(self):
         if self.details is None:
             object.__setattr__(self, 'details', {})
@@ -160,27 +160,27 @@ class PaginationInfo:
     page: int
     size: int
     total: int
-    
+
     def __post_init__(self):
         if self.page < 1:
             raise ValueError("Page must be >= 1")
-        
+
         if self.size < 1:
             raise ValueError("Size must be >= 1")
-        
+
         if self.total < 0:
             raise ValueError("Total cannot be negative")
-    
+
     @property
     def total_pages(self) -> int:
         """Calculate total pages"""
         return (self.total + self.size - 1) // self.size
-    
+
     @property
     def has_next(self) -> bool:
         """Check if there are more pages"""
         return self.page < self.total_pages
-    
+
     @property
     def has_previous(self) -> bool:
         """Check if there are previous pages"""

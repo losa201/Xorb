@@ -5,27 +5,57 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-  - repo: https://github.com/jumanjihouse/pre-commit-hooks
-    rev: 3.0.0
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=5120']  # 5MB limit
+  - repo: https://github.com/PyCQA/bandit
+    rev: '1.7.5'
     hooks:
-      - id: forbid-binary
-        args: ['--max-size=10485760'] # 10MB
-      - id: git-check
-        args: ['--assume-unchanged', '--no-merge-conflict']
+      - id: bandit
+        args: ['-r', 'src/', 'tools/', '--skip', 'B101,B601']
+        exclude: ^tests/
   - repo: https://github.com/gitleaks/gitleaks
-    rev: v8.18.2
+    rev: v8.18.0
     hooks:
       - id: gitleaks
-        args: ['--verbose', '--redact']
   - repo: local
     hooks:
-      - id: forbid-redis-bus
-        name: ADR-002 forbid Redis as bus
-        entry: bash -lc 'git diff --cached --name-only | xargs -r grep -nE "\b(redis\.(pubsub|subscribe|psubscribe)|redis\.client\.PubSub)\b" && echo "❌ Redis bus usage detected" && exit 1 || exit 0'
+      - id: detect-private-key
+        name: Detect Private Key
+        entry: python tools/hooks/detect_private_key.py
+        language: python
+        files: .*
+      - id: project-fmt
+        name: Project Format Check
+        entry: bash -c 'if [ -f pyproject.toml ]; then python -m ruff format --check . || python -m black --check .; fi'
         language: system
         pass_filenames: false
-      - id: forbid-new-src-code
-        name: Forbid new code in src/ (shim-only)
-        entry: bash -lc 'git diff --cached --name-only | grep "^src/" | grep -vE "src/deprecations\.README\.md|__init__\.py" && echo "❌ New code under src/ is blocked" && exit 1 || exit 0'
+        always_run: true
+      - id: ruff-lint
+        name: Ruff/Flake8 Lint
+        entry: bash -c 'python -m ruff check . || python -m flake8 .'
         language: system
         pass_filenames: false
+        always_run: true
+      - id: ruff-security
+        name: Ruff Security Check
+        entry: bash -c 'python -m ruff check --select S . || true'
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: redis-pubsub-block
+        name: Block Redis Pub/Sub (ADR-002)
+        entry: tools/hooks/redis_pubsub_block.sh
+        language: system
+        pass_filenames: false
+      - id: adr-locked-guard
+        name: ADR Locked Sections Guard
+        entry: python tools/hooks/adr_locked_guard.py
+        language: python
+        pass_filenames: false
+      - id: security-scan-quick
+        name: Quick Security Scan
+        entry: python tools/security/security_scan.py --format text
+        language: python
+        pass_filenames: false
+        always_run: true

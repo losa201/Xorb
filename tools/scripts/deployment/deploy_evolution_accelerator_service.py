@@ -108,12 +108,12 @@ async def evolve_agent(request: AgentEvolutionRequest, background_tasks: Backgro
     try:
         if not evolution_accelerator:
             raise HTTPException(status_code=503, detail="Evolution accelerator not initialized")
-        
+
         agent_data = request.dict()
-        
+
         # Run evolution in background for performance
         evolution_result = await evolution_accelerator.accelerate_agent_evolution(agent_data)
-        
+
         if evolution_result.get('success'):
             logger.info(f"Agent evolution successful: {request.agent_id}")
             return {
@@ -133,7 +133,7 @@ async def evolve_agent(request: AgentEvolutionRequest, background_tasks: Backgro
                 "reason": evolution_result.get("reason", "Unknown failure"),
                 "error": evolution_result.get("error")
             }
-            
+
     except Exception as e:
         logger.error(f"Agent evolution endpoint failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -144,11 +144,11 @@ async def detect_emergent_behavior(request: BehaviorDetectionRequest):
     try:
         if not evolution_accelerator:
             raise HTTPException(status_code=503, detail="Evolution accelerator not initialized")
-        
+
         behavior_data = request.dict()
-        
+
         detection_result = await evolution_accelerator.detect_emergent_behaviors(behavior_data)
-        
+
         if detection_result.get('behavior_detected'):
             logger.info(f"Emergent behavior detected: {request.agent_id}")
             return {
@@ -167,7 +167,7 @@ async def detect_emergent_behavior(request: BehaviorDetectionRequest):
                 "novelty_score": detection_result.get("novelty_score", 0.0),
                 "reason": "Behavior not sufficiently novel"
             }
-            
+
     except Exception as e:
         logger.error(f"Behavior detection endpoint failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -178,11 +178,11 @@ async def generate_meta_insights(request: MetaLearningRequest):
     try:
         if not evolution_accelerator:
             raise HTTPException(status_code=503, detail="Evolution accelerator not initialized")
-        
+
         insight_result = await evolution_accelerator.generate_meta_learning_insights(
             request.learning_experiences
         )
-        
+
         if insight_result.get('insight_generated'):
             logger.info(f"Meta-learning insights generated: {insight_result.get('insights_created', 0)}")
             return {
@@ -198,7 +198,7 @@ async def generate_meta_insights(request: MetaLearningRequest):
                 "reason": insight_result.get("reason", "Insufficient data"),
                 "agent_id": request.agent_id
             }
-            
+
     except Exception as e:
         logger.error(f"Meta-learning insights endpoint failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -209,10 +209,10 @@ async def get_evolution_status():
     try:
         if not evolution_accelerator:
             raise HTTPException(status_code=503, detail="Evolution accelerator not initialized")
-        
+
         status = await evolution_accelerator.get_evolution_status()
         return status
-        
+
     except Exception as e:
         logger.error(f"Evolution status endpoint failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -223,7 +223,7 @@ async def list_genomes():
     try:
         if not evolution_accelerator:
             raise HTTPException(status_code=503, detail="Evolution accelerator not initialized")
-        
+
         genomes = []
         for genome_id, genome in evolution_accelerator.evolution_genomes.items():
             genomes.append({
@@ -235,12 +235,12 @@ async def list_genomes():
                 "parent_genomes": genome.parent_genomes,
                 "mutation_count": len(genome.mutation_history)
             })
-        
+
         return {
             "total_genomes": len(genomes),
             "genomes": genomes
         }
-        
+
     except Exception as e:
         logger.error(f"Genome listing endpoint failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -251,7 +251,7 @@ async def list_emergent_behaviors():
     try:
         if not evolution_accelerator:
             raise HTTPException(status_code=503, detail="Evolution accelerator not initialized")
-        
+
         behaviors = []
         for behavior_id, behavior in evolution_accelerator.emergent_behaviors.items():
             behaviors.append({
@@ -266,12 +266,12 @@ async def list_emergent_behaviors():
                 "observation_count": behavior.observation_count,
                 "impact_assessment": behavior.impact_assessment
             })
-        
+
         return {
             "total_behaviors": len(behaviors),
             "emergent_behaviors": behaviors
         }
-        
+
     except Exception as e:
         logger.error(f"Emergent behaviors endpoint failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -282,7 +282,7 @@ async def list_meta_insights():
     try:
         if not evolution_accelerator:
             raise HTTPException(status_code=503, detail="Evolution accelerator not initialized")
-        
+
         insights = []
         for insight_id, insight in evolution_accelerator.meta_learning_insights.items():
             insights.append({
@@ -295,12 +295,12 @@ async def list_meta_insights():
                 "timestamp": insight.timestamp.isoformat(),
                 "source_experiences_count": len(insight.source_experiences)
             })
-        
+
         return {
             "total_insights": len(insights),
             "meta_learning_insights": insights
         }
-        
+
     except Exception as e:
         logger.error(f"Meta-learning insights endpoint failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -314,9 +314,9 @@ async def batch_evolution(request: BatchEvolutionRequest):
     try:
         if not evolution_accelerator:
             raise HTTPException(status_code=503, detail="Evolution accelerator not initialized")
-        
+
         results = []
-        
+
         for agent_data in request.agents:
             try:
                 evolution_result = await evolution_accelerator.accelerate_agent_evolution(agent_data)
@@ -331,9 +331,9 @@ async def batch_evolution(request: BatchEvolutionRequest):
                     "success": False,
                     "error": str(e)
                 })
-        
+
         successful_evolutions = len([r for r in results if r["success"]])
-        
+
         return {
             "batch_success": True,
             "total_agents": len(request.agents),
@@ -341,7 +341,7 @@ async def batch_evolution(request: BatchEvolutionRequest):
             "results": results,
             "timestamp": datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Batch evolution endpoint failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -352,16 +352,16 @@ async def get_performance_metrics():
     try:
         if not evolution_accelerator:
             raise HTTPException(status_code=503, detail="Evolution accelerator not initialized")
-        
+
         status = await evolution_accelerator.get_evolution_status()
-        
+
         # Calculate additional performance metrics
-        recent_behaviors = len([b for b in evolution_accelerator.emergent_behaviors.values() 
+        recent_behaviors = len([b for b in evolution_accelerator.emergent_behaviors.values()
                               if (datetime.now() - b.first_observed).total_seconds() < 3600])
-        
-        recent_evolutions = len([e for e in evolution_accelerator.evolution_history 
+
+        recent_evolutions = len([e for e in evolution_accelerator.evolution_history
                                if (datetime.now() - datetime.fromisoformat(e.get('timestamp', '2023-01-01T00:00:00'))).total_seconds() < 3600])
-        
+
         return {
             "performance_metrics": {
                 "total_genomes": status.get("total_genomes", 0),
@@ -381,7 +381,7 @@ async def get_performance_metrics():
             },
             "timestamp": datetime.now().isoformat()
         }
-        
+
     except Exception as e:
         logger.error(f"Performance metrics endpoint failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -391,7 +391,7 @@ if __name__ == "__main__":
     print("🧬 Starting XORB Evolution Accelerator Service...")
     print("🚀 Service will be available at: http://localhost:8008")
     print("📊 API Documentation: http://localhost:8008/docs")
-    
+
     uvicorn.run(
         app,
         host="0.0.0.0",

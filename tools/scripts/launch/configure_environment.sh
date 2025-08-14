@@ -61,12 +61,12 @@ EOF
 
 detect_system() {
     log "🔍 Detecting system capabilities..."
-    
+
     # OS Detection
     OS_TYPE=$(uname -s)
     OS_VERSION=$(uname -r)
     ARCHITECTURE=$(uname -m)
-    
+
     # CPU Detection
     if command -v nproc &> /dev/null; then
         CPU_CORES=$(nproc)
@@ -75,7 +75,7 @@ detect_system() {
     else
         CPU_CORES=1
     fi
-    
+
     # Memory Detection
     if [ -f /proc/meminfo ]; then
         RAM_KB=$(grep MemTotal /proc/meminfo | awk '{print $2}')
@@ -85,7 +85,7 @@ detect_system() {
     else
         RAM_GB=1
     fi
-    
+
     # Architecture Detection
     case "$ARCHITECTURE" in
         arm64|aarch64|armv7l|armv6l)
@@ -95,7 +95,7 @@ detect_system() {
             IS_ARM=false
             ;;
     esac
-    
+
     # Virtualization Detection
     if [ -f /.dockerenv ] || [ -n "${container:-}" ]; then
         IS_VIRTUALIZED=true
@@ -111,14 +111,14 @@ detect_system() {
     else
         IS_VIRTUALIZED=false
     fi
-    
+
     # Docker Detection
     if command -v docker &> /dev/null; then
         DOCKER_VERSION=$(docker --version | awk '{print $3}' | sed 's/,//')
     else
         DOCKER_VERSION="not_installed"
     fi
-    
+
     log "System detected:"
     log "   OS: $OS_TYPE $OS_VERSION"
     log "   Architecture: $ARCHITECTURE"
@@ -131,7 +131,7 @@ detect_system() {
 
 classify_system() {
     log "🎯 Classifying system profile..."
-    
+
     # System classification logic
     if [ "$IS_ARM" = true ]; then
         SYSTEM_PROFILE="RPI"
@@ -150,7 +150,7 @@ classify_system() {
     else
         SYSTEM_PROFILE="BARE_METAL"
     fi
-    
+
     # Determine XORB mode
     case "$SYSTEM_PROFILE" in
         "RPI"|"CLOUD_MICRO")
@@ -163,14 +163,14 @@ classify_system() {
             XORB_MODE="FULL"
             ;;
     esac
-    
+
     log "✅ System classified as: $SYSTEM_PROFILE"
     log "   XORB Mode: $XORB_MODE"
 }
 
 generate_env_file() {
     log "📝 Generating .xorb.env configuration..."
-    
+
     # Calculate configuration values based on profile
     case "$SYSTEM_PROFILE" in
         "RPI")
@@ -216,7 +216,7 @@ generate_env_file() {
             MEMORY_LIMIT=$((RAM_GB * 1024 * 8 / 10))
             ;;
     esac
-    
+
     # Generate .xorb.env file
     cat > "$PROJECT_ROOT/.xorb.env" << EOF
 # XORB Auto-Generated Environment Configuration
@@ -313,7 +313,7 @@ get_redis_pool_size() {
 
 select_compose_file() {
     log "🐳 Selecting appropriate Docker Compose configuration..."
-    
+
     # Select compose file based on profile
     case "$SYSTEM_PROFILE" in
         "RPI"|"CLOUD_MICRO")
@@ -326,7 +326,7 @@ select_compose_file() {
             COMPOSE_FILE="docker-compose.unified.yml"
             ;;
     esac
-    
+
     # Create symlink for easy deployment
     if [ -f "$PROJECT_ROOT/$COMPOSE_FILE" ]; then
         ln -sf "$COMPOSE_FILE" "$PROJECT_ROOT/docker-compose.auto.yml"
@@ -339,9 +339,9 @@ select_compose_file() {
 
 generate_bootstrap_report() {
     log "📊 Generating bootstrap report..."
-    
+
     mkdir -p "$PROJECT_ROOT/logs"
-    
+
     cat > "$PROJECT_ROOT/logs/bootstrap_report.json" << EOF
 {
   "timestamp": "$(date -Iseconds)",
@@ -379,37 +379,37 @@ EOF
 generate_recommendations() {
     local recommendations="["
     local first=true
-    
+
     if [ "$RAM_GB" -lt 4 ]; then
         [ "$first" = false ] && recommendations+=","
         recommendations+="\"Consider increasing RAM for better performance\""
         first=false
     fi
-    
+
     if [ "$CPU_CORES" -lt 4 ]; then
         [ "$first" = false ] && recommendations+=","
         recommendations+="\"Limited CPU cores may affect concurrent agent execution\""
         first=false
     fi
-    
+
     if [ "$DOCKER_VERSION" = "not_installed" ]; then
         [ "$first" = false ] && recommendations+=","
         recommendations+="\"Docker not found - please install Docker\""
         first=false
     fi
-    
+
     if [ "$SYSTEM_PROFILE" = "RPI" ]; then
         [ "$first" = false ] && recommendations+=","
         recommendations+="\"ARM optimization enabled - some features disabled for stability\""
         first=false
     fi
-    
+
     if [ "$MONITORING_ENABLED" = false ]; then
         [ "$first" = false ] && recommendations+=","
         recommendations+="\"Monitoring disabled due to resource constraints\""
         first=false
     fi
-    
+
     recommendations+="]"
     echo "$recommendations"
 }
@@ -419,14 +419,14 @@ print_summary() {
     echo "="*80
     echo "🚀 XORB AUTO-CONFIGURATION COMPLETE"
     echo "="*80
-    
+
     echo
     echo "📊 SYSTEM PROFILE: $SYSTEM_PROFILE"
     echo "   CPU: $CPU_CORES cores"
     echo "   RAM: ${RAM_GB}GB"
     echo "   Architecture: $ARCHITECTURE"
     echo "   OS: $OS_TYPE"
-    
+
     echo
     echo "⚙️ XORB CONFIGURATION:"
     echo "   Mode: $XORB_MODE"
@@ -435,13 +435,13 @@ print_summary() {
     echo "   Worker Threads: $WORKER_THREADS"
     echo "   Monitoring: $([ "$MONITORING_ENABLED" = true ] && echo "Enabled" || echo "Disabled")"
     echo "   Memory Limit: ${MEMORY_LIMIT}MB"
-    
+
     echo
     echo "📁 FILES GENERATED:"
     echo "   • .xorb.env"
     echo "   • docker-compose.auto.yml -> $COMPOSE_FILE"
     echo "   • logs/bootstrap_report.json"
-    
+
     if [ "$SYSTEM_PROFILE" = "RPI" ]; then
         echo
         echo "🍓 RASPBERRY PI OPTIMIZATIONS:"
@@ -449,53 +449,53 @@ print_summary() {
         echo "   • Reduced resource allocation"
         echo "   • Simplified service stack"
     fi
-    
+
     echo
     echo "="*80
 }
 
 validate_environment() {
     log "✅ Validating environment..."
-    
+
     # Check Docker
     if [ "$DOCKER_VERSION" = "not_installed" ]; then
         error "Docker is not installed. Please install Docker first."
     fi
-    
+
     # Check minimum resources
     if [ "$RAM_GB" -lt 1 ]; then
         error "Insufficient RAM (minimum 1GB required)"
     fi
-    
+
     # Check Docker Compose
     if ! command -v docker &> /dev/null || ! docker compose version &> /dev/null; then
         if ! command -v docker-compose &> /dev/null; then
             error "Docker Compose not found. Please install Docker Compose."
         fi
     fi
-    
+
     log "✅ Environment validation passed"
 }
 
 main() {
     print_header
-    
+
     # Detection phase
     detect_system
     classify_system
     validate_environment
-    
+
     # Configuration generation
     generate_env_file
     select_compose_file
     generate_bootstrap_report
-    
+
     # Summary and confirmation
     print_summary
-    
+
     echo
     read -p "🚀 Ready to deploy XORB with optimized configuration? [Y/n]: " -r response
-    
+
     case "$response" in
         ""|[Yy]|[Yy][Ee][Ss])
             echo

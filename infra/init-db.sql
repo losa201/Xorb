@@ -89,12 +89,12 @@ CREATE TABLE IF NOT EXISTS xorb_ptaas.vulnerabilities (
 );
 
 -- Insert demo data
-INSERT INTO xorb_ptaas.companies (name, domain, industry, contact_email) VALUES 
+INSERT INTO xorb_ptaas.companies (name, domain, industry, contact_email) VALUES
 ('TechCorp Solutions', 'techcorp.com', 'Technology', 'security@techcorp.com'),
 ('SecureBank Inc', 'securebank.com', 'Financial Services', 'security@securebank.com')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO xorb_ptaas.researchers (username, email, first_name, last_name, reputation_score, verified) VALUES 
+INSERT INTO xorb_ptaas.researchers (username, email, first_name, last_name, reputation_score, verified) VALUES
 ('alexchen', 'alex@example.com', 'Alex', 'Chen', 950, true),
 ('sarahj', 'sarah@example.com', 'Sarah', 'Johnson', 875, true)
 ON CONFLICT DO NOTHING;

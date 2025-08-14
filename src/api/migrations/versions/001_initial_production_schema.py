@@ -1,7 +1,7 @@
 """Initial production schema with all XORB entities
 
 Revision ID: 001_initial_production
-Revises: 
+Revises:
 Create Date: 2025-01-10 00:00:00.000000
 
 """
@@ -18,7 +18,7 @@ depends_on = None
 
 def upgrade():
     """Create initial production database schema"""
-    
+
     # Create users table
     op.create_table('users',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False, default=sa.text('gen_random_uuid()')),
@@ -45,12 +45,12 @@ def upgrade():
         sa.UniqueConstraint('username'),
         sa.UniqueConstraint('email')
     )
-    
+
     # Create indexes for users
     op.create_index('idx_users_username_active', 'users', ['username', 'is_active'])
     op.create_index('idx_users_email_active', 'users', ['email', 'is_active'])
     op.create_index('idx_users_auth_provider', 'users', ['auth_provider'])
-    
+
     # Create organizations table
     op.create_table('organizations',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False, default=sa.text('gen_random_uuid()')),
@@ -73,11 +73,11 @@ def upgrade():
         sa.UniqueConstraint('name'),
         sa.UniqueConstraint('slug')
     )
-    
+
     # Create indexes for organizations
     op.create_index('idx_organizations_name_active', 'organizations', ['name', 'is_active'])
     op.create_index('idx_organizations_plan_active', 'organizations', ['plan_type', 'is_active'])
-    
+
     # Create user_organizations junction table
     op.create_table('user_organizations',
         sa.Column('user_id', postgresql.UUID(as_uuid=True), nullable=False),
@@ -92,7 +92,7 @@ def upgrade():
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
         sa.PrimaryKeyConstraint('user_id', 'organization_id')
     )
-    
+
     # Create auth_tokens table
     op.create_table('auth_tokens',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False, default=sa.text('gen_random_uuid()')),
@@ -116,12 +116,12 @@ def upgrade():
         sa.UniqueConstraint('token'),
         sa.UniqueConstraint('token_hash')
     )
-    
+
     # Create indexes for auth_tokens
     op.create_index('idx_auth_tokens_user_active', 'auth_tokens', ['user_id', 'is_revoked'])
     op.create_index('idx_auth_tokens_type_active', 'auth_tokens', ['token_type', 'is_revoked'])
     op.create_index('idx_auth_tokens_expires', 'auth_tokens', ['expires_at'])
-    
+
     # Create embedding_requests table
     op.create_table('embedding_requests',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False, default=sa.text('gen_random_uuid()')),
@@ -143,12 +143,12 @@ def upgrade():
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
-    
+
     # Create indexes for embedding_requests
     op.create_index('idx_embedding_requests_user_status', 'embedding_requests', ['user_id', 'status'])
     op.create_index('idx_embedding_requests_org_created', 'embedding_requests', ['org_id', 'created_at'])
     op.create_index('idx_embedding_requests_status_priority', 'embedding_requests', ['status', 'priority'])
-    
+
     # Create embedding_results table
     op.create_table('embedding_results',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False, default=sa.text('gen_random_uuid()')),
@@ -166,12 +166,12 @@ def upgrade():
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('request_id')
     )
-    
+
     # Create indexes for embedding_results
     op.create_index('idx_embedding_results_request', 'embedding_results', ['request_id'])
     op.create_index('idx_embedding_results_cache', 'embedding_results', ['cache_key'])
     op.create_index('idx_embedding_results_expires', 'embedding_results', ['expires_at'])
-    
+
     # Create discovery_workflows table
     op.create_table('discovery_workflows',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False, default=sa.text('gen_random_uuid()')),
@@ -194,12 +194,12 @@ def upgrade():
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('workflow_id')
     )
-    
+
     # Create indexes for discovery_workflows
     op.create_index('idx_discovery_workflows_user_status', 'discovery_workflows', ['user_id', 'status'])
     op.create_index('idx_discovery_workflows_domain', 'discovery_workflows', ['domain'])
     op.create_index('idx_discovery_workflows_type_status', 'discovery_workflows', ['workflow_type', 'status'])
-    
+
     # Create ptaas_scan_sessions table
     op.create_table('ptaas_scan_sessions',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False, default=sa.text('gen_random_uuid()')),
@@ -227,13 +227,13 @@ def upgrade():
         sa.PrimaryKeyConstraint('id'),
         sa.UniqueConstraint('session_id')
     )
-    
+
     # Create indexes for ptaas_scan_sessions
     op.create_index('idx_ptaas_sessions_user_status', 'ptaas_scan_sessions', ['user_id', 'status'])
     op.create_index('idx_ptaas_sessions_org_created', 'ptaas_scan_sessions', ['organization_id', 'created_at'])
     op.create_index('idx_ptaas_sessions_type_status', 'ptaas_scan_sessions', ['scan_type', 'status'])
     op.create_index('idx_ptaas_sessions_session_id', 'ptaas_scan_sessions', ['session_id'])
-    
+
     # Create security_events table
     op.create_table('security_events',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False, default=sa.text('gen_random_uuid()')),
@@ -252,13 +252,13 @@ def upgrade():
         sa.ForeignKeyConstraint(['user_id'], ['users.id'], ),
         sa.PrimaryKeyConstraint('id')
     )
-    
+
     # Create indexes for security_events
     op.create_index('idx_security_events_type_created', 'security_events', ['event_type', 'created_at'])
     op.create_index('idx_security_events_user_created', 'security_events', ['user_id', 'created_at'])
     op.create_index('idx_security_events_severity_created', 'security_events', ['severity', 'created_at'])
     op.create_index('idx_security_events_ip_created', 'security_events', ['ip_address', 'created_at'])
-    
+
     # Create system_metrics table
     op.create_table('system_metrics',
         sa.Column('id', postgresql.UUID(as_uuid=True), nullable=False, default=sa.text('gen_random_uuid()')),
@@ -271,17 +271,17 @@ def upgrade():
         sa.Column('timestamp', sa.DateTime(), nullable=False, default=sa.text('NOW()')),
         sa.PrimaryKeyConstraint('id')
     )
-    
+
     # Create indexes for system_metrics
     op.create_index('idx_system_metrics_name_timestamp', 'system_metrics', ['metric_name', 'timestamp'])
     op.create_index('idx_system_metrics_service_timestamp', 'system_metrics', ['service_name', 'timestamp'])
     op.create_index('idx_system_metrics_type_timestamp', 'system_metrics', ['metric_type', 'timestamp'])
-    
+
     # Insert default data
-    
+
     # Create default super admin user
     op.execute("""
-        INSERT INTO users (id, username, email, password_hash, roles, is_active, created_at) 
+        INSERT INTO users (id, username, email, password_hash, roles, is_active, created_at)
         VALUES (
             gen_random_uuid(),
             'admin',
@@ -292,10 +292,10 @@ def upgrade():
             NOW()
         )
     """)
-    
+
     # Create default organization
     op.execute("""
-        INSERT INTO organizations (id, name, plan_type, is_active, created_at) 
+        INSERT INTO organizations (id, name, plan_type, is_active, created_at)
         VALUES (
             gen_random_uuid(),
             'XORB Default Organization',
@@ -304,12 +304,12 @@ def upgrade():
             NOW()
         )
     """)
-    
+
     # Associate admin user with default organization
     op.execute("""
-        INSERT INTO user_organizations (user_id, organization_id, role, joined_at) 
+        INSERT INTO user_organizations (user_id, organization_id, role, joined_at)
         SELECT u.id, o.id, 'admin', NOW()
-        FROM users u, organizations o 
+        FROM users u, organizations o
         WHERE u.username = 'admin' AND o.name = 'XORB Default Organization'
     """)
 

@@ -106,21 +106,21 @@ class SecurityAgent:
 
 class XORBSecurityAPI:
     """Comprehensive Security API for XORB Platform"""
-    
+
     def __init__(self, db_path: str = "data/security_api.db"):
         self.db_path = db_path
         self.init_database()
-        
+
         # In-memory stores for demo purposes
         self.threats = {}
         self.incidents = {}
         self.scans = {}
         self.network_devices = {}
         self.agents = {}
-        
+
         # Initialize with sample data
         self.init_sample_data()
-        
+
         # Real-time metrics
         self.metrics = {
             'total_threats': 0,
@@ -131,17 +131,17 @@ class XORBSecurityAPI:
             'system_health': 98.7,
             'last_updated': datetime.now().isoformat()
         }
-        
+
         self.app = web.Application()
         self.setup_routes()
-    
+
     def init_database(self):
         """Initialize SQLite database"""
         Path(os.path.dirname(self.db_path)).mkdir(parents=True, exist_ok=True)
-        
+
         conn = sqlite3.connect(self.db_path)
         cursor = conn.cursor()
-        
+
         # Create tables
         cursor.executescript("""
             CREATE TABLE IF NOT EXISTS threats (
@@ -155,7 +155,7 @@ class XORBSecurityAPI:
                 confidence REAL NOT NULL,
                 mitigated BOOLEAN DEFAULT FALSE
             );
-            
+
             CREATE TABLE IF NOT EXISTS incidents (
                 id TEXT PRIMARY KEY,
                 title TEXT NOT NULL,
@@ -168,7 +168,7 @@ class XORBSecurityAPI:
                 tags TEXT,
                 affected_systems TEXT
             );
-            
+
             CREATE TABLE IF NOT EXISTS scans (
                 id TEXT PRIMARY KEY,
                 target TEXT NOT NULL,
@@ -180,7 +180,7 @@ class XORBSecurityAPI:
                 risk_score REAL DEFAULT 0.0,
                 recommendations TEXT
             );
-            
+
             CREATE TABLE IF NOT EXISTS network_devices (
                 id TEXT PRIMARY KEY,
                 ip_address TEXT NOT NULL UNIQUE,
@@ -192,7 +192,7 @@ class XORBSecurityAPI:
                 services TEXT,
                 vulnerabilities TEXT
             );
-            
+
             CREATE TABLE IF NOT EXISTS agents (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -204,10 +204,10 @@ class XORBSecurityAPI:
                 active_tasks INTEGER DEFAULT 0
             );
         """)
-        
+
         conn.commit()
         conn.close()
-    
+
     def init_sample_data(self):
         """Initialize with sample security data"""
         # Sample threats
@@ -233,10 +233,10 @@ class XORBSecurityAPI:
                 confidence=0.87
             )
         ]
-        
+
         for threat in sample_threats:
             self.threats[threat.id] = threat
-        
+
         # Sample incidents
         sample_incidents = [
             SecurityIncident(
@@ -252,10 +252,10 @@ class XORBSecurityAPI:
                 affected_systems=["web-server-01", "web-server-02"]
             )
         ]
-        
+
         for incident in sample_incidents:
             self.incidents[incident.id] = incident
-        
+
         # Sample network devices
         sample_devices = [
             NetworkDevice(
@@ -274,17 +274,17 @@ class XORBSecurityAPI:
                 ip_address="192.168.1.10",
                 hostname="server-01.local",
                 device_type="server",
-                status="online", 
+                status="online",
                 last_seen=datetime.now().isoformat(),
                 open_ports=[22, 80, 443, 3306],
                 services=[{"port": 3306, "service": "mysql"}],
                 vulnerabilities=["CVE-2024-12345"]
             )
         ]
-        
+
         for device in sample_devices:
             self.network_devices[device.id] = device
-        
+
         # Sample agents
         for i in range(64):
             agent = SecurityAgent(
@@ -298,7 +298,7 @@ class XORBSecurityAPI:
                 active_tasks=2 if i < 62 else 0
             )
             self.agents[agent.id] = agent
-    
+
     def setup_routes(self):
         """Setup API routes"""
         # Threat Intelligence API
@@ -307,21 +307,21 @@ class XORBSecurityAPI:
         self.app.router.add_get('/api/v1/threats/{threat_id}', self.get_threat)
         self.app.router.add_put('/api/v1/threats/{threat_id}', self.update_threat)
         self.app.router.add_delete('/api/v1/threats/{threat_id}', self.delete_threat)
-        
+
         # Incident Management API
         self.app.router.add_get('/api/v1/incidents', self.get_incidents)
         self.app.router.add_post('/api/v1/incidents', self.create_incident)
         self.app.router.add_get('/api/v1/incidents/{incident_id}', self.get_incident)
         self.app.router.add_put('/api/v1/incidents/{incident_id}', self.update_incident)
         self.app.router.add_delete('/api/v1/incidents/{incident_id}', self.delete_incident)
-        
+
         # Vulnerability Scanning API
         self.app.router.add_get('/api/v1/scans', self.get_scans)
         self.app.router.add_post('/api/v1/scans', self.create_scan)
         self.app.router.add_get('/api/v1/scans/{scan_id}', self.get_scan)
         self.app.router.add_get('/api/v1/scans/{scan_id}/results', self.get_scan_results)
         self.app.router.add_delete('/api/v1/scans/{scan_id}', self.delete_scan)
-        
+
         # Network Monitoring API
         self.app.router.add_get('/api/v1/network/devices', self.get_network_devices)
         self.app.router.add_post('/api/v1/network/devices', self.add_network_device)
@@ -329,30 +329,30 @@ class XORBSecurityAPI:
         self.app.router.add_put('/api/v1/network/devices/{device_id}', self.update_network_device)
         self.app.router.add_delete('/api/v1/network/devices/{device_id}', self.delete_network_device)
         self.app.router.add_get('/api/v1/network/topology', self.get_network_topology)
-        
+
         # Agent Management API
         self.app.router.add_get('/api/v1/agents', self.get_agents)
         self.app.router.add_get('/api/v1/agents/{agent_id}', self.get_agent)
         self.app.router.add_put('/api/v1/agents/{agent_id}', self.update_agent)
         self.app.router.add_post('/api/v1/agents/{agent_id}/tasks', self.assign_agent_task)
-        
+
         # Analytics and Metrics API
         self.app.router.add_get('/api/v1/metrics/system', self.get_system_metrics)
         self.app.router.add_get('/api/v1/metrics/security', self.get_security_metrics)
         self.app.router.add_get('/api/v1/metrics/performance', self.get_performance_metrics)
         self.app.router.add_get('/api/v1/analytics/dashboard', self.get_dashboard_analytics)
-        
+
         # Compliance and Reporting API
         self.app.router.add_get('/api/v1/compliance/report/{framework}', self.get_compliance_report)
         self.app.router.add_get('/api/v1/reports/security', self.generate_security_report)
         self.app.router.add_get('/api/v1/reports/incidents', self.generate_incident_report)
-        
+
         # Real-time WebSocket endpoints would be handled by the API gateway
-        
+
         # Health and Status
         self.app.router.add_get('/health', self.health_check)
         self.app.router.add_get('/api/v1/status', self.get_api_status)
-    
+
     # Threat Intelligence Endpoints
     async def get_threats(self, request: web_request) -> web_response:
         """Get all threat intelligence entries"""
@@ -361,17 +361,17 @@ class XORBSecurityAPI:
             severity = request.query.get('severity')
             limit = int(request.query.get('limit', 50))
             offset = int(request.query.get('offset', 0))
-            
+
             threats = list(self.threats.values())
-            
+
             # Filter by severity if specified
             if severity:
                 threats = [t for t in threats if t.severity == severity]
-            
+
             # Pagination
             total = len(threats)
             threats = threats[offset:offset + limit]
-            
+
             return web.json_response({
                 'success': True,
                 'data': [asdict(threat) for threat in threats],
@@ -384,12 +384,12 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error getting threats: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     async def create_threat(self, request: web_request) -> web_response:
         """Create new threat intelligence entry"""
         try:
             data = await request.json()
-            
+
             threat = ThreatIntelligence(
                 id=data.get('id', f"threat-{uuid.uuid4().hex[:8]}"),
                 threat_type=data['threat_type'],
@@ -400,10 +400,10 @@ class XORBSecurityAPI:
                 timestamp=datetime.now().isoformat(),
                 confidence=data.get('confidence', 0.5)
             )
-            
+
             self.threats[threat.id] = threat
             self.metrics['total_threats'] += 1
-            
+
             return web.json_response({
                 'success': True,
                 'data': asdict(threat)
@@ -411,15 +411,15 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error creating threat: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     async def get_threat(self, request: web_request) -> web_response:
         """Get specific threat intelligence entry"""
         try:
             threat_id = request.match_info['threat_id']
-            
+
             if threat_id not in self.threats:
                 return web.json_response({'success': False, 'error': 'Threat not found'}, status=404)
-            
+
             threat = self.threats[threat_id]
             return web.json_response({
                 'success': True,
@@ -428,7 +428,7 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error getting threat: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     # Incident Management Endpoints
     async def get_incidents(self, request: web_request) -> web_response:
         """Get all security incidents"""
@@ -437,19 +437,19 @@ class XORBSecurityAPI:
             severity = request.query.get('severity')
             limit = int(request.query.get('limit', 50))
             offset = int(request.query.get('offset', 0))
-            
+
             incidents = list(self.incidents.values())
-            
+
             # Apply filters
             if status:
                 incidents = [i for i in incidents if i.status == status]
             if severity:
                 incidents = [i for i in incidents if i.severity == severity]
-            
+
             # Pagination
             total = len(incidents)
             incidents = incidents[offset:offset + limit]
-            
+
             return web.json_response({
                 'success': True,
                 'data': [asdict(incident) for incident in incidents],
@@ -462,12 +462,12 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error getting incidents: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     async def create_incident(self, request: web_request) -> web_response:
         """Create new security incident"""
         try:
             data = await request.json()
-            
+
             incident = SecurityIncident(
                 id=data.get('id', f"INC-2024-{len(self.incidents) + 1:03d}"),
                 title=data['title'],
@@ -480,10 +480,10 @@ class XORBSecurityAPI:
                 tags=data.get('tags', []),
                 affected_systems=data.get('affected_systems', [])
             )
-            
+
             self.incidents[incident.id] = incident
             self.metrics['active_incidents'] += 1
-            
+
             return web.json_response({
                 'success': True,
                 'data': asdict(incident)
@@ -491,22 +491,22 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error creating incident: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     # Network Monitoring Endpoints
     async def get_network_devices(self, request: web_request) -> web_response:
         """Get all network devices"""
         try:
             device_type = request.query.get('type')
             status = request.query.get('status')
-            
+
             devices = list(self.network_devices.values())
-            
+
             # Apply filters
             if device_type:
                 devices = [d for d in devices if d.device_type == device_type]
             if status:
                 devices = [d for d in devices if d.status == status]
-            
+
             return web.json_response({
                 'success': True,
                 'data': [asdict(device) for device in devices]
@@ -514,16 +514,16 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error getting network devices: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     async def get_network_topology(self, request: web_request) -> web_response:
         """Get network topology data"""
         try:
             devices = list(self.network_devices.values())
-            
+
             # Create nodes and edges for visualization
             nodes = []
             edges = []
-            
+
             for device in devices:
                 nodes.append({
                     'id': device.id,
@@ -532,7 +532,7 @@ class XORBSecurityAPI:
                     'status': device.status,
                     'ip': device.ip_address
                 })
-            
+
             # Simple topology - connect all devices to the first router/gateway
             gateway = next((d for d in devices if d.device_type == 'router'), None)
             if gateway:
@@ -542,7 +542,7 @@ class XORBSecurityAPI:
                             'from': gateway.id,
                             'to': device.id
                         })
-            
+
             return web.json_response({
                 'success': True,
                 'data': {
@@ -553,22 +553,22 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error getting network topology: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     # Agent Management Endpoints
     async def get_agents(self, request: web_request) -> web_response:
         """Get all security agents"""
         try:
             status = request.query.get('status')
             specialization = request.query.get('specialization')
-            
+
             agents = list(self.agents.values())
-            
+
             # Apply filters
             if status:
                 agents = [a for a in agents if a.status == status]
             if specialization:
                 agents = [a for a in agents if a.specialization == specialization]
-            
+
             return web.json_response({
                 'success': True,
                 'data': [asdict(agent) for agent in agents]
@@ -576,7 +576,7 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error getting agents: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     # Analytics and Metrics Endpoints
     async def get_system_metrics(self, request: web_request) -> web_response:
         """Get system metrics"""
@@ -584,7 +584,7 @@ class XORBSecurityAPI:
             # Update metrics with current data
             active_agents = len([a for a in self.agents.values() if a.status == 'active'])
             active_incidents = len([i for i in self.incidents.values() if i.status in ['open', 'in_progress']])
-            
+
             metrics = {
                 'activeAgents': active_agents,
                 'threatsDetected': len(self.threats),
@@ -599,7 +599,7 @@ class XORBSecurityAPI:
                 'activeIncidents': active_incidents,
                 'networkDevices': len(self.network_devices)
             }
-            
+
             return web.json_response({
                 'success': True,
                 'data': metrics
@@ -607,7 +607,7 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error getting system metrics: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     async def get_dashboard_analytics(self, request: web_request) -> web_response:
         """Get comprehensive dashboard analytics"""
         try:
@@ -626,7 +626,7 @@ class XORBSecurityAPI:
                 },
                 'agentPerformance': {
                     'averageScore': sum(a.performance_score for a in self.agents.values()) / len(self.agents),
-                    'topPerformers': sorted([asdict(a) for a in self.agents.values()], 
+                    'topPerformers': sorted([asdict(a) for a in self.agents.values()],
                                           key=lambda x: x['performance_score'], reverse=True)[:5]
                 },
                 'systemHealth': {
@@ -640,7 +640,7 @@ class XORBSecurityAPI:
                 },
                 'timestamp': datetime.now().isoformat()
             }
-            
+
             return web.json_response({
                 'success': True,
                 'data': analytics
@@ -648,13 +648,13 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error getting dashboard analytics: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     # Compliance and Reporting Endpoints
     async def get_compliance_report(self, request: web_request) -> web_response:
         """Get compliance report for specific framework"""
         try:
             framework = request.match_info['framework'].upper()
-            
+
             # Mock compliance data
             compliance_data = {
                 'NIST': {
@@ -694,14 +694,14 @@ class XORBSecurityAPI:
                     }
                 }
             }
-            
+
             if framework not in compliance_data:
                 return web.json_response({'success': False, 'error': 'Framework not supported'}, status=404)
-            
+
             report = compliance_data[framework]
             report['generatedAt'] = datetime.now().isoformat()
             report['validUntil'] = (datetime.now() + timedelta(days=90)).isoformat()
-            
+
             return web.json_response({
                 'success': True,
                 'data': report
@@ -709,7 +709,7 @@ class XORBSecurityAPI:
         except Exception as e:
             logger.error(f"Error getting compliance report: {e}")
             return web.json_response({'success': False, 'error': str(e)}, status=500)
-    
+
     # Health and Status Endpoints
     async def health_check(self, request: web_request) -> web_response:
         """Health check endpoint"""
@@ -724,7 +724,7 @@ class XORBSecurityAPI:
                 'agent_management': 'operational'
             }
         })
-    
+
     async def get_api_status(self, request: web_request) -> web_response:
         """Get API status and statistics"""
         try:
@@ -745,7 +745,7 @@ class XORBSecurityAPI:
                 },
                 'timestamp': datetime.now().isoformat()
             }
-            
+
             return web.json_response({
                 'success': True,
                 'data': status
@@ -757,17 +757,17 @@ class XORBSecurityAPI:
 async def init_app():
     """Initialize the Security API application"""
     api = XORBSecurityAPI()
-    
+
     # Add CORS support
     from aiohttp_cors import setup as cors_setup, ResourceOptions
     cors = cors_setup(api.app, defaults={
         "*": ResourceOptions(allow_credentials=True, expose_headers="*", allow_headers="*", allow_methods="*")
     })
-    
+
     # Add CORS to all routes
     for route in list(api.app.router.routes()):
         cors.add(route)
-    
+
     return api.app
 
 if __name__ == '__main__':

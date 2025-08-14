@@ -2,28 +2,28 @@ from prometheus_client import Counter, Histogram, Gauge
 
 class MetricsCollector:
     """Collects and exposes metrics for the agent system."""
-    
+
     def __init__(self):
         # Initialize metrics
         self.agent_actions = Counter(
-            'xorb_agent_actions_total', 
-            'Agent actions taken', 
+            'xorb_agent_actions_total',
+            'Agent actions taken',
             ['action_type']
         )
         self.threat_context_calls = Counter(
-            'xorb_threat_context_calls_total', 
-            'Threat context API calls', 
+            'xorb_threat_context_calls_total',
+            'Threat context API calls',
             ['status']
         )
         self.decision_latency = Histogram(
-            'xorb_agent_decision_latency_seconds', 
+            'xorb_agent_decision_latency_seconds',
             'Agent decision latency'
         )
         self.memory_usage = Gauge(
-            'xorb_agent_memory_usage', 
+            'xorb_agent_memory_usage',
             'Agent memory usage'
         )
-        
+
     def record_action(self, action_type):
         """Record an agent action."""
         self.agent_actions.labels(action_type=action_type).inc()

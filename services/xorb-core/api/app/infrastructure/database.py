@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class DatabaseConfig:
     """Database configuration with performance optimizations."""
-    
+
     def __init__(self):
         self.database_url = self._get_database_url()
         self.min_pool_size = int(os.getenv("DB_MIN_POOL_SIZE", "5"))
@@ -31,18 +31,18 @@ class DatabaseConfig:
         self.statement_cache_size = int(os.getenv("DB_STATEMENT_CACHE_SIZE", "100"))
         self.enable_prepared_statements = os.getenv("DB_ENABLE_PREPARED_STATEMENTS", "true").lower() == "true"
         self.enable_query_logging = os.getenv("DB_ENABLE_QUERY_LOGGING", "false").lower() == "true"
-        
+
         # Connection pool recycling
         self.pool_recycle = int(os.getenv("DB_POOL_RECYCLE", "3600"))  # 1 hour
         self.pool_pre_ping = os.getenv("DB_POOL_PRE_PING", "true").lower() == "true"
-    
+
     def _get_database_url(self) -> str:
         """Get database URL from environment with fallbacks."""
         return os.getenv(
-            "DATABASE_URL", 
+            "DATABASE_URL",
             "postgresql+asyncpg://xorb:changeme@localhost:5432/xorb"
         )
-    
+
     def get_asyncpg_url(self) -> str:
         """Get URL for direct asyncpg connections."""
         url = self.database_url
@@ -66,29 +66,29 @@ def get_database_config() -> DatabaseConfig:
 async def get_database_pool() -> asyncpg.Pool:
     """Get or create optimized asyncpg connection pool."""
     global _connection_pool
-    
+
     if _connection_pool is None:
         try:
             database_url = _config.get_asyncpg_url()
-            
+
             # Connection initialization for performance
             async def init_connection(conn):
                 # Set connection parameters for performance
                 await conn.execute("SET application_name = 'xorb-api'")
                 await conn.execute("SET statement_timeout = '60s'")
                 await conn.execute("SET idle_in_transaction_session_timeout = '10min'")
-                
+
                 # Enable prepared statement caching
                 if _config.enable_prepared_statements:
                     await conn.execute("SET plan_cache_mode = 'force_generic_plan'")
-                
+
                 # Register pgvector extension if available
                 try:
                     await conn.execute("CREATE EXTENSION IF NOT EXISTS vector")
                     logger.info("pgvector extension enabled")
                 except Exception as e:
                     logger.warning(f"Could not enable pgvector: {e}")
-            
+
             _connection_pool = await asyncpg.create_pool(
                 database_url,
                 min_size=_config.min_pool_size,
@@ -97,20 +97,20 @@ async def get_database_pool() -> asyncpg.Pool:
                 init=init_connection,
                 statement_cache_size=_config.statement_cache_size
             )
-            
+
             logger.info(f"Created database pool: {_config.min_pool_size}-{_config.max_pool_size} connections")
-            
+
         except Exception as e:
             logger.error(f"Failed to create database pool: {e}")
             raise DatabaseConnectionError(f"Failed to create database pool: {e}")
-    
+
     return _connection_pool
 
 
 def get_async_engine():
     """Get or create SQLAlchemy async engine with optimizations."""
     global _async_engine
-    
+
     if _async_engine is None:
         # Engine configuration for performance
         engine_kwargs = {
@@ -122,7 +122,7 @@ def get_async_engine():
             "pool_timeout": _config.pool_timeout,
             "pool_recycle": _config.pool_recycle,
             "pool_pre_ping": _config.pool_pre_ping,
-            
+
             # Connection arguments for asyncpg
             "connect_args": {
                 "statement_cache_size": _config.statement_cache_size,
@@ -130,21 +130,21 @@ def get_async_engine():
                 "prepared_statement_cache_size": _config.statement_cache_size,
             }
         }
-        
+
         _async_engine = create_async_engine(
             _config.database_url,
             **engine_kwargs
         )
-        
+
         logger.info("Created optimized SQLAlchemy async engine")
-    
+
     return _async_engine
 
 
 def get_async_session_factory():
     """Get SQLAlchemy async session factory."""
     global _async_session_factory
-    
+
     if _async_session_factory is None:
         engine = get_async_engine()
         _async_session_factory = async_sessionmaker(
@@ -152,7 +152,7 @@ def get_async_session_factory():
             class_=AsyncSession,
             expire_on_commit=False
         )
-    
+
     return _async_session_factory
 
 
@@ -173,12 +173,12 @@ async def get_async_session():
 async def close_database_pool():
     """Close database connection pool and engine."""
     global _connection_pool, _async_engine
-    
+
     if _connection_pool:
         await _connection_pool.close()
         _connection_pool = None
         logger.info("Closed database connection pool")
-    
+
     if _async_engine:
         await _async_engine.dispose()
         _async_engine = None
@@ -236,7 +236,7 @@ async def database_lifespan():
 async def get_database_stats() -> Dict[str, Any]:
     """Get database connection pool statistics."""
     pool = await get_database_pool()
-    
+
     return {
         "pool_size": pool.get_size(),
         "pool_min_size": pool.get_min_size(),

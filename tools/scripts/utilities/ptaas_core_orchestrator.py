@@ -127,7 +127,7 @@ class TestRequest(BaseModel):
 
 class PTaaSOrchestrator:
     """Core PTaaS orchestration engine with AI-enhanced automation"""
-    
+
     def __init__(self):
         self.active_tests: Dict[str, PenetrationTest] = {}
         self.available_agents: Dict[str, TestAgent] = {}
@@ -141,10 +141,10 @@ class PTaaSOrchestrator:
             "agent_utilization": 0.0,
             "average_test_duration": 0.0
         }
-        
+
         # Initialize mock agents for demonstration
         self._initialize_mock_agents()
-    
+
     def _initialize_mock_agents(self):
         """Initialize mock testing agents"""
         mock_agents = [
@@ -156,7 +156,7 @@ class PTaaSOrchestrator:
                 "performance_score": 0.92
             },
             {
-                "agent_id": "AGENT-NETWORK-RECON-002", 
+                "agent_id": "AGENT-NETWORK-RECON-002",
                 "name": "Network Reconnaissance Agent",
                 "capabilities": [AgentCapability.NETWORK_SCANNING, AgentCapability.RECONNAISSANCE],
                 "status": "available",
@@ -166,7 +166,7 @@ class PTaaSOrchestrator:
                 "agent_id": "AGENT-VULN-ASSESSMENT-003",
                 "name": "Vulnerability Assessment Engine",
                 "capabilities": [AgentCapability.VULNERABILITY_SCANNING],
-                "status": "available", 
+                "status": "available",
                 "performance_score": 0.95
             },
             {
@@ -184,7 +184,7 @@ class PTaaSOrchestrator:
                 "performance_score": 0.90
             }
         ]
-        
+
         for agent_data in mock_agents:
             agent = TestAgent(
                 agent_id=agent_data["agent_id"],
@@ -197,7 +197,7 @@ class PTaaSOrchestrator:
                 resource_usage={"cpu": 0.1, "memory": 0.2, "network": 0.0}
             )
             self.available_agents[agent.agent_id] = agent
-    
+
     async def initialize_connections(self):
         """Initialize database and Redis connections"""
         try:
@@ -206,7 +206,7 @@ class PTaaSOrchestrator:
             logger.info("Redis connection established")
         except Exception as e:
             logger.error(f"Redis connection failed: {e}")
-    
+
     def select_agents_for_phase(self, phase: TestPhase, target: TestTarget) -> List[TestAgent]:
         """AI-enhanced agent selection based on test phase and target characteristics"""
         phase_capability_mapping = {
@@ -218,29 +218,29 @@ class PTaaSOrchestrator:
             TestPhase.POST_EXPLOITATION: [AgentCapability.EXPLOITATION],
             TestPhase.REPORTING: []
         }
-        
+
         required_capabilities = phase_capability_mapping.get(phase, [])
         suitable_agents = []
-        
+
         for agent in self.available_agents.values():
             if agent.status == "available":
                 agent_capabilities = set(agent.capabilities)
                 required_capabilities_set = set(required_capabilities)
-                
+
                 if required_capabilities_set.intersection(agent_capabilities):
                     suitable_agents.append(agent)
-        
+
         # Sort by performance score (AI scoring based on historical performance)
         suitable_agents.sort(key=lambda x: x.performance_score, reverse=True)
-        
+
         # Select top agents (limit based on phase complexity)
         max_agents = 3 if phase in [TestPhase.SCANNING, TestPhase.VULNERABILITY_ASSESSMENT] else 2
         return suitable_agents[:max_agents]
-    
+
     async def create_penetration_test(self, request: TestRequest) -> str:
         """Create and queue a new penetration test"""
         test_id = f"PTAAS-{int(time.time())}-{str(uuid.uuid4())[:8].upper()}"
-        
+
         target = TestTarget(
             target_id=f"TARGET-{test_id}",
             name=request.name,
@@ -252,7 +252,7 @@ class PTaaSOrchestrator:
             authorized_by=request.authorized_by,
             authorization_date=datetime.now()
         )
-        
+
         penetration_test = PenetrationTest(
             test_id=test_id,
             name=request.name,
@@ -271,10 +271,10 @@ class PTaaSOrchestrator:
             client_id=request.client_id,
             created_by=request.authorized_by
         )
-        
+
         self.active_tests[test_id] = penetration_test
         self.test_queue.append(test_id)
-        
+
         # Store in Redis for persistence
         if self.redis_client:
             await self.redis_client.set(
@@ -282,28 +282,28 @@ class PTaaSOrchestrator:
                 json.dumps(asdict(penetration_test), default=str),
                 ex=86400 * 7  # 7 days expiry
             )
-        
+
         logger.info(f"Created penetration test: {test_id}")
         return test_id
-    
+
     async def execute_test_phase(self, test_id: str, phase: TestPhase):
         """Execute a specific phase of the penetration test"""
         if test_id not in self.active_tests:
             raise ValueError(f"Test {test_id} not found")
-        
+
         test = self.active_tests[test_id]
         test.current_phase = phase
         test.status = TestStatus.RUNNING
-        
+
         if not test.start_time:
             test.start_time = datetime.now()
-        
+
         # Select appropriate agents for this phase
         selected_agents = self.select_agents_for_phase(phase, test.target)
         test.agents_assigned = [agent.agent_id for agent in selected_agents]
-        
+
         logger.info(f"Executing {phase.value} phase for test {test_id} with agents: {test.agents_assigned}")
-        
+
         # Simulate phase execution with realistic timing
         phase_duration = {
             TestPhase.RECONNAISSANCE: 30,
@@ -314,22 +314,22 @@ class PTaaSOrchestrator:
             TestPhase.POST_EXPLOITATION: 60,
             TestPhase.REPORTING: 30
         }
-        
+
         duration = phase_duration.get(phase, 60)
-        
+
         # Update agent status
         for agent_id in test.agents_assigned:
             if agent_id in self.available_agents:
                 self.available_agents[agent_id].status = "busy"
                 self.available_agents[agent_id].current_task = f"{test_id}:{phase.value}"
-        
+
         # Simulate phase execution
         await asyncio.sleep(5)  # Shortened for demo
-        
+
         # Generate mock findings based on phase
         findings = self._generate_mock_findings(phase, test.target)
         test.findings.extend(findings)
-        
+
         # Update progress
         phase_weights = {
             TestPhase.RECONNAISSANCE: 10,
@@ -340,18 +340,18 @@ class PTaaSOrchestrator:
             TestPhase.POST_EXPLOITATION: 5,
             TestPhase.REPORTING: 5
         }
-        
+
         current_progress = sum(phase_weights[p] for p in TestPhase if p.value <= phase.value)
         test.progress_percentage = min(current_progress, 100.0)
-        
+
         # Release agents
         for agent_id in test.agents_assigned:
             if agent_id in self.available_agents:
                 self.available_agents[agent_id].status = "available"
                 self.available_agents[agent_id].current_task = None
-        
+
         logger.info(f"Completed {phase.value} phase for test {test_id}. Found {len(findings)} issues.")
-        
+
         # Store updated test state
         if self.redis_client:
             await self.redis_client.set(
@@ -359,11 +359,11 @@ class PTaaSOrchestrator:
                 json.dumps(asdict(test), default=str),
                 ex=86400 * 7
             )
-    
+
     def _generate_mock_findings(self, phase: TestPhase, target: TestTarget) -> List[Dict[str, Any]]:
         """Generate realistic mock findings based on test phase"""
         findings = []
-        
+
         if phase == TestPhase.RECONNAISSANCE:
             findings.append({
                 "finding_id": f"RECON-{int(time.time())}",
@@ -377,7 +377,7 @@ class PTaaSOrchestrator:
                     "method": "DNS enumeration and certificate transparency logs"
                 }
             })
-        
+
         elif phase == TestPhase.SCANNING:
             findings.append({
                 "finding_id": f"SCAN-{int(time.time())}",
@@ -391,13 +391,13 @@ class PTaaSOrchestrator:
                     "services": ["SSH", "HTTP", "HTTPS", "MySQL", "HTTP-Alt"]
                 }
             })
-        
+
         elif phase == TestPhase.VULNERABILITY_ASSESSMENT:
             findings.extend([
                 {
                     "finding_id": f"VULN-{int(time.time())}-1",
                     "title": "SQL Injection Vulnerability",
-                    "severity": "high", 
+                    "severity": "high",
                     "description": "SQL injection vulnerability detected in login form",
                     "phase": phase.value,
                     "timestamp": datetime.now().isoformat(),
@@ -423,7 +423,7 @@ class PTaaSOrchestrator:
                     }
                 }
             ])
-        
+
         elif phase == TestPhase.EXPLOITATION:
             findings.append({
                 "finding_id": f"EXPLOIT-{int(time.time())}",
@@ -439,43 +439,43 @@ class PTaaSOrchestrator:
                     "impact": "Complete user database compromise"
                 }
             })
-        
+
         return findings
-    
+
     async def run_full_penetration_test(self, test_id: str):
         """Execute a complete penetration test through all phases"""
         if test_id not in self.active_tests:
             raise ValueError(f"Test {test_id} not found")
-        
+
         test = self.active_tests[test_id]
         phases = list(TestPhase)
-        
+
         try:
             for phase in phases:
                 logger.info(f"Starting {phase.value} phase for test {test_id}")
                 await self.execute_test_phase(test_id, phase)
-                
+
                 # Brief pause between phases
                 await asyncio.sleep(2)
-            
+
             # Mark test as completed
             test.status = TestStatus.COMPLETED
             test.end_time = datetime.now()
             test.actual_duration = int((test.end_time - test.start_time).total_seconds() / 3600)
             test.progress_percentage = 100.0
-            
+
             # Update metrics
             self.metrics["tests_completed"] += 1
             self.metrics["total_findings"] += len(test.findings)
-            
+
             logger.info(f"Penetration test {test_id} completed successfully with {len(test.findings)} findings")
-            
+
         except Exception as e:
             test.status = TestStatus.FAILED
             test.end_time = datetime.now()
             logger.error(f"Penetration test {test_id} failed: {e}")
             raise
-        
+
         finally:
             # Store final test state
             if self.redis_client:
@@ -510,10 +510,10 @@ async def create_test(request: TestRequest, background_tasks: BackgroundTasks):
     """Create a new penetration test"""
     try:
         test_id = await orchestrator.create_penetration_test(request)
-        
+
         # Start test execution in background
         background_tasks.add_task(orchestrator.run_full_penetration_test, test_id)
-        
+
         return {
             "test_id": test_id,
             "status": "queued",
@@ -529,7 +529,7 @@ async def get_test_status(test_id: str):
     """Get status and details of a specific test"""
     if test_id not in orchestrator.active_tests:
         raise HTTPException(status_code=404, detail="Test not found")
-    
+
     test = orchestrator.active_tests[test_id]
     return {
         "test_id": test_id,
@@ -558,7 +558,7 @@ async def list_tests():
             "findings_count": len(test.findings),
             "start_time": test.start_time.isoformat() if test.start_time else None
         })
-    
+
     return {
         "tests": tests,
         "total_tests": len(tests),
@@ -579,7 +579,7 @@ async def list_agents():
             "current_task": agent.current_task,
             "last_heartbeat": agent.last_heartbeat.isoformat()
         })
-    
+
     return {
         "agents": agents,
         "total_agents": len(agents),
@@ -592,7 +592,7 @@ async def get_dashboard_data():
     """Get dashboard overview data"""
     active_tests = [t for t in orchestrator.active_tests.values() if t.status in [TestStatus.RUNNING, TestStatus.QUEUED]]
     completed_tests = [t for t in orchestrator.active_tests.values() if t.status == TestStatus.COMPLETED]
-    
+
     # Calculate severity distribution
     severity_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "informational": 0}
     for test in orchestrator.active_tests.values():
@@ -600,7 +600,7 @@ async def get_dashboard_data():
             severity = finding.get("severity", "informational")
             if severity in severity_counts:
                 severity_counts[severity] += 1
-    
+
     return {
         "overview": {
             "active_tests": len(active_tests),
@@ -629,7 +629,7 @@ async def get_dashboard_data():
 async def test_websocket(websocket: WebSocket, test_id: str):
     """WebSocket endpoint for real-time test updates"""
     await websocket.accept()
-    
+
     try:
         while True:
             if test_id in orchestrator.active_tests:
@@ -642,9 +642,9 @@ async def test_websocket(websocket: WebSocket, test_id: str):
                     "findings_count": len(test.findings),
                     "timestamp": datetime.now().isoformat()
                 })
-            
+
             await asyncio.sleep(5)  # Send updates every 5 seconds
-            
+
     except Exception as e:
         logger.error(f"WebSocket error for test {test_id}: {e}")
     finally:

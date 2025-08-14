@@ -40,14 +40,14 @@ async def create_upload_url(
 ):
     """Create presigned upload URL for evidence files."""
     tenant_id = require_tenant_context(request)
-    
+
     # Validate file upload parameters
     validation = FileUploadValidation(
         filename=filename,
         content_type=content_type,
         size=size_bytes
     )
-    
+
     try:
         upload_info = await storage_service.create_upload_url(
             filename=validation.filename,
@@ -57,11 +57,11 @@ async def create_upload_url(
             uploaded_by=current_user.sub,
             tags=tags or []
         )
-        
+
         # Record metrics
         metrics = get_metrics_collector()
         metrics.record_evidence_upload(str(tenant_id), size_bytes, True)
-        
+
         # Add trace context
         add_trace_context(
             operation="create_upload_url",
@@ -69,7 +69,7 @@ async def create_upload_url(
             file_size=size_bytes,
             content_type=content_type
         )
-        
+
         logger.info(
             "Created upload URL",
             tenant_id=str(tenant_id),
@@ -77,9 +77,9 @@ async def create_upload_url(
             size_bytes=size_bytes,
             user_id=current_user.sub
         )
-        
+
         return upload_info
-        
+
     except Exception as e:
         logger.error(
             "Failed to create upload URL",
@@ -102,14 +102,14 @@ async def complete_upload(
 ):
     """Complete file upload and validate."""
     tenant_id = require_tenant_context(request)
-    
+
     try:
         result = await storage_service.complete_upload(
             file_id=file_id,
             tenant_id=tenant_id,
             validate_file=validate_file
         )
-        
+
         logger.info(
             "Completed upload",
             tenant_id=str(tenant_id),
@@ -117,9 +117,9 @@ async def complete_upload(
             status=result["status"],
             user_id=current_user.sub
         )
-        
+
         return result
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -149,7 +149,7 @@ async def create_download_url(
 ):
     """Create presigned download URL for evidence file."""
     tenant_id = require_tenant_context(request)
-    
+
     try:
         download_info = await storage_service.create_download_url(
             file_id=file_id,
@@ -158,16 +158,16 @@ async def create_download_url(
             content_disposition=content_disposition,
             custom_filename=custom_filename
         )
-        
+
         logger.info(
             "Created download URL",
             tenant_id=str(tenant_id),
             file_id=str(file_id),
             user_id=current_user.sub
         )
-        
+
         return download_info
-        
+
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -196,10 +196,10 @@ async def list_evidence(
 ):
     """List evidence files for tenant."""
     tenant_id = require_tenant_context(request)
-    
+
     # Validate pagination
     limit, offset = validate_pagination(limit, offset, max_limit=100)
-    
+
     try:
         evidence_list = await storage_service.list_evidence(
             tenant_id=tenant_id,
@@ -207,16 +207,16 @@ async def list_evidence(
             limit=limit,
             offset=offset
         )
-        
+
         logger.info(
             "Listed evidence",
             tenant_id=str(tenant_id),
             count=len(evidence_list),
             user_id=current_user.sub
         )
-        
+
         return evidence_list
-        
+
     except Exception as e:
         logger.error(
             "Failed to list evidence",
@@ -237,21 +237,21 @@ async def get_evidence_metadata(
 ):
     """Get evidence metadata."""
     tenant_id = require_tenant_context(request)
-    
+
     try:
         metadata = await storage_service.get_evidence_metadata(
             file_id=file_id,
             tenant_id=tenant_id
         )
-        
+
         if not metadata:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Evidence not found"
             )
-        
+
         return metadata
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -276,20 +276,20 @@ async def delete_evidence(
 ):
     """Delete evidence file."""
     tenant_id = require_tenant_context(request)
-    
+
     try:
         deleted = await storage_service.delete_evidence(
             file_id=file_id,
             tenant_id=tenant_id,
             permanent=permanent
         )
-        
+
         if not deleted:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Evidence not found"
             )
-        
+
         logger.info(
             "Deleted evidence",
             tenant_id=str(tenant_id),
@@ -297,9 +297,9 @@ async def delete_evidence(
             permanent=permanent,
             user_id=current_user.sub
         )
-        
+
         return {"message": "Evidence deleted successfully", "permanent": permanent}
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -325,24 +325,24 @@ async def upload_file_direct(
 ):
     """Direct file upload endpoint."""
     tenant_id = require_tenant_context(request)
-    
+
     # Validate file
     if not file.filename:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Filename is required"
         )
-    
+
     # Read file data
     file_data = await file.read()
-    
+
     # Validate file upload
     validation = FileUploadValidation(
         filename=file.filename,
         content_type=file.content_type or "application/octet-stream",
         size=len(file_data)
     )
-    
+
     try:
         # Create upload URL first
         upload_info = await storage_service.create_upload_url(
@@ -353,14 +353,14 @@ async def upload_file_direct(
             uploaded_by=current_user.sub,
             tags=tags.split(",") if tags else []
         )
-        
+
         # Complete upload
         result = await storage_service.complete_upload(
             file_id=UUID(upload_info["file_id"]),
             tenant_id=tenant_id,
             validate_file=True
         )
-        
+
         logger.info(
             "Direct upload completed",
             tenant_id=str(tenant_id),
@@ -368,9 +368,9 @@ async def upload_file_direct(
             size_bytes=len(file_data),
             user_id=current_user.sub
         )
-        
+
         return result
-        
+
     except Exception as e:
         logger.error(
             "Direct upload failed",

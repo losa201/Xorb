@@ -12,7 +12,7 @@ variable "environment" {
   description = "Environment name (development, staging, production)"
   type        = string
   default     = "development"
-  
+
   validation {
     condition     = contains(["development", "staging", "production"], var.environment)
     error_message = "Environment must be one of: development, staging, production."
@@ -53,7 +53,7 @@ variable "az_count" {
   description = "Number of availability zones to use"
   type        = number
   default     = 3
-  
+
   validation {
     condition     = var.az_count >= 2 && var.az_count <= 6
     error_message = "AZ count must be between 2 and 6."
@@ -115,7 +115,7 @@ variable "ml_node_capacity_type" {
   description = "Capacity type for ML nodes (ON_DEMAND or SPOT)"
   type        = string
   default     = "SPOT"
-  
+
   validation {
     condition     = contains(["ON_DEMAND", "SPOT"], var.ml_node_capacity_type)
     error_message = "ML node capacity type must be ON_DEMAND or SPOT."
@@ -294,7 +294,7 @@ variable "spot_instance_percentage" {
   description = "Percentage of spot instances to use"
   type        = number
   default     = 50
-  
+
   validation {
     condition     = var.spot_instance_percentage >= 0 && var.spot_instance_percentage <= 100
     error_message = "Spot instance percentage must be between 0 and 100."

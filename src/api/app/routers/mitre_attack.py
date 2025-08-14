@@ -63,7 +63,7 @@ class ThreatIndicator(BaseModel):
     source: Optional[str] = None
     context: Dict[str, Any] = Field(default_factory=dict)
     timestamp: Optional[datetime] = None
-    
+
     @validator('timestamp', pre=True, always=True)
     def set_timestamp(cls, v):
         return v or datetime.utcnow()
@@ -202,7 +202,7 @@ async def analyze_threat_indicators(
     """
     try:
         engine = await get_advanced_mitre_engine()
-        
+
         # Convert indicators to engine format
         indicators_data = []
         for indicator in request.indicators:
@@ -215,16 +215,16 @@ async def analyze_threat_indicators(
                 "context": indicator.context,
                 "timestamp": indicator.timestamp.isoformat()
             })
-        
+
         # Perform threat mapping
         threat_mapping = await engine.analyze_threat_indicators(
-            indicators_data, 
+            indicators_data,
             request.context
         )
-        
+
         # Extract techniques for additional analysis
         technique_ids = threat_mapping.technique_ids
-        
+
         # Get detailed technique information
         technique_summaries = []
         for tech_id in technique_ids:
@@ -244,7 +244,7 @@ async def analyze_threat_indicators(
             except Exception as e:
                 # Skip techniques that can't be analyzed
                 continue
-        
+
         # Perform attribution analysis
         attribution_results = []
         for group_id in threat_mapping.attribution_groups:
@@ -264,13 +264,13 @@ async def analyze_threat_indicators(
                     ))
             except Exception as e:
                 continue
-        
+
         # Generate attack progression prediction if requested
         progression_prediction = None
         if request.include_predictions and technique_ids:
             try:
                 prediction_data = await engine.predict_attack_progression(technique_ids)
-                
+
                 next_techniques = []
                 for tech_data in prediction_data.get("next_likely_techniques", [])[:5]:
                     if tech_data["technique_id"] in engine.techniques:
@@ -286,7 +286,7 @@ async def analyze_threat_indicators(
                             mitigation_count=len(tech.mitigations),
                             detection_methods=list(tech.detection_methods.keys())[:3]
                         ))
-                
+
                 progression_prediction = AttackProgressionPrediction(
                     prediction_id=prediction_data["prediction_id"],
                     timestamp=datetime.fromisoformat(prediction_data["timestamp"]),
@@ -301,7 +301,7 @@ async def analyze_threat_indicators(
             except Exception as e:
                 # Prediction failed, continue without it
                 pass
-        
+
         # Generate recommendations
         immediate_recommendations = [
             f"🚨 {threat_mapping.severity.value.upper()} severity threat detected",
@@ -310,11 +310,11 @@ async def analyze_threat_indicators(
             "🔍 Initiate incident response procedures",
             "📋 Review detection rules for identified techniques"
         ]
-        
+
         if attribution_results:
             top_attribution = attribution_results[0]
             immediate_recommendations.append(f"👥 Potential threat actor: {top_attribution.name}")
-        
+
         investigation_priorities = [
             "Analyze network traffic for command & control communications",
             "Check for lateral movement indicators",
@@ -322,13 +322,13 @@ async def analyze_threat_indicators(
             "Review authentication logs for anomalies",
             "Examine file system for persistence mechanisms"
         ]
-        
+
         # Schedule background enhancement
         background_tasks.add_task(
-            _enhance_analysis_with_external_intelligence, 
+            _enhance_analysis_with_external_intelligence,
             threat_mapping.mapping_id
         )
-        
+
         return ThreatAnalysisResponse(
             analysis_id=threat_mapping.mapping_id,
             timestamp=threat_mapping.timestamp,
@@ -350,7 +350,7 @@ async def analyze_threat_indicators(
             immediate_recommendations=immediate_recommendations,
             investigation_priorities=investigation_priorities
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Threat analysis failed: {str(e)}")
 
@@ -367,13 +367,13 @@ async def detect_attack_patterns(
     """
     try:
         engine = await get_advanced_mitre_engine()
-        
+
         # Detect patterns
         patterns = await engine.detect_attack_patterns(
-            request.events, 
+            request.events,
             request.time_window
         )
-        
+
         # Filter by confidence and severity
         filtered_patterns = []
         for pattern in patterns:
@@ -383,7 +383,7 @@ async def detect_attack_patterns(
                         filtered_patterns.append(pattern)
                 else:
                     filtered_patterns.append(pattern)
-        
+
         # Convert to response format
         response_patterns = []
         for pattern in filtered_patterns:
@@ -403,14 +403,14 @@ async def detect_attack_patterns(
                 "containment_strategies": pattern.containment_strategies,
                 "mitigation_recommendations": pattern.mitigation_recommendations
             }
-            
+
             if request.include_timeline:
                 pattern_dict["timeline_analysis"] = pattern.timeline_analysis
-            
+
             response_patterns.append(pattern_dict)
-        
+
         return response_patterns
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pattern detection failed: {str(e)}")
 
@@ -426,9 +426,9 @@ async def get_techniques(
     """
     try:
         engine = await get_advanced_mitre_engine()
-        
+
         techniques = []
-        
+
         # If specific technique IDs requested
         if query.technique_ids:
             for tech_id in query.technique_ids:
@@ -442,25 +442,25 @@ async def get_techniques(
                 if query.tactic_filter:
                     if not any(tactic in tech.tactic_refs for tactic in query.tactic_filter):
                         continue
-                
+
                 if query.platform_filter:
                     if not any(platform in tech.platforms for platform in query.platform_filter):
                         continue
-                
+
                 if query.search_term:
                     search_lower = query.search_term.lower()
-                    if (search_lower not in tech.name.lower() and 
+                    if (search_lower not in tech.name.lower() and
                         search_lower not in tech.description.lower()):
                         continue
-                
+
                 techniques.append(tech)
-        
+
         # Sort by prevalence score
         techniques.sort(key=lambda t: t.prevalence_score, reverse=True)
-        
+
         # Limit results
         techniques = techniques[:query.limit]
-        
+
         # Convert to response format
         technique_summaries = []
         for tech in techniques:
@@ -475,9 +475,9 @@ async def get_techniques(
                 mitigation_count=len(tech.mitigations),
                 detection_methods=list(tech.detection_methods.keys())[:3]
             ))
-        
+
         return technique_summaries
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Technique retrieval failed: {str(e)}")
 
@@ -493,11 +493,11 @@ async def get_technique_details(
     """
     try:
         engine = await get_advanced_mitre_engine()
-        
+
         technique_intel = await engine.get_technique_intelligence(technique_id)
-        
+
         return technique_intel
-        
+
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
@@ -516,11 +516,11 @@ async def predict_attack_progression(
     """
     try:
         engine = await get_advanced_mitre_engine()
-        
+
         prediction_data = await engine.predict_attack_progression(
             request.current_techniques
         )
-        
+
         # Convert next techniques to summaries
         next_techniques = []
         for tech_data in prediction_data.get("next_likely_techniques", []):
@@ -537,13 +537,13 @@ async def predict_attack_progression(
                     mitigation_count=len(tech.mitigations),
                     detection_methods=list(tech.detection_methods.keys())[:3]
                 ))
-        
+
         # Determine current stage
         current_stage = AttackStage.EXPLOITATION  # Default
         if request.current_techniques:
             # Logic to determine stage from techniques
             pass
-        
+
         return AttackProgressionPrediction(
             prediction_id=prediction_data["prediction_id"],
             timestamp=datetime.fromisoformat(prediction_data["timestamp"]),
@@ -555,7 +555,7 @@ async def predict_attack_progression(
             defensive_recommendations=prediction_data.get("defensive_recommendations", []),
             confidence_score=prediction_data.get("confidence_score", 0.7)
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Progression prediction failed: {str(e)}")
 
@@ -573,12 +573,12 @@ async def generate_intelligence_report(
     """
     try:
         engine = await get_advanced_mitre_engine()
-        
+
         time_range = timedelta(days=request.time_range_days)
-        
+
         # Generate report
         report = await engine.generate_threat_intelligence_report(time_range)
-        
+
         # Convert to API response format
         response = {
             "report_id": report.report_id,
@@ -606,7 +606,7 @@ async def generate_intelligence_report(
             "predictive_insights": report.predictive_insights,
             "export_format": request.export_format
         }
-        
+
         # Schedule report export if requested
         if request.export_format != "json":
             background_tasks.add_task(
@@ -615,9 +615,9 @@ async def generate_intelligence_report(
                 request.export_format,
                 response
             )
-        
+
         return response
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Intelligence report generation failed: {str(e)}")
 
@@ -632,9 +632,9 @@ async def get_engine_status(
     """
     try:
         engine = await get_advanced_mitre_engine()
-        
+
         health = await engine.health_check()
-        
+
         return MitreEngineStatus(
             status=health.status.value,
             framework_version="ATT&CK v13.1",
@@ -648,7 +648,7 @@ async def get_engine_status(
             threat_mappings_total=len(engine.threat_mappings),
             analytics=engine.analytics
         )
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get engine status: {str(e)}")
 
@@ -663,18 +663,18 @@ async def clear_cache(
     """
     try:
         engine = await get_advanced_mitre_engine()
-        
+
         if cache_type in ["all", "mapping"]:
             engine.mapping_cache.clear()
-        
+
         if cache_type in ["all", "similarity"]:
             engine.similarity_cache.clear()
-        
+
         return {
             "message": f"Cache cleared: {cache_type}",
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Cache clear failed: {str(e)}")
 

@@ -90,10 +90,10 @@ docs = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/xorb/xorb-platform"
+Homepage = "https://github.com/xorb/xorb_platform"
 Documentation = "https://docs.xorb.security"
-Repository = "https://github.com/xorb/xorb-platform"
-"Bug Tracker" = "https://github.com/xorb/xorb-platform/issues"
+Repository = "https://github.com/xorb/xorb_platform"
+"Bug Tracker" = "https://github.com/xorb/xorb_platform/issues"
 
 [tool.hatch.version]
 path = "app/__init__.py"

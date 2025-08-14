@@ -85,7 +85,7 @@ class ComplianceFramework(BaseModel):
 
 class EnterpriseReportingSystem:
     """Simplified enterprise reporting system"""
-    
+
     def __init__(self):
         self.security_metrics: List[SecurityMetric] = []
         self.generated_reports: List[ReportResult] = []
@@ -112,16 +112,16 @@ class EnterpriseReportingSystem:
                 remediation_items=["Develop supply chain security program", "Define and test RTO/RPO metrics"]
             )
         }
-        
+
         # Initialize with sample metrics
         self._generate_sample_metrics()
-        
+
     def _generate_sample_metrics(self):
         """Generate realistic sample security metrics"""
         import random
-        
+
         base_time = datetime.now() - timedelta(days=30)
-        
+
         metric_types = [
             ("threat_detections", "count", "security"),
             ("false_positives", "count", "security"),
@@ -134,10 +134,10 @@ class EnterpriseReportingSystem:
             ("phishing_attempts", "count", "security"),
             ("compliance_score", "percentage", "compliance")
         ]
-        
+
         for i in range(720):  # 30 days of hourly data
             timestamp = base_time + timedelta(hours=i)
-            
+
             for metric_name, unit, category in metric_types:
                 # Generate realistic values with trends and anomalies
                 if metric_name == "threat_detections":
@@ -146,22 +146,22 @@ class EnterpriseReportingSystem:
                     if timestamp.weekday() >= 5:
                         base_value = int(base_value * 0.6)
                     value = base_value
-                
+
                 elif metric_name == "incident_response_time":
                     value = max(5, random.uniform(15, 35))
-                
+
                 elif metric_name == "system_uptime":
                     value = min(100, max(95, random.uniform(99.5, 99.9)))
-                
+
                 elif metric_name == "vulnerability_count":
                     value = max(0, random.randint(0, 5))
-                
+
                 elif metric_name == "compliance_score":
                     value = min(100, max(80, random.uniform(87, 93)))
-                
+
                 else:
                     value = max(0, random.randint(0, 4))
-                
+
                 metric = SecurityMetric(
                     metric_name=metric_name,
                     value=round(value, 2),
@@ -170,13 +170,13 @@ class EnterpriseReportingSystem:
                     category=category,
                     source=f"xorb_{category}_monitor"
                 )
-                
+
                 self.security_metrics.append(metric)
-    
+
     async def generate_executive_summary_report(self, time_range: TimeRange, custom_start: str = None, custom_end: str = None) -> ReportResult:
         """Generate executive summary report"""
         start_time = time.time()
-        
+
         # Define time window
         end_date = datetime.now()
         if time_range == TimeRange.LAST_24H:
@@ -190,23 +190,23 @@ class EnterpriseReportingSystem:
         else:  # Custom
             start_date = datetime.fromisoformat(custom_start) if custom_start else end_date - timedelta(days=7)
             end_date = datetime.fromisoformat(custom_end) if custom_end else datetime.now()
-        
+
         # Filter metrics by time range
         filtered_metrics = [
-            m for m in self.security_metrics 
+            m for m in self.security_metrics
             if start_date <= m.timestamp <= end_date
         ]
-        
+
         # Calculate key metrics
         threat_detections = sum(m.value for m in filtered_metrics if m.metric_name == "threat_detections")
         incidents_resolved = len([m for m in filtered_metrics if m.metric_name == "incident_response_time"])
         avg_response_time = sum(m.value for m in filtered_metrics if m.metric_name == "incident_response_time") / max(1, incidents_resolved)
         system_availability = sum(m.value for m in filtered_metrics if m.metric_name == "system_uptime") / len([m for m in filtered_metrics if m.metric_name == "system_uptime"]) if any(m.metric_name == "system_uptime" for m in filtered_metrics) else 99.5
         vulnerability_count = sum(m.value for m in filtered_metrics if m.metric_name == "vulnerability_count")
-        
+
         # Generate data tables
         data_tables = []
-        
+
         # Security metrics table
         security_table = {
             "title": "Security Metrics Summary",
@@ -219,7 +219,7 @@ class EnterpriseReportingSystem:
             ]
         }
         data_tables.append(security_table)
-        
+
         # Compliance table
         compliance_table = {
             "title": "Compliance Framework Status",
@@ -231,18 +231,18 @@ class EnterpriseReportingSystem:
             ]
         }
         data_tables.append(compliance_table)
-        
+
         # Executive summary text
         executive_summary = f"""
-        During the {time_range.value} reporting period, the organization's security posture demonstrated strong performance with {int(threat_detections):,} threat detections processed efficiently. 
-        
-        Key achievements include maintaining {system_availability:.1f}% system availability and an average incident response time of {avg_response_time:.1f} minutes. 
-        
+        During the {time_range.value} reporting period, the organization's security posture demonstrated strong performance with {int(threat_detections):,} threat detections processed efficiently.
+
+        Key achievements include maintaining {system_availability:.1f}% system availability and an average incident response time of {avg_response_time:.1f} minutes.
+
         The security operations center continues to demonstrate maturity in threat detection and response capabilities, with {int(vulnerability_count)} active vulnerabilities being actively managed.
-        
+
         Compliance frameworks maintain strong scores: SOC 2 (87%), ISO 27001 (92%), and NIST CSF (89%). Focus areas for improvement include multi-factor authentication coverage and supply chain risk management.
         """
-        
+
         # Generate recommendations
         recommendations = [
             "Continue investing in automated threat detection capabilities",
@@ -251,13 +251,13 @@ class EnterpriseReportingSystem:
             "Conduct quarterly compliance gap assessments",
             "Expand security awareness training program"
         ]
-        
+
         if avg_response_time > 30:
             recommendations.append("Review incident response procedures to reduce MTTR")
-        
+
         if system_availability < 99.5:
             recommendations.append("Investigate system availability issues and implement redundancy")
-        
+
         summary = {
             "time_period": f"{start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}",
             "total_threats_detected": int(threat_detections),
@@ -268,7 +268,7 @@ class EnterpriseReportingSystem:
             "overall_security_score": 8.7,
             "compliance_status": "COMPLIANT"
         }
-        
+
         metrics = [
             {
                 "name": "Security Posture Score",
@@ -299,9 +299,9 @@ class EnterpriseReportingSystem:
                 "description": "Overall system uptime and availability"
             }
         ]
-        
+
         processing_time = time.time() - start_time
-        
+
         report = ReportResult(
             report_id=f"exec_summary_{int(time.time())}_{len(self.generated_reports)}",
             report_type=ReportType.EXECUTIVE_SUMMARY,
@@ -314,14 +314,14 @@ class EnterpriseReportingSystem:
             processing_time=processing_time,
             data_tables=data_tables
         )
-        
+
         self.generated_reports.append(report)
         return report
-    
+
     async def generate_threat_analysis_report(self, time_range: TimeRange, custom_start: str = None, custom_end: str = None) -> ReportResult:
         """Generate detailed threat analysis report"""
         start_time = time.time()
-        
+
         # Similar time range logic as executive summary
         end_date = datetime.now()
         if time_range == TimeRange.LAST_24H:
@@ -332,22 +332,22 @@ class EnterpriseReportingSystem:
             start_date = end_date - timedelta(days=30)
         else:
             start_date = end_date - timedelta(days=7)
-        
+
         filtered_metrics = [
-            m for m in self.security_metrics 
+            m for m in self.security_metrics
             if start_date <= m.timestamp <= end_date and m.category == "security"
         ]
-        
+
         # Threat analysis
         malware_detections = sum(m.value for m in filtered_metrics if m.metric_name == "malware_detections")
         phishing_attempts = sum(m.value for m in filtered_metrics if m.metric_name == "phishing_attempts")
         data_exfiltration = sum(m.value for m in filtered_metrics if m.metric_name == "data_exfiltration_attempts")
         login_failures = sum(m.value for m in filtered_metrics if m.metric_name == "user_login_failures")
         total_threats = sum(m.value for m in filtered_metrics if m.metric_name == "threat_detections")
-        
+
         # Generate threat data tables
         data_tables = []
-        
+
         threat_breakdown_table = {
             "title": "Threat Type Breakdown",
             "headers": ["Threat Type", "Count", "Percentage", "Severity"],
@@ -356,12 +356,12 @@ class EnterpriseReportingSystem:
                 ["Phishing", f"{int(phishing_attempts)}", f"{(phishing_attempts/max(1,total_threats)*100):.1f}%", "🟡 Medium"],
                 ["Data Exfiltration", f"{int(data_exfiltration)}", f"{(data_exfiltration/max(1,total_threats)*100):.1f}%", "🔴 High"],
                 ["Brute Force", f"{int(login_failures)}", f"{(login_failures/max(1,total_threats)*100):.1f}%", "🟡 Medium"],
-                ["Other", f"{int(total_threats - malware_detections - phishing_attempts - data_exfiltration - login_failures)}", 
+                ["Other", f"{int(total_threats - malware_detections - phishing_attempts - data_exfiltration - login_failures)}",
                  f"{((total_threats - malware_detections - phishing_attempts - data_exfiltration - login_failures)/max(1,total_threats)*100):.1f}%", "🟢 Low"]
             ]
         }
         data_tables.append(threat_breakdown_table)
-        
+
         summary = {
             "total_threats": int(total_threats),
             "malware_detections": int(malware_detections),
@@ -372,7 +372,7 @@ class EnterpriseReportingSystem:
             "false_positive_rate": 0.05,
             "detection_accuracy": 0.94
         }
-        
+
         metrics = [
             {"name": "Total Threats Detected", "value": int(total_threats), "unit": "threats"},
             {"name": "Malware Detections", "value": int(malware_detections), "unit": "incidents"},
@@ -380,7 +380,7 @@ class EnterpriseReportingSystem:
             {"name": "Data Exfiltration Attempts", "value": int(data_exfiltration), "unit": "attempts"},
             {"name": "Detection Accuracy", "value": 94.0, "unit": "percentage"}
         ]
-        
+
         recommendations = [
             "Enhance email security controls to reduce phishing attempts",
             "Implement additional endpoint detection capabilities",
@@ -388,17 +388,17 @@ class EnterpriseReportingSystem:
             "Conduct red team exercises to test detection capabilities",
             "Improve correlation rules to reduce false positives"
         ]
-        
+
         executive_summary = f"""
-        Threat analysis for the {time_range.value} period reveals {int(total_threats)} total security threats detected across multiple categories. 
+        Threat analysis for the {time_range.value} period reveals {int(total_threats)} total security threats detected across multiple categories.
         Malware represents the highest volume threat vector with {int(malware_detections)} incidents, followed by phishing attempts at {int(phishing_attempts)}.
-        
+
         The security operations center maintains a detection accuracy rate of 94.0% with a false positive rate of 5.0%.
         Threat density averaged {summary['threat_density']} threats per day, indicating consistent security monitoring effectiveness.
         """
-        
+
         processing_time = time.time() - start_time
-        
+
         report = ReportResult(
             report_id=f"threat_analysis_{int(time.time())}_{len(self.generated_reports)}",
             report_type=ReportType.THREAT_ANALYSIS,
@@ -411,49 +411,49 @@ class EnterpriseReportingSystem:
             processing_time=processing_time,
             data_tables=data_tables
         )
-        
+
         self.generated_reports.append(report)
         return report
-    
+
     async def generate_compliance_report(self, framework: str = "SOC2") -> ReportResult:
         """Generate compliance assessment report"""
         start_time = time.time()
-        
+
         if framework not in self.compliance_frameworks:
             framework = "SOC2"  # Default fallback
-            
+
         compliance_data = self.compliance_frameworks[framework]
-        
+
         # Generate compliance data tables
         data_tables = []
-        
+
         controls_table = {
             "title": f"{compliance_data.framework_name} Controls Assessment",
             "headers": ["Control Domain", "Status", "Effectiveness", "Last Review"],
             "rows": []
         }
-        
+
         for i, control in enumerate(compliance_data.controls):
             effectiveness = "High" if i % 3 == 0 else "Medium" if i % 3 == 1 else "Satisfactory"
             status = "✅ Compliant" if effectiveness != "Low" else "⚠️ Needs Attention"
             last_review = (datetime.now() - timedelta(days=30 + i*10)).strftime("%Y-%m-%d")
             controls_table["rows"].append([control, status, effectiveness, last_review])
-        
+
         data_tables.append(controls_table)
-        
+
         gaps_table = {
             "title": "Identified Gaps and Remediation",
             "headers": ["Gap Description", "Priority", "Remediation Action", "Target Date"],
             "rows": []
         }
-        
+
         for i, (gap, remediation) in enumerate(zip(compliance_data.gaps, compliance_data.remediation_items)):
             priority = "High" if i == 0 else "Medium"
             target_date = (datetime.now() + timedelta(days=30 + i*15)).strftime("%Y-%m-%d")
             gaps_table["rows"].append([gap, priority, remediation, target_date])
-        
+
         data_tables.append(gaps_table)
-        
+
         summary = {
             "framework": compliance_data.framework_name,
             "overall_score": compliance_data.compliance_score,
@@ -464,14 +464,14 @@ class EnterpriseReportingSystem:
             "assessment_date": datetime.now().strftime("%Y-%m-%d"),
             "next_assessment": (datetime.now() + timedelta(days=90)).strftime("%Y-%m-%d")
         }
-        
+
         metrics = [
             {"name": "Compliance Score", "value": round(compliance_data.compliance_score * 100, 1), "unit": "percentage"},
             {"name": "Controls Assessed", "value": len(compliance_data.controls), "unit": "controls"},
             {"name": "Gaps Identified", "value": len(compliance_data.gaps), "unit": "gaps"},
             {"name": "Remediation Items", "value": len(compliance_data.remediation_items), "unit": "items"}
         ]
-        
+
         recommendations = [
             f"Address {len(compliance_data.gaps)} identified compliance gaps",
             "Implement continuous compliance monitoring",
@@ -480,19 +480,19 @@ class EnterpriseReportingSystem:
             "Conduct compliance training for key personnel"
         ]
         recommendations.extend(compliance_data.remediation_items[:3])
-        
+
         executive_summary = f"""
-        {compliance_data.framework_name} compliance assessment demonstrates an overall score of {compliance_data.compliance_score*100:.1f}%, 
-        indicating strong adherence to framework requirements. 
-        
-        Assessment covered {len(compliance_data.controls)} control domains with {len(compliance_data.gaps)} gaps identified for remediation. 
+        {compliance_data.framework_name} compliance assessment demonstrates an overall score of {compliance_data.compliance_score*100:.1f}%,
+        indicating strong adherence to framework requirements.
+
+        Assessment covered {len(compliance_data.controls)} control domains with {len(compliance_data.gaps)} gaps identified for remediation.
         Priority remediation efforts should focus on {', '.join(compliance_data.gaps[:2]) if len(compliance_data.gaps) >= 2 else compliance_data.gaps[0] if compliance_data.gaps else 'maintaining current controls'}.
-        
+
         Continuous monitoring and quarterly assessments recommended to maintain compliance posture.
         """
-        
+
         processing_time = time.time() - start_time
-        
+
         report = ReportResult(
             report_id=f"compliance_{framework.lower()}_{int(time.time())}",
             report_type=ReportType.COMPLIANCE,
@@ -505,21 +505,21 @@ class EnterpriseReportingSystem:
             processing_time=processing_time,
             data_tables=data_tables
         )
-        
+
         self.generated_reports.append(report)
         return report
-    
+
     def get_reporting_summary(self) -> Dict:
         """Get reporting system summary"""
-        recent_reports = [r for r in self.generated_reports if 
+        recent_reports = [r for r in self.generated_reports if
                          datetime.fromisoformat(r.generated_at) > datetime.now() - timedelta(hours=24)]
-        
+
         report_types = {}
         for report in self.generated_reports:
             report_types[report.report_type] = report_types.get(report.report_type, 0) + 1
-        
+
         avg_processing_time = sum(r.processing_time for r in self.generated_reports) / len(self.generated_reports) if self.generated_reports else 0
-        
+
         return {
             "total_reports_generated": len(self.generated_reports),
             "reports_last_24h": len(recent_reports),
@@ -552,7 +552,7 @@ async def generate_report(request: ReportRequest, background_tasks: BackgroundTa
         report = await reporting_system.generate_executive_summary_report(
             request.time_range, request.custom_start, request.custom_end
         )
-    
+
     return report.dict()
 
 @app.get("/reports")
@@ -638,7 +638,7 @@ async def reporting_dashboard():
         <p>Comprehensive Security Reporting and Business Intelligence</p>
         <div id="status">Loading reporting system...</div>
     </div>
-    
+
     <div class="dashboard-grid">
         <!-- Report Generation Card -->
         <div class="report-card">
@@ -678,7 +678,7 @@ async def reporting_dashboard():
             </div>
             <div id="generation-status" style="margin-top: 15px; color: #8b949e;"></div>
         </div>
-        
+
         <!-- System Metrics Card -->
         <div class="report-card">
             <div class="card-header">
@@ -704,7 +704,7 @@ async def reporting_dashboard():
             </div>
         </div>
     </div>
-    
+
     <!-- Recent Reports Section -->
     <div class="report-card">
         <div class="card-header">
@@ -715,7 +715,7 @@ async def reporting_dashboard():
             <div class="loading">Loading recent reports...</div>
         </div>
     </div>
-    
+
     <!-- Report Display Modal -->
     <div id="report-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000;">
         <div style="background: #161b22; margin: 2% auto; padding: 20px; width: 90%; max-width: 1200px; border-radius: 8px; max-height: 90%; overflow-y: auto;">
@@ -726,7 +726,7 @@ async def reporting_dashboard():
             <div id="modal-content"></div>
         </div>
     </div>
-    
+
     <script>
         // Show/hide framework selection based on report type
         document.getElementById('report-type').addEventListener('change', function() {
@@ -737,39 +737,39 @@ async def reporting_dashboard():
                 frameworkGroup.style.display = 'none';
             }
         });
-        
+
         async function loadDashboardData() {
             try {
                 // Load system summary
                 const summaryResponse = await fetch('/reports/summary');
                 const summary = await summaryResponse.json();
-                
+
                 document.getElementById('total-reports').textContent = summary.total_reports_generated;
                 document.getElementById('reports-24h').textContent = summary.reports_last_24h;
                 document.getElementById('total-metrics').textContent = summary.total_metrics_processed.toLocaleString();
                 document.getElementById('avg-processing').textContent = summary.average_processing_time;
-                
+
                 // Load recent reports
                 await refreshReports();
-                
+
                 document.getElementById('status').textContent = '✅ Reporting System Online';
                 document.getElementById('status').style.color = '#2ea043';
-                
+
             } catch (error) {
                 console.error('Error loading dashboard data:', error);
                 document.getElementById('status').textContent = '❌ Error Loading Data';
                 document.getElementById('status').style.color = '#f85149';
             }
         }
-        
+
         async function generateReport() {
             const button = document.getElementById('generate-btn');
             const status = document.getElementById('generation-status');
-            
+
             button.disabled = true;
             button.textContent = '🔄 Generating...';
             status.textContent = 'Generating report, please wait...';
-            
+
             try {
                 const reportRequest = {
                     report_type: document.getElementById('report-type').value,
@@ -777,30 +777,30 @@ async def reporting_dashboard():
                     format: 'json',
                     filters: {}
                 };
-                
+
                 // Add framework filter for compliance reports
                 if (reportRequest.report_type === 'compliance') {
                     reportRequest.filters.framework = document.getElementById('framework').value;
                 }
-                
+
                 const response = await fetch('/reports/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(reportRequest)
                 });
-                
+
                 const report = await response.json();
-                
+
                 status.innerHTML = `
                     <strong>Report Generated Successfully!</strong><br>
                     Report ID: ${report.report_id}<br>
                     Processing Time: ${(report.processing_time * 1000).toFixed(0)}ms<br>
                     <button onclick="viewReport('${report.report_id}')" style="background: #0969da; border: none; color: white; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-top: 5px;">View Report</button>
                 `;
-                
+
                 // Refresh reports list
                 setTimeout(refreshReports, 1000);
-                
+
             } catch (error) {
                 status.textContent = 'Error generating report: ' + error.message;
                 status.style.color = '#f85149';
@@ -809,29 +809,29 @@ async def reporting_dashboard():
                 button.textContent = 'Generate Report';
             }
         }
-        
+
         async function refreshReports() {
             const container = document.getElementById('reports-list');
             container.innerHTML = '<div class="loading">Loading reports...</div>';
-            
+
             try {
                 const response = await fetch('/reports?limit=10');
                 const data = await response.json();
-                
+
                 if (data.reports.length === 0) {
                     container.innerHTML = '<div class="loading">No reports generated yet</div>';
                     return;
                 }
-                
+
                 container.innerHTML = '';
-                
+
                 data.reports.reverse().forEach(report => {
                     const reportDiv = document.createElement('div');
                     reportDiv.className = 'report-item';
-                    
+
                     const generatedAt = new Date(report.generated_at).toLocaleString();
                     const reportType = report.report_type.replace('_', ' ').toUpperCase();
-                    
+
                     reportDiv.innerHTML = `
                         <div class="report-header">
                             <span class="report-type">${reportType}</span>
@@ -846,22 +846,22 @@ async def reporting_dashboard():
                             View Details
                         </button>
                     `;
-                    
+
                     container.appendChild(reportDiv);
                 });
-                
+
             } catch (error) {
                 container.innerHTML = '<div class="loading">Error loading reports</div>';
             }
         }
-        
+
         async function viewReport(reportId) {
             try {
                 const response = await fetch(`/reports/${reportId}`);
                 const report = await response.json();
-                
+
                 document.getElementById('modal-title').textContent = `${report.report_type.replace('_', ' ').toUpperCase()} Report`;
-                
+
                 let tablesHtml = '';
                 if (report.data_tables && report.data_tables.length > 0) {
                     tablesHtml = '<h3>📊 Data Analysis</h3>';
@@ -887,13 +887,13 @@ async def reporting_dashboard():
                         `;
                     });
                 }
-                
+
                 document.getElementById('modal-content').innerHTML = `
                     <div style="margin-bottom: 20px;">
                         <h3>📋 Executive Summary</h3>
                         <p style="line-height: 1.6; color: #8b949e;">${report.executive_summary}</p>
                     </div>
-                    
+
                     <div style="margin-bottom: 20px;">
                         <h3>📊 Key Metrics</h3>
                         <div class="metrics-grid">
@@ -905,43 +905,43 @@ async def reporting_dashboard():
                             `).join('')}
                         </div>
                     </div>
-                    
+
                     ${tablesHtml}
-                    
+
                     <div style="margin-bottom: 20px;">
                         <h3>💡 Recommendations</h3>
                         <ul style="color: #8b949e; line-height: 1.6;">
                             ${report.recommendations.map(rec => `<li>${rec}</li>`).join('')}
                         </ul>
                     </div>
-                    
+
                     <div>
                         <h3>📈 Report Summary</h3>
                         <pre style="background: #0d1117; padding: 15px; border-radius: 6px; overflow-x: auto; color: #8b949e; font-size: 0.9em;">${JSON.stringify(report.summary, null, 2)}</pre>
                     </div>
                 `;
-                
+
                 document.getElementById('report-modal').style.display = 'block';
-                
+
             } catch (error) {
                 alert('Error loading report: ' + error.message);
             }
         }
-        
+
         function closeModal() {
             document.getElementById('report-modal').style.display = 'none';
         }
-        
+
         // Close modal when clicking outside
         document.getElementById('report-modal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeModal();
             }
         });
-        
+
         // Initialize dashboard
         loadDashboardData();
-        
+
         // Auto-refresh every 30 seconds
         setInterval(loadDashboardData, 30000);
     </script>
@@ -954,7 +954,7 @@ async def health_check():
     """Enterprise reporting system health check"""
     return {
         "status": "healthy",
-        "service": "xorb_reporting_system", 
+        "service": "xorb_reporting_system",
         "version": "6.0.0",
         "capabilities": [
             "Executive Summaries",

@@ -130,7 +130,34 @@ dmypy.json
 gen/
 .env.dev
 reports/security/
+reports/sbom/
 *.bundle
+
+# Security and compliance artifacts
+*.sarif
+gitleaks-report.json
+semgrep-report.json
+sbom.spdx.json
+compliance-report.md
 
 # Separate repositories
 PTaaS/
+# Sanitation
+venv/
+**/__pycache__/
+gen/
+node_modules/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.DS_Store
+# Artifacts
+archive/legacy/**/*
+infra/nats/terraform/out/*
+
+# block security reports
+reports/security/
+
+# runtime state
+control_plane_storage/

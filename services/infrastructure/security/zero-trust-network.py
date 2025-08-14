@@ -49,7 +49,7 @@ class NetworkIdentity:
     last_verified: datetime
     cert_thumbprint: Optional[str] = None
     risk_score: float = 0.0
-    
+
     def to_dict(self) -> Dict:
         data = asdict(self)
         data['trust_level'] = self.trust_level.value
@@ -69,10 +69,10 @@ class NetworkPolicy:
     time_restriction: Optional[Dict[str, str]] = None
     requires_mfa: bool = False
     max_session_duration: int = 3600  # seconds
-    
+
 class ZeroTrustNetworkController:
     """Advanced zero trust network controller"""
-    
+
     def __init__(self, redis_url: str = "redis://localhost:6379"):
         self.redis_client = None
         self.redis_url = redis_url
@@ -82,7 +82,7 @@ class ZeroTrustNetworkController:
         self.threat_indicators: Set[str] = set()
         self.encryption_key = Fernet.generate_key()
         self.cipher_suite = Fernet(self.encryption_key)
-        
+
     async def initialize(self):
         """Initialize zero trust network controller"""
         try:
@@ -94,7 +94,7 @@ class ZeroTrustNetworkController:
         except Exception as e:
             logger.error(f"Failed to initialize network controller: {e}")
             raise
-    
+
     async def _load_default_policies(self):
         """Load default zero trust policies"""
         default_policies = [
@@ -137,10 +137,10 @@ class ZeroTrustNetworkController:
                 protocol="tcp"
             )
         ]
-        
+
         self.network_policies.extend(default_policies)
         logger.info(f"Loaded {len(default_policies)} default network policies")
-    
+
     async def _initialize_network_zones(self):
         """Initialize network zone configurations"""
         zone_configs = {
@@ -170,16 +170,16 @@ class ZeroTrustNetworkController:
                 "monitoring_level": "maximum"
             }
         }
-        
+
         for zone, config in zone_configs.items():
             await self.redis_client.hset(
                 f"zone_config:{zone.value}",
                 mapping=config
             )
-        
+
         logger.info("Network zones initialized")
-    
-    async def register_network_identity(self, 
+
+    async def register_network_identity(self,
                                       entity_id: str,
                                       ip_address: str,
                                       mac_address: str,
@@ -189,10 +189,10 @@ class ZeroTrustNetworkController:
         try:
             # Calculate initial risk score
             risk_score = await self._calculate_risk_score(ip_address, device_fingerprint)
-            
+
             # Determine initial trust level based on zone and risk
             initial_trust = await self._determine_initial_trust(zone, risk_score)
-            
+
             identity = NetworkIdentity(
                 entity_id=entity_id,
                 ip_address=ip_address,
@@ -203,22 +203,22 @@ class ZeroTrustNetworkController:
                 last_verified=datetime.utcnow(),
                 risk_score=risk_score
             )
-            
+
             self.network_identities[entity_id] = identity
-            
+
             # Store in Redis for persistence
             await self.redis_client.hset(
                 f"network_identity:{entity_id}",
                 mapping=identity.to_dict()
             )
-            
+
             logger.info(f"Registered network identity {entity_id} with trust level {initial_trust.name}")
             return identity
-            
+
         except Exception as e:
             logger.error(f"Failed to register network identity: {e}")
             raise
-    
+
     async def authenticate_identity(self, entity_id: str, credentials: Dict) -> bool:
         """Authenticate network identity and elevate trust level"""
         try:
@@ -226,7 +226,7 @@ class ZeroTrustNetworkController:
             if not identity:
                 logger.warning(f"Authentication attempt for unknown identity: {entity_id}")
                 return False
-            
+
             # Verify credentials (implementation depends on auth method)
             if await self._verify_credentials(identity, credentials):
                 # Elevate trust level
@@ -234,26 +234,26 @@ class ZeroTrustNetworkController:
                     identity.trust_level = TrustLevel.BASIC
                 elif identity.trust_level == TrustLevel.BASIC:
                     identity.trust_level = TrustLevel.AUTHENTICATED
-                
+
                 identity.last_verified = datetime.utcnow()
-                
+
                 # Update in Redis
                 await self.redis_client.hset(
                     f"network_identity:{entity_id}",
                     mapping=identity.to_dict()
                 )
-                
+
                 logger.info(f"Authentication successful for {entity_id}, trust level: {identity.trust_level.name}")
                 return True
-            
+
             logger.warning(f"Authentication failed for {entity_id}")
             return False
-            
+
         except Exception as e:
             logger.error(f"Authentication error: {e}")
             return False
-    
-    async def verify_network_access(self, 
+
+    async def verify_network_access(self,
                                   source_entity: str,
                                   destination_ip: str,
                                   destination_port: int,
@@ -265,10 +265,10 @@ class ZeroTrustNetworkController:
             if not source_identity:
                 logger.warning(f"Access denied: Unknown source entity {source_entity}")
                 return False
-            
+
             # Determine destination zone
             dest_zone = await self._determine_zone_by_ip(destination_ip)
-            
+
             # Find applicable policy
             applicable_policy = self._find_applicable_policy(
                 source_identity.zone,
@@ -276,22 +276,22 @@ class ZeroTrustNetworkController:
                 destination_port,
                 protocol
             )
-            
+
             if not applicable_policy:
                 logger.warning(f"Access denied: No applicable policy for {source_entity}")
                 return False
-            
+
             # Check trust level requirement
             if source_identity.trust_level.value < applicable_policy.min_trust_level.value:
                 logger.warning(f"Access denied: Insufficient trust level for {source_entity}")
                 return False
-            
+
             # Check time restrictions
             if applicable_policy.time_restriction:
                 if not self._check_time_restriction(applicable_policy.time_restriction):
                     logger.warning(f"Access denied: Outside allowed time window for {source_entity}")
                     return False
-            
+
             # Create session if access granted
             session_id = await self._create_network_session(
                 source_entity,
@@ -299,14 +299,14 @@ class ZeroTrustNetworkController:
                 destination_port,
                 applicable_policy
             )
-            
+
             logger.info(f"Network access granted for {source_entity} to {destination_ip}:{destination_port}")
             return True
-            
+
         except Exception as e:
             logger.error(f"Network access verification error: {e}")
             return False
-    
+
     async def _create_network_session(self,
                                     source_entity: str,
                                     destination_ip: str,
@@ -317,7 +317,7 @@ class ZeroTrustNetworkController:
             f"{source_entity}:{destination_ip}:{destination_port}:{datetime.utcnow().isoformat()}"
             .encode()
         ).hexdigest()[:16]
-        
+
         session_data = {
             "session_id": session_id,
             "source_entity": source_entity,
@@ -328,18 +328,18 @@ class ZeroTrustNetworkController:
             "expires_at": (datetime.utcnow() + timedelta(seconds=policy.max_session_duration)).isoformat(),
             "active": True
         }
-        
+
         self.active_sessions[session_id] = session_data
-        
+
         # Store in Redis with expiration
         await self.redis_client.setex(
             f"network_session:{session_id}",
             policy.max_session_duration,
             json.dumps(session_data)
         )
-        
+
         return session_id
-    
+
     async def continuous_trust_assessment(self):
         """Continuously assess and update trust levels"""
         while True:
@@ -351,7 +351,7 @@ class ZeroTrustNetworkController:
                         if identity.trust_level.value > TrustLevel.UNTRUSTED.value:
                             identity.trust_level = TrustLevel(identity.trust_level.value - 1)
                             logger.info(f"Trust level degraded for {entity_id}: {identity.trust_level.name}")
-                    
+
                     # Update risk score based on behavior
                     new_risk_score = await self._calculate_behavioral_risk(entity_id)
                     if new_risk_score > identity.risk_score * 1.5:
@@ -359,41 +359,41 @@ class ZeroTrustNetworkController:
                         identity.zone = NetworkZone.ISOLATED
                         identity.trust_level = TrustLevel.UNTRUSTED
                         logger.warning(f"Identity {entity_id} moved to isolated zone due to high risk")
-                    
+
                     identity.risk_score = new_risk_score
-                
+
                 # Clean up expired sessions
                 await self._cleanup_expired_sessions()
-                
+
                 await asyncio.sleep(300)  # Run every 5 minutes
-                
+
             except Exception as e:
                 logger.error(f"Continuous trust assessment error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _calculate_risk_score(self, ip_address: str, device_fingerprint: str) -> float:
         """Calculate risk score for network entity"""
         risk_score = 0.0
-        
+
         # Check against threat intelligence
         if ip_address in self.threat_indicators:
             risk_score += 0.8
-        
+
         # Check geographic location (simplified)
         if self._is_suspicious_location(ip_address):
             risk_score += 0.3
-        
+
         # Check device fingerprint consistency
         if not self._is_known_device(device_fingerprint):
             risk_score += 0.2
-        
+
         return min(risk_score, 1.0)
-    
+
     async def _determine_initial_trust(self, zone: NetworkZone, risk_score: float) -> TrustLevel:
         """Determine initial trust level based on zone and risk"""
         if risk_score > 0.7:
             return TrustLevel.UNTRUSTED
-        
+
         zone_trust_mapping = {
             NetworkZone.DMZ: TrustLevel.UNTRUSTED,
             NetworkZone.INTERNAL: TrustLevel.BASIC,
@@ -401,10 +401,10 @@ class ZeroTrustNetworkController:
             NetworkZone.ADMIN: TrustLevel.PRIVILEGED,
             NetworkZone.ISOLATED: TrustLevel.UNTRUSTED
         }
-        
+
         return zone_trust_mapping.get(zone, TrustLevel.UNTRUSTED)
-    
-    def _find_applicable_policy(self, 
+
+    def _find_applicable_policy(self,
                               source_zone: NetworkZone,
                               dest_zone: NetworkZone,
                               port: int,
@@ -417,24 +417,24 @@ class ZeroTrustNetworkController:
                 policy.protocol == protocol):
                 return policy
         return None
-    
+
     def _check_time_restriction(self, time_restriction: Dict[str, str]) -> bool:
         """Check if current time is within allowed window"""
         current_time = datetime.now().time()
         start_time = datetime.strptime(time_restriction["start"], "%H:%M").time()
         end_time = datetime.strptime(time_restriction["end"], "%H:%M").time()
-        
+
         if start_time <= end_time:
             return start_time <= current_time <= end_time
         else:
             # Overnight restriction
             return current_time >= start_time or current_time <= end_time
-    
+
     async def _determine_zone_by_ip(self, ip_address: str) -> NetworkZone:
         """Determine network zone based on IP address"""
         # Simplified zone determination - in production, this would be more sophisticated
         ip = ipaddress.ip_address(ip_address)
-        
+
         zone_mappings = [
             (ipaddress.ip_network("172.20.1.0/24"), NetworkZone.DMZ),
             (ipaddress.ip_network("172.20.10.0/24"), NetworkZone.INTERNAL),
@@ -442,48 +442,48 @@ class ZeroTrustNetworkController:
             (ipaddress.ip_network("172.20.30.0/24"), NetworkZone.ADMIN),
             (ipaddress.ip_network("172.20.99.0/24"), NetworkZone.ISOLATED)
         ]
-        
+
         for network, zone in zone_mappings:
             if ip in network:
                 return zone
-        
+
         return NetworkZone.DMZ  # Default to DMZ for unknown IPs
-    
+
     async def _verify_credentials(self, identity: NetworkIdentity, credentials: Dict) -> bool:
         """Verify authentication credentials"""
         # Simplified credential verification - implement actual auth logic
         return credentials.get("valid", False)
-    
+
     async def _calculate_behavioral_risk(self, entity_id: str) -> float:
         """Calculate behavioral risk score"""
         # Implement behavioral analysis
         # This would analyze network patterns, access patterns, etc.
         return 0.1  # Placeholder
-    
+
     def _is_suspicious_location(self, ip_address: str) -> bool:
         """Check if IP is from suspicious location"""
         # Implement geo-location checking
         return False  # Placeholder
-    
+
     def _is_known_device(self, device_fingerprint: str) -> bool:
         """Check if device fingerprint is known"""
         # Implement device recognition
         return True  # Placeholder
-    
+
     async def _cleanup_expired_sessions(self):
         """Clean up expired network sessions"""
         current_time = datetime.utcnow()
         expired_sessions = []
-        
+
         for session_id, session_data in self.active_sessions.items():
             expires_at = datetime.fromisoformat(session_data["expires_at"])
             if current_time > expires_at:
                 expired_sessions.append(session_id)
-        
+
         for session_id in expired_sessions:
             del self.active_sessions[session_id]
             await self.redis_client.delete(f"network_session:{session_id}")
-        
+
         if expired_sessions:
             logger.info(f"Cleaned up {len(expired_sessions)} expired sessions")
 
@@ -491,10 +491,10 @@ async def main():
     """Main function for testing zero trust network controller"""
     controller = ZeroTrustNetworkController()
     await controller.initialize()
-    
+
     # Start continuous trust assessment
     trust_task = asyncio.create_task(controller.continuous_trust_assessment())
-    
+
     # Example usage
     identity = await controller.register_network_identity(
         entity_id="user001",
@@ -503,13 +503,13 @@ async def main():
         device_fingerprint="device_fp_123",
         zone=NetworkZone.INTERNAL
     )
-    
+
     # Authenticate
     auth_result = await controller.authenticate_identity(
         "user001",
         {"valid": True, "token": "auth_token_123"}
     )
-    
+
     if auth_result:
         # Test network access
         access_granted = await controller.verify_network_access(
@@ -518,9 +518,9 @@ async def main():
             destination_port=8000,
             protocol="tcp"
         )
-        
+
         print(f"Network access granted: {access_granted}")
-    
+
     # Keep running
     await trust_task
 

@@ -25,8 +25,8 @@
 ### 1. Environment Preparation
 ```bash
 # Create production environment directory
-mkdir -p /opt/xorb-platform
-cd /opt/xorb-platform
+mkdir -p /opt/xorb_platform
+cd /opt/xorb_platform
 
 # Clone repository
 git clone <repository-url> .
@@ -85,7 +85,7 @@ vault kv put secret/xorb/config \
 ## ⚙️ Configuration Management
 
 ### 1. Environment Variables
-Create `/opt/xorb-platform/.env.production`:
+Create `/opt/xorb_platform/.env.production`:
 ```env
 # Application
 ENVIRONMENT=production
@@ -104,7 +104,7 @@ REDIS_POOL_SIZE=20
 # Authentication
 JWT_SECRET=your-super-secure-jwt-secret
 OIDC_DISCOVERY_URL=https://your-oidc-provider.com/.well-known/openid-configuration
-OIDC_CLIENT_ID=xorb-platform-client
+OIDC_CLIENT_ID=xorb_platform-client
 OIDC_CLIENT_SECRET=your-oidc-client-secret
 
 # API Security
@@ -147,7 +147,7 @@ Use `infra/docker-compose.production.yml`:
 version: '3.8'
 services:
   xorb-api:
-    build: 
+    build:
       context: .
       dockerfile: src/api/Dockerfile.secure
     ports:
@@ -160,7 +160,7 @@ services:
       - postgres
       - redis
       - temporal
-    
+
   postgres:
     image: ankane/pgvector:v0.5.1
     environment:
@@ -169,13 +169,13 @@ services:
       - POSTGRES_PASSWORD=secure_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    
+
   redis:
     image: redis:7-alpine
     command: redis-server --requirepass redis_password
     volumes:
       - redis_data:/data
-      
+
   temporal:
     image: temporalio/temporal:latest
     environment:
@@ -185,7 +185,7 @@ services:
       - POSTGRES_PWD=temporal
     depends_on:
       - postgres
-      
+
 volumes:
   postgres_data:
   redis_data:
@@ -212,7 +212,7 @@ curl http://localhost:3010/api/health             # Grafana
 sudo certbot certonly --standalone -d api.your-domain.com
 
 # Configure nginx reverse proxy
-sudo nano /etc/nginx/sites-available/xorb-platform
+sudo nano /etc/nginx/sites-available/xorb_platform
 ```
 
 ### 2. Nginx Configuration
@@ -220,16 +220,16 @@ sudo nano /etc/nginx/sites-available/xorb-platform
 server {
     listen 443 ssl http2;
     server_name api.your-domain.com;
-    
+
     ssl_certificate /etc/letsencrypt/live/api.your-domain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/api.your-domain.com/privkey.pem;
-    
+
     # Security headers
     add_header X-Frame-Options DENY;
     add_header X-Content-Type-Options nosniff;
     add_header X-XSS-Protection "1; mode=block";
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    
+
     location / {
         proxy_pass http://localhost:8000;
         proxy_set_header Host $host;
@@ -237,7 +237,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
+
     location /api/v1/platform/health {
         proxy_pass http://localhost:8000;
         access_log off;  # Don't log health checks
@@ -264,7 +264,7 @@ sudo ufw deny 6379/tcp   # Block direct Redis access
 ## 🚀 Service Deployment
 
 ### 1. Systemd Service Configuration
-Create `/etc/systemd/system/xorb-platform.service`:
+Create `/etc/systemd/system/xorb_platform.service`:
 ```ini
 [Unit]
 Description=XORB Platform API Service
@@ -275,10 +275,10 @@ Wants=postgresql.service redis-server.service
 Type=exec
 User=xorb
 Group=xorb
-WorkingDirectory=/opt/xorb-platform/src/api
-Environment=PATH=/opt/xorb-platform/venv/bin
-EnvironmentFile=/opt/xorb-platform/.env.production
-ExecStart=/opt/xorb-platform/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+WorkingDirectory=/opt/xorb_platform/src/api
+Environment=PATH=/opt/xorb_platform/venv/bin
+EnvironmentFile=/opt/xorb_platform/.env.production
+ExecStart=/opt/xorb_platform/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ExecReload=/bin/kill -HUP $MAINPID
 Restart=always
 RestartSec=10
@@ -291,12 +291,12 @@ WantedBy=multi-user.target
 ```bash
 # Enable and start the service
 sudo systemctl daemon-reload
-sudo systemctl enable xorb-platform
-sudo systemctl start xorb-platform
+sudo systemctl enable xorb_platform
+sudo systemctl start xorb_platform
 
 # Check service status
-sudo systemctl status xorb-platform
-sudo journalctl -u xorb-platform -f
+sudo systemctl status xorb_platform
+sudo journalctl -u xorb_platform -f
 ```
 
 ### 3. Initialize Platform Services
@@ -341,8 +341,8 @@ Available at `http://localhost:8000/metrics`:
 ### 3. Log Management
 ```bash
 # Configure log rotation
-sudo nano /etc/logrotate.d/xorb-platform
-/var/log/xorb-platform/*.log {
+sudo nano /etc/logrotate.d/xorb_platform
+/var/log/xorb_platform/*.log {
     daily
     rotate 30
     compress
@@ -351,7 +351,7 @@ sudo nano /etc/logrotate.d/xorb-platform
     notifempty
     create 0640 xorb xorb
     postrotate
-        systemctl reload xorb-platform
+        systemctl reload xorb_platform
     endscript
 }
 ```
@@ -373,7 +373,7 @@ Configure alerts for:
 # API health check
 curl -f https://api.your-domain.com/health
 
-# Platform health check  
+# Platform health check
 curl -f https://api.your-domain.com/api/v1/platform/health
 
 # Authentication test
@@ -394,7 +394,7 @@ sudo apt-get install apache2-utils
 # Basic load test
 ab -n 1000 -c 10 https://api.your-domain.com/health
 
-# API endpoint load test  
+# API endpoint load test
 ab -n 500 -c 5 -H "Authorization: Bearer $TOKEN" \
   https://api.your-domain.com/api/v1/platform/services
 ```
@@ -408,7 +408,7 @@ ssllabs-scan --quiet --host api.your-domain.com
 curl -I https://api.your-domain.com/
 
 # Rate limiting test
-for i in {1..70}; do 
+for i in {1..70}; do
   curl -s -o /dev/null -w "%{http_code}\n" https://api.your-domain.com/health
 done
 ```
@@ -422,7 +422,7 @@ done
 # Database backup
 pg_dump -h localhost -U xorb_app xorb_production | gzip > backup_$(date +%Y%m%d).sql.gz
 
-# Redis backup  
+# Redis backup
 redis-cli --rdb dump.rdb
 cp dump.rdb backup/redis_$(date +%Y%m%d).rdb
 
@@ -447,7 +447,7 @@ pip install -r requirements.txt
 cd src/api && alembic upgrade head
 
 # Restart services
-sudo systemctl restart xorb-platform
+sudo systemctl restart xorb_platform
 
 # Remove maintenance page
 sudo rm /var/www/html/index.html
@@ -465,7 +465,7 @@ git checkout <previous-version-tag>
 cd src/api && alembic downgrade <previous-revision>
 
 # Restart services
-sudo systemctl restart xorb-platform
+sudo systemctl restart xorb_platform
 
 # Verify rollback
 curl -f https://api.your-domain.com/health
@@ -477,12 +477,12 @@ curl -f https://api.your-domain.com/health
 
 ### ✅ **Infrastructure Ready**
 - [x] Database configured with RLS
-- [x] Redis configured with authentication  
+- [x] Redis configured with authentication
 - [x] SSL certificates installed
 - [x] Firewall configured
 - [x] Reverse proxy configured
 
-### ✅ **Application Ready**  
+### ✅ **Application Ready**
 - [x] Environment variables configured
 - [x] Secrets management configured
 - [x] Service orchestrator initialized
@@ -506,7 +506,7 @@ curl -f https://api.your-domain.com/health
 ### 🚀 **Deploy Commands**
 ```bash
 # Final deployment command
-sudo systemctl start xorb-platform
+sudo systemctl start xorb_platform
 sudo systemctl enable nginx
 sudo ufw enable
 
@@ -518,5 +518,5 @@ curl -f https://api.your-domain.com/api/v1/platform/health
 
 **🎯 The XORB platform is now production-ready with enterprise-grade security, monitoring, and scalability.**
 
-*Deployment Checklist v3.0.0*  
+*Deployment Checklist v3.0.0*
 *XORB Enterprise Platform*

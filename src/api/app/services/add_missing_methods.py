@@ -16,7 +16,7 @@ BASE_METHODS_TEMPLATE = '''
             logger.error(f"{service_name} service initialization failed: {{e}}")
             self.status = ServiceStatus.UNHEALTHY
             return False
-    
+
     async def shutdown(self) -> bool:
         """Shutdown {service_name} service"""
         try:
@@ -28,7 +28,7 @@ BASE_METHODS_TEMPLATE = '''
         except Exception as e:
             logger.error(f"{service_name} service shutdown failed: {{e}}")
             return False
-    
+
     async def health_check(self) -> ServiceHealth:
         """Perform health check"""
         try:
@@ -36,14 +36,14 @@ BASE_METHODS_TEMPLATE = '''
                 "service_operational": True,
                 "dependencies_available": True
             }}
-            
+
             all_healthy = all(checks.values())
             status = ServiceStatus.HEALTHY if all_healthy else ServiceStatus.DEGRADED
-            
+
             uptime = 0.0
             if hasattr(self, 'start_time') and self.start_time:
                 uptime = (datetime.utcnow() - self.start_time).total_seconds()
-            
+
             return ServiceHealth(
                 status=status,
                 message="{service_name} service operational",
@@ -65,7 +65,7 @@ BASE_METHODS_TEMPLATE = '''
 # Services that need the methods added
 services_to_update = [
     ("ProductionEmbeddingService", "Embedding"),
-    ("ProductionNotificationService", "Notification"), 
+    ("ProductionNotificationService", "Notification"),
     ("ProductionRateLimitingService", "Rate Limiting"),
     ("ProductionDiscoveryService", "Discovery"),
     ("ProductionHealthService", "Health")

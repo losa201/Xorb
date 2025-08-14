@@ -39,22 +39,22 @@ is_ci() {
 # Install security tools
 install_security_tools() {
     log "Installing security scanning tools..."
-    
+
     # Python security tools
     pip install --quiet bandit safety semgrep
-    
+
     # Trivy for container scanning
     if ! command -v trivy &> /dev/null; then
         info "Installing Trivy..."
         curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
     fi
-    
+
     # Grype for vulnerability scanning
     if ! command -v grype &> /dev/null; then
         info "Installing Grype..."
         curl -sSfL https://raw.githubusercontent.com/anchore/grype/main/install.sh | sh -s -- -b /usr/local/bin
     fi
-    
+
     # Gitleaks for secret scanning
     if ! command -v gitleaks &> /dev/null; then
         info "Installing Gitleaks..."
@@ -63,19 +63,19 @@ install_security_tools() {
         cd "$PROJECT_ROOT"
         rm -rf /tmp/gitleaks
     fi
-    
+
     log "Security tools installation completed ✅"
 }
 
 # Secret scanning with Gitleaks
 run_secret_scan() {
     log "Running secret scanning with Gitleaks..."
-    
+
     local output_dir="$PROJECT_ROOT/security-reports"
     mkdir -p "$output_dir"
-    
+
     cd "$PROJECT_ROOT"
-    
+
     if gitleaks detect --config src/api/.gitleaks.toml --report-path "$output_dir/gitleaks-report.json" --report-format json; then
         log "✅ No secrets detected"
     else
@@ -87,23 +87,23 @@ run_secret_scan() {
 # Static Application Security Testing (SAST)
 run_sast_scan() {
     log "Running Static Application Security Testing (SAST)..."
-    
+
     local output_dir="$PROJECT_ROOT/security-reports"
     mkdir -p "$output_dir"
-    
+
     # Bandit for Python security issues
     log "Running Bandit security scan..."
     cd "$PROJECT_ROOT/src/api"
-    
+
     if bandit -r app/ -f json -o "$output_dir/bandit-report.json" --severity-level medium; then
         log "✅ Bandit scan completed"
     else
         warn "⚠️ Bandit found security issues"
     fi
-    
+
     # Display summary
     bandit -r app/ -f txt --severity-level medium || true
-    
+
     # Semgrep for additional SAST
     if command -v semgrep &> /dev/null; then
         log "Running Semgrep SAST scan..."
@@ -115,12 +115,12 @@ run_sast_scan() {
 # Dependency vulnerability scanning
 run_dependency_scan() {
     log "Running dependency vulnerability scanning..."
-    
+
     local output_dir="$PROJECT_ROOT/security-reports"
     mkdir -p "$output_dir"
-    
+
     cd "$PROJECT_ROOT/src/api"
-    
+
     # Safety for Python package vulnerabilities
     log "Running Safety check for Python dependencies..."
     if safety check --json --output "$output_dir/safety-report.json"; then
@@ -128,9 +128,9 @@ run_dependency_scan() {
     else
         warn "⚠️ Vulnerabilities found in dependencies"
     fi
-    
+
     safety check --short-report || true
-    
+
     # License compliance check
     log "Checking license compliance..."
     if command -v pip-licenses &> /dev/null || pip install pip-licenses; then
@@ -142,31 +142,31 @@ run_dependency_scan() {
 # Container security scanning
 run_container_scan() {
     log "Running container security scanning..."
-    
+
     local output_dir="$PROJECT_ROOT/security-reports"
     mkdir -p "$output_dir"
-    
+
     cd "$PROJECT_ROOT"
-    
+
     # Build container for scanning
     if [[ -f "src/api/Dockerfile.secure" ]]; then
         log "Building container for security scanning..."
         docker build -t xorb-api-security-scan -f src/api/Dockerfile.secure src/api/
-        
+
         # Trivy container vulnerability scan
         if command -v trivy &> /dev/null; then
             log "Running Trivy container vulnerability scan..."
             trivy image --format json --output "$output_dir/trivy-report.json" xorb-api-security-scan
             trivy image --severity HIGH,CRITICAL xorb-api-security-scan || true
         fi
-        
+
         # Grype container vulnerability scan
         if command -v grype &> /dev/null; then
             log "Running Grype container vulnerability scan..."
             grype xorb-api-security-scan -o json > "$output_dir/grype-report.json" || true
             grype xorb-api-security-scan || true
         fi
-        
+
         # Cleanup
         docker rmi xorb-api-security-scan || true
     else
@@ -177,23 +177,23 @@ run_container_scan() {
 # Infrastructure security scanning
 run_infrastructure_scan() {
     log "Running infrastructure security scanning..."
-    
+
     local output_dir="$PROJECT_ROOT/security-reports"
     mkdir -p "$output_dir"
-    
+
     cd "$PROJECT_ROOT"
-    
+
     # Checkov for Infrastructure as Code
     if command -v checkov &> /dev/null || pip install checkov; then
         log "Running Checkov IaC security scan..."
         checkov --framework terraform,dockerfile,docker_compose,yaml \
                --output json --output-file "$output_dir/checkov-report.json" \
                --directory . || true
-        
+
         checkov --framework terraform,dockerfile,docker_compose,yaml \
                --directory . --compact || true
     fi
-    
+
     # Hadolint for Dockerfile security
     if command -v hadolint &> /dev/null; then
         log "Running Hadolint Dockerfile security scan..."
@@ -204,16 +204,16 @@ run_infrastructure_scan() {
 # Generate security report
 generate_security_report() {
     log "Generating comprehensive security report..."
-    
+
     local output_dir="$PROJECT_ROOT/security-reports"
     local report_file="$output_dir/security-summary-report.md"
-    
+
     cat > "$report_file" << EOF
 # XORB Security Scan Report
 
-**Generated:** $(date)  
-**Scan Type:** Comprehensive Security Assessment  
-**Repository:** XORB Cybersecurity Platform  
+**Generated:** $(date)
+**Scan Type:** Comprehensive Security Assessment
+**Repository:** XORB Cybersecurity Platform
 
 ## Executive Summary
 
@@ -278,7 +278,7 @@ EOF
 # Clean up old reports
 cleanup_reports() {
     local output_dir="$PROJECT_ROOT/security-reports"
-    
+
     if [[ -d "$output_dir" ]]; then
         find "$output_dir" -name "*.json" -mtime +7 -delete 2>/dev/null || true
         find "$output_dir" -name "*.txt" -mtime +7 -delete 2>/dev/null || true
@@ -288,24 +288,24 @@ cleanup_reports() {
 # Main execution function
 run_security_scan() {
     local scan_type="${1:-full}"
-    
+
     echo -e "${BLUE}"
     echo "╔══════════════════════════════════════════════════╗"
     echo "║           XORB Security Scanner v1.0             ║"
     echo "║     Comprehensive Security Assessment Tool       ║"
     echo "╚══════════════════════════════════════════════════╝"
     echo -e "${NC}"
-    
+
     log "Starting security scan (type: $scan_type)..."
-    
+
     # Install tools if not in CI
     if ! is_ci; then
         install_security_tools
     fi
-    
+
     # Clean up old reports
     cleanup_reports
-    
+
     case $scan_type in
         "secrets")
             run_secret_scan
@@ -331,7 +331,7 @@ run_security_scan() {
             generate_security_report
             ;;
     esac
-    
+
     log "Security scan completed! 🚀"
     log "Reports available in: $PROJECT_ROOT/security-reports/"
 }

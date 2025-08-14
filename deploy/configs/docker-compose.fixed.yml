@@ -22,7 +22,7 @@ services:
   # ==========================================
   # CORE INFRASTRUCTURE
   # ==========================================
-  
+
   postgres:
     image: postgres:16-alpine
     container_name: xorb-postgres
@@ -105,7 +105,7 @@ services:
         limits:
           memory: 2G
           cpus: '1.0'
-    
+
   xorb-orchestrator:
     build:
       context: ./legacy

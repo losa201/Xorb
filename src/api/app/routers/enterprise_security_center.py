@@ -48,7 +48,7 @@ router = APIRouter(prefix="/api/v1/enterprise-security", tags=["Enterprise Secur
 class ThreatPredictionRequest(BaseModel):
     """Request for AI threat prediction"""
     model_config = {"protected_namespaces": ()}
-    
+
     historical_events: List[Dict[str, Any]] = Field(..., description="Historical security events for analysis")
     context: Optional[Dict[str, Any]] = Field(default=None, description="Additional context for prediction")
     prediction_horizon: str = Field(default="24h", description="Prediction time horizon")
@@ -57,7 +57,7 @@ class ThreatPredictionRequest(BaseModel):
 class ComplianceAssessmentRequest(BaseModel):
     """Request for compliance assessment"""
     model_config = {"protected_namespaces": ()}
-    
+
     framework: ComplianceFramework = Field(..., description="Compliance framework to assess")
     organization_name: str = Field(..., description="Organization name")
     scope: Optional[List[str]] = Field(default=None, description="Specific controls to assess")
@@ -66,7 +66,7 @@ class ComplianceAssessmentRequest(BaseModel):
 class IncidentCreationRequest(BaseModel):
     """Request for incident creation"""
     model_config = {"protected_namespaces": ()}
-    
+
     title: str = Field(..., description="Incident title")
     description: str = Field(..., description="Incident description")
     category: IncidentCategory = Field(..., description="Incident category")
@@ -78,7 +78,7 @@ class IncidentCreationRequest(BaseModel):
 class SecurityCenterDashboard(BaseModel):
     """Enterprise security center dashboard data"""
     model_config = {"protected_namespaces": ()}
-    
+
     threat_predictions: List[Dict[str, Any]]
     active_incidents: List[Dict[str, Any]]
     compliance_status: Dict[str, Any]
@@ -98,32 +98,32 @@ async def generate_threat_predictions(
 ):
     """
     Generate AI-powered threat predictions based on historical events
-    
+
     Uses advanced machine learning algorithms to predict potential security threats:
     - Attack vector analysis
     - Temporal pattern recognition
     - Risk assessment and prioritization
     - Automated countermeasure recommendations
     """
-    
+
     try:
         # Get threat predictor
         predictor = await get_threat_predictor()
-        
+
         # Generate predictions
         predictions = await predictor.predict_threats(
             request.historical_events,
             request.context or {}
         )
-        
+
         # Filter by confidence threshold
         filtered_predictions = [
-            p for p in predictions 
+            p for p in predictions
             if p.probability_score >= request.min_confidence
         ]
-        
+
         logger.info(f"Generated {len(filtered_predictions)} threat predictions for {current_org.name if hasattr(current_org, 'name') else 'organization'}")
-        
+
         # Convert to response format
         prediction_data = []
         for prediction in filtered_predictions:
@@ -134,9 +134,9 @@ async def generate_threat_predictions(
                 'risk_score': prediction.probability_score * (1.0 if prediction.threat_level == ThreatPredictionLevel.CRITICAL else 0.8)
             }
             prediction_data.append(pred_dict)
-        
+
         return prediction_data
-        
+
     except Exception as e:
         logger.error(f"Error generating threat predictions: {e}")
         raise HTTPException(
@@ -150,10 +150,10 @@ async def get_threat_prediction(
     current_user = Depends(require_auth)
 ):
     """Get detailed threat prediction by ID"""
-    
+
     try:
         predictor = await get_threat_predictor()
-        
+
         # Find prediction in stored predictions
         for prediction in predictor.threat_predictions:
             if prediction.prediction_id == prediction_id:
@@ -169,12 +169,12 @@ async def get_threat_prediction(
                         "business_impact": "High" if prediction.threat_level in [ThreatPredictionLevel.CRITICAL, ThreatPredictionLevel.HIGH] else "Medium"
                     }
                 }
-        
+
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Threat prediction {prediction_id} not found"
         )
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -195,21 +195,21 @@ async def conduct_compliance_assessment_endpoint(
 ):
     """
     Conduct automated compliance assessment
-    
+
     Performs comprehensive compliance checking against regulatory frameworks:
     - Automated control testing
     - Gap analysis and remediation planning
     - Risk assessment and prioritization
     - Executive reporting and dashboards
     """
-    
+
     try:
         # Get compliance engine
         engine = await get_compliance_engine()
-        
+
         # Conduct assessment
         logger.info(f"Starting {request.framework.value} compliance assessment for {request.organization_name}")
-        
+
         # Run assessment in background if comprehensive
         if request.assessment_type == "comprehensive":
             background_tasks.add_task(
@@ -219,7 +219,7 @@ async def conduct_compliance_assessment_endpoint(
                 request.organization_name,
                 request.scope
             )
-            
+
             return {
                 "status": "assessment_started",
                 "framework": request.framework.value,
@@ -235,7 +235,7 @@ async def conduct_compliance_assessment_endpoint(
                 request.organization_name,
                 request.scope
             )
-            
+
             return {
                 "status": "completed",
                 "report": report.to_dict(),
@@ -247,7 +247,7 @@ async def conduct_compliance_assessment_endpoint(
                     "recommendations": len(report.remediation_plan)
                 }
             }
-        
+
     except Exception as e:
         logger.error(f"Error conducting compliance assessment: {e}")
         raise HTTPException(
@@ -260,10 +260,10 @@ async def get_compliance_frameworks(
     current_user = Depends(require_auth)
 ):
     """Get available compliance frameworks and their details"""
-    
+
     try:
         engine = await get_compliance_engine()
-        
+
         frameworks = []
         for framework, info in engine.frameworks.items():
             frameworks.append({
@@ -275,7 +275,7 @@ async def get_compliance_frameworks(
                 "automated_checks": sum(1 for control in info["controls"] if control.automated_check),
                 "categories": list(set(control.category for control in info["controls"]))
             })
-        
+
         return {
             "frameworks": frameworks,
             "total_frameworks": len(frameworks),
@@ -288,7 +288,7 @@ async def get_compliance_frameworks(
                 "Evidence collection"
             ]
         }
-        
+
     except Exception as e:
         logger.error(f"Error retrieving compliance frameworks: {e}")
         raise HTTPException(
@@ -304,20 +304,20 @@ async def get_compliance_reports(
     current_user = Depends(require_auth)
 ):
     """Get compliance assessment reports for a framework"""
-    
+
     try:
         engine = await get_compliance_engine()
-        
+
         # Filter reports by framework and timeframe
         cutoff_date = datetime.utcnow() - timedelta(days=days)
         matching_reports = [
             report for report in engine.assessment_history
             if report.framework.value == framework and report.assessment_date >= cutoff_date
         ]
-        
+
         if organization:
             matching_reports = [r for r in matching_reports if r.organization == organization]
-        
+
         reports_data = []
         for report in matching_reports:
             reports_data.append({
@@ -329,14 +329,14 @@ async def get_compliance_reports(
                 "critical_gaps": len(report.critical_gaps),
                 "next_assessment": report.next_assessment_date.isoformat()
             })
-        
+
         return {
             "framework": framework,
             "reports": reports_data,
             "total_reports": len(reports_data),
             "date_range": f"{cutoff_date.strftime('%Y-%m-%d')} to {datetime.utcnow().strftime('%Y-%m-%d')}"
         }
-        
+
     except Exception as e:
         logger.error(f"Error retrieving compliance reports: {e}")
         raise HTTPException(
@@ -355,7 +355,7 @@ async def create_incident_endpoint(
 ):
     """
     Create new security incident with automated response
-    
+
     Features:
     - Automated incident classification
     - Playbook-based response orchestration
@@ -363,11 +363,11 @@ async def create_incident_endpoint(
     - Team notifications and escalation
     - Integration with threat intelligence
     """
-    
+
     try:
         # Get incident orchestrator
         orchestrator = await get_incident_orchestrator()
-        
+
         # Create incident
         incident = await orchestrator.create_incident(
             title=request.title,
@@ -378,13 +378,13 @@ async def create_incident_endpoint(
             affected_systems=request.affected_systems,
             detected_by=getattr(current_user, 'username', 'API User')
         )
-        
+
         # Add affected users if provided
         if request.affected_users:
             incident.affected_users = request.affected_users
-        
+
         logger.info(f"Security incident created: {incident.incident_id}")
-        
+
         return {
             "incident": incident.to_dict(),
             "automated_response": {
@@ -399,7 +399,7 @@ async def create_incident_endpoint(
                 "Prepare stakeholder communications"
             ]
         }
-        
+
     except Exception as e:
         logger.error(f"Error creating security incident: {e}")
         raise HTTPException(
@@ -413,20 +413,20 @@ async def get_incident_details(
     current_user = Depends(require_auth)
 ):
     """Get detailed incident information including timeline and evidence"""
-    
+
     try:
         orchestrator = await get_incident_orchestrator()
         incident = await orchestrator.get_incident(incident_id)
-        
+
         if not incident:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Incident {incident_id} not found"
             )
-        
+
         # Calculate incident metrics
         duration = (datetime.utcnow() - incident.created_at).total_seconds() / 3600  # hours
-        
+
         return {
             "incident": incident.to_dict(),
             "metrics": {
@@ -443,7 +443,7 @@ async def get_incident_details(
                 "next_review": (incident.updated_at + timedelta(hours=4)).isoformat()
             }
         }
-        
+
     except HTTPException:
         raise
     except Exception as e:
@@ -463,17 +463,17 @@ async def list_incidents(
     current_user = Depends(require_auth)
 ):
     """List security incidents with filtering options"""
-    
+
     try:
         orchestrator = await get_incident_orchestrator()
-        
+
         # Get all incidents (active + historical)
         all_incidents = list(orchestrator.active_incidents.values()) + list(orchestrator.incident_history)
-        
+
         # Apply time filter
         cutoff_date = datetime.utcnow() - timedelta(days=days)
         filtered_incidents = [i for i in all_incidents if i.created_at >= cutoff_date]
-        
+
         # Apply other filters
         if status:
             filtered_incidents = [i for i in filtered_incidents if i.status.value == status]
@@ -481,11 +481,11 @@ async def list_incidents(
             filtered_incidents = [i for i in filtered_incidents if i.severity.value == severity]
         if category:
             filtered_incidents = [i for i in filtered_incidents if i.category.value == category]
-        
+
         # Sort by creation time (newest first) and limit
         filtered_incidents.sort(key=lambda x: x.created_at, reverse=True)
         limited_incidents = filtered_incidents[:limit]
-        
+
         # Convert to response format
         incidents_data = []
         for incident in limited_incidents:
@@ -501,7 +501,7 @@ async def list_incidents(
                 "response_actions_count": len(incident.response_actions),
                 "evidence_count": len(incident.evidence)
             })
-        
+
         return {
             "incidents": incidents_data,
             "total_found": len(filtered_incidents),
@@ -518,7 +518,7 @@ async def list_incidents(
                 "by_category": {}
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Error listing incidents: {e}")
         raise HTTPException(
@@ -535,7 +535,7 @@ async def get_security_dashboard(
 ):
     """
     Get comprehensive enterprise security center dashboard
-    
+
     Provides unified view of:
     - AI threat predictions and risk assessment
     - Active security incidents and response status
@@ -543,17 +543,17 @@ async def get_security_dashboard(
     - Security metrics and KPIs
     - Strategic recommendations
     """
-    
+
     try:
         # Get data from all services
         predictor = await get_threat_predictor()
         compliance_engine = await get_compliance_engine()
         incident_orchestrator = await get_incident_orchestrator()
-        
+
         # Get recent threat predictions
         recent_predictions = list(predictor.threat_predictions)[-10:]  # Last 10 predictions
         prediction_data = [p.to_dict() for p in recent_predictions]
-        
+
         # Get active incidents
         active_incidents = list(incident_orchestrator.active_incidents.values())
         incident_data = [
@@ -567,11 +567,11 @@ async def get_security_dashboard(
             }
             for i in active_incidents[:10]  # Latest 10
         ]
-        
+
         # Get compliance status summary
         recent_assessments = compliance_engine.assessment_history[-5:] if compliance_engine.assessment_history else []
         compliance_status = {}
-        
+
         if recent_assessments:
             latest_assessment = recent_assessments[-1]
             compliance_status = {
@@ -581,10 +581,10 @@ async def get_security_dashboard(
                 "critical_gaps": len(latest_assessment.critical_gaps),
                 "compliant_controls": latest_assessment.status_summary.get(ComplianceStatus.COMPLIANT.value, 0)
             }
-        
+
         # Calculate security metrics
         incident_stats = await incident_orchestrator.get_incident_statistics(30)
-        
+
         security_metrics = {
             "incidents_last_30_days": incident_stats["total_incidents"],
             "critical_incidents": incident_stats["by_severity"].get("critical", 0),
@@ -594,17 +594,17 @@ async def get_security_dashboard(
             "security_events_processed": 1500,  # Mock metric
             "blocked_threats": 45  # Mock metric
         }
-        
+
         # Calculate overall risk score
         threat_risk = sum(p.probability_score for p in recent_predictions) / len(recent_predictions) if recent_predictions else 0
         incident_risk = min(incident_stats["total_incidents"] / 10, 1.0)  # Normalize to 0-1
         compliance_risk = 1.0 - compliance_status.get("overall_score", 0.8)
-        
+
         overall_risk = (threat_risk * 0.4 + incident_risk * 0.3 + compliance_risk * 0.3)
-        
+
         # Generate recommendations
         recommendations = []
-        
+
         if overall_risk > 0.7:
             recommendations.append("Critical: Immediate security review and threat response required")
         if incident_stats["total_incidents"] > 20:
@@ -613,10 +613,10 @@ async def get_security_dashboard(
             recommendations.append("Compliance gaps identified - prioritize remediation efforts")
         if len(recent_predictions) > 5:
             recommendations.append("Multiple threat predictions - enhance monitoring and detection")
-        
+
         if not recommendations:
             recommendations.append("Security posture is stable - continue regular monitoring")
-        
+
         dashboard = SecurityCenterDashboard(
             threat_predictions=prediction_data,
             active_incidents=incident_data,
@@ -625,9 +625,9 @@ async def get_security_dashboard(
             recommendations=recommendations,
             risk_score=overall_risk
         )
-        
+
         return dashboard
-        
+
     except Exception as e:
         logger.error(f"Error generating security dashboard: {e}")
         raise HTTPException(
@@ -643,18 +643,18 @@ async def get_risk_trends(
     current_user = Depends(require_auth)
 ):
     """Get security risk trends over time"""
-    
+
     try:
         # Mock trend data - in production would be calculated from historical data
         trend_data = []
         base_date = datetime.utcnow() - timedelta(days=days)
-        
+
         for i in range(days):
             date = base_date + timedelta(days=i)
-            
+
             # Mock risk calculation
             day_risk = 0.3 + (i % 7) * 0.1  # Simulate weekly patterns
-            
+
             trend_data.append({
                 "date": date.strftime("%Y-%m-%d"),
                 "overall_risk": round(day_risk, 2),
@@ -664,7 +664,7 @@ async def get_risk_trends(
                 "incidents_count": max(0, int((day_risk - 0.3) * 50)),
                 "predictions_count": max(0, int(day_risk * 10))
             })
-        
+
         return {
             "trends": trend_data,
             "period": f"{days} days",
@@ -674,7 +674,7 @@ async def get_risk_trends(
                 "risk_direction": "increasing" if trend_data[-1]["overall_risk"] > trend_data[0]["overall_risk"] else "decreasing"
             }
         }
-        
+
     except Exception as e:
         logger.error(f"Error generating risk trends: {e}")
         raise HTTPException(
@@ -688,16 +688,16 @@ async def get_executive_summary(
     current_user = Depends(require_auth)
 ):
     """Generate executive security summary report"""
-    
+
     try:
         # Gather data for executive summary
         predictor = await get_threat_predictor()
         compliance_engine = await get_compliance_engine()
         incident_orchestrator = await get_incident_orchestrator()
-        
+
         # Calculate summary metrics
         incident_stats = await incident_orchestrator.get_incident_statistics(30)
-        
+
         summary_data = {
             "report_date": datetime.utcnow().isoformat(),
             "organization": "Enterprise Organization",
@@ -727,7 +727,7 @@ async def get_executive_summary(
             ],
             "next_review": (datetime.utcnow() + timedelta(days=30)).isoformat()
         }
-        
+
         if format == "json":
             return summary_data
         elif format == "pdf":
@@ -738,7 +738,7 @@ async def get_executive_summary(
                 media_type="application/pdf",
                 headers={"Content-Disposition": "attachment; filename=executive_security_summary.pdf"}
             )
-        
+
     except Exception as e:
         logger.error(f"Error generating executive summary: {e}")
         raise HTTPException(
@@ -762,21 +762,21 @@ def _generate_executive_pdf(summary_data: Dict[str, Any]) -> bytes:
     pdf_content = f"""
     Executive Security Summary Report
     Generated: {summary_data['report_date']}
-    
+
     Overall Rating: {summary_data['security_posture']['overall_rating']}
     Risk Level: {summary_data['security_posture']['risk_level']}
-    
+
     Key Metrics:
     - Incidents (30 days): {summary_data['key_metrics']['incidents_last_30_days']}
     - Critical Incidents: {summary_data['key_metrics']['critical_incidents']}
     - Avg Resolution Time: {summary_data['key_metrics']['average_resolution_time']} hours
     - Compliance Score: {summary_data['key_metrics']['compliance_score']}%
-    
+
     Key Findings:
     {chr(10).join(f"• {finding}" for finding in summary_data['key_findings'])}
-    
+
     Recommendations:
     {chr(10).join(f"• {rec}" for rec in summary_data['recommendations'])}
     """
-    
+
     return pdf_content.encode('utf-8')

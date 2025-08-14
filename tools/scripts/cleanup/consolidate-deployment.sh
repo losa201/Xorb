@@ -34,32 +34,32 @@ info() {
 # Analyze current duplication
 analyze_duplication() {
     log "Analyzing Docker Compose duplication..."
-    
+
     local compose_files=$(find "$PROJECT_ROOT" -name "docker-compose*.yml" -o -name "compose*.yml" | wc -l)
     local total_size=$(find "$PROJECT_ROOT" -name "docker-compose*.yml" -o -name "compose*.yml" -exec du -ch {} + | tail -1 | awk '{print $1}')
-    
+
     info "Found $compose_files Docker Compose files totaling $total_size"
-    
+
     # Count service duplications
     local prometheus_count=$(find "$PROJECT_ROOT" -name "docker-compose*.yml" -exec grep -l "prometheus:" {} \; | wc -l)
     local grafana_count=$(find "$PROJECT_ROOT" -name "docker-compose*.yml" -exec grep -l "grafana:" {} \; | wc -l)
     local postgres_count=$(find "$PROJECT_ROOT" -name "docker-compose*.yml" -exec grep -l "postgres:" {} \; | wc -l)
-    
+
     info "Service duplications found:"
     info "  - Prometheus: $prometheus_count files"
     info "  - Grafana: $grafana_count files"
     info "  - PostgreSQL: $postgres_count files"
-    
+
     echo "$compose_files" > /tmp/xorb_compose_count.txt
 }
 
 # Create backup of current structure
 create_backup() {
     log "Creating backup of current Docker Compose files..."
-    
+
     local backup_dir="$PROJECT_ROOT/backups/compose_consolidation_$(date +%Y%m%d_%H%M%S)"
     mkdir -p "$backup_dir"
-    
+
     # Backup all compose files
     find "$PROJECT_ROOT" -name "docker-compose*.yml" -o -name "compose*.yml" | while read -r file; do
         local rel_path=$(realpath --relative-to="$PROJECT_ROOT" "$file")
@@ -67,10 +67,10 @@ create_backup() {
         mkdir -p "$(dirname "$backup_path")"
         cp "$file" "$backup_path"
     done
-    
+
     # Create inventory
     find "$PROJECT_ROOT" -name "docker-compose*.yml" -o -name "compose*.yml" > "$backup_dir/compose_inventory.txt"
-    
+
     log "Backup created at: $backup_dir"
     echo "$backup_dir" > /tmp/xorb_backup_dir.txt
 }
@@ -78,13 +78,13 @@ create_backup() {
 # Identify and remove duplicates
 remove_duplicates() {
     log "Removing duplicate Docker Compose files..."
-    
+
     # Keep only essential compose files
     local keep_files=(
         "$PROJECT_ROOT/docker-compose.yml"  # New consolidated file
         "$PROJECT_ROOT/infra/docker-compose-enhanced.yml"  # Original enhanced (for reference)
     )
-    
+
     # List files to remove
     local remove_count=0
     find "$PROJECT_ROOT" -name "docker-compose*.yml" -o -name "compose*.yml" | while read -r file; do
@@ -95,23 +95,23 @@ remove_duplicates() {
                 break
             fi
         done
-        
+
         if [[ "$should_keep" == false ]]; then
             echo "$file" >> /tmp/xorb_files_to_remove.txt
             ((remove_count++))
         fi
     done
-    
+
     # Remove duplicate files
     if [[ -f /tmp/xorb_files_to_remove.txt ]]; then
         local remove_count=$(wc -l < /tmp/xorb_files_to_remove.txt)
         info "Removing $remove_count duplicate Docker Compose files..."
-        
+
         while read -r file; do
             rm -f "$file"
             info "Removed: $(realpath --relative-to="$PROJECT_ROOT" "$file")"
         done < /tmp/xorb_files_to_remove.txt
-        
+
         rm -f /tmp/xorb_files_to_remove.txt
     fi
 }
@@ -119,13 +119,13 @@ remove_duplicates() {
 # Update documentation and references
 update_references() {
     log "Updating documentation and script references..."
-    
+
     # Update README files
     find "$PROJECT_ROOT" -name "README*.md" -exec sed -i 's|docker-compose -f [^[:space:]]*docker-compose[^[:space:]]*\.yml|docker-compose|g' {} \;
-    
+
     # Update deployment scripts
     find "$PROJECT_ROOT/scripts" -name "*.sh" -exec sed -i 's|docker-compose -f [^[:space:]]*docker-compose[^[:space:]]*\.yml|docker-compose|g' {} \;
-    
+
     # Create deployment script
     cat > "$PROJECT_ROOT/deploy.sh" << 'EOF'
 #!/bin/bash
@@ -187,16 +187,16 @@ echo "  - Stop:       docker-compose down"
 echo "  - Logs:       docker-compose logs -f"
 echo "  - Monitor:    ./scripts/optimization/epyc-tuning.sh monitor"
 EOF
-    
+
     chmod +x "$PROJECT_ROOT/deploy.sh"
-    
+
     log "Created consolidated deployment script: deploy.sh"
 }
 
 # Optimize configurations
 optimize_configs() {
     log "Optimizing remaining configurations..."
-    
+
     # Remove unused config directories
     local config_dirs_to_check=(
         "$PROJECT_ROOT/config/temporal"
@@ -204,14 +204,14 @@ optimize_configs() {
         "$PROJECT_ROOT/config/consul"
         "$PROJECT_ROOT/config/etcd"
     )
-    
+
     for dir in "${config_dirs_to_check[@]}"; do
         if [[ -d "$dir" ]] && [[ -z "$(find "$dir" -name "*.yml" -o -name "*.yaml" -o -name "*.json" 2>/dev/null)" ]]; then
             warn "Removing empty config directory: $dir"
             rm -rf "$dir"
         fi
     done
-    
+
     # Consolidate environment files
     if [[ ! -f "$PROJECT_ROOT/.env" ]]; then
         cat > "$PROJECT_ROOT/.env" << EOF
@@ -257,11 +257,11 @@ EOF
 # Generate consolidation report
 generate_report() {
     log "Generating consolidation report..."
-    
+
     local backup_dir=$(cat /tmp/xorb_backup_dir.txt 2>/dev/null || echo "Unknown")
     local original_count=$(cat /tmp/xorb_compose_count.txt 2>/dev/null || echo "Unknown")
     local final_count=$(find "$PROJECT_ROOT" -name "docker-compose*.yml" | wc -l)
-    
+
     cat > "$PROJECT_ROOT/CONSOLIDATION_REPORT.md" << EOF
 # XORB Docker Compose Consolidation Report
 
@@ -304,7 +304,7 @@ Original files backed up to: \`$backup_dir\`
 2. Monitor performance: \`./scripts/optimization/epyc-tuning.sh monitor\`
 3. Validate functionality: \`docker-compose ps\`
 EOF
-    
+
     log "Consolidation report saved to: CONSOLIDATION_REPORT.md"
 }
 
@@ -316,19 +316,19 @@ cleanup() {
 # Validate new deployment
 validate_deployment() {
     log "Validating consolidated deployment..."
-    
+
     # Check if new compose file is valid
     if docker-compose -f "$PROJECT_ROOT/docker-compose.yml" config > /dev/null 2>&1; then
         log "✅ New docker-compose.yml is valid"
     else
         error "❌ New docker-compose.yml has syntax errors"
     fi
-    
+
     # Check for conflicting ports
     local port_conflicts=$(docker-compose -f "$PROJECT_ROOT/docker-compose.yml" config --services | while read service; do
         docker-compose -f "$PROJECT_ROOT/docker-compose.yml" config | grep -A 10 "^  $service:" | grep "ports:" -A 5
     done | grep -o '[0-9]\+:' | sort | uniq -d)
-    
+
     if [[ -n "$port_conflicts" ]]; then
         warn "Port conflicts detected: $port_conflicts"
     else

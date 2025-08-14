@@ -65,7 +65,7 @@ class RecoveryCheckpoint:
     size_bytes: int
     checksum: str
     dependencies: List[str]
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             **asdict(self),
@@ -86,7 +86,7 @@ class RecoveryProcedure:
     timeout_seconds: int
     retry_count: int
     validation_checks: List[str]
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             **asdict(self),
@@ -106,7 +106,7 @@ class RecoveryOperation:
     error_message: Optional[str]
     metadata: Dict[str, Any]
     recovery_log: List[str]
-    
+
     def to_dict(self) -> Dict[str, Any]:
         return {
             **asdict(self),
@@ -117,17 +117,17 @@ class RecoveryOperation:
 
 class CheckpointManager:
     """Manages system checkpoints for recovery"""
-    
+
     def __init__(self, error_handler: XORBErrorHandler, checkpoint_dir: str = "/tmp/xorb_checkpoints"):
         self.error_handler = error_handler
         self.checkpoint_dir = Path(checkpoint_dir)
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.checkpoints: Dict[str, RecoveryCheckpoint] = {}
         self.max_checkpoints_per_type = 10
-        
+
         # Load existing checkpoints
         self._load_existing_checkpoints()
-    
+
     def _load_existing_checkpoints(self):
         """Load existing checkpoints from disk"""
         try:
@@ -153,7 +153,7 @@ class CheckpointManager:
                 e, ErrorCategory.SYSTEM_RESOURCE, ErrorSeverity.MEDIUM,
                 context={"task": "load_checkpoints"}
             )
-    
+
     def _save_checkpoint_metadata(self):
         """Save checkpoint metadata to disk"""
         try:
@@ -166,7 +166,7 @@ class CheckpointManager:
                 e, ErrorCategory.SYSTEM_RESOURCE, ErrorSeverity.MEDIUM,
                 context={"task": "save_checkpoint_metadata"}
             )
-    
+
     def _calculate_checksum(self, file_path: str) -> str:
         """Calculate file checksum"""
         hash_sha256 = hashlib.sha256()
@@ -177,7 +177,7 @@ class CheckpointManager:
             return hash_sha256.hexdigest()
         except Exception:
             return "unknown"
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.SYSTEM_RESOURCE,
         severity=ErrorSeverity.HIGH,
@@ -186,30 +186,30 @@ class CheckpointManager:
     async def create_deployment_checkpoint(self, version: str, deployment_path: str) -> str:
         """Create a deployment checkpoint"""
         checkpoint_id = f"deploy_{version}_{int(time.time())}"
-        
+
         try:
             # Create checkpoint archive
             checkpoint_file = self.checkpoint_dir / f"{checkpoint_id}.tar.gz"
-            
+
             with tarfile.open(checkpoint_file, "w:gz") as tar:
                 if os.path.exists(deployment_path):
                     tar.add(deployment_path, arcname="deployment")
-                
+
                 # Include configuration files
                 config_paths = [
                     "/root/Xorb/compose",
                     "/root/Xorb/config",
                     "/root/Xorb/scripts"
                 ]
-                
+
                 for config_path in config_paths:
                     if os.path.exists(config_path):
                         tar.add(config_path, arcname=os.path.basename(config_path))
-            
+
             # Calculate metadata
             size_bytes = checkpoint_file.stat().st_size
             checksum = self._calculate_checksum(str(checkpoint_file))
-            
+
             checkpoint = RecoveryCheckpoint(
                 checkpoint_id=checkpoint_id,
                 checkpoint_type=CheckpointType.DEPLOYMENT,
@@ -225,16 +225,16 @@ class CheckpointManager:
                 checksum=checksum,
                 dependencies=[]
             )
-            
+
             self.checkpoints[checkpoint_id] = checkpoint
             self._cleanup_old_checkpoints(CheckpointType.DEPLOYMENT)
             self._save_checkpoint_metadata()
-            
+
             return checkpoint_id
-            
+
         except Exception as e:
             raise RuntimeError(f"Failed to create deployment checkpoint: {e}")
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.DATABASE,
         severity=ErrorSeverity.HIGH,
@@ -243,16 +243,16 @@ class CheckpointManager:
     async def create_database_checkpoint(self, database_name: str) -> str:
         """Create a database checkpoint"""
         checkpoint_id = f"db_{database_name}_{int(time.time())}"
-        
+
         try:
             checkpoint_file = self.checkpoint_dir / f"{checkpoint_id}.sql"
-            
+
             # Create database dump (simulated)
             dump_command = [
                 "docker", "exec", "xorb-postgres", "pg_dump",
                 "-U", "xorb_user", "-d", database_name
             ]
-            
+
             with open(checkpoint_file, 'w') as f:
                 try:
                     result = subprocess.run(
@@ -263,10 +263,10 @@ class CheckpointManager:
                     # Fallback: create empty checkpoint
                     f.write(f"-- Database checkpoint for {database_name}\n")
                     f.write(f"-- Created at {datetime.now().isoformat()}\n")
-            
+
             size_bytes = checkpoint_file.stat().st_size
             checksum = self._calculate_checksum(str(checkpoint_file))
-            
+
             checkpoint = RecoveryCheckpoint(
                 checkpoint_id=checkpoint_id,
                 checkpoint_type=CheckpointType.DATABASE,
@@ -278,16 +278,16 @@ class CheckpointManager:
                 checksum=checksum,
                 dependencies=[]
             )
-            
+
             self.checkpoints[checkpoint_id] = checkpoint
             self._cleanup_old_checkpoints(CheckpointType.DATABASE)
             self._save_checkpoint_metadata()
-            
+
             return checkpoint_id
-            
+
         except Exception as e:
             raise RuntimeError(f"Failed to create database checkpoint: {e}")
-    
+
     def _get_git_commit(self) -> str:
         """Get current git commit hash"""
         try:
@@ -298,7 +298,7 @@ class CheckpointManager:
             return result.stdout.strip() if result.returncode == 0 else "unknown"
         except Exception:
             return "unknown"
-    
+
     async def _get_docker_images(self) -> List[str]:
         """Get current docker images"""
         try:
@@ -311,19 +311,19 @@ class CheckpointManager:
             return []
         except Exception:
             return []
-    
+
     def _cleanup_old_checkpoints(self, checkpoint_type: CheckpointType):
         """Remove old checkpoints to maintain limits"""
         type_checkpoints = [
             cp for cp in self.checkpoints.values()
             if cp.checkpoint_type == checkpoint_type
         ]
-        
+
         if len(type_checkpoints) > self.max_checkpoints_per_type:
             # Sort by timestamp and remove oldest
             type_checkpoints.sort(key=lambda x: x.timestamp)
             to_remove = type_checkpoints[:-self.max_checkpoints_per_type]
-            
+
             for checkpoint in to_remove:
                 try:
                     if os.path.exists(checkpoint.location):
@@ -334,11 +334,11 @@ class CheckpointManager:
                         e, ErrorCategory.SYSTEM_RESOURCE, ErrorSeverity.LOW,
                         context={"task": "cleanup_checkpoint", "checkpoint_id": checkpoint.checkpoint_id}
                     )
-    
+
     def get_checkpoint(self, checkpoint_id: str) -> Optional[RecoveryCheckpoint]:
         """Get checkpoint by ID"""
         return self.checkpoints.get(checkpoint_id)
-    
+
     def list_checkpoints(self, checkpoint_type: Optional[CheckpointType] = None) -> List[RecoveryCheckpoint]:
         """List available checkpoints"""
         checkpoints = list(self.checkpoints.values())
@@ -348,22 +348,22 @@ class CheckpointManager:
 
 class AutomatedRecoverySystem:
     """Main automated recovery system"""
-    
+
     def __init__(self, error_handler: XORBErrorHandler):
         self.error_handler = error_handler
         self.checkpoint_manager = CheckpointManager(error_handler)
         self.recovery_procedures: Dict[str, RecoveryProcedure] = {}
         self.active_operations: Dict[str, RecoveryOperation] = {}
-        
+
         # Initialize built-in recovery procedures
         self._initialize_recovery_procedures()
-        
+
         # Register recovery actions with error handler
         self._register_recovery_actions()
-    
+
     def _initialize_recovery_procedures(self):
         """Initialize built-in recovery procedures"""
-        
+
         # Deployment rollback procedure
         deployment_rollback = RecoveryProcedure(
             procedure_id="deployment_rollback_v1",
@@ -387,7 +387,7 @@ class AutomatedRecoverySystem:
             validation_checks=["service_health", "api_connectivity", "database_connection"]
         )
         self.recovery_procedures[deployment_rollback.procedure_id] = deployment_rollback
-        
+
         # Service restart procedure
         service_restart = RecoveryProcedure(
             procedure_id="service_restart_v1",
@@ -411,7 +411,7 @@ class AutomatedRecoverySystem:
             validation_checks=["service_health", "port_availability"]
         )
         self.recovery_procedures[service_restart.procedure_id] = service_restart
-        
+
         # Database recovery procedure
         database_recovery = RecoveryProcedure(
             procedure_id="database_recovery_v1",
@@ -435,7 +435,7 @@ class AutomatedRecoverySystem:
             validation_checks=["database_connectivity", "data_integrity"]
         )
         self.recovery_procedures[database_recovery.procedure_id] = database_recovery
-        
+
         # Container recovery procedure
         container_recovery = RecoveryProcedure(
             procedure_id="container_recovery_v1",
@@ -460,10 +460,10 @@ class AutomatedRecoverySystem:
             validation_checks=["container_running", "health_check_passing"]
         )
         self.recovery_procedures[container_recovery.procedure_id] = container_recovery
-    
+
     def _register_recovery_actions(self):
         """Register recovery actions with the error handler"""
-        
+
         # Automatic service restart
         service_restart_action = RecoveryAction(
             action_id="auto_service_restart",
@@ -477,7 +477,7 @@ class AutomatedRecoverySystem:
             }
         )
         self.error_handler.register_recovery_action(service_restart_action)
-        
+
         # Deployment rollback
         deployment_rollback_action = RecoveryAction(
             action_id="auto_deployment_rollback",
@@ -490,7 +490,7 @@ class AutomatedRecoverySystem:
             }
         )
         self.error_handler.register_recovery_action(deployment_rollback_action)
-        
+
         # Database recovery
         database_recovery_action = RecoveryAction(
             action_id="auto_database_recovery",
@@ -504,7 +504,7 @@ class AutomatedRecoverySystem:
             }
         )
         self.error_handler.register_recovery_action(database_recovery_action)
-    
+
     async def _auto_restart_service(self, error_context) -> bool:
         """Automatic service restart recovery action"""
         try:
@@ -513,14 +513,14 @@ class AutomatedRecoverySystem:
                 "service_name": service_name,
                 "error_context": error_context.error_id
             })
-            
+
             # Wait for operation to complete
             operation = await self.wait_for_operation(operation_id, timeout=300)
             return operation.status == RecoveryStatus.SUCCESS
-            
+
         except Exception:
             return False
-    
+
     async def _auto_deployment_rollback(self, error_context) -> bool:
         """Automatic deployment rollback recovery action"""
         try:
@@ -528,20 +528,20 @@ class AutomatedRecoverySystem:
             checkpoints = self.checkpoint_manager.list_checkpoints(CheckpointType.DEPLOYMENT)
             if not checkpoints:
                 return False
-            
+
             latest_checkpoint = checkpoints[0]
             operation_id = await self.execute_recovery("deployment_rollback_v1", {
                 "checkpoint_id": latest_checkpoint.checkpoint_id,
                 "error_context": error_context.error_id
             })
-            
+
             # Wait for operation to complete
             operation = await self.wait_for_operation(operation_id, timeout=600)
             return operation.status == RecoveryStatus.SUCCESS
-            
+
         except Exception:
             return False
-    
+
     async def _auto_database_recovery(self, error_context) -> bool:
         """Automatic database recovery action"""
         try:
@@ -549,20 +549,20 @@ class AutomatedRecoverySystem:
             checkpoints = self.checkpoint_manager.list_checkpoints(CheckpointType.DATABASE)
             if not checkpoints:
                 return False
-            
+
             latest_checkpoint = checkpoints[0]
             operation_id = await self.execute_recovery("database_recovery_v1", {
                 "checkpoint_id": latest_checkpoint.checkpoint_id,
                 "error_context": error_context.error_id
             })
-            
+
             # Wait for operation to complete
             operation = await self.wait_for_operation(operation_id, timeout=900)
             return operation.status == RecoveryStatus.SUCCESS
-            
+
         except Exception:
             return False
-    
+
     @xorb_async_error_handler(
         category=ErrorCategory.SYSTEM_RESOURCE,
         severity=ErrorSeverity.HIGH,
@@ -572,10 +572,10 @@ class AutomatedRecoverySystem:
         """Execute a recovery procedure"""
         if procedure_id not in self.recovery_procedures:
             raise ValueError(f"Recovery procedure not found: {procedure_id}")
-        
+
         procedure = self.recovery_procedures[procedure_id]
         operation_id = str(uuid.uuid4())
-        
+
         operation = RecoveryOperation(
             operation_id=operation_id,
             procedure_id=procedure_id,
@@ -588,20 +588,20 @@ class AutomatedRecoverySystem:
             metadata=parameters,
             recovery_log=[]
         )
-        
+
         self.active_operations[operation_id] = operation
-        
+
         # Execute recovery procedure asynchronously
         asyncio.create_task(self._execute_recovery_procedure(operation, procedure))
-        
+
         return operation_id
-    
+
     async def _execute_recovery_procedure(self, operation: RecoveryOperation, procedure: RecoveryProcedure):
         """Execute recovery procedure steps"""
         try:
             operation.status = RecoveryStatus.IN_PROGRESS
             operation.recovery_log.append(f"Starting recovery procedure: {procedure.name}")
-            
+
             # Check prerequisites
             for prerequisite in procedure.prerequisites:
                 if not await self._check_prerequisite(prerequisite, operation.metadata):
@@ -609,20 +609,20 @@ class AutomatedRecoverySystem:
                     operation.error_message = f"Prerequisite not met: {prerequisite}"
                     operation.end_time = datetime.now()
                     return
-            
+
             # Execute steps
             for i, step in enumerate(procedure.steps):
                 operation.current_step = i + 1
                 operation.recovery_log.append(f"Executing step {i+1}: {step['action']}")
-                
+
                 try:
                     success = await self._execute_recovery_step(step, operation.metadata)
                     if not success:
                         raise RuntimeError(f"Step failed: {step['action']}")
-                        
+
                 except Exception as e:
                     operation.recovery_log.append(f"Step {i+1} failed: {str(e)}")
-                    
+
                     # Execute rollback steps
                     if procedure.rollback_steps:
                         operation.recovery_log.append("Executing rollback steps")
@@ -631,15 +631,15 @@ class AutomatedRecoverySystem:
                                 await self._execute_recovery_step(rollback_step, operation.metadata)
                             except Exception as rollback_error:
                                 operation.recovery_log.append(f"Rollback step failed: {rollback_error}")
-                    
+
                     operation.status = RecoveryStatus.FAILED
                     operation.error_message = str(e)
                     operation.end_time = datetime.now()
                     return
-            
+
             # Validate recovery
             validation_success = await self._validate_recovery(procedure, operation.metadata)
-            
+
             if validation_success:
                 operation.status = RecoveryStatus.SUCCESS
                 operation.recovery_log.append("Recovery completed successfully")
@@ -647,88 +647,88 @@ class AutomatedRecoverySystem:
                 operation.status = RecoveryStatus.PARTIAL
                 operation.error_message = "Recovery completed but validation failed"
                 operation.recovery_log.append("Recovery validation failed")
-            
+
             operation.end_time = datetime.now()
-            
+
         except Exception as e:
             operation.status = RecoveryStatus.FAILED
             operation.error_message = str(e)
             operation.end_time = datetime.now()
             operation.recovery_log.append(f"Recovery procedure failed: {str(e)}")
-    
+
     async def _check_prerequisite(self, prerequisite: str, metadata: Dict[str, Any]) -> bool:
         """Check if prerequisite is met"""
         try:
             if prerequisite == "checkpoint_available":
                 checkpoint_id = metadata.get("checkpoint_id")
                 return checkpoint_id and self.checkpoint_manager.get_checkpoint(checkpoint_id) is not None
-            
+
             elif prerequisite == "service_identified":
                 return "service_name" in metadata
-            
+
             elif prerequisite == "database_checkpoint":
                 checkpoints = self.checkpoint_manager.list_checkpoints(CheckpointType.DATABASE)
                 return len(checkpoints) > 0
-            
+
             elif prerequisite == "container_identified":
                 return "container_name" in metadata or "service_name" in metadata
-            
+
             return True
-            
+
         except Exception:
             return False
-    
+
     async def _execute_recovery_step(self, step: Dict[str, Any], metadata: Dict[str, Any]) -> bool:
         """Execute a single recovery step"""
         action = step["action"]
         params = step.get("params", {})
-        
+
         try:
             if action == "stop_services":
                 return await self._stop_services(params.get("services", []))
-            
+
             elif action == "start_services":
                 return await self._start_services(params.get("services", []))
-            
+
             elif action == "restore_checkpoint":
                 checkpoint_id = metadata.get("checkpoint_id")
                 return await self._restore_checkpoint(checkpoint_id, params.get("type"))
-            
+
             elif action == "validate_deployment":
                 return await self._validate_deployment(params.get("timeout", 120))
-            
+
             elif action == "stop_service":
                 service_name = metadata.get("service_name", "unknown")
                 return await self._stop_service(service_name)
-            
+
             elif action == "start_service":
                 service_name = metadata.get("service_name", "unknown")
                 return await self._start_service(service_name)
-            
+
             elif action == "wait_for_health":
                 service_name = metadata.get("service_name", "unknown")
                 return await self._wait_for_service_health(service_name, params.get("timeout", 60))
-            
+
             elif action == "stop_container":
                 container_name = metadata.get("container_name", metadata.get("service_name", "unknown"))
                 return await self._stop_container(container_name)
-            
+
             elif action == "start_container":
                 container_name = metadata.get("container_name", metadata.get("service_name", "unknown"))
                 return await self._start_container(container_name)
-            
+
             else:
                 # Default success for unimplemented actions
                 await asyncio.sleep(0.1)
                 return True
-                
+
         except Exception as e:
             self.error_handler.handle_error(
                 e, ErrorCategory.SYSTEM_RESOURCE, ErrorSeverity.MEDIUM,
                 context={"action": action, "step": step}
             )
             return False
-    
+
     async def _stop_services(self, services: List[str]) -> bool:
         """Stop specified services"""
         try:
@@ -742,7 +742,7 @@ class AutomatedRecoverySystem:
             return True
         except Exception:
             return False
-    
+
     async def _start_services(self, services: List[str]) -> bool:
         """Start specified services"""
         try:
@@ -756,15 +756,15 @@ class AutomatedRecoverySystem:
             return True
         except Exception:
             return False
-    
+
     async def _stop_service(self, service_name: str) -> bool:
         """Stop a single service"""
         return await self._stop_services([service_name])
-    
+
     async def _start_service(self, service_name: str) -> bool:
         """Start a single service"""
         return await self._start_services([service_name])
-    
+
     async def _wait_for_service_health(self, service_name: str, timeout: int) -> bool:
         """Wait for service to become healthy"""
         start_time = time.time()
@@ -780,7 +780,7 @@ class AutomatedRecoverySystem:
             except Exception:
                 await asyncio.sleep(5)
         return False
-    
+
     async def _stop_container(self, container_name: str) -> bool:
         """Stop a container"""
         try:
@@ -791,7 +791,7 @@ class AutomatedRecoverySystem:
             return result.returncode == 0
         except Exception:
             return False
-    
+
     async def _start_container(self, container_name: str) -> bool:
         """Start a container"""
         try:
@@ -802,32 +802,32 @@ class AutomatedRecoverySystem:
             return result.returncode == 0
         except Exception:
             return False
-    
+
     async def _restore_checkpoint(self, checkpoint_id: str, checkpoint_type: str) -> bool:
         """Restore from checkpoint"""
         if not checkpoint_id:
             return False
-        
+
         checkpoint = self.checkpoint_manager.get_checkpoint(checkpoint_id)
         if not checkpoint:
             return False
-        
+
         try:
             if checkpoint.checkpoint_type == CheckpointType.DEPLOYMENT:
                 # Extract deployment checkpoint
                 with tarfile.open(checkpoint.location, "r:gz") as tar:
                     tar.extractall(path="/tmp/recovery")
                 return True
-            
+
             elif checkpoint.checkpoint_type == CheckpointType.DATABASE:
                 # Restore database checkpoint (simulated)
                 return True
-            
+
             return True
-            
+
         except Exception:
             return False
-    
+
     async def _validate_deployment(self, timeout: int) -> bool:
         """Validate deployment after recovery"""
         try:
@@ -839,7 +839,7 @@ class AutomatedRecoverySystem:
             return result.returncode == 0
         except Exception:
             return False
-    
+
     async def _validate_recovery(self, procedure: RecoveryProcedure, metadata: Dict[str, Any]) -> bool:
         """Validate recovery completion"""
         try:
@@ -848,66 +848,66 @@ class AutomatedRecoverySystem:
                     service_name = metadata.get("service_name", "api")
                     if not await self._wait_for_service_health(service_name, 30):
                         return False
-                
+
                 elif validation_check == "api_connectivity":
                     # Test API connectivity (simulated)
                     await asyncio.sleep(1)
-                
+
                 elif validation_check == "database_connection":
                     # Test database connection (simulated)
                     await asyncio.sleep(1)
-                
+
                 elif validation_check == "port_availability":
                     # Check port availability (simulated)
                     await asyncio.sleep(0.5)
-            
+
             return True
-            
+
         except Exception:
             return False
-    
+
     async def wait_for_operation(self, operation_id: str, timeout: int = 300) -> RecoveryOperation:
         """Wait for recovery operation to complete"""
         start_time = time.time()
-        
+
         while time.time() - start_time < timeout:
             if operation_id in self.active_operations:
                 operation = self.active_operations[operation_id]
                 if operation.status in [RecoveryStatus.SUCCESS, RecoveryStatus.FAILED, RecoveryStatus.PARTIAL]:
                     return operation
-            
+
             await asyncio.sleep(2)
-        
+
         # Timeout - mark operation as failed
         if operation_id in self.active_operations:
             self.active_operations[operation_id].status = RecoveryStatus.FAILED
             self.active_operations[operation_id].error_message = "Operation timed out"
             self.active_operations[operation_id].end_time = datetime.now()
-        
+
         return self.active_operations.get(operation_id)
-    
+
     def get_operation_status(self, operation_id: str) -> Optional[RecoveryOperation]:
         """Get recovery operation status"""
         return self.active_operations.get(operation_id)
-    
+
     def list_active_operations(self) -> List[RecoveryOperation]:
         """List all active recovery operations"""
         return [
             op for op in self.active_operations.values()
             if op.status == RecoveryStatus.IN_PROGRESS
         ]
-    
+
     def get_recovery_statistics(self) -> Dict[str, Any]:
         """Get recovery system statistics"""
         total_operations = len(self.active_operations)
         success_count = sum(1 for op in self.active_operations.values() if op.status == RecoveryStatus.SUCCESS)
         failed_count = sum(1 for op in self.active_operations.values() if op.status == RecoveryStatus.FAILED)
-        
+
         checkpoints_by_type = {}
         for checkpoint in self.checkpoint_manager.checkpoints.values():
             type_name = checkpoint.checkpoint_type.value
             checkpoints_by_type[type_name] = checkpoints_by_type.get(type_name, 0) + 1
-        
+
         return {
             "total_operations": total_operations,
             "success_count": success_count,
@@ -949,43 +949,43 @@ if __name__ == "__main__":
     async def demo_recovery_system():
         """Demonstrate recovery system capabilities"""
         print("🔄 XORB Automated Recovery System Demo")
-        
+
         # Initialize recovery system
         system = get_recovery_system()
-        
+
         # Create deployment checkpoint
         print("\n📸 Creating deployment checkpoint...")
         checkpoint_id = await create_deployment_checkpoint("demo_v1.0")
         print(f"✅ Created checkpoint: {checkpoint_id}")
-        
+
         # Create database checkpoint
         print("\n💾 Creating database checkpoint...")
         db_checkpoint_id = await create_database_checkpoint("xorb")
         print(f"✅ Created database checkpoint: {db_checkpoint_id}")
-        
+
         # List checkpoints
         print("\n📋 Available checkpoints:")
         checkpoints = system.checkpoint_manager.list_checkpoints()
         for cp in checkpoints:
             print(f"  - {cp.checkpoint_id} ({cp.checkpoint_type.value}) - {cp.timestamp}")
-        
+
         # Execute service restart recovery
         print("\n🔄 Executing service restart recovery...")
         operation_id = await execute_recovery("service_restart_v1", {
             "service_name": "api"
         })
         print(f"✅ Started recovery operation: {operation_id}")
-        
+
         # Wait for completion
         operation = await system.wait_for_operation(operation_id, timeout=60)
         print(f"🏁 Recovery completed with status: {operation.status.value}")
-        
+
         # Show statistics
         print("\n📊 Recovery System Statistics:")
         stats = system.get_recovery_statistics()
         for key, value in stats.items():
             print(f"  {key}: {value}")
-        
+
         print("\n✅ Recovery system demo completed!")
-    
+
     asyncio.run(demo_recovery_system())

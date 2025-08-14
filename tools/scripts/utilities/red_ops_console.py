@@ -56,7 +56,7 @@ REDOPS_HTML = """
         async function launchMission() {
             log('[SYSTEM] Launching new Red Team mission...');
             missionStatus.textContent = 'Status: Running';
-            
+
             const response = await fetch('/launch-simulation');
             const reader = response.body.getReader();
             const decoder = new TextDecoder();

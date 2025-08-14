@@ -90,7 +90,7 @@ class SystemMetrics(BaseModel):
 
 class UnifiedOrchestrationHub:
     """Central orchestration system for all XORB services"""
-    
+
     def __init__(self):
         self.services: Dict[str, XORBService] = {}
         self.alerts: List[UnifiedAlert] = []
@@ -98,10 +98,10 @@ class UnifiedOrchestrationHub:
         self.system_metrics: List[SystemMetrics] = []
         self.websocket_connections: List[WebSocket] = []
         self.monitoring_task = None
-        
+
         # Initialize XORB services registry
         self._initialize_services()
-    
+
     def _initialize_services(self):
         """Initialize registry of all XORB services"""
         services_config = [
@@ -162,7 +162,7 @@ class UnifiedOrchestrationHub:
                 "capabilities": ["Advanced AI Analysis", "Qwen3-235B Model", "Streaming Responses"]
             }
         ]
-        
+
         for config in services_config:
             service = XORBService(
                 service_id=config["service_id"],
@@ -178,7 +178,7 @@ class UnifiedOrchestrationHub:
                 version="unknown"
             )
             self.services[service.service_id] = service
-    
+
     async def _start_monitoring_loop(self):
         """Start continuous monitoring of all services"""
         while True:
@@ -187,33 +187,33 @@ class UnifiedOrchestrationHub:
             await self._process_alerts()
             await self._broadcast_status_updates()
             await asyncio.sleep(30)  # Check every 30 seconds
-    
+
     async def _check_all_services_health(self):
         """Check health of all registered services"""
         tasks = []
         for service in self.services.values():
             tasks.append(self._check_service_health(service))
-        
+
         await asyncio.gather(*tasks, return_exceptions=True)
-    
+
     async def _check_service_health(self, service: XORBService):
         """Check health of individual service"""
         start_time = time.time()
-        
+
         try:
             url = f"http://localhost:{service.port}{service.health_endpoint}"
             timeout = aiohttp.ClientTimeout(total=10)
-            
+
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.get(url) as response:
                     response_time = time.time() - start_time
-                    
+
                     if response.status == 200:
                         health_data = await response.json()
                         service.status = ServiceStatus.HEALTHY
                         service.response_time = response_time
                         service.version = health_data.get("version", "unknown")
-                        
+
                         # Update uptime calculation
                         if hasattr(service, '_start_time'):
                             service.uptime = time.time() - service._start_time
@@ -228,7 +228,7 @@ class UnifiedOrchestrationHub:
                             f"Service Health Check Failed",
                             f"{service.name} returned HTTP {response.status}"
                         )
-                        
+
         except asyncio.TimeoutError:
             service.status = ServiceStatus.DEGRADED
             service.response_time = 10.0
@@ -247,16 +247,16 @@ class UnifiedOrchestrationHub:
                 "Service Offline",
                 f"{service.name} is not responding: {str(e)}"
             )
-        
+
         service.last_health_check = datetime.now()
-    
+
     async def _collect_system_metrics(self):
         """Collect system-wide metrics"""
         try:
             # Simulate system metrics collection
             # In production, would integrate with system monitoring tools
             import random
-            
+
             metrics = SystemMetrics(
                 timestamp=datetime.now().isoformat(),
                 cpu_usage=random.uniform(10, 80),
@@ -272,16 +272,16 @@ class UnifiedOrchestrationHub:
                     for service in self.services.values()
                 }
             )
-            
+
             self.system_metrics.append(metrics)
-            
+
             # Keep only last 100 metrics entries
             if len(self.system_metrics) > 100:
                 self.system_metrics = self.system_metrics[-100:]
-                
+
         except Exception as e:
             print(f"Error collecting system metrics: {e}")
-    
+
     async def _create_alert(self, source_service: str, severity: AlertSeverity, title: str, description: str):
         """Create new system alert"""
         alert = UnifiedAlert(
@@ -293,24 +293,24 @@ class UnifiedOrchestrationHub:
             timestamp=datetime.now().isoformat(),
             status="active"
         )
-        
+
         self.alerts.append(alert)
-        
+
         # Keep only last 500 alerts
         if len(self.alerts) > 500:
             self.alerts = self.alerts[-500:]
-        
+
         # Broadcast alert to connected WebSocket clients
         await self._broadcast_alert(alert)
-    
+
     async def _process_alerts(self):
         """Process and potentially auto-resolve alerts"""
         current_time = datetime.now()
-        
+
         for alert in self.alerts:
             if alert.status == "active":
                 alert_time = datetime.fromisoformat(alert.timestamp)
-                
+
                 # Auto-resolve alerts older than 1 hour if service is now healthy
                 if current_time - alert_time > timedelta(hours=1):
                     source_service = self.services.get(alert.source_service)
@@ -318,12 +318,12 @@ class UnifiedOrchestrationHub:
                         alert.status = "resolved"
                         alert.metadata["auto_resolved"] = True
                         alert.metadata["resolved_at"] = current_time.isoformat()
-    
+
     async def _broadcast_status_updates(self):
         """Broadcast status updates to connected WebSocket clients"""
         if not self.websocket_connections:
             return
-        
+
         status_update = {
             "type": "status_update",
             "data": {
@@ -339,7 +339,7 @@ class UnifiedOrchestrationHub:
                 "timestamp": datetime.now().isoformat()
             }
         }
-        
+
         # Broadcast to all connected clients
         disconnected_clients = []
         for websocket in self.websocket_connections:
@@ -347,40 +347,40 @@ class UnifiedOrchestrationHub:
                 await websocket.send_text(json.dumps(status_update))
             except:
                 disconnected_clients.append(websocket)
-        
+
         # Remove disconnected clients
         for client in disconnected_clients:
             self.websocket_connections.remove(client)
-    
+
     async def _broadcast_alert(self, alert: UnifiedAlert):
         """Broadcast alert to WebSocket clients"""
         if not self.websocket_connections:
             return
-        
+
         alert_message = {
             "type": "alert",
             "data": alert.dict()
         }
-        
+
         disconnected_clients = []
         for websocket in self.websocket_connections:
             try:
                 await websocket.send_text(json.dumps(alert_message))
             except:
                 disconnected_clients.append(websocket)
-        
+
         for client in disconnected_clients:
             self.websocket_connections.remove(client)
-    
+
     def _calculate_system_health(self) -> Dict:
         """Calculate overall system health score"""
         if not self.services:
             return {"score": 0, "status": "unknown"}
-        
+
         healthy_services = sum(1 for s in self.services.values() if s.status == ServiceStatus.HEALTHY)
         total_services = len(self.services)
         health_percentage = (healthy_services / total_services) * 100
-        
+
         if health_percentage >= 90:
             status = "excellent"
         elif health_percentage >= 75:
@@ -389,9 +389,9 @@ class UnifiedOrchestrationHub:
             status = "degraded"
         else:
             status = "critical"
-        
+
         avg_response_time = sum(s.response_time for s in self.services.values()) / total_services
-        
+
         return {
             "score": round(health_percentage, 1),
             "status": status,
@@ -399,11 +399,11 @@ class UnifiedOrchestrationHub:
             "total_services": total_services,
             "average_response_time": round(avg_response_time, 3)
         }
-    
+
     async def execute_orchestration_task(self, task_type: str, description: str, services: List[str], parameters: Dict = None) -> OrchestrationTask:
         """Execute cross-service orchestration task"""
         task_id = f"task_{int(time.time())}_{len(self.orchestration_tasks)}"
-        
+
         task = OrchestrationTask(
             task_id=task_id,
             task_type=task_type,
@@ -412,9 +412,9 @@ class UnifiedOrchestrationHub:
             status="running",
             created_at=datetime.now().isoformat()
         )
-        
+
         self.orchestration_tasks.append(task)
-        
+
         try:
             # Execute task based on type
             if task_type == "security_assessment":
@@ -425,21 +425,21 @@ class UnifiedOrchestrationHub:
                 result = await self._execute_threat_analysis(services, parameters or {})
             else:
                 result = {"error": f"Unknown task type: {task_type}"}
-            
+
             task.status = "completed"
             task.completed_at = datetime.now().isoformat()
             task.result = result
-            
+
         except Exception as e:
             task.status = "failed"
             task.result = {"error": str(e)}
-        
+
         return task
-    
+
     async def _execute_security_assessment(self, services: List[str], parameters: Dict) -> Dict:
         """Execute comprehensive security assessment across services"""
         results = {}
-        
+
         # Hardening assessment
         if "hardening" in services:
             try:
@@ -449,7 +449,7 @@ class UnifiedOrchestrationHub:
                             results["hardening"] = await response.json()
             except Exception as e:
                 results["hardening"] = {"error": str(e)}
-        
+
         # Analytics assessment
         if "analytics" in services:
             try:
@@ -459,7 +459,7 @@ class UnifiedOrchestrationHub:
                             results["analytics"] = await response.json()
             except Exception as e:
                 results["analytics"] = {"error": str(e)}
-        
+
         # Threat intelligence assessment
         if "threat_intelligence" in services:
             try:
@@ -469,18 +469,18 @@ class UnifiedOrchestrationHub:
                             results["threat_intelligence"] = await response.json()
             except Exception as e:
                 results["threat_intelligence"] = {"error": str(e)}
-        
+
         return {
             "assessment_type": "comprehensive_security",
             "services_assessed": len(results),
             "results": results,
             "overall_score": self._calculate_system_health()["score"]
         }
-    
+
     async def _execute_incident_response(self, services: List[str], parameters: Dict) -> Dict:
         """Execute coordinated incident response across services"""
         incident_id = parameters.get("incident_id", f"inc_{int(time.time())}")
-        
+
         # Create collaboration session for incident
         collaboration_result = {}
         if "collaboration" in services:
@@ -499,7 +499,7 @@ class UnifiedOrchestrationHub:
                             collaboration_result = await response.json()
             except Exception as e:
                 collaboration_result = {"error": str(e)}
-        
+
         # Generate incident report
         report_result = {}
         if "reporting" in services:
@@ -519,7 +519,7 @@ class UnifiedOrchestrationHub:
                             report_result = await response.json()
             except Exception as e:
                 report_result = {"error": str(e)}
-        
+
         return {
             "incident_id": incident_id,
             "response_type": "coordinated_incident_response",
@@ -527,11 +527,11 @@ class UnifiedOrchestrationHub:
             "incident_report": report_result,
             "services_involved": services
         }
-    
+
     async def _execute_threat_analysis(self, services: List[str], parameters: Dict) -> Dict:
         """Execute coordinated threat analysis across services"""
         threat_data = parameters.get("threat_data", "Unknown threat indicators")
-        
+
         # AI-powered analysis
         ai_result = {}
         if "nvidia_ai" in services:
@@ -552,7 +552,7 @@ class UnifiedOrchestrationHub:
                             ai_result = await response.json()
             except Exception as e:
                 ai_result = {"error": str(e)}
-        
+
         # Analytics correlation
         analytics_result = {}
         if "analytics" in services:
@@ -563,7 +563,7 @@ class UnifiedOrchestrationHub:
                             analytics_result = await response.json()
             except Exception as e:
                 analytics_result = {"error": str(e)}
-        
+
         return {
             "threat_analysis_type": "coordinated_multi_service",
             "ai_analysis": ai_result,
@@ -585,16 +585,16 @@ async def websocket_orchestration(websocket: WebSocket):
     """WebSocket endpoint for real-time orchestration updates"""
     await websocket.accept()
     orchestration_hub.websocket_connections.append(websocket)
-    
+
     try:
         while True:
             # Keep connection alive and handle incoming messages
             data = await websocket.receive_text()
             message = json.loads(data)
-            
+
             if message.get("type") == "ping":
                 await websocket.send_text(json.dumps({"type": "pong"}))
-                
+
     except WebSocketDisconnect:
         if websocket in orchestration_hub.websocket_connections:
             orchestration_hub.websocket_connections.remove(websocket)
@@ -644,12 +644,12 @@ async def get_services():
 async def get_alerts(active_only: bool = False, limit: int = 50):
     """Get system alerts"""
     alerts = orchestration_hub.alerts
-    
+
     if active_only:
         alerts = [a for a in alerts if a.status == "active"]
-    
+
     alerts = sorted(alerts, key=lambda x: x.timestamp, reverse=True)[:limit]
-    
+
     return {
         "total_alerts": len(orchestration_hub.alerts),
         "active_alerts": len([a for a in orchestration_hub.alerts if a.status == "active"]),
@@ -735,7 +735,7 @@ async def orchestration_dashboard():
         <p>Central Command & Control for All XORB Cybersecurity Services</p>
         <div id="connection-status" class="connection-status status-disconnected">Connecting...</div>
     </div>
-    
+
     <div class="dashboard-grid">
         <!-- System Health Card -->
         <div class="orchestration-card">
@@ -750,7 +750,7 @@ async def orchestration_dashboard():
                 </div>
             </div>
         </div>
-        
+
         <!-- Services Status Card -->
         <div class="orchestration-card">
             <div class="card-header">
@@ -760,7 +760,7 @@ async def orchestration_dashboard():
                 <div class="loading">Loading services...</div>
             </div>
         </div>
-        
+
         <!-- Active Alerts Card -->
         <div class="orchestration-card">
             <div class="card-header">
@@ -771,7 +771,7 @@ async def orchestration_dashboard():
                 <div class="loading">Loading alerts...</div>
             </div>
         </div>
-        
+
         <!-- Orchestration Tasks Card -->
         <div class="orchestration-card">
             <div class="card-header">
@@ -788,7 +788,7 @@ async def orchestration_dashboard():
             </div>
         </div>
     </div>
-    
+
     <!-- System Metrics Chart -->
     <div class="orchestration-card" style="margin-top: 20px;">
         <div class="card-header">
@@ -798,41 +798,41 @@ async def orchestration_dashboard():
             <div class="loading">Loading system metrics...</div>
         </div>
     </div>
-    
+
     <script>
         let ws = null;
         let orchestrationData = null;
-        
+
         function connectWebSocket() {
             ws = new WebSocket(`ws://188.245.101.102:9011/ws/orchestration`);
-            
+
             ws.onopen = function() {
                 document.getElementById('connection-status').textContent = '✅ Connected';
                 document.getElementById('connection-status').className = 'connection-status status-connected';
                 console.log('WebSocket connected to orchestration hub');
             };
-            
+
             ws.onmessage = function(event) {
                 const data = JSON.parse(event.data);
-                
+
                 if (data.type === 'status_update') {
                     updateSystemStatus(data.data);
                 } else if (data.type === 'alert') {
                     addNewAlert(data.data);
                 }
             };
-            
+
             ws.onclose = function() {
                 document.getElementById('connection-status').textContent = '❌ Disconnected';
                 document.getElementById('connection-status').className = 'connection-status status-disconnected';
                 console.log('WebSocket disconnected, attempting reconnect...');
                 setTimeout(connectWebSocket, 5000);
             };
-            
+
             ws.onerror = function(error) {
                 console.error('WebSocket error:', error);
             };
-            
+
             // Send heartbeat every 30 seconds
             setInterval(() => {
                 if (ws && ws.readyState === WebSocket.OPEN) {
@@ -840,43 +840,43 @@ async def orchestration_dashboard():
                 }
             }, 30000);
         }
-        
+
         async function loadOrchestrationData() {
             try {
                 // Load orchestration status
                 const statusResponse = await fetch('/orchestration/status');
                 orchestrationData = await statusResponse.json();
-                
+
                 updateSystemHealth(orchestrationData.system_health);
                 updateServicesGrid(orchestrationData.services);
-                
+
                 // Load alerts
                 const alertsResponse = await fetch('/orchestration/alerts?active_only=true&limit=10');
                 const alertsData = await alertsResponse.json();
                 updateAlertsList(alertsData.alerts);
-                
+
                 // Load recent tasks
                 const tasksResponse = await fetch('/orchestration/tasks?limit=5');
                 const tasksData = await tasksResponse.json();
                 updateRecentTasks(tasksData.tasks);
-                
+
                 // Load system metrics
                 const metricsResponse = await fetch('/orchestration/metrics?limit=20');
                 const metricsData = await metricsResponse.json();
                 updateMetricsChart(metricsData.metrics);
-                
+
             } catch (error) {
                 console.error('Error loading orchestration data:', error);
             }
         }
-        
+
         function updateSystemHealth(health) {
             const scoreElement = document.getElementById('health-score');
             const statusElement = document.getElementById('health-status');
-            
+
             scoreElement.textContent = health.score + '%';
             statusElement.textContent = health.status.toUpperCase();
-            
+
             // Update color based on health
             scoreElement.className = 'health-score';
             if (health.score >= 90) {
@@ -886,19 +886,19 @@ async def orchestration_dashboard():
             } else {
                 scoreElement.classList.add('health-degraded');
             }
-            
+
             document.getElementById('healthy-services').textContent = health.healthy_services;
             document.getElementById('total-services').textContent = health.total_services;
         }
-        
+
         function updateServicesGrid(services) {
             const grid = document.getElementById('services-grid');
             grid.innerHTML = '';
-            
+
             Object.values(services).forEach(service => {
                 const serviceDiv = document.createElement('div');
                 serviceDiv.className = `service-item service-${service.status}`;
-                
+
                 serviceDiv.innerHTML = `
                     <div class="service-name">${service.name}</div>
                     <div class="service-status">${service.status}</div>
@@ -907,7 +907,7 @@ async def orchestration_dashboard():
                         Uptime: ${(service.uptime / 3600).toFixed(1)}h
                     </div>
                 `;
-                
+
                 // Add click handler to open service dashboard
                 serviceDiv.style.cursor = 'pointer';
                 serviceDiv.onclick = () => {
@@ -916,11 +916,11 @@ async def orchestration_dashboard():
                         window.open(`http://188.245.101.102:${port}`, '_blank');
                     }
                 };
-                
+
                 grid.appendChild(serviceDiv);
             });
         }
-        
+
         function getServicePort(serviceName) {
             const portMap = {
                 'Threat Intelligence Engine': 9004,
@@ -933,25 +933,25 @@ async def orchestration_dashboard():
             };
             return portMap[serviceName];
         }
-        
+
         function updateAlertsList(alerts) {
             const alertList = document.getElementById('alert-list');
             const alertCount = document.getElementById('alert-count');
-            
+
             alertCount.textContent = alerts.length;
-            
+
             if (alerts.length === 0) {
                 alertList.innerHTML = '<div class="loading">No active alerts</div>';
                 return;
             }
-            
+
             alertList.innerHTML = '';
             alerts.forEach(alert => {
                 const alertDiv = document.createElement('div');
                 alertDiv.className = `alert-item alert-${alert.severity}`;
-                
+
                 const timestamp = new Date(alert.timestamp).toLocaleString();
-                
+
                 alertDiv.innerHTML = `
                     <div class="alert-title">${alert.title}</div>
                     <div class="alert-description">${alert.description}</div>
@@ -959,28 +959,28 @@ async def orchestration_dashboard():
                         ${alert.source_service} • ${alert.severity.toUpperCase()} • ${timestamp}
                     </div>
                 `;
-                
+
                 alertList.appendChild(alertDiv);
             });
         }
-        
+
         function updateRecentTasks(tasks) {
             const container = document.getElementById('recent-tasks');
-            
+
             if (tasks.length === 0) {
                 container.innerHTML = '<div class="loading">No recent tasks</div>';
                 return;
             }
-            
+
             container.innerHTML = '';
             tasks.forEach(task => {
                 const taskDiv = document.createElement('div');
                 taskDiv.style.cssText = 'background: #0d1117; padding: 10px; margin: 5px 0; border-radius: 4px; font-size: 0.9em;';
-                
+
                 const createdAt = new Date(task.created_at).toLocaleString();
-                const statusColor = task.status === 'completed' ? '#2ea043' : 
+                const statusColor = task.status === 'completed' ? '#2ea043' :
                                    task.status === 'failed' ? '#f85149' : '#d29922';
-                
+
                 taskDiv.innerHTML = `
                     <div style="font-weight: 600;">${task.task_type.replace('_', ' ').toUpperCase()}</div>
                     <div style="color: #8b949e; margin: 3px 0;">${task.description}</div>
@@ -988,22 +988,22 @@ async def orchestration_dashboard():
                         ${task.status.toUpperCase()} • ${createdAt}
                     </div>
                 `;
-                
+
                 container.appendChild(taskDiv);
             });
         }
-        
+
         function updateMetricsChart(metrics) {
             const chart = document.getElementById('metrics-chart');
-            
+
             if (metrics.length === 0) {
                 chart.innerHTML = '<div class="loading">No metrics data</div>';
                 return;
             }
-            
+
             // Simple metrics display - in production would use proper charting library
             const latest = metrics[metrics.length - 1];
-            
+
             chart.innerHTML = `
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
                     <div style="text-align: center;">
@@ -1025,7 +1025,7 @@ async def orchestration_dashboard():
                 </div>
             `;
         }
-        
+
         function updateSystemStatus(data) {
             if (data.system_health) {
                 updateSystemHealth(data.system_health);
@@ -1034,7 +1034,7 @@ async def orchestration_dashboard():
                 updateServicesGrid(data.services);
             }
         }
-        
+
         function addNewAlert(alertData) {
             console.log('New alert received:', alertData);
             // Refresh alerts list
@@ -1044,11 +1044,11 @@ async def orchestration_dashboard():
                     .then(data => updateAlertsList(data.alerts));
             }, 1000);
         }
-        
+
         async function executeSecurityAssessment() {
             const statusDiv = document.getElementById('task-status');
             statusDiv.innerHTML = '🔄 Executing security assessment...';
-            
+
             try {
                 const response = await fetch('/orchestration/tasks/execute', {
                     method: 'POST',
@@ -1059,22 +1059,22 @@ async def orchestration_dashboard():
                         services: ['hardening', 'analytics', 'threat_intelligence']
                     })
                 });
-                
+
                 const result = await response.json();
                 statusDiv.innerHTML = `✅ Security assessment completed: ${result.task_id}`;
-                
+
                 // Refresh tasks
                 setTimeout(loadOrchestrationData, 2000);
-                
+
             } catch (error) {
                 statusDiv.innerHTML = `❌ Assessment failed: ${error.message}`;
             }
         }
-        
+
         async function executeIncidentResponse() {
             const statusDiv = document.getElementById('task-status');
             statusDiv.innerHTML = '🚨 Initiating incident response...';
-            
+
             try {
                 const response = await fetch('/orchestration/tasks/execute', {
                     method: 'POST',
@@ -1086,21 +1086,21 @@ async def orchestration_dashboard():
                         parameters: { incident_id: `inc_${Date.now()}` }
                     })
                 });
-                
+
                 const result = await response.json();
                 statusDiv.innerHTML = `✅ Incident response initiated: ${result.task_id}`;
-                
+
                 setTimeout(loadOrchestrationData, 2000);
-                
+
             } catch (error) {
                 statusDiv.innerHTML = `❌ Incident response failed: ${error.message}`;
             }
         }
-        
+
         async function executeThreatAnalysis() {
             const statusDiv = document.getElementById('task-status');
             statusDiv.innerHTML = '🎯 Running threat analysis...';
-            
+
             try {
                 const response = await fetch('/orchestration/tasks/execute', {
                     method: 'POST',
@@ -1109,27 +1109,27 @@ async def orchestration_dashboard():
                         task_type: 'threat_analysis',
                         description: 'Multi-service threat analysis and correlation',
                         services: ['nvidia_ai', 'analytics', 'threat_intelligence'],
-                        parameters: { 
+                        parameters: {
                             threat_data: 'Suspicious network activity detected from multiple sources',
                             context: { urgency: 'high', scope: 'enterprise' }
                         }
                     })
                 });
-                
+
                 const result = await response.json();
                 statusDiv.innerHTML = `✅ Threat analysis completed: ${result.task_id}`;
-                
+
                 setTimeout(loadOrchestrationData, 2000);
-                
+
             } catch (error) {
                 statusDiv.innerHTML = `❌ Threat analysis failed: ${error.message}`;
             }
         }
-        
+
         // Initialize dashboard
         connectWebSocket();
         loadOrchestrationData();
-        
+
         // Auto-refresh every 60 seconds
         setInterval(loadOrchestrationData, 60000);
     </script>
@@ -1146,7 +1146,7 @@ async def health_check():
         "version": "10.0.0",
         "capabilities": [
             "Service Orchestration",
-            "Health Monitoring", 
+            "Health Monitoring",
             "Alert Management",
             "Task Automation",
             "WebSocket Streaming",

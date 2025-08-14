@@ -46,7 +46,7 @@ class Alert:
 
 class EnterpriseMonitoringSystem:
     """Enterprise-grade monitoring and alerting system"""
-    
+
     def __init__(self):
         self.active_alerts = {}
         self.alert_history = []
@@ -54,7 +54,7 @@ class EnterpriseMonitoringSystem:
         self.performance_baselines = {}
         self.monitoring_active = False
         self.alert_rules = self._initialize_alert_rules()
-        
+
     def _initialize_alert_rules(self) -> Dict[str, Dict[str, Any]]:
         """Initialize monitoring alert rules"""
         return {
@@ -86,12 +86,12 @@ class EnterpriseMonitoringSystem:
                 'deadlock_rate_threshold': 0.001
             }
         }
-    
+
     async def start_monitoring(self):
         """Start enterprise monitoring system"""
         logger.info("🚀 Starting XORB Enterprise Monitoring System")
         self.monitoring_active = True
-        
+
         # Start monitoring tasks
         monitoring_tasks = [
             self._monitor_learning_engine(),
@@ -102,13 +102,13 @@ class EnterpriseMonitoringSystem:
             self._generate_health_reports(),
             self._process_alert_queue()
         ]
-        
+
         await asyncio.gather(*monitoring_tasks)
-    
+
     async def _monitor_learning_engine(self):
         """Monitor learning engine performance"""
         logger.info("📊 Learning Engine monitoring started")
-        
+
         while self.monitoring_active:
             try:
                 # Simulate learning engine metrics
@@ -122,12 +122,12 @@ class EnterpriseMonitoringSystem:
                     'model_accuracy': random.uniform(0.75, 0.98),
                     'queue_depth': random.randint(0, 150)
                 }
-                
+
                 self.health_metrics['learning_engine'] = metrics
-                
+
                 # Check alert conditions
                 rules = self.alert_rules['learning_engine_performance']
-                
+
                 if metrics['cpu_percent'] > rules['cpu_threshold']:
                     await self._trigger_alert(
                         component='learning_engine',
@@ -137,7 +137,7 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['cpu_percent'],
                         remediation_suggestion="Consider scaling horizontally or optimizing algorithms"
                     )
-                
+
                 if metrics['memory_percent'] > rules['memory_threshold']:
                     await self._trigger_alert(
                         component='learning_engine',
@@ -147,7 +147,7 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['memory_percent'],
                         remediation_suggestion="Check for memory leaks or increase memory allocation"
                     )
-                
+
                 if metrics['response_time_ms'] > rules['response_time_threshold'] * 1000:
                     await self._trigger_alert(
                         component='learning_engine',
@@ -157,17 +157,17 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['response_time_ms'],
                         remediation_suggestion="Optimize query performance or increase resources"
                     )
-                
+
                 await asyncio.sleep(10)  # Monitor every 10 seconds
-                
+
             except Exception as e:
                 logger.error(f"Learning engine monitoring error: {e}")
                 await asyncio.sleep(30)
-    
+
     async def _monitor_api_health(self):
         """Monitor API health and performance"""
         logger.info("🌐 API health monitoring started")
-        
+
         while self.monitoring_active:
             try:
                 # Simulate API metrics
@@ -183,12 +183,12 @@ class EnterpriseMonitoringSystem:
                     'successful_requests': random.randint(1000, 5000),
                     'failed_requests': random.randint(0, 100)
                 }
-                
+
                 self.health_metrics['learning_api'] = metrics
-                
+
                 # Check alert conditions
                 rules = self.alert_rules['learning_api_health']
-                
+
                 if metrics['request_rate_per_minute'] > rules['request_rate_threshold']:
                     await self._trigger_alert(
                         component='learning_api',
@@ -198,7 +198,7 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['request_rate_per_minute'],
                         remediation_suggestion="Consider enabling rate limiting or scaling API instances"
                     )
-                
+
                 if metrics['error_rate'] > rules['error_rate_threshold']:
                     await self._trigger_alert(
                         component='learning_api',
@@ -208,17 +208,17 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['error_rate'],
                         remediation_suggestion="Investigate API errors and validate input handling"
                     )
-                
+
                 await asyncio.sleep(15)  # Monitor every 15 seconds
-                
+
             except Exception as e:
                 logger.error(f"API health monitoring error: {e}")
                 await asyncio.sleep(30)
-    
+
     async def _monitor_orchestrator(self):
         """Monitor orchestrator performance"""
         logger.info("🎯 Orchestrator monitoring started")
-        
+
         while self.monitoring_active:
             try:
                 # Simulate orchestrator metrics
@@ -232,12 +232,12 @@ class EnterpriseMonitoringSystem:
                     'queued_campaigns': random.randint(0, 10),
                     'completed_campaigns_today': random.randint(50, 200)
                 }
-                
+
                 self.health_metrics['orchestrator'] = metrics
-                
+
                 # Check alert conditions
                 rules = self.alert_rules['orchestrator_performance']
-                
+
                 if metrics['campaign_success_rate'] < rules['campaign_success_rate_threshold']:
                     await self._trigger_alert(
                         component='orchestrator',
@@ -247,7 +247,7 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['campaign_success_rate'],
                         remediation_suggestion="Review campaign strategies and agent performance"
                     )
-                
+
                 if metrics['agent_failure_rate'] > rules['agent_failure_rate_threshold']:
                     await self._trigger_alert(
                         component='orchestrator',
@@ -257,17 +257,17 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['agent_failure_rate'],
                         remediation_suggestion="Investigate agent health and resource allocation"
                     )
-                
+
                 await asyncio.sleep(20)  # Monitor every 20 seconds
-                
+
             except Exception as e:
                 logger.error(f"Orchestrator monitoring error: {e}")
                 await asyncio.sleep(30)
-    
+
     async def _monitor_security_framework(self):
         """Monitor security framework"""
         logger.info("🛡️ Security framework monitoring started")
-        
+
         while self.monitoring_active:
             try:
                 # Simulate security metrics
@@ -281,12 +281,12 @@ class EnterpriseMonitoringSystem:
                     'security_violations': random.randint(0, 3),
                     'encrypted_connections': random.randint(50, 200)
                 }
-                
+
                 self.health_metrics['security_framework'] = metrics
-                
+
                 # Check alert conditions
                 rules = self.alert_rules['security_framework']
-                
+
                 if metrics['failed_auth_rate'] > rules['failed_auth_rate_threshold']:
                     await self._trigger_alert(
                         component='security_framework',
@@ -296,7 +296,7 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['failed_auth_rate'],
                         remediation_suggestion="Investigate potential security attacks and review access logs"
                     )
-                
+
                 if metrics['suspicious_activities'] > rules['suspicious_activity_threshold']:
                     await self._trigger_alert(
                         component='security_framework',
@@ -306,7 +306,7 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['suspicious_activities'],
                         remediation_suggestion="Review security logs and consider blocking suspicious IPs"
                     )
-                
+
                 if metrics['certificate_expiry_days'] < rules['certificate_expiry_days']:
                     await self._trigger_alert(
                         component='security_framework',
@@ -316,17 +316,17 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['certificate_expiry_days'],
                         remediation_suggestion="Renew SSL certificates before expiration"
                     )
-                
+
                 await asyncio.sleep(25)  # Monitor every 25 seconds
-                
+
             except Exception as e:
                 logger.error(f"Security framework monitoring error: {e}")
                 await asyncio.sleep(30)
-    
+
     async def _monitor_database_health(self):
         """Monitor database health"""
         logger.info("🗄️ Database health monitoring started")
-        
+
         while self.monitoring_active:
             try:
                 # Simulate database metrics
@@ -340,12 +340,12 @@ class EnterpriseMonitoringSystem:
                     'disk_usage_percent': random.uniform(40, 85),
                     'backup_status': 'success' if random.random() > 0.05 else 'failed'
                 }
-                
+
                 self.health_metrics['database'] = metrics
-                
+
                 # Check alert conditions
                 rules = self.alert_rules['database_health']
-                
+
                 if metrics['connection_pool_utilization'] > rules['connection_pool_threshold']:
                     await self._trigger_alert(
                         component='database',
@@ -355,7 +355,7 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['connection_pool_utilization'],
                         remediation_suggestion="Increase connection pool size or optimize connection usage"
                     )
-                
+
                 if metrics['average_query_latency_ms'] > rules['query_latency_threshold'] * 1000:
                     await self._trigger_alert(
                         component='database',
@@ -365,31 +365,31 @@ class EnterpriseMonitoringSystem:
                         threshold_breached=metrics['average_query_latency_ms'],
                         remediation_suggestion="Optimize slow queries and review database indexes"
                     )
-                
+
                 await asyncio.sleep(30)  # Monitor every 30 seconds
-                
+
             except Exception as e:
                 logger.error(f"Database monitoring error: {e}")
                 await asyncio.sleep(30)
-    
-    async def _trigger_alert(self, component: str, severity: AlertSeverity, message: str, 
+
+    async def _trigger_alert(self, component: str, severity: AlertSeverity, message: str,
                            details: Dict[str, Any], threshold_breached: Optional[float] = None,
                            remediation_suggestion: Optional[str] = None):
         """Trigger an alert"""
         alert_id = f"{component}_{int(time.time())}_{random.randint(1000, 9999)}"
-        
+
         # Check if similar alert already exists
         existing_alert = None
         for alert in self.active_alerts.values():
             if alert.component == component and alert.message == message and alert.status == AlertStatus.ACTIVE:
                 existing_alert = alert
                 break
-        
+
         if existing_alert:
             # Update existing alert timestamp
             existing_alert.timestamp = datetime.utcnow()
             return
-        
+
         alert = Alert(
             id=alert_id,
             timestamp=datetime.utcnow(),
@@ -401,10 +401,10 @@ class EnterpriseMonitoringSystem:
             threshold_breached=threshold_breached,
             remediation_suggestion=remediation_suggestion
         )
-        
+
         self.active_alerts[alert_id] = alert
         self.alert_history.append(alert)
-        
+
         # Log alert based on severity
         if severity == AlertSeverity.CRITICAL:
             logger.error(f"🚨 CRITICAL ALERT - {component}: {message}")
@@ -414,11 +414,11 @@ class EnterpriseMonitoringSystem:
             logger.warning(f"📢 MEDIUM ALERT - {component}: {message}")
         else:
             logger.info(f"ℹ️ {severity.value.upper()} ALERT - {component}: {message}")
-    
+
     async def _process_alert_queue(self):
         """Process and manage alerts"""
         logger.info("🔔 Alert processing started")
-        
+
         while self.monitoring_active:
             try:
                 # Auto-resolve old alerts
@@ -428,22 +428,22 @@ class EnterpriseMonitoringSystem:
                         alert.status = AlertStatus.RESOLVED
                         del self.active_alerts[alert_id]
                         logger.info(f"✅ Auto-resolved alert: {alert.component} - {alert.message}")
-                
+
                 await asyncio.sleep(60)  # Process every minute
-                
+
             except Exception as e:
                 logger.error(f"Alert processing error: {e}")
                 await asyncio.sleep(60)
-    
+
     async def _generate_health_reports(self):
         """Generate periodic health reports"""
         logger.info("📋 Health reporting started")
-        
+
         while self.monitoring_active:
             try:
                 # Generate health report every 5 minutes
                 await asyncio.sleep(300)
-                
+
                 report = {
                     'timestamp': datetime.utcnow().isoformat(),
                     'overall_health': 'healthy',
@@ -451,7 +451,7 @@ class EnterpriseMonitoringSystem:
                     'critical_alerts': len([a for a in self.active_alerts.values() if a.severity == AlertSeverity.CRITICAL]),
                     'components': {}
                 }
-                
+
                 # Component health summary
                 for component, metrics in self.health_metrics.items():
                     report['components'][component] = {
@@ -459,22 +459,22 @@ class EnterpriseMonitoringSystem:
                         'last_update': metrics.get('timestamp'),
                         'key_metrics': self._extract_key_metrics(component, metrics)
                     }
-                
+
                 # Save health report
                 report_filename = f'/tmp/xorb_health_report_{int(time.time())}.json'
                 with open(report_filename, 'w') as f:
                     json.dump(report, f, indent=2)
-                
+
                 logger.info(f"📊 Health report generated: {len(self.active_alerts)} active alerts")
-                
+
             except Exception as e:
                 logger.error(f"Health reporting error: {e}")
                 await asyncio.sleep(300)
-    
+
     def _extract_key_metrics(self, component: str, metrics: Dict[str, Any]) -> Dict[str, Any]:
         """Extract key metrics for each component"""
         key_metrics = {}
-        
+
         if component == 'learning_engine':
             key_metrics = {
                 'cpu_percent': metrics.get('cpu_percent'),
@@ -505,9 +505,9 @@ class EnterpriseMonitoringSystem:
                 'query_latency': metrics.get('average_query_latency_ms'),
                 'cache_hit_ratio': metrics.get('cache_hit_ratio')
             }
-        
+
         return key_metrics
-    
+
     async def get_system_status(self) -> Dict[str, Any]:
         """Get current system status"""
         return {
@@ -519,7 +519,7 @@ class EnterpriseMonitoringSystem:
             'last_health_check': max([m.get('timestamp', '') for m in self.health_metrics.values()]) if self.health_metrics else None,
             'overall_status': 'healthy' if len([a for a in self.active_alerts.values() if a.severity == AlertSeverity.CRITICAL]) == 0 else 'degraded'
         }
-    
+
     def stop_monitoring(self):
         """Stop monitoring system"""
         logger.info("🛑 Stopping enterprise monitoring system")
@@ -529,24 +529,24 @@ async def demo_enterprise_monitoring():
     """Demonstrate enterprise monitoring system"""
     logger.info("🚀 Starting XORB Enterprise Monitoring System Demo")
     logger.info("=" * 80)
-    
+
     monitoring_system = EnterpriseMonitoringSystem()
-    
+
     # Start monitoring for a limited time (2 minutes for demo)
     monitoring_task = asyncio.create_task(monitoring_system.start_monitoring())
-    
+
     # Let it run for 2 minutes
     await asyncio.sleep(120)
-    
+
     # Stop monitoring
     monitoring_system.stop_monitoring()
-    
+
     # Cancel monitoring task
     monitoring_task.cancel()
-    
+
     # Get final status
     final_status = await monitoring_system.get_system_status()
-    
+
     logger.info("=" * 80)
     logger.info("🎉 XORB Enterprise Monitoring Demo Complete!")
     logger.info(f"📊 Final Status: {final_status['overall_status'].upper()}")
@@ -554,7 +554,7 @@ async def demo_enterprise_monitoring():
     logger.info(f"🚨 Critical Alerts: {final_status['critical_alerts']}")
     logger.info(f"📈 Components Monitored: {final_status['components_monitored']}")
     logger.info("🚀 Enterprise monitoring system ready for production deployment!")
-    
+
     return final_status
 
 if __name__ == "__main__":
