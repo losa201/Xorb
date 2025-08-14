@@ -635,6 +635,12 @@ kubectl apply -f deploy/kubernetes/production/
 - 🔧 **[Development Guide](docs/development/)** - Developer documentation
 - 📋 **[Compliance Guide](docs/enterprise/)** - Compliance and certification docs
 
+### **Operations Pack (v2025.08-rc1)**
+- 🚨 **[Incident Response Runbook](RUNBOOK_INCIDENT_RESPONSE.md)** - 4 critical incident response procedures
+- 🔄 **[Rollback Runbook](RUNBOOK_ROLLBACK.md)** - Emergency and comprehensive rollback procedures
+- 🧪 **[Chaos Engineering Drills](docs/CHAOS_DRILLS.md)** - 3 chaos experiments with auto-remediation paths
+- 📊 **[Release Confidence Report](docs/RELEASE_CONFIDENCE_REPORT.md)** - 91.2% confidence score production readiness assessment
+
 ### **API Examples**
 ```bash
 # Health check

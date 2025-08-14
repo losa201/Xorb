@@ -78,3 +78,19 @@ According to ADR-001, the canonical monorepo structure is:
 - Repository Structure: ⚠️ Partially compliant (migration in progress)
 - Protobuf Source of Truth: ❌ Not implemented yet
 - Governance: ✅ CODEOWNERS and branch protection in place
+
+## Operations Pack (v2025.08-rc1)
+
+### Runbooks and Documentation
+| Document | Purpose | Location |
+|----------|---------|----------|
+| **Incident Response Runbook** | 4 critical incident response procedures | [RUNBOOK_INCIDENT_RESPONSE.md](../RUNBOOK_INCIDENT_RESPONSE.md) |
+| **Rollback Runbook** | Emergency and comprehensive rollback procedures | [RUNBOOK_ROLLBACK.md](../RUNBOOK_ROLLBACK.md) |
+| **Chaos Engineering Drills** | 3 chaos experiments with auto-remediation paths | [CHAOS_DRILLS.md](CHAOS_DRILLS.md) |
+| **Release Confidence Report** | 91.2% confidence score production readiness assessment | [RELEASE_CONFIDENCE_REPORT.md](RELEASE_CONFIDENCE_REPORT.md) |
+
+### Monitoring and Observability
+| Component | Purpose | Location |
+|-----------|---------|----------|
+| **Release SLO Dashboard** | Grafana dashboard with burn-down panels and CI/CD visibility | [xorb-release-slo-dashboard.json](../infra/monitoring/grafana/dashboards/xorb-release-slo-dashboard.json) |
+| **Post-Release Alert Rules** | 10 Prometheus alert rules for post-release monitoring | [prometheus-rules.yml](../infra/monitoring/prometheus/prometheus-rules.yml) |

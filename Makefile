@@ -361,3 +361,69 @@ install-contract-deps: ## Install contract checking dependencies (buf, protoc, e
 	fi
 	@echo ""
 	@echo "✅ All contract checking dependencies installed"
+
+# Operations Pack (v2025.08-rc1)
+ops-runbooks: ## Show paths and quick tips for operational runbooks
+	@echo "📚 XORB Operations Pack v2025.08-rc1 Runbooks:"
+	@echo ""
+	@echo "🚨 Incident Response Runbook:"
+	@echo "   File: RUNBOOK_INCIDENT_RESPONSE.md"
+	@echo "   Tips: Contains 4 critical incident procedures (evidence failures, tenant isolation, quota anomalies, replay impact)"
+	@echo ""
+	@echo "🔄 Rollback Runbook:"
+	@echo "   File: RUNBOOK_ROLLBACK.md"
+	@echo "   Tips: Emergency rollback (<5 min) and comprehensive rollback (30 min) procedures"
+	@echo ""
+	@echo "🧪 Chaos Engineering Drills:"
+	@echo "   File: docs/CHAOS_DRILLS.md"
+	@echo "   Tips: 3 chaos experiments (NATS kill, replay storm, evidence corruption) with auto-remediation"
+	@echo ""
+	@echo "📊 Release Confidence Report:"
+	@echo "   File: docs/RELEASE_CONFIDENCE_REPORT.md"
+	@echo "   Tips: 91.2% confidence score with detailed technical, operational, and security readiness"
+
+ops-alerts-validate: ## Validate Prometheus alert rules with promtool
+	@echo "🔍 Validating Prometheus alert rules..."
+	@if command -v promtool >/dev/null 2>&1; then \
+		promtool check rules infra/monitoring/prometheus/prometheus-rules.yml; \
+	else \
+		echo "📦 promtool not found, using Docker..."; \
+		docker run --rm -v $(PWD):/workspace --entrypoint=promtool prom/prometheus:latest \
+			check rules /workspace/infra/monitoring/prometheus/prometheus-rules.yml; \
+	fi
+	@echo "✅ Prometheus alert rules validation complete"
+
+chaos-dry-run: ## Print chaos experiment steps without execution
+	@echo "🧪 XORB Chaos Engineering Experiments (Dry Run)"
+	@echo ""
+	@echo "🔍 Experiment 1: NATS Node Kill"
+	@echo "   Duration: 10 minutes"
+	@echo "   Objective: Validate cluster resilience and message delivery SLO compliance"
+	@echo "   Steps:"
+	@echo "     1. Enable chaos metrics collection"
+	@echo "     2. Kill non-leader NATS node"
+	@echo "     3. Monitor live P95 latency (<100ms target)"
+	@echo "     4. Verify auto-recovery within 2 minutes"
+	@echo "     5. Validate message loss ≤ 10 messages"
+	@echo ""
+	@echo "🌊 Experiment 2: Replay Storm Injection"
+	@echo "   Duration: 15 minutes"
+	@echo "   Objective: Test traffic isolation under 10x replay load"
+	@echo "   Steps:"
+	@echo "     1. Deploy 10 replay storm generators"
+	@echo "     2. Generate 10x normal replay traffic load"
+	@echo "     3. Monitor live workload P95 latency (<100ms)"
+	@echo "     4. Verify WFQ scheduler fairness index >0.7"
+	@echo "     5. Gracefully terminate storm and verify recovery"
+	@echo ""
+	@echo "🔐 Experiment 3: Evidence Corruption Injection"
+	@echo "   Duration: 12 minutes"
+	@echo "   Objective: Validate evidence integrity under malicious injection"
+	@echo "   Steps:"
+	@echo "     1. Deploy corruption generator (20% corruption rate)"
+	@echo "     2. Inject invalid signatures, timestamps, chain corruption"
+	@echo "     3. Monitor evidence verification success rate (>99%)"
+	@echo "     4. Verify 100% corruption detection"
+	@echo "     5. Validate chain of custody integrity"
+	@echo ""
+	@echo "⚠️  To execute chaos experiments, see docs/CHAOS_DRILLS.md"

@@ -1,0 +1,95 @@
+name: Post Release Guardrails
+
+on:
+  push:
+    branches: [ integration/*, main ]
+  pull_request:
+    branches: [ integration/*, main ]
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install ruff bandit safety gitleaks
+
+      - name: Run security scans
+        run: |
+          python tools/security/security_scan.py
+
+  test-with-coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install pytest pytest-asyncio pytest-cov
+
+      - name: Run tests with focused coverage
+        run: |
+          pytest -q --cov=src/api/app/observability --cov=src/api/app/routers/g8_control_plane.py --cov=src/api/app/services/g8_control_plane_service.py --cov-fail-under=40
+
+      - name: Generate coverage report
+        run: |
+          pytest --cov=src/api/app/observability --cov=src/api/app/routers/g8_control_plane.py --cov=src/api/app/services/g8_control_plane_service.py --cov-report=xml --cov-report=html
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-reports
+          path: |
+            coverage.xml
+            htmlcov/
+
+      - name: Upload repo audit reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: repo-audit-reports
+          path: tools/repo_audit/
+
+  chaos-dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Run chaos dry-run
+        run: |
+          python3 tools/chaos/run.py --scenario all --compose --dry-run > chaos-dry-run.log 2>&1
+          echo "Chaos dry-run completed successfully"
+
+      - name: Upload chaos logs
+        uses: actions/upload-artifact@v3
+        with:
+          name: chaos-dry-run-logs
+          path: chaos-dry-run.log

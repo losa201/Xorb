@@ -123,7 +123,7 @@ groups:
           alert_type: low_budget
         annotations:
           summary: "XORB Bus Latency SLO error budget critically low"
-          description: "Only {{ $value }}% error budget remaining for bus publish-to-deliver P95 latency SLO for tenant {{ $labels.tenant_id }}. Current burn rate: {{ query \"slo_error_budget_burn_rate{sli_name='bus_publish_to_deliver_p95_ms',tenant_id='\" }}{{ $labels.tenant_id }}{{ query \"'}\" }}x."
+          description: "Only {{ $value }}% error budget remaining for bus publish-to-deliver P95 latency SLO for tenant {{ $labels.tenant_id }}. Current burn rate: {{ query "slo_error_budget_burn_rate{sli_name='bus_publish_to_deliver_p95_ms',tenant_id='" }}{{ $labels.tenant_id }}{{ query "'}" }}x."
           runbook_url: "https://wiki.xorb.io/runbooks/slo-bus-latency-low-budget"
 
       - alert: XORBSLOEvidenceIngestBudgetLow
@@ -241,3 +241,60 @@ groups:
             Tenant: {{ $labels.tenant_id }}
           runbook_url: "https://wiki.xorb.io/runbooks/slo-multiwindow-burn-rate"
           playbook_url: "https://wiki.xorb.io/playbooks/slo-incident-response"
+
+  # New alert groups for post-release monitoring
+  - name: xorb.post_release.latency
+    rules:
+      - alert: PostReleaseLatency
+        expr: bus_publish_to_deliver_p95_ms > 50
+        for: 10m
+        labels:
+          severity: warning
+          service: xorb-backplane
+          alert_type: post_release_latency
+        annotations:
+          summary: "Post-release bus latency exceeds threshold"
+          description: "Bus publish-to-deliver P95 latency ({{ $value }}ms) has exceeded 50ms threshold for 10 minutes after release."
+          runbook_url: "https://wiki.xorb.io/runbooks/post-release-latency"
+
+  - name: xorb.post_release.evidence
+    rules:
+      - alert: EvidenceFailures
+        expr: increase(evidence_verify_fail_total[15m]) > 0
+        for: 1m
+        labels:
+          severity: warning
+          service: xorb-evidence
+          alert_type: evidence_verification_failure
+        annotations:
+          summary: "Evidence verification failures detected"
+          description: "Evidence verification failures have increased ({{ $value }}) in the last 15 minutes, indicating potential data corruption or signature issues."
+          runbook_url: "https://wiki.xorb.io/runbooks/evidence-verification-failures"
+
+  - name: xorb.post_release.fairness
+    rules:
+      - alert: FairnessImbalance
+        expr: fairness_jain_index < 0.85
+        for: 15m
+        labels:
+          severity: warning
+          service: xorb-platform
+          alert_type: fairness_imbalance
+        annotations:
+          summary: "System fairness imbalance detected"
+          description: "Jain's fairness index ({{ $value }}) has dropped below 0.85 threshold for 15 minutes, indicating uneven resource distribution."
+          runbook_url: "https://wiki.xorb.io/runbooks/fairness-imbalance"
+
+  - name: xorb.post_release.replay
+    rules:
+      - alert: ReplayImpact
+        expr: replay_backlog_depth_messages > 10000 and replay_lane_active == 1
+        for: 5m
+        labels:
+          severity: critical
+          service: xorb-replay
+          alert_type: replay_impact
+        annotations:
+          summary: "Replay system impacting live operations"
+          description: "Replay backlog depth ({{ $value }} messages) exceeds 10k threshold while replay lane is active, risking live operation impact."
+          runbook_url: "https://wiki.xorb.io/runbooks/replay-impact"

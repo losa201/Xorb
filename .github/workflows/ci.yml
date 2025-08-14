@@ -73,3 +73,61 @@ jobs:
       - name: Run tests with coverage
         run: |
           pytest --cov=src --cov-report=xml --cov-fail-under=75
+
+  ops-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Check operations pack docs exist
+        run: |
+          echo "🔍 Checking Operations Pack (v2025.08-rc1) deliverables..."
+
+          required_files=(
+            "RUNBOOK_INCIDENT_RESPONSE.md"
+            "RUNBOOK_ROLLBACK.md"
+            "docs/CHAOS_DRILLS.md"
+            "docs/RELEASE_CONFIDENCE_REPORT.md"
+            "infra/monitoring/prometheus/prometheus-rules.yml"
+            "infra/monitoring/grafana/dashboards/xorb-release-slo-dashboard.json"
+          )
+
+          all_present=true
+          for file in "${required_files[@]}"; do
+            if [[ -f "$file" ]]; then
+              echo "✅ $file"
+            else
+              echo "❌ $file (missing)"
+              all_present=false
+            fi
+          done
+
+          if [[ "$all_present" = false ]]; then
+            echo "❌ Operations pack validation failed: missing required files"
+            exit 1
+          fi
+          echo "✅ All operations pack files present"
+
+      - name: Validate Prometheus rules
+        run: |
+          echo "🔍 Validating Prometheus alert rules..."
+          docker run --rm -v $(pwd):/workspace --entrypoint=promtool prom/prometheus:latest \
+            check rules /workspace/infra/monitoring/prometheus/prometheus-rules.yml
+
+      - name: Validate Grafana dashboard JSON
+        run: |
+          echo "🔍 Validating Grafana dashboard JSON..."
+          jq . infra/monitoring/grafana/dashboards/xorb-release-slo-dashboard.json > /dev/null
+          echo "✅ Grafana dashboard JSON is valid"
+
+      - name: Upload operations pack artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: operations-pack-v2025-08-rc1
+          path: |
+            RUNBOOK_INCIDENT_RESPONSE.md
+            RUNBOOK_ROLLBACK.md
+            docs/CHAOS_DRILLS.md
+            docs/RELEASE_CONFIDENCE_REPORT.md
+            infra/monitoring/grafana/dashboards/xorb-release-slo-dashboard.json

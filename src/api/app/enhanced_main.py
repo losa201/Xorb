@@ -48,6 +48,9 @@ from .enhanced_container import get_container, shutdown_container, get_service_p
 from .services.production_service_implementations import ServiceFactory
 from .services.advanced_ai_threat_intelligence import AdvancedThreatIntelligenceEngine
 
+# Import observability
+from .observability.instrumentation import setup_instrumentation
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -107,6 +110,20 @@ async def lifespan(app: FastAPI):
 
         except Exception as e:
             logger.warning(f"⚠️ Some AI components failed to initialize: {e}")
+
+        # Initialize observability instrumentation
+        logger.info("📊 Initializing observability instrumentation...")
+        try:
+            setup_instrumentation(
+                app_name="xorb-api",
+                version="3.0.0",
+                environment=os.getenv("ENVIRONMENT", "development"),
+                prometheus_port=8080,
+                enable_otlp=False  # Disable OTLP for now
+            )
+            logger.info("✅ Observability instrumentation initialized")
+        except Exception as e:
+            logger.warning(f"⚠️ Observability instrumentation failed to initialize: {e}")
 
         # Log service status
         services = _container.list_services()

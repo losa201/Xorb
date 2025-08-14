@@ -236,6 +236,98 @@ def status():
     return cp_result
 
 
+@cli.group()
+def ops():
+    """Operations Pack (v2025.08-rc1) commands."""
+    pass
+
+
+@ops.command()
+def status():
+    """Show operations pack status and runbook locations."""
+    click.echo("📚 XORB Operations Pack v2025.08-rc1 Status")
+    click.echo("=" * 60)
+
+    # Check runbook files exist
+    repo_root = get_repo_root()
+    runbooks = [
+        ("Incident Response Runbook", "RUNBOOK_INCIDENT_RESPONSE.md"),
+        ("Rollback Runbook", "RUNBOOK_ROLLBACK.md"),
+        ("Chaos Engineering Drills", "docs/CHAOS_DRILLS.md"),
+        ("Release Confidence Report", "docs/RELEASE_CONFIDENCE_REPORT.md")
+    ]
+
+    click.echo("📋 Runbook Availability:")
+    all_present = True
+
+    for name, path in runbooks:
+        file_path = repo_root / path
+        if file_path.exists():
+            click.echo(f"✅ {name}: {path}")
+        else:
+            click.echo(f"❌ {name}: {path} (missing)")
+            all_present = False
+
+    click.echo("\n🔍 Monitoring Integration:")
+
+    # Check Prometheus rules
+    prometheus_rules = repo_root / "infra/monitoring/prometheus/prometheus-rules.yml"
+    if prometheus_rules.exists():
+        click.echo("✅ Prometheus Rules: infra/monitoring/prometheus/prometheus-rules.yml")
+    else:
+        click.echo("❌ Prometheus Rules: Missing")
+        all_present = False
+
+    # Check Grafana dashboard
+    grafana_dashboard = repo_root / "infra/monitoring/grafana/dashboards/xorb-release-slo-dashboard.json"
+    if grafana_dashboard.exists():
+        click.echo("✅ Grafana Dashboard: infra/monitoring/grafana/dashboards/xorb-release-slo-dashboard.json")
+    else:
+        click.echo("❌ Grafana Dashboard: Missing")
+        all_present = False
+
+    click.echo(f"\n📊 Overall Status: {'✅ Complete' if all_present else '❌ Incomplete'}")
+
+    click.echo("\n💡 Operations Commands:")
+    click.echo("   xorbctl ops status        # Show operations pack status")
+    click.echo("   make ops-runbooks         # Show runbook locations")
+    click.echo("   make ops-alerts-validate  # Validate alert rules")
+    click.echo("   make chaos-dry-run        # Preview chaos experiments")
+
+    return 0 if all_present else 1
+
+
+@cli.group()
+def chaos():
+    """Chaos engineering commands."""
+    pass
+
+
+@chaos.command()
+def list():
+    """List available chaos experiments."""
+    click.echo("🧪 XORB Chaos Engineering Experiments")
+    click.echo("=" * 50)
+
+    experiments = [
+        ("nats-node-kill", "NATS Node Kill", "10 min", "Validate cluster resilience and message delivery SLO compliance"),
+        ("replay-storm", "Replay Storm Injection", "15 min", "Test traffic isolation under 10x replay load with auto-remediation"),
+        ("evidence-corruption", "Evidence Corruption", "12 min", "Validate evidence integrity under malicious injection")
+    ]
+
+    for exp_id, name, duration, description in experiments:
+        click.echo(f"\n🔬 {name} ({exp_id})")
+        click.echo(f"   Duration: {duration}")
+        click.echo(f"   Objective: {description}")
+
+    click.echo("\n💡 Chaos Commands:")
+    click.echo("   xorbctl chaos list        # List available experiments")
+    click.echo("   make chaos-dry-run        # Preview experiment steps")
+    click.echo("   See docs/CHAOS_DRILLS.md  # Full execution guide")
+
+    return 0
+
+
 if __name__ == "__main__":
     # Handle the case where this is run directly
     sys.exit(cli())
