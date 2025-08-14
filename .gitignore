@@ -155,3 +155,6 @@ node_modules/
 # Artifacts
 archive/legacy/**/*
 infra/nats/terraform/out/*
+
+# block security reports
+reports/security/
