@@ -15,8 +15,10 @@ Usage:
 import os
 import hashlib
 import csv
+import sys
 from collections import defaultdict
 from pathlib import Path
+import argparse
 
 
 def get_file_hash(file_path):
@@ -197,6 +199,14 @@ def check_for_redis_pubsub_usage(root_path):
 
 def main():
     """Main function to run all checks and generate reports."""
+    parser = argparse.ArgumentParser(description="Repository Doctor for XORB Monorepo")
+    parser.add_argument("--fail-on-redis-pubsub", action="store_true", 
+                        help="Exit with code 1 if Redis pubsub usage is found")
+    parser.add_argument("--fail-on-dup", action="store_true",
+                        help="Exit with code 1 if duplicate files are found")
+    
+    args = parser.parse_args()
+    
     repo_root = Path(__file__).parent.parent.absolute()
     audit_dir = repo_root / 'tools' / 'repo_audit'
     
@@ -246,6 +256,26 @@ def main():
         (audit_dir / 'redis_pubsub_usage.txt').touch()
     
     print(f"All reports generated in: {audit_dir}")
+    
+    # Handle failure conditions
+    exit_code = 0
+    
+    if args.fail_on_redis_pubsub and redis_files:
+        print("\n❌ FAIL: Redis pubsub usage detected (ADR-002 violation)")
+        exit_code = 1
+    
+    if args.fail_on_dup and duplicates:
+        print("\n❌ FAIL: Duplicate files detected")
+        exit_code = 1
+    
+    if exit_code != 0:
+        print("Summary:")
+        if args.fail_on_redis_pubsub and redis_files:
+            print(f"  - Redis pubsub violations: {len(redis_files)} files")
+        if args.fail_on_dup and duplicates:
+            print(f"  - Duplicate files: {len(duplicates)} sets")
+    
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

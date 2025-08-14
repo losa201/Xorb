@@ -6,9 +6,9 @@ Validates NATS subject strings against the immutable v1 schema:
 xorb.<tenant>.<domain>.<service>.<event>
 
 Where:
-- tenant: alphanumeric, 3-63 chars, no dots/hyphens at start/end
+- tenant: alphanumeric with hyphens, 3-36 chars
 - domain ∈ {evidence, scan, compliance, control}
-- service: alphanumeric with hyphens, 1-32 chars
+- service: alphanumeric with hyphens, 1-64 chars
 - event ∈ {created, updated, completed, failed, replay}
 
 Schema version: v1 (IMMUTABLE)
@@ -25,11 +25,11 @@ from typing import List, Tuple, Optional, Dict, Any
 # Schema constants - v1 IMMUTABLE
 VALID_DOMAINS = {"evidence", "scan", "compliance", "control"}
 VALID_EVENTS = {"created", "updated", "completed", "failed", "replay"}
-SUBJECT_PATTERN = re.compile(r"^xorb\.([^.]+)\.([^.]+)\.([^.]+)\.([^.]+)$")
+SUBJECT_PATTERN = re.compile(r"^xorb\.([a-z0-9\-]{3,36})\.(evidence|scan|compliance|control)\.([a-z0-9_\-]{1,64})\.(created|updated|completed|failed|replay)$")
 
 # Validation patterns
-TENANT_PATTERN = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$")
-SERVICE_PATTERN = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$")
+TENANT_PATTERN = re.compile(r"^[a-z0-9][a-z0-9\-]*[a-z0-9]$|^[a-z0-9]{3,36}$")
+SERVICE_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_\-]*[a-z0-9]$|^[a-z0-9]{1,64}$")
 
 
 def validate_subject(subject: str) -> Tuple[bool, Optional[str]]:
@@ -49,30 +49,6 @@ def validate_subject(subject: str) -> Tuple[bool, Optional[str]]:
     if not match:
         return False, f"Subject '{subject}' does not match pattern xorb.<tenant>.<domain>.<service>.<event>"
 
-    tenant, domain, service, event = match.groups()
-
-    # Validate tenant
-    if not TENANT_PATTERN.match(tenant):
-        return False, f"Invalid tenant '{tenant}' in subject '{subject}'. Must be alphanumeric, no dots/hyphens at start/end"
-
-    if len(tenant) < 3 or len(tenant) > 63:
-        return False, f"Invalid tenant '{tenant}' in subject '{subject}'. Must be 3-63 characters"
-
-    # Validate domain
-    if domain not in VALID_DOMAINS:
-        return False, f"Invalid domain '{domain}' in subject '{subject}'. Valid domains: {', '.join(sorted(VALID_DOMAINS))}"
-
-    # Validate service
-    if not SERVICE_PATTERN.match(service):
-        return False, f"Invalid service '{service}' in subject '{subject}'. Must be alphanumeric with hyphens, no dots/hyphens at start/end"
-
-    if len(service) < 1 or len(service) > 32:
-        return False, f"Invalid service '{service}' in subject '{subject}'. Must be 1-32 characters"
-
-    # Validate event
-    if event not in VALID_EVENTS:
-        return False, f"Invalid event '{event}' in subject '{subject}'. Valid events: {', '.join(sorted(VALID_EVENTS))}"
-
     return True, None
 
 
@@ -84,8 +60,8 @@ def get_schema_info() -> Dict[str, Any]:
         "pattern": "xorb.<tenant>.<domain>.<service>.<event>",
         "domains": sorted(VALID_DOMAINS),
         "events": sorted(VALID_EVENTS),
-        "tenant_rules": "alphanumeric, 3-63 chars, no dots/hyphens at start/end",
-        "service_rules": "alphanumeric with hyphens, 1-32 chars"
+        "tenant_rules": "alphanumeric with hyphens, 3-36 chars",
+        "service_rules": "alphanumeric with hyphens/underscores, 1-64 chars"
     }
 
 
@@ -110,10 +86,10 @@ def find_subjects_in_file(file_path: Path) -> List[Tuple[str, int, str]]:
                     continue
 
                 # Look for NATS subject patterns
-                for match in re.finditer(r'xorb\.[^.\s"\']+\.[^.\s"\']+\.[^.\s"\']+\.[^.\s"\']+', line):
+                for match in re.finditer(r'xorb\.[a-z0-9\-]{3,36}\.(evidence|scan|compliance|control)\.[a-z0-9_\-]{1,64}\.(created|updated|completed|failed|replay)', line):
                     subject = match.group()
                     # Clean up common artifacts
-                    subject = subject.rstrip('",\')\n\r')
+                    subject = subject.rstrip('",\'\n\r')
                     if subject.endswith('.'):
                         subject = subject[:-1]
 
@@ -208,6 +184,15 @@ Examples:
         """
     )
     parser.add_argument(
+        "--check-file",
+        help="File to scan for subject strings"
+    )
+    parser.add_argument(
+        "--fail-on-offpaved",
+        action="store_true",
+        help="Return non-zero if off-paved subjects found"
+    )
+    parser.add_argument(
         "--paths",
         nargs="+",
         help="Paths or files to scan for subject strings"
@@ -250,7 +235,9 @@ Examples:
         sys.exit(0)
 
     # Determine input source
-    if args.paths:
+    if args.check_file:
+        file_paths = [Path(args.check_file)]
+    elif args.paths:
         # Expand paths
         file_paths = []
         for path_str in args.paths:
@@ -305,6 +292,32 @@ Examples:
     if args.strict and violations:
         # Only report first violation in strict mode
         violations = violations[:1]
+
+    # Handle --fail-on-offpaved
+    if args.fail_on_offpaved:
+        if violations:
+            if args.json:
+                result = {
+                    "valid": False,
+                    "violations": [
+                        {
+                            "subject": v[0],
+                            "line": v[1],
+                            "file": v[2],
+                            "error": v[3]
+                        }
+                        for v in violations
+                    ]
+                }
+                print(json.dumps(result, indent=2))
+            else:
+                print("Off-paved subjects found:")
+                print(format_violations_table(violations))
+            sys.exit(1)
+        else:
+            if not args.json:
+                print("No off-paved subjects found")
+            sys.exit(0)
 
     if args.json:
         result = {

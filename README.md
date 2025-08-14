@@ -420,6 +420,32 @@ pytest tests/performance/ -v
 pytest tests/e2e/ -v
 ```
 
+### **New Developer Workflow**
+```bash
+# Run repository doctor checks
+make doctor
+
+# Run pre-commit linting
+make lint
+
+# Run fast unit tests
+make test-fast
+
+# Run full CI pipeline
+make ci
+```
+
+To validate NATS subjects against the taxonomy:
+```bash
+# Check a specific file for off-paved subjects
+python tools/backplane/subject_lint.py --check-file src/ --fail-on-offpaved
+
+# Run repo doctor to check for issues
+python tools/repo_doctor.py --fail-on-redis-pubsub --fail-on-dup
+```
+
+For more details, see [REPOSITORY_INDEX.md](docs/REPOSITORY_INDEX.md) for the canonical structure.
+
 ---
 
 ## 🚀 **Deployment Options**

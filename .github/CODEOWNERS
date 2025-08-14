@@ -1,22 +1,50 @@
-# Global code ownership for sensitive areas
-# Protect critical architectural and infrastructure paths
+# XORB Repository CODEOWNERS
+# Define code ownership for automated reviews and protected branch rules
 
-# Architecture documentation and decisions
+# Architecture Decision Records
 /docs/architecture/ @losa201
-/docs/architecture/* @losa201
 
-# Protocol definitions and specifications
+# Protocol Buffers (API contracts)
 /proto/ @losa201
-/proto/* @losa201
 
-# Platform bus implementation (ADR-002 compliance)
-/src/xorb_platform/bus/ @losa201
-/src/xorb_platform/bus/* @losa201
+# Platform Bus (NATS-based messaging)
+/platform/bus/ @losa201
 
-# Infrastructure as code
+# Infrastructure as Code
 /infra/ @losa201
-/infra/* @losa201
 
-# Additional protected paths
+# Core Services
+/services/xorb-core/ @losa201
+
+# PTaaS Services
+/services/ptaas/ @losa201
+
+# Security Tools
+/tools/security/ @losa201
+
+# Evidence System
+/platform/evidence/ @losa201
+
+# Testing
+/tests/ @losa201
+
+# Documentation
+/docs/portal/ @losa201
+
+# Developer Tooling
+/tools/ @losa201
+
+# Configuration
+/config/ @losa201
+
+# CI/CD
 /.github/workflows/ @losa201
-/tools/policies/ @losa201
+
+# Docker Compose
+/compose/ @losa201
+
+# Makefile
+/Makefile @losa201
+
+# Pre-commit config
+/.pre-commit-config.yaml @losa201
