@@ -1,0 +1,31 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.3.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+  - repo: https://github.com/jumanjihouse/pre-commit-hooks
+    rev: 3.0.0
+    hooks:
+      - id: forbid-binary
+        args: ['--max-size=10485760'] # 10MB
+      - id: git-check
+        args: ['--assume-unchanged', '--no-merge-conflict']
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.18.2
+    hooks:
+      - id: gitleaks
+        args: ['--verbose', '--redact']
+  - repo: local
+    hooks:
+      - id: forbid-redis-bus
+        name: ADR-002 forbid Redis as bus
+        entry: bash -lc 'git diff --cached --name-only | xargs -r grep -nE "\b(redis\.(pubsub|subscribe|psubscribe)|redis\.client\.PubSub)\b" && echo "❌ Redis bus usage detected" && exit 1 || exit 0'
+        language: system
+        pass_filenames: false
+      - id: forbid-new-src-code
+        name: Forbid new code in src/ (shim-only)
+        entry: bash -lc 'git diff --cached --name-only | grep "^src/" | grep -vE "src/deprecations\.README\.md|__init__\.py" && echo "❌ New code under src/ is blocked" && exit 1 || exit 0'
+        language: system
+        pass_filenames: false

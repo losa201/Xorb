@@ -1,0 +1,188 @@
+{
+  "timestamp": "2025-08-13T11:05:31.588097",
+  "repo_root": "/root/Xorb",
+  "summary": {
+    "total_checks": 28,
+    "pass_count": 13,
+    "warning_count": 14,
+    "fail_count": 1,
+    "overall_compliance": 81.42857142857143,
+    "adr_scores": {
+      "ADR-001": 67.14285714285714,
+      "ADR-002": 100.0,
+      "ADR-003": 80.0,
+      "ADR-004": 100.0
+    }
+  },
+  "results": [
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: src/api",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: src/orchestrator",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: src/xorb",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: src/common",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: services/ptaas",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: services/xorb-core",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: services/infrastructure",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: infra/kubernetes",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: infra/monitoring",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: infra/vault",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "WARNING",
+      "message": "Directory missing but may be acceptable: tests",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Structure",
+      "status": "PASS",
+      "message": "Required directory exists: tools",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Languages",
+      "status": "FAIL",
+      "message": "Python backend missing - no Python files in src/api",
+      "details": ""
+    },
+    {
+      "component": "ADR-001-Languages",
+      "status": "WARNING",
+      "message": "TypeScript frontend not found in services/ptaas",
+      "details": ""
+    },
+    {
+      "component": "ADR-002-Structure",
+      "status": "PASS",
+      "message": "Two-Tier Bus directory exists: platform/bus/pubsub",
+      "details": ""
+    },
+    {
+      "component": "ADR-002-Structure",
+      "status": "PASS",
+      "message": "Two-Tier Bus directory exists: platform/bus/localring",
+      "details": ""
+    },
+    {
+      "component": "ADR-002-NATS",
+      "status": "PASS",
+      "message": "NATS JetStream client implemented with WORM retention",
+      "details": ""
+    },
+    {
+      "component": "ADR-002-UDS",
+      "status": "PASS",
+      "message": "UDS transport for Tier-1 local ring implemented",
+      "details": ""
+    },
+    {
+      "component": "ADR-002-Redis-Bus",
+      "status": "PASS",
+      "message": "No Redis bus violations found - Redis restricted to cache usage only",
+      "details": ""
+    },
+    {
+      "component": "ADR-002-Locked",
+      "status": "PASS",
+      "message": "ADR-002 contains required locked phrases",
+      "details": ""
+    },
+    {
+      "component": "ADR-003-Vault",
+      "status": "WARNING",
+      "message": "Vault client files not found",
+      "details": ""
+    },
+    {
+      "component": "ADR-003-Auth",
+      "status": "WARNING",
+      "message": "Authentication implementation files not found",
+      "details": ""
+    },
+    {
+      "component": "ADR-003-Locked",
+      "status": "PASS",
+      "message": "ADR-003 contains required locked phrases",
+      "details": ""
+    },
+    {
+      "component": "ADR-004-Schemas",
+      "status": "PASS",
+      "message": "Evidence schema exists: proto/audit/v1/evidence.proto",
+      "details": ""
+    },
+    {
+      "component": "ADR-004-Schemas",
+      "status": "PASS",
+      "message": "Evidence schema exists: proto/discovery/v1/discovery.proto",
+      "details": ""
+    },
+    {
+      "component": "ADR-004-Schemas",
+      "status": "PASS",
+      "message": "Evidence schema exists: proto/threat/v1/threat.proto",
+      "details": ""
+    },
+    {
+      "component": "ADR-004-Schemas",
+      "status": "PASS",
+      "message": "Evidence schema exists: proto/vuln/v1/vulnerability.proto",
+      "details": ""
+    },
+    {
+      "component": "ADR-004-Schemas",
+      "status": "PASS",
+      "message": "Evidence schema exists: proto/compliance/v1/compliance.proto",
+      "details": ""
+    }
+  ],
+  "overall_status": "GOOD"
+}

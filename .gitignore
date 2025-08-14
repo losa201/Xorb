@@ -126,5 +126,11 @@ ehthumbs.db
 .dmypy.json
 dmypy.json
 
+# Generated, secrets, and local env
+gen/
+.env.dev
+reports/security/
+*.bundle
+
 # Separate repositories
 PTaaS/
