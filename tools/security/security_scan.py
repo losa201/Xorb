@@ -193,7 +193,7 @@ class SecurityScanner:
         
         try:
             result = subprocess.run([
-                "python", "-m", "ruff", "check",
+                "python3", "-m", "ruff", "check",
                 "--select", "S",  # Security rules
                 "--output-format", "json",
                 "src/", "tools/", "tests/"
