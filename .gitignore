@@ -36,3 +36,17 @@ artifacts/
 # --- Docker / Compose ---
 *.log
 .env.local
+
+# --- Secrets & Security ---
+/secrets/
+*.key
+*.pem
+*.p12
+*.keystore
+*.jks
+
+# --- Temporary files ---
+.tmp/
+temp/
+*.tmp
+*.temp

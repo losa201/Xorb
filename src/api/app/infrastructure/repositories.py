@@ -465,9 +465,29 @@ class ProductionScanSessionRepository:
             
             if update_fields:
                 update_fields.append("updated_at = :updated_at")
-                query = f"UPDATE scan_sessions SET {', '.join(update_fields)} WHERE id = :session_id"
+                # Use secure parameterized update instead of string concatenation
+                from ..infrastructure.secure_query_builder import secure_update
+                from ..middleware.secure_tenant_middleware import get_tenant_id
                 
-                result = await db_session.execute(text(query), params)
+                # Get tenant context from current request
+                tenant_id = get_tenant_id(request) if 'request' in locals() else None
+                if not tenant_id:
+                    raise ValueError("Tenant context required for scan session update")
+                
+                # Build update data from fields
+                update_data = {}
+                for field in update_fields:
+                    if field in params and field != "updated_at":
+                        update_data[field.replace("= :", "")] = params[field.replace("= :", "")]
+                
+                # Use secure update with tenant isolation
+                result = await secure_update(
+                    db_session,
+                    tenant_context,
+                    "scan_sessions",
+                    update_data,
+                    {"id": params["session_id"]}
+                )
                 await db_session.commit()
                 return result.rowcount > 0
             return False
@@ -577,9 +597,24 @@ class ProductionTenantRepository:
             
             if update_fields:
                 update_fields.append("updated_at = :updated_at")
-                query = f"UPDATE tenants SET {', '.join(update_fields)} WHERE id = :tenant_id"
+                # Use secure parameterized update instead of string concatenation
+                from ..infrastructure.secure_query_builder import secure_update
                 
-                result = await db_session.execute(text(query), params)
+                # Build update data from fields
+                update_data = {}
+                for field in update_fields:
+                    if field in params and field != "updated_at":
+                        clean_field = field.replace("= :", "")
+                        update_data[clean_field] = params[clean_field]
+                
+                # Use secure update (tenant validation handled by secure_update)
+                result = await secure_update(
+                    db_session,
+                    tenant_context,
+                    "tenants", 
+                    update_data,
+                    {"id": params["tenant_id"]}
+                )
                 await db_session.commit()
                 return result.rowcount > 0
             return False

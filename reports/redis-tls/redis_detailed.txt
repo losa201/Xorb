@@ -1,0 +1,11 @@
+Redis TLS Test Results
+Generated: Mon Aug 11 02:07:47 PM UTC 2025
+========================
+✅ Plaintext connections blocked: PASS
+✅ TLS without client cert blocked: PASS
+❌ TLS with valid client cert: FAIL
+❌ Redis commands over TLS: FAIL
+❌ Redis server info: FAIL
+✅ Invalid client cert rejected: PASS
+❌ Connection security: FAIL
+⚠️  Performance test: WARN

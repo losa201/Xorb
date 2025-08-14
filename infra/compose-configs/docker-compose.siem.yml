@@ -1,0 +1,283 @@
+version: '3.8'
+
+services:
+  # Elasticsearch - SIEM Data Store
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: xorb-elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms2g -Xmx2g
+      - xpack.security.enabled=true
+      - xpack.security.authc.api_key.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - xpack.security.transport.ssl.enabled=true
+      - xpack.security.http.ssl.enabled=true
+      - xpack.security.transport.ssl.verification_mode=certificate
+      - xpack.security.transport.ssl.client_authentication=required
+      - xpack.security.transport.ssl.keystore.path=certs/elastic-certificates.p12
+      - xpack.security.transport.ssl.truststore.path=certs/elastic-certificates.p12
+      - xpack.security.http.ssl.keystore.path=certs/elastic-certificates.p12
+      - xpack.license.self_generated.type=trial
+    ports:
+      - "127.0.0.1:9200:9200"
+      - "127.0.0.1:9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+      - ./secrets/elastic/certs:/usr/share/elasticsearch/config/certs:ro
+      - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    networks:
+      - xorb-siem
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s https://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+    security_opt:
+      - no-new-privileges:true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+
+  # Logstash - Log Processing Pipeline
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.11.0
+    container_name: xorb-logstash
+    restart: unless-stopped
+    environment:
+      - LS_JAVA_OPTS=-Xms1g -Xmx1g
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - MONITORING_ELASTICSEARCH_HOSTS=https://elasticsearch:9200
+      - MONITORING_ENABLED=true
+    ports:
+      - "127.0.0.1:5044:5044"  # Beats input
+      - "127.0.0.1:5000:5000"  # TCP input
+      - "127.0.0.1:9600:9600"  # Logstash monitoring
+    volumes:
+      - ./config/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./config/logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - ./secrets/elastic/certs:/usr/share/logstash/config/certs:ro
+      - logstash_data:/usr/share/logstash/data
+    networks:
+      - xorb-siem
+      - xorb-backend
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9600/_node/stats || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+    security_opt:
+      - no-new-privileges:true
+
+  # Kibana - SIEM Dashboard and Analytics
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: xorb-kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=https://elasticsearch:9200
+      - ELASTICSEARCH_USERNAME=kibana_system
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
+      - ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=/usr/share/kibana/config/certs/ca.pem
+      - SERVER_SSL_ENABLED=true
+      - SERVER_SSL_CERTIFICATE=/usr/share/kibana/config/certs/kibana.pem
+      - SERVER_SSL_KEY=/usr/share/kibana/config/certs/kibana-key.pem
+      - XPACK_SECURITY_ENABLED=true
+      - XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}
+      - XPACK_REPORTING_ENCRYPTIONKEY=${KIBANA_REPORTING_KEY}
+      - XPACK_SECURITY_ENCRYPTIONKEY=${KIBANA_SECURITY_KEY}
+    ports:
+      - "127.0.0.1:5601:5601"
+    volumes:
+      - ./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+      - ./secrets/elastic/certs:/usr/share/kibana/config/certs:ro
+      - kibana_data:/usr/share/kibana/data
+    networks:
+      - xorb-siem
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f https://localhost:5601/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+
+  # Filebeat - Log Shipping Agent
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:8.11.0
+    container_name: xorb-filebeat
+    restart: unless-stopped
+    user: root
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    volumes:
+      - ./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./secrets/elastic/certs:/usr/share/filebeat/config/certs:ro
+      - filebeat_data:/usr/share/filebeat/data
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./logs:/var/log/xorb:ro
+    networks:
+      - xorb-siem
+      - xorb-backend
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      logstash:
+        condition: service_healthy
+    command: filebeat -e -strict.perms=false
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.3'
+    security_opt:
+      - no-new-privileges:true
+
+  # Metricbeat - System and Application Metrics
+  metricbeat:
+    image: docker.elastic.co/beats/metricbeat:8.11.0
+    container_name: xorb-metricbeat
+    restart: unless-stopped
+    user: root
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - ./config/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro
+      - ./secrets/elastic/certs:/usr/share/metricbeat/config/certs:ro
+      - metricbeat_data:/usr/share/metricbeat/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro
+      - /proc:/hostfs/proc:ro
+      - /:/hostfs:ro
+    networks:
+      - xorb-siem
+      - xorb-backend
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    command: metricbeat -e -strict.perms=false -system.hostfs=/hostfs
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.3'
+    security_opt:
+      - no-new-privileges:true
+
+  # Auditbeat - Security Data Collection
+  auditbeat:
+    image: docker.elastic.co/beats/auditbeat:8.11.0
+    container_name: xorb-auditbeat
+    restart: unless-stopped
+    user: root
+    cap_add:
+      - AUDIT_CONTROL
+      - AUDIT_READ
+    pid: host
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - ./config/auditbeat/auditbeat.yml:/usr/share/auditbeat/auditbeat.yml:ro
+      - ./secrets/elastic/certs:/usr/share/auditbeat/config/certs:ro
+      - auditbeat_data:/usr/share/auditbeat/data
+    networks:
+      - xorb-siem
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    command: auditbeat -e -strict.perms=false
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: '0.3'
+
+  # Fleet Server - Centralized Agent Management
+  fleet-server:
+    image: docker.elastic.co/beats/elastic-agent:8.11.0
+    container_name: xorb-fleet-server
+    restart: unless-stopped
+    user: root
+    environment:
+      - FLEET_SERVER_ENABLE=1
+      - FLEET_SERVER_ELASTICSEARCH_HOST=https://elasticsearch:9200
+      - FLEET_SERVER_SERVICE_TOKEN=${FLEET_SERVICE_TOKEN}
+      - FLEET_SERVER_POLICY_ID=fleet-server-policy
+      - FLEET_SERVER_ELASTICSEARCH_CA=/usr/share/elastic-agent/config/certs/ca.pem
+      - FLEET_SERVER_CERT=/usr/share/elastic-agent/config/certs/fleet-server.pem
+      - FLEET_SERVER_CERT_KEY=/usr/share/elastic-agent/config/certs/fleet-server-key.pem
+    ports:
+      - "127.0.0.1:8220:8220"
+    volumes:
+      - ./secrets/elastic/certs:/usr/share/elastic-agent/config/certs:ro
+      - fleet_data:/usr/share/elastic-agent/data
+    networks:
+      - xorb-siem
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+      kibana:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  elasticsearch_data:
+    driver: local
+  logstash_data:
+    driver: local
+  kibana_data:
+    driver: local
+  filebeat_data:
+    driver: local
+  metricbeat_data:
+    driver: local
+  auditbeat_data:
+    driver: local
+  fleet_data:
+    driver: local
+
+networks:
+  xorb-siem:
+    driver: bridge
+    internal: false
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
+    labels:
+      - "network.security.zone=siem"
+  xorb-backend:
+    external: true

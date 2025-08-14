@@ -8,6 +8,7 @@ from fastapi.responses import JSONResponse
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 from pydantic import BaseModel, Field, EmailStr
+import enum
 import logging
 import uuid
 

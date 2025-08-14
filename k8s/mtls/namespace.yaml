@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: xorb-platform
+  labels:
+    name: xorb-platform
+    istio-injection: enabled
+    security-policy: strict
+  annotations:
+    security.xorb.io/tls-policy: "mtls-strict"
+    security.xorb.io/network-policy: "strict"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+  labels:
+    name: cert-manager
+    security-policy: infrastructure
+  annotations:
+    security.xorb.io/tls-policy: "tls-required"

@@ -1,0 +1,3400 @@
+[
+  {
+    "scenario_id": "PTAAS-2025-3000",
+    "scenario_name": "Penetration Test - HealthCare Solutions",
+    "target_type": "mobile_app",
+    "test_type": "black_box",
+    "methodology": "Custom",
+    "start_date": "2025-06-01T17:31:07.486548",
+    "end_date": "2025-06-10T17:31:07.486548",
+    "duration_days": 9,
+    "status": "cancelled",
+    "tester_assigned": "pentester_1",
+    "client_company": "Global Manufacturing Inc",
+    "scope": {
+      "target_urls": [
+        "https://app.example0.com",
+        "https://api.example0.com",
+        "https://admin.example0.com",
+        "https://api.example0.com",
+        "https://app.example0.com"
+      ],
+      "ip_ranges": [
+        "192.168.135.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 2,
+      "high": 4,
+      "medium": 14,
+      "low": 20,
+      "informational": 29
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "high",
+        "cvss_score": 9.4,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 4.4,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "medium",
+        "cvss_score": 2.6,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "low",
+        "cvss_score": 8.0,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "medium",
+        "cvss_score": 7.2,
+        "exploited": true,
+        "remediation_effort": "low"
+      }
+    ],
+    "tools_used": [
+      "Burp Suite",
+      "SQLMap",
+      "OWASP ZAP",
+      "Gobuster",
+      "Nuclei"
+    ],
+    "compliance_validation": {
+      "framework": "NIST",
+      "controls_tested": 21,
+      "controls_passed": 35,
+      "compliance_score": 83.6
+    },
+    "executive_summary": {
+      "overall_risk_rating": "high",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3001",
+    "scenario_name": "Penetration Test - CyberShield Corp",
+    "target_type": "api_endpoints",
+    "test_type": "white_box",
+    "methodology": "OWASP",
+    "start_date": "2025-07-26T17:31:07.486635",
+    "end_date": "2025-08-09T17:31:07.486635",
+    "duration_days": 14,
+    "status": "in_progress",
+    "tester_assigned": "pentester_2",
+    "client_company": "Global Manufacturing Inc",
+    "scope": {
+      "target_urls": [
+        "https://app.example1.com",
+        "https://app.example1.com",
+        "https://app.example1.com"
+      ],
+      "ip_ranges": [
+        "192.168.131.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 1,
+      "high": 2,
+      "medium": 6,
+      "low": 24,
+      "informational": 23
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "medium",
+        "cvss_score": 6.6,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "low",
+        "cvss_score": 5.1,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "medium",
+        "cvss_score": 5.6,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "medium",
+        "cvss_score": 8.2,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 5.1,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 7.9,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "medium",
+        "cvss_score": 8.1,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "low",
+        "cvss_score": 6.0,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "medium",
+        "cvss_score": 7.9,
+        "exploited": false,
+        "remediation_effort": "high"
+      }
+    ],
+    "tools_used": [
+      "Nikto",
+      "OWASP ZAP",
+      "Metasploit",
+      "Gobuster"
+    ],
+    "compliance_validation": {
+      "framework": "ISO27001",
+      "controls_tested": 27,
+      "controls_passed": 14,
+      "compliance_score": 79.1
+    },
+    "executive_summary": {
+      "overall_risk_rating": "medium",
+      "business_impact": "significant",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3002",
+    "scenario_name": "Penetration Test - DataFlow Systems",
+    "target_type": "network_infrastructure",
+    "test_type": "black_box",
+    "methodology": "OWASP",
+    "start_date": "2025-06-17T17:31:07.486702",
+    "end_date": "2025-06-24T17:31:07.486702",
+    "duration_days": 7,
+    "status": "cancelled",
+    "tester_assigned": "pentester_5",
+    "client_company": "Acme Financial Corp",
+    "scope": {
+      "target_urls": [
+        "https://admin.example2.com",
+        "https://admin.example2.com",
+        "https://api.example2.com",
+        "https://api.example2.com",
+        "https://app.example2.com"
+      ],
+      "ip_ranges": [
+        "192.168.249.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 2,
+      "high": 7,
+      "medium": 13,
+      "low": 7,
+      "informational": 13
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "high",
+        "cvss_score": 7.3,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "low",
+        "cvss_score": 6.8,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "medium",
+        "cvss_score": 3.1,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 3.2,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "low",
+        "cvss_score": 7.9,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "high",
+        "cvss_score": 4.6,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 2.3,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 9.5,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 3.2,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 7.8,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "medium",
+        "cvss_score": 2.7,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "low",
+        "cvss_score": 4.9,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 9.6,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "low",
+        "cvss_score": 3.2,
+        "exploited": true,
+        "remediation_effort": "high"
+      }
+    ],
+    "tools_used": [
+      "Burp Suite",
+      "Metasploit",
+      "Nikto"
+    ],
+    "compliance_validation": {
+      "framework": "PCI-DSS",
+      "controls_tested": 29,
+      "controls_passed": 27,
+      "compliance_score": 93.7
+    },
+    "executive_summary": {
+      "overall_risk_rating": "critical",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3003",
+    "scenario_name": "Penetration Test - DataFlow Systems",
+    "target_type": "api_endpoints",
+    "test_type": "black_box",
+    "methodology": "NIST",
+    "start_date": "2025-08-05T17:31:07.486761",
+    "end_date": "2025-08-09T17:31:07.486761",
+    "duration_days": 4,
+    "status": "cancelled",
+    "tester_assigned": "pentester_2",
+    "client_company": "HealthCare Solutions",
+    "scope": {
+      "target_urls": [
+        "https://admin.example3.com",
+        "https://admin.example3.com",
+        "https://admin.example3.com"
+      ],
+      "ip_ranges": [
+        "192.168.163.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 0,
+      "high": 2,
+      "medium": 8,
+      "low": 25,
+      "informational": 24
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "critical",
+        "cvss_score": 4.4,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "critical",
+        "cvss_score": 8.4,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 5.9,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 3.1,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "critical",
+        "cvss_score": 6.6,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "medium",
+        "cvss_score": 9.0,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "medium",
+        "cvss_score": 7.6,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 5.3,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "critical",
+        "cvss_score": 7.5,
+        "exploited": false,
+        "remediation_effort": "high"
+      }
+    ],
+    "tools_used": [
+      "Gobuster",
+      "Nuclei",
+      "Nmap",
+      "Nikto",
+      "SQLMap"
+    ],
+    "compliance_validation": {
+      "framework": "HIPAA",
+      "controls_tested": 33,
+      "controls_passed": 26,
+      "compliance_score": 78.6
+    },
+    "executive_summary": {
+      "overall_risk_rating": "low",
+      "business_impact": "significant",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3004",
+    "scenario_name": "Penetration Test - DataFlow Systems",
+    "target_type": "web_application",
+    "test_type": "gray_box",
+    "methodology": "OWASP",
+    "start_date": "2025-05-17T17:31:07.486804",
+    "end_date": "2025-05-25T17:31:07.486804",
+    "duration_days": 8,
+    "status": "cancelled",
+    "tester_assigned": "pentester_3",
+    "client_company": "RetailMax Chain",
+    "scope": {
+      "target_urls": [
+        "https://api.example4.com"
+      ],
+      "ip_ranges": [
+        "192.168.237.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 0,
+      "high": 7,
+      "medium": 6,
+      "low": 23,
+      "informational": 25
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "high",
+        "cvss_score": 2.3,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 6.3,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "critical",
+        "cvss_score": 6.3,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "medium",
+        "cvss_score": 9.6,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 6.2,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "high",
+        "cvss_score": 8.9,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "medium",
+        "cvss_score": 8.0,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "low",
+        "cvss_score": 7.2,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "medium",
+        "cvss_score": 5.8,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "medium",
+        "cvss_score": 3.7,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 2.3,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "high",
+        "cvss_score": 6.9,
+        "exploited": true,
+        "remediation_effort": "high"
+      }
+    ],
+    "tools_used": [
+      "Nuclei",
+      "Nikto",
+      "Custom Scripts",
+      "Burp Suite",
+      "OWASP ZAP"
+    ],
+    "compliance_validation": {
+      "framework": "NIST",
+      "controls_tested": 35,
+      "controls_passed": 42,
+      "compliance_score": 82.0
+    },
+    "executive_summary": {
+      "overall_risk_rating": "critical",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3005",
+    "scenario_name": "Penetration Test - SecureBank Holdings",
+    "target_type": "mobile_app",
+    "test_type": "black_box",
+    "methodology": "NIST",
+    "start_date": "2025-07-20T17:31:07.486852",
+    "end_date": "2025-07-26T17:31:07.486852",
+    "duration_days": 6,
+    "status": "completed",
+    "tester_assigned": "pentester_4",
+    "client_company": "InnovTech Labs",
+    "scope": {
+      "target_urls": [
+        "https://api.example5.com",
+        "https://api.example5.com",
+        "https://api.example5.com"
+      ],
+      "ip_ranges": [
+        "192.168.110.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 2,
+      "high": 8,
+      "medium": 13,
+      "low": 19,
+      "informational": 11
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "high",
+        "cvss_score": 6.4,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "high",
+        "cvss_score": 3.0,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "critical",
+        "cvss_score": 5.2,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "low",
+        "cvss_score": 8.0,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "critical",
+        "cvss_score": 9.7,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "critical",
+        "cvss_score": 5.2,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "critical",
+        "cvss_score": 4.5,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "low",
+        "cvss_score": 2.6,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "critical",
+        "cvss_score": 5.7,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "high",
+        "cvss_score": 5.4,
+        "exploited": true,
+        "remediation_effort": "medium"
+      }
+    ],
+    "tools_used": [
+      "Nmap",
+      "Metasploit",
+      "Nuclei"
+    ],
+    "compliance_validation": {
+      "framework": "PCI-DSS",
+      "controls_tested": 27,
+      "controls_passed": 25,
+      "compliance_score": 88.0
+    },
+    "executive_summary": {
+      "overall_risk_rating": "high",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3006",
+    "scenario_name": "Penetration Test - RetailMax Chain",
+    "target_type": "cloud_services",
+    "test_type": "black_box",
+    "methodology": "Custom",
+    "start_date": "2025-07-15T17:31:07.486896",
+    "end_date": "2025-07-21T17:31:07.486896",
+    "duration_days": 6,
+    "status": "in_progress",
+    "tester_assigned": "pentester_4",
+    "client_company": "RetailMax Chain",
+    "scope": {
+      "target_urls": [
+        "https://admin.example6.com",
+        "https://app.example6.com",
+        "https://app.example6.com",
+        "https://api.example6.com"
+      ],
+      "ip_ranges": [
+        "192.168.231.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 0,
+      "high": 3,
+      "medium": 14,
+      "low": 22,
+      "informational": 10
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "critical",
+        "cvss_score": 8.9,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "low",
+        "cvss_score": 7.1,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "low",
+        "cvss_score": 4.9,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "critical",
+        "cvss_score": 9.6,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "medium",
+        "cvss_score": 4.6,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "low",
+        "cvss_score": 2.6,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "medium",
+        "cvss_score": 3.2,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "high",
+        "cvss_score": 7.5,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "medium",
+        "cvss_score": 3.2,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "high",
+        "cvss_score": 8.0,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "medium",
+        "cvss_score": 7.1,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "low",
+        "cvss_score": 2.5,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "medium",
+        "cvss_score": 5.1,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "low",
+        "cvss_score": 3.5,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "high",
+        "cvss_score": 7.4,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "low",
+        "cvss_score": 6.4,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "low",
+        "cvss_score": 6.4,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "high",
+        "cvss_score": 8.9,
+        "exploited": false,
+        "remediation_effort": "medium"
+      }
+    ],
+    "tools_used": [
+      "Custom Scripts",
+      "SQLMap",
+      "Nikto",
+      "Metasploit",
+      "Gobuster",
+      "Nuclei"
+    ],
+    "compliance_validation": {
+      "framework": "GDPR",
+      "controls_tested": 31,
+      "controls_passed": 25,
+      "compliance_score": 91.0
+    },
+    "executive_summary": {
+      "overall_risk_rating": "medium",
+      "business_impact": "minimal",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3007",
+    "scenario_name": "Penetration Test - CyberShield Corp",
+    "target_type": "network_infrastructure",
+    "test_type": "white_box",
+    "methodology": "NIST",
+    "start_date": "2025-06-27T17:31:07.486981",
+    "end_date": "2025-06-30T17:31:07.486981",
+    "duration_days": 3,
+    "status": "cancelled",
+    "tester_assigned": "pentester_2",
+    "client_company": "TechFlow Industries",
+    "scope": {
+      "target_urls": [
+        "https://app.example7.com",
+        "https://app.example7.com",
+        "https://admin.example7.com",
+        "https://api.example7.com"
+      ],
+      "ip_ranges": [
+        "192.168.173.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 3,
+      "high": 2,
+      "medium": 4,
+      "low": 12,
+      "informational": 16
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "medium",
+        "cvss_score": 2.7,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "low",
+        "cvss_score": 3.4,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 9.5,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "medium",
+        "cvss_score": 3.5,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "critical",
+        "cvss_score": 5.9,
+        "exploited": false,
+        "remediation_effort": "low"
+      }
+    ],
+    "tools_used": [
+      "Burp Suite",
+      "Metasploit",
+      "Gobuster",
+      "OWASP ZAP",
+      "SQLMap",
+      "Nuclei"
+    ],
+    "compliance_validation": {
+      "framework": "GDPR",
+      "controls_tested": 16,
+      "controls_passed": 37,
+      "compliance_score": 92.2
+    },
+    "executive_summary": {
+      "overall_risk_rating": "medium",
+      "business_impact": "minimal",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3008",
+    "scenario_name": "Penetration Test - TechFlow Industries",
+    "target_type": "web_application",
+    "test_type": "black_box",
+    "methodology": "NIST",
+    "start_date": "2025-06-18T17:31:07.487016",
+    "end_date": "2025-07-03T17:31:07.487016",
+    "duration_days": 15,
+    "status": "scheduled",
+    "tester_assigned": "pentester_4",
+    "client_company": "DataFlow Systems",
+    "scope": {
+      "target_urls": [
+        "https://app.example8.com",
+        "https://app.example8.com",
+        "https://api.example8.com",
+        "https://api.example8.com"
+      ],
+      "ip_ranges": [
+        "192.168.85.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 1,
+      "high": 2,
+      "medium": 13,
+      "low": 22,
+      "informational": 30
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "critical",
+        "cvss_score": 9.3,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 3.3,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 6.8,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 6.1,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 8.2,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "medium",
+        "cvss_score": 9.6,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "high",
+        "cvss_score": 5.8,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 5.6,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "critical",
+        "cvss_score": 2.4,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "critical",
+        "cvss_score": 9.5,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "medium",
+        "cvss_score": 2.4,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "medium",
+        "cvss_score": 7.9,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 9.3,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "critical",
+        "cvss_score": 5.3,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "low",
+        "cvss_score": 8.5,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "critical",
+        "cvss_score": 7.8,
+        "exploited": true,
+        "remediation_effort": "high"
+      }
+    ],
+    "tools_used": [
+      "SQLMap",
+      "Nikto",
+      "Nuclei"
+    ],
+    "compliance_validation": {
+      "framework": "SOC2",
+      "controls_tested": 22,
+      "controls_passed": 38,
+      "compliance_score": 90.2
+    },
+    "executive_summary": {
+      "overall_risk_rating": "critical",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3009",
+    "scenario_name": "Penetration Test - CyberShield Corp",
+    "target_type": "cloud_services",
+    "test_type": "white_box",
+    "methodology": "PTES",
+    "start_date": "2025-05-31T17:31:07.487073",
+    "end_date": "2025-06-11T17:31:07.487073",
+    "duration_days": 11,
+    "status": "in_progress",
+    "tester_assigned": "pentester_3",
+    "client_company": "TechFlow Industries",
+    "scope": {
+      "target_urls": [
+        "https://app.example9.com",
+        "https://api.example9.com",
+        "https://app.example9.com",
+        "https://app.example9.com"
+      ],
+      "ip_ranges": [
+        "192.168.198.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 1,
+      "high": 7,
+      "medium": 4,
+      "low": 7,
+      "informational": 13
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "low",
+        "cvss_score": 6.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "critical",
+        "cvss_score": 9.8,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "high",
+        "cvss_score": 8.8,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "low",
+        "cvss_score": 4.1,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "medium",
+        "cvss_score": 2.7,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 6.6,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "medium",
+        "cvss_score": 8.9,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "critical",
+        "cvss_score": 6.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 7.7,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "medium",
+        "cvss_score": 6.4,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "high",
+        "cvss_score": 6.7,
+        "exploited": false,
+        "remediation_effort": "high"
+      }
+    ],
+    "tools_used": [
+      "Nikto",
+      "Burp Suite",
+      "OWASP ZAP",
+      "Metasploit",
+      "Nuclei",
+      "Custom Scripts"
+    ],
+    "compliance_validation": {
+      "framework": "HIPAA",
+      "controls_tested": 35,
+      "controls_passed": 32,
+      "compliance_score": 92.5
+    },
+    "executive_summary": {
+      "overall_risk_rating": "medium",
+      "business_impact": "significant",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3010",
+    "scenario_name": "Penetration Test - InnovTech Labs",
+    "target_type": "mobile_app",
+    "test_type": "gray_box",
+    "methodology": "PTES",
+    "start_date": "2025-05-19T17:31:07.487121",
+    "end_date": "2025-05-30T17:31:07.487121",
+    "duration_days": 11,
+    "status": "completed",
+    "tester_assigned": "pentester_3",
+    "client_company": "FutureNet Inc",
+    "scope": {
+      "target_urls": [
+        "https://api.example10.com",
+        "https://app.example10.com",
+        "https://api.example10.com",
+        "https://admin.example10.com",
+        "https://admin.example10.com"
+      ],
+      "ip_ranges": [
+        "192.168.203.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 1,
+      "high": 3,
+      "medium": 5,
+      "low": 16,
+      "informational": 12
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "medium",
+        "cvss_score": 8.1,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "medium",
+        "cvss_score": 7.2,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "high",
+        "cvss_score": 2.7,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 7.8,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 5.3,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "high",
+        "cvss_score": 3.6,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "low",
+        "cvss_score": 5.5,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "low",
+        "cvss_score": 4.9,
+        "exploited": false,
+        "remediation_effort": "low"
+      }
+    ],
+    "tools_used": [
+      "Burp Suite",
+      "Gobuster",
+      "SQLMap",
+      "Nuclei",
+      "Metasploit",
+      "Nmap"
+    ],
+    "compliance_validation": {
+      "framework": "PCI-DSS",
+      "controls_tested": 44,
+      "controls_passed": 42,
+      "compliance_score": 75.2
+    },
+    "executive_summary": {
+      "overall_risk_rating": "high",
+      "business_impact": "minimal",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3011",
+    "scenario_name": "Penetration Test - SecureBank Holdings",
+    "target_type": "web_application",
+    "test_type": "black_box",
+    "methodology": "NIST",
+    "start_date": "2025-06-17T17:31:07.487162",
+    "end_date": "2025-06-21T17:31:07.487162",
+    "duration_days": 4,
+    "status": "scheduled",
+    "tester_assigned": "pentester_1",
+    "client_company": "RetailMax Chain",
+    "scope": {
+      "target_urls": [
+        "https://app.example11.com"
+      ],
+      "ip_ranges": [
+        "192.168.157.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 3,
+      "high": 3,
+      "medium": 8,
+      "low": 9,
+      "informational": 8
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "high",
+        "cvss_score": 8.3,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "high",
+        "cvss_score": 8.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "low",
+        "cvss_score": 5.0,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "low",
+        "cvss_score": 4.5,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "high",
+        "cvss_score": 3.8,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "high",
+        "cvss_score": 7.2,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 5.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 5.2,
+        "exploited": false,
+        "remediation_effort": "medium"
+      }
+    ],
+    "tools_used": [
+      "Nikto",
+      "Gobuster",
+      "Custom Scripts",
+      "Burp Suite",
+      "OWASP ZAP",
+      "Nmap"
+    ],
+    "compliance_validation": {
+      "framework": "PCI-DSS",
+      "controls_tested": 16,
+      "controls_passed": 22,
+      "compliance_score": 76.4
+    },
+    "executive_summary": {
+      "overall_risk_rating": "medium",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3012",
+    "scenario_name": "Penetration Test - HealthCare Solutions",
+    "target_type": "network_infrastructure",
+    "test_type": "black_box",
+    "methodology": "NIST",
+    "start_date": "2025-08-10T17:31:07.487205",
+    "end_date": "2025-08-26T17:31:07.487205",
+    "duration_days": 16,
+    "status": "in_progress",
+    "tester_assigned": "pentester_2",
+    "client_company": "RetailMax Chain",
+    "scope": {
+      "target_urls": [
+        "https://admin.example12.com",
+        "https://admin.example12.com",
+        "https://admin.example12.com",
+        "https://api.example12.com"
+      ],
+      "ip_ranges": [
+        "192.168.101.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 3,
+      "high": 7,
+      "medium": 4,
+      "low": 18,
+      "informational": 17
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "critical",
+        "cvss_score": 6.0,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "low",
+        "cvss_score": 7.1,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "low",
+        "cvss_score": 7.1,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 7.1,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "high",
+        "cvss_score": 2.2,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "low",
+        "cvss_score": 6.2,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "low",
+        "cvss_score": 6.1,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 3.9,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "medium",
+        "cvss_score": 6.7,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "high",
+        "cvss_score": 9.1,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "low",
+        "cvss_score": 9.8,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "high",
+        "cvss_score": 2.5,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "high",
+        "cvss_score": 5.8,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "high",
+        "cvss_score": 7.1,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "high",
+        "cvss_score": 3.7,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "high",
+        "cvss_score": 9.7,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "medium",
+        "cvss_score": 7.0,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "low",
+        "cvss_score": 3.7,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "low",
+        "cvss_score": 3.2,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "critical",
+        "cvss_score": 4.6,
+        "exploited": false,
+        "remediation_effort": "low"
+      }
+    ],
+    "tools_used": [
+      "Nmap",
+      "SQLMap",
+      "Nuclei",
+      "Metasploit"
+    ],
+    "compliance_validation": {
+      "framework": "SOC2",
+      "controls_tested": 39,
+      "controls_passed": 38,
+      "compliance_score": 83.2
+    },
+    "executive_summary": {
+      "overall_risk_rating": "critical",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3013",
+    "scenario_name": "Penetration Test - FutureNet Inc",
+    "target_type": "mobile_app",
+    "test_type": "gray_box",
+    "methodology": "NIST",
+    "start_date": "2025-05-26T17:31:07.487273",
+    "end_date": "2025-06-02T17:31:07.487273",
+    "duration_days": 7,
+    "status": "in_progress",
+    "tester_assigned": "pentester_3",
+    "client_company": "TechFlow Industries",
+    "scope": {
+      "target_urls": [
+        "https://api.example13.com",
+        "https://app.example13.com",
+        "https://admin.example13.com",
+        "https://api.example13.com",
+        "https://app.example13.com"
+      ],
+      "ip_ranges": [
+        "192.168.205.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 0,
+      "high": 8,
+      "medium": 5,
+      "low": 19,
+      "informational": 17
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "critical",
+        "cvss_score": 5.0,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "low",
+        "cvss_score": 5.0,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 9.3,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "critical",
+        "cvss_score": 7.3,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "low",
+        "cvss_score": 3.8,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "medium",
+        "cvss_score": 4.0,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "medium",
+        "cvss_score": 3.3,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "high",
+        "cvss_score": 2.7,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "high",
+        "cvss_score": 8.8,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "high",
+        "cvss_score": 7.2,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "critical",
+        "cvss_score": 3.3,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "critical",
+        "cvss_score": 6.5,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "high",
+        "cvss_score": 4.2,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "critical",
+        "cvss_score": 6.7,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 3.7,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "medium",
+        "cvss_score": 8.0,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 3.1,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "medium",
+        "cvss_score": 4.7,
+        "exploited": false,
+        "remediation_effort": "low"
+      }
+    ],
+    "tools_used": [
+      "Burp Suite",
+      "Nmap",
+      "Gobuster",
+      "Nikto",
+      "Nuclei",
+      "OWASP ZAP"
+    ],
+    "compliance_validation": {
+      "framework": "GDPR",
+      "controls_tested": 25,
+      "controls_passed": 30,
+      "compliance_score": 78.7
+    },
+    "executive_summary": {
+      "overall_risk_rating": "critical",
+      "business_impact": "moderate",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3014",
+    "scenario_name": "Penetration Test - HealthCare Solutions",
+    "target_type": "network_infrastructure",
+    "test_type": "gray_box",
+    "methodology": "PTES",
+    "start_date": "2025-07-16T17:31:07.487334",
+    "end_date": "2025-08-01T17:31:07.487334",
+    "duration_days": 16,
+    "status": "cancelled",
+    "tester_assigned": "pentester_2",
+    "client_company": "DataFlow Systems",
+    "scope": {
+      "target_urls": [
+        "https://admin.example14.com"
+      ],
+      "ip_ranges": [
+        "192.168.103.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 2,
+      "high": 3,
+      "medium": 12,
+      "low": 19,
+      "informational": 27
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "medium",
+        "cvss_score": 7.6,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "low",
+        "cvss_score": 5.0,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "low",
+        "cvss_score": 7.8,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "low",
+        "cvss_score": 4.1,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "medium",
+        "cvss_score": 4.8,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "critical",
+        "cvss_score": 7.5,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "medium",
+        "cvss_score": 6.2,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "medium",
+        "cvss_score": 8.3,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "low",
+        "cvss_score": 4.1,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "high",
+        "cvss_score": 5.4,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "low",
+        "cvss_score": 5.2,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "high",
+        "cvss_score": 9.7,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "critical",
+        "cvss_score": 8.7,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 7.2,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "medium",
+        "cvss_score": 3.7,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "high",
+        "cvss_score": 4.7,
+        "exploited": true,
+        "remediation_effort": "medium"
+      }
+    ],
+    "tools_used": [
+      "Burp Suite",
+      "Nuclei",
+      "Metasploit",
+      "Gobuster"
+    ],
+    "compliance_validation": {
+      "framework": "ISO27001",
+      "controls_tested": 43,
+      "controls_passed": 40,
+      "compliance_score": 92.0
+    },
+    "executive_summary": {
+      "overall_risk_rating": "high",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3015",
+    "scenario_name": "Penetration Test - CyberShield Corp",
+    "target_type": "mobile_app",
+    "test_type": "black_box",
+    "methodology": "PTES",
+    "start_date": "2025-07-29T17:31:07.487388",
+    "end_date": "2025-08-08T17:31:07.487388",
+    "duration_days": 10,
+    "status": "completed",
+    "tester_assigned": "pentester_4",
+    "client_company": "DataFlow Systems",
+    "scope": {
+      "target_urls": [
+        "https://app.example15.com",
+        "https://admin.example15.com",
+        "https://api.example15.com"
+      ],
+      "ip_ranges": [
+        "192.168.183.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 1,
+      "high": 1,
+      "medium": 4,
+      "low": 20,
+      "informational": 23
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "low",
+        "cvss_score": 4.1,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "critical",
+        "cvss_score": 9.6,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "low",
+        "cvss_score": 9.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "medium",
+        "cvss_score": 6.6,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "medium",
+        "cvss_score": 5.6,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "high",
+        "cvss_score": 4.9,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "medium",
+        "cvss_score": 6.6,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "critical",
+        "cvss_score": 5.7,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "medium",
+        "cvss_score": 7.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 7.1,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "high",
+        "cvss_score": 6.8,
+        "exploited": true,
+        "remediation_effort": "low"
+      }
+    ],
+    "tools_used": [
+      "OWASP ZAP",
+      "Nmap",
+      "Nuclei",
+      "Gobuster",
+      "Nikto",
+      "Custom Scripts"
+    ],
+    "compliance_validation": {
+      "framework": "SOC2",
+      "controls_tested": 33,
+      "controls_passed": 39,
+      "compliance_score": 86.1
+    },
+    "executive_summary": {
+      "overall_risk_rating": "medium",
+      "business_impact": "significant",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3016",
+    "scenario_name": "Penetration Test - TechFlow Industries",
+    "target_type": "network_infrastructure",
+    "test_type": "black_box",
+    "methodology": "Custom",
+    "start_date": "2025-05-23T17:31:07.487447",
+    "end_date": "2025-06-03T17:31:07.487447",
+    "duration_days": 11,
+    "status": "scheduled",
+    "tester_assigned": "pentester_4",
+    "client_company": "DataFlow Systems",
+    "scope": {
+      "target_urls": [
+        "https://admin.example16.com",
+        "https://api.example16.com"
+      ],
+      "ip_ranges": [
+        "192.168.150.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 3,
+      "high": 1,
+      "medium": 10,
+      "low": 16,
+      "informational": 12
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "critical",
+        "cvss_score": 4.2,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "low",
+        "cvss_score": 6.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "medium",
+        "cvss_score": 3.7,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "high",
+        "cvss_score": 4.6,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "high",
+        "cvss_score": 4.7,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "medium",
+        "cvss_score": 9.6,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "medium",
+        "cvss_score": 4.6,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "high",
+        "cvss_score": 8.4,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 8.5,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "low",
+        "cvss_score": 3.0,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 6.7,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "medium",
+        "cvss_score": 3.3,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "medium",
+        "cvss_score": 2.8,
+        "exploited": false,
+        "remediation_effort": "medium"
+      }
+    ],
+    "tools_used": [
+      "Burp Suite",
+      "SQLMap",
+      "Nikto",
+      "Metasploit"
+    ],
+    "compliance_validation": {
+      "framework": "GDPR",
+      "controls_tested": 30,
+      "controls_passed": 23,
+      "compliance_score": 93.4
+    },
+    "executive_summary": {
+      "overall_risk_rating": "medium",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3017",
+    "scenario_name": "Penetration Test - CyberShield Corp",
+    "target_type": "api_endpoints",
+    "test_type": "white_box",
+    "methodology": "OWASP",
+    "start_date": "2025-07-13T17:31:07.487495",
+    "end_date": "2025-07-30T17:31:07.487495",
+    "duration_days": 17,
+    "status": "cancelled",
+    "tester_assigned": "pentester_2",
+    "client_company": "TechFlow Industries",
+    "scope": {
+      "target_urls": [
+        "https://api.example17.com",
+        "https://api.example17.com",
+        "https://api.example17.com",
+        "https://app.example17.com"
+      ],
+      "ip_ranges": [
+        "192.168.22.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 0,
+      "high": 3,
+      "medium": 13,
+      "low": 5,
+      "informational": 30
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "medium",
+        "cvss_score": 8.9,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "high",
+        "cvss_score": 3.2,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "low",
+        "cvss_score": 6.3,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "critical",
+        "cvss_score": 8.1,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 3.3,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "high",
+        "cvss_score": 6.4,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "medium",
+        "cvss_score": 5.6,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "low",
+        "cvss_score": 8.1,
+        "exploited": false,
+        "remediation_effort": "high"
+      }
+    ],
+    "tools_used": [
+      "SQLMap",
+      "Burp Suite",
+      "Custom Scripts",
+      "Nuclei",
+      "Nmap",
+      "Nikto",
+      "Metasploit"
+    ],
+    "compliance_validation": {
+      "framework": "GDPR",
+      "controls_tested": 18,
+      "controls_passed": 27,
+      "compliance_score": 90.1
+    },
+    "executive_summary": {
+      "overall_risk_rating": "high",
+      "business_impact": "significant",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3018",
+    "scenario_name": "Penetration Test - RetailMax Chain",
+    "target_type": "mobile_app",
+    "test_type": "white_box",
+    "methodology": "PTES",
+    "start_date": "2025-06-08T17:31:07.487544",
+    "end_date": "2025-06-21T17:31:07.487544",
+    "duration_days": 13,
+    "status": "scheduled",
+    "tester_assigned": "pentester_5",
+    "client_company": "HealthCare Solutions",
+    "scope": {
+      "target_urls": [
+        "https://api.example18.com",
+        "https://app.example18.com"
+      ],
+      "ip_ranges": [
+        "192.168.217.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 3,
+      "high": 2,
+      "medium": 12,
+      "low": 21,
+      "informational": 18
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "medium",
+        "cvss_score": 4.2,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "low",
+        "cvss_score": 8.0,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "critical",
+        "cvss_score": 7.0,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "critical",
+        "cvss_score": 7.7,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "critical",
+        "cvss_score": 5.3,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "critical",
+        "cvss_score": 4.7,
+        "exploited": false,
+        "remediation_effort": "low"
+      }
+    ],
+    "tools_used": [
+      "SQLMap",
+      "Gobuster",
+      "Custom Scripts",
+      "Nuclei",
+      "Nmap",
+      "OWASP ZAP"
+    ],
+    "compliance_validation": {
+      "framework": "PCI-DSS",
+      "controls_tested": 38,
+      "controls_passed": 38,
+      "compliance_score": 82.4
+    },
+    "executive_summary": {
+      "overall_risk_rating": "high",
+      "business_impact": "moderate",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3019",
+    "scenario_name": "Penetration Test - DataFlow Systems",
+    "target_type": "network_infrastructure",
+    "test_type": "white_box",
+    "methodology": "NIST",
+    "start_date": "2025-08-01T17:31:07.487579",
+    "end_date": "2025-08-04T17:31:07.487579",
+    "duration_days": 3,
+    "status": "cancelled",
+    "tester_assigned": "pentester_3",
+    "client_company": "InnovTech Labs",
+    "scope": {
+      "target_urls": [
+        "https://app.example19.com"
+      ],
+      "ip_ranges": [
+        "192.168.155.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 3,
+      "high": 7,
+      "medium": 13,
+      "low": 11,
+      "informational": 9
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "high",
+        "cvss_score": 9.6,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "low",
+        "cvss_score": 8.2,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "high",
+        "cvss_score": 3.9,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "low",
+        "cvss_score": 8.1,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "critical",
+        "cvss_score": 9.1,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "medium",
+        "cvss_score": 6.8,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "low",
+        "cvss_score": 9.1,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "high",
+        "cvss_score": 9.8,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "low",
+        "cvss_score": 6.2,
+        "exploited": false,
+        "remediation_effort": "medium"
+      }
+    ],
+    "tools_used": [
+      "Metasploit",
+      "Nuclei",
+      "Gobuster",
+      "Burp Suite"
+    ],
+    "compliance_validation": {
+      "framework": "HIPAA",
+      "controls_tested": 22,
+      "controls_passed": 21,
+      "compliance_score": 94.5
+    },
+    "executive_summary": {
+      "overall_risk_rating": "high",
+      "business_impact": "minimal",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3020",
+    "scenario_name": "Penetration Test - Global Manufacturing Inc",
+    "target_type": "cloud_services",
+    "test_type": "white_box",
+    "methodology": "OWASP",
+    "start_date": "2025-05-20T17:31:07.487619",
+    "end_date": "2025-05-23T17:31:07.487619",
+    "duration_days": 3,
+    "status": "scheduled",
+    "tester_assigned": "pentester_2",
+    "client_company": "CyberShield Corp",
+    "scope": {
+      "target_urls": [
+        "https://admin.example20.com",
+        "https://admin.example20.com"
+      ],
+      "ip_ranges": [
+        "192.168.183.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 2,
+      "high": 3,
+      "medium": 5,
+      "low": 19,
+      "informational": 28
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "medium",
+        "cvss_score": 6.4,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "high",
+        "cvss_score": 6.3,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "low",
+        "cvss_score": 7.3,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "critical",
+        "cvss_score": 5.8,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "high",
+        "cvss_score": 4.1,
+        "exploited": false,
+        "remediation_effort": "low"
+      }
+    ],
+    "tools_used": [
+      "Burp Suite",
+      "Nuclei",
+      "OWASP ZAP",
+      "SQLMap"
+    ],
+    "compliance_validation": {
+      "framework": "GDPR",
+      "controls_tested": 37,
+      "controls_passed": 35,
+      "compliance_score": 94.8
+    },
+    "executive_summary": {
+      "overall_risk_rating": "high",
+      "business_impact": "significant",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3021",
+    "scenario_name": "Penetration Test - Acme Financial Corp",
+    "target_type": "mobile_app",
+    "test_type": "gray_box",
+    "methodology": "NIST",
+    "start_date": "2025-07-27T17:31:07.487651",
+    "end_date": "2025-08-03T17:31:07.487651",
+    "duration_days": 7,
+    "status": "scheduled",
+    "tester_assigned": "pentester_4",
+    "client_company": "RetailMax Chain",
+    "scope": {
+      "target_urls": [
+        "https://admin.example21.com",
+        "https://api.example21.com",
+        "https://app.example21.com",
+        "https://api.example21.com"
+      ],
+      "ip_ranges": [
+        "192.168.27.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 0,
+      "high": 8,
+      "medium": 8,
+      "low": 13,
+      "informational": 26
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "medium",
+        "cvss_score": 5.0,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "high",
+        "cvss_score": 8.3,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "low",
+        "cvss_score": 8.6,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "high",
+        "cvss_score": 6.1,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "high",
+        "cvss_score": 8.1,
+        "exploited": true,
+        "remediation_effort": "high"
+      }
+    ],
+    "tools_used": [
+      "Custom Scripts",
+      "Metasploit",
+      "Burp Suite",
+      "Nmap"
+    ],
+    "compliance_validation": {
+      "framework": "HIPAA",
+      "controls_tested": 36,
+      "controls_passed": 21,
+      "compliance_score": 88.0
+    },
+    "executive_summary": {
+      "overall_risk_rating": "low",
+      "business_impact": "minimal",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3022",
+    "scenario_name": "Penetration Test - RetailMax Chain",
+    "target_type": "cloud_services",
+    "test_type": "white_box",
+    "methodology": "PTES",
+    "start_date": "2025-07-27T17:31:07.487683",
+    "end_date": "2025-07-31T17:31:07.487683",
+    "duration_days": 4,
+    "status": "cancelled",
+    "tester_assigned": "pentester_4",
+    "client_company": "HealthCare Solutions",
+    "scope": {
+      "target_urls": [
+        "https://admin.example22.com"
+      ],
+      "ip_ranges": [
+        "192.168.17.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 3,
+      "high": 7,
+      "medium": 13,
+      "low": 9,
+      "informational": 12
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "high",
+        "cvss_score": 7.4,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "low",
+        "cvss_score": 9.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "high",
+        "cvss_score": 7.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "medium",
+        "cvss_score": 8.3,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "critical",
+        "cvss_score": 7.1,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "high",
+        "cvss_score": 6.4,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Authentication Bypass",
+        "severity": "high",
+        "cvss_score": 5.9,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "high",
+        "cvss_score": 4.7,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "critical",
+        "cvss_score": 3.3,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "medium",
+        "cvss_score": 3.5,
+        "exploited": false,
+        "remediation_effort": "medium"
+      }
+    ],
+    "tools_used": [
+      "Metasploit",
+      "Burp Suite",
+      "Nmap",
+      "OWASP ZAP",
+      "Gobuster",
+      "Nuclei"
+    ],
+    "compliance_validation": {
+      "framework": "HIPAA",
+      "controls_tested": 23,
+      "controls_passed": 20,
+      "compliance_score": 95.8
+    },
+    "executive_summary": {
+      "overall_risk_rating": "low",
+      "business_impact": "minimal",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3023",
+    "scenario_name": "Penetration Test - SecureBank Holdings",
+    "target_type": "network_infrastructure",
+    "test_type": "white_box",
+    "methodology": "PTES",
+    "start_date": "2025-05-24T17:31:07.487726",
+    "end_date": "2025-05-29T17:31:07.487726",
+    "duration_days": 5,
+    "status": "in_progress",
+    "tester_assigned": "pentester_4",
+    "client_company": "TechFlow Industries",
+    "scope": {
+      "target_urls": [
+        "https://admin.example23.com",
+        "https://admin.example23.com",
+        "https://admin.example23.com",
+        "https://api.example23.com",
+        "https://app.example23.com"
+      ],
+      "ip_ranges": [
+        "192.168.26.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 3,
+      "high": 4,
+      "medium": 15,
+      "low": 13,
+      "informational": 26
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "medium",
+        "cvss_score": 5.1,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "high",
+        "cvss_score": 7.2,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "low",
+        "cvss_score": 8.1,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "medium",
+        "cvss_score": 7.0,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "low",
+        "cvss_score": 4.8,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "critical",
+        "cvss_score": 2.1,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Path Traversal",
+        "severity": "low",
+        "cvss_score": 6.2,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "low",
+        "cvss_score": 5.8,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "low",
+        "cvss_score": 9.4,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "high",
+        "cvss_score": 8.5,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "medium",
+        "cvss_score": 5.0,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "low",
+        "cvss_score": 7.6,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "medium",
+        "cvss_score": 3.2,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "critical",
+        "cvss_score": 9.7,
+        "exploited": true,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Weak Encryption",
+        "severity": "critical",
+        "cvss_score": 7.2,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Privilege Escalation",
+        "severity": "medium",
+        "cvss_score": 4.0,
+        "exploited": true,
+        "remediation_effort": "low"
+      }
+    ],
+    "tools_used": [
+      "Custom Scripts",
+      "SQLMap",
+      "Nikto"
+    ],
+    "compliance_validation": {
+      "framework": "SOC2",
+      "controls_tested": 15,
+      "controls_passed": 31,
+      "compliance_score": 89.8
+    },
+    "executive_summary": {
+      "overall_risk_rating": "medium",
+      "business_impact": "severe",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies",
+        "Patch critical vulnerabilities",
+        "Enhance monitoring capabilities"
+      ]
+    }
+  },
+  {
+    "scenario_id": "PTAAS-2025-3024",
+    "scenario_name": "Penetration Test - RetailMax Chain",
+    "target_type": "mobile_app",
+    "test_type": "gray_box",
+    "methodology": "PTES",
+    "start_date": "2025-05-22T17:31:07.487783",
+    "end_date": "2025-06-10T17:31:07.487783",
+    "duration_days": 19,
+    "status": "scheduled",
+    "tester_assigned": "pentester_4",
+    "client_company": "RetailMax Chain",
+    "scope": {
+      "target_urls": [
+        "https://api.example24.com",
+        "https://admin.example24.com",
+        "https://api.example24.com"
+      ],
+      "ip_ranges": [
+        "192.168.69.0/24"
+      ],
+      "exclusions": [
+        "192.168.1.100",
+        "critical-production-db"
+      ]
+    },
+    "findings": {
+      "critical": 0,
+      "high": 1,
+      "medium": 6,
+      "low": 5,
+      "informational": 23
+    },
+    "vulnerabilities_discovered": [
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "medium",
+        "cvss_score": 2.2,
+        "exploited": false,
+        "remediation_effort": "high"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "critical",
+        "cvss_score": 5.6,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "SQL Injection",
+        "severity": "low",
+        "cvss_score": 3.5,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "medium",
+        "cvss_score": 6.1,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "high",
+        "cvss_score": 5.3,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "medium",
+        "cvss_score": 8.4,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Missing Security Headers",
+        "severity": "medium",
+        "cvss_score": 3.3,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Buffer Overflow",
+        "severity": "medium",
+        "cvss_score": 8.2,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Cross-Site Scripting",
+        "severity": "medium",
+        "cvss_score": 5.4,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "medium",
+        "cvss_score": 6.6,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "high",
+        "cvss_score": 7.1,
+        "exploited": false,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Insecure Configuration",
+        "severity": "critical",
+        "cvss_score": 4.3,
+        "exploited": true,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Information Disclosure",
+        "severity": "high",
+        "cvss_score": 8.7,
+        "exploited": false,
+        "remediation_effort": "medium"
+      },
+      {
+        "vulnerability": "Remote Code Execution",
+        "severity": "low",
+        "cvss_score": 3.1,
+        "exploited": true,
+        "remediation_effort": "low"
+      },
+      {
+        "vulnerability": "Denial of Service",
+        "severity": "low",
+        "cvss_score": 8.2,
+        "exploited": true,
+        "remediation_effort": "medium"
+      }
+    ],
+    "tools_used": [
+      "Metasploit",
+      "Nikto",
+      "Nmap",
+      "Gobuster",
+      "OWASP ZAP",
+      "Nuclei",
+      "Burp Suite"
+    ],
+    "compliance_validation": {
+      "framework": "SOC2",
+      "controls_tested": 15,
+      "controls_passed": 41,
+      "compliance_score": 97.7
+    },
+    "executive_summary": {
+      "overall_risk_rating": "critical",
+      "business_impact": "significant",
+      "recommendations": [
+        "Implement multi-factor authentication",
+        "Update security policies"
+      ]
+    }
+  }
+]

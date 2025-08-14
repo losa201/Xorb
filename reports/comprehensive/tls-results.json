@@ -1,0 +1,12 @@
+{
+  "test_type": "tls",
+  "test_name": "TLS Protocol & Cipher Validation", 
+  "test_script": "test_tls.sh",
+  "start_time": "1754921267",
+  "end_time": "1754921268",
+  "duration_seconds": 1,
+  "exit_code": 1,
+  "status": "FAIL",
+  "log_file": "/root/Xorb/scripts/validate/../../logs/validation/tls-20250811-140747.log",
+  "timestamp": "2025-08-11T14:07:48+00:00"
+}

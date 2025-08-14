@@ -1,0 +1,119 @@
+# XORB Platform Unified Production Dockerfile
+# Post Batch 2 Dependency Consolidation
+# Uses requirements-unified.lock for all dependencies
+
+FROM python:3.11-slim as base
+
+# Security and performance metadata
+LABEL maintainer="XORB Platform Team <platform@xorb.ai>" \
+      version="3.2.0" \
+      description="XORB Enterprise Cybersecurity Platform" \
+      security.contact="security@xorb.ai" \
+      org.opencontainers.image.source="https://github.com/xorb-ai/platform" \
+      org.opencontainers.image.vendor="XORB" \
+      org.opencontainers.image.title="XORB Platform" \
+      org.opencontainers.image.description="Enterprise Autonomous Security Platform" \
+      org.opencontainers.image.version="3.2.0"
+
+# Security: Create non-root user
+RUN groupadd -r xorb && useradd -r -g xorb -d /app -s /bin/bash xorb
+
+# Install system dependencies with security updates
+RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
+    libmagic1 \
+    libpq5 \
+    ca-certificates \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Production stage
+FROM base as production
+
+# Set working directory
+WORKDIR /app
+
+# Copy unified requirements first for better caching
+COPY requirements-unified.lock .
+
+# Install Python dependencies (production only, no dev dependencies)
+RUN pip install --no-cache-dir --upgrade pip==24.0 setuptools==69.5.1 wheel==0.43.0 \
+    && pip install --no-cache-dir --no-deps -r requirements-unified.lock \
+    && pip cache purge
+
+# Copy application code
+COPY src/api/ ./src/api/
+COPY src/common/ ./src/common/
+COPY pyproject.toml .
+COPY README.md .
+
+# Install application in production mode
+RUN cd src/api && pip install --no-cache-dir --no-deps -e .
+
+# Security: Switch to non-root user
+RUN chown -R xorb:xorb /app
+USER xorb
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
+# Production command
+CMD ["uvicorn", "src.api.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+
+# Development stage (includes dev dependencies)
+FROM base as development
+
+WORKDIR /app
+
+# Copy unified requirements
+COPY requirements-unified.lock .
+
+# Install all dependencies including dev tools
+RUN pip install --no-cache-dir --upgrade pip==24.0 setuptools==69.5.1 wheel==0.43.0 \
+    && pip install --no-cache-dir -r requirements-unified.lock \
+    && pip install --no-cache-dir \
+        pytest==7.4.3 \
+        pytest-asyncio==0.24.0 \
+        pytest-cov==5.0.0 \
+        black==24.0.0 \
+        mypy==1.10.0 \
+        ruff==0.3.0 \
+        pre-commit==3.7.0 \
+    && pip cache purge
+
+# Copy application code
+COPY . .
+
+# Install in development mode
+RUN cd src/api && pip install -e .
+
+# Development user setup
+RUN chown -R xorb:xorb /app
+USER xorb
+
+# Development command with auto-reload
+CMD ["uvicorn", "src.api.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+# Security scanning stage (for CI/CD)
+FROM development as security
+
+USER root
+
+# Install security scanning tools
+RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
+    git \
+    && pip install --no-cache-dir \
+        bandit[toml]==1.7.5 \
+        safety==3.1.0 \
+        semgrep==1.66.0 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Security scan command
+CMD ["bandit", "-r", "src/api/app", "-f", "json"]

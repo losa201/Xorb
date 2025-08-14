@@ -2,7 +2,7 @@
 
 The API service is the core interface for the Xorb Cybersecurity Platform, providing RESTful endpoints for all security operations and integrations.
 
-## Architecture
+##  Architecture
 
 Built using FastAPI with clean architecture principles:
 - **Controllers**: HTTP request handlers
@@ -13,7 +13,7 @@ Built using FastAPI with clean architecture principles:
 - **Middleware**: Security and request processing
 - **Routers**: API route definitions
 
-## Features
+##  Features
 
 - **Authentication**: JWT-based security with role-based access control
 - **Threat Detection**: Real-time security monitoring endpoints
@@ -21,30 +21,30 @@ Built using FastAPI with clean architecture principles:
 - **Monitoring**: Prometheus metrics and health checks
 - **Security**: Rate limiting, request validation, and secure headers
 
-## Endpoints
+##  Endpoints
 
-### Authentication
+###  Authentication
 - `POST /auth/login` - User authentication
 - `POST /auth/logout` - Session termination
 - `GET /auth/me` - Current user information
 
-### Threat Detection
+###  Threat Detection
 - `GET /threats` - List detected threats
 - `GET /threats/{id}` - Threat details
 - `POST /threats/scan` - Initiate new scan
 
-### Response Orchestration
+###  Response Orchestration
 - `GET /responses` - List response workflows
 - `POST /responses/execute` - Execute response workflow
 - `GET /responses/{id}` - Workflow status
 
-### Monitoring & Health
+###  Monitoring & Health
 - `GET /health` - Service health check
 - `GET /readiness` - Dependency readiness (Redis, Postgres, Temporal)
 - `GET /metrics` - Prometheus metrics
 - `GET /status` - System status overview
 
-## Environment Variables
+##  Environment Variables
 
 | Variable | Description | Default |
 |---------|-------------|---------|
@@ -55,15 +55,15 @@ Built using FastAPI with clean architecture principles:
 | `JWT_SECRET` | Secret for JWT signing | `xorb-secret-key` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Token expiration time | `30` |
 
-## Usage
+##  Usage
 
-### Development
+###  Development
 ```bash
 cd src/api
 uvicorn app.main:app --reload
 ```
 
-### Production
+###  Production
 ```bash
 cd src/api
 docker build -t xorb-api .
@@ -77,7 +77,7 @@ AUTH="Authorization: Bearer $(cat token.txt)"
 curl -H "$AUTH" http://localhost:8000/agents/
 ```
 
-## Dependencies
+##  Dependencies
 
 - FastAPI
 - Pydantic
@@ -87,7 +87,7 @@ curl -H "$AUTH" http://localhost:8000/agents/
 - Passlib
 - Temporalio
 
-## Testing
+##  Testing
 
 Run tests:
 ```bash
@@ -99,7 +99,7 @@ Run with coverage:
 pytest --cov=app
 ```
 
-## Security
+##  Security
 
 - All endpoints require proper authentication
 - Input validation with Pydantic models
@@ -107,7 +107,7 @@ pytest --cov=app
 - Secure headers middleware
 - JWT token expiration and refresh mechanism
 
-## Monitoring
+##  Monitoring
 
 Metrics available at `/metrics` endpoint:
 - Request count by endpoint and method
@@ -116,13 +116,13 @@ Metrics available at `/metrics` endpoint:
 - Database connection status
 - External service health
 
-## API Documentation
+##  API Documentation
 
 Interactive documentation available at:
 - http://localhost:8000/docs
 - http://localhost:8000/redoc
 
-## Contributing
+##  Contributing
 
 1. Follow clean architecture principles
 2. Write tests for new features

@@ -1,0 +1,448 @@
+{
+  "pr_blueprint": {
+    "metadata": {
+      "generated_timestamp": "2025-01-11T00:00:00Z",
+      "platform": "XORB Enterprise Cybersecurity Platform",
+      "base_branch": "refactor/platform-hygiene-2025",
+      "target_risk_reduction": "78 → 25 points (68% improvement)",
+      "total_prs": 8,
+      "estimated_effort": "60-80 hours",
+      "critical_path_duration": "7 days"
+    },
+    "pr_sequence": [
+      {
+        "pr_id": "PR-001",
+        "title": "EMERGENCY: Remove Hardcoded Secrets from Version Control",
+        "branch": "security/emergency-secret-removal",
+        "priority": "EMERGENCY",
+        "timeline": "0-4 hours",
+        "finding_ids": ["XORB-001"],
+        "risk_reduction": "95 → 15 points",
+        "effort_estimate": "4-6 hours",
+        "reviewers": ["security-team", "platform-lead"],
+        "dependencies": [],
+        "commits": [
+          {
+            "order": 1,
+            "message": "SECURITY: Initialize emergency secret removal branch",
+            "type": "setup",
+            "files": [],
+            "description": "Empty commit to track security work"
+          },
+          {
+            "order": 2,
+            "message": "SECURITY: Add comprehensive .gitignore rules",
+            "type": "security",
+            "files": [".gitignore"],
+            "description": "Prevent future secret commits"
+          },
+          {
+            "order": 3,
+            "message": "SECURITY: Remove secret files from version control",
+            "type": "security",
+            "files": [".env", ".env.development", ".env.production.template"],
+            "description": "Remove all tracked secret files"
+          },
+          {
+            "order": 4,
+            "message": "SECURITY: Add secure configuration template",
+            "type": "feature",
+            "files": [".env.template"],
+            "description": "Secure configuration structure"
+          },
+          {
+            "order": 5,
+            "message": "SECURITY: Implement production Vault secret manager",
+            "type": "feature",
+            "files": ["src/common/vault_client_enhanced.py"],
+            "description": "HashiCorp Vault integration"
+          },
+          {
+            "order": 6,
+            "message": "SECURITY: Implement secure configuration management",
+            "type": "feature",
+            "files": ["src/api/app/core/secure_config.py"],
+            "description": "Vault-backed configuration"
+          },
+          {
+            "order": 7,
+            "message": "SECURITY: Add development secret generation script",
+            "type": "tooling",
+            "files": ["scripts/generate_dev_secrets.sh"],
+            "description": "Secure development workflow"
+          }
+        ],
+        "test_requirements": [
+          "Verify no secrets in git history",
+          "Test Vault integration",
+          "Validate fallback mechanisms",
+          "Test secret generation script",
+          "Integration test with new secrets"
+        ],
+        "deployment_steps": [
+          "Generate development secrets",
+          "Configure Vault for production",
+          "Rotate all exposed credentials",
+          "Update deployment systems",
+          "Verify service restart"
+        ],
+        "rollback_plan": "Revert commits, generate temporary secrets, restart services",
+        "definition_of_done": [
+          "All secret files removed from git",
+          "Vault integration functional", 
+          "Development workflow restored",
+          "Production credentials rotated",
+          "Security team approval"
+        ]
+      },
+      {
+        "pr_id": "PR-002",
+        "title": "CRITICAL: Secure Development Token Endpoint",
+        "branch": "security/dev-token-hardening",
+        "priority": "EMERGENCY",
+        "timeline": "4-8 hours", 
+        "finding_ids": ["XORB-003"],
+        "risk_reduction": "90 → 5 points",
+        "effort_estimate": "3-4 hours",
+        "reviewers": ["security-team", "auth-team"],
+        "dependencies": ["PR-001"],
+        "commits": [
+          {
+            "order": 1,
+            "message": "SECURITY: Implement secure authentication router",
+            "type": "security",
+            "files": ["src/api/app/routers/auth.py"],
+            "description": "Harden auth endpoints with rate limiting"
+          },
+          {
+            "order": 2,
+            "message": "SECURITY: Add enhanced authentication service",
+            "type": "feature",
+            "files": ["src/api/app/services/enhanced_auth_service.py"],
+            "description": "Production-ready auth with security controls"
+          },
+          {
+            "order": 3,
+            "message": "SECURITY: Implement rate limiting middleware",
+            "type": "feature", 
+            "files": ["src/api/app/middleware/rate_limiting.py"],
+            "description": "Redis-backed rate limiting"
+          },
+          {
+            "order": 4,
+            "message": "SECURITY: Add admin requirement dependencies",
+            "type": "security",
+            "files": ["src/api/app/security/__init__.py"],
+            "description": "Admin-only access controls"
+          }
+        ],
+        "test_requirements": [
+          "Test dev endpoint protection",
+          "Verify rate limiting works",
+          "Test admin requirement",
+          "Validate token generation",
+          "Test error handling"
+        ]
+      },
+      {
+        "pr_id": "PR-003",
+        "title": "HIGH: Secure Middleware Stack Ordering",
+        "branch": "security/middleware-hardening",
+        "priority": "HIGH",
+        "timeline": "1-2 days",
+        "finding_ids": ["XORB-002"],
+        "risk_reduction": "85 → 20 points",
+        "effort_estimate": "6-8 hours",
+        "reviewers": ["platform-team", "security-team"],
+        "dependencies": ["PR-002"],
+        "commits": [
+          {
+            "order": 1,
+            "message": "SECURITY: Implement middleware orchestrator",
+            "type": "refactor",
+            "files": ["src/api/app/main.py"],
+            "description": "Secure middleware ordering system"
+          },
+          {
+            "order": 2,
+            "message": "SECURITY: Add enhanced input validation",
+            "type": "security",
+            "files": ["src/api/app/middleware/input_validation.py"],
+            "description": "Comprehensive input sanitization"
+          },
+          {
+            "order": 3,
+            "message": "SECURITY: Implement security headers middleware",
+            "type": "security",
+            "files": ["src/api/app/middleware/security_headers.py"],
+            "description": "Production security headers"
+          }
+        ]
+      },
+      {
+        "pr_id": "PR-004",
+        "title": "HIGH: Container Security Hardening",
+        "branch": "security/container-hardening",
+        "priority": "HIGH",
+        "timeline": "2-3 days",
+        "finding_ids": ["XORB-005"],
+        "risk_reduction": "78 → 25 points",
+        "effort_estimate": "8-10 hours",
+        "reviewers": ["infrastructure-team", "security-team"],
+        "dependencies": ["PR-001"],
+        "commits": [
+          {
+            "order": 1,
+            "message": "SECURITY: Implement Docker Secrets integration",
+            "type": "security",
+            "files": ["docker-compose.production.yml"],
+            "description": "Replace env vars with Docker secrets"
+          },
+          {
+            "order": 2,
+            "message": "SECURITY: Add container security hardening",
+            "type": "security",
+            "files": ["docker-compose.production.yml"],
+            "description": "Remove capabilities, enable read-only"
+          },
+          {
+            "order": 3,
+            "message": "SECURITY: Implement network isolation",
+            "type": "security",
+            "files": ["docker-compose.production.yml"],
+            "description": "Proper network segmentation"
+          },
+          {
+            "order": 4,
+            "message": "SECURITY: Add security monitoring sidecar",
+            "type": "feature",
+            "files": ["docker-compose.production.yml"],
+            "description": "Falco security monitoring"
+          }
+        ]
+      },
+      {
+        "pr_id": "PR-005",
+        "title": "HIGH: CORS Security Hardening",
+        "branch": "security/cors-hardening",
+        "priority": "HIGH",
+        "timeline": "2-3 days",
+        "finding_ids": ["XORB-004"],
+        "risk_reduction": "75 → 15 points",
+        "effort_estimate": "4-5 hours",
+        "reviewers": ["frontend-team", "security-team"],
+        "dependencies": ["PR-003"],
+        "commits": [
+          {
+            "order": 1,
+            "message": "SECURITY: Implement strict CORS validation",
+            "type": "security",
+            "files": ["src/api/app/core/config.py"],
+            "description": "Remove wildcards, add validation"
+          },
+          {
+            "order": 2,
+            "message": "SECURITY: Add environment-specific CORS",
+            "type": "feature",
+            "files": ["src/api/app/main.py"],
+            "description": "Production vs development CORS"
+          }
+        ]
+      },
+      {
+        "pr_id": "PR-006",
+        "title": "HIGH: Rate Limiting Implementation",
+        "branch": "security/rate-limiting",
+        "priority": "HIGH", 
+        "timeline": "3-4 days",
+        "finding_ids": ["XORB-006"],
+        "risk_reduction": "72 → 20 points",
+        "effort_estimate": "6-8 hours",
+        "reviewers": ["backend-team", "security-team"],
+        "dependencies": ["PR-002"],
+        "commits": [
+          {
+            "order": 1,
+            "message": "FEATURE: Implement Redis-backed rate limiting",
+            "type": "feature",
+            "files": ["src/api/app/services/rate_limiting_service.py"],
+            "description": "Distributed rate limiting service"
+          },
+          {
+            "order": 2,
+            "message": "FEATURE: Add account lockout policies",
+            "type": "feature",
+            "files": ["src/api/app/services/account_lockout_service.py"],
+            "description": "Account security policies"
+          },
+          {
+            "order": 3,
+            "message": "INTEGRATION: Apply rate limiting to auth endpoints",
+            "type": "integration",
+            "files": ["src/api/app/routers/auth.py"],
+            "description": "Protect authentication endpoints"
+          }
+        ]
+      },
+      {
+        "pr_id": "PR-007",
+        "title": "MEDIUM: Error Handling Security",
+        "branch": "security/error-handling",
+        "priority": "MEDIUM",
+        "timeline": "4-5 days",
+        "finding_ids": ["XORB-007"],
+        "risk_reduction": "55 → 15 points",
+        "effort_estimate": "3-4 hours",
+        "reviewers": ["backend-team"],
+        "dependencies": ["PR-003"],
+        "commits": [
+          {
+            "order": 1,
+            "message": "SECURITY: Implement secure error responses",
+            "type": "security",
+            "files": ["src/api/app/core/error_handling.py"],
+            "description": "Generic error responses, no info disclosure"
+          },
+          {
+            "order": 2,
+            "message": "SECURITY: Add error ID tracking",
+            "type": "feature",
+            "files": ["src/api/app/core/logging.py"],
+            "description": "Secure error correlation"
+          }
+        ]
+      },
+      {
+        "pr_id": "PR-008",
+        "title": "MEDIUM: Configuration Security Defaults",
+        "branch": "security/config-defaults",
+        "priority": "MEDIUM",
+        "timeline": "5-7 days",
+        "finding_ids": ["XORB-008"],
+        "risk_reduction": "52 → 15 points",
+        "effort_estimate": "4-5 hours",
+        "reviewers": ["platform-team"],
+        "dependencies": ["PR-001", "PR-005"],
+        "commits": [
+          {
+            "order": 1,
+            "message": "SECURITY: Implement secure configuration defaults",
+            "type": "security",
+            "files": ["src/api/app/core/config.py"],
+            "description": "Security-first default values"
+          },
+          {
+            "order": 2,
+            "message": "FEATURE: Add configuration validation",
+            "type": "feature",
+            "files": ["src/api/app/core/config.py"],
+            "description": "Environment-specific validation"
+          }
+        ]
+      }
+    ],
+    "testing_strategy": {
+      "security_tests": {
+        "secret_scanning": "Automated secret detection in CI/CD",
+        "vulnerability_testing": "Dynamic security testing",
+        "penetration_testing": "Manual security validation",
+        "compliance_testing": "PCI-DSS, GDPR validation"
+      },
+      "integration_tests": {
+        "auth_flow": "Complete authentication workflow",
+        "middleware_stack": "Request processing validation",
+        "container_security": "Docker security validation",
+        "secret_management": "Vault integration testing"
+      },
+      "performance_tests": {
+        "rate_limiting": "Load testing with rate limits",
+        "secret_retrieval": "Vault performance validation",
+        "middleware_overhead": "Request latency testing"
+      },
+      "regression_tests": {
+        "existing_functionality": "Ensure no breaking changes",
+        "api_compatibility": "Backward compatibility",
+        "user_experience": "Frontend functionality"
+      }
+    },
+    "deployment_strategy": {
+      "environments": {
+        "development": {
+          "order": 1,
+          "requirements": ["Generated secrets", "Local Vault"],
+          "validation": ["Health checks", "Integration tests"]
+        },
+        "staging": {
+          "order": 2,
+          "requirements": ["Production-like secrets", "Vault integration"],
+          "validation": ["Security tests", "Performance tests"]
+        },
+        "production": {
+          "order": 3,
+          "requirements": ["Rotated secrets", "Monitoring"],
+          "validation": ["Full security audit", "Compliance checks"]
+        }
+      },
+      "rollback_procedures": {
+        "emergency_rollback": "Automated revert with temporary secrets",
+        "gradual_rollback": "Feature flag based rollback",
+        "data_preservation": "Ensure no data loss during rollback"
+      },
+      "monitoring": {
+        "security_metrics": ["Failed auth attempts", "Rate limit hits"],
+        "performance_metrics": ["Response times", "Error rates"],
+        "business_metrics": ["User impact", "Service availability"]
+      }
+    },
+    "risk_mitigation": {
+      "critical_path_risks": [
+        {
+          "risk": "Secret rotation breaks services",
+          "mitigation": "Comprehensive testing, staged rollout",
+          "contingency": "Emergency rollback with temp secrets"
+        },
+        {
+          "risk": "Middleware changes break functionality",
+          "mitigation": "Extensive integration testing",
+          "contingency": "Feature flag rollback"
+        },
+        {
+          "risk": "Rate limiting blocks legitimate users",
+          "mitigation": "Conservative limits, monitoring",
+          "contingency": "Dynamic limit adjustment"
+        }
+      ],
+      "dependency_risks": [
+        {
+          "risk": "Vault unavailable during deployment",
+          "mitigation": "Fallback secret sources",
+          "contingency": "Environment variable fallback"
+        },
+        {
+          "risk": "Container changes affect other services",
+          "mitigation": "Isolated testing environment",
+          "contingency": "Service-by-service rollback"
+        }
+      ]
+    },
+    "success_criteria": {
+      "security_metrics": {
+        "risk_score_reduction": "78 → 25 (target)",
+        "critical_findings": "3 → 0", 
+        "high_findings": "4 → 0",
+        "compliance_status": "Non-compliant → Compliant"
+      },
+      "operational_metrics": {
+        "deployment_success": "100% successful deployments",
+        "zero_downtime": "No service interruption",
+        "performance_impact": "<5% latency increase",
+        "user_impact": "No functionality regression"
+      },
+      "business_metrics": {
+        "compliance_readiness": "PCI-DSS, GDPR ready",
+        "security_certification": "Security audit passed",
+        "team_confidence": "Security training completed"
+      }
+    }
+  }
+}

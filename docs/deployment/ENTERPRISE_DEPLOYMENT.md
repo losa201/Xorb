@@ -1,12 +1,12 @@
 # XORB Enterprise Deployment Guide
 
-## Deployment Overview
+##  Deployment Overview
 
 XORB supports multiple deployment strategies for enterprise environments, from single-node development to multi-region production clusters.
 
-## Deployment Architecture
+##  Deployment Architecture
 
-### Single Node Development
+###  Single Node Development
 ```bash
 # Quick start for development and testing
 cd /root/Xorb
@@ -19,7 +19,7 @@ docker-compose -f docker-compose.development.yml up -d
 # - Prometheus: http://localhost:9092
 ```
 
-### Production Cluster
+###  Production Cluster
 ```bash
 # Multi-node production deployment
 docker-compose -f docker-compose.production.yml up -d
@@ -31,9 +31,9 @@ docker-compose -f docker-compose.production.yml up -d
 # - Backup systems
 ```
 
-## Service Deployment
+##  Service Deployment
 
-### PTaaS Frontend Deployment
+###  PTaaS Frontend Deployment
 ```bash
 # Build production assets
 cd services/ptaas/web
@@ -47,7 +47,7 @@ aws s3 sync dist/ s3://your-bucket/
 aws cloudfront create-invalidation --distribution-id YOUR_ID --paths "/*"
 ```
 
-### XORB Core Platform Deployment
+###  XORB Core Platform Deployment
 ```bash
 # Container deployment with health checks
 docker run -d \
@@ -67,7 +67,7 @@ docker run -d \
   xorb/orchestrator:latest
 ```
 
-### Infrastructure Services
+###  Infrastructure Services
 ```bash
 # Monitoring stack
 ./tools/scripts/setup-monitoring.sh production
@@ -85,9 +85,9 @@ docker run -d \
   postgres:15-alpine
 ```
 
-## Environment Configuration
+##  Environment Configuration
 
-### Production Environment Variables
+###  Production Environment Variables
 ```bash
 # Core Platform
 export ENVIRONMENT=production
@@ -114,7 +114,7 @@ export NVIDIA_API_KEY=vault:secret/xorb/external#nvidia_key
 export OPENROUTER_API_KEY=vault:secret/xorb/external#openrouter_key
 ```
 
-### Multi-Tenant Configuration
+###  Multi-Tenant Configuration
 ```yaml
 # tenant-config.yaml
 tenants:
@@ -125,16 +125,16 @@ tenants:
       api_calls_per_minute: 1000
       concurrent_scans: 10
   enterprise:
-    database_url: "postgresql://app:pass@postgres:5432/tenant_enterprise" 
+    database_url: "postgresql://app:pass@postgres:5432/tenant_enterprise"
     redis_prefix: "tenant:enterprise"
     rate_limits:
       api_calls_per_minute: 5000
       concurrent_scans: 50
 ```
 
-## Load Balancing & High Availability
+##  Load Balancing & High Availability
 
-### NGINX Load Balancer Configuration
+###  NGINX Load Balancer Configuration
 ```nginx
 upstream ptaas_frontend {
     server ptaas-1:8080;
@@ -151,16 +151,16 @@ upstream xorb_api {
 server {
     listen 443 ssl http2;
     server_name ptaas.company.com;
-    
+
     ssl_certificate /etc/ssl/certs/company.crt;
     ssl_certificate_key /etc/ssl/private/company.key;
-    
+
     location / {
         proxy_pass http://ptaas_frontend;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
     }
-    
+
     location /api/ {
         proxy_pass http://xorb_api;
         proxy_set_header Host $host;
@@ -170,7 +170,7 @@ server {
 }
 ```
 
-### Kubernetes Deployment
+###  Kubernetes Deployment
 ```yaml
 # ptaas-deployment.yaml
 apiVersion: apps/v1
@@ -201,9 +201,9 @@ spec:
             cpu: "500m"
 ```
 
-## Monitoring & Observability
+##  Monitoring & Observability
 
-### Health Check Endpoints
+###  Health Check Endpoints
 ```bash
 # Service health checks
 curl http://localhost:8000/health
@@ -213,7 +213,7 @@ curl http://localhost:8000/readiness
 curl http://localhost:8000/api/v1/status
 ```
 
-### Monitoring Configuration
+###  Monitoring Configuration
 ```yaml
 # prometheus-config.yml
 scrape_configs:
@@ -221,16 +221,16 @@ scrape_configs:
     static_configs:
       - targets: ['api-1:8000', 'api-2:8000', 'api-3:8000']
     metrics_path: '/metrics'
-    
+
   - job_name: 'xorb-orchestrator'
     static_configs:
       - targets: ['orchestrator-1:8080', 'orchestrator-2:8080']
     metrics_path: '/metrics'
 ```
 
-## Security Deployment
+##  Security Deployment
 
-### SSL/TLS Configuration
+###  SSL/TLS Configuration
 ```bash
 # Generate production certificates
 openssl req -x509 -newkey rsa:4096 -keyout xorb.key -out xorb.crt \
@@ -241,7 +241,7 @@ kubectl create secret tls xorb-tls-secret \
   --cert=xorb.crt --key=xorb.key
 ```
 
-### Network Security
+###  Network Security
 ```bash
 # Firewall configuration
 ufw allow 22/tcp    # SSH
@@ -251,9 +251,9 @@ ufw deny 5432/tcp   # PostgreSQL (internal only)
 ufw deny 6379/tcp   # Redis (internal only)
 ```
 
-## Backup & Disaster Recovery
+##  Backup & Disaster Recovery
 
-### Database Backup
+###  Database Backup
 ```bash
 # Automated PostgreSQL backup
 pg_dump -h postgres -U xorb -d xorb_production | \
@@ -263,7 +263,7 @@ pg_dump -h postgres -U xorb -d xorb_production | \
 redis-cli --rdb /backups/redis_$(date +%Y%m%d_%H%M%S).rdb
 ```
 
-### Service Recovery
+###  Service Recovery
 ```bash
 # Restore from backup
 gunzip -c /backups/xorb_latest.sql.gz | \
@@ -274,11 +274,11 @@ docker-compose restart
 ./tools/scripts/validate_environment.py
 ```
 
-## Performance Tuning
+##  Performance Tuning
 
-### Database Optimization
+###  Database Optimization
 ```sql
--- PostgreSQL performance tuning
+- - PostgreSQL performance tuning
 ALTER SYSTEM SET shared_buffers = '2GB';
 ALTER SYSTEM SET effective_cache_size = '6GB';
 ALTER SYSTEM SET work_mem = '256MB';
@@ -286,7 +286,7 @@ ALTER SYSTEM SET maintenance_work_mem = '1GB';
 SELECT pg_reload_conf();
 ```
 
-### Application Scaling
+###  Application Scaling
 ```bash
 # Horizontal scaling
 docker-compose scale api=3 orchestrator=2

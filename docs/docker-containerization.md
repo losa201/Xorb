@@ -1,22 +1,22 @@
 # XORB Docker Containerization Guide
 
-## Overview
+##  Overview
 
 The XORB platform has been completely containerized with multi-stage Docker builds optimized for security, performance, and operational efficiency. This guide covers the containerization strategy, build process, and deployment patterns.
 
-## Container Architecture
+##  Container Architecture
 
-### Multi-stage Build Strategy
+###  Multi-stage Build Strategy
 
 Each service uses a multi-stage Dockerfile with the following stages:
 
 1. **Builder Stage** - Compiles dependencies and build artifacts
-2. **Runtime Base** - Minimal runtime environment with security hardening  
+2. **Runtime Base** - Minimal runtime environment with security hardening
 3. **Development Stage** - Full development environment with debugging tools
 4. **Production Stage** - Optimized production runtime with minimal attack surface
 5. **Testing Stage** - Specialized environment for running tests
 
-### Security Hardening
+###  Security Hardening
 
 All containers implement security best practices:
 
@@ -27,23 +27,23 @@ All containers implement security best practices:
 - **File permissions**: Strict file permissions and ownership
 - **Process management**: `dumb-init` for proper signal handling
 
-## Service Containers
+##  Service Containers
 
-### API Service (`src/api/Dockerfile`)
+###  API Service (`src/api/Dockerfile`)
 
-**Features:**
+- *Features:**
 - FastAPI application with Gunicorn in production
 - Multi-stage build with development and production targets
 - Health checks and graceful shutdown handling
 - Configuration management integration
 - Security middleware and rate limiting
 
-**Build Targets:**
+- *Build Targets:**
 - `development`: Hot-reload, debugging tools, verbose logging
-- `production`: Optimized runtime, multiple workers, security hardening  
+- `production`: Optimized runtime, multiple workers, security hardening
 - `testing`: Test execution environment with coverage tools
 
-**Key Environment Variables:**
+- *Key Environment Variables:**
 ```bash
 XORB_ENV=production          # Environment configuration
 WORKERS=8                    # Gunicorn worker processes
@@ -52,46 +52,46 @@ DEBUG=false                  # Debug mode
 LOG_LEVEL=INFO              # Logging level
 ```
 
-### Orchestrator Service (`src/orchestrator/Dockerfile`)
+###  Orchestrator Service (`src/orchestrator/Dockerfile`)
 
-**Features:**
+- *Features:**
 - Temporal workflow orchestration
 - Circuit breaker pattern for resilience
 - Async workflow execution
 - Configuration-driven service discovery
 
-**Environment Variables:**
+- *Environment Variables:**
 ```bash
 TEMPORAL_HOST=temporal:7233  # Temporal server connection
 XORB_ENV=production         # Environment configuration
 ```
 
-### Worker Service (`src/services/worker/Dockerfile`)
+###  Worker Service (`src/services/worker/Dockerfile`)
 
-**Features:**
+- *Features:**
 - Background job processing
 - Scalable worker processes
 - Resource-aware concurrency
 - Redis queue integration
 
-**Environment Variables:**
+- *Environment Variables:**
 ```bash
 WORKER_CONCURRENCY=8        # Worker process count
 WORKER_MAX_MEMORY=512m      # Memory limit per worker
 ```
 
-## Docker Compose Configurations
+##  Docker Compose Configurations
 
-### Development Environment (`docker-compose.development.yml`)
+###  Development Environment (`docker-compose.development.yml`)
 
-**Features:**
+- *Features:**
 - Hot-reload for all services
 - Development databases with logging
 - Monitoring stack (Prometheus, Grafana)
 - Volume mounts for code changes
 - Debug-friendly configuration
 
-**Services:**
+- *Services:**
 - PostgreSQL with pgvector extension
 - Redis with persistence
 - API, Orchestrator, Worker services
@@ -99,7 +99,7 @@ WORKER_MAX_MEMORY=512m      # Memory limit per worker
 - Prometheus metrics
 - Grafana dashboards
 
-**Usage:**
+- *Usage:**
 ```bash
 # Start development environment
 docker-compose -f docker-compose.development.yml up -d
@@ -111,9 +111,9 @@ docker-compose -f docker-compose.development.yml logs -f api-dev
 docker-compose -f docker-compose.development.yml up -d --scale worker-dev=4
 ```
 
-### Production Environment (`docker-compose.production.yml`)
+###  Production Environment (`docker-compose.production.yml`)
 
-**Features:**
+- *Features:**
 - Production-optimized containers
 - Secrets management
 - Resource limits and reservations
@@ -121,7 +121,7 @@ docker-compose -f docker-compose.development.yml up -d --scale worker-dev=4
 - Load balancing and SSL termination
 - Comprehensive monitoring stack
 
-**Production Services:**
+- *Production Services:**
 - PostgreSQL with performance tuning
 - Redis with clustering support
 - Multiple API replicas (3x)
@@ -130,7 +130,7 @@ docker-compose -f docker-compose.development.yml up -d --scale worker-dev=4
 - Temporal server
 - Full monitoring stack
 
-**Resource Allocation:**
+- *Resource Allocation:**
 ```yaml
 api-prod:
   deploy:
@@ -144,13 +144,13 @@ api-prod:
         cpus: '0.5'
 ```
 
-## Container Management Scripts
+##  Container Management Scripts
 
-### Build Script (`tools/scripts/docker-build.sh`)
+###  Build Script (`tools/scripts/docker-build.sh`)
 
 Comprehensive container management tool with the following capabilities:
 
-**Commands:**
+- *Commands:**
 ```bash
 # Build all services for development
 ./tools/scripts/docker-build.sh build --environment development --target development
@@ -171,7 +171,7 @@ Comprehensive container management tool with the following capabilities:
 ./tools/scripts/docker-build.sh clean --environment development
 ```
 
-**Features:**
+- *Features:**
 - Parallel and sequential builds
 - Build caching optimization
 - Security vulnerability scanning
@@ -179,11 +179,11 @@ Comprehensive container management tool with the following capabilities:
 - Registry push/pull operations
 - Resource cleanup
 
-### Container Testing (`test_containers.py`)
+###  Container Testing (`test_containers.py`)
 
 Automated container testing suite covering:
 
-**Test Categories:**
+- *Test Categories:**
 1. **Docker Environment** - Verify Docker daemon and resources
 2. **Image Building** - Test multi-stage build process
 3. **Security Validation** - Verify non-root user, labels, permissions
@@ -193,7 +193,7 @@ Automated container testing suite covering:
 7. **Health Endpoints** - Verify service health checks
 8. **Volume Mounts** - Test file system integration
 
-**Usage:**
+- *Usage:**
 ```bash
 # Run all container tests
 python test_containers.py
@@ -223,9 +223,9 @@ python test_containers.py
 🎉 All container tests passed!
 ```
 
-## Configuration Management Integration
+##  Configuration Management Integration
 
-### Centralized Configuration
+###  Centralized Configuration
 
 All containers use the centralized configuration management system:
 
@@ -238,7 +238,7 @@ db_url = config.database.get_url()
 api_port = config.api_service.port
 ```
 
-### Environment-specific Configs
+###  Environment-specific Configs
 
 Containers automatically load configuration based on the `XORB_ENV` environment variable:
 
@@ -247,7 +247,7 @@ Containers automatically load configuration based on the `XORB_ENV` environment 
 - `production` - Production settings with security hardening
 - `test` - Testing environment for automated tests
 
-### Secret Management
+###  Secret Management
 
 Production containers integrate with HashiCorp Vault and Docker secrets:
 
@@ -258,7 +258,7 @@ secrets:
     file: ./secrets/postgres_password
   jwt_secret:
     file: ./secrets/jwt_secret
-    
+
 # Service configuration
 api-prod:
   secrets:
@@ -266,25 +266,25 @@ api-prod:
     - jwt_secret
 ```
 
-## Performance Optimization
+##  Performance Optimization
 
-### Image Size Optimization
+###  Image Size Optimization
 
-**Before Optimization:**
+- *Before Optimization:**
 - API Service: ~1.2GB
-- Orchestrator: ~1.1GB  
+- Orchestrator: ~1.1GB
 - Worker: ~1.0GB
 - **Total: ~3.3GB**
 
-**After Multi-stage Optimization:**
+- *After Multi-stage Optimization:**
 - API Service: ~400MB
 - Orchestrator: ~350MB
 - Worker: ~300MB
 - **Total: ~1.05GB** (68% reduction)
 
-### Build Optimization
+###  Build Optimization
 
-**Caching Strategy:**
+- *Caching Strategy:**
 ```dockerfile
 # Dependencies cached separately from source code
 COPY requirements.lock ./
@@ -294,7 +294,7 @@ RUN pip install --no-cache-dir -r requirements.lock
 COPY --chown=xorb:xorb . .
 ```
 
-**Build Cache Tags:**
+- *Build Cache Tags:**
 ```bash
 # Build with cache reference
 docker build --cache-from xorb/api:dev-cache --target development -t xorb/api:dev .
@@ -303,9 +303,9 @@ docker build --cache-from xorb/api:dev-cache --target development -t xorb/api:de
 docker push xorb/api:dev-cache
 ```
 
-### Runtime Optimization
+###  Runtime Optimization
 
-**Resource Limits:**
+- *Resource Limits:**
 ```yaml
 deploy:
   resources:
@@ -317,7 +317,7 @@ deploy:
       cpus: '0.5'
 ```
 
-**Health Checks:**
+- *Health Checks:**
 ```yaml
 healthcheck:
   test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -327,9 +327,9 @@ healthcheck:
   start_period: 60s
 ```
 
-## Monitoring and Observability
+##  Monitoring and Observability
 
-### Container Metrics
+###  Container Metrics
 
 Prometheus collects metrics from all containers:
 - CPU and memory usage
@@ -337,7 +337,7 @@ Prometheus collects metrics from all containers:
 - Error rates and status codes
 - Custom application metrics
 
-### Log Aggregation
+###  Log Aggregation
 
 Structured logging from all containers:
 ```json
@@ -352,7 +352,7 @@ Structured logging from all containers:
 }
 ```
 
-### Dashboards
+###  Dashboards
 
 Grafana dashboards for container monitoring:
 - **Container Overview**: Resource usage across all services
@@ -360,9 +360,9 @@ Grafana dashboards for container monitoring:
 - **Performance**: Response times and throughput
 - **Errors**: Error rates and failure analysis
 
-## Security Scanning
+##  Security Scanning
 
-### Vulnerability Scanning
+###  Vulnerability Scanning
 
 Automated security scanning with Trivy:
 ```bash
@@ -377,7 +377,7 @@ Scanning orchestrator for vulnerabilities...
 ✅ No HIGH or CRITICAL vulnerabilities found
 ```
 
-### Security Compliance
+###  Security Compliance
 
 All containers meet security compliance requirements:
 - ✅ Non-root user execution
@@ -387,9 +387,9 @@ All containers meet security compliance requirements:
 - ✅ Network security policies
 - ✅ Resource limitations
 
-## Deployment Strategies
+##  Deployment Strategies
 
-### Blue-Green Deployment
+###  Blue-Green Deployment
 
 Production deployment with zero downtime:
 
@@ -407,7 +407,7 @@ Production deployment with zero downtime:
 ./tools/scripts/docker-build.sh deploy --environment production --version v1.2.3
 ```
 
-### Rolling Updates
+###  Rolling Updates
 
 Docker Compose rolling updates:
 ```yaml
@@ -422,7 +422,7 @@ deploy:
     delay: 30s
 ```
 
-### Scaling Operations
+###  Scaling Operations
 
 Dynamic service scaling:
 ```bash
@@ -433,11 +433,11 @@ docker-compose -f docker-compose.production.yml up -d --scale api-prod=5
 docker-compose -f docker-compose.production.yml up -d --scale worker-prod=8
 ```
 
-## Troubleshooting
+##  Troubleshooting
 
-### Common Issues
+###  Common Issues
 
-**1. Container Won't Start**
+- *1. Container Won't Start**
 ```bash
 # Check logs
 docker-compose logs -f api-prod
@@ -446,7 +446,7 @@ docker-compose logs -f api-prod
 ./tools/scripts/config-manager.sh validate production
 ```
 
-**2. Out of Memory Errors**
+- *2. Out of Memory Errors**
 ```bash
 # Check resource usage
 docker stats
@@ -455,7 +455,7 @@ docker stats
 # Edit docker-compose.yml resources section
 ```
 
-**3. Health Check Failures**
+- *3. Health Check Failures**
 ```bash
 # Test health endpoint manually
 curl http://localhost:8000/health
@@ -464,9 +464,9 @@ curl http://localhost:8000/health
 docker-compose ps
 ```
 
-### Debugging Tools
+###  Debugging Tools
 
-**Container Shell Access:**
+- *Container Shell Access:**
 ```bash
 # Development containers
 docker-compose exec api-dev /bin/bash
@@ -475,7 +475,7 @@ docker-compose exec api-dev /bin/bash
 docker-compose exec api-prod /bin/sh
 ```
 
-**Log Analysis:**
+- *Log Analysis:**
 ```bash
 # Follow logs for specific service
 docker-compose logs -f --tail=100 api-prod
@@ -484,7 +484,7 @@ docker-compose logs -f --tail=100 api-prod
 docker-compose logs api-prod 2>&1 | grep ERROR
 ```
 
-**Performance Analysis:**
+- *Performance Analysis:**
 ```bash
 # Monitor resource usage
 docker stats api-prod orchestrator-prod worker-prod
@@ -493,16 +493,16 @@ docker stats api-prod orchestrator-prod worker-prod
 ./tools/scripts/docker-build.sh size-report
 ```
 
-## Best Practices
+##  Best Practices
 
-### Development Workflow
+###  Development Workflow
 
 1. **Use development containers** for local development with hot-reload
 2. **Test configuration changes** in development environment first
 3. **Run container tests** before pushing changes
 4. **Use build caching** to speed up development builds
 
-### Production Deployment
+###  Production Deployment
 
 1. **Always use production targets** for production deployments
 2. **Implement health checks** for all services
@@ -511,7 +511,7 @@ docker stats api-prod orchestrator-prod worker-prod
 5. **Monitor container metrics** and set up alerting
 6. **Test disaster recovery** procedures regularly
 
-### Security Considerations
+###  Security Considerations
 
 1. **Never run as root** in production containers
 2. **Scan images** for vulnerabilities before deployment
@@ -519,9 +519,9 @@ docker stats api-prod orchestrator-prod worker-prod
 4. **Implement proper logging** without exposing secrets
 5. **Keep base images updated** with security patches
 
-## Migration Guide
+##  Migration Guide
 
-### From Legacy Containers
+###  From Legacy Containers
 
 If migrating from previous container setup:
 
@@ -531,7 +531,7 @@ If migrating from previous container setup:
 4. **Gradually migrate services** using blue-green deployment
 5. **Monitor performance** and adjust resource limits as needed
 
-### Configuration Updates
+###  Configuration Updates
 
 Update existing configurations to use centralized config management:
 
@@ -545,6 +545,6 @@ config = get_config()
 database_url = config.database.get_url()
 ```
 
----
+- --
 
 This containerization implementation provides a robust, secure, and scalable foundation for the XORB platform with comprehensive tooling for development, testing, and production operations.

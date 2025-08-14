@@ -1,14 +1,14 @@
 # XORB Enterprise API Documentation
 
-**Production-Ready Cybersecurity Platform API**
+- *Production-Ready Cybersecurity Platform API**
 
 [![API Version](https://img.shields.io/badge/API-v3.0.0-blue.svg)](https://api.xorb-security.com)
 [![Status](https://img.shields.io/badge/Status-Production--Ready-green.svg)](#status)
 [![Security](https://img.shields.io/badge/Security-Enterprise--Grade-red.svg)](#security)
 
----
+- --
 
-## 📋 **Table of Contents**
+##  📋 **Table of Contents**
 
 1. [Getting Started](#getting-started)
 2. [Authentication](#authentication)
@@ -20,19 +20,19 @@
 8. [Error Handling](#error-handling)
 9. [Examples](#examples)
 
----
+- --
 
-## 🚀 **Getting Started**
+##  🚀 **Getting Started**
 
-### **Base URLs**
+###  **Base URLs**
 - **Development**: `http://localhost:8000/api/v1`
 - **Production**: `https://api.xorb-security.com/api/v1`
 
-### **API Documentation**
+###  **API Documentation**
 - **Interactive Docs**: `http://localhost:8000/docs`
 - **OpenAPI Schema**: `http://localhost:8000/openapi.json`
 
-### **Quick Test**
+###  **Quick Test**
 ```bash
 # Health check
 curl http://localhost:8000/api/v1/health
@@ -41,11 +41,11 @@ curl http://localhost:8000/api/v1/health
 curl http://localhost:8000/api/v1/info
 ```
 
----
+- --
 
-## 🔐 **Authentication**
+##  🔐 **Authentication**
 
-### **JWT Bearer Token**
+###  **JWT Bearer Token**
 All API endpoints require JWT authentication:
 
 ```bash
@@ -66,7 +66,7 @@ curl -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." \
   http://localhost:8000/api/v1/ptaas/sessions
 ```
 
-### **API Key Authentication**
+###  **API Key Authentication**
 For service-to-service communication:
 
 ```bash
@@ -74,13 +74,13 @@ curl -H "X-API-Key: your-api-key" \
   http://localhost:8000/api/v1/platform/services
 ```
 
----
+- --
 
-## 🎯 **PTaaS API**
+##  🎯 **PTaaS API**
 
-### **Core Endpoints**
+###  **Core Endpoints**
 
-#### **Create Scan Session**
+####  **Create Scan Session**
 ```http
 POST /api/v1/ptaas/sessions
 Content-Type: application/json
@@ -104,7 +104,7 @@ Authorization: Bearer {token}
 }
 ```
 
-**Response:**
+- *Response:**
 ```json
 {
   "session_id": "session_1234567890",
@@ -118,13 +118,13 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Get Scan Status**
+####  **Get Scan Status**
 ```http
 GET /api/v1/ptaas/sessions/{session_id}
 Authorization: Bearer {token}
 ```
 
-**Response:**
+- *Response:**
 ```json
 {
   "session_id": "session_1234567890",
@@ -148,13 +148,13 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Available Scan Profiles**
+####  **Available Scan Profiles**
 ```http
 GET /api/v1/ptaas/profiles
 Authorization: Bearer {token}
 ```
 
-**Response:**
+- *Response:**
 ```json
 {
   "profiles": {
@@ -187,7 +187,7 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Validate Target**
+####  **Validate Target**
 ```http
 POST /api/v1/ptaas/validate-target
 Content-Type: application/json
@@ -201,7 +201,7 @@ Authorization: Bearer {token}
 }
 ```
 
-**Response:**
+- *Response:**
 ```json
 {
   "valid": true,
@@ -214,21 +214,21 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Get Scan Results**
+####  **Get Scan Results**
 ```http
 GET /api/v1/ptaas/scan-results/{session_id}?format=json
 Authorization: Bearer {token}
 ```
 
-**Supported formats**: `json`, `pdf`, `csv`
+- **Supported formats**: `json`, `pdf`, `csv`
 
----
+- --
 
-## 🔧 **PTaaS Orchestration**
+##  🔧 **PTaaS Orchestration**
 
-### **Advanced Workflow Management**
+###  **Advanced Workflow Management**
 
-#### **Create Automated Workflow**
+####  **Create Automated Workflow**
 ```http
 POST /api/v1/ptaas/orchestration/workflows
 Content-Type: application/json
@@ -256,7 +256,7 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Execute Workflow**
+####  **Execute Workflow**
 ```http
 POST /api/v1/ptaas/orchestration/workflows/{workflow_id}/execute
 Content-Type: application/json
@@ -271,7 +271,7 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Compliance Scanning**
+####  **Compliance Scanning**
 ```http
 POST /api/v1/ptaas/orchestration/compliance-scan
 Content-Type: application/json
@@ -289,9 +289,9 @@ Authorization: Bearer {token}
 }
 ```
 
-**Supported frameworks**: `PCI-DSS`, `HIPAA`, `SOX`, `ISO-27001`, `GDPR`, `NIST`, `CIS`
+- **Supported frameworks**: `PCI-DSS`, `HIPAA`, `SOX`, `ISO-27001`, `GDPR`, `NIST`, `CIS`
 
-#### **Threat Simulation**
+####  **Threat Simulation**
 ```http
 POST /api/v1/ptaas/orchestration/threat-simulation
 Content-Type: application/json
@@ -310,7 +310,7 @@ Authorization: Bearer {token}
 }
 ```
 
-**Supported simulations**:
+- **Supported simulations**:
 - `apt_simulation` - Advanced Persistent Threat
 - `ransomware_simulation` - Ransomware attack patterns
 - `insider_threat` - Malicious insider scenarios
@@ -318,7 +318,7 @@ Authorization: Bearer {token}
 - `lateral_movement` - Network traversal testing
 - `data_exfiltration` - Data theft simulation
 
-#### **Advanced Scan Workflow**
+####  **Advanced Scan Workflow**
 ```http
 POST /api/v1/ptaas/orchestration/advanced-scan
 Content-Type: application/json
@@ -328,7 +328,7 @@ Authorization: Bearer {token}
   "targets": ["api.company.com", "web.company.com"],
   "scan_types": [
     "network_discovery",
-    "service_enumeration", 
+    "service_enumeration",
     "vulnerability_scan",
     "web_application_scan",
     "ssl_analysis",
@@ -343,13 +343,13 @@ Authorization: Bearer {token}
 }
 ```
 
----
+- --
 
-## 🤖 **Intelligence API**
+##  🤖 **Intelligence API**
 
-### **AI-Powered Threat Analysis**
+###  **AI-Powered Threat Analysis**
 
-#### **Analyze Threat Indicators**
+####  **Analyze Threat Indicators**
 ```http
 POST /api/v1/intelligence/analyze
 Content-Type: application/json
@@ -374,7 +374,7 @@ Authorization: Bearer {token}
 }
 ```
 
-**Response:**
+- *Response:**
 ```json
 {
   "analysis_id": "analysis_1234567890",
@@ -401,7 +401,7 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Behavioral Analysis**
+####  **Behavioral Analysis**
 ```http
 POST /api/v1/intelligence/behavioral/analyze
 Content-Type: application/json
@@ -421,7 +421,7 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Threat Hunting**
+####  **Threat Hunting**
 ```http
 POST /api/v1/intelligence/threat-hunting/query
 Content-Type: application/json
@@ -437,19 +437,19 @@ Authorization: Bearer {token}
 }
 ```
 
----
+- --
 
-## 🏢 **Platform Management**
+##  🏢 **Platform Management**
 
-### **Unified Platform API**
+###  **Unified Platform API**
 
-#### **Service Status**
+####  **Service Status**
 ```http
 GET /api/v1/platform/services
 Authorization: Bearer {token}
 ```
 
-**Response:**
+- *Response:**
 ```json
 {
   "services": [
@@ -474,19 +474,19 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Platform Health**
+####  **Platform Health**
 ```http
 GET /api/v1/platform/health
 Authorization: Bearer {token}
 ```
 
-#### **Platform Metrics**
+####  **Platform Metrics**
 ```http
 GET /api/v1/platform/metrics
 Authorization: Bearer {token}
 ```
 
-#### **Forensics Evidence Collection**
+####  **Forensics Evidence Collection**
 ```http
 POST /api/v1/platform/forensics/evidence
 Content-Type: application/json
@@ -506,7 +506,7 @@ Authorization: Bearer {token}
 }
 ```
 
-#### **Network Microsegmentation**
+####  **Network Microsegmentation**
 ```http
 POST /api/v1/platform/network/segments
 Content-Type: application/json
@@ -534,16 +534,16 @@ Authorization: Bearer {token}
 }
 ```
 
----
+- --
 
-## 🛡️ **Security & Rate Limiting**
+##  🛡️ **Security & Rate Limiting**
 
-### **Rate Limits**
+###  **Rate Limits**
 - **Default Tier**: 60 requests/minute, 1000 requests/hour
 - **Enterprise Tier**: Custom limits based on subscription
 - **Burst Allowance**: 2x normal rate for 60 seconds
 
-### **Rate Limit Headers**
+###  **Rate Limit Headers**
 ```
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 45
@@ -551,7 +551,7 @@ X-RateLimit-Reset: 1642176000
 X-RateLimit-Burst-Remaining: 30
 ```
 
-### **Security Headers**
+###  **Security Headers**
 ```
 X-Content-Type-Options: nosniff
 X-Frame-Options: DENY
@@ -560,17 +560,17 @@ Strict-Transport-Security: max-age=31536000; includeSubDomains
 Content-Security-Policy: default-src 'self'
 ```
 
-### **Request Validation**
+###  **Request Validation**
 - **Input Sanitization**: All inputs are validated and sanitized
 - **Schema Validation**: Pydantic models for request/response
 - **Size Limits**: 10MB max request size
 - **Timeout**: 30 second default timeout
 
----
+- --
 
-## ⚠️ **Error Handling**
+##  ⚠️ **Error Handling**
 
-### **Error Response Format**
+###  **Error Response Format**
 ```json
 {
   "error": "ValidationError",
@@ -584,7 +584,7 @@ Content-Security-Policy: default-src 'self'
 }
 ```
 
-### **HTTP Status Codes**
+###  **HTTP Status Codes**
 - **200**: Success
 - **201**: Created
 - **400**: Bad Request (validation error)
@@ -596,7 +596,7 @@ Content-Security-Policy: default-src 'self'
 - **500**: Internal Server Error
 - **503**: Service Unavailable
 
-### **Common Error Types**
+###  **Common Error Types**
 - `ValidationError`: Invalid request data
 - `AuthenticationError`: Invalid or expired token
 - `AuthorizationError`: Insufficient permissions
@@ -604,14 +604,14 @@ Content-Security-Policy: default-src 'self'
 - `ResourceNotFound`: Requested resource doesn't exist
 - `ServiceUnavailable`: Dependent service unavailable
 
----
+- --
 
-## 💡 **Examples**
+##  💡 **Examples**
 
-### **Complete Security Assessment Workflow**
+###  **Complete Security Assessment Workflow**
 
 ```bash
-#!/bin/bash
+# !/bin/bash
 # Complete PTaaS workflow example
 
 BASE_URL="http://localhost:8000/api/v1"
@@ -652,14 +652,14 @@ echo "⏳ Monitoring scan progress..."
 while true; do
   STATUS_RESPONSE=$(curl -s "$BASE_URL/ptaas/sessions/$SESSION_ID" \
     -H "Authorization: Bearer $TOKEN")
-  
+
   STATUS=$(echo $STATUS_RESPONSE | jq -r '.status')
   echo "Status: $STATUS"
-  
+
   if [ "$STATUS" = "completed" ] || [ "$STATUS" = "failed" ]; then
     break
   fi
-  
+
   sleep 30
 done
 
@@ -680,7 +680,7 @@ curl -X POST "$BASE_URL/ptaas/orchestration/compliance-scan" \
   }'
 ```
 
-### **Automated Threat Hunting**
+###  **Automated Threat Hunting**
 
 ```python
 import requests
@@ -690,28 +690,28 @@ class XORBThreatHunter:
     def __init__(self, base_url, token):
         self.base_url = base_url
         self.headers = {'Authorization': f'Bearer {token}'}
-    
+
     def hunt_suspicious_activity(self, timeframe="24h"):
         """Hunt for suspicious activity patterns"""
-        
+
         # Search for privilege escalation attempts
         escalation_query = {
             "query": "FIND events WHERE action = 'privilege_escalation' AND success = true",
             "data_source": "security_logs",
             "time_range": {"start": f"-{timeframe}", "end": "now"}
         }
-        
+
         response = requests.post(
             f"{self.base_url}/intelligence/threat-hunting/query",
             headers=self.headers,
             json=escalation_query
         )
-        
+
         return response.json()
-    
+
     def analyze_behavioral_anomalies(self, user_id):
         """Analyze user behavioral patterns"""
-        
+
         analysis_request = {
             "profile_id": user_id,
             "activity_data": {
@@ -720,13 +720,13 @@ class XORBThreatHunter:
                 "data_transfer_volume": 4.8
             }
         }
-        
+
         response = requests.post(
             f"{self.base_url}/intelligence/behavioral/analyze",
             headers=self.headers,
             json=analysis_request
         )
-        
+
         return response.json()
 
 # Usage
@@ -735,7 +735,7 @@ results = hunter.hunt_suspicious_activity("7d")
 print(json.dumps(results, indent=2))
 ```
 
-### **Enterprise Compliance Automation**
+###  **Enterprise Compliance Automation**
 
 ```python
 import asyncio
@@ -745,30 +745,30 @@ class ComplianceAutomation:
     def __init__(self, api_base, token):
         self.api_base = api_base
         self.headers = {'Authorization': f'Bearer {token}'}
-    
+
     async def run_compliance_suite(self, targets, frameworks):
         """Run comprehensive compliance assessment"""
-        
+
         async with aiohttp.ClientSession() as session:
             tasks = []
-            
+
             for framework in frameworks:
                 task = self.run_compliance_scan(session, targets, framework)
                 tasks.append(task)
-            
+
             results = await asyncio.gather(*tasks)
             return results
-    
+
     async def run_compliance_scan(self, session, targets, framework):
         """Execute compliance scan for specific framework"""
-        
+
         scan_config = {
             "compliance_framework": framework,
             "targets": targets,
             "scope": {"full_assessment": True},
             "assessment_type": "full"
         }
-        
+
         async with session.post(
             f"{self.api_base}/ptaas/orchestration/compliance-scan",
             headers=self.headers,
@@ -779,36 +779,36 @@ class ComplianceAutomation:
 # Usage
 async def main():
     automation = ComplianceAutomation("http://localhost:8000/api/v1", "your-token")
-    
+
     targets = ["web.company.com", "api.company.com", "db.company.com"]
     frameworks = ["PCI-DSS", "HIPAA", "SOX"]
-    
+
     results = await automation.run_compliance_suite(targets, frameworks)
-    
+
     for result in results:
         print(f"Compliance scan initiated: {result['scan_id']}")
 
 asyncio.run(main())
 ```
 
----
+- --
 
-## 📚 **Additional Resources**
+##  📚 **Additional Resources**
 
 - **[PTaaS Implementation Guide](../services/PTAAS_IMPLEMENTATION_SUMMARY.md)**
 - **[Security Best Practices](../best-practices/)**
 - **[Deployment Guide](../deployment/)**
 - **[Architecture Overview](../architecture/)**
 
----
+- --
 
-## 🤝 **Support**
+##  🤝 **Support**
 
 - **Documentation**: https://docs.xorb-security.com
 - **Support**: enterprise@xorb-security.com
 - **Community**: https://discord.gg/xorb-security
 - **Issues**: https://github.com/xorb-security/xorb/issues
 
----
+- --
 
-**© 2025 XORB Security, Inc. All rights reserved.**
+- *© 2025 XORB Security, Inc. All rights reserved.**

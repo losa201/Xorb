@@ -1,0 +1,359 @@
+{
+  "manifest_version": "1.0",
+  "description": "Blue Team defense and detection techniques",
+  "techniques": [
+    {
+      "id": "detect.network_anomaly",
+      "name": "Network Anomaly Detection",
+      "category": "detection",
+      "description": "Detect anomalous network traffic patterns using ML",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "high",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "interface",
+          "type": "string",
+          "required": true,
+          "description": "Network interface to monitor"
+        },
+        {
+          "name": "threshold",
+          "type": "float",
+          "required": false,
+          "default": 0.8,
+          "description": "Anomaly detection threshold",
+          "constraints": {
+            "min": 0.1,
+            "max": 1.0
+          }
+        },
+        {
+          "name": "window_size",
+          "type": "int",
+          "required": false,
+          "default": 300,
+          "description": "Analysis window size in seconds",
+          "constraints": {
+            "min": 60,
+            "max": 3600
+          }
+        }
+      ]
+    },
+    {
+      "id": "detect.process_monitoring",
+      "name": "Process Behavior Monitoring",
+      "category": "detection",
+      "description": "Monitor process behavior for suspicious activities",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "high",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "processes",
+          "type": "list",
+          "required": false,
+          "default": ["*"],
+          "description": "Process names to monitor (or * for all)"
+        },
+        {
+          "name": "events",
+          "type": "list",
+          "required": false,
+          "default": ["process_creation", "network_connection", "file_access"],
+          "description": "Events to monitor",
+          "constraints": {
+            "choices": ["process_creation", "process_termination", "network_connection", "file_access", "registry_access", "dll_load"]
+          }
+        },
+        {
+          "name": "baseline_learning_period",
+          "type": "int",
+          "required": false,
+          "default": 86400,
+          "description": "Baseline learning period in seconds",
+          "constraints": {
+            "min": 3600,
+            "max": 604800
+          }
+        }
+      ]
+    },
+    {
+      "id": "detect.log_analysis",
+      "name": "Security Log Analysis",
+      "category": "analysis",
+      "description": "Analyze security logs for indicators of compromise",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "high",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "log_sources",
+          "type": "list",
+          "required": true,
+          "description": "Log sources to analyze"
+        },
+        {
+          "name": "ioc_rules",
+          "type": "string",
+          "required": false,
+          "default": "default",
+          "description": "IOC detection rules file"
+        },
+        {
+          "name": "time_range",
+          "type": "string",
+          "required": false,
+          "default": "24h",
+          "description": "Time range for log analysis",
+          "constraints": {
+            "pattern": "^\\d+[hmds]$"
+          }
+        }
+      ]
+    },
+    {
+      "id": "hunt.lateral_movement",
+      "name": "Lateral Movement Hunting",
+      "category": "threat_hunting",
+      "description": "Hunt for signs of lateral movement across the network",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "high",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "network_segments",
+          "type": "list",
+          "required": true,
+          "description": "Network segments to hunt in"
+        },
+        {
+          "name": "hunt_techniques",
+          "type": "list",
+          "required": false,
+          "default": ["rdp", "ssh", "psexec", "wmi"],
+          "description": "Lateral movement techniques to hunt for",
+          "constraints": {
+            "choices": ["rdp", "ssh", "psexec", "wmi", "dcom", "smb", "winrm"]
+          }
+        },
+        {
+          "name": "correlation_window",
+          "type": "int",
+          "required": false,
+          "default": 3600,
+          "description": "Event correlation window in seconds",
+          "constraints": {
+            "min": 300,
+            "max": 86400
+          }
+        }
+      ]
+    },
+    {
+      "id": "hunt.persistence",
+      "name": "Persistence Mechanism Hunting",
+      "category": "threat_hunting",
+      "description": "Hunt for persistence mechanisms across systems",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "high",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "mechanisms",
+          "type": "list",
+          "required": false,
+          "default": ["scheduled_tasks", "services", "registry", "startup"],
+          "description": "Persistence mechanisms to hunt for",
+          "constraints": {
+            "choices": ["scheduled_tasks", "services", "registry", "startup", "cron", "systemd", "web_shells"]
+          }
+        },
+        {
+          "name": "baseline_comparison",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "Compare against known baseline"
+        }
+      ]
+    },
+    {
+      "id": "respond.isolate_host",
+      "name": "Host Isolation",
+      "category": "mitigation",
+      "description": "Isolate compromised hosts from the network",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "medium",
+      "stealth_level": "low",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "target_hosts",
+          "type": "list",
+          "required": true,
+          "description": "List of hosts to isolate"
+        },
+        {
+          "name": "isolation_method",
+          "type": "string",
+          "required": false,
+          "default": "network",
+          "description": "Method of isolation",
+          "constraints": {
+            "choices": ["network", "firewall", "vlan", "shutdown"]
+          }
+        },
+        {
+          "name": "allow_management",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "Allow management access during isolation"
+        }
+      ]
+    },
+    {
+      "id": "respond.block_iocs",
+      "name": "IOC Blocking",
+      "category": "mitigation",
+      "description": "Block indicators of compromise across security controls",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "low",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "iocs",
+          "type": "list",
+          "required": true,
+          "description": "List of IOCs to block"
+        },
+        {
+          "name": "ioc_types",
+          "type": "list",
+          "required": true,
+          "description": "Types of IOCs being blocked",
+          "constraints": {
+            "choices": ["ip", "domain", "url", "hash", "email"]
+          }
+        },
+        {
+          "name": "block_duration",
+          "type": "int",
+          "required": false,
+          "default": 86400,
+          "description": "Block duration in seconds",
+          "constraints": {
+            "min": 3600,
+            "max": 2592000
+          }
+        }
+      ]
+    },
+    {
+      "id": "respond.kill_process",
+      "name": "Malicious Process Termination",
+      "category": "mitigation",
+      "description": "Terminate malicious processes on target systems",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "medium",
+      "stealth_level": "low",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "target_hosts",
+          "type": "list",
+          "required": true,
+          "description": "Hosts to terminate processes on"
+        },
+        {
+          "name": "process_identifiers",
+          "type": "list",
+          "required": true,
+          "description": "Process names, PIDs, or hashes to terminate"
+        },
+        {
+          "name": "force_kill",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Use force kill if normal termination fails"
+        }
+      ]
+    },
+    {
+      "id": "recover.forensic_collection",
+      "name": "Forensic Evidence Collection",
+      "category": "recovery",
+      "description": "Collect forensic evidence from compromised systems",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "medium",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "target_hosts",
+          "type": "list",
+          "required": true,
+          "description": "Hosts to collect evidence from"
+        },
+        {
+          "name": "collection_types",
+          "type": "list",
+          "required": false,
+          "default": ["memory", "disk", "network", "logs"],
+          "description": "Types of evidence to collect",
+          "constraints": {
+            "choices": ["memory", "disk", "network", "logs", "registry", "processes"]
+          }
+        },
+        {
+          "name": "preserve_chain_of_custody",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "Maintain chain of custody documentation"
+        }
+      ]
+    },
+    {
+      "id": "recover.system_restore",
+      "name": "System Restoration",
+      "category": "recovery",
+      "description": "Restore systems from clean backups or snapshots",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "medium",
+      "stealth_level": "low",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "target_hosts",
+          "type": "list",
+          "required": true,
+          "description": "Hosts to restore"
+        },
+        {
+          "name": "restore_point",
+          "type": "string",
+          "required": true,
+          "description": "Backup or snapshot to restore from"
+        },
+        {
+          "name": "verify_integrity",
+          "type": "bool",
+          "required": false,
+          "default": true,
+          "description": "Verify backup integrity before restoration"
+        }
+      ]
+    }
+  ]
+}

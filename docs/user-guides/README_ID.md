@@ -4,8 +4,6 @@
 </h1>
 
 <h4 align="center">Pemindai kerentanan yang cepat dan dapat disesuaikan berdasarkan DSL berbasis YAML sederhana.</h4>
-
-
 <p align="center">
 <img src="https://img.shields.io/github/go-mod/go-version/projectdiscovery/nuclei?filename=v2%2Fgo.mod">
 <a href="https://github.com/projectdiscovery/nuclei/releases"><img src="https://img.shields.io/github/downloads/projectdiscovery/nuclei/total">
@@ -16,7 +14,7 @@
 <a href="https://discord.gg/projectdiscovery"><img src="https://img.shields.io/discord/695645237418131507.svg?logo=discord"></a>
 <a href="https://twitter.com/pdnuclei"><img src="https://img.shields.io/twitter/follow/pdnuclei.svg?logo=twitter"></a>
 </p>
-      
+
 <p align="center">
   <a href="#cara-kerja">Cara Kerja</a> •
   <a href="#instalasi-nuclei">Instalasi</a> •
@@ -37,21 +35,15 @@
   <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_PT-BR.md">Portuguese</a>
 </p>
 
----
+- --
 
 Nuclei digunakan untuk mengirim permintaan lintas target berdasarkan templat, yang menghasilkan nol positif palsu dan menyediakan pemindaian yang cepat pada banyak host. Nuclei menawarkan pemindaian untuk berbagai protokol, termasuk TCP, DNS, HTTP, SSL, File, Whois, Websocket, Headless, dll. Dengan templating yang kuat dan fleksibel, Nuclei dapat digunakan untuk memodelkan semua jenis pemeriksaan keamanan.
 
 Kami memiliki [repositori khusus](https://github.com/projectdiscovery/nuclei-templates) yang menampung berbagai jenis templat kerentanan yang disumbangkan oleh **lebih dari 300** peneliti dan teknisi keamanan.
-
-
-## Cara Kerja
-
-
+##  Cara Kerja
 <h3 align="center">
   <img src="static/nuclei-flow.jpg" alt="nuclei-flow" width="700px"></a>
 </h3>
-
-
 # Instalasi Nuclei
 
 Nuclei membutuhkan **go1.22** agar dapat diinstall. Jalankan perintah berikut untuk menginstal versi terbaru -
@@ -60,13 +52,13 @@ Nuclei membutuhkan **go1.22** agar dapat diinstall. Jalankan perintah berikut un
 go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 ```
 
-**Metode [instalasi lain dapat ditemukan di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
+- *Metode [instalasi lain dapat ditemukan di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
 
 <table>
 <tr>
-<td>  
+<td>
 
-### Nuclei Templates
+###  Nuclei Templates
 
 Nuclei memiliki dukungan untuk unduhan/pembaruan templat otomatis sebagai bawaan sejak versi [v2.5.2](https://github.com/projectdiscovery/nuclei/releases/tag/v2.5.2). Proyek [**Nuclei-Templates**](https://github.com/projectdiscovery/nuclei-templates) menyediakan daftar template siap pakai yang dibuat oleh komunitas yang terus diperbarui.
 
@@ -78,15 +70,13 @@ Untuk referensi penulisan sintaks DSL berbasis YAML tersedia [di sini](SYNTAX-RE
 </tr>
 </table>
 
-### Cara Pakai
+###  Cara Pakai
 
 ```sh
 nuclei -h
 ```
 
 Ini akan menampilkan bantuan untuk alat tersebut. Berikut adalah semua flag yang didukungnya.
-
-
 ```console
 Nuclei is a fast, template based vulnerability scanner focusing
 on extensive configurability, massive extensibility and ease of use.
@@ -271,8 +261,6 @@ CLOUD:
    -auth                  configure projectdiscovery cloud (pdcp) api key
    -cup, -cloud-upload    upload scan results to pdcp dashboard
    -sid, -scan-id string  upload scan results to given scan id
-
-
 EXAMPLES:
 Run nuclei on single host:
 	$ nuclei -target example.com
@@ -292,7 +280,7 @@ Run nuclei with sorted Markdown outputs (with environment variables):
 Additional documentation is available at: https://docs.nuclei.sh/getting-started/running
 ```
 
-### Menjalankan Nuclei
+###  Menjalankan Nuclei
 
 Memindai domain target dengan templat Nuclei yang [dikurasi oleh komunitas](https://github.com/projectdiscovery/nuclei-templates).
 
@@ -315,7 +303,7 @@ http://test.example.com
 http://uat.example.com
 ```
 
-**Contoh lebih detil tentang menjalankan Nuclei dapat ditemukan [di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei).**
+- *Contoh lebih detil tentang menjalankan Nuclei dapat ditemukan [di sini](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei).**
 
 # Untuk Teknisi Keamanan
 
@@ -331,9 +319,9 @@ Nuclei menawarkan sejumlah besar fitur yang berguna bagi teknisi keamanan untuk 
 
 <table>
 <tr>
-<td>  
+<td>
 
-**Untuk Pemburu Celah Berhadiah:**
+- *Untuk Pemburu Celah Berhadiah:**
 
 Nuclei memungkinkan Anda untuk menyesuaikan pendekatan pengujian Anda dengan rangkaian pemeriksaan Anda sendiri dan dengan mudah menjalankan program celah berhadiah Anda. Selain itu, Nuclei dapat dengan mudah diintegrasikan ke dalam alur kerja pemindaian berkelanjutan.
 
@@ -350,8 +338,8 @@ Silakan periksa proyek sumber terbuka kami yang lain yang mungkin cocok dengan a
 <table>
 <tr>
 <td>
-  
-**Untuk Penguji Penetrasi:**
+
+- *Untuk Penguji Penetrasi:**
 
 Nuclei sangat meningkatkan cara Anda mendekati penilaian keamanan dengan menambah proses manual yang berulang. Para konsultan sudah mengonversi langkah penilaian manual mereka dengan Nuclei, ini memungkinkan mereka untuk menjalankan serangkaian pendekatan penilaian khusus mereka di ribuan host secara otomatis.
 
@@ -364,8 +352,6 @@ Para penguji penetrasi mendapatkan kekuatan penuh dari templat publik dan kemamp
 </td>
 </tr>
 </table>
-
-
 # Untuk Pengembang dan Organisasi
 
 Nuclei dibangun dengan kesederhanaan dalam pemikiran, dengan templat yang didukung komunitas oleh ratusan peneliti keamanan, memungkinkan Anda untuk tidak tertinggal dengan ancaman keamanan terbaru menggunakan pemindaian Nuclei terus menerus pada host. Ini dirancang agar mudah diintegrasikan ke dalam siklus pengujian regresi, untuk memverifikasi perbaikan dan menghilangkan kerentanan agar tidak terjadi di masa mendatang.
@@ -383,9 +369,9 @@ Kami memiliki [utas diskusi tentang ini](https://github.com/projectdiscovery/nuc
   <a href="https://github.com/projectdiscovery/nuclei-action"><img src="static/learn-more-button.png" width="170px" alt="Pelajari Selengkapnya"></a>
 </h1>
 
-### Sumber Daya
+###  Sumber Daya
 
-- [Menemukan bug dengan menggunakan Nuclei dengan PinkDraconian (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) oleh **[@PinkDraconian](https://twitter.com/PinkDraconian)** 
+- [Menemukan bug dengan menggunakan Nuclei dengan PinkDraconian (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) oleh **[@PinkDraconian](https://twitter.com/PinkDraconian)**
 - [Nuclei: Mengemas Pukulan dengan Pemindaian Kerentanan](https://bishopfox.com/blog/nuclei-vulnerability-scan) oleh **Bishopfox**
 - [Kerangka kemanjuran WAF](https://www.fastly.com/blog/the-waf-efficacy-framework-measuring-the-effectiveness-of-your-waf) oleh **Fastly**
 - [Memindai Aplikasi Web Langsung dengan Nuclei di Aliran CI/CD](https://blog.escape.tech/devsecops-part-iii-scanning-live-web-applications/) oleh **[@TristanKalos](https://twitter.com/TristanKalos)**
@@ -397,13 +383,13 @@ Kami memiliki [utas diskusi tentang ini](https://github.com/projectdiscovery/nuc
 - [Bagaimana Memindai Terus-menerus dengan Nuclei?](https://medium.com/@dwisiswant0/how-to-scan-continuously-with-nuclei-fcb7e9d8b8b9) oleh **[@dwisiswant0](https://github.com/dwisiswant0)**
 - [Retas dengan Otomatisasi !!!](https://dhiyaneshgeek.github.io/web/security/2021/07/19/hack-with-automation/) oleh **[@DhiyaneshGeek](https://github.com/DhiyaneshGeek)**
 
-### Kredit
+###  Kredit
 
 Terima kasih kepada semua komunitas yang luar biasa yang [berkontribusi untuk mengirimkan PR](https://github.com/projectdiscovery/nuclei/graphs/contributors). Lihat juga proyek sumber-terbuka serupa di bawah ini yang mungkin sesuai dengan alur kerja Anda:
 
 [FFuF](https://github.com/ffuf/ffuf), [Qsfuzz](https://github.com/ameenmaali/qsfuzz), [Inception](https://github.com/proabiral/inception), [Snallygaster](https://github.com/hannob/snallygaster), [Gofingerprint](https://github.com/Static-Flow/gofingerprint), [Sn1per](https://github.com/1N3/Sn1per/tree/master/templates), [Google tsunami](https://github.com/google/tsunami-security-scanner), [Jaeles](https://github.com/jaeles-project/jaeles), [ChopChop](https://github.com/michelin/ChopChop)
 
-### Lisensi
+###  Lisensi
 
 Nuclei didistribusikan di bawah [Lisensi MIT](https://github.com/projectdiscovery/nuclei/blob/main/LICENSE.md)
 

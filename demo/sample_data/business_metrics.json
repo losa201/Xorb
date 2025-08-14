@@ -1,0 +1,2612 @@
+[
+  {
+    "date": "2025-08-11",
+    "total_customers": 511,
+    "active_users": 377,
+    "new_signups": 20,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 30,
+      "resolved": 20,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 25135.61,
+      "mrr": 256942.58,
+      "churn_rate_percent": 4.19
+    },
+    "feature_adoption": {
+      "security_dashboard": 90.1,
+      "threat_intelligence": 56.8,
+      "compliance_automation": 60.4,
+      "incident_response": 74.0,
+      "analytics_reporting": 44.9
+    },
+    "system_usage": {
+      "total_api_calls": 98074,
+      "data_processed_gb": 153.08,
+      "peak_concurrent_users": 76
+    }
+  },
+  {
+    "date": "2025-08-10",
+    "total_customers": 226,
+    "active_users": 164,
+    "new_signups": 6,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 5,
+      "resolved": 6,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 12280.21,
+      "mrr": 159551.95,
+      "churn_rate_percent": 4.73
+    },
+    "feature_adoption": {
+      "security_dashboard": 81.6,
+      "threat_intelligence": 57.4,
+      "compliance_automation": 49.4,
+      "incident_response": 73.1,
+      "analytics_reporting": 56.0
+    },
+    "system_usage": {
+      "total_api_calls": 41953,
+      "data_processed_gb": 72.78,
+      "peak_concurrent_users": 25
+    }
+  },
+  {
+    "date": "2025-08-09",
+    "total_customers": 319,
+    "active_users": 240,
+    "new_signups": 9,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 20,
+      "resolved": 11,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 14691.86,
+      "mrr": 189665.1,
+      "churn_rate_percent": 4.04
+    },
+    "feature_adoption": {
+      "security_dashboard": 91.0,
+      "threat_intelligence": 65.9,
+      "compliance_automation": 73.5,
+      "incident_response": 71.5,
+      "analytics_reporting": 52.1
+    },
+    "system_usage": {
+      "total_api_calls": 59162,
+      "data_processed_gb": 91.63,
+      "peak_concurrent_users": 78
+    }
+  },
+  {
+    "date": "2025-08-08",
+    "total_customers": 567,
+    "active_users": 658,
+    "new_signups": 17,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 14,
+      "resolved": 10,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 52777.46,
+      "mrr": 322761.2,
+      "churn_rate_percent": 2.28
+    },
+    "feature_adoption": {
+      "security_dashboard": 84.3,
+      "threat_intelligence": 81.2,
+      "compliance_automation": 46.1,
+      "incident_response": 67.9,
+      "analytics_reporting": 48.3
+    },
+    "system_usage": {
+      "total_api_calls": 81878,
+      "data_processed_gb": 176.46,
+      "peak_concurrent_users": 191
+    }
+  },
+  {
+    "date": "2025-08-07",
+    "total_customers": 684,
+    "active_users": 553,
+    "new_signups": 23,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 41,
+      "resolved": 44,
+      "escalated": 4
+    },
+    "revenue_metrics": {
+      "daily_revenue": 37571.29,
+      "mrr": 280811.34,
+      "churn_rate_percent": 3.92
+    },
+    "feature_adoption": {
+      "security_dashboard": 90.0,
+      "threat_intelligence": 59.7,
+      "compliance_automation": 48.1,
+      "incident_response": 87.1,
+      "analytics_reporting": 56.0
+    },
+    "system_usage": {
+      "total_api_calls": 123734,
+      "data_processed_gb": 578.02,
+      "peak_concurrent_users": 62
+    }
+  },
+  {
+    "date": "2025-08-06",
+    "total_customers": 494,
+    "active_users": 476,
+    "new_signups": 8,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 30,
+      "resolved": 19,
+      "escalated": 5
+    },
+    "revenue_metrics": {
+      "daily_revenue": 35528.02,
+      "mrr": 154562.29,
+      "churn_rate_percent": 1.61
+    },
+    "feature_adoption": {
+      "security_dashboard": 84.6,
+      "threat_intelligence": 80.0,
+      "compliance_automation": 45.2,
+      "incident_response": 65.9,
+      "analytics_reporting": 41.8
+    },
+    "system_usage": {
+      "total_api_calls": 60238,
+      "data_processed_gb": 255.34,
+      "peak_concurrent_users": 209
+    }
+  },
+  {
+    "date": "2025-08-05",
+    "total_customers": 600,
+    "active_users": 509,
+    "new_signups": 12,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 13,
+      "resolved": 38,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 16694.37,
+      "mrr": 319796.72,
+      "churn_rate_percent": 4.01
+    },
+    "feature_adoption": {
+      "security_dashboard": 86.7,
+      "threat_intelligence": 78.0,
+      "compliance_automation": 66.9,
+      "incident_response": 72.9,
+      "analytics_reporting": 51.5
+    },
+    "system_usage": {
+      "total_api_calls": 82103,
+      "data_processed_gb": 174.41,
+      "peak_concurrent_users": 183
+    }
+  },
+  {
+    "date": "2025-08-04",
+    "total_customers": 547,
+    "active_users": 480,
+    "new_signups": 10,
+    "customer_satisfaction": 4.2,
+    "support_tickets": {
+      "created": 29,
+      "resolved": 35,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 38141.47,
+      "mrr": 326083.34,
+      "churn_rate_percent": 4.76
+    },
+    "feature_adoption": {
+      "security_dashboard": 83.4,
+      "threat_intelligence": 67.9,
+      "compliance_automation": 71.6,
+      "incident_response": 88.6,
+      "analytics_reporting": 42.1
+    },
+    "system_usage": {
+      "total_api_calls": 75862,
+      "data_processed_gb": 471.51,
+      "peak_concurrent_users": 173
+    }
+  },
+  {
+    "date": "2025-08-03",
+    "total_customers": 294,
+    "active_users": 248,
+    "new_signups": 12,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 11,
+      "resolved": 16,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 24205.81,
+      "mrr": 163416.69,
+      "churn_rate_percent": 3.06
+    },
+    "feature_adoption": {
+      "security_dashboard": 75.5,
+      "threat_intelligence": 69.1,
+      "compliance_automation": 74.5,
+      "incident_response": 85.6,
+      "analytics_reporting": 62.9
+    },
+    "system_usage": {
+      "total_api_calls": 77180,
+      "data_processed_gb": 254.05,
+      "peak_concurrent_users": 40
+    }
+  },
+  {
+    "date": "2025-08-02",
+    "total_customers": 202,
+    "active_users": 160,
+    "new_signups": 9,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 9,
+      "resolved": 12,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 12312.32,
+      "mrr": 163579.73,
+      "churn_rate_percent": 2.83
+    },
+    "feature_adoption": {
+      "security_dashboard": 86.9,
+      "threat_intelligence": 60.1,
+      "compliance_automation": 67.3,
+      "incident_response": 83.8,
+      "analytics_reporting": 53.1
+    },
+    "system_usage": {
+      "total_api_calls": 37653,
+      "data_processed_gb": 75.55,
+      "peak_concurrent_users": 43
+    }
+  },
+  {
+    "date": "2025-08-01",
+    "total_customers": 531,
+    "active_users": 480,
+    "new_signups": 9,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 11,
+      "resolved": 44,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 35836.11,
+      "mrr": 345780.15,
+      "churn_rate_percent": 3.18
+    },
+    "feature_adoption": {
+      "security_dashboard": 75.3,
+      "threat_intelligence": 61.9,
+      "compliance_automation": 62.2,
+      "incident_response": 82.3,
+      "analytics_reporting": 52.3
+    },
+    "system_usage": {
+      "total_api_calls": 166537,
+      "data_processed_gb": 355.6,
+      "peak_concurrent_users": 230
+    }
+  },
+  {
+    "date": "2025-07-31",
+    "total_customers": 500,
+    "active_users": 448,
+    "new_signups": 8,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 29,
+      "resolved": 21,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 39692.73,
+      "mrr": 316119.37,
+      "churn_rate_percent": 3.64
+    },
+    "feature_adoption": {
+      "security_dashboard": 87.2,
+      "threat_intelligence": 57.9,
+      "compliance_automation": 64.8,
+      "incident_response": 72.4,
+      "analytics_reporting": 50.5
+    },
+    "system_usage": {
+      "total_api_calls": 114230,
+      "data_processed_gb": 384.84,
+      "peak_concurrent_users": 138
+    }
+  },
+  {
+    "date": "2025-07-30",
+    "total_customers": 664,
+    "active_users": 502,
+    "new_signups": 27,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 42,
+      "resolved": 36,
+      "escalated": 5
+    },
+    "revenue_metrics": {
+      "daily_revenue": 50611.64,
+      "mrr": 161682.46,
+      "churn_rate_percent": 4.72
+    },
+    "feature_adoption": {
+      "security_dashboard": 93.7,
+      "threat_intelligence": 67.7,
+      "compliance_automation": 45.0,
+      "incident_response": 85.8,
+      "analytics_reporting": 36.6
+    },
+    "system_usage": {
+      "total_api_calls": 63971,
+      "data_processed_gb": 168.77,
+      "peak_concurrent_users": 65
+    }
+  },
+  {
+    "date": "2025-07-29",
+    "total_customers": 533,
+    "active_users": 592,
+    "new_signups": 18,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 37,
+      "resolved": 12,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 46418.51,
+      "mrr": 205296.65,
+      "churn_rate_percent": 4.48
+    },
+    "feature_adoption": {
+      "security_dashboard": 87.7,
+      "threat_intelligence": 70.9,
+      "compliance_automation": 54.7,
+      "incident_response": 78.4,
+      "analytics_reporting": 41.5
+    },
+    "system_usage": {
+      "total_api_calls": 106912,
+      "data_processed_gb": 495.43,
+      "peak_concurrent_users": 115
+    }
+  },
+  {
+    "date": "2025-07-28",
+    "total_customers": 504,
+    "active_users": 427,
+    "new_signups": 23,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 10,
+      "resolved": 36,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 20391.98,
+      "mrr": 266562.19,
+      "churn_rate_percent": 2.62
+    },
+    "feature_adoption": {
+      "security_dashboard": 75.3,
+      "threat_intelligence": 80.7,
+      "compliance_automation": 54.1,
+      "incident_response": 76.1,
+      "analytics_reporting": 41.6
+    },
+    "system_usage": {
+      "total_api_calls": 51282,
+      "data_processed_gb": 322.05,
+      "peak_concurrent_users": 91
+    }
+  },
+  {
+    "date": "2025-07-27",
+    "total_customers": 220,
+    "active_users": 170,
+    "new_signups": 7,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 9,
+      "resolved": 12,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 8800.66,
+      "mrr": 164643.25,
+      "churn_rate_percent": 3.0
+    },
+    "feature_adoption": {
+      "security_dashboard": 80.2,
+      "threat_intelligence": 59.0,
+      "compliance_automation": 64.7,
+      "incident_response": 66.7,
+      "analytics_reporting": 48.1
+    },
+    "system_usage": {
+      "total_api_calls": 32649,
+      "data_processed_gb": 125.58,
+      "peak_concurrent_users": 40
+    }
+  },
+  {
+    "date": "2025-07-26",
+    "total_customers": 361,
+    "active_users": 309,
+    "new_signups": 5,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 12,
+      "resolved": 6,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 22103.83,
+      "mrr": 289796.02,
+      "churn_rate_percent": 4.68
+    },
+    "feature_adoption": {
+      "security_dashboard": 79.5,
+      "threat_intelligence": 68.0,
+      "compliance_automation": 74.1,
+      "incident_response": 69.6,
+      "analytics_reporting": 54.8
+    },
+    "system_usage": {
+      "total_api_calls": 48953,
+      "data_processed_gb": 75.4,
+      "peak_concurrent_users": 92
+    }
+  },
+  {
+    "date": "2025-07-25",
+    "total_customers": 561,
+    "active_users": 592,
+    "new_signups": 27,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 34,
+      "resolved": 22,
+      "escalated": 4
+    },
+    "revenue_metrics": {
+      "daily_revenue": 21543.94,
+      "mrr": 191419.46,
+      "churn_rate_percent": 4.61
+    },
+    "feature_adoption": {
+      "security_dashboard": 94.9,
+      "threat_intelligence": 79.1,
+      "compliance_automation": 62.4,
+      "incident_response": 79.5,
+      "analytics_reporting": 64.8
+    },
+    "system_usage": {
+      "total_api_calls": 109240,
+      "data_processed_gb": 445.57,
+      "peak_concurrent_users": 163
+    }
+  },
+  {
+    "date": "2025-07-24",
+    "total_customers": 448,
+    "active_users": 456,
+    "new_signups": 13,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 20,
+      "resolved": 10,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 34184.21,
+      "mrr": 331046.77,
+      "churn_rate_percent": 2.65
+    },
+    "feature_adoption": {
+      "security_dashboard": 85.3,
+      "threat_intelligence": 71.5,
+      "compliance_automation": 72.2,
+      "incident_response": 81.6,
+      "analytics_reporting": 58.4
+    },
+    "system_usage": {
+      "total_api_calls": 69933,
+      "data_processed_gb": 315.67,
+      "peak_concurrent_users": 95
+    }
+  },
+  {
+    "date": "2025-07-23",
+    "total_customers": 469,
+    "active_users": 492,
+    "new_signups": 12,
+    "customer_satisfaction": 4.2,
+    "support_tickets": {
+      "created": 26,
+      "resolved": 17,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 13709.02,
+      "mrr": 341087.25,
+      "churn_rate_percent": 3.82
+    },
+    "feature_adoption": {
+      "security_dashboard": 85.4,
+      "threat_intelligence": 83.5,
+      "compliance_automation": 54.3,
+      "incident_response": 72.3,
+      "analytics_reporting": 39.2
+    },
+    "system_usage": {
+      "total_api_calls": 79885,
+      "data_processed_gb": 352.14,
+      "peak_concurrent_users": 115
+    }
+  },
+  {
+    "date": "2025-07-22",
+    "total_customers": 732,
+    "active_users": 460,
+    "new_signups": 5,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 23,
+      "resolved": 36,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 50027.52,
+      "mrr": 202462.98,
+      "churn_rate_percent": 4.47
+    },
+    "feature_adoption": {
+      "security_dashboard": 78.7,
+      "threat_intelligence": 77.8,
+      "compliance_automation": 49.9,
+      "incident_response": 87.2,
+      "analytics_reporting": 57.8
+    },
+    "system_usage": {
+      "total_api_calls": 80601,
+      "data_processed_gb": 324.89,
+      "peak_concurrent_users": 117
+    }
+  },
+  {
+    "date": "2025-07-21",
+    "total_customers": 698,
+    "active_users": 547,
+    "new_signups": 10,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 39,
+      "resolved": 15,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 36771.57,
+      "mrr": 199387.67,
+      "churn_rate_percent": 2.18
+    },
+    "feature_adoption": {
+      "security_dashboard": 76.6,
+      "threat_intelligence": 72.0,
+      "compliance_automation": 56.3,
+      "incident_response": 77.9,
+      "analytics_reporting": 46.1
+    },
+    "system_usage": {
+      "total_api_calls": 86529,
+      "data_processed_gb": 222.67,
+      "peak_concurrent_users": 159
+    }
+  },
+  {
+    "date": "2025-07-20",
+    "total_customers": 270,
+    "active_users": 210,
+    "new_signups": 3,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 17,
+      "resolved": 13,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 13048.69,
+      "mrr": 288803.28,
+      "churn_rate_percent": 2.89
+    },
+    "feature_adoption": {
+      "security_dashboard": 94.8,
+      "threat_intelligence": 64.4,
+      "compliance_automation": 46.1,
+      "incident_response": 84.3,
+      "analytics_reporting": 48.2
+    },
+    "system_usage": {
+      "total_api_calls": 61654,
+      "data_processed_gb": 146.8,
+      "peak_concurrent_users": 74
+    }
+  },
+  {
+    "date": "2025-07-19",
+    "total_customers": 242,
+    "active_users": 188,
+    "new_signups": 8,
+    "customer_satisfaction": 4.9,
+    "support_tickets": {
+      "created": 5,
+      "resolved": 8,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 14725.16,
+      "mrr": 271126.69,
+      "churn_rate_percent": 2.48
+    },
+    "feature_adoption": {
+      "security_dashboard": 81.1,
+      "threat_intelligence": 82.1,
+      "compliance_automation": 71.9,
+      "incident_response": 88.6,
+      "analytics_reporting": 59.2
+    },
+    "system_usage": {
+      "total_api_calls": 49848,
+      "data_processed_gb": 96.48,
+      "peak_concurrent_users": 66
+    }
+  },
+  {
+    "date": "2025-07-18",
+    "total_customers": 472,
+    "active_users": 449,
+    "new_signups": 18,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 25,
+      "resolved": 15,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 25037.78,
+      "mrr": 217916.15,
+      "churn_rate_percent": 1.43
+    },
+    "feature_adoption": {
+      "security_dashboard": 94.9,
+      "threat_intelligence": 72.0,
+      "compliance_automation": 62.6,
+      "incident_response": 88.0,
+      "analytics_reporting": 56.8
+    },
+    "system_usage": {
+      "total_api_calls": 118744,
+      "data_processed_gb": 251.15,
+      "peak_concurrent_users": 71
+    }
+  },
+  {
+    "date": "2025-07-17",
+    "total_customers": 404,
+    "active_users": 442,
+    "new_signups": 8,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 11,
+      "resolved": 27,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 25656.22,
+      "mrr": 221439.1,
+      "churn_rate_percent": 2.76
+    },
+    "feature_adoption": {
+      "security_dashboard": 76.1,
+      "threat_intelligence": 80.3,
+      "compliance_automation": 45.6,
+      "incident_response": 86.4,
+      "analytics_reporting": 62.5
+    },
+    "system_usage": {
+      "total_api_calls": 91393,
+      "data_processed_gb": 250.56,
+      "peak_concurrent_users": 161
+    }
+  },
+  {
+    "date": "2025-07-16",
+    "total_customers": 425,
+    "active_users": 367,
+    "new_signups": 4,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 23,
+      "resolved": 24,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 13805.44,
+      "mrr": 216585.95,
+      "churn_rate_percent": 1.71
+    },
+    "feature_adoption": {
+      "security_dashboard": 91.4,
+      "threat_intelligence": 81.3,
+      "compliance_automation": 63.0,
+      "incident_response": 68.9,
+      "analytics_reporting": 38.9
+    },
+    "system_usage": {
+      "total_api_calls": 75814,
+      "data_processed_gb": 307.52,
+      "peak_concurrent_users": 60
+    }
+  },
+  {
+    "date": "2025-07-15",
+    "total_customers": 386,
+    "active_users": 380,
+    "new_signups": 12,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 18,
+      "resolved": 27,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 14214.43,
+      "mrr": 265023.26,
+      "churn_rate_percent": 3.09
+    },
+    "feature_adoption": {
+      "security_dashboard": 92.3,
+      "threat_intelligence": 58.0,
+      "compliance_automation": 57.0,
+      "incident_response": 81.0,
+      "analytics_reporting": 39.1
+    },
+    "system_usage": {
+      "total_api_calls": 106062,
+      "data_processed_gb": 165.27,
+      "peak_concurrent_users": 135
+    }
+  },
+  {
+    "date": "2025-07-14",
+    "total_customers": 539,
+    "active_users": 478,
+    "new_signups": 19,
+    "customer_satisfaction": 4.2,
+    "support_tickets": {
+      "created": 34,
+      "resolved": 35,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 18299.58,
+      "mrr": 247959.49,
+      "churn_rate_percent": 3.25
+    },
+    "feature_adoption": {
+      "security_dashboard": 84.7,
+      "threat_intelligence": 77.2,
+      "compliance_automation": 72.1,
+      "incident_response": 76.7,
+      "analytics_reporting": 51.7
+    },
+    "system_usage": {
+      "total_api_calls": 124531,
+      "data_processed_gb": 431.6,
+      "peak_concurrent_users": 110
+    }
+  },
+  {
+    "date": "2025-07-13",
+    "total_customers": 189,
+    "active_users": 126,
+    "new_signups": 1,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 4,
+      "resolved": 6,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 7876.12,
+      "mrr": 193266.39,
+      "churn_rate_percent": 4.5
+    },
+    "feature_adoption": {
+      "security_dashboard": 86.9,
+      "threat_intelligence": 63.1,
+      "compliance_automation": 73.9,
+      "incident_response": 79.7,
+      "analytics_reporting": 41.5
+    },
+    "system_usage": {
+      "total_api_calls": 43892,
+      "data_processed_gb": 125.83,
+      "peak_concurrent_users": 48
+    }
+  },
+  {
+    "date": "2025-07-12",
+    "total_customers": 251,
+    "active_users": 206,
+    "new_signups": 4,
+    "customer_satisfaction": 4.2,
+    "support_tickets": {
+      "created": 10,
+      "resolved": 6,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 6396.37,
+      "mrr": 318870.78,
+      "churn_rate_percent": 1.42
+    },
+    "feature_adoption": {
+      "security_dashboard": 75.3,
+      "threat_intelligence": 78.4,
+      "compliance_automation": 63.3,
+      "incident_response": 75.0,
+      "analytics_reporting": 49.5
+    },
+    "system_usage": {
+      "total_api_calls": 36680,
+      "data_processed_gb": 110.14,
+      "peak_concurrent_users": 43
+    }
+  },
+  {
+    "date": "2025-07-11",
+    "total_customers": 537,
+    "active_users": 386,
+    "new_signups": 23,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 11,
+      "resolved": 33,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 21319.73,
+      "mrr": 277298.45,
+      "churn_rate_percent": 2.2
+    },
+    "feature_adoption": {
+      "security_dashboard": 79.1,
+      "threat_intelligence": 56.7,
+      "compliance_automation": 61.6,
+      "incident_response": 82.1,
+      "analytics_reporting": 37.6
+    },
+    "system_usage": {
+      "total_api_calls": 111518,
+      "data_processed_gb": 416.52,
+      "peak_concurrent_users": 159
+    }
+  },
+  {
+    "date": "2025-07-10",
+    "total_customers": 620,
+    "active_users": 598,
+    "new_signups": 15,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 33,
+      "resolved": 30,
+      "escalated": 5
+    },
+    "revenue_metrics": {
+      "daily_revenue": 16951.56,
+      "mrr": 183586.66,
+      "churn_rate_percent": 1.93
+    },
+    "feature_adoption": {
+      "security_dashboard": 93.1,
+      "threat_intelligence": 77.9,
+      "compliance_automation": 67.0,
+      "incident_response": 88.0,
+      "analytics_reporting": 45.8
+    },
+    "system_usage": {
+      "total_api_calls": 148482,
+      "data_processed_gb": 502.51,
+      "peak_concurrent_users": 93
+    }
+  },
+  {
+    "date": "2025-07-09",
+    "total_customers": 694,
+    "active_users": 594,
+    "new_signups": 14,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 23,
+      "resolved": 32,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 26241.98,
+      "mrr": 212797.54,
+      "churn_rate_percent": 2.06
+    },
+    "feature_adoption": {
+      "security_dashboard": 90.2,
+      "threat_intelligence": 77.2,
+      "compliance_automation": 74.7,
+      "incident_response": 81.2,
+      "analytics_reporting": 42.4
+    },
+    "system_usage": {
+      "total_api_calls": 119829,
+      "data_processed_gb": 184.74,
+      "peak_concurrent_users": 116
+    }
+  },
+  {
+    "date": "2025-07-08",
+    "total_customers": 497,
+    "active_users": 520,
+    "new_signups": 13,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 24,
+      "resolved": 16,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 33501.51,
+      "mrr": 250373.01,
+      "churn_rate_percent": 3.17
+    },
+    "feature_adoption": {
+      "security_dashboard": 94.7,
+      "threat_intelligence": 64.3,
+      "compliance_automation": 45.4,
+      "incident_response": 65.9,
+      "analytics_reporting": 62.9
+    },
+    "system_usage": {
+      "total_api_calls": 68917,
+      "data_processed_gb": 290.93,
+      "peak_concurrent_users": 100
+    }
+  },
+  {
+    "date": "2025-07-07",
+    "total_customers": 618,
+    "active_users": 595,
+    "new_signups": 9,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 23,
+      "resolved": 29,
+      "escalated": 5
+    },
+    "revenue_metrics": {
+      "daily_revenue": 46152.4,
+      "mrr": 261559.21,
+      "churn_rate_percent": 3.04
+    },
+    "feature_adoption": {
+      "security_dashboard": 91.5,
+      "threat_intelligence": 64.8,
+      "compliance_automation": 53.1,
+      "incident_response": 85.6,
+      "analytics_reporting": 39.7
+    },
+    "system_usage": {
+      "total_api_calls": 149918,
+      "data_processed_gb": 320.04,
+      "peak_concurrent_users": 168
+    }
+  },
+  {
+    "date": "2025-07-06",
+    "total_customers": 323,
+    "active_users": 227,
+    "new_signups": 8,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 15,
+      "resolved": 11,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 19681.71,
+      "mrr": 166982.74,
+      "churn_rate_percent": 2.27
+    },
+    "feature_adoption": {
+      "security_dashboard": 76.4,
+      "threat_intelligence": 64.9,
+      "compliance_automation": 56.0,
+      "incident_response": 67.1,
+      "analytics_reporting": 46.6
+    },
+    "system_usage": {
+      "total_api_calls": 77096,
+      "data_processed_gb": 106.34,
+      "peak_concurrent_users": 75
+    }
+  },
+  {
+    "date": "2025-07-05",
+    "total_customers": 153,
+    "active_users": 147,
+    "new_signups": 8,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 9,
+      "resolved": 5,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 7925.75,
+      "mrr": 247081.1,
+      "churn_rate_percent": 3.78
+    },
+    "feature_adoption": {
+      "security_dashboard": 75.6,
+      "threat_intelligence": 68.0,
+      "compliance_automation": 58.3,
+      "incident_response": 77.3,
+      "analytics_reporting": 46.8
+    },
+    "system_usage": {
+      "total_api_calls": 31694,
+      "data_processed_gb": 33.39,
+      "peak_concurrent_users": 50
+    }
+  },
+  {
+    "date": "2025-07-04",
+    "total_customers": 746,
+    "active_users": 672,
+    "new_signups": 10,
+    "customer_satisfaction": 4.2,
+    "support_tickets": {
+      "created": 25,
+      "resolved": 39,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 39713.27,
+      "mrr": 271681.49,
+      "churn_rate_percent": 4.43
+    },
+    "feature_adoption": {
+      "security_dashboard": 93.0,
+      "threat_intelligence": 62.4,
+      "compliance_automation": 63.3,
+      "incident_response": 65.3,
+      "analytics_reporting": 44.6
+    },
+    "system_usage": {
+      "total_api_calls": 60847,
+      "data_processed_gb": 296.55,
+      "peak_concurrent_users": 155
+    }
+  },
+  {
+    "date": "2025-07-03",
+    "total_customers": 523,
+    "active_users": 518,
+    "new_signups": 20,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 36,
+      "resolved": 30,
+      "escalated": 5
+    },
+    "revenue_metrics": {
+      "daily_revenue": 37540.76,
+      "mrr": 184947.34,
+      "churn_rate_percent": 1.32
+    },
+    "feature_adoption": {
+      "security_dashboard": 89.2,
+      "threat_intelligence": 63.8,
+      "compliance_automation": 59.0,
+      "incident_response": 84.9,
+      "analytics_reporting": 61.5
+    },
+    "system_usage": {
+      "total_api_calls": 118610,
+      "data_processed_gb": 359.04,
+      "peak_concurrent_users": 141
+    }
+  },
+  {
+    "date": "2025-07-02",
+    "total_customers": 706,
+    "active_users": 452,
+    "new_signups": 25,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 31,
+      "resolved": 12,
+      "escalated": 4
+    },
+    "revenue_metrics": {
+      "daily_revenue": 42861.87,
+      "mrr": 203845.35,
+      "churn_rate_percent": 4.17
+    },
+    "feature_adoption": {
+      "security_dashboard": 77.4,
+      "threat_intelligence": 57.7,
+      "compliance_automation": 63.3,
+      "incident_response": 88.7,
+      "analytics_reporting": 43.6
+    },
+    "system_usage": {
+      "total_api_calls": 160365,
+      "data_processed_gb": 274.12,
+      "peak_concurrent_users": 146
+    }
+  },
+  {
+    "date": "2025-07-01",
+    "total_customers": 642,
+    "active_users": 587,
+    "new_signups": 18,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 40,
+      "resolved": 27,
+      "escalated": 4
+    },
+    "revenue_metrics": {
+      "daily_revenue": 35002.26,
+      "mrr": 232537.39,
+      "churn_rate_percent": 4.11
+    },
+    "feature_adoption": {
+      "security_dashboard": 87.7,
+      "threat_intelligence": 73.3,
+      "compliance_automation": 68.5,
+      "incident_response": 86.6,
+      "analytics_reporting": 54.7
+    },
+    "system_usage": {
+      "total_api_calls": 146981,
+      "data_processed_gb": 360.11,
+      "peak_concurrent_users": 144
+    }
+  },
+  {
+    "date": "2025-06-30",
+    "total_customers": 535,
+    "active_users": 481,
+    "new_signups": 21,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 29,
+      "resolved": 23,
+      "escalated": 5
+    },
+    "revenue_metrics": {
+      "daily_revenue": 42752.21,
+      "mrr": 241889.12,
+      "churn_rate_percent": 4.3
+    },
+    "feature_adoption": {
+      "security_dashboard": 93.9,
+      "threat_intelligence": 75.2,
+      "compliance_automation": 66.8,
+      "incident_response": 82.6,
+      "analytics_reporting": 37.7
+    },
+    "system_usage": {
+      "total_api_calls": 117133,
+      "data_processed_gb": 182.79,
+      "peak_concurrent_users": 174
+    }
+  },
+  {
+    "date": "2025-06-29",
+    "total_customers": 201,
+    "active_users": 185,
+    "new_signups": 7,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 6,
+      "resolved": 12,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 7394.29,
+      "mrr": 156792.76,
+      "churn_rate_percent": 1.81
+    },
+    "feature_adoption": {
+      "security_dashboard": 76.5,
+      "threat_intelligence": 69.0,
+      "compliance_automation": 57.3,
+      "incident_response": 87.7,
+      "analytics_reporting": 55.1
+    },
+    "system_usage": {
+      "total_api_calls": 25683,
+      "data_processed_gb": 82.54,
+      "peak_concurrent_users": 74
+    }
+  },
+  {
+    "date": "2025-06-28",
+    "total_customers": 298,
+    "active_users": 309,
+    "new_signups": 3,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 10,
+      "resolved": 5,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 18315.29,
+      "mrr": 282746.95,
+      "churn_rate_percent": 4.08
+    },
+    "feature_adoption": {
+      "security_dashboard": 80.2,
+      "threat_intelligence": 66.4,
+      "compliance_automation": 51.4,
+      "incident_response": 89.9,
+      "analytics_reporting": 55.2
+    },
+    "system_usage": {
+      "total_api_calls": 45806,
+      "data_processed_gb": 183.78,
+      "peak_concurrent_users": 63
+    }
+  },
+  {
+    "date": "2025-06-27",
+    "total_customers": 580,
+    "active_users": 611,
+    "new_signups": 9,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 28,
+      "resolved": 40,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 40694.23,
+      "mrr": 210830.79,
+      "churn_rate_percent": 3.24
+    },
+    "feature_adoption": {
+      "security_dashboard": 88.5,
+      "threat_intelligence": 62.5,
+      "compliance_automation": 71.9,
+      "incident_response": 81.0,
+      "analytics_reporting": 35.4
+    },
+    "system_usage": {
+      "total_api_calls": 130929,
+      "data_processed_gb": 234.37,
+      "peak_concurrent_users": 96
+    }
+  },
+  {
+    "date": "2025-06-26",
+    "total_customers": 675,
+    "active_users": 470,
+    "new_signups": 15,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 27,
+      "resolved": 44,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 50737.74,
+      "mrr": 345635.03,
+      "churn_rate_percent": 2.52
+    },
+    "feature_adoption": {
+      "security_dashboard": 75.4,
+      "threat_intelligence": 75.4,
+      "compliance_automation": 63.0,
+      "incident_response": 68.4,
+      "analytics_reporting": 50.3
+    },
+    "system_usage": {
+      "total_api_calls": 141705,
+      "data_processed_gb": 466.59,
+      "peak_concurrent_users": 129
+    }
+  },
+  {
+    "date": "2025-06-25",
+    "total_customers": 712,
+    "active_users": 536,
+    "new_signups": 20,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 14,
+      "resolved": 29,
+      "escalated": 4
+    },
+    "revenue_metrics": {
+      "daily_revenue": 25729.52,
+      "mrr": 254257.13,
+      "churn_rate_percent": 3.69
+    },
+    "feature_adoption": {
+      "security_dashboard": 87.1,
+      "threat_intelligence": 79.9,
+      "compliance_automation": 55.9,
+      "incident_response": 72.7,
+      "analytics_reporting": 41.7
+    },
+    "system_usage": {
+      "total_api_calls": 168749,
+      "data_processed_gb": 201.83,
+      "peak_concurrent_users": 225
+    }
+  },
+  {
+    "date": "2025-06-24",
+    "total_customers": 625,
+    "active_users": 521,
+    "new_signups": 17,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 27,
+      "resolved": 17,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 24039.57,
+      "mrr": 334867.45,
+      "churn_rate_percent": 3.14
+    },
+    "feature_adoption": {
+      "security_dashboard": 81.9,
+      "threat_intelligence": 60.5,
+      "compliance_automation": 48.3,
+      "incident_response": 69.2,
+      "analytics_reporting": 43.6
+    },
+    "system_usage": {
+      "total_api_calls": 124797,
+      "data_processed_gb": 128.8,
+      "peak_concurrent_users": 68
+    }
+  },
+  {
+    "date": "2025-06-23",
+    "total_customers": 497,
+    "active_users": 534,
+    "new_signups": 5,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 19,
+      "resolved": 11,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 32044.77,
+      "mrr": 335485.7,
+      "churn_rate_percent": 4.36
+    },
+    "feature_adoption": {
+      "security_dashboard": 80.9,
+      "threat_intelligence": 61.1,
+      "compliance_automation": 45.7,
+      "incident_response": 85.4,
+      "analytics_reporting": 49.9
+    },
+    "system_usage": {
+      "total_api_calls": 66023,
+      "data_processed_gb": 128.42,
+      "peak_concurrent_users": 78
+    }
+  },
+  {
+    "date": "2025-06-22",
+    "total_customers": 273,
+    "active_users": 277,
+    "new_signups": 7,
+    "customer_satisfaction": 4.9,
+    "support_tickets": {
+      "created": 18,
+      "resolved": 13,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 14691.8,
+      "mrr": 271747.3,
+      "churn_rate_percent": 1.64
+    },
+    "feature_adoption": {
+      "security_dashboard": 84.2,
+      "threat_intelligence": 58.0,
+      "compliance_automation": 63.5,
+      "incident_response": 71.4,
+      "analytics_reporting": 36.6
+    },
+    "system_usage": {
+      "total_api_calls": 62421,
+      "data_processed_gb": 230.0,
+      "peak_concurrent_users": 100
+    }
+  },
+  {
+    "date": "2025-06-21",
+    "total_customers": 271,
+    "active_users": 326,
+    "new_signups": 7,
+    "customer_satisfaction": 4.2,
+    "support_tickets": {
+      "created": 8,
+      "resolved": 14,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 22681.14,
+      "mrr": 344926.56,
+      "churn_rate_percent": 3.35
+    },
+    "feature_adoption": {
+      "security_dashboard": 81.4,
+      "threat_intelligence": 62.7,
+      "compliance_automation": 55.4,
+      "incident_response": 72.7,
+      "analytics_reporting": 40.5
+    },
+    "system_usage": {
+      "total_api_calls": 55671,
+      "data_processed_gb": 287.08,
+      "peak_concurrent_users": 91
+    }
+  },
+  {
+    "date": "2025-06-20",
+    "total_customers": 624,
+    "active_users": 459,
+    "new_signups": 6,
+    "customer_satisfaction": 4.2,
+    "support_tickets": {
+      "created": 25,
+      "resolved": 20,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 17091.3,
+      "mrr": 194849.37,
+      "churn_rate_percent": 4.66
+    },
+    "feature_adoption": {
+      "security_dashboard": 93.7,
+      "threat_intelligence": 77.1,
+      "compliance_automation": 57.6,
+      "incident_response": 78.1,
+      "analytics_reporting": 61.4
+    },
+    "system_usage": {
+      "total_api_calls": 75429,
+      "data_processed_gb": 113.75,
+      "peak_concurrent_users": 203
+    }
+  },
+  {
+    "date": "2025-06-19",
+    "total_customers": 503,
+    "active_users": 436,
+    "new_signups": 7,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 36,
+      "resolved": 8,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 22131.38,
+      "mrr": 205958.16,
+      "churn_rate_percent": 3.67
+    },
+    "feature_adoption": {
+      "security_dashboard": 76.4,
+      "threat_intelligence": 82.4,
+      "compliance_automation": 62.2,
+      "incident_response": 73.6,
+      "analytics_reporting": 39.4
+    },
+    "system_usage": {
+      "total_api_calls": 55186,
+      "data_processed_gb": 473.1,
+      "peak_concurrent_users": 58
+    }
+  },
+  {
+    "date": "2025-06-18",
+    "total_customers": 580,
+    "active_users": 575,
+    "new_signups": 17,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 38,
+      "resolved": 15,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 16902.58,
+      "mrr": 320085.93,
+      "churn_rate_percent": 1.24
+    },
+    "feature_adoption": {
+      "security_dashboard": 94.5,
+      "threat_intelligence": 68.7,
+      "compliance_automation": 52.4,
+      "incident_response": 80.2,
+      "analytics_reporting": 53.1
+    },
+    "system_usage": {
+      "total_api_calls": 95243,
+      "data_processed_gb": 127.35,
+      "peak_concurrent_users": 172
+    }
+  },
+  {
+    "date": "2025-06-17",
+    "total_customers": 419,
+    "active_users": 441,
+    "new_signups": 18,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 19,
+      "resolved": 22,
+      "escalated": 4
+    },
+    "revenue_metrics": {
+      "daily_revenue": 14160.05,
+      "mrr": 242982.4,
+      "churn_rate_percent": 1.56
+    },
+    "feature_adoption": {
+      "security_dashboard": 92.9,
+      "threat_intelligence": 70.5,
+      "compliance_automation": 71.1,
+      "incident_response": 87.0,
+      "analytics_reporting": 53.7
+    },
+    "system_usage": {
+      "total_api_calls": 95364,
+      "data_processed_gb": 120.25,
+      "peak_concurrent_users": 81
+    }
+  },
+  {
+    "date": "2025-06-16",
+    "total_customers": 596,
+    "active_users": 531,
+    "new_signups": 19,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 32,
+      "resolved": 8,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 32786.42,
+      "mrr": 316271.95,
+      "churn_rate_percent": 4.18
+    },
+    "feature_adoption": {
+      "security_dashboard": 87.6,
+      "threat_intelligence": 63.7,
+      "compliance_automation": 67.4,
+      "incident_response": 73.4,
+      "analytics_reporting": 40.8
+    },
+    "system_usage": {
+      "total_api_calls": 129119,
+      "data_processed_gb": 396.27,
+      "peak_concurrent_users": 54
+    }
+  },
+  {
+    "date": "2025-06-15",
+    "total_customers": 218,
+    "active_users": 252,
+    "new_signups": 6,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 12,
+      "resolved": 16,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 17667.56,
+      "mrr": 220876.16,
+      "churn_rate_percent": 4.37
+    },
+    "feature_adoption": {
+      "security_dashboard": 80.8,
+      "threat_intelligence": 83.7,
+      "compliance_automation": 57.6,
+      "incident_response": 69.0,
+      "analytics_reporting": 51.4
+    },
+    "system_usage": {
+      "total_api_calls": 44296,
+      "data_processed_gb": 207.95,
+      "peak_concurrent_users": 55
+    }
+  },
+  {
+    "date": "2025-06-14",
+    "total_customers": 197,
+    "active_users": 165,
+    "new_signups": 7,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 14,
+      "resolved": 10,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 10774.47,
+      "mrr": 179853.37,
+      "churn_rate_percent": 2.4
+    },
+    "feature_adoption": {
+      "security_dashboard": 79.6,
+      "threat_intelligence": 74.5,
+      "compliance_automation": 64.4,
+      "incident_response": 74.1,
+      "analytics_reporting": 36.4
+    },
+    "system_usage": {
+      "total_api_calls": 49412,
+      "data_processed_gb": 204.74,
+      "peak_concurrent_users": 83
+    }
+  },
+  {
+    "date": "2025-06-13",
+    "total_customers": 523,
+    "active_users": 516,
+    "new_signups": 13,
+    "customer_satisfaction": 4.1,
+    "support_tickets": {
+      "created": 42,
+      "resolved": 18,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 20803.96,
+      "mrr": 310687.53,
+      "churn_rate_percent": 1.33
+    },
+    "feature_adoption": {
+      "security_dashboard": 77.7,
+      "threat_intelligence": 73.1,
+      "compliance_automation": 46.9,
+      "incident_response": 81.9,
+      "analytics_reporting": 50.2
+    },
+    "system_usage": {
+      "total_api_calls": 117162,
+      "data_processed_gb": 492.47,
+      "peak_concurrent_users": 136
+    }
+  },
+  {
+    "date": "2025-06-12",
+    "total_customers": 590,
+    "active_users": 685,
+    "new_signups": 10,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 17,
+      "resolved": 19,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 39441.81,
+      "mrr": 314488.61,
+      "churn_rate_percent": 2.55
+    },
+    "feature_adoption": {
+      "security_dashboard": 88.1,
+      "threat_intelligence": 57.9,
+      "compliance_automation": 74.4,
+      "incident_response": 68.0,
+      "analytics_reporting": 43.4
+    },
+    "system_usage": {
+      "total_api_calls": 115032,
+      "data_processed_gb": 421.45,
+      "peak_concurrent_users": 136
+    }
+  },
+  {
+    "date": "2025-06-11",
+    "total_customers": 415,
+    "active_users": 394,
+    "new_signups": 19,
+    "customer_satisfaction": 4.7,
+    "support_tickets": {
+      "created": 14,
+      "resolved": 14,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 34322.65,
+      "mrr": 324324.7,
+      "churn_rate_percent": 1.58
+    },
+    "feature_adoption": {
+      "security_dashboard": 88.4,
+      "threat_intelligence": 65.2,
+      "compliance_automation": 63.1,
+      "incident_response": 80.3,
+      "analytics_reporting": 59.5
+    },
+    "system_usage": {
+      "total_api_calls": 44702,
+      "data_processed_gb": 219.01,
+      "peak_concurrent_users": 129
+    }
+  },
+  {
+    "date": "2025-06-10",
+    "total_customers": 724,
+    "active_users": 654,
+    "new_signups": 22,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 43,
+      "resolved": 24,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 31739.92,
+      "mrr": 313342.25,
+      "churn_rate_percent": 4.64
+    },
+    "feature_adoption": {
+      "security_dashboard": 87.3,
+      "threat_intelligence": 67.2,
+      "compliance_automation": 73.8,
+      "incident_response": 70.7,
+      "analytics_reporting": 51.9
+    },
+    "system_usage": {
+      "total_api_calls": 86033,
+      "data_processed_gb": 253.35,
+      "peak_concurrent_users": 95
+    }
+  },
+  {
+    "date": "2025-06-09",
+    "total_customers": 558,
+    "active_users": 451,
+    "new_signups": 15,
+    "customer_satisfaction": 4.1,
+    "support_tickets": {
+      "created": 26,
+      "resolved": 10,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 32048.39,
+      "mrr": 338084.53,
+      "churn_rate_percent": 2.09
+    },
+    "feature_adoption": {
+      "security_dashboard": 77.6,
+      "threat_intelligence": 68.8,
+      "compliance_automation": 65.2,
+      "incident_response": 72.7,
+      "analytics_reporting": 45.1
+    },
+    "system_usage": {
+      "total_api_calls": 142616,
+      "data_processed_gb": 116.8,
+      "peak_concurrent_users": 207
+    }
+  },
+  {
+    "date": "2025-06-08",
+    "total_customers": 234,
+    "active_users": 268,
+    "new_signups": 12,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 6,
+      "resolved": 12,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 15998.89,
+      "mrr": 223437.69,
+      "churn_rate_percent": 2.75
+    },
+    "feature_adoption": {
+      "security_dashboard": 87.7,
+      "threat_intelligence": 56.1,
+      "compliance_automation": 47.5,
+      "incident_response": 70.4,
+      "analytics_reporting": 63.6
+    },
+    "system_usage": {
+      "total_api_calls": 26976,
+      "data_processed_gb": 163.82,
+      "peak_concurrent_users": 63
+    }
+  },
+  {
+    "date": "2025-06-07",
+    "total_customers": 229,
+    "active_users": 169,
+    "new_signups": 2,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 8,
+      "resolved": 13,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 11040.66,
+      "mrr": 203712.16,
+      "churn_rate_percent": 2.0
+    },
+    "feature_adoption": {
+      "security_dashboard": 81.9,
+      "threat_intelligence": 58.3,
+      "compliance_automation": 68.9,
+      "incident_response": 77.3,
+      "analytics_reporting": 47.2
+    },
+    "system_usage": {
+      "total_api_calls": 36008,
+      "data_processed_gb": 41.96,
+      "peak_concurrent_users": 32
+    }
+  },
+  {
+    "date": "2025-06-06",
+    "total_customers": 533,
+    "active_users": 565,
+    "new_signups": 11,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 15,
+      "resolved": 15,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 27945.26,
+      "mrr": 285489.01,
+      "churn_rate_percent": 1.88
+    },
+    "feature_adoption": {
+      "security_dashboard": 83.9,
+      "threat_intelligence": 81.6,
+      "compliance_automation": 51.7,
+      "incident_response": 90.0,
+      "analytics_reporting": 52.4
+    },
+    "system_usage": {
+      "total_api_calls": 109016,
+      "data_processed_gb": 134.38,
+      "peak_concurrent_users": 119
+    }
+  },
+  {
+    "date": "2025-06-05",
+    "total_customers": 467,
+    "active_users": 485,
+    "new_signups": 20,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 16,
+      "resolved": 26,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 32168.03,
+      "mrr": 274205.37,
+      "churn_rate_percent": 1.78
+    },
+    "feature_adoption": {
+      "security_dashboard": 86.2,
+      "threat_intelligence": 72.4,
+      "compliance_automation": 45.6,
+      "incident_response": 70.7,
+      "analytics_reporting": 45.0
+    },
+    "system_usage": {
+      "total_api_calls": 103557,
+      "data_processed_gb": 251.7,
+      "peak_concurrent_users": 56
+    }
+  },
+  {
+    "date": "2025-06-04",
+    "total_customers": 456,
+    "active_users": 318,
+    "new_signups": 8,
+    "customer_satisfaction": 4.1,
+    "support_tickets": {
+      "created": 13,
+      "resolved": 16,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 23836.55,
+      "mrr": 339744.84,
+      "churn_rate_percent": 1.75
+    },
+    "feature_adoption": {
+      "security_dashboard": 76.2,
+      "threat_intelligence": 65.7,
+      "compliance_automation": 48.8,
+      "incident_response": 67.3,
+      "analytics_reporting": 40.9
+    },
+    "system_usage": {
+      "total_api_calls": 121450,
+      "data_processed_gb": 367.66,
+      "peak_concurrent_users": 129
+    }
+  },
+  {
+    "date": "2025-06-03",
+    "total_customers": 424,
+    "active_users": 393,
+    "new_signups": 16,
+    "customer_satisfaction": 4.2,
+    "support_tickets": {
+      "created": 14,
+      "resolved": 22,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 37869.58,
+      "mrr": 200488.64,
+      "churn_rate_percent": 1.67
+    },
+    "feature_adoption": {
+      "security_dashboard": 83.1,
+      "threat_intelligence": 82.6,
+      "compliance_automation": 47.3,
+      "incident_response": 69.1,
+      "analytics_reporting": 57.9
+    },
+    "system_usage": {
+      "total_api_calls": 73536,
+      "data_processed_gb": 258.0,
+      "peak_concurrent_users": 49
+    }
+  },
+  {
+    "date": "2025-06-02",
+    "total_customers": 610,
+    "active_users": 514,
+    "new_signups": 16,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 27,
+      "resolved": 14,
+      "escalated": 5
+    },
+    "revenue_metrics": {
+      "daily_revenue": 28717.24,
+      "mrr": 268029.22,
+      "churn_rate_percent": 1.91
+    },
+    "feature_adoption": {
+      "security_dashboard": 91.3,
+      "threat_intelligence": 84.3,
+      "compliance_automation": 70.2,
+      "incident_response": 78.3,
+      "analytics_reporting": 35.4
+    },
+    "system_usage": {
+      "total_api_calls": 122734,
+      "data_processed_gb": 240.33,
+      "peak_concurrent_users": 90
+    }
+  },
+  {
+    "date": "2025-06-01",
+    "total_customers": 272,
+    "active_users": 263,
+    "new_signups": 5,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 18,
+      "resolved": 10,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 18475.41,
+      "mrr": 194457.91,
+      "churn_rate_percent": 2.95
+    },
+    "feature_adoption": {
+      "security_dashboard": 75.8,
+      "threat_intelligence": 62.1,
+      "compliance_automation": 66.7,
+      "incident_response": 67.4,
+      "analytics_reporting": 60.7
+    },
+    "system_usage": {
+      "total_api_calls": 39978,
+      "data_processed_gb": 79.67,
+      "peak_concurrent_users": 43
+    }
+  },
+  {
+    "date": "2025-05-31",
+    "total_customers": 220,
+    "active_users": 213,
+    "new_signups": 2,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 16,
+      "resolved": 6,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 9797.05,
+      "mrr": 269455.58,
+      "churn_rate_percent": 2.35
+    },
+    "feature_adoption": {
+      "security_dashboard": 82.3,
+      "threat_intelligence": 60.4,
+      "compliance_automation": 55.8,
+      "incident_response": 65.2,
+      "analytics_reporting": 50.1
+    },
+    "system_usage": {
+      "total_api_calls": 35020,
+      "data_processed_gb": 79.33,
+      "peak_concurrent_users": 55
+    }
+  },
+  {
+    "date": "2025-05-30",
+    "total_customers": 584,
+    "active_users": 636,
+    "new_signups": 29,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 13,
+      "resolved": 20,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 26891.56,
+      "mrr": 254330.36,
+      "churn_rate_percent": 2.29
+    },
+    "feature_adoption": {
+      "security_dashboard": 82.7,
+      "threat_intelligence": 81.8,
+      "compliance_automation": 60.1,
+      "incident_response": 76.4,
+      "analytics_reporting": 46.7
+    },
+    "system_usage": {
+      "total_api_calls": 148373,
+      "data_processed_gb": 348.86,
+      "peak_concurrent_users": 145
+    }
+  },
+  {
+    "date": "2025-05-29",
+    "total_customers": 578,
+    "active_users": 414,
+    "new_signups": 10,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 22,
+      "resolved": 33,
+      "escalated": 2
+    },
+    "revenue_metrics": {
+      "daily_revenue": 32749.13,
+      "mrr": 160654.39,
+      "churn_rate_percent": 4.37
+    },
+    "feature_adoption": {
+      "security_dashboard": 85.9,
+      "threat_intelligence": 57.6,
+      "compliance_automation": 45.1,
+      "incident_response": 83.7,
+      "analytics_reporting": 55.9
+    },
+    "system_usage": {
+      "total_api_calls": 89325,
+      "data_processed_gb": 482.61,
+      "peak_concurrent_users": 68
+    }
+  },
+  {
+    "date": "2025-05-28",
+    "total_customers": 704,
+    "active_users": 536,
+    "new_signups": 18,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 14,
+      "resolved": 15,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 39897.25,
+      "mrr": 308202.65,
+      "churn_rate_percent": 2.55
+    },
+    "feature_adoption": {
+      "security_dashboard": 84.9,
+      "threat_intelligence": 66.0,
+      "compliance_automation": 49.8,
+      "incident_response": 77.5,
+      "analytics_reporting": 41.8
+    },
+    "system_usage": {
+      "total_api_calls": 60335,
+      "data_processed_gb": 172.61,
+      "peak_concurrent_users": 198
+    }
+  },
+  {
+    "date": "2025-05-27",
+    "total_customers": 692,
+    "active_users": 549,
+    "new_signups": 5,
+    "customer_satisfaction": 4.3,
+    "support_tickets": {
+      "created": 16,
+      "resolved": 22,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 34604.34,
+      "mrr": 332340.71,
+      "churn_rate_percent": 2.5
+    },
+    "feature_adoption": {
+      "security_dashboard": 87.2,
+      "threat_intelligence": 55.6,
+      "compliance_automation": 73.2,
+      "incident_response": 85.5,
+      "analytics_reporting": 60.5
+    },
+    "system_usage": {
+      "total_api_calls": 109327,
+      "data_processed_gb": 489.91,
+      "peak_concurrent_users": 193
+    }
+  },
+  {
+    "date": "2025-05-26",
+    "total_customers": 522,
+    "active_users": 532,
+    "new_signups": 22,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 21,
+      "resolved": 14,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 25504.47,
+      "mrr": 251469.61,
+      "churn_rate_percent": 2.9
+    },
+    "feature_adoption": {
+      "security_dashboard": 92.1,
+      "threat_intelligence": 84.9,
+      "compliance_automation": 61.5,
+      "incident_response": 73.3,
+      "analytics_reporting": 56.3
+    },
+    "system_usage": {
+      "total_api_calls": 52515,
+      "data_processed_gb": 391.06,
+      "peak_concurrent_users": 92
+    }
+  },
+  {
+    "date": "2025-05-25",
+    "total_customers": 262,
+    "active_users": 179,
+    "new_signups": 7,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 15,
+      "resolved": 11,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 6707.43,
+      "mrr": 191670.45,
+      "churn_rate_percent": 3.54
+    },
+    "feature_adoption": {
+      "security_dashboard": 76.8,
+      "threat_intelligence": 68.3,
+      "compliance_automation": 61.2,
+      "incident_response": 74.0,
+      "analytics_reporting": 63.0
+    },
+    "system_usage": {
+      "total_api_calls": 50427,
+      "data_processed_gb": 128.51,
+      "peak_concurrent_users": 57
+    }
+  },
+  {
+    "date": "2025-05-24",
+    "total_customers": 177,
+    "active_users": 114,
+    "new_signups": 4,
+    "customer_satisfaction": 4.9,
+    "support_tickets": {
+      "created": 8,
+      "resolved": 11,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 8107.29,
+      "mrr": 196518.74,
+      "churn_rate_percent": 1.77
+    },
+    "feature_adoption": {
+      "security_dashboard": 76.3,
+      "threat_intelligence": 70.2,
+      "compliance_automation": 55.9,
+      "incident_response": 82.8,
+      "analytics_reporting": 64.7
+    },
+    "system_usage": {
+      "total_api_calls": 21786,
+      "data_processed_gb": 136.73,
+      "peak_concurrent_users": 41
+    }
+  },
+  {
+    "date": "2025-05-23",
+    "total_customers": 473,
+    "active_users": 441,
+    "new_signups": 21,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 37,
+      "resolved": 24,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 45015.13,
+      "mrr": 335410.74,
+      "churn_rate_percent": 3.81
+    },
+    "feature_adoption": {
+      "security_dashboard": 75.6,
+      "threat_intelligence": 84.7,
+      "compliance_automation": 59.4,
+      "incident_response": 67.2,
+      "analytics_reporting": 35.7
+    },
+    "system_usage": {
+      "total_api_calls": 114244,
+      "data_processed_gb": 391.4,
+      "peak_concurrent_users": 153
+    }
+  },
+  {
+    "date": "2025-05-22",
+    "total_customers": 459,
+    "active_users": 380,
+    "new_signups": 4,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 15,
+      "resolved": 18,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 32668.92,
+      "mrr": 334842.31,
+      "churn_rate_percent": 1.38
+    },
+    "feature_adoption": {
+      "security_dashboard": 93.2,
+      "threat_intelligence": 81.3,
+      "compliance_automation": 45.5,
+      "incident_response": 71.6,
+      "analytics_reporting": 63.9
+    },
+    "system_usage": {
+      "total_api_calls": 78443,
+      "data_processed_gb": 295.95,
+      "peak_concurrent_users": 68
+    }
+  },
+  {
+    "date": "2025-05-21",
+    "total_customers": 649,
+    "active_users": 507,
+    "new_signups": 14,
+    "customer_satisfaction": 4.2,
+    "support_tickets": {
+      "created": 25,
+      "resolved": 24,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 43386.97,
+      "mrr": 203964.61,
+      "churn_rate_percent": 2.07
+    },
+    "feature_adoption": {
+      "security_dashboard": 86.1,
+      "threat_intelligence": 67.6,
+      "compliance_automation": 70.3,
+      "incident_response": 76.6,
+      "analytics_reporting": 62.8
+    },
+    "system_usage": {
+      "total_api_calls": 102043,
+      "data_processed_gb": 125.65,
+      "peak_concurrent_users": 181
+    }
+  },
+  {
+    "date": "2025-05-20",
+    "total_customers": 496,
+    "active_users": 384,
+    "new_signups": 8,
+    "customer_satisfaction": 4.9,
+    "support_tickets": {
+      "created": 12,
+      "resolved": 33,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 26011.21,
+      "mrr": 223925.53,
+      "churn_rate_percent": 4.44
+    },
+    "feature_adoption": {
+      "security_dashboard": 84.8,
+      "threat_intelligence": 57.2,
+      "compliance_automation": 45.9,
+      "incident_response": 84.0,
+      "analytics_reporting": 60.9
+    },
+    "system_usage": {
+      "total_api_calls": 128772,
+      "data_processed_gb": 210.73,
+      "peak_concurrent_users": 182
+    }
+  },
+  {
+    "date": "2025-05-19",
+    "total_customers": 652,
+    "active_users": 618,
+    "new_signups": 16,
+    "customer_satisfaction": 4.9,
+    "support_tickets": {
+      "created": 44,
+      "resolved": 11,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 29491.6,
+      "mrr": 325097.85,
+      "churn_rate_percent": 4.12
+    },
+    "feature_adoption": {
+      "security_dashboard": 87.7,
+      "threat_intelligence": 69.4,
+      "compliance_automation": 74.2,
+      "incident_response": 78.1,
+      "analytics_reporting": 63.4
+    },
+    "system_usage": {
+      "total_api_calls": 140156,
+      "data_processed_gb": 165.56,
+      "peak_concurrent_users": 214
+    }
+  },
+  {
+    "date": "2025-05-18",
+    "total_customers": 173,
+    "active_users": 181,
+    "new_signups": 6,
+    "customer_satisfaction": 4.4,
+    "support_tickets": {
+      "created": 4,
+      "resolved": 9,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 9834.92,
+      "mrr": 233447.64,
+      "churn_rate_percent": 3.4
+    },
+    "feature_adoption": {
+      "security_dashboard": 84.5,
+      "threat_intelligence": 61.0,
+      "compliance_automation": 64.7,
+      "incident_response": 72.7,
+      "analytics_reporting": 52.9
+    },
+    "system_usage": {
+      "total_api_calls": 34659,
+      "data_processed_gb": 60.04,
+      "peak_concurrent_users": 63
+    }
+  },
+  {
+    "date": "2025-05-17",
+    "total_customers": 332,
+    "active_users": 244,
+    "new_signups": 2,
+    "customer_satisfaction": 4.5,
+    "support_tickets": {
+      "created": 20,
+      "resolved": 9,
+      "escalated": 1
+    },
+    "revenue_metrics": {
+      "daily_revenue": 21823.64,
+      "mrr": 154004.42,
+      "churn_rate_percent": 2.53
+    },
+    "feature_adoption": {
+      "security_dashboard": 89.8,
+      "threat_intelligence": 57.6,
+      "compliance_automation": 73.6,
+      "incident_response": 74.7,
+      "analytics_reporting": 42.8
+    },
+    "system_usage": {
+      "total_api_calls": 81553,
+      "data_processed_gb": 84.31,
+      "peak_concurrent_users": 32
+    }
+  },
+  {
+    "date": "2025-05-16",
+    "total_customers": 743,
+    "active_users": 549,
+    "new_signups": 12,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 15,
+      "resolved": 15,
+      "escalated": 0
+    },
+    "revenue_metrics": {
+      "daily_revenue": 26729.88,
+      "mrr": 234820.39,
+      "churn_rate_percent": 2.06
+    },
+    "feature_adoption": {
+      "security_dashboard": 91.5,
+      "threat_intelligence": 74.3,
+      "compliance_automation": 57.2,
+      "incident_response": 72.2,
+      "analytics_reporting": 51.6
+    },
+    "system_usage": {
+      "total_api_calls": 66798,
+      "data_processed_gb": 558.66,
+      "peak_concurrent_users": 212
+    }
+  },
+  {
+    "date": "2025-05-15",
+    "total_customers": 521,
+    "active_users": 525,
+    "new_signups": 21,
+    "customer_satisfaction": 4.8,
+    "support_tickets": {
+      "created": 10,
+      "resolved": 13,
+      "escalated": 5
+    },
+    "revenue_metrics": {
+      "daily_revenue": 40646.66,
+      "mrr": 238055.06,
+      "churn_rate_percent": 3.05
+    },
+    "feature_adoption": {
+      "security_dashboard": 83.8,
+      "threat_intelligence": 78.3,
+      "compliance_automation": 48.5,
+      "incident_response": 74.5,
+      "analytics_reporting": 40.9
+    },
+    "system_usage": {
+      "total_api_calls": 124637,
+      "data_processed_gb": 259.02,
+      "peak_concurrent_users": 143
+    }
+  },
+  {
+    "date": "2025-05-14",
+    "total_customers": 553,
+    "active_users": 486,
+    "new_signups": 17,
+    "customer_satisfaction": 4.6,
+    "support_tickets": {
+      "created": 13,
+      "resolved": 26,
+      "escalated": 3
+    },
+    "revenue_metrics": {
+      "daily_revenue": 22740.55,
+      "mrr": 162178.67,
+      "churn_rate_percent": 3.07
+    },
+    "feature_adoption": {
+      "security_dashboard": 83.2,
+      "threat_intelligence": 75.4,
+      "compliance_automation": 67.9,
+      "incident_response": 76.0,
+      "analytics_reporting": 56.7
+    },
+    "system_usage": {
+      "total_api_calls": 100844,
+      "data_processed_gb": 174.56,
+      "peak_concurrent_users": 64
+    }
+  }
+]

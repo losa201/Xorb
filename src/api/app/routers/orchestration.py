@@ -14,10 +14,11 @@ from pydantic import BaseModel, Field
 from ..security import (
     SecurityContext,
     get_security_context,
-    require_orchestrator,
+    require_orchestration,
     require_permission,
     Permission
 )
+from ..auth.rbac_dependencies import require_permission as rbac_require_permission
 
 
 class TaskType(str, Enum):
@@ -255,7 +256,7 @@ async def list_tasks(
 async def create_task(
     request: CreateTaskRequest,
     background_tasks: BackgroundTasks,
-    context: SecurityContext = Depends(require_orchestrator)
+    context: SecurityContext = Depends(require_orchestration)
 ) -> Task:
     """Create and orchestrate a new task"""
     
@@ -316,7 +317,7 @@ async def get_task(
 async def update_task(
     task_id: str,
     request: UpdateTaskRequest,
-    context: SecurityContext = Depends(require_permission(Permission.TASK_PRIORITY))
+    current_user = Depends(rbac_require_permission("job:priority"))
 ) -> Task:
     """Update task configuration"""
     
@@ -439,7 +440,7 @@ async def get_orchestration_metrics(
 @router.post("/optimize", response_model=OrchestrationDecision)
 async def optimize_orchestration(
     request: IntelligentSchedulingRequest,
-    context: SecurityContext = Depends(require_orchestrator)
+    context: SecurityContext = Depends(require_orchestration)
 ) -> OrchestrationDecision:
     """Get AI-optimized orchestration decisions"""
     
@@ -497,7 +498,7 @@ async def optimize_orchestration(
 @router.post("/tasks/{task_id}/pause")
 async def pause_task(
     task_id: str,
-    context: SecurityContext = Depends(require_orchestrator)
+    context: SecurityContext = Depends(require_orchestration)
 ) -> Dict[str, str]:
     """Pause a running task"""
     
@@ -520,7 +521,7 @@ async def pause_task(
 async def resume_task(
     task_id: str,
     background_tasks: BackgroundTasks,
-    context: SecurityContext = Depends(require_orchestrator)
+    context: SecurityContext = Depends(require_orchestration)
 ) -> Dict[str, str]:
     """Resume a paused task"""
     

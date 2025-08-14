@@ -1,0 +1,512 @@
+---
+# Lightweight XORB Control Plane for 16 vCPU / 32GB System
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xorb-control-config-optimized
+  namespace: cyber-range-control
+data:
+  config.yaml: |
+    cyber_range:
+      mode: "staging"
+      exercise_duration: "2h"  # Reduced from 4h
+      auto_reset: true
+      kill_switch_enabled: true
+      
+    optimization:
+      resource_constrained: true
+      max_concurrent_campaigns: 1
+      lightweight_monitoring: true
+      reduced_logging: true
+      
+    security:
+      network_isolation: true
+      traffic_monitoring: true
+      malware_detection: false  # Disabled to save resources
+      geographic_restrictions: false  # Disabled to save resources
+      
+    logging:
+      level: "WARN"  # Reduced from INFO
+      audit_enabled: true
+      retention_days: 7  # Reduced from 30
+      
+    teams:
+      red_team:
+        namespace: "cyber-range-red"
+        max_concurrent_attacks: 3  # Reduced from 10
+        rate_limiting: true
+        lightweight_tools: true
+      blue_team:
+        namespace: "cyber-range-blue"
+        monitoring_enabled: true
+        lightweight_siem: true
+        alert_thresholds:
+          critical: 3  # Reduced from 5
+          warning: 10  # Reduced from 20
+          
+    targets:
+      auto_restore: true
+      snapshot_interval: "30m"  # Increased from 15m
+      backup_retention: "3d"  # Reduced from 7d
+      max_targets: 3  # Limited targets
+      
+    scenarios:
+      available:
+        - "web_app_pentest"  # Only essential scenarios
+        - "network_basic"
+      default_scenario: "web_app_pentest"
+---
+# Lightweight XORB Orchestrator
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xorb-orchestrator-lite
+  namespace: cyber-range-control
+  labels:
+    app: xorb-orchestrator-lite
+    component: control-plane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xorb-orchestrator-lite
+  template:
+    metadata:
+      labels:
+        app: xorb-orchestrator-lite
+        component: control-plane
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      priorityClassName: cyber-range-critical
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: node.kubernetes.io/instance-type
+                operator: In
+                values: ["amd64"]
+      tolerations:
+      - key: "amd-epyc"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+      serviceAccountName: xorb-control-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: orchestrator
+        image: xorb/cyber-range-orchestrator:lightweight
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: RESOURCE_CONSTRAINED
+          value: "true"
+        - name: MAX_MEMORY
+          value: "1Gi"
+        - name: JAVA_OPTS
+          value: "-Xmx768m -Xms256m -XX:+UseG1GC -XX:MaxGCPauseMillis=100"
+        - name: PYTHON_OPTS
+          value: "-O"  # Optimize Python
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+        - name: logs
+          mountPath: /app/logs
+        - name: tmp
+          mountPath: /tmp
+        resources:
+          requests:
+            cpu: 200m      # Significantly reduced
+            memory: 512Mi  # Significantly reduced
+          limits:
+            cpu: 800m      # Significantly reduced
+            memory: 1.5Gi  # Significantly reduced
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 45
+          periodSeconds: 30
+          timeoutSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: xorb-control-config-optimized
+      - name: logs
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: tmp
+        emptyDir:
+          sizeLimit: 512Mi
+---
+# Lightweight Admin Console
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xorb-admin-console-lite
+  namespace: cyber-range-control
+  labels:
+    app: xorb-admin-console-lite
+    component: admin-interface
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xorb-admin-console-lite
+  template:
+    metadata:
+      labels:
+        app: xorb-admin-console-lite
+        component: admin-interface
+    spec:
+      priorityClassName: cyber-range-high
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+      - name: admin-console
+        image: nginx:alpine  # Lightweight static serving
+        ports:
+        - containerPort: 80
+          name: http
+        volumeMounts:
+        - name: static-content
+          mountPath: /usr/share/nginx/html
+        - name: nginx-config
+          mountPath: /etc/nginx/nginx.conf
+          subPath: nginx.conf
+        resources:
+          requests:
+            cpu: 50m       # Minimal CPU
+            memory: 64Mi   # Minimal memory
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      volumes:
+      - name: static-content
+        configMap:
+          name: admin-console-static
+      - name: nginx-config
+        configMap:
+          name: nginx-config
+---
+# Essential Kill Switch (Memory Optimized)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kill-switch-controller-lite
+  namespace: cyber-range-control
+  labels:
+    app: kill-switch-controller-lite
+    component: emergency-control
+spec:
+  replicas: 1  # Reduced from 2 for resource constraints
+  selector:
+    matchLabels:
+      app: kill-switch-controller-lite
+  template:
+    metadata:
+      labels:
+        app: kill-switch-controller-lite
+        component: emergency-control
+      annotations:
+        priority: "critical"
+    spec:
+      serviceAccountName: kill-switch-sa
+      priorityClassName: cyber-range-critical
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+      - name: kill-switch
+        image: busybox:latest  # Ultra-lightweight base
+        command: ["/bin/sh"]
+        args: ["-c", "while true; do sleep 30; done"]  # Simplified for demo
+        ports:
+        - containerPort: 8081
+          name: http
+        env:
+        - name: LIGHTWEIGHT_MODE
+          value: "true"
+        - name: MONITORING_INTERVAL
+          value: "30s"  # Increased from 5s
+        resources:
+          requests:
+            cpu: 10m       # Minimal CPU
+            memory: 32Mi   # Minimal memory
+          limits:
+            cpu: 100m
+            memory: 128Mi
+        livenessProbe:
+          exec:
+            command: ["/bin/sh", "-c", "ps aux | grep -v grep | grep sleep"]
+          initialDelaySeconds: 10
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command: ["/bin/sh", "-c", "echo 'ready'"]
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+# Lightweight Monitoring (Prometheus Only)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus-lite
+  namespace: cyber-range-control
+  labels:
+    app: prometheus-lite
+    component: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus-lite
+  template:
+    metadata:
+      labels:
+        app: prometheus-lite
+        component: monitoring
+    spec:
+      priorityClassName: cyber-range-high
+      serviceAccountName: prometheus-sa
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.45.0-alpine  # Alpine for smaller size
+        ports:
+        - containerPort: 9090
+          name: web
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--storage.tsdb.path=/prometheus/"
+        - "--web.console.libraries=/etc/prometheus/console_libraries"
+        - "--web.console.templates=/etc/prometheus/consoles"
+        - "--storage.tsdb.retention.time=3d"  # Reduced from 7d
+        - "--storage.tsdb.retention.size=2GB"  # Added size limit
+        - "--web.enable-lifecycle"
+        - "--web.route-prefix=/"
+        - "--storage.tsdb.min-block-duration=1h"  # Optimize for small storage
+        - "--storage.tsdb.max-block-duration=2h"
+        - "--query.max-concurrency=2"  # Limit concurrent queries
+        - "--query.max-samples=1000000"  # Limit sample processing
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus
+        - name: prometheus-storage
+          mountPath: /prometheus
+        resources:
+          requests:
+            cpu: 200m      # Reduced from 500m
+            memory: 1Gi    # Reduced from 2Gi
+          limits:
+            cpu: 600m      # Reduced from 2
+            memory: 2Gi    # Reduced from 8Gi
+        livenessProbe:
+          httpGet:
+            path: /-/healthy
+            port: 9090
+          initialDelaySeconds: 45
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /-/ready
+            port: 9090
+          initialDelaySeconds: 15
+          periodSeconds: 10
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-config-lite
+      - name: prometheus-storage
+        emptyDir:
+          sizeLimit: 3Gi  # Limited storage
+---
+# Lightweight Grafana (Essential Dashboards Only)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana-lite
+  namespace: cyber-range-control
+  labels:
+    app: grafana-lite
+    component: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana-lite
+  template:
+    metadata:
+      labels:
+        app: grafana-lite
+        component: monitoring
+    spec:
+      priorityClassName: cyber-range-normal
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 472
+        fsGroup: 472
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.0.0-alpine  # Alpine version
+        ports:
+        - containerPort: 3000
+          name: web
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          value: "admin"  # Simplified for resource-constrained env
+        - name: GF_INSTALL_PLUGINS
+          value: ""  # No additional plugins to save memory
+        - name: GF_ANALYTICS_REPORTING_ENABLED
+          value: "false"
+        - name: GF_ANALYTICS_CHECK_FOR_UPDATES
+          value: "false"
+        - name: GF_USERS_ALLOW_SIGN_UP
+          value: "false"
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: "false"
+        - name: GF_ALERTING_ENABLED
+          value: "false"  # Disable alerting to save resources
+        resources:
+          requests:
+            cpu: 100m      # Reduced from 200m
+            memory: 256Mi  # Reduced from 512Mi
+          limits:
+            cpu: 300m      # Reduced from 1
+            memory: 512Mi  # Reduced from 2Gi
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: grafana-storage
+        emptyDir:
+          sizeLimit: 1Gi
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: xorb-orchestrator-service-lite
+  namespace: cyber-range-control
+  labels:
+    app: xorb-orchestrator-lite
+spec:
+  selector:
+    app: xorb-orchestrator-lite
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: xorb-admin-service-lite
+  namespace: cyber-range-control
+  labels:
+    app: xorb-admin-console-lite
+spec:
+  selector:
+    app: xorb-admin-console-lite
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  type: NodePort
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+    nodePort: 30080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service-lite
+  namespace: cyber-range-control
+  labels:
+    app: prometheus-lite
+spec:
+  selector:
+    app: prometheus-lite
+  ports:
+  - name: web
+    port: 9090
+    targetPort: 9090
+  type: NodePort
+  ports:
+  - name: web
+    port: 9090
+    targetPort: 9090
+    nodePort: 30090
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service-lite
+  namespace: cyber-range-control
+  labels:
+    app: grafana-lite
+spec:
+  selector:
+    app: grafana-lite
+  ports:
+  - name: web
+    port: 3000
+    targetPort: 3000
+  type: NodePort
+  ports:
+  - name: web
+    port: 3000
+    targetPort: 3000
+    nodePort: 30300

@@ -1,0 +1,803 @@
+---
+# XORB PTaaS Cyber Range - Kubernetes Network Policies
+# Provides fine-grained network segmentation and security controls
+
+# Default deny-all policy for all cyber range namespaces
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all-ingress-egress
+  namespace: cyber-range-control
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all-ingress-egress
+  namespace: cyber-range-red
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all-ingress-egress
+  namespace: cyber-range-blue
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all-ingress-egress
+  namespace: cyber-range-targets
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all-ingress-egress
+  namespace: cyber-range-simulation
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+---
+# Control Plane Network Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: control-plane-full-access
+  namespace: cyber-range-control
+  labels:
+    cyber-range.xorb.io/policy-type: management
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow access from anywhere in VPC for management
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: xorb-ptaas
+    ports:
+    - protocol: TCP
+      port: 8080  # XORB Orchestrator
+    - protocol: TCP
+      port: 8081  # Kill Switch
+    - protocol: TCP
+      port: 3000  # Admin Console
+    - protocol: TCP
+      port: 9090  # Prometheus
+  # Emergency access (no restrictions)
+  - ports:
+    - protocol: TCP
+      port: 8081  # Kill Switch Emergency
+  egress:
+  # Allow all egress for management operations
+  - {}
+---
+# Red Team Network Policies (STAGING Mode - Restrictive)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: red-team-staging-mode
+  namespace: cyber-range-red
+  labels:
+    cyber-range.xorb.io/policy-type: attack-staging
+    cyber-range.xorb.io/mode: staging
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow control plane management
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 22
+  # Allow red team internal communication
+  - from:
+    - podSelector: {}
+  egress:
+  # DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow red team internal communication
+  - to:
+    - podSelector: {}
+  # Allow communication with control plane
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+    ports:
+    - protocol: TCP
+      port: 8080
+  # BLOCK access to targets in staging mode
+  # (This policy effectively blocks red team attacks)
+  # No rules allowing access to cyber-range-targets namespace
+---
+# Red Team Network Policies (LIVE Mode - Attack Enabled)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: red-team-live-mode
+  namespace: cyber-range-red
+  labels:
+    cyber-range.xorb.io/policy-type: attack-live
+    cyber-range.xorb.io/mode: live
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow control plane management
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 22
+  # Allow red team internal communication
+  - from:
+    - podSelector: {}
+  # Allow reverse shells from targets (live mode only)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-targets
+    ports:
+    - protocol: TCP
+      port: 4444
+    - protocol: TCP
+      port: 1234
+    - protocol: TCP
+      port: 8080
+  egress:
+  # DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow red team internal communication
+  - to:
+    - podSelector: {}
+  # Allow communication with control plane
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+    ports:
+    - protocol: TCP
+      port: 8080
+  # ALLOW access to targets in live mode
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-targets
+  # Allow limited internet access
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+  # BLOCK access to blue team (prevent cheating)
+  # No rules allowing access to cyber-range-blue namespace
+---
+# Blue Team Network Policies (Monitoring and Defense)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: blue-team-monitoring
+  namespace: cyber-range-blue
+  labels:
+    cyber-range.xorb.io/policy-type: defense-monitoring
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow control plane management
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+    ports:
+    - protocol: TCP
+      port: 5601  # Kibana
+    - protocol: TCP
+      port: 9200  # Elasticsearch
+    - protocol: TCP
+      port: 8888  # Jupyter
+    - protocol: TCP
+      port: 80    # MISP
+  # Allow logs and monitoring data from targets
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-targets
+    ports:
+    - protocol: TCP
+      port: 5044  # Logstash beats
+    - protocol: TCP
+      port: 5045  # Logstash syslog
+    - protocol: TCP
+      port: 5046  # Logstash json
+    - protocol: TCP
+      port: 1514  # Wazuh agents TCP
+    - protocol: UDP
+      port: 1514  # Wazuh agents UDP
+    - protocol: TCP
+      port: 1515  # Wazuh auth
+  # Allow monitoring data from simulation
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-simulation
+  # Allow blue team internal communication
+  - from:
+    - podSelector: {}
+  egress:
+  # DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow blue team internal communication
+  - to:
+    - podSelector: {}
+  # Allow communication with control plane
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+  # Allow monitoring of all target environments
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-targets
+  # Allow monitoring of simulation environment
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-simulation
+  # Allow internet access for threat intel feeds
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+  # BLOCK direct access to red team (prevent cheating)
+  # No rules allowing access to cyber-range-red namespace
+---
+# Target Environment Network Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: target-environment-access
+  namespace: cyber-range-targets
+  labels:
+    cyber-range.xorb.io/policy-type: target-environment
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow control plane management
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+  # Allow blue team monitoring
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-blue
+  # Allow simulation traffic
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-simulation
+  # Allow red team attacks (controlled by mode-specific policies)
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-red
+  # Allow internal target communication (lateral movement)
+  - from:
+    - podSelector: {}
+  egress:
+  # DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow target internal communication
+  - to:
+    - podSelector: {}
+  # Allow communication with blue team for monitoring
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-blue
+    ports:
+    - protocol: TCP
+      port: 5044
+    - protocol: TCP
+      port: 5045
+    - protocol: TCP
+      port: 5046
+    - protocol: TCP
+      port: 1514
+    - protocol: UDP
+      port: 1514
+    - protocol: TCP
+      port: 1515
+  # Allow reverse shells to red team (live mode)
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-red
+    ports:
+    - protocol: TCP
+      port: 4444
+    - protocol: TCP
+      port: 1234
+    - protocol: TCP
+      port: 8080
+  # Allow limited internet access
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+---
+# Simulation Environment Network Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: simulation-environment
+  namespace: cyber-range-simulation
+  labels:
+    cyber-range.xorb.io/policy-type: simulation
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow control plane management
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+  # Allow simulation internal communication
+  - from:
+    - podSelector: {}
+  egress:
+  # DNS resolution
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+  # Allow simulation internal communication
+  - to:
+    - podSelector: {}
+  # Allow communication with control plane
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+  # Allow traffic generation to targets
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-targets
+  # Allow limited internet access for realistic simulation
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+---
+# Kill Switch Network Policy (Emergency Isolation)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kill-switch-isolation
+  namespace: cyber-range-red
+  labels:
+    cyber-range.xorb.io/policy-type: emergency-isolation
+    cyber-range.xorb.io/kill-switch: enabled
+spec:
+  podSelector:
+    matchLabels:
+      cyber-range.xorb.io/kill-switch: active
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Block ALL ingress when kill switch is active
+  - from: []
+    ports: []
+  egress:
+  # Block ALL egress when kill switch is active
+  - to: []
+    ports: []
+---
+# DNS Access Policy (Apply to all namespaces)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: cyber-range-control
+  labels:
+    cyber-range.xorb.io/policy-type: dns-access
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: cyber-range-red
+  labels:
+    cyber-range.xorb.io/policy-type: dns-access
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: cyber-range-blue
+  labels:
+    cyber-range.xorb.io/policy-type: dns-access
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: cyber-range-targets
+  labels:
+    cyber-range.xorb.io/policy-type: dns-access
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: cyber-range-simulation
+  labels:
+    cyber-range.xorb.io/policy-type: dns-access
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
+---
+# Kubernetes System Access (Apply to all namespaces)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-kube-system
+  namespace: cyber-range-control
+  labels:
+    cyber-range.xorb.io/policy-type: kubernetes-access
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  # Allow access to Kubernetes API
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: kube-system
+  # Allow access to Kubernetes services
+  - to: []
+    ports:
+    - protocol: TCP
+      port: 443  # HTTPS
+    - protocol: TCP
+      port: 6443 # Kubernetes API
+    - protocol: TCP
+      port: 8080 # Kubernetes API (insecure)
+---
+# Red Team Specific Restrictions
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: red-team-restrictions
+  namespace: cyber-range-red
+  labels:
+    cyber-range.xorb.io/policy-type: team-restrictions
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  # Explicitly DENY access to control plane (except orchestrator API)
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+    ports:
+    - protocol: TCP
+      port: 8080  # Only orchestrator API
+  # Explicitly DENY access to blue team
+  # (This is achieved by not having any allow rules for blue team)
+---
+# Blue Team Specific Restrictions  
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: blue-team-restrictions
+  namespace: cyber-range-blue
+  labels:
+    cyber-range.xorb.io/policy-type: team-restrictions
+spec:
+  podSelector: {}
+  policyTypes:
+  - Egress
+  egress:
+  # Explicitly DENY direct access to red team
+  # (This is achieved by not having any allow rules for red team)
+  # Blue team can only observe red team through monitoring of targets
+---
+# Monitoring and Observability Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: prometheus-monitoring
+  namespace: cyber-range-control
+  labels:
+    cyber-range.xorb.io/policy-type: monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app: prometheus
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # Allow Grafana access
+  - from:
+    - podSelector:
+        matchLabels:
+          app: grafana
+    ports:
+    - protocol: TCP
+      port: 9090
+  # Allow control plane access
+  - from:
+    - podSelector: {}
+    ports:
+    - protocol: TCP
+      port: 9090
+  egress:
+  # Allow scraping metrics from all namespaces
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/part-of: xorb-ptaas
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 9090
+    - protocol: TCP
+      port: 9100
+    - protocol: TCP
+      port: 9115
+---
+# Time-based Network Policy (for exercise duration limits)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: time-based-restrictions
+  namespace: cyber-range-red
+  labels:
+    cyber-range.xorb.io/policy-type: time-based
+    cyber-range.xorb.io/exercise-window: "09:00-17:00"
+spec:
+  podSelector:
+    matchLabels:
+      cyber-range.xorb.io/time-restricted: "true"
+  policyTypes:
+  - Egress
+  egress:
+  # This policy would be managed by a controller that applies/removes
+  # it based on configured exercise time windows
+  - to: []
+    ports: []
+---
+# Load Balancer and Ingress Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ingress-access
+  namespace: cyber-range-control
+  labels:
+    cyber-range.xorb.io/policy-type: ingress-access
+spec:
+  podSelector:
+    matchLabels:
+      app: xorb-admin-console
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow external access to admin console
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 3000
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: blue-team-external-access
+  namespace: cyber-range-blue
+  labels:
+    cyber-range.xorb.io/policy-type: external-access
+spec:
+  podSelector:
+    matchLabels:
+      component: siem
+  policyTypes:
+  - Ingress
+  ingress:
+  # Allow external access to blue team SIEM interfaces
+  - from: []
+    ports:
+    - protocol: TCP
+      port: 5601  # Kibana
+    - protocol: TCP
+      port: 8888  # Jupyter
+    - protocol: TCP
+      port: 80    # MISP
+---
+# Advanced Security Policies
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: advanced-isolation
+  namespace: cyber-range-targets
+  labels:
+    cyber-range.xorb.io/policy-type: advanced-security
+spec:
+  podSelector:
+    matchLabels:
+      security.xorb.io/isolation: high
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # High-security targets have very restricted access
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          app.kubernetes.io/name: cyber-range-control
+    ports:
+    - protocol: TCP
+      port: 22  # SSH for management only
+  egress:
+  # High-security targets have minimal egress
+  - to: []
+    ports:
+    - protocol: UDP
+      port: 53  # DNS only
+---
+# Development and Testing Policies (can be applied during development)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: development-mode
+  namespace: cyber-range-control
+  labels:
+    cyber-range.xorb.io/policy-type: development
+    cyber-range.xorb.io/mode: development
+spec:
+  podSelector:
+    matchLabels:
+      cyber-range.xorb.io/mode: development
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  # In development mode, allow broader access for debugging
+  - from: []
+  egress:
+  # Allow all egress in development mode
+  - to: []

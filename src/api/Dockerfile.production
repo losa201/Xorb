@@ -1,0 +1,115 @@
+# Production Dockerfile for XORB API Service - Security Hardened
+FROM python:3.12-slim@sha256:a3e58f9399353be051735f09be0316bfdeab571a5c6b89e5d6dda2e99c33768c as builder
+
+# Set build arguments
+ARG BUILD_DATE
+ARG VERSION
+ARG VCS_REF
+
+# Set labels for metadata
+LABEL org.label-schema.build-date=$BUILD_DATE \
+      org.label-schema.name="XORB Enterprise Cybersecurity Platform" \
+      org.label-schema.description="Production API service for XORB platform" \
+      org.label-schema.version=$VERSION \
+      org.label-schema.vcs-ref=$VCS_REF \
+      org.label-schema.schema-version="1.0" \
+      maintainer="XORB DevOps <devops@xorb.enterprise>"
+
+# Install system dependencies with security updates
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential=12.9 \
+    curl=7.88.1-10+deb12u6 \
+    git=1:2.39.2-1.1 \
+    libpq-dev=15.8-0+deb12u1 \
+    libssl-dev=3.0.11-1~deb12u2 \
+    libffi-dev=3.4.4-1 \
+    ca-certificates=20230311 \
+    && apt-get upgrade -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Set Python environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python dependencies
+COPY requirements.lock /tmp/requirements.lock
+RUN pip install --upgrade pip && \
+    pip install -r /tmp/requirements.lock
+
+# Production stage - Distroless-style
+FROM python:3.12-slim@sha256:a3e58f9399353be051735f09be0316bfdeab571a5c6b89e5d6dda2e99c33768c as production
+
+# Install only essential runtime dependencies with version pinning
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl=7.88.1-10+deb12u6 \
+    postgresql-client=15+248 \
+    redis-tools=7:7.0.15-1~deb12u1 \
+    ca-certificates=20230311 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+    && rm -rf /root/.cache
+
+# Create non-root user with minimal privileges
+RUN groupadd -r -g 1000 xorb && \
+    useradd -r -g xorb -u 1000 -m -s /bin/bash xorb && \
+    usermod -L xorb  # Lock the account
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH="/app/src" \
+    PORT=8000
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+
+# Create application directory
+WORKDIR /app
+
+# Copy application code
+COPY src/ ./src/
+COPY conftest.py pytest.ini ./
+
+# Create required directories with proper permissions
+RUN mkdir -p /app/logs /app/data /app/tmp /app/secrets && \
+    chown -R xorb:xorb /app && \
+    chmod 750 /app && \
+    chmod 700 /app/secrets && \
+    chmod 755 /app/logs /app/data /app/tmp
+
+# Copy health check script with security
+COPY scripts/healthcheck.sh /usr/local/bin/healthcheck.sh
+RUN chmod 755 /usr/local/bin/healthcheck.sh && \
+    chown root:root /usr/local/bin/healthcheck.sh
+
+# Remove unnecessary packages and files
+RUN apt-get remove -y --purge \
+    && apt-get autoremove -y \
+    && rm -rf /tmp/* /var/tmp/* /root/.cache
+
+# Switch to non-root user early
+USER xorb:xorb
+
+# Expose ports
+EXPOSE 8000 9090
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD /usr/local/bin/healthcheck.sh
+
+# Security: Set additional container security options
+LABEL security.capabilities="drop=ALL" \
+      security.no-new-privileges="true" \
+      security.read-only-root-filesystem="false" \
+      security.user="1000:1000"
+
+# Default command with security options
+CMD ["uvicorn", "src.api.app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4", "--access-log"]

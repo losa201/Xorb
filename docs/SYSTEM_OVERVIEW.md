@@ -1,10 +1,10 @@
 # XORB Cybersecurity Platform - System Overview
 
-## Architecture Summary
+##  Architecture Summary
 
 The XORB platform is a modern, microservices-based cybersecurity system designed for autonomous threat detection and response. It follows clean architecture principles with clear separation of concerns and dependency inversion.
 
-## Component Breakdown
+##  Component Breakdown
 
 | Component | Port | Technology | Purpose |
 |---------|------|------------|---------|
@@ -17,14 +17,14 @@ The XORB platform is a modern, microservices-based cybersecurity system designed
 | Prometheus | 9091 | Prometheus | Metrics collection |
 | Grafana | 3001 | Grafana | Monitoring dashboard |
 
-## Data Flows
+##  Data Flows
 
 1. User Interface → API Gateway → Orchestrator → Security Tools
 2. Security Tools → Data Layer → Monitoring
 3. Orchestrator → Temporal → Workflow Execution
 4. Metrics → Prometheus → Grafana
 
-## Security Architecture
+##  Security Architecture
 
 - Role-Based Access Control (RBAC)
 - JWT Authentication
@@ -32,20 +32,20 @@ The XORB platform is a modern, microservices-based cybersecurity system designed
 - Structured Logging
 - Secure Communication (HTTPS)
 
-## Deployment Architecture
+##  Deployment Architecture
 
 - Containerized with Docker
 - Orchestration via Docker Compose
 - Environment separation (development/production)
 - Health check endpoints for all services
 
-## AI/ML Components
+##  AI/ML Components
 
 - Autonomous decision-making in orchestrator
 - Threat pattern recognition in detection services
 - Adaptive response mechanisms
 
-## Development Principles
+##  Development Principles
 
 - Clean Architecture
 - Domain-Driven Design
@@ -53,14 +53,14 @@ The XORB platform is a modern, microservices-based cybersecurity system designed
 - Testability
 - Separation of Concerns
 
-## Scaling Considerations
+##  Scaling Considerations
 
 - Horizontal scaling via container orchestration
 - Load balancing at API gateway
 - Caching with Redis
 - Asynchronous processing with Temporal
 
-## Monitoring & Observability
+##  Monitoring & Observability
 
 - Prometheus metrics for all services
 - Structured logging
@@ -68,7 +68,7 @@ The XORB platform is a modern, microservices-based cybersecurity system designed
 - Grafana dashboards
 - Health check endpoints
 
-## Future Improvements
+##  Future Improvements
 
 - Service mesh implementation
 - API gateway for unified access
@@ -76,6 +76,6 @@ The XORB platform is a modern, microservices-based cybersecurity system designed
 - Additional security layers
 - Improved observability tools
 
-## Diagrams
+##  Diagrams
 
 [Architecture diagrams would be included here in a visual documentation package]

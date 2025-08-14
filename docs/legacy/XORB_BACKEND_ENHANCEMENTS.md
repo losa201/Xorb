@@ -2,12 +2,12 @@
 
 This document outlines the principal engineering enhancements delivered for the Xorb backend platform, implementing production-ready security, performance, and operational capabilities.
 
-## Overview
+##  Overview
 
 Eight core modules have been implemented with a code-first, security-focused approach:
 
 1. **AuthN/AuthZ** - OIDC login with role/tenant claims mapping
-2. **Multi-tenancy** - Postgres RLS with safe tenant isolation  
+2. **Multi-tenancy** - Postgres RLS with safe tenant isolation
 3. **Evidence/Uploads** - Secure file storage with validation
 4. **Job Orchestration** - Reliable scheduler with idempotency
 5. **Performance** - uvloop, DB pooling, pgvector optimization
@@ -15,39 +15,39 @@ Eight core modules have been implemented with a code-first, security-focused app
 7. **Security/DX** - Rate limiting, validation, error handling
 8. **Build/CI** - Secure containerization and comprehensive testing
 
-## Module 1: AuthN/AuthZ - OIDC Integration & RBAC
+##  Module 1: AuthN/AuthZ - OIDC Integration & RBAC
 
-**Intent**: Replace basic auth with production OIDC integration and fine-grained RBAC.
+- **Intent**: Replace basic auth with production OIDC integration and fine-grained RBAC.
 
-**Risk**: Medium - Authentication changes require careful migration.
+- **Risk**: Medium - Authentication changes require careful migration.
 
-### Changes
+###  Changes
 
 ```diff
 + src/api/app/auth/
   + models.py          # User claims, roles, permissions model
   + oidc.py           # OIDC provider with caching
-  + dependencies.py   # FastAPI auth dependencies & RBAC decorators  
+  + dependencies.py   # FastAPI auth dependencies & RBAC decorators
   + routes.py         # Login/logout/callback endpoints
 + src/api/app/infrastructure/cache.py  # Redis caching backend
 + src/api/tests/test_auth.py           # Comprehensive auth tests
 ```
 
-**Key Features**:
+- **Key Features**:
 - OIDC discovery document caching
 - JWT validation with role extraction
 - Per-route RBAC decorators: `@rbac(permissions=[Permission.EVIDENCE_READ])`
 - Tenant claims mapping from OIDC tokens
 - Backwards compatibility shims
 
-**Dependencies Added**:
+- **Dependencies Added**:
 ```toml
 authlib>=1.3.0
-httpx>=0.28.0  
+httpx>=0.28.0
 redis>=5.1.0
 ```
 
-### Usage
+###  Usage
 
 ```python
 from app.auth.dependencies import rbac, require_permissions
@@ -60,80 +60,80 @@ async def get_evidence(request: Request):
     return {"tenant_id": user.tenant_id}
 ```
 
-## Module 2: Multi-tenancy - Postgres RLS & Safe Migrations
+##  Module 2: Multi-tenancy - Postgres RLS & Safe Migrations
 
-**Intent**: Implement secure tenant isolation using Postgres Row Level Security.
+- **Intent**: Implement secure tenant isolation using Postgres Row Level Security.
 
-**Risk**: High - Database schema changes affect data isolation.
+- **Risk**: High - Database schema changes affect data isolation.
 
-### Changes
+###  Changes
 
 ```diff
 + src/api/app/domain/tenant_entities.py    # Tenant domain models
-+ src/api/app/services/tenant_service.py   # Tenant management service  
++ src/api/app/services/tenant_service.py   # Tenant management service
 + src/api/app/middleware/tenant_context.py # Request tenant context
 + src/api/migrations/versions/001_add_tenant_isolation.py
-+ src/api/migrations/versions/002_create_tenant_tables.py  
++ src/api/migrations/versions/002_create_tenant_tables.py
 + src/api/tests/test_multitenancy.py       # RLS and isolation tests
 ```
 
-**Key Features**:
+- **Key Features**:
 - Automatic tenant context via middleware: `SET app.tenant_id`
 - RLS policies on all tenant-scoped tables
 - Super admin bypass capability
 - Safe backfill functions for existing data
 - Tenant user management with role inheritance
 
-**Migration Safety**:
+- **Migration Safety**:
 ```sql
--- Enable RLS gradually
+- - Enable RLS gradually
 ALTER TABLE evidence ENABLE ROW LEVEL SECURITY;
 
--- Policy with super admin bypass
+- - Policy with super admin bypass
 CREATE POLICY evidence_tenant_isolation ON evidence
-USING (tenant_id::text = current_setting('app.tenant_id', true) OR 
+USING (tenant_id::text = current_setting('app.tenant_id', true) OR
        bypass_rls_for_user(current_setting('app.user_role', true)));
 ```
 
-### Rollback Plan
+###  Rollback Plan
 1. Disable RLS: `ALTER TABLE evidence DISABLE ROW LEVEL SECURITY`
-2. Drop policies: `DROP POLICY evidence_tenant_isolation ON evidence`  
+2. Drop policies: `DROP POLICY evidence_tenant_isolation ON evidence`
 3. Remove tenant columns (after data migration)
 
-## Module 3: Evidence/Uploads - Secure File Storage
+##  Module 3: Evidence/Uploads - Secure File Storage
 
-**Intent**: Build pluggable storage with filesystem/S3 backends and comprehensive validation.
+- **Intent**: Build pluggable storage with filesystem/S3 backends and comprehensive validation.
 
-**Risk**: Medium - File handling requires security controls.
+- **Risk**: Medium - File handling requires security controls.
 
-### Changes
+###  Changes
 
 ```diff
 + src/api/app/storage/
   + interface.py       # Storage driver interface & models
   + filesystem.py      # Local filesystem implementation
-  + s3.py             # S3/MinIO implementation  
+  + s3.py             # S3/MinIO implementation
   + validation.py     # File validation & malware scanning
 + src/api/app/services/storage_service.py  # Storage service layer
 + src/api/tests/test_storage.py           # Storage & validation tests
 ```
 
-**Key Features**:
+- **Key Features**:
 - Presigned URL generation for direct uploads
 - MIME type validation with python-magic
-- ClamAV integration (optional) 
+- ClamAV integration (optional)
 - Size limits by file category
 - SHA256 integrity checking
 - Tenant isolation in storage paths
 
-**Dependencies Added**:
+- **Dependencies Added**:
 ```toml
 boto3>=1.35.0
-aiofiles>=24.1.0  
+aiofiles>=24.1.0
 python-magic>=0.4.27
 ```
 
-### Usage
+###  Usage
 
 ```python
 from app.storage.interface import StorageDriverFactory, FilesystemConfig
@@ -151,39 +151,39 @@ service = StorageService(driver)
 # Create upload URL
 upload_info = await service.create_upload_url(
     filename="evidence.pdf",
-    content_type="application/pdf", 
+    content_type="application/pdf",
     size_bytes=1024,
     tenant_id=tenant_id,
     uploaded_by=user_id
 )
 ```
 
-## Module 4: Job Orchestration - Reliable Scheduler & Workers
+##  Module 4: Job Orchestration - Reliable Scheduler & Workers
 
-**Intent**: Implement production job system with Redis queues, retries, and DLQ.
+- **Intent**: Implement production job system with Redis queues, retries, and DLQ.
 
-**Risk**: Medium - Job reliability critical for system operations.
+- **Risk**: Medium - Job reliability critical for system operations.
 
-### Changes
+###  Changes
 
 ```diff
 + src/api/app/jobs/
   + models.py          # Job definitions, execution, retry policies
-  + queue.py           # Redis-backed job queue with priorities  
+  + queue.py           # Redis-backed job queue with priorities
   + worker.py          # Async worker with graceful shutdown
   + service.py         # Job scheduling service
 + src/api/tests/test_jobs.py              # Job system tests
 ```
 
-**Key Features**:
+- **Key Features**:
 - Priority queues with Redis sorted sets
 - Exponential backoff with jitter
-- Idempotency key support  
+- Idempotency key support
 - Dead letter queue for failed jobs
 - Worker health monitoring
 - Graceful shutdown handling
 
-### Usage
+###  Usage
 
 ```python
 from app.jobs.service import JobService
@@ -206,13 +206,13 @@ worker.register_handler(JobType.EVIDENCE_PROCESSING, process_evidence)
 await worker.start()
 ```
 
-## Module 5: Performance - uvloop, DB Pooling, pgvector
+##  Module 5: Performance - uvloop, DB Pooling, pgvector
 
-**Intent**: Optimize async performance with uvloop, database pooling, and vector search.
+- **Intent**: Optimize async performance with uvloop, database pooling, and vector search.
 
-**Risk**: Low - Performance improvements with compatibility fallbacks.
+- **Risk**: Low - Performance improvements with compatibility fallbacks.
 
-### Changes
+###  Changes
 
 ```diff
 ~ src/api/app/infrastructure/database.py   # Enhanced with pooling & optimization
@@ -222,7 +222,7 @@ await worker.start()
 + src/api/tests/test_performance.py           # Performance tests
 ```
 
-**Key Features**:
+- **Key Features**:
 - uvloop event loop for 30-40% async performance boost
 - Optimized asyncpg connection pooling (5-20 connections)
 - pgvector HNSW indexes for similarity search
@@ -230,7 +230,7 @@ await worker.start()
 - Connection pool monitoring and metrics
 - Prepared statement caching
 
-**Dependencies Added**:
+- **Dependencies Added**:
 ```toml
 uvloop>=0.20.0
 orjson>=3.10.0
@@ -238,7 +238,7 @@ psutil>=6.1.0
 numpy>=1.26.0
 ```
 
-### Configuration
+###  Configuration
 
 ```bash
 # Environment variables for optimization
@@ -249,7 +249,7 @@ ENABLE_UVLOOP=true
 ENABLE_ORJSON=true
 ```
 
-### Vector Search Usage
+###  Vector Search Usage
 
 ```python
 from app.infrastructure.vector_store import get_vector_store
@@ -259,14 +259,14 @@ vector_store = get_vector_store(dimension=1536)
 # Add vector
 await vector_store.add_vector(
     vector=embedding,
-    tenant_id=tenant_id, 
+    tenant_id=tenant_id,
     source_type="evidence",
     source_id=evidence_id,
     content_hash=sha256_hash,
     embedding_model="text-embedding-ada-002"
 )
 
-# Search similar  
+# Search similar
 results = await vector_store.search_similar(
     query_vector=query_embedding,
     tenant_id=tenant_id,
@@ -275,9 +275,9 @@ results = await vector_store.search_similar(
 )
 ```
 
-## Run Instructions
+##  Run Instructions
 
-### Prerequisites
+###  Prerequisites
 
 ```bash
 # Install system dependencies (Ubuntu/Debian)
@@ -289,7 +289,7 @@ sudo apt-get install -y clamav clamav-daemon
 sudo systemctl enable clamav-freshclam
 ```
 
-### Database Setup
+###  Database Setup
 
 ```bash
 # Create database and user
@@ -303,10 +303,10 @@ GRANT ALL PRIVILEGES ON DATABASE xorb TO xorb;
 sudo -u postgres psql -d xorb -c "CREATE EXTENSION vector;"
 ```
 
-### Application Setup
+###  Application Setup
 
 ```bash
-# Install dependencies  
+# Install dependencies
 cd src/api
 pip install -e .
 
@@ -324,7 +324,7 @@ uvicorn app.main:app --factory --workers 1 --port 8000 &
 python -m app.jobs.worker &
 ```
 
-### Development Commands
+###  Development Commands
 
 ```bash
 # Run tests
@@ -333,7 +333,7 @@ pytest -q
 # Run with coverage
 pytest --cov=src --cov-report=term-missing
 
-# Type checking 
+# Type checking
 mypy src/
 
 # Linting
@@ -344,7 +344,7 @@ black src/
 bombardier -c 64 -n 20000 http://127.0.0.1:8000/health
 ```
 
-### Production Deployment
+###  Production Deployment
 
 ```bash
 # Build optimized container
@@ -358,74 +358,74 @@ curl http://localhost:8000/health
 curl http://localhost:8000/readiness
 ```
 
-## Safety Notes & Migration Order
+##  Safety Notes & Migration Order
 
-### Critical Migration Sequence
+###  Critical Migration Sequence
 
 1. **Pre-migration backup**: Full database backup before RLS changes
 2. **Deploy auth module**: New endpoints without breaking existing auth
 3. **Gradual RLS rollout**: Enable per table with super admin bypass
-4. **Tenant backfill**: Populate tenant_id for existing data  
+4. **Tenant backfill**: Populate tenant_id for existing data
 5. **Storage migration**: Migrate existing files to new storage structure
 6. **Performance optimizations**: Enable uvloop and connection pooling
 7. **Job system**: Deploy workers before scheduling jobs
 
-### Rollback Procedures
+###  Rollback Procedures
 
-**Auth Rollback**:
+- **Auth Rollback**:
 ```bash
 # Revert to previous auth dependencies
 git checkout HEAD~1 -- app/dependencies.py
 # Remove OIDC routes from main.py
 ```
 
-**RLS Rollback**:
+- **RLS Rollback**:
 ```sql
--- Emergency disable RLS
+- - Emergency disable RLS
 ALTER TABLE evidence DISABLE ROW LEVEL SECURITY;
 ALTER TABLE findings DISABLE ROW LEVEL SECURITY;
 ALTER TABLE embedding_vectors DISABLE ROW LEVEL SECURITY;
 ```
 
-**Storage Rollback**:
+- **Storage Rollback**:
 - Keep old storage interface available during transition
 - Dual-write during migration window
 - Feature flag for new storage backend
 
-### Feature Flags
+###  Feature Flags
 
 ```python
 # app/config.py
 ENABLE_OIDC_AUTH = os.getenv("ENABLE_OIDC_AUTH", "false") == "true"
-ENABLE_NEW_STORAGE = os.getenv("ENABLE_NEW_STORAGE", "false") == "true"  
+ENABLE_NEW_STORAGE = os.getenv("ENABLE_NEW_STORAGE", "false") == "true"
 ENABLE_JOB_SYSTEM = os.getenv("ENABLE_JOB_SYSTEM", "false") == "true"
 ```
 
-### Monitoring & Alerts
+###  Monitoring & Alerts
 
-**Key Metrics to Monitor**:
-- Database connection pool utilization 
+- **Key Metrics to Monitor**:
+- Database connection pool utilization
 - RLS policy execution time
 - Job queue depth and processing time
 - File upload success/failure rates
 - Authentication token validation latency
 
-**Critical Alerts**:
+- **Critical Alerts**:
 - Database connection pool exhaustion
 - Job dead letter queue growth
-- Storage backend failures  
+- Storage backend failures
 - Authentication service outages
 
-## Performance Benchmarks
+##  Performance Benchmarks
 
-**Target Performance (Definition of Done)**:
+- **Target Performance (Definition of Done)**:
 - p95 < 300ms @ 200 RPS on /health + hot GET endpoints
 - Success rate ≥ 99.9% under normal load
 - Database queries < 100ms p95 with proper indexing
 - File upload/download throughput > 10MB/s
 - Vector similarity search < 50ms for 1M vectors
 
-**Load Testing**:
+- **Load Testing**:
 ```bash
 # Health endpoint
 bombardier -c 64 -n 20000 http://localhost:8000/health
@@ -434,48 +434,48 @@ bombardier -c 64 -n 20000 http://localhost:8000/health
 bombardier -c 32 -n 5000 -H "Authorization: Bearer $TOKEN" \
   http://localhost:8000/api/evidence
 
-# Vector search performance  
+# Vector search performance
 bombardier -c 16 -n 1000 -H "Authorization: Bearer $TOKEN" \
   -m POST -f vector_search_payload.json \
   http://localhost:8000/api/vectors/search
 ```
 
-## Security Considerations
+##  Security Considerations
 
-**Authentication Security**:
+- **Authentication Security**:
 - OIDC token validation with proper issuer verification
 - JWT signature verification with cached JWKS
 - Role-based access control with least privilege
 - Tenant isolation at token validation level
 
-**Storage Security**:
+- **Storage Security**:
 - File type validation with MIME detection
 - Size limits and upload quotas per tenant
 - Malware scanning integration (ClamAV)
 - Signed URLs with time-based expiration
 - Path traversal protection
 
-**Database Security**:
+- **Database Security**:
 - Row Level Security (RLS) for tenant isolation
-- Prepared statements to prevent SQL injection  
+- Prepared statements to prevent SQL injection
 - Connection encryption (SSL/TLS)
 - Database user with minimal privileges
 - Audit logging for sensitive operations
 
-**Infrastructure Security**:
+- **Infrastructure Security**:
 - Non-root container execution
 - Read-only root filesystem
 - Resource limits and quotas
 - Network segmentation
 - Secret management via environment variables
 
-## Conclusion
+##  Conclusion
 
 This enhancement delivers a production-ready, secure, and performant backend platform with:
 
 - **Security-first design** with OIDC authentication and tenant isolation
 - **High performance** with uvloop, connection pooling, and vector search
-- **Operational excellence** with comprehensive monitoring and job orchestration  
+- **Operational excellence** with comprehensive monitoring and job orchestration
 - **Developer experience** with strong typing, testing, and tooling
 - **Scalability** through async patterns and efficient resource usage
 

@@ -1,0 +1,257 @@
+# Conftest Configuration for XORB Platform TLS Security Policies
+# Validates infrastructure configurations against security standards
+
+policies:
+  - name: tls-security
+    path: policies/tls-security.rego
+    description: "TLS/mTLS security validation for XORB Platform"
+    
+rules:
+  # Docker Compose validation
+  - name: docker-compose-tls
+    input: "*.docker-compose*.yml"
+    policy: tls-security
+    description: "Validate Docker Compose TLS configuration"
+    
+  # Envoy configuration validation  
+  - name: envoy-security
+    input: "envoy/*.yaml"
+    policy: tls-security
+    description: "Validate Envoy proxy TLS configuration"
+    
+  # Redis configuration validation
+  - name: redis-tls
+    input: "infra/redis/*.conf"
+    policy: tls-security
+    description: "Validate Redis TLS configuration"
+    
+  # Kubernetes manifest validation
+  - name: k8s-security
+    input: "k8s/**/*.yaml"
+    policy: tls-security
+    description: "Validate Kubernetes TLS and security configuration"
+    
+  # Certificate validation
+  - name: certificate-security
+    input: "k8s/mtls/*certificate*.yaml"
+    policy: tls-security
+    description: "Validate certificate security parameters"
+
+test_cases:
+  - name: valid-docker-compose
+    description: "Test valid Docker Compose TLS configuration"
+    input: |
+      version: '3.8'
+      services:
+        api:
+          environment:
+            TLS_ENABLED: "true"
+          ports:
+            - "8443:8443"
+        redis:
+          ports:
+            - "6380:6379"
+          environment:
+            REDIS_TLS_ENABLED: "yes"
+    expected: pass
+    
+  - name: invalid-plaintext-port
+    description: "Test rejection of plaintext ports"
+    input: |
+      version: '3.8'  
+      services:
+        redis:
+          ports:
+            - "6379:6379"  # Plaintext Redis port
+    expected: fail
+    expected_message: "exposes plaintext Redis port 6379"
+    
+  - name: valid-envoy-mtls
+    description: "Test valid Envoy mTLS configuration"
+    input: |
+      static_resources:
+        listeners:
+          - filter_chains:
+              - transport_socket:
+                  typed_config:
+                    require_client_certificate: true
+                    tls_params:
+                      tls_minimum_protocol_version: TLSv1_2
+                      cipher_suites:
+                        - "ECDHE-ECDSA-AES256-GCM-SHA384"
+    expected: pass
+    
+  - name: invalid-envoy-no-mtls
+    description: "Test rejection of Envoy without client certs"
+    input: |
+      static_resources:
+        listeners:
+          - filter_chains:
+              - transport_socket:
+                  typed_config:
+                    require_client_certificate: false
+    expected: fail
+    expected_message: "does not require client certificates"
+    
+  - name: valid-redis-tls
+    description: "Test valid Redis TLS configuration"
+    input: |
+      port: 0
+      tls-port: 6379
+      tls-auth-clients: "yes"
+    expected: pass
+    
+  - name: invalid-redis-plaintext
+    description: "Test rejection of Redis plaintext"
+    input: |
+      port: 6379
+      tls-port: 6380
+    expected: fail
+    expected_message: "plaintext port is enabled"
+    
+  - name: valid-k8s-peer-auth
+    description: "Test valid Kubernetes PeerAuthentication"
+    input: |
+      apiVersion: security.istio.io/v1beta1
+      kind: PeerAuthentication
+      spec:
+        mtls:
+          mode: STRICT
+    expected: pass
+    
+  - name: invalid-k8s-peer-auth
+    description: "Test rejection of permissive mTLS"
+    input: |
+      apiVersion: security.istio.io/v1beta1
+      kind: PeerAuthentication
+      spec:
+        mtls:
+          mode: PERMISSIVE
+    expected: fail
+    expected_message: "must use STRICT mTLS mode"
+    
+  - name: valid-certificate
+    description: "Test valid certificate configuration"
+    input: |
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      spec:
+        duration: 720h  # 30 days
+        renewBefore: 240h  # 10 days
+    expected: pass
+    
+  - name: invalid-certificate-duration
+    description: "Test rejection of long-lived certificates"
+    input: |
+      apiVersion: cert-manager.io/v1
+      kind: Certificate
+      spec:
+        duration: 8760h  # 1 year - too long
+        renewBefore: 240h
+    expected: fail
+    expected_message: "duration too long"
+    
+  - name: valid-deployment-security
+    description: "Test valid deployment security configuration"
+    input: |
+      apiVersion: apps/v1
+      kind: Deployment
+      spec:
+        template:
+          spec:
+            containers:
+              - name: api
+                image: xorb/api:v1.0.0
+                securityContext:
+                  runAsUser: 1000
+                volumeMounts:
+                  - name: tls-certs
+                    mountPath: /run/tls
+                resources:
+                  limits:
+                    memory: 512Mi
+                    cpu: 500m
+    expected: pass
+    
+  - name: invalid-deployment-root
+    description: "Test rejection of root containers"
+    input: |
+      apiVersion: apps/v1
+      kind: Deployment
+      spec:
+        template:
+          spec:
+            containers:
+              - name: api
+                image: xorb/api:latest
+                securityContext:
+                  runAsUser: 0  # Root user
+    expected: fail
+    expected_message: "running as root user"
+
+enforcement:
+  # Fail CI/CD pipeline on policy violations
+  fail_on_violation: true
+  
+  # Generate detailed reports
+  output_format: "json"
+  output_file: "reports/policy-violations.json"
+  
+  # Ignore specific violations (use sparingly)
+  exceptions:
+    - name: development-override
+      description: "Allow some violations in development environment"
+      pattern: "*.dev.yml"
+      rules:
+        - "hardcoded-secrets"  # Only for dev environment
+        
+  # Severity levels
+  severity_mapping:
+    deny: "high"
+    warn: "medium"
+    info: "low"
+    
+  # Required checks that must pass
+  required_checks:
+    - "require_client_certificate"
+    - "tls_minimum_version"
+    - "no_plaintext_ports"
+    - "secure_cipher_suites"
+    - "certificate_duration_limits"
+    - "mtls_strict_mode"
+    
+ci_integration:
+  # GitHub Actions integration
+  github_actions:
+    enable_comments: true
+    fail_pr_on_violation: true
+    
+  # Pre-commit hooks
+  pre_commit:
+    enable: true
+    auto_fix: false  # Don't auto-fix, require manual review
+    
+  # Docker build integration
+  docker_build:
+    scan_dockerfile: true
+    scan_compose: true
+    
+monitoring:
+  # Alert on policy violations
+  alerting:
+    webhook_url: "https://hooks.slack.com/services/XORB_SECURITY_ALERTS"
+    
+  # Metrics collection
+  metrics:
+    prometheus_endpoint: "/metrics"
+    violation_counter: "conftest_violations_total"
+    
+reporting:
+  # Generate security compliance reports
+  compliance_reports:
+    - name: "SOC2"
+      standards: ["SOC2_CC6.1", "SOC2_CC6.6", "SOC2_CC6.7"]
+    - name: "PCI-DSS"
+      standards: ["PCI_DSS_4.1", "PCI_DSS_6.5.4"]
+    - name: "NIST"
+      standards: ["NIST_800_53_SC_8", "NIST_800_53_SC_12"]

@@ -1,10 +1,10 @@
 # Strategic LLM Integration Deployment Guide
 
-## Overview
+##  Overview
 
 This document provides comprehensive deployment instructions for the XORB Strategic LLM Integration, featuring OpenRouter and NVIDIA API capabilities with supreme cognitive precision.
 
-## Architecture Overview
+##  Architecture Overview
 
 The strategic LLM integration provides:
 - **Multi-Provider Support**: NVIDIA and OpenRouter APIs
@@ -13,9 +13,9 @@ The strategic LLM integration provides:
 - **Cost Management**: Intelligent budget controls
 - **Strategic Intelligence**: Advanced reasoning and analysis
 
-## Prerequisites
+##  Prerequisites
 
-### Required API Keys
+###  Required API Keys
 
 1. **NVIDIA API Key**
    - Sign up at: https://build.nvidia.com/
@@ -27,7 +27,7 @@ The strategic LLM integration provides:
    - Generate API key with sufficient credits
    - Required for diverse model access
 
-### Environment Setup
+###  Environment Setup
 
 Create a `.env` file in the project root:
 
@@ -48,9 +48,9 @@ EPYC_OPTIMIZATION=true
 AI_ENHANCED=true
 ```
 
-## Deployment Steps
+##  Deployment Steps
 
-### 1. Verify Configuration
+###  1. Verify Configuration
 
 ```bash
 # Check configuration
@@ -62,7 +62,7 @@ echo "NVIDIA API: ${NVIDIA_API_KEY:0:10}..."
 echo "OpenRouter API: ${OPENROUTER_API_KEY:0:10}..."
 ```
 
-### 2. Deploy with Docker Compose
+###  2. Deploy with Docker Compose
 
 ```bash
 # Deploy the strategic platform
@@ -73,7 +73,7 @@ docker-compose -f infra/docker-compose.yml up -d
 docker-compose ps
 ```
 
-### 3. Health Check
+###  3. Health Check
 
 ```bash
 # Check intelligence engine health
@@ -83,13 +83,13 @@ curl http://localhost:8001/health
 curl http://localhost:8001/status
 ```
 
-## Strategic Capabilities
+##  Strategic Capabilities
 
-### 1. AI-Enhanced Vulnerability Analysis
+###  1. AI-Enhanced Vulnerability Analysis
 
-**Endpoint**: `POST /campaigns/{campaign_id}/ai-analysis`
+- **Endpoint**: `POST /campaigns/{campaign_id}/ai-analysis`
 
-**Example Request**:
+- **Example Request**:
 ```bash
 curl -X POST http://localhost:8001/campaigns/test-campaign/ai-analysis \
   -H "Content-Type: application/json" \
@@ -110,11 +110,11 @@ curl -X POST http://localhost:8001/campaigns/test-campaign/ai-analysis \
   }'
 ```
 
-### 2. Strategic Payload Generation
+###  2. Strategic Payload Generation
 
-**Endpoint**: `POST /payloads/generate`
+- **Endpoint**: `POST /payloads/generate`
 
-**Example Request**:
+- **Example Request**:
 ```bash
 curl -X POST http://localhost:8001/payloads/generate \
   -H "Content-Type: application/json" \
@@ -131,11 +131,11 @@ curl -X POST http://localhost:8001/payloads/generate \
   }'
 ```
 
-### 3. Intelligence Fusion
+###  3. Intelligence Fusion
 
-**Endpoint**: `POST /intelligence/fusion`
+- **Endpoint**: `POST /intelligence/fusion`
 
-**Example Request**:
+- **Example Request**:
 ```bash
 curl -X POST http://localhost:8001/intelligence/fusion \
   -H "Content-Type: application/json" \
@@ -149,9 +149,9 @@ curl -X POST http://localhost:8001/intelligence/fusion \
   }'
 ```
 
-## Model Selection Strategy
+##  Model Selection Strategy
 
-### NVIDIA Models (Preferred for Advanced Tasks)
+###  NVIDIA Models (Preferred for Advanced Tasks)
 
 1. **nvidia/llama-3.1-nemotron-70b-instruct**
    - Best for: Payload generation, vulnerability analysis
@@ -163,7 +163,7 @@ curl -X POST http://localhost:8001/intelligence/fusion \
    - Cost: $0.008 per 1K tokens
    - Features: Supreme reasoning capabilities
 
-### OpenRouter Models (Cost-Effective Options)
+###  OpenRouter Models (Cost-Effective Options)
 
 1. **anthropic/claude-3.5-sonnet**
    - Best for: Report generation, risk scoring
@@ -180,17 +180,17 @@ curl -X POST http://localhost:8001/intelligence/fusion \
    - Cost: $0.002 per 1K tokens
    - Features: 1M token context window
 
-## Free Tier Management
+##  Free Tier Management
 
-### Request Controls
+###  Request Controls
 
 - **Daily Requests**: 100 (configurable)
-- **Monthly Requests**: 2000 (configurable) 
+- **Monthly Requests**: 2000 (configurable)
 - **Hourly Rate Limit**: 20 requests/hour (configurable)
 - **Emergency Allowance**: 150 requests (break-glass scenarios)
 - **Cost**: $0.00 (100% Free!)
 
-### Monitoring
+###  Monitoring
 
 ```bash
 # Check current usage
@@ -218,16 +218,16 @@ curl http://localhost:8001/intelligence/statistics
 }
 ```
 
-## Security Considerations
+##  Security Considerations
 
-### API Key Security
+###  API Key Security
 
 1. **Environment Variables**: Never commit API keys to version control
 2. **Secure Storage**: Use container secrets or vault systems
 3. **Rotation**: Regularly rotate API keys
 4. **Monitoring**: Monitor for unusual API usage
 
-### Authorization Controls
+###  Authorization Controls
 
 ```python
 # All AI requests include authorization context
@@ -241,24 +241,24 @@ curl http://localhost:8001/intelligence/statistics
 }
 ```
 
-## Performance Optimization
+##  Performance Optimization
 
-### EPYC Architecture Optimization
+###  EPYC Architecture Optimization
 
 - **CPU Affinity**: Optimized for 16-core EPYC processors
 - **Memory Management**: 32GB RAM optimization
 - **Concurrent Processing**: Parallel AI request handling
 - **Request Batching**: Efficient token usage
 
-### Caching Strategy
+###  Caching Strategy
 
 - **Request Caching**: 1-hour TTL for analysis results
 - **Model Response Caching**: Intelligent deduplication
 - **Context Caching**: Preserve conversation context
 
-## Troubleshooting
+##  Troubleshooting
 
-### Common Issues
+###  Common Issues
 
 1. **API Key Invalid**
    ```bash
@@ -281,7 +281,7 @@ curl http://localhost:8001/intelligence/statistics
    # Verify "models_available": true
    ```
 
-### Logs and Monitoring
+###  Logs and Monitoring
 
 ```bash
 # View intelligence engine logs
@@ -291,9 +291,9 @@ docker-compose logs xorb-intelligence-engine
 docker-compose logs -f xorb-intelligence-engine | grep "Strategic"
 ```
 
-## Advanced Configuration
+##  Advanced Configuration
 
-### Custom Prompt Templates
+###  Custom Prompt Templates
 
 Edit `config/llm_strategic_config.json`:
 
@@ -306,7 +306,7 @@ Edit `config/llm_strategic_config.json`:
 }
 ```
 
-### Model Selection Preferences
+###  Model Selection Preferences
 
 ```json
 {
@@ -320,9 +320,9 @@ Edit `config/llm_strategic_config.json`:
 }
 ```
 
-## Integration Examples
+##  Integration Examples
 
-### Python Integration
+###  Python Integration
 
 ```python
 import aiohttp
@@ -340,10 +340,10 @@ async def analyze_vulnerabilities(scan_results):
 results = asyncio.run(analyze_vulnerabilities(scan_data))
 ```
 
-### REST API Integration
+###  REST API Integration
 
 ```bash
-#!/bin/bash
+# !/bin/bash
 # AI-enhanced security workflow
 
 # 1. Generate payloads
@@ -360,16 +360,16 @@ ANALYSIS=$(curl -s -X POST http://localhost:8001/campaigns/test/ai-analysis \
 echo "Strategic analysis complete with AI enhancement"
 ```
 
-## Monitoring and Alerting
+##  Monitoring and Alerting
 
-### Key Metrics
+###  Key Metrics
 
 - **Request Volume**: AI requests per hour
 - **Cost Tracking**: Real-time budget consumption
 - **Model Performance**: Response times and accuracy
 - **Cache Efficiency**: Hit rates and optimization
 
-### Grafana Dashboard
+###  Grafana Dashboard
 
 Import the strategic AI dashboard:
 ```bash
@@ -377,23 +377,23 @@ Import the strategic AI dashboard:
 # Metrics: Cost, performance, model usage, cache hits
 ```
 
-## Support and Maintenance
+##  Support and Maintenance
 
-### Regular Maintenance Tasks
+###  Regular Maintenance Tasks
 
 1. **API Key Rotation**: Monthly rotation recommended
 2. **Budget Review**: Weekly budget utilization analysis
 3. **Model Performance**: Monitor and optimize model selection
 4. **Cache Cleanup**: Regular cache maintenance
 
-### Performance Tuning
+###  Performance Tuning
 
 1. **Request Batching**: Optimize for cost efficiency
 2. **Model Selection**: Adjust based on performance metrics
 3. **Cache Tuning**: Optimize TTL and hit rates
 4. **EPYC Optimization**: Monitor CPU utilization
 
-## Conclusion
+##  Conclusion
 
 The Strategic LLM Integration provides supreme cognitive capabilities for cybersecurity operations. With proper deployment and configuration, it enables:
 
@@ -404,9 +404,9 @@ The Strategic LLM Integration provides supreme cognitive capabilities for cybers
 
 For additional support, refer to the comprehensive logs and monitoring capabilities built into the platform.
 
----
+- --
 
-**Deployment Status**: ✅ Complete
-**AI Enhancement**: ✅ Active
-**EPYC Optimization**: ✅ Enabled
-**Strategic Capabilities**: ✅ Fully Operational
+- **Deployment Status**: ✅ Complete
+- **AI Enhancement**: ✅ Active
+- **EPYC Optimization**: ✅ Enabled
+- **Strategic Capabilities**: ✅ Fully Operational

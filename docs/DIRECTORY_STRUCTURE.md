@@ -2,7 +2,7 @@
 
 This document describes the organized directory structure following best practices.
 
-## Root Directory Structure
+##  Root Directory Structure
 
 ```
 /
@@ -38,35 +38,35 @@ This document describes the organized directory structure following best practic
 └── [core files]              # Core project files (README, LICENSE, etc.)
 ```
 
-## Directory Purposes
+##  Directory Purposes
 
-### Core Directories
+###  Core Directories
 - **src/**: Main application source code
 - **tests/**: All test files
 - **config/**: Configuration files and settings
 
-### Development & Build
+###  Development & Build
 - **tools/**: Development tools, scripts, and utilities
 - **build/**: Build outputs, distributions, and artifacts
 - **deploy/**: Deployment configurations and scripts
 
-### Documentation
+###  Documentation
 - **documentation/**: All project documentation organized by type
   - API docs, user guides, development docs
 
-### Runtime
+###  Runtime
 - **runtime/**: Files generated or used during application execution
   - Logs, temporary data, runtime artifacts
 
-### Infrastructure
+###  Infrastructure
 - **infra/**: Infrastructure as code, Docker files, K8s manifests
 - **secrets/**: Sensitive configuration files
 - **ssl/**: SSL certificates and keys
 
-### Archive
+###  Archive
 - **.archive/**: Deprecated or old files kept for reference
 
-## Best Practices Applied
+##  Best Practices Applied
 
 1. **Separation of Concerns**: Different types of files in different directories
 2. **Clear Naming**: Descriptive directory names
@@ -76,7 +76,7 @@ This document describes the organized directory structure following best practic
 6. **Tool Organization**: Scripts and utilities properly categorized
 7. **Archive Strategy**: Old/deprecated content preserved but separated
 
-## Migration Notes
+##  Migration Notes
 
 - Log files moved from root to `runtime/logs/`
 - Documentation consolidated in `documentation/`

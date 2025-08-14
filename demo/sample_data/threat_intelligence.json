@@ -1,0 +1,5695 @@
+[
+  {
+    "threat_id": "TI-EB53340320B8",
+    "discovery_date": "2025-06-29T17:31:07.408555",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "196.172.200.190",
+    "threat_actor": "Criminal Group 10",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "social_engineering",
+      "brute_force",
+      "sql_injection"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-06-14T17:31:07.408555",
+    "last_seen": "2025-06-29T17:31:07.408555",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-BC95459095E6",
+    "discovery_date": "2025-07-21T17:31:07.408634",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://a08c62a3.net/malicious",
+    "threat_actor": "Criminal Group 12",
+    "target_industries": [
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "xss",
+      "phishing",
+      "man_in_middle"
+    ],
+    "severity_score": 5,
+    "active_status": true,
+    "first_seen": "2025-07-12T17:31:07.408634",
+    "last_seen": "2025-07-21T17:31:07.408634",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-149CD9C09D13",
+    "discovery_date": "2025-06-30T17:31:07.408664",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "7451180c01e94bf385b16aa22966a848acf968e7",
+    "threat_actor": "APT18",
+    "target_industries": [
+      "government",
+      "technology",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "ddos"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-06-22T17:31:07.408664",
+    "last_seen": "2025-06-30T17:31:07.408664",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-2890F249BFD9",
+    "discovery_date": "2025-08-04T17:31:07.408698",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "file_hash",
+    "indicator_value": "7a90639a88744a6aab3c71f98e4b4c1b946124aa",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "technology",
+      "government",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "phishing"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-07-30T17:31:07.408698",
+    "last_seen": "2025-08-04T17:31:07.408698",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-D85F523926DF",
+    "discovery_date": "2025-07-15T17:31:07.408724",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "223.130.204.31",
+    "threat_actor": "APT16",
+    "target_industries": [
+      "technology",
+      "financial"
+    ],
+    "attack_techniques": [
+      "malware"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-06-29T17:31:07.408724",
+    "last_seen": "2025-07-15T17:31:07.408724",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-4F2451EE0C26",
+    "discovery_date": "2025-08-11T17:31:07.408752",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "file_hash",
+    "indicator_value": "202.36.35.24",
+    "threat_actor": "Criminal Group 19",
+    "target_industries": [
+      "financial",
+      "healthcare",
+      "technology"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "social_engineering",
+      "phishing",
+      "privilege_escalation"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-08-09T17:31:07.408752",
+    "last_seen": "2025-08-11T17:31:07.408752",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-EC4105BDC3F5",
+    "discovery_date": "2025-08-06T17:31:07.408773",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "domain",
+    "indicator_value": "11d17cf0@07d076de.com",
+    "threat_actor": "Criminal Group 6",
+    "target_industries": [
+      "manufacturing",
+      "government"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "social_engineering"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-07-27T17:31:07.408773",
+    "last_seen": "2025-08-06T17:31:07.408773",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-3DF44DD55DC1",
+    "discovery_date": "2025-08-03T17:31:07.408806",
+    "threat_type": "exploit_kit",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "9a306a05@3d48826d.com",
+    "threat_actor": "Criminal Group 9",
+    "target_industries": [
+      "technology",
+      "manufacturing",
+      "government"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "zero_day",
+      "privilege_escalation"
+    ],
+    "severity_score": 2,
+    "active_status": false,
+    "first_seen": "2025-07-23T17:31:07.408806",
+    "last_seen": "2025-08-03T17:31:07.408806",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0F54D280320B",
+    "discovery_date": "2025-06-20T17:31:07.408830",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "file_hash",
+    "indicator_value": "http://5155b03d.net/malicious",
+    "threat_actor": "APT48",
+    "target_industries": [
+      "manufacturing",
+      "financial",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "brute_force"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-05-28T17:31:07.408830",
+    "last_seen": "2025-06-20T17:31:07.408830",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-CD1A63AB7602",
+    "discovery_date": "2025-07-12T17:31:07.408852",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "d6199e85.net",
+    "threat_actor": "APT32",
+    "target_industries": [
+      "healthcare",
+      "financial"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "phishing",
+      "sql_injection",
+      "insider_threat"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-07-11T17:31:07.408852",
+    "last_seen": "2025-07-12T17:31:07.408852",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-57632BF6FFEF",
+    "discovery_date": "2025-06-27T17:31:07.408874",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "206.92.45.250",
+    "threat_actor": "Criminal Group 6",
+    "target_industries": [
+      "government",
+      "manufacturing",
+      "technology"
+    ],
+    "attack_techniques": [
+      "zero_day"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-06-22T17:31:07.408874",
+    "last_seen": "2025-06-27T17:31:07.408874",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-039F0E48E3CD",
+    "discovery_date": "2025-07-14T17:31:07.408899",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "420156b6.com",
+    "threat_actor": "APT25",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "phishing"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-07-04T17:31:07.408899",
+    "last_seen": "2025-07-14T17:31:07.408899",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7CABE8A0ABBC",
+    "discovery_date": "2025-06-15T17:31:07.408939",
+    "threat_type": "c2_server",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "http://b56a29ac.com/malicious",
+    "threat_actor": "Criminal Group 19",
+    "target_industries": [
+      "manufacturing",
+      "healthcare",
+      "government"
+    ],
+    "attack_techniques": [
+      "brute_force"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-05-18T17:31:07.408939",
+    "last_seen": "2025-06-15T17:31:07.408939",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-C6D37B9F8B6D",
+    "discovery_date": "2025-06-18T17:31:07.408960",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "file_hash",
+    "indicator_value": "96.152.246.162",
+    "threat_actor": "APT25",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "brute_force"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-05-25T17:31:07.408960",
+    "last_seen": "2025-06-18T17:31:07.408960",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-794B8205E10F",
+    "discovery_date": "2025-07-30T17:31:07.408978",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "289aabac@5db59691.com",
+    "threat_actor": "APT32",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "brute_force"
+    ],
+    "severity_score": 2,
+    "active_status": false,
+    "first_seen": "2025-07-11T17:31:07.408978",
+    "last_seen": "2025-07-30T17:31:07.408978",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-F96922316325",
+    "discovery_date": "2025-08-10T17:31:07.409001",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "ddb267591b6a4cad84c09e611622670383ea848f",
+    "threat_actor": "Criminal Group 17",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "ransomware"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-07-16T17:31:07.409001",
+    "last_seen": "2025-08-10T17:31:07.409001",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-470CC1920B99",
+    "discovery_date": "2025-07-09T17:31:07.409022",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "8d22179e.org",
+    "threat_actor": "APT27",
+    "target_industries": [
+      "healthcare",
+      "financial",
+      "government"
+    ],
+    "attack_techniques": [
+      "xss",
+      "ransomware",
+      "malware"
+    ],
+    "severity_score": 1,
+    "active_status": false,
+    "first_seen": "2025-06-12T17:31:07.409022",
+    "last_seen": "2025-07-09T17:31:07.409022",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-C04CA7DF8229",
+    "discovery_date": "2025-07-18T17:31:07.409044",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "ef947c87@75351388.com",
+    "threat_actor": "APT16",
+    "target_industries": [
+      "financial",
+      "technology"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "man_in_middle",
+      "brute_force"
+    ],
+    "severity_score": 1,
+    "active_status": true,
+    "first_seen": "2025-07-16T17:31:07.409044",
+    "last_seen": "2025-07-18T17:31:07.409044",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-D81BF87E0A26",
+    "discovery_date": "2025-06-14T17:31:07.409066",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "83874809@f91f9d5f.com",
+    "threat_actor": "Criminal Group 18",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "social_engineering",
+      "ddos"
+    ],
+    "severity_score": 2,
+    "active_status": false,
+    "first_seen": "2025-05-26T17:31:07.409066",
+    "last_seen": "2025-06-14T17:31:07.409066",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-BB7DFF07DE8C",
+    "discovery_date": "2025-06-14T17:31:07.409088",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "http://5271d939.com/malicious",
+    "threat_actor": "APT4",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "privilege_escalation"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-05-29T17:31:07.409088",
+    "last_seen": "2025-06-14T17:31:07.409088",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-22548DB03702",
+    "discovery_date": "2025-07-22T17:31:07.409108",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "436c3e685234430dbb8c901957ddbc92a563a6fa",
+    "threat_actor": "Criminal Group 7",
+    "target_industries": [
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "zero_day"
+    ],
+    "severity_score": 6,
+    "active_status": false,
+    "first_seen": "2025-07-12T17:31:07.409108",
+    "last_seen": "2025-07-22T17:31:07.409108",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-FA87A9BCED65",
+    "discovery_date": "2025-07-07T17:31:07.409130",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "http://ec7f93e3.net/malicious",
+    "threat_actor": "APT14",
+    "target_industries": [
+      "financial",
+      "manufacturing",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "malware"
+    ],
+    "severity_score": 8,
+    "active_status": true,
+    "first_seen": "2025-06-27T17:31:07.409130",
+    "last_seen": "2025-07-07T17:31:07.409130",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-43289BA8C366",
+    "discovery_date": "2025-07-28T17:31:07.409150",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "8d572fe5.com",
+    "threat_actor": "APT3",
+    "target_industries": [
+      "technology",
+      "government"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "social_engineering"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-06-28T17:31:07.409150",
+    "last_seen": "2025-07-28T17:31:07.409150",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7A2E29D21019",
+    "discovery_date": "2025-07-21T17:31:07.409170",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "5884fb78.org",
+    "threat_actor": "Criminal Group 2",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "brute_force"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-07-11T17:31:07.409170",
+    "last_seen": "2025-07-21T17:31:07.409170",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-6AD83D36B8E8",
+    "discovery_date": "2025-07-18T17:31:07.409190",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "d8d56fe2@5627935c.com",
+    "threat_actor": "APT31",
+    "target_industries": [
+      "technology",
+      "healthcare",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "ddos",
+      "man_in_middle"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-07-14T17:31:07.409190",
+    "last_seen": "2025-07-18T17:31:07.409190",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-9EBCAE2ACA51",
+    "discovery_date": "2025-06-18T17:31:07.409213",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "1aa658e4@a2dbfded.com",
+    "threat_actor": "APT22",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "ddos",
+      "sql_injection",
+      "malware"
+    ],
+    "severity_score": 7,
+    "active_status": true,
+    "first_seen": "2025-06-17T17:31:07.409213",
+    "last_seen": "2025-06-18T17:31:07.409213",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-66D8499E02EE",
+    "discovery_date": "2025-07-05T17:31:07.409236",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://3fb5aa6b.com/malicious",
+    "threat_actor": "APT37",
+    "target_industries": [
+      "manufacturing",
+      "financial"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "sql_injection",
+      "social_engineering"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-06-30T17:31:07.409236",
+    "last_seen": "2025-07-05T17:31:07.409236",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-4E9C96B74389",
+    "discovery_date": "2025-07-02T17:31:07.409257",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://46aa7409.net/malicious",
+    "threat_actor": "APT7",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "brute_force",
+      "insider_threat"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-06-02T17:31:07.409257",
+    "last_seen": "2025-07-02T17:31:07.409257",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-E95B9835C12F",
+    "discovery_date": "2025-06-22T17:31:07.409276",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "88.15.79.225",
+    "threat_actor": "Criminal Group 5",
+    "target_industries": [
+      "healthcare",
+      "technology"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "zero_day",
+      "brute_force"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-05-27T17:31:07.409276",
+    "last_seen": "2025-06-22T17:31:07.409276",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-4931B6C38CFF",
+    "discovery_date": "2025-07-02T17:31:07.409295",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "domain",
+    "indicator_value": "e286097d.org",
+    "threat_actor": "Criminal Group 7",
+    "target_industries": [
+      "healthcare",
+      "government"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "sql_injection",
+      "zero_day",
+      "ddos"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-06-08T17:31:07.409295",
+    "last_seen": "2025-07-02T17:31:07.409295",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-F8B7EDF83189",
+    "discovery_date": "2025-07-16T17:31:07.409317",
+    "threat_type": "malware",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "http://f801b1d4.net/malicious",
+    "threat_actor": "APT36",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "phishing",
+      "social_engineering"
+    ],
+    "severity_score": 1,
+    "active_status": true,
+    "first_seen": "2025-07-04T17:31:07.409317",
+    "last_seen": "2025-07-16T17:31:07.409317",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-476F234EEC37",
+    "discovery_date": "2025-07-27T17:31:07.409337",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "88f20de5.com",
+    "threat_actor": "APT22",
+    "target_industries": [
+      "technology",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "privilege_escalation"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-07-14T17:31:07.409337",
+    "last_seen": "2025-07-27T17:31:07.409337",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-5906B9E54B55",
+    "discovery_date": "2025-07-09T17:31:07.409356",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "b9033961.com",
+    "threat_actor": "APT47",
+    "target_industries": [
+      "healthcare",
+      "technology"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "xss",
+      "man_in_middle"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-07-04T17:31:07.409356",
+    "last_seen": "2025-07-09T17:31:07.409356",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-8953DDD5B410",
+    "discovery_date": "2025-07-29T17:31:07.409376",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "241.53.119.236",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "government",
+      "manufacturing",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "phishing",
+      "sql_injection",
+      "man_in_middle"
+    ],
+    "severity_score": 7,
+    "active_status": true,
+    "first_seen": "2025-07-01T17:31:07.409376",
+    "last_seen": "2025-07-29T17:31:07.409376",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-677B56F98393",
+    "discovery_date": "2025-08-01T17:31:07.409406",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "bc7c1789c1eb4d5984df481cf3b0ca258deaeff6",
+    "threat_actor": "APT36",
+    "target_industries": [
+      "financial",
+      "government",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "zero_day"
+    ],
+    "severity_score": 8,
+    "active_status": true,
+    "first_seen": "2025-07-12T17:31:07.409406",
+    "last_seen": "2025-08-01T17:31:07.409406",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7B3D857CB89A",
+    "discovery_date": "2025-06-23T17:31:07.409429",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "http://6696c393.net/malicious",
+    "threat_actor": "Criminal Group 2",
+    "target_industries": [
+      "technology",
+      "financial",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "ddos",
+      "social_engineering"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-06-11T17:31:07.409429",
+    "last_seen": "2025-06-23T17:31:07.409429",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-3F592F6ED923",
+    "discovery_date": "2025-07-02T17:31:07.409449",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "9ecb94bf@dd776739.com",
+    "threat_actor": "Criminal Group 6",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "malware",
+      "insider_threat"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-07-01T17:31:07.409449",
+    "last_seen": "2025-07-02T17:31:07.409449",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-FC429C8B8124",
+    "discovery_date": "2025-08-05T17:31:07.409471",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "0170f568355145bd9c1d8e895d2b712627bfef2c",
+    "threat_actor": "APT32",
+    "target_industries": [
+      "financial",
+      "healthcare",
+      "government"
+    ],
+    "attack_techniques": [
+      "malware",
+      "man_in_middle",
+      "social_engineering"
+    ],
+    "severity_score": 6,
+    "active_status": false,
+    "first_seen": "2025-07-15T17:31:07.409471",
+    "last_seen": "2025-08-05T17:31:07.409471",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-759E8D0C6D72",
+    "discovery_date": "2025-06-15T17:31:07.409494",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://196c8f21.com/malicious",
+    "threat_actor": "Criminal Group 18",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "zero_day",
+      "brute_force",
+      "sql_injection"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-06-02T17:31:07.409494",
+    "last_seen": "2025-06-15T17:31:07.409494",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-3B61E564807C",
+    "discovery_date": "2025-06-19T17:31:07.409514",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "email",
+    "indicator_value": "96f717ce@08348fc1.com",
+    "threat_actor": "Criminal Group 4",
+    "target_industries": [
+      "manufacturing",
+      "technology",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "brute_force",
+      "malware"
+    ],
+    "severity_score": 8,
+    "active_status": true,
+    "first_seen": "2025-06-06T17:31:07.409514",
+    "last_seen": "2025-06-19T17:31:07.409514",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-EDE7321195CF",
+    "discovery_date": "2025-07-03T17:31:07.409538",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "531d357ba5e14729bff7e755f727e97533334841",
+    "threat_actor": "APT33",
+    "target_industries": [
+      "manufacturing",
+      "government"
+    ],
+    "attack_techniques": [
+      "social_engineering"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-06-24T17:31:07.409538",
+    "last_seen": "2025-07-03T17:31:07.409538",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-9DE2659C2EA7",
+    "discovery_date": "2025-07-17T17:31:07.409562",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "1a6df7b3.org",
+    "threat_actor": "APT18",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "man_in_middle",
+      "xss",
+      "malware"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-06-26T17:31:07.409562",
+    "last_seen": "2025-07-17T17:31:07.409562",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-CF051BAAF0F9",
+    "discovery_date": "2025-08-02T17:31:07.409582",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "172.39.24.17",
+    "threat_actor": "Criminal Group 9",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "social_engineering",
+      "man_in_middle"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-07-21T17:31:07.409582",
+    "last_seen": "2025-08-02T17:31:07.409582",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-5EC358EAFAC6",
+    "discovery_date": "2025-07-30T17:31:07.409601",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "file_hash",
+    "indicator_value": "http://1162c114.com/malicious",
+    "threat_actor": "Criminal Group 4",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "zero_day"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-07-16T17:31:07.409601",
+    "last_seen": "2025-07-30T17:31:07.409601",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-34C198A5602D",
+    "discovery_date": "2025-08-05T17:31:07.409621",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "83.84.109.8",
+    "threat_actor": "APT22",
+    "target_industries": [
+      "technology",
+      "government"
+    ],
+    "attack_techniques": [
+      "social_engineering"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-08-02T17:31:07.409621",
+    "last_seen": "2025-08-05T17:31:07.409621",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-BE08644C3947",
+    "discovery_date": "2025-07-30T17:31:07.409640",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "19baf866@560d95b6.com",
+    "threat_actor": "Criminal Group 16",
+    "target_industries": [
+      "manufacturing",
+      "government",
+      "financial"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "man_in_middle",
+      "sql_injection",
+      "ransomware"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-07-23T17:31:07.409640",
+    "last_seen": "2025-07-30T17:31:07.409640",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7024BE78BCB4",
+    "discovery_date": "2025-06-24T17:31:07.409662",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "192.203.170.222",
+    "threat_actor": "APT29",
+    "target_industries": [
+      "manufacturing",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "phishing",
+      "social_engineering"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-06-18T17:31:07.409662",
+    "last_seen": "2025-06-24T17:31:07.409662",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-792CFF8C8897",
+    "discovery_date": "2025-06-18T17:31:07.409681",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "171.5.231.15",
+    "threat_actor": "APT3",
+    "target_industries": [
+      "government",
+      "financial",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "privilege_escalation",
+      "man_in_middle",
+      "brute_force"
+    ],
+    "severity_score": 2,
+    "active_status": false,
+    "first_seen": "2025-06-13T17:31:07.409681",
+    "last_seen": "2025-06-18T17:31:07.409681",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-FFADDECC9B35",
+    "discovery_date": "2025-07-27T17:31:07.409701",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "http://f55c8d87.com/malicious",
+    "threat_actor": "Criminal Group 20",
+    "target_industries": [
+      "healthcare",
+      "government",
+      "technology"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "ddos"
+    ],
+    "severity_score": 6,
+    "active_status": false,
+    "first_seen": "2025-06-27T17:31:07.409701",
+    "last_seen": "2025-07-27T17:31:07.409701",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0A1601843740",
+    "discovery_date": "2025-07-20T17:31:07.409721",
+    "threat_type": "c2_server",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "domain",
+    "indicator_value": "e83fe7ac@d9b910f6.com",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "insider_threat",
+      "phishing",
+      "ddos"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-06-20T17:31:07.409721",
+    "last_seen": "2025-07-20T17:31:07.409721",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0E846EBDFFF8",
+    "discovery_date": "2025-07-09T17:31:07.409744",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "104.107.106.106",
+    "threat_actor": "APT22",
+    "target_industries": [
+      "financial",
+      "government",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "ddos"
+    ],
+    "severity_score": 1,
+    "active_status": true,
+    "first_seen": "2025-07-07T17:31:07.409744",
+    "last_seen": "2025-07-09T17:31:07.409744",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-C41C50CAB0E6",
+    "discovery_date": "2025-07-07T17:31:07.409762",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "226e7e644c1240b3b7f13c8d059b11239ee0f3ef",
+    "threat_actor": "Criminal Group 6",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "zero_day"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-06-25T17:31:07.409762",
+    "last_seen": "2025-07-07T17:31:07.409762",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7FF679515B5A",
+    "discovery_date": "2025-06-28T17:31:07.409784",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "file_hash",
+    "indicator_value": "6818c8b5@b00975e6.com",
+    "threat_actor": "APT27",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "phishing",
+      "man_in_middle"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-06-11T17:31:07.409784",
+    "last_seen": "2025-06-28T17:31:07.409784",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-F4B9DD5317D6",
+    "discovery_date": "2025-06-12T17:31:07.409806",
+    "threat_type": "exploit_kit",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "219.200.196.254",
+    "threat_actor": "APT23",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "insider_threat",
+      "phishing",
+      "zero_day"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-06-04T17:31:07.409806",
+    "last_seen": "2025-06-12T17:31:07.409806",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-D357EF1B1330",
+    "discovery_date": "2025-06-25T17:31:07.409825",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "167.198.80.136",
+    "threat_actor": "APT13",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "insider_threat",
+      "phishing",
+      "man_in_middle"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-06-21T17:31:07.409825",
+    "last_seen": "2025-06-25T17:31:07.409825",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0F6D383DCE97",
+    "discovery_date": "2025-07-06T17:31:07.409844",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "e9b185ba@ea8b630b.com",
+    "threat_actor": "APT50",
+    "target_industries": [
+      "financial",
+      "technology"
+    ],
+    "attack_techniques": [
+      "xss"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-06-27T17:31:07.409844",
+    "last_seen": "2025-07-06T17:31:07.409844",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-9F76A02A91E5",
+    "discovery_date": "2025-06-25T17:31:07.409867",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "file_hash",
+    "indicator_value": "53016464.info",
+    "threat_actor": "APT32",
+    "target_industries": [
+      "technology",
+      "healthcare",
+      "government"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "sql_injection",
+      "social_engineering"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-06-09T17:31:07.409867",
+    "last_seen": "2025-06-25T17:31:07.409867",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-48F757B54126",
+    "discovery_date": "2025-08-07T17:31:07.409887",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "4195c45ead24453baf19d334f68aa7ea49a12484",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "phishing"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-07-11T17:31:07.409887",
+    "last_seen": "2025-08-07T17:31:07.409887",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-4EF1AE3A7CB8",
+    "discovery_date": "2025-07-03T17:31:07.409909",
+    "threat_type": "c2_server",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "email",
+    "indicator_value": "205229d9.com",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "brute_force"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-06-14T17:31:07.409909",
+    "last_seen": "2025-07-03T17:31:07.409909",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-A9D338D7A1F6",
+    "discovery_date": "2025-06-25T17:31:07.409941",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://5274af6b.com/malicious",
+    "threat_actor": "Criminal Group 11",
+    "target_industries": [
+      "government",
+      "healthcare",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "man_in_middle"
+    ],
+    "severity_score": 7,
+    "active_status": true,
+    "first_seen": "2025-06-07T17:31:07.409941",
+    "last_seen": "2025-06-25T17:31:07.409941",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-78283A09E651",
+    "discovery_date": "2025-07-31T17:31:07.409962",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "876fa1ac@00bab80f.com",
+    "threat_actor": "APT32",
+    "target_industries": [
+      "technology",
+      "financial"
+    ],
+    "attack_techniques": [
+      "xss",
+      "man_in_middle"
+    ],
+    "severity_score": 1,
+    "active_status": false,
+    "first_seen": "2025-07-02T17:31:07.409962",
+    "last_seen": "2025-07-31T17:31:07.409962",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0F64F5D63992",
+    "discovery_date": "2025-08-04T17:31:07.409986",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "03e242eb4d184e4bb23534b3b7bb9ecccea080ba",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "manufacturing",
+      "government"
+    ],
+    "attack_techniques": [
+      "social_engineering"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-07-18T17:31:07.409986",
+    "last_seen": "2025-08-04T17:31:07.409986",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-2A7854399DCE",
+    "discovery_date": "2025-06-30T17:31:07.410009",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "84974758@7339be88.com",
+    "threat_actor": "APT34",
+    "target_industries": [
+      "government",
+      "manufacturing",
+      "technology"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "privilege_escalation",
+      "phishing",
+      "ransomware"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-06-18T17:31:07.410009",
+    "last_seen": "2025-06-30T17:31:07.410009",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-BD2726E08A0E",
+    "discovery_date": "2025-08-01T17:31:07.410032",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "4a795ef3@6a9290a5.com",
+    "threat_actor": "Criminal Group 13",
+    "target_industries": [
+      "financial",
+      "government"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "zero_day",
+      "privilege_escalation"
+    ],
+    "severity_score": 1,
+    "active_status": false,
+    "first_seen": "2025-07-19T17:31:07.410032",
+    "last_seen": "2025-08-01T17:31:07.410032",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-5DE3972E2FC9",
+    "discovery_date": "2025-08-10T17:31:07.410055",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "169.110.154.224",
+    "threat_actor": "APT26",
+    "target_industries": [
+      "manufacturing",
+      "financial"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "xss",
+      "ddos"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-07-18T17:31:07.410055",
+    "last_seen": "2025-08-10T17:31:07.410055",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-5374A500C90B",
+    "discovery_date": "2025-06-28T17:31:07.410074",
+    "threat_type": "malware",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "92a005e7.org",
+    "threat_actor": "APT42",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "phishing",
+      "ddos",
+      "ransomware",
+      "brute_force"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-05-29T17:31:07.410074",
+    "last_seen": "2025-06-28T17:31:07.410074",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-9BCF17707315",
+    "discovery_date": "2025-07-02T17:31:07.410095",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "http://8b6cfd1b.com/malicious",
+    "threat_actor": "Criminal Group 18",
+    "target_industries": [
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "social_engineering"
+    ],
+    "severity_score": 8,
+    "active_status": true,
+    "first_seen": "2025-06-13T17:31:07.410095",
+    "last_seen": "2025-07-02T17:31:07.410095",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-73911F813BC7",
+    "discovery_date": "2025-07-23T17:31:07.410114",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "130.206.158.211",
+    "threat_actor": "APT8",
+    "target_industries": [
+      "government",
+      "technology",
+      "financial"
+    ],
+    "attack_techniques": [
+      "sql_injection"
+    ],
+    "severity_score": 5,
+    "active_status": true,
+    "first_seen": "2025-06-30T17:31:07.410114",
+    "last_seen": "2025-07-23T17:31:07.410114",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-3D172A77086F",
+    "discovery_date": "2025-07-13T17:31:07.410133",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "http://7ec0c056.net/malicious",
+    "threat_actor": "APT28",
+    "target_industries": [
+      "manufacturing",
+      "technology",
+      "financial"
+    ],
+    "attack_techniques": [
+      "brute_force"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-06-16T17:31:07.410133",
+    "last_seen": "2025-07-13T17:31:07.410133",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-4615567744E7",
+    "discovery_date": "2025-06-17T17:31:07.410153",
+    "threat_type": "c2_server",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "226.176.23.80",
+    "threat_actor": "Criminal Group 8",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "privilege_escalation"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-06-09T17:31:07.410153",
+    "last_seen": "2025-06-17T17:31:07.410153",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-A5310E366DD1",
+    "discovery_date": "2025-07-02T17:31:07.410172",
+    "threat_type": "c2_server",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "domain",
+    "indicator_value": "e0dc1cc7f86745688827d447d6338757cf263f18",
+    "threat_actor": "Criminal Group 20",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "zero_day",
+      "phishing",
+      "man_in_middle"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-06-28T17:31:07.410172",
+    "last_seen": "2025-07-02T17:31:07.410172",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-684D1380E8B8",
+    "discovery_date": "2025-08-03T17:31:07.410194",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "http://bfd73692.net/malicious",
+    "threat_actor": "APT34",
+    "target_industries": [
+      "technology",
+      "government",
+      "financial"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "brute_force",
+      "zero_day"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-07-26T17:31:07.410194",
+    "last_seen": "2025-08-03T17:31:07.410194",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-D5ED452FD5C9",
+    "discovery_date": "2025-06-17T17:31:07.410221",
+    "threat_type": "exploit_kit",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "168.22.109.43",
+    "threat_actor": "Criminal Group 18",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "xss",
+      "privilege_escalation",
+      "zero_day",
+      "malware"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-06-08T17:31:07.410221",
+    "last_seen": "2025-06-17T17:31:07.410221",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-2C0A620BC7B6",
+    "discovery_date": "2025-06-13T17:31:07.410240",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "email",
+    "indicator_value": "http://e7b82fda.com/malicious",
+    "threat_actor": "Criminal Group 4",
+    "target_industries": [
+      "government",
+      "healthcare",
+      "financial"
+    ],
+    "attack_techniques": [
+      "brute_force",
+      "privilege_escalation",
+      "phishing"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-05-18T17:31:07.410240",
+    "last_seen": "2025-06-13T17:31:07.410240",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7DA7307B4D6C",
+    "discovery_date": "2025-06-13T17:31:07.410261",
+    "threat_type": "malware",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "email",
+    "indicator_value": "ef5c52ff@3e02549e.com",
+    "threat_actor": "APT47",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "social_engineering",
+      "man_in_middle",
+      "ddos",
+      "ransomware"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-06-11T17:31:07.410261",
+    "last_seen": "2025-06-13T17:31:07.410261",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-2412FFEC97DB",
+    "discovery_date": "2025-07-10T17:31:07.410291",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "fd7f932bc5364936aac96b9b25cd4ca6c46931a6",
+    "threat_actor": "APT42",
+    "target_industries": [
+      "financial",
+      "government",
+      "technology"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "sql_injection",
+      "man_in_middle"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-06-15T17:31:07.410291",
+    "last_seen": "2025-07-10T17:31:07.410291",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-30D9C7A8EB1E",
+    "discovery_date": "2025-06-17T17:31:07.410313",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "127.205.149.147",
+    "threat_actor": "APT35",
+    "target_industries": [
+      "healthcare",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "ransomware"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-05-22T17:31:07.410313",
+    "last_seen": "2025-06-17T17:31:07.410313",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-86571D968A39",
+    "discovery_date": "2025-07-29T17:31:07.410332",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "180.74.68.123",
+    "threat_actor": "APT48",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "phishing",
+      "man_in_middle"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-07-11T17:31:07.410332",
+    "last_seen": "2025-07-29T17:31:07.410332",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-670AEB933CFD",
+    "discovery_date": "2025-07-16T17:31:07.410351",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "http://98cd4a2a.com/malicious",
+    "threat_actor": "APT30",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "xss",
+      "ddos",
+      "ransomware"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-07-01T17:31:07.410351",
+    "last_seen": "2025-07-16T17:31:07.410351",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-965D26BEBC3E",
+    "discovery_date": "2025-06-18T17:31:07.410371",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "876b5586@5e41e401.com",
+    "threat_actor": "Criminal Group 17",
+    "target_industries": [
+      "healthcare",
+      "financial"
+    ],
+    "attack_techniques": [
+      "brute_force",
+      "ransomware",
+      "phishing"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-05-31T17:31:07.410371",
+    "last_seen": "2025-06-18T17:31:07.410371",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-E0C49B16C505",
+    "discovery_date": "2025-06-20T17:31:07.410419",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "http://60b7982a.net/malicious",
+    "threat_actor": "Criminal Group 19",
+    "target_industries": [
+      "financial",
+      "healthcare",
+      "technology"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "malware",
+      "man_in_middle"
+    ],
+    "severity_score": 6,
+    "active_status": false,
+    "first_seen": "2025-05-27T17:31:07.410419",
+    "last_seen": "2025-06-20T17:31:07.410419",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-20EE1628115C",
+    "discovery_date": "2025-07-31T17:31:07.410441",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "http://aa0496b8.net/malicious",
+    "threat_actor": "Criminal Group 2",
+    "target_industries": [
+      "financial",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "malware",
+      "ransomware"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-07-15T17:31:07.410441",
+    "last_seen": "2025-07-31T17:31:07.410441",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-56ABD3A693F5",
+    "discovery_date": "2025-06-14T17:31:07.410461",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "domain",
+    "indicator_value": "http://fa4d61b5.com/malicious",
+    "threat_actor": "APT43",
+    "target_industries": [
+      "government",
+      "technology",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "malware",
+      "sql_injection"
+    ],
+    "severity_score": 8,
+    "active_status": true,
+    "first_seen": "2025-06-12T17:31:07.410461",
+    "last_seen": "2025-06-14T17:31:07.410461",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-A33C3167FF6A",
+    "discovery_date": "2025-06-30T17:31:07.410482",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "domain",
+    "indicator_value": "af0cd878cc804d4e90a7eaea355795bb89d11cd6",
+    "threat_actor": "APT18",
+    "target_industries": [
+      "manufacturing",
+      "technology"
+    ],
+    "attack_techniques": [
+      "zero_day"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-06-23T17:31:07.410482",
+    "last_seen": "2025-06-30T17:31:07.410482",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-B26E24F9ED5E",
+    "discovery_date": "2025-07-07T17:31:07.410505",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "http://10e45388.com/malicious",
+    "threat_actor": "APT15",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "brute_force",
+      "xss"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-06-23T17:31:07.410505",
+    "last_seen": "2025-07-07T17:31:07.410505",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-BB778E96CB9C",
+    "discovery_date": "2025-08-09T17:31:07.410525",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "32.81.2.95",
+    "threat_actor": "Criminal Group 6",
+    "target_industries": [
+      "financial",
+      "government"
+    ],
+    "attack_techniques": [
+      "phishing",
+      "privilege_escalation"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-08-05T17:31:07.410525",
+    "last_seen": "2025-08-09T17:31:07.410525",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-50B5C1794839",
+    "discovery_date": "2025-06-12T17:31:07.410544",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "987ccedb.org",
+    "threat_actor": "Criminal Group 1",
+    "target_industries": [
+      "technology",
+      "healthcare",
+      "financial"
+    ],
+    "attack_techniques": [
+      "phishing",
+      "zero_day",
+      "insider_threat",
+      "ddos"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-05-20T17:31:07.410544",
+    "last_seen": "2025-06-12T17:31:07.410544",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-D11502F988EC",
+    "discovery_date": "2025-07-27T17:31:07.410565",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "file_hash",
+    "indicator_value": "80351c0f.info",
+    "threat_actor": "Criminal Group 9",
+    "target_industries": [
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "xss",
+      "ddos",
+      "zero_day",
+      "social_engineering"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-07-26T17:31:07.410565",
+    "last_seen": "2025-07-27T17:31:07.410565",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-AACABBD44CD8",
+    "discovery_date": "2025-07-19T17:31:07.410586",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "3b1c62b1565a49b18179349d2a546e7f5049e115",
+    "threat_actor": "Criminal Group 13",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "social_engineering"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-07-15T17:31:07.410586",
+    "last_seen": "2025-07-19T17:31:07.410586",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-3F897CB11D87",
+    "discovery_date": "2025-07-04T17:31:07.410608",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "http://5c752e3b.net/malicious",
+    "threat_actor": "Criminal Group 10",
+    "target_industries": [
+      "manufacturing",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "xss",
+      "brute_force"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-06-28T17:31:07.410608",
+    "last_seen": "2025-07-04T17:31:07.410608",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-6AE5D2F12806",
+    "discovery_date": "2025-07-31T17:31:07.410628",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "97.55.33.135",
+    "threat_actor": "APT20",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "phishing",
+      "social_engineering",
+      "sql_injection",
+      "malware"
+    ],
+    "severity_score": 2,
+    "active_status": false,
+    "first_seen": "2025-07-24T17:31:07.410628",
+    "last_seen": "2025-07-31T17:31:07.410628",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-34D4E3C738A6",
+    "discovery_date": "2025-07-16T17:31:07.410647",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "253.24.57.173",
+    "threat_actor": "APT28",
+    "target_industries": [
+      "manufacturing",
+      "technology"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "brute_force",
+      "social_engineering",
+      "ddos"
+    ],
+    "severity_score": 2,
+    "active_status": false,
+    "first_seen": "2025-07-06T17:31:07.410647",
+    "last_seen": "2025-07-16T17:31:07.410647",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-8A9F226A4AD2",
+    "discovery_date": "2025-06-13T17:31:07.410668",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "http://846eb1a2.net/malicious",
+    "threat_actor": "Criminal Group 1",
+    "target_industries": [
+      "financial",
+      "technology"
+    ],
+    "attack_techniques": [
+      "brute_force",
+      "phishing"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-05-25T17:31:07.410668",
+    "last_seen": "2025-06-13T17:31:07.410668",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-F56E12CDF0CA",
+    "discovery_date": "2025-07-31T17:31:07.410695",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "943fb4e0.net",
+    "threat_actor": "APT26",
+    "target_industries": [
+      "technology",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "brute_force"
+    ],
+    "severity_score": 5,
+    "active_status": true,
+    "first_seen": "2025-07-11T17:31:07.410695",
+    "last_seen": "2025-07-31T17:31:07.410695",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-8DA1BEA4E5D1",
+    "discovery_date": "2025-07-04T17:31:07.410716",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "http://40b4517a.com/malicious",
+    "threat_actor": "APT48",
+    "target_industries": [
+      "financial",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "malware",
+      "social_engineering",
+      "man_in_middle",
+      "ransomware"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-06-07T17:31:07.410716",
+    "last_seen": "2025-07-04T17:31:07.410716",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-36084D4189B0",
+    "discovery_date": "2025-08-09T17:31:07.410737",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "998281185b244ee9a93a80e2ff732047f4ac79b7",
+    "threat_actor": "Criminal Group 20",
+    "target_industries": [
+      "financial",
+      "healthcare",
+      "government"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "xss"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-07-16T17:31:07.410737",
+    "last_seen": "2025-08-09T17:31:07.410737",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7AE7246DF179",
+    "discovery_date": "2025-07-31T17:31:07.410760",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "http://7244c866.com/malicious",
+    "threat_actor": "APT4",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "xss",
+      "malware",
+      "privilege_escalation"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-07-10T17:31:07.410760",
+    "last_seen": "2025-07-31T17:31:07.410760",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-22239D0FC13D",
+    "discovery_date": "2025-07-19T17:31:07.410780",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "http://cf81983b.net/malicious",
+    "threat_actor": "Criminal Group 11",
+    "target_industries": [
+      "manufacturing",
+      "technology",
+      "government"
+    ],
+    "attack_techniques": [
+      "ddos"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-07-01T17:31:07.410780",
+    "last_seen": "2025-07-19T17:31:07.410780",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-75126D6452CB",
+    "discovery_date": "2025-07-12T17:31:07.410801",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "e7de6d43@0b9baec6.com",
+    "threat_actor": "Criminal Group 2",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "malware"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-06-13T17:31:07.410801",
+    "last_seen": "2025-07-12T17:31:07.410801",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-088C7FF7F841",
+    "discovery_date": "2025-07-11T17:31:07.410822",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "e1900722bc394f7f87051e1b3847e7e26d59e89d",
+    "threat_actor": "APT37",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "xss"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-06-11T17:31:07.410822",
+    "last_seen": "2025-07-11T17:31:07.410822",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-EB0F6E05BFF3",
+    "discovery_date": "2025-07-18T17:31:07.410844",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://84559aa2.com/malicious",
+    "threat_actor": "Criminal Group 14",
+    "target_industries": [
+      "manufacturing",
+      "technology"
+    ],
+    "attack_techniques": [
+      "insider_threat"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-06-18T17:31:07.410844",
+    "last_seen": "2025-07-18T17:31:07.410844",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-1345C8C4F09D",
+    "discovery_date": "2025-07-26T17:31:07.410864",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "file_hash",
+    "indicator_value": "111.232.77.45",
+    "threat_actor": "APT13",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ransomware"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-07-05T17:31:07.410864",
+    "last_seen": "2025-07-26T17:31:07.410864",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-227D921A8F1B",
+    "discovery_date": "2025-08-05T17:31:07.410883",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "f89023f24693452699c05ae4b36243bf4bd2d0fc",
+    "threat_actor": "APT33",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "malware",
+      "privilege_escalation",
+      "sql_injection"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-08-02T17:31:07.410883",
+    "last_seen": "2025-08-05T17:31:07.410883",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-81A17F690591",
+    "discovery_date": "2025-07-07T17:31:07.410905",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "7953af4e89224eeaa0ef3d1b379160677a288a75",
+    "threat_actor": "APT17",
+    "target_industries": [
+      "manufacturing",
+      "government"
+    ],
+    "attack_techniques": [
+      "social_engineering",
+      "xss",
+      "brute_force",
+      "sql_injection"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-06-23T17:31:07.410905",
+    "last_seen": "2025-07-07T17:31:07.410905",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-B02EEA4A048F",
+    "discovery_date": "2025-07-04T17:31:07.410961",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "c14a97a6.org",
+    "threat_actor": "APT4",
+    "target_industries": [
+      "technology",
+      "government"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "brute_force"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-06-24T17:31:07.410961",
+    "last_seen": "2025-07-04T17:31:07.410961",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7534AB4CC684",
+    "discovery_date": "2025-06-17T17:31:07.410982",
+    "threat_type": "exploit_kit",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://b2067a70.net/malicious",
+    "threat_actor": "APT19",
+    "target_industries": [
+      "healthcare",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "ddos"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-06-15T17:31:07.410982",
+    "last_seen": "2025-06-17T17:31:07.410982",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-192E6D71C775",
+    "discovery_date": "2025-06-30T17:31:07.411002",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "96f4e7a3.com",
+    "threat_actor": "Criminal Group 16",
+    "target_industries": [
+      "technology",
+      "government"
+    ],
+    "attack_techniques": [
+      "malware"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-06-19T17:31:07.411002",
+    "last_seen": "2025-06-30T17:31:07.411002",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-E0F1142979D6",
+    "discovery_date": "2025-07-13T17:31:07.411022",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "url",
+    "indicator_value": "33.142.159.140",
+    "threat_actor": "APT13",
+    "target_industries": [
+      "government",
+      "manufacturing",
+      "technology"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "zero_day",
+      "social_engineering"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-06-20T17:31:07.411022",
+    "last_seen": "2025-07-13T17:31:07.411022",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-CF4F96CA6AFA",
+    "discovery_date": "2025-07-11T17:31:07.411041",
+    "threat_type": "exploit_kit",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "file_hash",
+    "indicator_value": "193.112.90.251",
+    "threat_actor": "APT9",
+    "target_industries": [
+      "manufacturing",
+      "technology"
+    ],
+    "attack_techniques": [
+      "privilege_escalation"
+    ],
+    "severity_score": 5,
+    "active_status": true,
+    "first_seen": "2025-06-14T17:31:07.411041",
+    "last_seen": "2025-07-11T17:31:07.411041",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7F4DBBAF7DCB",
+    "discovery_date": "2025-07-13T17:31:07.411060",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "http://3923a7bb.com/malicious",
+    "threat_actor": "Criminal Group 17",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "xss",
+      "social_engineering"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-07-06T17:31:07.411060",
+    "last_seen": "2025-07-13T17:31:07.411060",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-DD40B77AB0DD",
+    "discovery_date": "2025-06-22T17:31:07.411080",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "72.36.109.22",
+    "threat_actor": "Criminal Group 12",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "malware"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-05-28T17:31:07.411080",
+    "last_seen": "2025-06-22T17:31:07.411080",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7167086B78FA",
+    "discovery_date": "2025-06-27T17:31:07.411099",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "7aa310f711c34adca9aad23f573dd3361d565b6b",
+    "threat_actor": "Criminal Group 6",
+    "target_industries": [
+      "government",
+      "financial",
+      "technology"
+    ],
+    "attack_techniques": [
+      "brute_force"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-06-21T17:31:07.411099",
+    "last_seen": "2025-06-27T17:31:07.411099",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-3935F0C43A01",
+    "discovery_date": "2025-07-10T17:31:07.411121",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "http://d9fdb291.com/malicious",
+    "threat_actor": "Criminal Group 5",
+    "target_industries": [
+      "healthcare",
+      "manufacturing",
+      "government"
+    ],
+    "attack_techniques": [
+      "phishing",
+      "zero_day",
+      "malware"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-06-28T17:31:07.411121",
+    "last_seen": "2025-07-10T17:31:07.411121",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-74043DFBCFA5",
+    "discovery_date": "2025-06-20T17:31:07.411142",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "207.134.173.145",
+    "threat_actor": "APT36",
+    "target_industries": [
+      "financial",
+      "technology",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "malware",
+      "man_in_middle"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-06-15T17:31:07.411142",
+    "last_seen": "2025-06-20T17:31:07.411142",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-A38D3DACD179",
+    "discovery_date": "2025-07-10T17:31:07.411161",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "1d93756b.info",
+    "threat_actor": "APT37",
+    "target_industries": [
+      "healthcare",
+      "financial",
+      "technology"
+    ],
+    "attack_techniques": [
+      "malware"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-07-05T17:31:07.411161",
+    "last_seen": "2025-07-10T17:31:07.411161",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-E2149B4B7C9E",
+    "discovery_date": "2025-06-18T17:31:07.411181",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "45273b63@f5ea5299.com",
+    "threat_actor": "APT27",
+    "target_industries": [
+      "financial",
+      "technology",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "man_in_middle"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-06-06T17:31:07.411181",
+    "last_seen": "2025-06-18T17:31:07.411181",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-864D31E2D6C1",
+    "discovery_date": "2025-08-06T17:31:07.411204",
+    "threat_type": "malware",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "0a946f93.org",
+    "threat_actor": "Criminal Group 17",
+    "target_industries": [
+      "healthcare",
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "xss",
+      "man_in_middle",
+      "brute_force",
+      "ddos"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-07-15T17:31:07.411204",
+    "last_seen": "2025-08-06T17:31:07.411204",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0E45C28413AB",
+    "discovery_date": "2025-06-20T17:31:07.411225",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "955c874d.com",
+    "threat_actor": "APT50",
+    "target_industries": [
+      "technology",
+      "government",
+      "financial"
+    ],
+    "attack_techniques": [
+      "malware",
+      "man_in_middle",
+      "brute_force",
+      "sql_injection"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-05-28T17:31:07.411225",
+    "last_seen": "2025-06-20T17:31:07.411225",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-8B2307C1DFFC",
+    "discovery_date": "2025-07-01T17:31:07.411246",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "d3e67bed@25eab582.com",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "financial",
+      "healthcare",
+      "technology"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "sql_injection",
+      "phishing"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-06-12T17:31:07.411246",
+    "last_seen": "2025-07-01T17:31:07.411246",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-6B2BD05CAED0",
+    "discovery_date": "2025-08-06T17:31:07.411269",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "file_hash",
+    "indicator_value": "http://930772c7.net/malicious",
+    "threat_actor": "Criminal Group 8",
+    "target_industries": [
+      "government",
+      "technology",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "brute_force"
+    ],
+    "severity_score": 5,
+    "active_status": true,
+    "first_seen": "2025-07-08T17:31:07.411269",
+    "last_seen": "2025-08-06T17:31:07.411269",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-C1A30E1540C2",
+    "discovery_date": "2025-07-19T17:31:07.411289",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://b3c16218.com/malicious",
+    "threat_actor": "APT11",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "sql_injection"
+    ],
+    "severity_score": 2,
+    "active_status": false,
+    "first_seen": "2025-07-03T17:31:07.411289",
+    "last_seen": "2025-07-19T17:31:07.411289",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-AA2E9B60EB85",
+    "discovery_date": "2025-06-14T17:31:07.411309",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "142.13.44.152",
+    "threat_actor": "Criminal Group 7",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "malware"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-05-24T17:31:07.411309",
+    "last_seen": "2025-06-14T17:31:07.411309",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7A4F8537E862",
+    "discovery_date": "2025-08-06T17:31:07.411327",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "cad7f693.net",
+    "threat_actor": "Criminal Group 17",
+    "target_industries": [
+      "financial",
+      "government"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "phishing"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-07-18T17:31:07.411327",
+    "last_seen": "2025-08-06T17:31:07.411327",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-88D9C599E224",
+    "discovery_date": "2025-06-17T17:31:07.411347",
+    "threat_type": "exploit_kit",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "file_hash",
+    "indicator_value": "35.122.172.42",
+    "threat_actor": "APT12",
+    "target_industries": [
+      "government",
+      "financial"
+    ],
+    "attack_techniques": [
+      "ransomware"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-05-31T17:31:07.411347",
+    "last_seen": "2025-06-17T17:31:07.411347",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-C63D864D5E05",
+    "discovery_date": "2025-07-04T17:31:07.411366",
+    "threat_type": "exploit_kit",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://d9d0a4b7.com/malicious",
+    "threat_actor": "APT27",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "malware",
+      "social_engineering",
+      "phishing"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-06-23T17:31:07.411366",
+    "last_seen": "2025-07-04T17:31:07.411366",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-C3B00C4E848C",
+    "discovery_date": "2025-06-12T17:31:07.411386",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://5ac4a159.net/malicious",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "financial",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "malware",
+      "ddos",
+      "ransomware",
+      "phishing"
+    ],
+    "severity_score": 2,
+    "active_status": false,
+    "first_seen": "2025-05-15T17:31:07.411386",
+    "last_seen": "2025-06-12T17:31:07.411386",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-136BC0C5888B",
+    "discovery_date": "2025-07-30T17:31:07.411434",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "http://3c3433bf.com/malicious",
+    "threat_actor": "Criminal Group 17",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "xss",
+      "ransomware"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-07-13T17:31:07.411434",
+    "last_seen": "2025-07-30T17:31:07.411434",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-BF5962AD6EF7",
+    "discovery_date": "2025-06-15T17:31:07.411455",
+    "threat_type": "c2_server",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "edcb1586@37da9ec1.com",
+    "threat_actor": "APT27",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "brute_force",
+      "malware"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-06-07T17:31:07.411455",
+    "last_seen": "2025-06-15T17:31:07.411455",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-123C11A17441",
+    "discovery_date": "2025-07-12T17:31:07.411478",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "file_hash",
+    "indicator_value": "http://c76b9f4c.net/malicious",
+    "threat_actor": "Criminal Group 1",
+    "target_industries": [
+      "technology",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "social_engineering"
+    ],
+    "severity_score": 8,
+    "active_status": true,
+    "first_seen": "2025-06-21T17:31:07.411478",
+    "last_seen": "2025-07-12T17:31:07.411478",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-66944C067CD2",
+    "discovery_date": "2025-08-05T17:31:07.411497",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "138.17.221.133",
+    "threat_actor": "APT40",
+    "target_industries": [
+      "financial",
+      "manufacturing",
+      "technology"
+    ],
+    "attack_techniques": [
+      "xss",
+      "zero_day",
+      "insider_threat",
+      "brute_force"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-07-31T17:31:07.411497",
+    "last_seen": "2025-08-05T17:31:07.411497",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-3A3278F1FCB9",
+    "discovery_date": "2025-06-17T17:31:07.411518",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "9af33ffb@43e46dc4.com",
+    "threat_actor": "APT45",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "malware",
+      "sql_injection"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-06-10T17:31:07.411518",
+    "last_seen": "2025-06-17T17:31:07.411518",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-E20740B21BFB",
+    "discovery_date": "2025-07-28T17:31:07.411540",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "110f9bd7@5e5618ca.com",
+    "threat_actor": "APT30",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "xss",
+      "privilege_escalation",
+      "malware"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-06-28T17:31:07.411540",
+    "last_seen": "2025-07-28T17:31:07.411540",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7284431D0759",
+    "discovery_date": "2025-07-19T17:31:07.411562",
+    "threat_type": "c2_server",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "file_hash",
+    "indicator_value": "1c9f6a49@cd683f3d.com",
+    "threat_actor": "APT10",
+    "target_industries": [
+      "technology",
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "xss",
+      "ransomware"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-06-23T17:31:07.411562",
+    "last_seen": "2025-07-19T17:31:07.411562",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-37587A2E0A72",
+    "discovery_date": "2025-07-01T17:31:07.411585",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "http://83deddaf.com/malicious",
+    "threat_actor": "APT27",
+    "target_industries": [
+      "government",
+      "financial",
+      "technology"
+    ],
+    "attack_techniques": [
+      "xss",
+      "brute_force",
+      "privilege_escalation"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-06-25T17:31:07.411585",
+    "last_seen": "2025-07-01T17:31:07.411585",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-92C012507A6D",
+    "discovery_date": "2025-06-15T17:31:07.411606",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "8c2e7520565144b59eb215fd7c0af06170f0e511",
+    "threat_actor": "APT41",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "privilege_escalation"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-06-11T17:31:07.411606",
+    "last_seen": "2025-06-15T17:31:07.411606",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-FFE6A7AE1E55",
+    "discovery_date": "2025-07-03T17:31:07.411628",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "0ff73843@561c94e8.com",
+    "threat_actor": "Criminal Group 13",
+    "target_industries": [
+      "technology",
+      "manufacturing",
+      "government"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "social_engineering",
+      "malware"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-06-09T17:31:07.411628",
+    "last_seen": "2025-07-03T17:31:07.411628",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7A4042C7D888",
+    "discovery_date": "2025-06-13T17:31:07.411651",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "952a91dd.com",
+    "threat_actor": "Criminal Group 20",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "ddos"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-05-22T17:31:07.411651",
+    "last_seen": "2025-06-13T17:31:07.411651",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-1558316F78B8",
+    "discovery_date": "2025-06-21T17:31:07.411672",
+    "threat_type": "c2_server",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "file_hash",
+    "indicator_value": "ce3836a2@a09acf60.com",
+    "threat_actor": "APT50",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "phishing"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-06-19T17:31:07.411672",
+    "last_seen": "2025-06-21T17:31:07.411672",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-A84A6DC3F563",
+    "discovery_date": "2025-07-08T17:31:07.411694",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "file_hash",
+    "indicator_value": "5cecfb65@0efe427c.com",
+    "threat_actor": "Criminal Group 9",
+    "target_industries": [
+      "technology",
+      "government",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "malware",
+      "ransomware",
+      "man_in_middle"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-06-30T17:31:07.411694",
+    "last_seen": "2025-07-08T17:31:07.411694",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-5F6FF3B2DB6F",
+    "discovery_date": "2025-07-25T17:31:07.411717",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "file_hash",
+    "indicator_value": "a8f4f4b1b9b4462498d92bdb22bbf74286479818",
+    "threat_actor": "APT12",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "xss",
+      "zero_day",
+      "ransomware"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-07-03T17:31:07.411717",
+    "last_seen": "2025-07-25T17:31:07.411717",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-DCE3DBC8988C",
+    "discovery_date": "2025-06-12T17:31:07.411739",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "231.23.245.40",
+    "threat_actor": "Criminal Group 4",
+    "target_industries": [
+      "manufacturing",
+      "healthcare",
+      "technology"
+    ],
+    "attack_techniques": [
+      "malware",
+      "xss",
+      "social_engineering",
+      "privilege_escalation"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-06-05T17:31:07.411739",
+    "last_seen": "2025-06-12T17:31:07.411739",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-F13A19A62EDC",
+    "discovery_date": "2025-08-08T17:31:07.411759",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "0149c38f.info",
+    "threat_actor": "APT35",
+    "target_industries": [
+      "healthcare",
+      "financial",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "malware",
+      "phishing",
+      "zero_day",
+      "brute_force"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-07-24T17:31:07.411759",
+    "last_seen": "2025-08-08T17:31:07.411759",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-B922E26C6928",
+    "discovery_date": "2025-07-24T17:31:07.411780",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "http://a0982ec8.net/malicious",
+    "threat_actor": "APT14",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "social_engineering",
+      "brute_force",
+      "sql_injection",
+      "zero_day"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-07-11T17:31:07.411780",
+    "last_seen": "2025-07-24T17:31:07.411780",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-E61FFA50970D",
+    "discovery_date": "2025-07-07T17:31:07.411800",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "3ed92de93b3043888d1d022622cf1fd50dfb8bd4",
+    "threat_actor": "Criminal Group 8",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "malware",
+      "brute_force",
+      "man_in_middle",
+      "insider_threat"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-06-20T17:31:07.411800",
+    "last_seen": "2025-07-07T17:31:07.411800",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-FE1CAE9CA993",
+    "discovery_date": "2025-06-14T17:31:07.411822",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "ddc21525a4574f4892520f6325931d496d5f2a7d",
+    "threat_actor": "APT27",
+    "target_industries": [
+      "manufacturing",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "phishing",
+      "social_engineering",
+      "brute_force"
+    ],
+    "severity_score": 2,
+    "active_status": false,
+    "first_seen": "2025-05-27T17:31:07.411822",
+    "last_seen": "2025-06-14T17:31:07.411822",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7C5523BF0F68",
+    "discovery_date": "2025-07-27T17:31:07.411845",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "a4fa3c52c6b641d4935409c72f350c32ee5632da",
+    "threat_actor": "APT39",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "social_engineering",
+      "phishing",
+      "malware"
+    ],
+    "severity_score": 1,
+    "active_status": true,
+    "first_seen": "2025-07-05T17:31:07.411845",
+    "last_seen": "2025-07-27T17:31:07.411845",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-B6C9D8DDCDC6",
+    "discovery_date": "2025-07-15T17:31:07.411868",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "c3542573.org",
+    "threat_actor": "APT29",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "malware",
+      "brute_force"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-06-24T17:31:07.411868",
+    "last_seen": "2025-07-15T17:31:07.411868",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-B3B6027841D2",
+    "discovery_date": "2025-07-25T17:31:07.411888",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "04331dbb40e840b782d4e1aa6f9263aa1d6bf040",
+    "threat_actor": "Criminal Group 4",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "ddos",
+      "brute_force"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-06-26T17:31:07.411888",
+    "last_seen": "2025-07-25T17:31:07.411888",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-B20FE921F942",
+    "discovery_date": "2025-07-20T17:31:07.411910",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "28b48ebe55c74c22ba96469680fda2317827fdb8",
+    "threat_actor": "APT38",
+    "target_industries": [
+      "government",
+      "healthcare",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "ddos",
+      "ransomware"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-07-15T17:31:07.411910",
+    "last_seen": "2025-07-20T17:31:07.411910",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-3C33BC2506A9",
+    "discovery_date": "2025-07-23T17:31:07.411946",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "45.40.95.176",
+    "threat_actor": "Criminal Group 2",
+    "target_industries": [
+      "government",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "ddos"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-07-20T17:31:07.411946",
+    "last_seen": "2025-07-23T17:31:07.411946",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-22EDE70E0D41",
+    "discovery_date": "2025-07-20T17:31:07.411965",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "13a2e902.net",
+    "threat_actor": "APT3",
+    "target_industries": [
+      "technology",
+      "financial",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "xss"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-06-20T17:31:07.411965",
+    "last_seen": "2025-07-20T17:31:07.411965",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-1649FF7EB343",
+    "discovery_date": "2025-07-14T17:31:07.411985",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "d2775652.com",
+    "threat_actor": "APT12",
+    "target_industries": [
+      "technology",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "social_engineering"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-07-05T17:31:07.411985",
+    "last_seen": "2025-07-14T17:31:07.411985",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-D536EB7103EE",
+    "discovery_date": "2025-06-20T17:31:07.412012",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "email",
+    "indicator_value": "8729e801@0b8151f6.com",
+    "threat_actor": "APT27",
+    "target_industries": [
+      "government",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "social_engineering",
+      "sql_injection"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-06-19T17:31:07.412012",
+    "last_seen": "2025-06-20T17:31:07.412012",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-D16023A981D2",
+    "discovery_date": "2025-07-22T17:31:07.412035",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "15.255.140.193",
+    "threat_actor": "APT42",
+    "target_industries": [
+      "manufacturing",
+      "government"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "insider_threat",
+      "phishing"
+    ],
+    "severity_score": 10,
+    "active_status": false,
+    "first_seen": "2025-07-04T17:31:07.412035",
+    "last_seen": "2025-07-22T17:31:07.412035",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-A387D0CB9536",
+    "discovery_date": "2025-07-07T17:31:07.412055",
+    "threat_type": "malware",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "domain",
+    "indicator_value": "http://f4942528.com/malicious",
+    "threat_actor": "Criminal Group 20",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "brute_force",
+      "social_engineering"
+    ],
+    "severity_score": 7,
+    "active_status": true,
+    "first_seen": "2025-06-18T17:31:07.412055",
+    "last_seen": "2025-07-07T17:31:07.412055",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-8E826032445F",
+    "discovery_date": "2025-07-23T17:31:07.412075",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "http://a289ef9b.com/malicious",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "financial",
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "privilege_escalation",
+      "xss",
+      "phishing"
+    ],
+    "severity_score": 6,
+    "active_status": false,
+    "first_seen": "2025-07-15T17:31:07.412075",
+    "last_seen": "2025-07-23T17:31:07.412075",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-F75663F0A792",
+    "discovery_date": "2025-07-30T17:31:07.412096",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "108d9d83.com",
+    "threat_actor": "Criminal Group 2",
+    "target_industries": [
+      "financial",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "phishing",
+      "sql_injection"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-07-13T17:31:07.412096",
+    "last_seen": "2025-07-30T17:31:07.412096",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0E12E1766B70",
+    "discovery_date": "2025-07-30T17:31:07.412116",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "file_hash",
+    "indicator_value": "34649bb5@a88534df.com",
+    "threat_actor": "APT37",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "ransomware"
+    ],
+    "severity_score": 1,
+    "active_status": false,
+    "first_seen": "2025-07-16T17:31:07.412116",
+    "last_seen": "2025-07-30T17:31:07.412116",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-17A771A02F74",
+    "discovery_date": "2025-07-17T17:31:07.412138",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "6cf71c08.net",
+    "threat_actor": "APT49",
+    "target_industries": [
+      "healthcare",
+      "financial"
+    ],
+    "attack_techniques": [
+      "social_engineering",
+      "brute_force"
+    ],
+    "severity_score": 8,
+    "active_status": true,
+    "first_seen": "2025-07-12T17:31:07.412138",
+    "last_seen": "2025-07-17T17:31:07.412138",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-A6FAFB06E933",
+    "discovery_date": "2025-08-11T17:31:07.412158",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "e6b1ade979ba4a43be77edfdaa254222a27662e4",
+    "threat_actor": "APT35",
+    "target_industries": [
+      "manufacturing",
+      "healthcare",
+      "government"
+    ],
+    "attack_techniques": [
+      "insider_threat"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-07-26T17:31:07.412158",
+    "last_seen": "2025-08-11T17:31:07.412158",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-8A07A0210C59",
+    "discovery_date": "2025-06-24T17:31:07.412180",
+    "threat_type": "malware",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "4433fd80@4c4392b3.com",
+    "threat_actor": "APT16",
+    "target_industries": [
+      "government",
+      "healthcare",
+      "financial"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "privilege_escalation"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-06-15T17:31:07.412180",
+    "last_seen": "2025-06-24T17:31:07.412180",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-5E78CE8E2F8E",
+    "discovery_date": "2025-07-05T17:31:07.412202",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "9114c81adfeb4a44aa7479db9cf329d1108f9dd0",
+    "threat_actor": "APT42",
+    "target_industries": [
+      "manufacturing",
+      "financial",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "xss",
+      "ransomware"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-06-06T17:31:07.412202",
+    "last_seen": "2025-07-05T17:31:07.412202",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-3BA17F405A30",
+    "discovery_date": "2025-07-02T17:31:07.412225",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "3c90162c.net",
+    "threat_actor": "Criminal Group 9",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "malware",
+      "sql_injection",
+      "social_engineering",
+      "zero_day"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-06-05T17:31:07.412225",
+    "last_seen": "2025-07-02T17:31:07.412225",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-E558B8D96FD9",
+    "discovery_date": "2025-06-20T17:31:07.412247",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "domain",
+    "indicator_value": "http://4d0abcdb.net/malicious",
+    "threat_actor": "APT9",
+    "target_industries": [
+      "government",
+      "technology",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "brute_force",
+      "ddos",
+      "sql_injection",
+      "xss"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-05-27T17:31:07.412247",
+    "last_seen": "2025-06-20T17:31:07.412247",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-1CA858F6693E",
+    "discovery_date": "2025-06-18T17:31:07.412271",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "file_hash",
+    "indicator_value": "http://a891f958.net/malicious",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "government",
+      "technology",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "ddos"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-05-19T17:31:07.412271",
+    "last_seen": "2025-06-18T17:31:07.412271",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0EB8C8BE19FD",
+    "discovery_date": "2025-06-13T17:31:07.412291",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "4.174.140.35",
+    "threat_actor": "Criminal Group 10",
+    "target_industries": [
+      "manufacturing",
+      "technology",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "man_in_middle",
+      "ransomware",
+      "zero_day"
+    ],
+    "severity_score": 1,
+    "active_status": true,
+    "first_seen": "2025-06-04T17:31:07.412291",
+    "last_seen": "2025-06-13T17:31:07.412291",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-EEEC1FA066C7",
+    "discovery_date": "2025-07-20T17:31:07.412311",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "file_hash",
+    "indicator_value": "176.76.86.27",
+    "threat_actor": "APT34",
+    "target_industries": [
+      "healthcare",
+      "government"
+    ],
+    "attack_techniques": [
+      "malware",
+      "phishing",
+      "insider_threat"
+    ],
+    "severity_score": 7,
+    "active_status": true,
+    "first_seen": "2025-06-22T17:31:07.412311",
+    "last_seen": "2025-07-20T17:31:07.412311",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-DB7C354FE270",
+    "discovery_date": "2025-06-19T17:31:07.412330",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "25161521.net",
+    "threat_actor": "APT20",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "malware"
+    ],
+    "severity_score": 7,
+    "active_status": false,
+    "first_seen": "2025-06-10T17:31:07.412330",
+    "last_seen": "2025-06-19T17:31:07.412330",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-7FFA02EB91B7",
+    "discovery_date": "2025-07-25T17:31:07.412350",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "http://ccc3210a.com/malicious",
+    "threat_actor": "APT2",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "phishing"
+    ],
+    "severity_score": 7,
+    "active_status": true,
+    "first_seen": "2025-06-26T17:31:07.412350",
+    "last_seen": "2025-07-25T17:31:07.412350",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-B9D5B1173429",
+    "discovery_date": "2025-07-25T17:31:07.412369",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "file_hash",
+    "indicator_value": "47915b232d824c87b17c1969ec5cb6e7395453a8",
+    "threat_actor": "APT29",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "man_in_middle",
+      "malware",
+      "social_engineering"
+    ],
+    "severity_score": 1,
+    "active_status": true,
+    "first_seen": "2025-06-28T17:31:07.412369",
+    "last_seen": "2025-07-25T17:31:07.412369",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-44886671292A",
+    "discovery_date": "2025-06-13T17:31:07.412392",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "e964b7ef.net",
+    "threat_actor": "Criminal Group 7",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "privilege_escalation"
+    ],
+    "severity_score": 4,
+    "active_status": false,
+    "first_seen": "2025-06-06T17:31:07.412392",
+    "last_seen": "2025-06-13T17:31:07.412392",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-BD46F9CBB148",
+    "discovery_date": "2025-07-14T17:31:07.412421",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "file_hash",
+    "indicator_value": "577050c18386464895873f56720bc7428edea44d",
+    "threat_actor": "APT34",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "xss",
+      "privilege_escalation",
+      "sql_injection"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-07-02T17:31:07.412421",
+    "last_seen": "2025-07-14T17:31:07.412421",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-8EFC9E044BE5",
+    "discovery_date": "2025-07-01T17:31:07.412444",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "osint",
+    "ioc_type": "file_hash",
+    "indicator_value": "7f50a25be6304b67a915d5efbdaa12744fb11ade",
+    "threat_actor": "APT31",
+    "target_industries": [
+      "manufacturing",
+      "financial"
+    ],
+    "attack_techniques": [
+      "brute_force",
+      "malware"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-06-08T17:31:07.412444",
+    "last_seen": "2025-07-01T17:31:07.412444",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-165CB3D4E6F0",
+    "discovery_date": "2025-06-12T17:31:07.412470",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "0bd2df6e@c8e53a1c.com",
+    "threat_actor": "Criminal Group 11",
+    "target_industries": [
+      "healthcare",
+      "technology",
+      "government"
+    ],
+    "attack_techniques": [
+      "ddos"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-06-05T17:31:07.412470",
+    "last_seen": "2025-06-12T17:31:07.412470",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-347C545D0FF5",
+    "discovery_date": "2025-07-14T17:31:07.412498",
+    "threat_type": "botnet",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "f0b795a2d70e47f1998368a0dc9fa0bedfb3e76f",
+    "threat_actor": "Criminal Group 6",
+    "target_industries": [
+      "financial",
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "xss",
+      "zero_day",
+      "brute_force"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-06-29T17:31:07.412498",
+    "last_seen": "2025-07-14T17:31:07.412498",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-DAC552D7B852",
+    "discovery_date": "2025-07-03T17:31:07.412521",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "file_hash",
+    "indicator_value": "184.225.163.96",
+    "threat_actor": "APT36",
+    "target_industries": [
+      "technology"
+    ],
+    "attack_techniques": [
+      "malware"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-06-17T17:31:07.412521",
+    "last_seen": "2025-07-03T17:31:07.412521",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-44A6BC6E36FA",
+    "discovery_date": "2025-06-22T17:31:07.412544",
+    "threat_type": "phishing_domain",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "110.15.188.253",
+    "threat_actor": "APT8",
+    "target_industries": [
+      "healthcare",
+      "manufacturing",
+      "government"
+    ],
+    "attack_techniques": [
+      "brute_force"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-06-17T17:31:07.412544",
+    "last_seen": "2025-06-22T17:31:07.412544",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-9CAE31B2515F",
+    "discovery_date": "2025-07-18T17:31:07.412579",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "file_hash",
+    "indicator_value": "92221d8d@19764599.com",
+    "threat_actor": "Criminal Group 3",
+    "target_industries": [
+      "healthcare",
+      "government",
+      "financial"
+    ],
+    "attack_techniques": [
+      "sql_injection"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-07-12T17:31:07.412579",
+    "last_seen": "2025-07-18T17:31:07.412579",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-70030EC381FD",
+    "discovery_date": "2025-07-23T17:31:07.412603",
+    "threat_type": "phishing_domain",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "domain",
+    "indicator_value": "b115f272.net",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "technology",
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "insider_threat",
+      "sql_injection",
+      "man_in_middle"
+    ],
+    "severity_score": 1,
+    "active_status": true,
+    "first_seen": "2025-07-05T17:31:07.412603",
+    "last_seen": "2025-07-23T17:31:07.412603",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-CAFF472DA4E0",
+    "discovery_date": "2025-08-08T17:31:07.412650",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "4cc96f54@ee5428c9.com",
+    "threat_actor": "Criminal Group 9",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "xss"
+    ],
+    "severity_score": 1,
+    "active_status": false,
+    "first_seen": "2025-07-27T17:31:07.412650",
+    "last_seen": "2025-08-08T17:31:07.412650",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-4B8BCB9AC39A",
+    "discovery_date": "2025-07-25T17:31:07.412672",
+    "threat_type": "exploit_kit",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "domain",
+    "indicator_value": "6bec1a58.info",
+    "threat_actor": "APT47",
+    "target_industries": [
+      "technology",
+      "healthcare",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "sql_injection",
+      "zero_day",
+      "privilege_escalation",
+      "insider_threat"
+    ],
+    "severity_score": 6,
+    "active_status": false,
+    "first_seen": "2025-07-16T17:31:07.412672",
+    "last_seen": "2025-07-25T17:31:07.412672",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-4636BABFDEDB",
+    "discovery_date": "2025-06-20T17:31:07.412693",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "ip_address",
+    "indicator_value": "9cc20edb@ce39fe18.com",
+    "threat_actor": "APT1",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "brute_force",
+      "man_in_middle"
+    ],
+    "severity_score": 5,
+    "active_status": true,
+    "first_seen": "2025-06-18T17:31:07.412693",
+    "last_seen": "2025-06-20T17:31:07.412693",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-F1168852E118",
+    "discovery_date": "2025-07-19T17:31:07.412715",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "email",
+    "indicator_value": "119.214.127.178",
+    "threat_actor": "APT17",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "social_engineering",
+      "xss",
+      "insider_threat"
+    ],
+    "severity_score": 3,
+    "active_status": false,
+    "first_seen": "2025-07-02T17:31:07.412715",
+    "last_seen": "2025-07-19T17:31:07.412715",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0F74D44C8EA8",
+    "discovery_date": "2025-08-11T17:31:07.412734",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "7262d1af.com",
+    "threat_actor": "Criminal Group 19",
+    "target_industries": [
+      "financial",
+      "government",
+      "technology"
+    ],
+    "attack_techniques": [
+      "social_engineering"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-07-29T17:31:07.412734",
+    "last_seen": "2025-08-11T17:31:07.412734",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-BF52EBB1FF2F",
+    "discovery_date": "2025-06-12T17:31:07.412754",
+    "threat_type": "exploit_kit",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "url",
+    "indicator_value": "43788ff8.info",
+    "threat_actor": "Criminal Group 7",
+    "target_industries": [
+      "government",
+      "healthcare",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "ransomware",
+      "phishing",
+      "sql_injection"
+    ],
+    "severity_score": 9,
+    "active_status": true,
+    "first_seen": "2025-05-27T17:31:07.412754",
+    "last_seen": "2025-06-12T17:31:07.412754",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-4EFE9392979D",
+    "discovery_date": "2025-08-07T17:31:07.412775",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "b24eb9b9.org",
+    "threat_actor": "APT39",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "man_in_middle",
+      "social_engineering",
+      "phishing",
+      "sql_injection"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-07-18T17:31:07.412775",
+    "last_seen": "2025-08-07T17:31:07.412775",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-31168A1D84FF",
+    "discovery_date": "2025-06-17T17:31:07.412805",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "email",
+    "indicator_value": "7c78a171@2d720297.com",
+    "threat_actor": "APT45",
+    "target_industries": [
+      "healthcare",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "xss",
+      "brute_force",
+      "zero_day",
+      "privilege_escalation"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-06-03T17:31:07.412805",
+    "last_seen": "2025-06-17T17:31:07.412805",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-F49D0DF09158",
+    "discovery_date": "2025-08-09T17:31:07.412828",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "commercial_feed",
+    "ioc_type": "url",
+    "indicator_value": "d5bcd94a@3411225a.com",
+    "threat_actor": "Criminal Group 9",
+    "target_industries": [
+      "government",
+      "healthcare",
+      "financial"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "social_engineering"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-07-27T17:31:07.412828",
+    "last_seen": "2025-08-09T17:31:07.412828",
+    "geographic_origin": "KP",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-0F7104709B20",
+    "discovery_date": "2025-07-29T17:31:07.412851",
+    "threat_type": "botnet",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "domain",
+    "indicator_value": "4f5a4489.com",
+    "threat_actor": "APT3",
+    "target_industries": [
+      "financial",
+      "government",
+      "technology"
+    ],
+    "attack_techniques": [
+      "social_engineering"
+    ],
+    "severity_score": 6,
+    "active_status": true,
+    "first_seen": "2025-07-26T17:31:07.412851",
+    "last_seen": "2025-07-29T17:31:07.412851",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-252EB580882C",
+    "discovery_date": "2025-06-16T17:31:07.412871",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "partner_sharing",
+    "ioc_type": "email",
+    "indicator_value": "207.1.174.76",
+    "threat_actor": "Criminal Group 9",
+    "target_industries": [
+      "government",
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "ddos",
+      "privilege_escalation",
+      "brute_force"
+    ],
+    "severity_score": 5,
+    "active_status": false,
+    "first_seen": "2025-06-14T17:31:07.412871",
+    "last_seen": "2025-06-16T17:31:07.412871",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-D0AD770802A4",
+    "discovery_date": "2025-06-28T17:31:07.412891",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "56.53.96.39",
+    "threat_actor": "Criminal Group 11",
+    "target_industries": [
+      "healthcare",
+      "financial",
+      "technology"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "zero_day",
+      "insider_threat",
+      "social_engineering"
+    ],
+    "severity_score": 8,
+    "active_status": false,
+    "first_seen": "2025-06-08T17:31:07.412891",
+    "last_seen": "2025-06-28T17:31:07.412891",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-BCE98FBB3371",
+    "discovery_date": "2025-06-29T17:31:07.412911",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "internal_analysis",
+    "ioc_type": "file_hash",
+    "indicator_value": "070107c418e7456ca09d30b7c3b74b6b05426fd5",
+    "threat_actor": "APT31",
+    "target_industries": [
+      "technology",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "zero_day",
+      "privilege_escalation"
+    ],
+    "severity_score": 1,
+    "active_status": false,
+    "first_seen": "2025-06-01T17:31:07.412911",
+    "last_seen": "2025-06-29T17:31:07.412911",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-9BEBE613757E",
+    "discovery_date": "2025-06-21T17:31:07.413010",
+    "threat_type": "malware",
+    "confidence_level": "medium",
+    "source": "commercial_feed",
+    "ioc_type": "file_hash",
+    "indicator_value": "2c72115546d4442faafbb13da6fde81c251d0582",
+    "threat_actor": "Criminal Group 1",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "xss",
+      "zero_day"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-06-10T17:31:07.413010",
+    "last_seen": "2025-06-21T17:31:07.413010",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-765AE65AE234",
+    "discovery_date": "2025-07-18T17:31:07.413043",
+    "threat_type": "botnet",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "http://cd4f5bf4.net/malicious",
+    "threat_actor": "Criminal Group 14",
+    "target_industries": [
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "ddos",
+      "brute_force",
+      "malware"
+    ],
+    "severity_score": 2,
+    "active_status": true,
+    "first_seen": "2025-07-09T17:31:07.413043",
+    "last_seen": "2025-07-18T17:31:07.413043",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-520B65AD5814",
+    "discovery_date": "2025-07-28T17:31:07.413068",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "osint",
+    "ioc_type": "ip_address",
+    "indicator_value": "5b257170.info",
+    "threat_actor": "APT22",
+    "target_industries": [
+      "government"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "brute_force",
+      "phishing"
+    ],
+    "severity_score": 9,
+    "active_status": false,
+    "first_seen": "2025-07-23T17:31:07.413068",
+    "last_seen": "2025-07-28T17:31:07.413068",
+    "geographic_origin": "IR",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-78D754DB18DE",
+    "discovery_date": "2025-07-15T17:31:07.413089",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "partner_sharing",
+    "ioc_type": "email",
+    "indicator_value": "e9b6d98c@e0b2782f.com",
+    "threat_actor": "APT48",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "phishing"
+    ],
+    "severity_score": 10,
+    "active_status": true,
+    "first_seen": "2025-07-03T17:31:07.413089",
+    "last_seen": "2025-07-15T17:31:07.413089",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-DEAA99213D72",
+    "discovery_date": "2025-06-30T17:31:07.413111",
+    "threat_type": "c2_server",
+    "confidence_level": "medium",
+    "source": "partner_sharing",
+    "ioc_type": "url",
+    "indicator_value": "e3251239.net",
+    "threat_actor": "APT6",
+    "target_industries": [
+      "manufacturing"
+    ],
+    "attack_techniques": [
+      "insider_threat",
+      "malware",
+      "zero_day",
+      "privilege_escalation"
+    ],
+    "severity_score": 4,
+    "active_status": true,
+    "first_seen": "2025-06-28T17:31:07.413111",
+    "last_seen": "2025-06-30T17:31:07.413111",
+    "geographic_origin": "CN",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-C870A6D52B52",
+    "discovery_date": "2025-08-06T17:31:07.413131",
+    "threat_type": "phishing_domain",
+    "confidence_level": "low",
+    "source": "internal_analysis",
+    "ioc_type": "ip_address",
+    "indicator_value": "c860c10bf60741df80be8cbf3ea963cf582bcecc",
+    "threat_actor": "Criminal Group 15",
+    "target_industries": [
+      "financial",
+      "government",
+      "technology"
+    ],
+    "attack_techniques": [
+      "privilege_escalation",
+      "social_engineering",
+      "man_in_middle"
+    ],
+    "severity_score": 3,
+    "active_status": true,
+    "first_seen": "2025-08-05T17:31:07.413131",
+    "last_seen": "2025-08-06T17:31:07.413131",
+    "geographic_origin": "Unknown",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-4943C5B9433B",
+    "discovery_date": "2025-07-19T17:31:07.413154",
+    "threat_type": "malware",
+    "confidence_level": "high",
+    "source": "internal_analysis",
+    "ioc_type": "email",
+    "indicator_value": "125.133.158.254",
+    "threat_actor": "APT6",
+    "target_industries": [
+      "manufacturing",
+      "financial",
+      "healthcare"
+    ],
+    "attack_techniques": [
+      "social_engineering"
+    ],
+    "severity_score": 1,
+    "active_status": true,
+    "first_seen": "2025-07-03T17:31:07.413154",
+    "last_seen": "2025-07-19T17:31:07.413154",
+    "geographic_origin": "US",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  },
+  {
+    "threat_id": "TI-2C9D894D075E",
+    "discovery_date": "2025-07-18T17:31:07.413173",
+    "threat_type": "c2_server",
+    "confidence_level": "low",
+    "source": "commercial_feed",
+    "ioc_type": "ip_address",
+    "indicator_value": "c22e5c70@401db88e.com",
+    "threat_actor": "Criminal Group 14",
+    "target_industries": [
+      "financial"
+    ],
+    "attack_techniques": [
+      "ransomware",
+      "insider_threat",
+      "brute_force",
+      "social_engineering"
+    ],
+    "severity_score": 1,
+    "active_status": true,
+    "first_seen": "2025-06-20T17:31:07.413173",
+    "last_seen": "2025-07-18T17:31:07.413173",
+    "geographic_origin": "RU",
+    "mitigation_recommendations": [
+      "Block indicator at network boundary",
+      "Monitor for lateral movement",
+      "Update endpoint detection rules"
+    ]
+  }
+]

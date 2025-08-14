@@ -5,7 +5,6 @@
 
 <h4 align="center">基于YAML语法模板的定制化快速漏洞扫描器</h4>
 
-
 <p align="center">
 <img src="https://img.shields.io/github/go-mod/go-version/projectdiscovery/nuclei">
 <a href="https://github.com/projectdiscovery/nuclei/releases"><img src="https://img.shields.io/github/downloads/projectdiscovery/nuclei/total">
@@ -37,17 +36,13 @@
   <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_PT-BR.md">Portuguese</a>
 </p>
 
----
+- --
 
 Nuclei使用零误报的定制模板向目标发送请求，同时可以对主机进行批量快速扫描。Nuclei提供TCP、DNS、HTTP、FILE等各类协议的扫描，通过强大且灵活的模板，可以使用Nuclei模拟各种安全检查。
 
 我们的[模板仓库](https://github.com/projectdiscovery/nuclei-templates)包含**超过300名**安全研究员和工程师提供的模板。
 
-
-
-## 工作流程
-
-
+##  工作流程
 <h3 align="center">
   <img src="static/nuclei-flow.jpg" alt="nuclei-flow" width="700px"></a>
 </h3>
@@ -67,28 +62,28 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <details>
   <summary>Brew</summary>
-  
+
   ```sh
   brew install nuclei
   ```
-  
+
 </details>
 <details>
   <summary>Docker</summary>
-  
+
   ```sh
   docker pull projectdiscovery/nuclei:latest
   ```
-  
+
 </details>
 
-**更多的安装方式 [请点击此处](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
+- *更多的安装方式 [请点击此处](https://nuclei.projectdiscovery.io/nuclei/get-started/).**
 
 <table>
 <tr>
-<td>  
+<td>
 
-### Nuclei模板
+###  Nuclei模板
 
 自从[v2.5.2]((https://github.com/projectdiscovery/nuclei/releases/tag/v2.5.2))起，Nuclei就内置了自动下载和更新模板的功能。[**Nuclei模板**](https://github.com/projectdiscovery/nuclei-templates)仓库随时更新社区中可用的模板列表。
 
@@ -100,15 +95,13 @@ YAML的语法规范在[这里](SYNTAX-REFERENCE.md)。
 </tr>
 </table>
 
-### 用法
+###  用法
 
 ```sh
 nuclei -h
 ```
 
 这将显示Nuclei的帮助，以下是所有支持的命令。
-
-
 ```console
 Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板的快速漏洞扫描器。
 
@@ -148,13 +141,11 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -it, -include-templates string[]      执行指定模板，即使是被默认或配置排除的模板
    -et, -exclude-templates string[]      排除指定模板或者模板目录（逗号分隔，文件）
    -em, -exclude-matchers string[]       排除指定模板matcher
-   -s, -severity value[]                 根据严重程度运行模板，可选值有：info,low,medium,high,critical   
+   -s, -severity value[]                 根据严重程度运行模板，可选值有：info,low,medium,high,critical
    -es, -exclude-severity value[]        根据严重程度排除模板，可选值有：info,low,medium,high,critical
    -pt, -type value[]                    根据类型运行模板，可选值有：dns, file, http, headless, network, workflow, ssl, websocket, whois
    -ept, -exclude-type value[]           根据类型排除模板，可选值有：dns, file, http, headless, network, workflow, ssl, websocket, whois
    -tc, -template-condition string[]     根据表达式运行模板
-   
-
 输出：
    -o, -output string                    输出发现的问题到文件
    -sresp, -store-resp                   将nuclei的所有请求和响应输出到目录
@@ -173,8 +164,6 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -se, -sarif-export string             以SARIF格式导出结果
    -je, -json-export string              以JSON格式导出结果
    -jle, -jsonl-export string            以JSONL(ine)格式导出结果
-
-
 配置：
    -config string                        指定nuclei的配置文件
    -fr, -follow-redirects                为HTTP模板启用重定向
@@ -205,8 +194,6 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -rss, -response-size-save int         最大储存响应大小（默认：1048576字节）
    -reset                                删除所有nuclei配置和数据文件（包括nuclei-templates）
    -tlsi, -tls-impersonate               启用实验性的Client Hello（ja3）TLS 随机化功能
-
-
 交互：
    -inserver, -ineractsh-server string   使用interactsh反连检测平台（默认为oast.pro,oast.live,oast.site,oast.online,oast.fun,oast.me）
    -itoken, -interactsh-token string     指定反连检测平台的身份凭证
@@ -215,13 +202,9 @@ Nuclei是一款注重于可配置性、可扩展性和易用性的基于模板�
    -interactions-poll-duration int       每个轮询前等待时间（默认为5秒）
    -interactions-cooldown-period int     退出轮询前的等待时间（默认为5秒）
    -ni, -no-interactsh                   禁用反连检测平台，同时排除基于反连检测的模板
-
-
 模糊测试:
    -ft, -fuzzing-type string             覆盖模板中设置的模糊测试类型（replace、prefix、postfix、infix）
    -fm, -fuzzing-mode string             覆盖模板中设置的模糊测试模式（multiple、single）
-
-
 UNCOVER引擎:
    -uc, -uncover                         启动uncover引擎
    -uq, -uncover-query string[]          uncover查询语句
@@ -229,8 +212,6 @@ UNCOVER引擎:
    -uf, -uncover-field string            查询字段 （ip,port,host） （默认 "ip:port"）
    -ul, -uncover-limit int               查询结果数 （默认 100）
    -ur, -uncover-ratelimit int           查询速率，默认每分钟60个请求（默认 60）
-
-
 限速：
    -rl, -rate-limit int                  每秒最大请求量（默认：150）
    -rlm, -rate-limit-minute int          每分钟最大请求量
@@ -238,8 +219,6 @@ UNCOVER引擎:
    -c, -concurrency int                  并行执行的最大模板数量（默认：25）
    -hbs, -headless-bulk-size int         每个模板并行运行的无头主机最大数量（默认：10）
    -headc, -headless-concurrency int     并行指定无头主机最大数量（默认：10）
-
-
 优化：
    -timeout int                          超时时间（默认为10秒）
    -retries int                          重试次数（默认：1）
@@ -319,9 +298,7 @@ UNCOVER引擎:
 ```
 
 更多信息请参考文档: https://docs.nuclei.sh/getting-started/running
-
-
-### 运行Nuclei
+###  运行Nuclei
 
 使用[社区提供的模板](https://github.com/projectdiscovery/nuclei-templates)扫描单个目标
 
@@ -344,7 +321,7 @@ http://test.example.com
 http://uat.example.com
 ```
 
-**更多关于Nuclei的详细实例可以在[这里](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)找到**
+- *更多关于Nuclei的详细实例可以在[这里](https://nuclei.projectdiscovery.io/nuclei/get-started/#running-nuclei)找到**
 
 # 对于安全工程师
 
@@ -360,9 +337,9 @@ Nuclei提供了大量有助于安全工程师在工作流定制相关的功能�
 
 <table>
 <tr>
-<td>  
+<td>
 
-**对于赏金猎人：**
+- *对于赏金猎人：**
 
 Nuclei允许您定制自己的测试方法，可以轻松的运行您的程序。此外Nuclei可以更容易的集成到您的漏洞扫描工作流中。
 
@@ -380,7 +357,7 @@ Nuclei允许您定制自己的测试方法，可以轻松的运行您的程序�
 <tr>
 <td>
 
-**对于渗透测试：**
+- *对于渗透测试：**
 
 Nuclei通过增加手动、自动的过程，极大地改变了安全评估的方式。一些公司已经在用Nuclei升级他们的手动测试步骤，可以使用Nulcei对数千台主机使用同样的流程自动化测试。
 
@@ -411,11 +388,11 @@ Nuclei构建很简单，通过数百名安全研究员的社区模板，Nuclei�
   <a href="https://github.com/projectdiscovery/nuclei-action"><img src="static/learn-more-button.png" width="170px" alt="Learn More"></a>
 </h1>
 
-### 将nuclei加入您的代码
+###  将nuclei加入您的代码
 
 有关使用Nuclei作为Library/SDK的完整指南，请访问[godoc](https://pkg.go.dev/github.com/projectdiscovery/nuclei/v3/lib#section-readme)
 
-### 资源
+###  资源
 
 - [使用PinkDraconian发现Nuclei的BUG (Robbe Van Roey)](https://www.youtube.com/watch?v=ewP0xVPW-Pk) 作者：[@PinkDraconian](https://twitter.com/PinkDraconian)
 - [Nuclei: 强而有力的扫描器](https://bishopfox.com/blog/nuclei-vulnerability-scan) 作者：Bishopfox
@@ -429,7 +406,7 @@ Nuclei构建很简单，通过数百名安全研究员的社区模板，Nuclei�
 - [如何使用Nuclei连续扫描？](https://medium.com/@dwisiswant0/how-to-scan-continuously-with-nuclei-fcb7e9d8b8b9) 作者：[@dwisiswant0](https://github.com/dwisiswant0)
 - [自动化攻击](https://dhiyaneshgeek.github.io/web/security/2021/07/19/hack-with-automation/) 作者：[@DhiyaneshGeek](https://github.com/DhiyaneshGeek)
 
-### 致谢
+###  致谢
 
 感谢所有[社区贡献者提供的PR](https://github.com/projectdiscovery/nuclei/graphs/contributors)，并不断更新此项目:heart:
 
@@ -445,7 +422,7 @@ Nuclei构建很简单，通过数百名安全研究员的社区模板，Nuclei�
 
 [FFuF](https://github.com/ffuf/ffuf), [Qsfuzz](https://github.com/ameenmaali/qsfuzz), [Inception](https://github.com/proabiral/inception), [Snallygaster](https://github.com/hannob/snallygaster), [Gofingerprint](https://github.com/Static-Flow/gofingerprint), [Sn1per](https://github.com/1N3/Sn1per/tree/master/templates), [Google tsunami](https://github.com/google/tsunami-security-scanner), [Jaeles](https://github.com/jaeles-project/jaeles), [ChopChop](https://github.com/michelin/ChopChop)
 
-### 许可证
+###  许可证
 
 Nuclei使用[MIT许可证](https://github.com/projectdiscovery/nuclei/blob/main/LICENSE.md)
 

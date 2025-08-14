@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Redis TLS Security Report - XORB Platform</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #c0392b; color: white; padding: 20px; border-radius: 5px; }
+        .test-section { background: #ecf0f1; margin: 20px 0; padding: 15px; border-radius: 5px; }
+        .pass { color: #27ae60; font-weight: bold; }
+        .fail { color: #e74c3c; font-weight: bold; }
+        .warn { color: #f39c12; font-weight: bold; }
+        .details { margin-top: 10px; font-family: monospace; background: #2c3e50; color: #ecf0f1; padding: 10px; border-radius: 3px; }
+        .metric { display: inline-block; margin: 10px; padding: 10px; background: #bdc3c7; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔴 Redis TLS Security Report</h1>
+        <p>Generated: $(date)</p>
+        <p>Redis Host: ${REDIS_HOST}:${REDIS_TLS_PORT}</p>
+    </div>
+    <div class="test-section">
+        <h2>📊 Test Summary</h2>
+        <div class="metric">Total Tests: 7</div>
+        <div class="metric">Passed: <span class="pass">3</span></div>
+        <div class="metric">Failed: <span class="fail">4</span></div>
+        <div class="metric">Success Rate: 42%</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔍 Detailed Results</h2>
+        <div class="details">
+Redis TLS Test Results
+Generated: Mon Aug 11 02:07:47 PM UTC 2025
+========================
+✅ Plaintext connections blocked: PASS
+✅ TLS without client cert blocked: PASS
+❌ TLS with valid client cert: FAIL
+❌ Redis commands over TLS: FAIL
+❌ Redis server info: FAIL
+✅ Invalid client cert rejected: PASS
+❌ Connection security: FAIL
+⚠️  Performance test: WARN
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🔒 Security Recommendations</h2>
+        <ul>
+            <li><strong>Disable Plaintext:</strong> Ensure Redis port 6379 (plaintext) is disabled</li>
+            <li><strong>Client Certificates:</strong> All clients must use valid mTLS certificates</li>
+            <li><strong>Password Protection:</strong> Use strong Redis AUTH passwords</li>
+            <li><strong>Network Security:</strong> Restrict Redis access to authorized networks only</li>
+            <li><strong>Monitoring:</strong> Monitor for failed authentication attempts</li>
+        </ul>
+    </div>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>XORB Platform TLS Security Report</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .header { background: #2c3e50; color: white; padding: 20px; border-radius: 5px; }
+        .service { background: #ecf0f1; margin: 10px 0; padding: 15px; border-radius: 5px; }
+        .pass { color: #27ae60; font-weight: bold; }
+        .fail { color: #e74c3c; font-weight: bold; }
+        .warn { color: #f39c12; font-weight: bold; }
+        .details { margin-top: 10px; font-family: monospace; background: #f8f9fa; padding: 10px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 XORB Platform TLS Security Report</h1>
+        <p>Generated: $(date)</p>
+        <p>Environment: Production TLS/mTLS Configuration</p>
+    </div>
+    <div class="service">
+        <h3>📊 Summary</h3>
+        <p><strong>Total Services:</strong> 6</p>
+        <p><strong>Passed:</strong> <span class="pass">0</span></p>
+        <p><strong>Failed:</strong> <span class="fail">6</span></p>
+        <p><strong>Success Rate:</strong> 0%</p>
+    </div>
+</body>
+</html>

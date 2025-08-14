@@ -1,0 +1,537 @@
+---
+# XORB Control Plane ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: xorb-control-config
+  namespace: cyber-range-control
+data:
+  config.yaml: |
+    cyber_range:
+      mode: "staging"  # staging, live
+      exercise_duration: "4h"
+      auto_reset: true
+      kill_switch_enabled: true
+      
+    security:
+      network_isolation: true
+      traffic_monitoring: true
+      malware_detection: true
+      geographic_restrictions: true
+      
+    logging:
+      level: "INFO"
+      audit_enabled: true
+      retention_days: 30
+      
+    teams:
+      red_team:
+        namespace: "cyber-range-red"
+        max_concurrent_attacks: 10
+        rate_limiting: true
+      blue_team:
+        namespace: "cyber-range-blue"
+        monitoring_enabled: true
+        alert_thresholds:
+          critical: 5
+          warning: 20
+          
+    targets:
+      auto_restore: true
+      snapshot_interval: "15m"
+      backup_retention: "7d"
+      
+    scenarios:
+      available:
+        - "web_app_pentest"
+        - "network_lateral_movement"
+        - "apt_simulation"
+        - "insider_threat"
+        - "ransomware_defense"
+      default_scenario: "web_app_pentest"
+---
+# XORB Orchestrator Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xorb-orchestrator
+  namespace: cyber-range-control
+  labels:
+    app: xorb-orchestrator
+    component: control-plane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xorb-orchestrator
+  template:
+    metadata:
+      labels:
+        app: xorb-orchestrator
+        component: control-plane
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+    spec:
+      serviceAccountName: xorb-control-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: orchestrator
+        image: xorb/cyber-range-orchestrator:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 9090
+          name: metrics
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: CYBER_RANGE_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: xorb-control-config
+              key: mode
+        - name: KILL_SWITCH_ENABLED
+          value: "true"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: xorb-db-secret
+              key: url
+        - name: REDIS_URL
+          valueFrom:
+            secretKeyRef:
+              name: xorb-redis-secret
+              key: url
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+        - name: logs
+          mountPath: /app/logs
+        - name: scenarios
+          mountPath: /app/scenarios
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: xorb-control-config
+      - name: logs
+        persistentVolumeClaim:
+          claimName: xorb-control-logs-pvc
+      - name: scenarios
+        persistentVolumeClaim:
+          claimName: xorb-scenarios-pvc
+---
+# Admin Console Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xorb-admin-console
+  namespace: cyber-range-control
+  labels:
+    app: xorb-admin-console
+    component: admin-interface
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xorb-admin-console
+  template:
+    metadata:
+      labels:
+        app: xorb-admin-console
+        component: admin-interface
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+      - name: admin-console
+        image: xorb/cyber-range-admin:latest
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: REACT_APP_API_URL
+          value: "http://xorb-orchestrator-service:8080"
+        - name: REACT_APP_CYBER_RANGE_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: xorb-control-config
+              key: mode
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# Kill Switch Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kill-switch-controller
+  namespace: cyber-range-control
+  labels:
+    app: kill-switch-controller
+    component: emergency-control
+spec:
+  replicas: 2  # High availability for emergency controls
+  selector:
+    matchLabels:
+      app: kill-switch-controller
+  template:
+    metadata:
+      labels:
+        app: kill-switch-controller
+        component: emergency-control
+      annotations:
+        priority: "critical"
+    spec:
+      serviceAccountName: kill-switch-sa
+      priorityClassName: system-cluster-critical
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+      containers:
+      - name: kill-switch
+        image: xorb/kill-switch-controller:latest
+        ports:
+        - containerPort: 8081
+          name: http
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: EMERGENCY_MODE
+          value: "enabled"
+        - name: MONITORING_INTERVAL
+          value: "5s"
+        volumeMounts:
+        - name: emergency-logs
+          mountPath: /var/log/emergency
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8081
+          initialDelaySeconds: 5
+          periodSeconds: 3
+      volumes:
+      - name: emergency-logs
+        persistentVolumeClaim:
+          claimName: emergency-logs-pvc
+---
+# Monitoring Stack - Prometheus
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prometheus
+  namespace: cyber-range-control
+  labels:
+    app: prometheus
+    component: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prometheus
+  template:
+    metadata:
+      labels:
+        app: prometheus
+        component: monitoring
+    spec:
+      serviceAccountName: prometheus-sa
+      containers:
+      - name: prometheus
+        image: prom/prometheus:v2.45.0
+        ports:
+        - containerPort: 9090
+          name: web
+        args:
+        - "--config.file=/etc/prometheus/prometheus.yml"
+        - "--storage.tsdb.path=/prometheus/"
+        - "--web.console.libraries=/etc/prometheus/console_libraries"
+        - "--web.console.templates=/etc/prometheus/consoles"
+        - "--storage.tsdb.retention.time=7d"
+        - "--web.enable-lifecycle"
+        - "--web.route-prefix=/"
+        volumeMounts:
+        - name: prometheus-config
+          mountPath: /etc/prometheus
+        - name: prometheus-storage
+          mountPath: /prometheus
+        resources:
+          requests:
+            cpu: 500m
+            memory: 2Gi
+          limits:
+            cpu: 2
+            memory: 8Gi
+      volumes:
+      - name: prometheus-config
+        configMap:
+          name: prometheus-config
+      - name: prometheus-storage
+        persistentVolumeClaim:
+          claimName: prometheus-storage-pvc
+---
+# Grafana Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: cyber-range-control
+  labels:
+    app: grafana
+    component: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+        component: monitoring
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 472
+        fsGroup: 472
+      containers:
+      - name: grafana
+        image: grafana/grafana:10.0.0
+        ports:
+        - containerPort: 3000
+          name: web
+        env:
+        - name: GF_SECURITY_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: grafana-secret
+              key: admin-password
+        - name: GF_SERVER_ROOT_URL
+          value: "http://grafana-service:3000"
+        - name: GF_AUTH_ANONYMOUS_ENABLED
+          value: "false"
+        volumeMounts:
+        - name: grafana-storage
+          mountPath: /var/lib/grafana
+        - name: grafana-config
+          mountPath: /etc/grafana/provisioning
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2Gi
+      volumes:
+      - name: grafana-storage
+        persistentVolumeClaim:
+          claimName: grafana-storage-pvc
+      - name: grafana-config
+        configMap:
+          name: grafana-config
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: xorb-orchestrator-service
+  namespace: cyber-range-control
+  labels:
+    app: xorb-orchestrator
+spec:
+  selector:
+    app: xorb-orchestrator
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  - name: metrics
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: xorb-admin-service
+  namespace: cyber-range-control
+  labels:
+    app: xorb-admin-console
+spec:
+  selector:
+    app: xorb-admin-console
+  ports:
+  - name: http
+    port: 3000
+    targetPort: 3000
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kill-switch-service
+  namespace: cyber-range-control
+  labels:
+    app: kill-switch-controller
+spec:
+  selector:
+    app: kill-switch-controller
+  ports:
+  - name: http
+    port: 8081
+    targetPort: 8081
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-service
+  namespace: cyber-range-control
+  labels:
+    app: prometheus
+spec:
+  selector:
+    app: prometheus
+  ports:
+  - name: web
+    port: 9090
+    targetPort: 9090
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana-service
+  namespace: cyber-range-control
+  labels:
+    app: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+  - name: web
+    port: 3000
+    targetPort: 3000
+  type: LoadBalancer
+---
+# Persistent Volume Claims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: xorb-control-logs-pvc
+  namespace: cyber-range-control
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: xorb-scenarios-pvc
+  namespace: cyber-range-control
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: emergency-logs-pvc
+  namespace: cyber-range-control
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: prometheus-storage-pvc
+  namespace: cyber-range-control
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: grafana-storage-pvc
+  namespace: cyber-range-control
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard

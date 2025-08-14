@@ -1,16 +1,16 @@
 # XORB Enterprise Deployment Guide
 
-**Version**: 2.0  
-**Date**: January 2025  
-**Audience**: Enterprise IT Teams, DevOps Engineers, Security Teams  
+- **Version**: 2.0
+- **Date**: January 2025
+- **Audience**: Enterprise IT Teams, DevOps Engineers, Security Teams
 
-## 🎯 **Executive Summary**
+##  🎯 **Executive Summary**
 
 XORB is an enterprise-grade cybersecurity platform providing Penetration Testing as a Service (PTaaS), AI-powered threat intelligence, and comprehensive security orchestration. This guide provides complete deployment instructions for Fortune 500 environments.
 
-## 📋 **Prerequisites**
+##  📋 **Prerequisites**
 
-### **Infrastructure Requirements**
+###  **Infrastructure Requirements**
 
 | Component | Minimum | Recommended | Enterprise |
 |-----------|---------|-------------|------------|
@@ -19,7 +19,7 @@ XORB is an enterprise-grade cybersecurity platform providing Penetration Testing
 | **Storage** | 100 GB SSD | 500 GB SSD | 1 TB+ NVMe |
 | **Network** | 1 Gbps | 10 Gbps | 25+ Gbps |
 
-### **Software Dependencies**
+###  **Software Dependencies**
 
 ```yaml
 Required Components:
@@ -37,7 +37,7 @@ Optional Components:
   - ElasticSearch: v8.0+ (for log aggregation)
 ```
 
-### **Network Requirements**
+###  **Network Requirements**
 
 ```yaml
 Firewall Rules:
@@ -48,7 +48,7 @@ Firewall Rules:
     - 8080/tcp (Orchestrator UI)
     - 9090/tcp (Prometheus - monitoring)
     - 3000/tcp (Grafana - dashboards)
-  
+
   Outbound:
     - 443/tcp (External API calls)
     - 53/tcp,udp (DNS resolution)
@@ -62,11 +62,11 @@ Internal Communication:
   - Vault: 8200/tcp
 ```
 
-## 🚀 **Deployment Options**
+##  🚀 **Deployment Options**
 
-### **Option 1: Kubernetes Deployment (Recommended)**
+###  **Option 1: Kubernetes Deployment (Recommended)**
 
-#### **1.1 Prepare Kubernetes Cluster**
+####  **1.1 Prepare Kubernetes Cluster**
 
 ```bash
 # Create namespace
@@ -79,7 +79,7 @@ kind: ServiceAccount
 metadata:
   name: xorb-api
   namespace: xorb-production
----
+- --
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -88,7 +88,7 @@ metadata:
 EOF
 ```
 
-#### **1.2 Deploy Infrastructure Components**
+####  **1.2 Deploy Infrastructure Components**
 
 ```bash
 # Deploy PostgreSQL with pgvector
@@ -117,7 +117,7 @@ helm install xorb-temporal temporalio/temporal \
   --set web.enabled=true
 ```
 
-#### **1.3 Deploy XORB Platform**
+####  **1.3 Deploy XORB Platform**
 
 ```bash
 # Clone repository
@@ -142,9 +142,9 @@ kubectl get pods -n xorb-production
 kubectl get services -n xorb-production
 ```
 
-### **Option 2: Docker Compose Deployment**
+###  **Option 2: Docker Compose Deployment**
 
-#### **2.1 Production Docker Compose**
+####  **2.1 Production Docker Compose**
 
 ```bash
 # Clone repository
@@ -183,9 +183,9 @@ docker-compose -f docker-compose.enterprise.yml ps
 docker-compose -f docker-compose.enterprise.yml logs
 ```
 
-## 🔐 **Security Configuration**
+##  🔐 **Security Configuration**
 
-### **SSL/TLS Configuration**
+###  **SSL/TLS Configuration**
 
 ```yaml
 # ingress-tls.yaml
@@ -217,7 +217,7 @@ spec:
               number: 80
 ```
 
-### **Vault Secret Management**
+###  **Vault Secret Management**
 
 ```bash
 # Initialize Vault
@@ -243,7 +243,7 @@ kubectl exec -it vault-0 -n xorb-production -- vault kv put secret/xorb/config \
   redis_password="SecureRedisPassword123!"
 ```
 
-### **Network Policies**
+###  **Network Policies**
 
 ```yaml
 # network-policy.yaml
@@ -279,9 +279,9 @@ spec:
       port: 6379  # Redis
 ```
 
-## 📊 **Monitoring & Observability**
+##  📊 **Monitoring & Observability**
 
-### **Prometheus Configuration**
+###  **Prometheus Configuration**
 
 ```yaml
 # prometheus-config.yaml
@@ -295,30 +295,30 @@ data:
     global:
       scrape_interval: 15s
       evaluation_interval: 15s
-    
+
     scrape_configs:
     - job_name: 'xorb-api'
       static_configs:
       - targets: ['xorb-api:8000']
       metrics_path: /metrics
       scrape_interval: 10s
-    
+
     - job_name: 'xorb-orchestrator'
       static_configs:
       - targets: ['xorb-orchestrator:8080']
       metrics_path: /metrics
       scrape_interval: 10s
-    
+
     - job_name: 'postgres-exporter'
       static_configs:
       - targets: ['postgres-exporter:9187']
-    
+
     - job_name: 'redis-exporter'
       static_configs:
       - targets: ['redis-exporter:9121']
 ```
 
-### **Grafana Dashboards**
+###  **Grafana Dashboards**
 
 ```bash
 # Import XORB dashboards
@@ -345,32 +345,32 @@ data:
 EOF
 ```
 
-## 🔄 **Database Setup**
+##  🔄 **Database Setup**
 
-### **PostgreSQL Initialization**
+###  **PostgreSQL Initialization**
 
 ```sql
--- Connect to PostgreSQL
+- - Connect to PostgreSQL
 psql -h localhost -U postgres -d xorb_production
 
--- Create extensions
+- - Create extensions
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 CREATE EXTENSION IF NOT EXISTS "vector";
 
--- Create application user
+- - Create application user
 CREATE USER xorb_app WITH PASSWORD 'SecureAppPassword123!';
 
--- Grant permissions
+- - Grant permissions
 GRANT CONNECT ON DATABASE xorb_production TO xorb_app;
 GRANT USAGE ON SCHEMA public TO xorb_app;
 GRANT CREATE ON SCHEMA public TO xorb_app;
 
--- Create initial tables (run migrations)
--- This would typically be done via Alembic migrations
+- - Create initial tables (run migrations)
+- - This would typically be done via Alembic migrations
 ```
 
-### **Database Migrations**
+###  **Database Migrations**
 
 ```bash
 # Run database migrations
@@ -382,9 +382,9 @@ kubectl exec -it xorb-api-0 -n xorb-production -- \
   python -m alembic current
 ```
 
-## 🧪 **Testing Deployment**
+##  🧪 **Testing Deployment**
 
-### **Health Checks**
+###  **Health Checks**
 
 ```bash
 # API health check
@@ -401,7 +401,7 @@ kubectl exec -it xorb-api-0 -n xorb-production -- \
   python -c "import asyncpg; import asyncio; asyncio.run(asyncpg.connect('${DATABASE_URL}').close())"
 ```
 
-### **Functional Testing**
+###  **Functional Testing**
 
 ```bash
 # Test API authentication
@@ -420,7 +420,7 @@ curl -X GET https://api.your-domain.com/intelligence/threats \
   -H "Authorization: Bearer ${JWT_TOKEN}"
 ```
 
-### **Performance Testing**
+###  **Performance Testing**
 
 ```bash
 # Install testing tools
@@ -450,9 +450,9 @@ export default function () {
 EOF
 ```
 
-## 🔧 **Configuration Management**
+##  🔧 **Configuration Management**
 
-### **Environment Variables**
+###  **Environment Variables**
 
 ```yaml
 # configmap.yaml
@@ -474,7 +474,7 @@ data:
   REDIS_POOL_SIZE: "10"
 ```
 
-### **Multi-Environment Support**
+###  **Multi-Environment Support**
 
 ```bash
 # Staging environment
@@ -486,9 +486,9 @@ kubectl create namespace xorb-development
 kubectl apply -f deploy/kubernetes/development/ -n xorb-development
 ```
 
-## 📈 **Scaling Configuration**
+##  📈 **Scaling Configuration**
 
-### **Horizontal Pod Autoscaling**
+###  **Horizontal Pod Autoscaling**
 
 ```yaml
 # hpa.yaml
@@ -519,7 +519,7 @@ spec:
         averageUtilization: 80
 ```
 
-### **Vertical Pod Autoscaling**
+###  **Vertical Pod Autoscaling**
 
 ```yaml
 # vpa.yaml
@@ -546,9 +546,9 @@ spec:
         memory: 256Mi
 ```
 
-## 🔄 **Backup & Disaster Recovery**
+##  🔄 **Backup & Disaster Recovery**
 
-### **Database Backup**
+###  **Database Backup**
 
 ```bash
 # Create backup job
@@ -591,7 +591,7 @@ spec:
 EOF
 ```
 
-### **Application State Backup**
+###  **Application State Backup**
 
 ```bash
 # Backup secrets and configurations
@@ -600,11 +600,11 @@ kubectl get configmaps -n xorb-production -o yaml > xorb-config-backup.yaml
 kubectl get persistentvolumeclaims -n xorb-production -o yaml > xorb-pvc-backup.yaml
 ```
 
-## 🚨 **Troubleshooting**
+##  🚨 **Troubleshooting**
 
-### **Common Issues**
+###  **Common Issues**
 
-#### **1. Pod Startup Issues**
+####  **1. Pod Startup Issues**
 
 ```bash
 # Check pod status
@@ -617,7 +617,7 @@ kubectl logs xorb-api-0 -n xorb-production --follow
 kubectl get events -n xorb-production --sort-by='.lastTimestamp'
 ```
 
-#### **2. Database Connection Issues**
+####  **2. Database Connection Issues**
 
 ```bash
 # Test database connectivity
@@ -628,7 +628,7 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
 kubectl logs xorb-postgres-0 -n xorb-production
 ```
 
-#### **3. Performance Issues**
+####  **3. Performance Issues**
 
 ```bash
 # Check resource usage
@@ -642,7 +642,7 @@ kubectl describe hpa xorb-api-hpa -n xorb-production
 curl -s https://api.your-domain.com/metrics | grep -E "(http_requests|response_time)"
 ```
 
-### **Log Analysis**
+###  **Log Analysis**
 
 ```bash
 # Centralized logging with ELK
@@ -654,9 +654,9 @@ kubectl logs -l app=xorb-api -n xorb-production --since=10m | \
   grep "response_time" | awk '{print $NF}' | sort -n
 ```
 
-## 📞 **Support & Maintenance**
+##  📞 **Support & Maintenance**
 
-### **Maintenance Windows**
+###  **Maintenance Windows**
 
 ```bash
 # Planned maintenance procedure
@@ -671,7 +671,7 @@ kubectl scale deployment xorb-api --replicas=1 -n xorb-production
 kubectl scale deployment xorb-api --replicas=3 -n xorb-production
 ```
 
-### **Update Procedures**
+###  **Update Procedures**
 
 ```bash
 # Rolling update
@@ -686,32 +686,32 @@ kubectl rollout status deployment/xorb-api -n xorb-production
 kubectl rollout undo deployment/xorb-api -n xorb-production
 ```
 
-## 🏆 **Best Practices**
+##  🏆 **Best Practices**
 
-### **Security Best Practices**
+###  **Security Best Practices**
 - Use least privilege access principles
 - Regularly rotate secrets and certificates
 - Enable audit logging for all components
 - Implement network segmentation
 - Use Pod Security Standards
 
-### **Performance Best Practices**
+###  **Performance Best Practices**
 - Monitor resource usage and scale proactively
 - Use connection pooling for databases
 - Implement proper caching strategies
 - Optimize database queries and indexes
 - Use CDN for static assets
 
-### **Operational Best Practices**
+###  **Operational Best Practices**
 - Implement comprehensive monitoring
 - Set up automated alerting
 - Maintain disaster recovery procedures
 - Regular backup testing
 - Document all procedures and configurations
 
----
+- --
 
-**For additional support or questions, contact:**
+- *For additional support or questions, contact:**
 - **Email**: enterprise-support@xorb-security.com
 - **Documentation**: https://docs.xorb-security.com
 - **Support Portal**: https://support.xorb-security.com

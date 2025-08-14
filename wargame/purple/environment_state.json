@@ -1,0 +1,215 @@
+{
+  "organization": {
+    "name": "Meridian Dynamics Corp",
+    "industry": "Technology Consulting",
+    "employees": 50,
+    "domains": [
+      "meridiandynamics.com",
+      "md-consulting.net"
+    ],
+    "headquarters": "Austin, TX",
+    "founded": "2018"
+  },
+  "departments": [
+    {
+      "name": "Executive",
+      "head": "Sarah Chen",
+      "employees": 3,
+      "access_level": "high"
+    },
+    {
+      "name": "Human Resources",
+      "head": "Michael Rodriguez",
+      "employees": 5,
+      "access_level": "medium"
+    },
+    {
+      "name": "Engineering",
+      "head": "David Kim",
+      "employees": 20,
+      "access_level": "high"
+    },
+    {
+      "name": "Marketing",
+      "head": "Jennifer Walsh",
+      "employees": 12,
+      "access_level": "low"
+    },
+    {
+      "name": "Finance",
+      "head": "Robert Thompson",
+      "employees": 10,
+      "access_level": "high"
+    }
+  ],
+  "network_topology": {
+    "external_ip": "203.0.113.50",
+    "dmz": {
+      "subnet": "192.168.1.0/24",
+      "services": [
+        {
+          "name": "web_server",
+          "ip": "192.168.1.10",
+          "ports": [
+            80,
+            443
+          ],
+          "service": "nginx",
+          "version": "1.18.0"
+        },
+        {
+          "name": "mail_server",
+          "ip": "192.168.1.20",
+          "ports": [
+            25,
+            587,
+            993
+          ],
+          "service": "postfix",
+          "version": "3.4.13"
+        }
+      ]
+    },
+    "internal_lan": {
+      "subnet": "10.0.0.0/16",
+      "vlans": [
+        {
+          "id": 10,
+          "name": "executive",
+          "subnet": "10.0.10.0/24"
+        },
+        {
+          "id": 20,
+          "name": "hr",
+          "subnet": "10.0.20.0/24"
+        },
+        {
+          "id": 30,
+          "name": "engineering",
+          "subnet": "10.0.30.0/24"
+        },
+        {
+          "id": 40,
+          "name": "marketing",
+          "subnet": "10.0.40.0/24"
+        },
+        {
+          "id": 50,
+          "name": "finance",
+          "subnet": "10.0.50.0/24"
+        }
+      ]
+    },
+    "cloud_infrastructure": {
+      "provider": "AWS",
+      "region": "us-east-1",
+      "vpc": "vpc-0123456789abcdef0",
+      "services": [
+        {
+          "name": "file_storage",
+          "type": "S3",
+          "bucket": "meridian-docs-2024",
+          "access": "public-read-write"
+        },
+        {
+          "name": "database",
+          "type": "RDS",
+          "engine": "PostgreSQL",
+          "version": "13.7",
+          "endpoint": "meridian-db.cluster-xyz.us-east-1.rds.amazonaws.com"
+        }
+      ]
+    }
+  },
+  "applications": [
+    {
+      "name": "Corporate Website",
+      "url": "https://meridiandynamics.com",
+      "type": "WordPress",
+      "version": "5.8.2",
+      "status": "public",
+      "last_updated": "2023-10-15"
+    },
+    {
+      "name": "HR Portal",
+      "url": "https://hr.meridiandynamics.com",
+      "type": "Custom PHP",
+      "version": "2.1.4",
+      "status": "internal",
+      "authentication": "basic",
+      "last_updated": "2024-01-20"
+    },
+    {
+      "name": "Customer Portal",
+      "url": "https://portal.meridiandynamics.com",
+      "type": "React SPA",
+      "version": "1.8.3",
+      "status": "external",
+      "authentication": "JWT",
+      "last_updated": "2024-07-10"
+    },
+    {
+      "name": "Internal Admin Dashboard",
+      "url": "https://admin.meridiandynamics.com",
+      "type": "Django",
+      "version": "4.1.2",
+      "status": "internal",
+      "authentication": "SSO",
+      "last_updated": "2024-06-05"
+    },
+    {
+      "name": "File Storage API",
+      "url": "https://api.meridiandynamics.com/files",
+      "type": "REST API",
+      "version": "2.0.1",
+      "status": "external",
+      "authentication": "API_KEY",
+      "last_updated": "2024-08-01"
+    }
+  ],
+  "vulnerabilities": [
+    {
+      "id": "VULN-001",
+      "type": "weak_credentials",
+      "location": "HR Portal",
+      "description": "Default admin credentials still in use",
+      "severity": "high",
+      "credentials": {
+        "username": "admin",
+        "password": "password123"
+      },
+      "discoverable": true
+    },
+    {
+      "id": "VULN-004",
+      "type": "outdated_software",
+      "location": "Corporate Website",
+      "description": "WordPress plugin 'contact-form-7' version 5.4.2 with known RCE",
+      "severity": "critical",
+      "cve": "CVE-2023-6000",
+      "discoverable": false
+    }
+  ],
+  "honeypots": [
+    {
+      "type": "fake_admin_account",
+      "username": "backup_admin",
+      "password": "BackupPass2024!",
+      "location": "HR Portal",
+      "monitored": true
+    },
+    {
+      "type": "decoy_database",
+      "connection_string": "postgresql://readonly:guest123@10.0.30.99:5432/decoy_db",
+      "location": "Engineering VLAN",
+      "monitored": true
+    }
+  ],
+  "simulation_parameters": {
+    "round": 3,
+    "last_update": "2025-08-11T21:39:29.861264",
+    "environment_changes": 1,
+    "detected_attacks": 31,
+    "successful_compromises": 7
+  }
+}

@@ -1,6 +1,6 @@
 # XORB Enterprise Service Architecture
 
-## Service Overview
+##  Service Overview
 
 The XORB platform follows a microservices architecture with clear separation of concerns:
 
@@ -30,9 +30,9 @@ The XORB platform follows a microservices architecture with clear separation of 
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Service Responsibilities
+##  Service Responsibilities
 
-### PTaaS Frontend Service
+###  PTaaS Frontend Service
 - **Primary Role**: User interface and experience layer
 - **Technology**: React 18.3.1 + TypeScript 5.5.3
 - **Features**:
@@ -42,7 +42,7 @@ The XORB platform follows a microservices architecture with clear separation of 
   - Threat intelligence visualization
   - Multi-tenant organization management
 
-### XORB Core Platform
+###  XORB Core Platform
 - **Primary Role**: Backend business logic and API services
 - **Components**:
   - **API Gateway**: Unified REST API with comprehensive middleware
@@ -50,70 +50,70 @@ The XORB platform follows a microservices architecture with clear separation of 
   - **Intelligence Engine**: AI-powered threat detection and correlation
   - **Security Services**: Zero trust, monitoring, and compliance
 
-### Infrastructure Services
+###  Infrastructure Services
 - **Primary Role**: Shared platform services and data management
 - **Components**:
   - **Monitoring**: Prometheus, Grafana, AlertManager stack
   - **Vault**: HashiCorp Vault for secret management and encryption
   - **Databases**: PostgreSQL clusters with Redis caching
 
-## Communication Patterns
+##  Communication Patterns
 
-### HTTP REST APIs
+###  HTTP REST APIs
 - **PTaaS ↔ XORB Core**: Standard REST endpoints for CRUD operations
 - **Authentication**: JWT-based with automatic refresh
 - **Rate Limiting**: Redis-backed with tenant isolation
 
-### WebSocket Connections
+###  WebSocket Connections
 - **Real-time Updates**: Live scan progress and security alerts
 - **Event Streaming**: Redis pub/sub for service notifications
 - **Dashboard Updates**: Live metrics and status information
 
-### Workflow Orchestration
+###  Workflow Orchestration
 - **Temporal Workflows**: Long-running security operations
 - **Activity Functions**: Distributed task execution
 - **Event Sourcing**: Complete audit trail of operations
 
-## Data Flow Architecture
+##  Data Flow Architecture
 
 ```
-User Action (PTaaS) → API Gateway (XORB) → Service Layer → 
-Orchestrator (Workflows) → Executors → Database → 
+User Action (PTaaS) → API Gateway (XORB) → Service Layer →
+Orchestrator (Workflows) → Executors → Database →
 Cache (Redis) → Response → Real-time Updates (WebSocket)
 ```
 
-## Security Architecture
+##  Security Architecture
 
-### Authentication & Authorization
+###  Authentication & Authorization
 - **Multi-tenant JWT**: Secure session management
 - **Role-based Access**: Fine-grained permissions
 - **API Security**: Rate limiting, input validation, security headers
 
-### Data Protection
+###  Data Protection
 - **Encryption at Rest**: Database and file system encryption
 - **Encryption in Transit**: TLS 1.3 for all communications
 - **Secret Management**: Vault-based credential rotation
 
-### Monitoring & Auditing
+###  Monitoring & Auditing
 - **Security Events**: Comprehensive audit logging
 - **Threat Detection**: Real-time security monitoring
 - **Compliance**: Automated compliance reporting and validation
 
-## Deployment Architecture
+##  Deployment Architecture
 
-### Development Environment
+###  Development Environment
 ```bash
 # PTaaS Frontend
 cd services/ptaas/web && npm run dev
 
-# XORB API Gateway  
+# XORB API Gateway
 cd services/xorb-core/api && uvicorn app.main:app --reload
 
 # Infrastructure
 docker-compose -f docker-compose.infrastructure.yml up -d
 ```
 
-### Production Environment
+###  Production Environment
 ```bash
 # Container orchestration with Docker Swarm/Kubernetes
 # Load balancing with NGINX
@@ -122,7 +122,7 @@ docker-compose -f docker-compose.infrastructure.yml up -d
 # Automated scaling and health monitoring
 ```
 
-## Performance Characteristics
+##  Performance Characteristics
 
 - **API Response Time**: < 100ms for standard operations
 - **WebSocket Latency**: < 50ms for real-time updates

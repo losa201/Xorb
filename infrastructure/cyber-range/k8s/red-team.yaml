@@ -1,0 +1,664 @@
+---
+# Red Team ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: red-team-config
+  namespace: cyber-range-red
+data:
+  config.yaml: |
+    red_team:
+      team_name: "Red Team Alpha"
+      exercise_mode: "staging"  # staging, live
+      attack_vectors:
+        - "web_application"
+        - "network_services"
+        - "social_engineering"
+        - "lateral_movement"
+      
+    tools:
+      metasploit:
+        enabled: true
+        database: "postgresql"
+        workspace: "cyber_range"
+      nmap:
+        enabled: true
+        stealth_mode: true
+      burp_suite:
+        enabled: true
+        professional: false
+      custom_payloads:
+        enabled: true
+        directory: "/opt/payloads"
+        
+    constraints:
+      rate_limiting: true
+      max_concurrent_scans: 5
+      forbidden_targets:
+        - "10.10.10.0/24"  # Control plane
+        - "10.30.0.0/24"   # Blue team
+      time_windows:
+        start: "09:00"
+        end: "17:00"
+        timezone: "UTC"
+        
+    logging:
+      level: "INFO"
+      audit_trail: true
+      command_logging: true
+      payload_logging: true
+      retention_days: 30
+---
+# Red Team Command & Control
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: red-team-c2
+  namespace: cyber-range-red
+  labels:
+    app: red-team-c2
+    component: command-control
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: red-team-c2
+  template:
+    metadata:
+      labels:
+        app: red-team-c2
+        component: command-control
+      annotations:
+        security.xorb.io/team: "red"
+        security.xorb.io/monitoring: "enabled"
+    spec:
+      serviceAccountName: red-team-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: c2-server
+        image: xorb/red-team-c2:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 4444
+          name: c2-listener
+        - containerPort: 443
+          name: https
+        env:
+        - name: C2_MODE
+          value: "cyber_range"
+        - name: EXERCISE_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: red-team-config
+              key: exercise_mode
+        - name: TEAM_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: red-team-config
+              key: team_name
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: red-team-db-secret
+              key: url
+        volumeMounts:
+        - name: config
+          mountPath: /app/config
+        - name: payloads
+          mountPath: /opt/payloads
+        - name: logs
+          mountPath: /var/log/c2
+        - name: loot
+          mountPath: /opt/loot
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: config
+        configMap:
+          name: red-team-config
+      - name: payloads
+        persistentVolumeClaim:
+          claimName: red-team-payloads-pvc
+      - name: logs
+        persistentVolumeClaim:
+          claimName: red-team-logs-pvc
+      - name: loot
+        persistentVolumeClaim:
+          claimName: red-team-loot-pvc
+---
+# Metasploit Framework
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metasploit
+  namespace: cyber-range-red
+  labels:
+    app: metasploit
+    component: exploitation-framework
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metasploit
+  template:
+    metadata:
+      labels:
+        app: metasploit
+        component: exploitation-framework
+      annotations:
+        security.xorb.io/tool: "metasploit"
+        security.xorb.io/risk-level: "high"
+    spec:
+      serviceAccountName: red-team-sa
+      securityContext:
+        runAsUser: 0  # Metasploit requires root for some operations
+        capabilities:
+          add:
+          - NET_RAW
+          - NET_ADMIN
+      containers:
+      - name: metasploit
+        image: metasploitframework/metasploit-framework:latest
+        command: ["/bin/bash"]
+        args: ["-c", "msfdb init && msfconsole -r /opt/scripts/init.rc"]
+        ports:
+        - containerPort: 4444
+          name: msf-listener
+        - containerPort: 8443
+          name: msf-web
+        env:
+        - name: MSF_DATABASE_CONFIG
+          value: "/opt/metasploit-framework/config/database.yml"
+        - name: CYBER_RANGE_MODE
+          value: "true"
+        volumeMounts:
+        - name: msf-data
+          mountPath: /opt/metasploit-framework/data
+        - name: msf-logs
+          mountPath: /opt/metasploit-framework/logs
+        - name: msf-loot
+          mountPath: /opt/metasploit-framework/loot
+        - name: msf-scripts
+          mountPath: /opt/scripts
+        resources:
+          requests:
+            cpu: 1
+            memory: 2Gi
+          limits:
+            cpu: 4
+            memory: 8Gi
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - NET_RAW
+            - NET_ADMIN
+      volumes:
+      - name: msf-data
+        persistentVolumeClaim:
+          claimName: metasploit-data-pvc
+      - name: msf-logs
+        persistentVolumeClaim:
+          claimName: metasploit-logs-pvc
+      - name: msf-loot
+        persistentVolumeClaim:
+          claimName: metasploit-loot-pvc
+      - name: msf-scripts
+        configMap:
+          name: metasploit-scripts
+---
+# Custom Attack Tools
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: attack-tools
+  namespace: cyber-range-red
+  labels:
+    app: attack-tools
+    component: custom-tools
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: attack-tools
+  template:
+    metadata:
+      labels:
+        app: attack-tools
+        component: custom-tools
+      annotations:
+        security.xorb.io/tools: "nmap,burpsuite,gobuster,sqlmap"
+    spec:
+      serviceAccountName: red-team-sa
+      securityContext:
+        runAsUser: 0
+        capabilities:
+          add:
+          - NET_RAW
+          - NET_ADMIN
+      containers:
+      - name: attack-tools
+        image: xorb/red-team-tools:latest
+        command: ["/bin/bash"]
+        args: ["-c", "sleep infinity"]
+        ports:
+        - containerPort: 8080
+          name: tool-web
+        - containerPort: 8081
+          name: burp-proxy
+        env:
+        - name: CYBER_RANGE_MODE
+          value: "true"
+        - name: TARGET_NETWORKS
+          value: "10.100.0.0/24,10.110.0.0/24,10.120.0.0/24"
+        - name: FORBIDDEN_NETWORKS
+          value: "10.10.10.0/24,10.30.0.0/24"
+        volumeMounts:
+        - name: tools-data
+          mountPath: /opt/tools-data
+        - name: scan-results
+          mountPath: /opt/scan-results
+        - name: custom-payloads
+          mountPath: /opt/custom-payloads
+        resources:
+          requests:
+            cpu: 1
+            memory: 2Gi
+          limits:
+            cpu: 4
+            memory: 8Gi
+        securityContext:
+          allowPrivilegeEscalation: true
+          capabilities:
+            add:
+            - NET_RAW
+            - NET_ADMIN
+      volumes:
+      - name: tools-data
+        persistentVolumeClaim:
+          claimName: attack-tools-data-pvc
+      - name: scan-results
+        persistentVolumeClaim:
+          claimName: scan-results-pvc
+      - name: custom-payloads
+        persistentVolumeClaim:
+          claimName: custom-payloads-pvc
+---
+# Phishing Infrastructure
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: phishing-infra
+  namespace: cyber-range-red
+  labels:
+    app: phishing-infra
+    component: social-engineering
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: phishing-infra
+  template:
+    metadata:
+      labels:
+        app: phishing-infra
+        component: social-engineering
+      annotations:
+        security.xorb.io/tool: "gophish"
+        security.xorb.io/purpose: "phishing-simulation"
+    spec:
+      serviceAccountName: red-team-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: gophish
+        image: gophish/gophish:latest
+        ports:
+        - containerPort: 3333
+          name: admin
+        - containerPort: 80
+          name: phish-http
+        - containerPort: 443
+          name: phish-https
+        env:
+        - name: GOPHISH_INITIAL_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: phishing-secret
+              key: admin-password
+        - name: CYBER_RANGE_MODE
+          value: "true"
+        volumeMounts:
+        - name: gophish-data
+          mountPath: /opt/gophish/data
+        - name: phishing-templates
+          mountPath: /opt/gophish/templates
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2Gi
+      volumes:
+      - name: gophish-data
+        persistentVolumeClaim:
+          claimName: gophish-data-pvc
+      - name: phishing-templates
+        configMap:
+          name: phishing-templates
+---
+# Data Exfiltration Staging
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: exfiltration-staging
+  namespace: cyber-range-red
+  labels:
+    app: exfiltration-staging
+    component: data-collection
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: exfiltration-staging
+  template:
+    metadata:
+      labels:
+        app: exfiltration-staging
+        component: data-collection
+      annotations:
+        security.xorb.io/purpose: "data-staging"
+        security.xorb.io/monitoring: "strict"
+    spec:
+      serviceAccountName: red-team-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: staging-server
+        image: xorb/exfiltration-staging:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 21
+          name: ftp
+        - containerPort: 22
+          name: ssh
+        env:
+        - name: STAGING_MODE
+          value: "cyber_range"
+        - name: MAX_FILE_SIZE
+          value: "100MB"
+        - name: RETENTION_HOURS
+          value: "24"
+        volumeMounts:
+        - name: staged-data
+          mountPath: /opt/staged-data
+        - name: exfil-logs
+          mountPath: /var/log/exfil
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1
+            memory: 2Gi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: staged-data
+        persistentVolumeClaim:
+          claimName: staged-data-pvc
+      - name: exfil-logs
+        persistentVolumeClaim:
+          claimName: exfil-logs-pvc
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: red-team-c2-service
+  namespace: cyber-range-red
+  labels:
+    app: red-team-c2
+spec:
+  selector:
+    app: red-team-c2
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  - name: c2-listener
+    port: 4444
+    targetPort: 4444
+  - name: https
+    port: 443
+    targetPort: 443
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metasploit-service
+  namespace: cyber-range-red
+  labels:
+    app: metasploit
+spec:
+  selector:
+    app: metasploit
+  ports:
+  - name: msf-listener
+    port: 4444
+    targetPort: 4444
+  - name: msf-web
+    port: 8443
+    targetPort: 8443
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: phishing-service
+  namespace: cyber-range-red
+  labels:
+    app: phishing-infra
+spec:
+  selector:
+    app: phishing-infra
+  ports:
+  - name: admin
+    port: 3333
+    targetPort: 3333
+  - name: phish-http
+    port: 80
+    targetPort: 80
+  - name: phish-https
+    port: 443
+    targetPort: 443
+  type: LoadBalancer
+---
+# Persistent Volume Claims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: red-team-payloads-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: red-team-logs-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: red-team-loot-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: metasploit-data-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: metasploit-logs-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: metasploit-loot-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: attack-tools-data-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 15Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: scan-results-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 25Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: custom-payloads-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gophish-data-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: staged-data-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: exfil-logs-pvc
+  namespace: cyber-range-red
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: standard

@@ -1,0 +1,27 @@
+updates:
+- commit-message:
+    include: scope
+    prefix: deps
+  directory: /
+  labels:
+  - dependencies
+  - security
+  open-pull-requests-limit: 5
+  package-ecosystem: pip
+  reviewers:
+  - '@xorb-platform-team'
+  schedule:
+    day: monday
+    interval: weekly
+- directory: /services/ptaas/web
+  labels:
+  - dependencies
+  - frontend
+  open-pull-requests-limit: 5
+  package-ecosystem: npm
+  reviewers:
+  - '@xorb-frontend-team'
+  schedule:
+    day: tuesday
+    interval: weekly
+version: 2

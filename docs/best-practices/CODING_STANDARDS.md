@@ -1,16 +1,16 @@
 # XORB Platform Coding Standards
 
-## Overview
+##  Overview
 
 This document defines the coding standards and best practices for the XORB platform. Following these standards ensures consistency, maintainability, and quality across the codebase.
 
----
+- --
 
-## General Principles
+##  General Principles
 
-### SOLID Principles
+###  SOLID Principles
 
-#### 1. Single Responsibility Principle (SRP)
+####  1. Single Responsibility Principle (SRP)
 - Each class should have only one reason to change
 - Separate concerns into different classes
 - Example:
@@ -33,13 +33,13 @@ class UserManager:
         if self.validate(user):
             # Save logic
             pass
-    
+
     def validate(self, user: User) -> bool:
         # Validation logic
         pass
 ```
 
-#### 2. Open/Closed Principle (OCP)
+####  2. Open/Closed Principle (OCP)
 - Open for extension, closed for modification
 - Use interfaces and abstract classes
 - Example:
@@ -62,7 +62,7 @@ class IntrusionDetector(ThreatDetector):
         pass
 ```
 
-#### 3. Liskov Substitution Principle (LSP)
+####  3. Liskov Substitution Principle (LSP)
 - Derived classes must be substitutable for base classes
 - Maintain behavioral contracts
 - Example:
@@ -78,7 +78,7 @@ class CriticalSecurityEvent(SecurityEvent):
         return super().process()
 ```
 
-#### 4. Interface Segregation Principle (ISP)
+####  4. Interface Segregation Principle (ISP)
 - Many specific interfaces are better than one general interface
 - Example:
 ```python
@@ -97,7 +97,7 @@ class FileHandler(Protocol):
     def encrypt(self) -> None: ...
 ```
 
-#### 5. Dependency Inversion Principle (DIP)
+####  5. Dependency Inversion Principle (DIP)
 - Depend on abstractions, not concretions
 - Use dependency injection
 - Example:
@@ -106,7 +106,7 @@ class FileHandler(Protocol):
 class ThreatAnalysisService:
     def __init__(self, detector: ThreatDetector):
         self.detector = detector
-    
+
     def analyze(self, data: Any) -> ThreatResult:
         return self.detector.detect(data)
 
@@ -116,11 +116,11 @@ class ThreatAnalysisService:
         self.detector = MalwareDetector()  # Tight coupling
 ```
 
----
+- --
 
-## Python Standards
+##  Python Standards
 
-### Code Formatting
+###  Code Formatting
 - **Line Length**: 100 characters maximum
 - **Indentation**: 4 spaces (no tabs)
 - **Imports**: Organized with isort
@@ -133,11 +133,9 @@ from uuid import UUID
 
 from src.domain.entities.base import AggregateRoot
 from src.domain.value_objects.security import ThreatLevel
-
-
 class SecurityIncident(AggregateRoot):
     """Represents a security incident in the system."""
-    
+
     def __init__(
         self,
         incident_id: UUID,
@@ -153,14 +151,14 @@ class SecurityIncident(AggregateRoot):
         self.metadata = metadata or {}
 ```
 
-### Naming Conventions
+###  Naming Conventions
 - **Classes**: PascalCase (`SecurityIncident`)
 - **Functions/Methods**: snake_case (`analyze_threat`)
 - **Variables**: snake_case (`threat_level`)
 - **Constants**: SCREAMING_SNAKE_CASE (`MAX_RETRY_ATTEMPTS`)
 - **Private Members**: Leading underscore (`_internal_method`)
 
-### Type Hints
+###  Type Hints
 - All functions must have type hints
 - Use `typing` module for complex types
 - Example:
@@ -178,7 +176,7 @@ async def process_security_events(
     pass
 ```
 
-### Documentation
+###  Documentation
 - **Docstrings**: All public classes and functions
 - **Format**: Google style docstrings
 - **Examples**:
@@ -186,33 +184,33 @@ async def process_security_events(
 ```python
 class ThreatIntelligenceEngine:
     """Engine for processing threat intelligence data.
-    
+
     This class provides methods for analyzing, correlating, and enriching
     threat intelligence data from multiple sources.
-    
+
     Attributes:
         sources: List of configured threat intelligence sources
         correlation_rules: Rules for correlating threat indicators
     """
-    
+
     def analyze_indicators(
         self,
         indicators: List[ThreatIndicator],
         context: Optional[AnalysisContext] = None
     ) -> ThreatAnalysisResult:
         """Analyze threat indicators for potential threats.
-        
+
         Args:
             indicators: List of threat indicators to analyze
             context: Optional context for analysis (geolocation, timeframe, etc.)
-        
+
         Returns:
             ThreatAnalysisResult containing analysis results and confidence scores
-        
+
         Raises:
             AnalysisException: If analysis fails due to invalid indicators
             TimeoutException: If analysis exceeds timeout threshold
-        
+
         Example:
             >>> engine = ThreatIntelligenceEngine()
             >>> indicators = [ThreatIndicator(type="ip", value="192.168.1.1")]
@@ -224,7 +222,7 @@ class ThreatIntelligenceEngine:
         pass
 ```
 
-### Error Handling
+###  Error Handling
 - Use custom exceptions for domain-specific errors
 - Fail fast principle
 - Comprehensive error context
@@ -233,7 +231,7 @@ class ThreatIntelligenceEngine:
 ```python
 class ThreatAnalysisException(Exception):
     """Exception raised during threat analysis."""
-    
+
     def __init__(
         self,
         message: str,
@@ -253,11 +251,11 @@ async def analyze_threat(indicator: ThreatIndicator) -> ThreatResult:
                 error_code="INVALID_INDICATOR",
                 details={"indicator": indicator.to_dict()}
             )
-        
+
         # Analysis logic
         result = await _perform_analysis(indicator)
         return result
-        
+
     except ValidationError as e:
         raise ThreatAnalysisException(
             message=f"Validation failed: {str(e)}",
@@ -274,11 +272,11 @@ async def analyze_threat(indicator: ThreatIndicator) -> ThreatResult:
         ) from e
 ```
 
----
+- --
 
-## Architecture Patterns
+##  Architecture Patterns
 
-### Repository Pattern
+###  Repository Pattern
 ```python
 from abc import ABC, abstractmethod
 from typing import List, Optional
@@ -286,17 +284,17 @@ from uuid import UUID
 
 class SecurityEventRepository(ABC):
     """Abstract repository for security events."""
-    
+
     @abstractmethod
     async def save(self, event: SecurityEvent) -> SecurityEvent:
         """Save a security event."""
         pass
-    
+
     @abstractmethod
     async def get_by_id(self, event_id: UUID) -> Optional[SecurityEvent]:
         """Get security event by ID."""
         pass
-    
+
     @abstractmethod
     async def find_by_criteria(
         self,
@@ -307,17 +305,17 @@ class SecurityEventRepository(ABC):
 
 class PostgreSQLSecurityEventRepository(SecurityEventRepository):
     """PostgreSQL implementation of security event repository."""
-    
+
     def __init__(self, connection_pool: asyncpg.Pool):
         self.pool = connection_pool
-    
+
     async def save(self, event: SecurityEvent) -> SecurityEvent:
         """Save security event to PostgreSQL."""
         # Implementation
         pass
 ```
 
-### Use Case Pattern
+###  Use Case Pattern
 ```python
 from dataclasses import dataclass
 from typing import List
@@ -339,7 +337,7 @@ class AnalyzeThreatResponse:
 
 class AnalyzeThreatUseCase:
     """Use case for analyzing potential threats."""
-    
+
     def __init__(
         self,
         threat_repository: ThreatRepository,
@@ -349,7 +347,7 @@ class AnalyzeThreatUseCase:
         self.threat_repository = threat_repository
         self.analysis_engine = analysis_engine
         self.notification_service = notification_service
-    
+
     async def execute(
         self,
         request: AnalyzeThreatRequest
@@ -358,19 +356,19 @@ class AnalyzeThreatUseCase:
         # Validate input
         if not request.indicators:
             raise ValidationException("No indicators provided")
-        
+
         # Perform analysis
         analysis_result = await self.analysis_engine.analyze(
             request.indicators
         )
-        
+
         # Save results
         threat_record = await self.threat_repository.save(analysis_result)
-        
+
         # Send notifications if high threat
         if analysis_result.threat_score > 0.8:
             await self.notification_service.send_alert(threat_record)
-        
+
         return AnalyzeThreatResponse(
             analysis_id=threat_record.id,
             threat_score=analysis_result.threat_score,
@@ -379,7 +377,7 @@ class AnalyzeThreatUseCase:
         )
 ```
 
-### Command Query Responsibility Segregation (CQRS)
+###  Command Query Responsibility Segregation (CQRS)
 ```python
 from abc import ABC, abstractmethod
 
@@ -390,7 +388,7 @@ class Command(ABC):
 
 class CreateSecurityIncidentCommand(Command):
     """Command to create a security incident."""
-    
+
     def __init__(
         self,
         incident_type: str,
@@ -405,14 +403,14 @@ class CreateSecurityIncidentCommand(Command):
 
 class CommandHandler(ABC):
     """Base command handler."""
-    
+
     @abstractmethod
     async def handle(self, command: Command) -> Any:
         pass
 
 class CreateSecurityIncidentHandler(CommandHandler):
     """Handler for creating security incidents."""
-    
+
     async def handle(
         self,
         command: CreateSecurityIncidentCommand
@@ -424,7 +422,7 @@ class CreateSecurityIncidentHandler(CommandHandler):
             description=command.description,
             affected_systems=command.affected_systems
         )
-        
+
         return await self.incident_repository.save(incident)
 
 # Query side (Read operations)
@@ -434,7 +432,7 @@ class Query(ABC):
 
 class GetSecurityIncidentsQuery(Query):
     """Query to get security incidents."""
-    
+
     def __init__(
         self,
         severity: Optional[str] = None,
@@ -447,14 +445,14 @@ class GetSecurityIncidentsQuery(Query):
 
 class QueryHandler(ABC):
     """Base query handler."""
-    
+
     @abstractmethod
     async def handle(self, query: Query) -> Any:
         pass
 
 class GetSecurityIncidentsHandler(QueryHandler):
     """Handler for getting security incidents."""
-    
+
     async def handle(
         self,
         query: GetSecurityIncidentsQuery
@@ -467,11 +465,11 @@ class GetSecurityIncidentsHandler(QueryHandler):
         )
 ```
 
----
+- --
 
-## Testing Standards
+##  Testing Standards
 
-### Test Structure
+###  Test Structure
 - Follow AAA pattern: Arrange, Act, Assert
 - One assertion per test
 - Descriptive test names
@@ -483,17 +481,17 @@ from unittest.mock import Mock, AsyncMock
 
 class TestThreatAnalysisService:
     """Test suite for ThreatAnalysisService."""
-    
+
     @pytest.fixture
     def mock_threat_repository(self):
         """Mock threat repository."""
         return AsyncMock(spec=ThreatRepository)
-    
+
     @pytest.fixture
     def mock_analysis_engine(self):
         """Mock analysis engine."""
         return AsyncMock(spec=ThreatAnalysisEngine)
-    
+
     @pytest.fixture
     def service(self, mock_threat_repository, mock_analysis_engine):
         """Create service instance with mocked dependencies."""
@@ -501,7 +499,7 @@ class TestThreatAnalysisService:
             threat_repository=mock_threat_repository,
             analysis_engine=mock_analysis_engine
         )
-    
+
     async def test_analyze_threat_with_valid_indicator_returns_analysis_result(
         self,
         service,
@@ -515,15 +513,15 @@ class TestThreatAnalysisService:
             confidence=0.95
         )
         mock_analysis_engine.analyze.return_value = expected_result
-        
+
         # Act
         result = await service.analyze_threat(indicator)
-        
+
         # Assert
         assert result.threat_score == 0.85
         assert result.confidence == 0.95
         mock_analysis_engine.analyze.assert_called_once_with(indicator)
-    
+
     async def test_analyze_threat_with_invalid_indicator_raises_validation_exception(
         self,
         service
@@ -531,22 +529,22 @@ class TestThreatAnalysisService:
         """Test that analyzing an invalid indicator raises ValidationException."""
         # Arrange
         invalid_indicator = ThreatIndicator(type="", value="")
-        
+
         # Act & Assert
         with pytest.raises(ValidationException) as exc_info:
             await service.analyze_threat(invalid_indicator)
-        
+
         assert "Invalid threat indicator" in str(exc_info.value)
 ```
 
-### Test Categories
+###  Test Categories
 - **Unit Tests**: Test individual components in isolation
 - **Integration Tests**: Test component interactions
 - **End-to-End Tests**: Test complete workflows
 - **Security Tests**: Test security controls
 - **Performance Tests**: Test performance characteristics
 
-### Test Data
+###  Test Data
 - Use factories for test data creation
 - Avoid hardcoded values
 - Example:
@@ -557,10 +555,10 @@ from factory.alchemy import SQLAlchemyModelFactory
 
 class ThreatIndicatorFactory(Factory):
     """Factory for creating threat indicators."""
-    
+
     class Meta:
         model = ThreatIndicator
-    
+
     type = Faker('random_element', elements=['ip', 'domain', 'hash'])
     value = Faker('ipv4')
     confidence = Faker('pyfloat', min_value=0.0, max_value=1.0)
@@ -568,25 +566,25 @@ class ThreatIndicatorFactory(Factory):
 
 class SecurityIncidentFactory(SQLAlchemyModelFactory):
     """Factory for creating security incidents."""
-    
+
     class Meta:
         model = SecurityIncident
         sqlalchemy_session_persistence = 'commit'
-    
+
     incident_type = Faker('random_element', elements=['malware', 'intrusion', 'ddos'])
     severity = Faker('random_element', elements=['low', 'medium', 'high', 'critical'])
     description = Faker('text', max_nb_chars=500)
     status = 'open'
-    
+
     # Relationships
     primary_indicator = SubFactory(ThreatIndicatorFactory)
 ```
 
----
+- --
 
-## Performance Standards
+##  Performance Standards
 
-### Async/Await Best Practices
+###  Async/Await Best Practices
 ```python
 import asyncio
 from typing import List
@@ -614,7 +612,7 @@ async def process_multiple_threats_sequential(
     return results
 ```
 
-### Database Optimization
+###  Database Optimization
 ```python
 # Good - Batch operations
 async def save_multiple_events(
@@ -631,13 +629,13 @@ async def save_multiple_events(
 class DatabaseRepository:
     def __init__(self, pool: asyncpg.Pool):
         self.pool = pool
-    
+
     async def execute_query(self, query: str, *params):
         async with self.pool.acquire() as connection:
             return await connection.fetch(query, *params)
 ```
 
-### Caching Strategies
+###  Caching Strategies
 ```python
 from functools import lru_cache
 import redis.asyncio as redis
@@ -645,49 +643,49 @@ import redis.asyncio as redis
 class ThreatIntelligenceService:
     def __init__(self, redis_client: redis.Redis):
         self.redis = redis_client
-    
+
     @lru_cache(maxsize=1000)
     def get_static_threat_data(self, threat_type: str) -> dict:
         """Cache static threat data in memory."""
         return self._load_static_data(threat_type)
-    
+
     async def get_threat_reputation(self, indicator: str) -> float:
         """Cache threat reputation with TTL."""
         cache_key = f"reputation:{indicator}"
-        
+
         # Check cache first
         cached_score = await self.redis.get(cache_key)
         if cached_score:
             return float(cached_score)
-        
+
         # Calculate and cache
         score = await self._calculate_reputation(indicator)
         await self.redis.setex(cache_key, 3600, score)  # 1 hour TTL
         return score
 ```
 
----
+- --
 
-## Security Standards
+##  Security Standards
 
-### Input Validation
+###  Input Validation
 ```python
 from pydantic import BaseModel, validator
 
 class ThreatIndicatorInput(BaseModel):
     """Input validation for threat indicators."""
-    
+
     type: str
     value: str
     confidence: float
-    
+
     @validator('type')
     def validate_type(cls, v):
         allowed_types = ['ip', 'domain', 'hash', 'url']
         if v not in allowed_types:
             raise ValueError(f'Type must be one of: {allowed_types}')
         return v
-    
+
     @validator('value')
     def validate_value(cls, v, values):
         if values.get('type') == 'ip':
@@ -697,7 +695,7 @@ class ThreatIndicatorInput(BaseModel):
             except ValueError:
                 raise ValueError('Invalid IP address format')
         return v
-    
+
     @validator('confidence')
     def validate_confidence(cls, v):
         if not 0.0 <= v <= 1.0:
@@ -705,17 +703,17 @@ class ThreatIndicatorInput(BaseModel):
         return v
 ```
 
-### Secret Management
+###  Secret Management
 ```python
 import os
 from src.infrastructure.security.vault_client import VaultClient
 
 class SecurityConfig:
     """Secure configuration management."""
-    
+
     def __init__(self, vault_client: VaultClient):
         self.vault = vault_client
-    
+
     async def get_secret(self, secret_path: str) -> str:
         """Get secret from vault with fallback to environment."""
         try:
@@ -727,7 +725,7 @@ class SecurityConfig:
             if not secret:
                 raise ValueError(f"Secret not found: {secret_path}")
             return secret
-    
+
     def get_database_url(self) -> str:
         """Get database URL without exposing password in logs."""
         return os.getenv('DATABASE_URL', '').replace(
@@ -735,11 +733,11 @@ class SecurityConfig:
         ) if 'DATABASE_URL' in os.environ else 'Not configured'
 ```
 
----
+- --
 
-## Monitoring and Logging
+##  Monitoring and Logging
 
-### Structured Logging
+###  Structured Logging
 ```python
 import structlog
 from typing import Any, Dict
@@ -749,17 +747,17 @@ logger = structlog.get_logger()
 class ThreatAnalysisService:
     async def analyze_threat(self, indicator: ThreatIndicator) -> ThreatResult:
         """Analyze threat with structured logging."""
-        
+
         logger.info(
             "Starting threat analysis",
             indicator_type=indicator.type,
             indicator_value_hash=self._hash_sensitive_value(indicator.value),
             request_id=self.request_id
         )
-        
+
         try:
             result = await self._perform_analysis(indicator)
-            
+
             logger.info(
                 "Threat analysis completed",
                 threat_score=result.threat_score,
@@ -767,9 +765,9 @@ class ThreatAnalysisService:
                 analysis_duration_ms=result.duration_ms,
                 request_id=self.request_id
             )
-            
+
             return result
-            
+
         except Exception as e:
             logger.error(
                 "Threat analysis failed",
@@ -782,7 +780,7 @@ class ThreatAnalysisService:
             raise
 ```
 
-### Metrics Collection
+###  Metrics Collection
 ```python
 from prometheus_client import Counter, Histogram, Gauge
 
@@ -807,23 +805,23 @@ active_threats = Gauge(
 class ThreatAnalysisService:
     async def analyze_threat(self, indicator: ThreatIndicator) -> ThreatResult:
         """Analyze threat with metrics collection."""
-        
+
         with threat_analysis_duration.labels(
             indicator_type=indicator.type
         ).time():
             try:
                 result = await self._perform_analysis(indicator)
-                
+
                 threat_analysis_total.labels(
                     indicator_type=indicator.type,
                     result='success'
                 ).inc()
-                
+
                 if result.threat_score > 0.8:
                     active_threats.inc()
-                
+
                 return result
-                
+
             except Exception as e:
                 threat_analysis_total.labels(
                     indicator_type=indicator.type,
@@ -832,53 +830,53 @@ class ThreatAnalysisService:
                 raise
 ```
 
----
+- --
 
-## Code Review Checklist
+##  Code Review Checklist
 
-### Functionality
+###  Functionality
 - [ ] Code meets requirements
 - [ ] Edge cases handled
 - [ ] Error conditions handled
 - [ ] Input validation implemented
 - [ ] Output format correct
 
-### Design
+###  Design
 - [ ] Follows SOLID principles
 - [ ] Appropriate design patterns used
 - [ ] Proper separation of concerns
 - [ ] Dependencies injected
 - [ ] Interfaces used appropriately
 
-### Code Quality
+###  Code Quality
 - [ ] Code is readable and self-documenting
 - [ ] Naming is clear and consistent
 - [ ] Functions are focused and small
 - [ ] DRY principle followed
 - [ ] Comments explain "why", not "what"
 
-### Security
+###  Security
 - [ ] Input sanitized and validated
 - [ ] No secrets in code
 - [ ] Error messages don't leak information
 - [ ] Authentication/authorization implemented
 - [ ] SQL injection prevention
 
-### Performance
+###  Performance
 - [ ] Efficient algorithms used
 - [ ] Database queries optimized
 - [ ] Caching implemented where appropriate
 - [ ] Async/await used correctly
 - [ ] Memory usage considered
 
-### Testing
+###  Testing
 - [ ] Unit tests written
 - [ ] Integration tests where needed
 - [ ] Edge cases tested
 - [ ] Error conditions tested
 - [ ] Test coverage adequate
 
-### Documentation
+###  Documentation
 - [ ] Public APIs documented
 - [ ] Complex logic explained
 - [ ] README updated if needed

@@ -1,0 +1,365 @@
+{
+  "round_id": 1,
+  "timestamp": "2025-08-11T21:39:34.868688",
+  "total_actions": 18,
+  "total_resource_cost": 60,
+  "detections": [
+    {
+      "timestamp": "2025-08-11T21:39:34.866183",
+      "detection_type": "network_scan",
+      "confidence": 0.85,
+      "source": "Network IDS",
+      "indicator": "Multiple port scans from external IP targeting meridiandynamics.com",
+      "threat_description": "Potential reconnaissance activity detected",
+      "severity": "medium",
+      "false_positive_risk": 0.15
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866204",
+      "detection_type": "network_scan",
+      "confidence": 0.85,
+      "source": "Network IDS",
+      "indicator": "Multiple port scans from external IP targeting md-consulting.net",
+      "threat_description": "Potential reconnaissance activity detected",
+      "severity": "medium",
+      "false_positive_risk": 0.15
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866214",
+      "detection_type": "network_scan",
+      "confidence": 0.85,
+      "source": "Network IDS",
+      "indicator": "Multiple port scans from external IP targeting 203.0.113.50",
+      "threat_description": "Potential reconnaissance activity detected",
+      "severity": "medium",
+      "false_positive_risk": 0.15
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866220",
+      "detection_type": "network_scan",
+      "confidence": 0.85,
+      "source": "Network IDS",
+      "indicator": "Multiple port scans from external IP targeting https://meridiandynamics.com",
+      "threat_description": "Potential reconnaissance activity detected",
+      "severity": "medium",
+      "false_positive_risk": 0.15
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866226",
+      "detection_type": "network_scan",
+      "confidence": 0.85,
+      "source": "Network IDS",
+      "indicator": "Multiple port scans from external IP targeting https://portal.meridiandynamics.com",
+      "threat_description": "Potential reconnaissance activity detected",
+      "severity": "medium",
+      "false_positive_risk": 0.15
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866232",
+      "detection_type": "network_scan",
+      "confidence": 0.85,
+      "source": "Network IDS",
+      "indicator": "Multiple port scans from external IP targeting https://api.meridiandynamics.com/files",
+      "threat_description": "Potential reconnaissance activity detected",
+      "severity": "medium",
+      "false_positive_risk": 0.15
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866240",
+      "detection_type": "web_attack",
+      "confidence": 0.92,
+      "source": "Web Application Firewall",
+      "indicator": "Suspicious POST request to https://meridiandynamics.com",
+      "threat_description": "Potential web application exploit attempt",
+      "severity": "high",
+      "false_positive_risk": 0.08
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866246",
+      "detection_type": "suspicious_login",
+      "confidence": 0.75,
+      "source": "Application Logs",
+      "indicator": "Admin login from unusual location to https://hr.meridiandynamics.com",
+      "threat_description": "Potentially compromised administrative account",
+      "severity": "high",
+      "false_positive_risk": 0.25
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866257",
+      "detection_type": "network_scan",
+      "confidence": 0.85,
+      "source": "Network IDS",
+      "indicator": "Multiple port scans from external IP targeting 10.0.0.0/16",
+      "threat_description": "Potential reconnaissance activity detected",
+      "severity": "medium",
+      "false_positive_risk": 0.15
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866266",
+      "detection_type": "data_exfiltration",
+      "confidence": 0.88,
+      "source": "DLP System",
+      "indicator": "Large database export outside business hours",
+      "threat_description": "Potential data exfiltration detected",
+      "severity": "critical",
+      "false_positive_risk": 0.12
+    }
+  ],
+  "deployed_countermeasures": [
+    "wordpress_plugin_patch"
+  ],
+  "monitoring_coverage": {
+    "network": 0.9,
+    "endpoints": 0.6,
+    "applications": 0.95,
+    "cloud": 0.5
+  },
+  "honeypots_deployed": [
+    "ssh_honeypot",
+    "admin_decoy",
+    "s3_canaries"
+  ],
+  "threat_intelligence_items": 15,
+  "actions": [
+    {
+      "timestamp": "2025-08-11T21:39:34.866285",
+      "category": "prevention",
+      "technique": "Vulnerability Patching",
+      "target": "Corporate Website - Contact Form 7 Plugin",
+      "action_taken": "Updated plugin to version 5.6.4 (patches CVE-2023-6000)",
+      "effectiveness": "high",
+      "artifacts": [
+        "patch_deployment.log",
+        "plugin_update_confirmation.txt"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866309",
+      "category": "detection",
+      "technique": "Network Traffic Analysis",
+      "target": "DMZ and Internal Networks",
+      "action_taken": "Deployed Suricata IDS with custom rules for reconnaissance detection",
+      "effectiveness": "high",
+      "artifacts": [
+        "suricata_rules.txt",
+        "network_baseline.json"
+      ],
+      "cost": 5
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866321",
+      "category": "detection",
+      "technique": "Web Application Firewall",
+      "target": "All Public Web Applications",
+      "action_taken": "Deployed ModSecurity with OWASP Core Rule Set",
+      "effectiveness": "high",
+      "artifacts": [
+        "waf_rules.conf",
+        "baseline_traffic.log"
+      ],
+      "cost": 4
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866330",
+      "category": "detection",
+      "technique": "Database Activity Monitoring",
+      "target": "PostgreSQL Database",
+      "action_taken": "Implemented pgAudit for comprehensive database logging",
+      "effectiveness": "medium",
+      "artifacts": [
+        "pgaudit_config.conf",
+        "db_baseline_queries.log"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866338",
+      "category": "deception",
+      "technique": "Honeypot Deployment",
+      "target": "DMZ Network",
+      "action_taken": "Deployed Cowrie SSH honeypot on 192.168.1.99",
+      "effectiveness": "medium",
+      "artifacts": [
+        "honeypot_config.json",
+        "cowrie_setup.log"
+      ],
+      "cost": 2
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866425",
+      "category": "deception",
+      "technique": "Decoy Service",
+      "target": "Internal Network",
+      "action_taken": "Created fake admin portal at admin-backup.meridiandynamics.com",
+      "effectiveness": "high",
+      "artifacts": [
+        "decoy_portal_logs.txt",
+        "fake_credentials.json"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866432",
+      "category": "deception",
+      "technique": "Canary Tokens",
+      "target": "AWS S3 Bucket",
+      "action_taken": "Planted fake credentials and documents with embedded tracking",
+      "effectiveness": "high",
+      "artifacts": [
+        "canary_tokens.json",
+        "tracking_urls.txt"
+      ],
+      "cost": 2
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866441",
+      "category": "hunting",
+      "technique": "Threat Hunting",
+      "target": "Environment-wide",
+      "action_taken": "Initiated hunting query for similar indicators: Multiple port scans from external IP targeting meridiandynamics.com",
+      "effectiveness": "medium",
+      "artifacts": [
+        "hunting_queries.sql",
+        "threat_hunt_results.json"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866451",
+      "category": "hunting",
+      "technique": "Threat Hunting",
+      "target": "Environment-wide",
+      "action_taken": "Initiated hunting query for similar indicators: Multiple port scans from external IP targeting md-consulting.net",
+      "effectiveness": "medium",
+      "artifacts": [
+        "hunting_queries.sql",
+        "threat_hunt_results.json"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866460",
+      "category": "hunting",
+      "technique": "Threat Hunting",
+      "target": "Environment-wide",
+      "action_taken": "Initiated hunting query for similar indicators: Multiple port scans from external IP targeting 203.0.113.50",
+      "effectiveness": "medium",
+      "artifacts": [
+        "hunting_queries.sql",
+        "threat_hunt_results.json"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866473",
+      "category": "hunting",
+      "technique": "Threat Hunting",
+      "target": "Environment-wide",
+      "action_taken": "Initiated hunting query for similar indicators: Multiple port scans from external IP targeting https://meridiandynamics.com",
+      "effectiveness": "medium",
+      "artifacts": [
+        "hunting_queries.sql",
+        "threat_hunt_results.json"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.866480",
+      "category": "hunting",
+      "technique": "Threat Hunting",
+      "target": "Environment-wide",
+      "action_taken": "Initiated hunting query for similar indicators: Multiple port scans from external IP targeting https://portal.meridiandynamics.com",
+      "effectiveness": "medium",
+      "artifacts": [
+        "hunting_queries.sql",
+        "threat_hunt_results.json"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.868501",
+      "category": "hunting",
+      "technique": "Threat Hunting",
+      "target": "Environment-wide",
+      "action_taken": "Initiated hunting query for similar indicators: Multiple port scans from external IP targeting https://api.meridiandynamics.com/files",
+      "effectiveness": "medium",
+      "artifacts": [
+        "hunting_queries.sql",
+        "threat_hunt_results.json"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.868519",
+      "category": "response",
+      "technique": "Enhanced Monitoring",
+      "target": "Web Application Firewall",
+      "action_taken": "Increased logging verbosity and deployed additional sensors",
+      "effectiveness": "medium",
+      "artifacts": [
+        "enhanced_monitoring.conf",
+        "additional_sensors.log"
+      ],
+      "cost": 4
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.868530",
+      "category": "response",
+      "technique": "Enhanced Monitoring",
+      "target": "Application Logs",
+      "action_taken": "Increased logging verbosity and deployed additional sensors",
+      "effectiveness": "medium",
+      "artifacts": [
+        "enhanced_monitoring.conf",
+        "additional_sensors.log"
+      ],
+      "cost": 4
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.868538",
+      "category": "hunting",
+      "technique": "Threat Hunting",
+      "target": "Environment-wide",
+      "action_taken": "Initiated hunting query for similar indicators: Multiple port scans from external IP targeting 10.0.0.0/16",
+      "effectiveness": "medium",
+      "artifacts": [
+        "hunting_queries.sql",
+        "threat_hunt_results.json"
+      ],
+      "cost": 3
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.868557",
+      "category": "response",
+      "technique": "Network Isolation",
+      "target": "DLP System",
+      "action_taken": "Isolated affected systems and blocked suspicious IPs",
+      "effectiveness": "high",
+      "artifacts": [
+        "isolation_commands.log",
+        "blocked_ips.txt"
+      ],
+      "cost": 7
+    },
+    {
+      "timestamp": "2025-08-11T21:39:34.868664",
+      "category": "intelligence",
+      "technique": "IOC Extraction and Sharing",
+      "target": "Threat Intelligence Platform",
+      "action_taken": "Extracted 15 IOCs and updated threat signatures",
+      "effectiveness": "high",
+      "artifacts": [
+        "ioc_feed.json",
+        "signature_updates.txt"
+      ],
+      "cost": 2
+    }
+  ],
+  "effectiveness_metrics": {
+    "detection_rate": 0.6666666666666666,
+    "prevention_score": 0.3888888888888889,
+    "cost_efficiency": 0.11666666666666667,
+    "false_positive_rate": 0.15
+  }
+}

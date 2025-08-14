@@ -1,6 +1,6 @@
 # XORB Centralized Configuration Management
 
-## Overview
+##  Overview
 
 The XORB platform now features a comprehensive centralized configuration management system that provides:
 
@@ -11,9 +11,9 @@ The XORB platform now features a comprehensive centralized configuration managem
 - **Configuration validation** and error handling
 - **Multi-format export** (JSON, YAML, Environment Variables)
 
-## Quick Start
+##  Quick Start
 
-### 1. Basic Usage
+###  1. Basic Usage
 
 ```python
 from src.common.config_manager import get_config, get_feature_flag
@@ -28,7 +28,7 @@ if get_feature_flag("advanced_analytics", False):
     print("Advanced analytics enabled")
 ```
 
-### 2. Environment Switching
+###  2. Environment Switching
 
 ```bash
 # Switch to different environments
@@ -42,32 +42,32 @@ if get_feature_flag("advanced_analytics", False):
 ./tools/scripts/config-manager.sh deploy staging --dry-run
 ```
 
-### 3. Docker Compose Deployment
+###  3. Docker Compose Deployment
 
 ```bash
 # Development environment
 docker-compose -f docker-compose.development.yml up -d
 
-# Production environment  
+# Production environment
 docker-compose -f docker-compose.production.yml up -d
 
 # Check status
 docker-compose ps
 ```
 
-## Configuration Structure
+##  Configuration Structure
 
-### Environment Files
+###  Environment Files
 
 The system uses JSON configuration files for each environment:
 
 - `config/development.json` - Development settings
-- `config/staging.json` - Staging settings  
+- `config/staging.json` - Staging settings
 - `config/production.json` - Production settings
 - `config/test.json` - Test settings
 - `config/default.json` - Base configuration
 
-### Configuration Schema
+###  Configuration Schema
 
 ```python
 @dataclass
@@ -76,7 +76,7 @@ class XORBConfig:
     app_name: str
     app_version: str
     debug: bool
-    
+
     # Service configurations
     database: DatabaseConfig
     redis: RedisConfig
@@ -85,17 +85,17 @@ class XORBConfig:
     api_service: ServiceConfig
     orchestrator_service: ServiceConfig
     intelligence_service: ServiceConfig
-    
+
     # Feature flags
     feature_flags: Dict[str, bool]
-    
+
     # External integrations
     integrations: Dict[str, Dict[str, Any]]
 ```
 
-## Environment-Specific Settings
+##  Environment-Specific Settings
 
-### Development Environment
+###  Development Environment
 
 ```json
 {
@@ -112,11 +112,11 @@ class XORBConfig:
 }
 ```
 
-### Production Environment
+###  Production Environment
 
 ```json
 {
-  "environment": "production", 
+  "environment": "production",
   "debug": false,
   "database": {
     "name": "xorb_prod",
@@ -130,9 +130,9 @@ class XORBConfig:
 }
 ```
 
-## Secret Management
+##  Secret Management
 
-### Vault Integration
+###  Vault Integration
 
 The system integrates with HashiCorp Vault for secure secret management:
 
@@ -146,7 +146,7 @@ vault_client = VaultClient()
 secret = vault_client.get_secret("xorb/config")
 ```
 
-### Environment Variables
+###  Environment Variables
 
 Fallback to environment variables when Vault is unavailable:
 
@@ -156,9 +156,9 @@ export JWT_SECRET="very_long_secret_key"
 export REDIS_PASSWORD="redis_password"
 ```
 
-## Feature Flags
+##  Feature Flags
 
-### Dynamic Feature Control
+###  Dynamic Feature Control
 
 ```python
 from src.common.config_manager import get_config_manager
@@ -173,7 +173,7 @@ multi_tenant = manager.get_feature_flag("multi_tenant", False)
 manager.set_feature_flag("beta_features", True)
 ```
 
-### Available Feature Flags
+###  Available Feature Flags
 
 - `advanced_analytics` - Advanced analytics and reporting
 - `threat_hunting` - Threat hunting capabilities
@@ -183,9 +183,9 @@ manager.set_feature_flag("beta_features", True)
 - `debug_mode` - Debug mode features
 - `performance_profiling` - Performance profiling tools
 
-## Hot-Reloading
+##  Hot-Reloading
 
-### Automatic Reload
+###  Automatic Reload
 
 Configuration files are monitored for changes and automatically reloaded:
 
@@ -198,7 +198,7 @@ manager = get_config_manager()
 manager.register_reload_callback(on_config_changed)
 ```
 
-### Manual Reload
+###  Manual Reload
 
 ```python
 from src.common.config_manager import reload_config
@@ -207,9 +207,9 @@ from src.common.config_manager import reload_config
 reload_config()
 ```
 
-## Configuration Management CLI
+##  Configuration Management CLI
 
-### Available Commands
+###  Available Commands
 
 ```bash
 # Validate configuration
@@ -218,7 +218,7 @@ reload_config()
 # Deploy environment
 ./tools/scripts/config-manager.sh deploy staging
 
-# Switch environments  
+# Switch environments
 ./tools/scripts/config-manager.sh switch development
 
 # Export configuration
@@ -234,27 +234,27 @@ reload_config()
 ./tools/scripts/config-manager.sh reload
 ```
 
-### Options
+###  Options
 
 - `-v, --verbose` - Verbose output
 - `-d, --dry-run` - Show what would be done without executing
 - `--config-dir DIR` - Use custom config directory
 
-## Service-Specific Configuration
+##  Service-Specific Configuration
 
-### Database Configuration
+###  Database Configuration
 
 ```python
 config = get_config()
 db_config = config.database
 
 print(f"Host: {db_config.host}")
-print(f"Port: {db_config.port}")  
+print(f"Port: {db_config.port}")
 print(f"Database: {db_config.name}")
 print(f"Connection URL: {db_config.get_url()}")
 ```
 
-### Service Ports
+###  Service Ports
 
 ```python
 # Get service-specific configuration
@@ -265,9 +265,9 @@ print(f"API: {api_config.host}:{api_config.port}")
 print(f"Orchestrator: {orchestrator_config.host}:{orchestrator_config.port}")
 ```
 
-## Docker Integration
+##  Docker Integration
 
-### Environment Variables
+###  Environment Variables
 
 ```yaml
 # docker-compose.yml
@@ -281,7 +281,7 @@ services:
       - ./config:/app/config:ro
 ```
 
-### Secrets Management
+###  Secrets Management
 
 ```yaml
 # Production secrets
@@ -292,21 +292,21 @@ secrets:
     file: ./secrets/encryption_key
 ```
 
-## Validation and Error Handling
+##  Validation and Error Handling
 
-### Configuration Validation
+###  Configuration Validation
 
 The system validates configuration automatically:
 
 ```python
 # Validation rules
 - Production environments require JWT secrets
-- Service ports must be unique  
+- Service ports must be unique
 - Database connection parameters must be valid
 - Feature flag values must be boolean
 ```
 
-### Error Handling
+###  Error Handling
 
 ```python
 try:
@@ -318,9 +318,9 @@ except Exception as e:
     # Falls back to default configuration
 ```
 
-## Export and Import
+##  Export and Import
 
-### Export Configuration
+###  Export Configuration
 
 ```bash
 # Export as JSON
@@ -333,7 +333,7 @@ except Exception as e:
 ./tools/scripts/config-manager.sh export production env
 ```
 
-### Programmatic Export
+###  Programmatic Export
 
 ```python
 from src.common.config_manager import get_config_manager, ConfigFormat
@@ -346,21 +346,21 @@ yaml_config = manager.export_config(ConfigFormat.YAML, include_secrets=False)
 env_config = manager.export_config(ConfigFormat.ENV, include_secrets=False)
 ```
 
-## Migration from Legacy Configuration
+##  Migration from Legacy Configuration
 
-### Step 1: Update Imports
+###  Step 1: Update Imports
 
 ```python
 # Old way
 from src.common.config import get_settings
 settings = get_settings()
 
-# New way  
+# New way
 from src.common.config_manager import get_config
 config = get_config()
 ```
 
-### Step 2: Update Configuration Access
+###  Step 2: Update Configuration Access
 
 ```python
 # Old way
@@ -372,7 +372,7 @@ database_url = config.database.get_url()
 api_port = config.api_service.port
 ```
 
-### Step 3: Update Environment Variables
+###  Step 3: Update Environment Variables
 
 The new system uses structured environment variables:
 
@@ -386,35 +386,35 @@ DATABASE_PORT=5432
 DATABASE_NAME=xorb_dev
 ```
 
-## Best Practices
+##  Best Practices
 
-### 1. Environment Separation
+###  1. Environment Separation
 
 - Use environment-specific configuration files
 - Never commit secrets to version control
 - Use Vault or environment variables for sensitive data
 
-### 2. Feature Flags
+###  2. Feature Flags
 
 - Use feature flags for gradual rollouts
 - Test feature flags in staging before production
 - Monitor feature flag usage and performance impact
 
-### 3. Configuration Validation
+###  3. Configuration Validation
 
 - Validate configuration in CI/CD pipelines
 - Use dry-run mode for testing deployments
 - Monitor configuration changes in production
 
-### 4. Hot-Reloading
+###  4. Hot-Reloading
 
 - Use hot-reloading for development environments
 - Be cautious with hot-reloading in production
 - Test configuration changes thoroughly
 
-## Troubleshooting
+##  Troubleshooting
 
-### Common Issues
+###  Common Issues
 
 1. **Configuration File Not Found**
    ```bash
@@ -440,7 +440,7 @@ DATABASE_NAME=xorb_dev
    ./tools/scripts/config-manager.sh validate production
    ```
 
-### Debugging
+###  Debugging
 
 ```python
 # Enable verbose logging
@@ -455,20 +455,20 @@ print(f"Current environment: {config.environment}")
 print(f"Debug mode: {config.debug}")
 ```
 
-## Performance Considerations
+##  Performance Considerations
 
 - Configuration is cached for performance
 - Hot-reloading has minimal performance impact
 - Vault integration adds slight latency but improves security
 - Feature flags have negligible runtime overhead
 
-## Security Considerations
+##  Security Considerations
 
 - Secrets are never logged or exported by default
 - Configuration files should have appropriate permissions
 - Vault tokens should be rotated regularly
 - Environment variables should be secured in production
 
----
+- --
 
 For more information, see the [XORB Platform Architecture Guide](XORB_PLATFORM_ARCHITECTURE_GUIDE.md).

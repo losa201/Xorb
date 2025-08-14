@@ -1,406 +1,426 @@
 """
-XORB Enterprise API Main Application
-Production-ready FastAPI application with comprehensive middleware stack
+XORB Enterprise Cybersecurity Platform - Main Application
+Production-ready FastAPI application with comprehensive security, monitoring, and performance optimizations
 """
 
-import logging
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 from typing import Dict, Any
-from fastapi import FastAPI, HTTPException, Request
+
+from fastapi import FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 from fastapi.openapi.utils import get_openapi
+import uvicorn
 
-# Import routers
+# Core imports
+from .core.config import get_settings, get_config_manager
+from .core.logging import setup_logging, LoggingMiddleware, get_logger
+from .core.secure_logging import get_audit_logger, get_secure_logger, LoggingSecurityConfig
+from .core.metrics import setup_metrics, get_metrics_service
+from .core.security import setup_security, SecurityHeadersMiddleware
+from .core.cache import setup_cache, get_cache_service
+from .core.database import setup_database, get_database_manager
+from .core.error_handling import global_exception_handler, get_error_handler
+
+# Security middleware imports
+from .middleware.input_validation import InputValidationMiddleware, get_validation_config
+from .middleware.secure_cors import create_secure_cors_middleware, CORSSecurityMiddleware
+from .rate_limit.middleware import RateLimitMiddleware, create_rate_limit_middleware
+
+
+# Router imports
 from .routers import (
-    health,
-    auth,
-    enterprise_auth,
-    intelligence,
-    telemetry,
-    ptaas,
-    ptaas_orchestration,
-    unified_gateway,
-    vectors,
-    storage,
-    jobs,
-    system_status,
-    # enterprise_platform,  # Temporarily disabled due to aioredis compatibility
-    # enterprise_ai_platform,  # Temporarily disabled due to aioredis compatibility
-    mitre_attack,
-    sophisticated_red_team,
-    advanced_security_platform,  # Existing advanced security platform router
-    advanced_ai_security_platform,  # New AI security platform router
-    # production_security_platform  # Production security platform with real implementations - Temporarily disabled due to aioredis compatibility
+    health, auth, discovery, embeddings, ptaas, telemetry,
+    orchestration, agents, enterprise_management, security_dashboard
 )
 
-# Import middleware
-from .middleware.error_handling import GlobalErrorHandler
-from .security.api_security import APISecurityMiddleware
-from .middleware.rate_limiting import AdvancedRateLimitingMiddleware
-from .middleware.tenant_context import TenantContextMiddleware
-from .middleware.request_id import RequestIdMiddleware
-from .middleware.audit_logging import AuditLoggingMiddleware
+# Get configuration
+config_manager = get_config_manager()
+settings = config_manager.app_settings
 
-# Import enhanced infrastructure
-from .infrastructure.database import init_database
-from .infrastructure.cache import init_cache
-from .infrastructure.redis_manager import initialize_redis, shutdown_redis, RedisConfig
-from .enhanced_container import get_container, shutdown_container, container_context
-from .services.advanced_ai_threat_intelligence import AdvancedThreatIntelligenceEngine
-# from .infrastructure.observability import init_observability
-
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+# Setup secure logging early
+logging_security_config = LoggingSecurityConfig(
+    mask_sensitive_fields=True,
+    hash_pii=config_manager.is_production(),
+    enable_audit_trail=True,
+    log_retention_days=90 if config_manager.is_production() else 30
 )
-logger = logging.getLogger(__name__)
 
-# Global enhanced container instance
-_enhanced_container = None
+setup_logging(
+    log_level=settings.log_level,
+    environment=settings.environment,
+    enable_json=(settings.log_format == "json"),
+    enable_colors=(settings.environment == "development")
+)
+
+# Initialize secure audit logger
+audit_logger = get_audit_logger()
+
+logger = get_logger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Enhanced application lifespan with dependency injection container"""
-    """Enhanced application lifespan manager with advanced service orchestration"""
-    global _enhanced_container
+    """Application lifespan management"""
+    logger.info("🚀 Starting XORB Enterprise Cybersecurity Platform")
     
-    # Startup
-    logger.info("🚀 Starting XORB Enterprise API with Enhanced PTaaS Platform...")
+    # Validate configuration
+    config_issues = config_manager.validate_configuration()
+    if config_issues:
+        logger.warning("Configuration issues detected", issues=config_issues)
+        if config_manager.is_production():
+            raise RuntimeError(f"Critical configuration issues in production: {config_issues}")
     
+    # Initialize core services
     try:
-        # Initialize enhanced dependency injection container
-        logger.info("📦 Initializing Enhanced Container with AI-Powered Services...")
-        from .services.production_container_orchestrator import create_production_container
-        _enhanced_container = await create_production_container(
-            config={
-                "jwt_secret": "your-secret-key-here",  # In production, use environment variable
-                "enable_ml_analysis": True,
-                "enable_threat_intelligence": True,
-                "enable_orchestration": True,
-                "enable_advanced_reporting": True,
-                "environment": "production"
-            }
-        )
+        # Setup security
+        security_service = setup_security(config_manager.security_config)
+        logger.info("✅ Security service initialized")
         
-        # Store container in app state for access in routes
-        app.state.container = _enhanced_container
+        # Setup metrics
+        metrics_service = setup_metrics(config_manager.metric_config)
+        await metrics_service.start()
+        logger.info("✅ Metrics service started")
         
-        # Initialize legacy infrastructure for compatibility
-        logger.info("🔧 Initializing Infrastructure Components...")
-        await init_database()
-        await init_cache()
+        # Setup cache
+        cache_service = setup_cache(config_manager.cache_config)
+        logger.info("✅ Cache service initialized")
         
-        # Initialize Redis manager
-        logger.info("🔧 Initializing Redis Manager...")
-        redis_config = RedisConfig(
-            host="redis",
-            port=6379,
-            password=None,  # Set from environment if needed
-            db=0
-        )
-        redis_initialized = await initialize_redis(redis_config)
-        if redis_initialized:
-            logger.info("✅ Redis Manager initialized successfully")
-        else:
-            logger.warning("⚠️ Redis Manager initialization failed - using fallback mode")
+        # Setup database
+        database_manager = setup_database(config_manager.database_config)
+        await database_manager.initialize()
+        logger.info("✅ Database manager initialized")
         
-        # await init_observability()
+        # Initialize adaptive rate limiting if enabled
+        if config_manager.app_settings.rate_limit_enabled:
+            try:
+                import redis.asyncio as redis
+                
+                # Initialize Redis for rate limiting
+                redis_client = redis.from_url(
+                    config_manager.app_settings.redis_url,
+                    encoding="utf-8",
+                    decode_responses=True
+                )
+                
+                # Test Redis connection
+                await redis_client.ping()
+                
+                # Create adaptive rate limiting middleware
+                rate_limit_middleware = AdaptiveRateLimitingMiddleware(
+                    app=app,
+                    redis_client=redis_client,
+                    shadow_mode=not config_manager.is_production(),  # Shadow mode in non-prod
+                    enable_emergency_controls=True,
+                    enable_observability=config_manager.app_settings.enable_metrics
+                )
+                
+                # Store in app state for middleware access
+                app.state.rate_limit_middleware = rate_limit_middleware
+                app.state.redis_client = redis_client
+                
+                logger.info("✅ Adaptive rate limiting middleware initialized",
+                           shadow_mode=not config_manager.is_production())
+            except Exception as e:
+                logger.error(f"Failed to initialize adaptive rate limiting: {e}")
+                if config_manager.is_production():
+                    raise
         
-        # Initialize advanced security components
-        logger.info("🛡️ Initializing Advanced Security Components...")
-        try:
-            from .controllers.advanced_orchestration_controller import get_orchestration_controller
-            from .services.production_authentication_service import get_production_auth_service
-            from .services.advanced_threat_hunting_engine import get_advanced_threat_hunting_engine
-            from .services.advanced_mitre_attack_engine import get_advanced_mitre_engine
-            from .infrastructure.production_repositories import get_repository_factory
-            
-            # Initialize advanced components
-            orchestration_controller = await get_orchestration_controller()
-            auth_service = await get_production_auth_service()
-            threat_hunting_engine = await get_advanced_threat_hunting_engine()
-            mitre_engine = await get_advanced_mitre_engine()
-            repository_factory = await get_repository_factory()
-            
-            # Store in app state for access
-            app.state.orchestration_controller = orchestration_controller
-            app.state.advanced_auth_service = auth_service
-            app.state.threat_hunting_engine = threat_hunting_engine
-            app.state.mitre_engine = mitre_engine
-            app.state.repository_factory = repository_factory
-            
-            logger.info("✅ Advanced security components initialized successfully")
-            
-        except Exception as e:
-            logger.error(f"❌ Failed to initialize advanced security components: {e}")
-            logger.warning("⚠️ Continuing with reduced functionality")
+        # Log configuration summary
+        config_summary = config_manager.get_configuration_summary()
+        logger.info("Configuration loaded", **config_summary)
         
-        # Perform health checks on all enhanced services
-        logger.info("🏥 Performing Enhanced Service Health Checks...")
-        health_results = await _enhanced_container.health_check_all_services()
-        
-        healthy_services = sum(1 for s in health_results["services"].values() if s["status"] == "healthy")
-        total_services = health_results["total_services"]
-        
-        logger.info(f"✅ Enhanced Services Health: {healthy_services}/{total_services} services healthy")
-        
-        if health_results["overall_status"] == "healthy":
-            logger.info("🎯 All Critical Enhanced Services Operational")
-        else:
-            logger.warning(f"⚠️ Service Health Status: {health_results['overall_status']}")
-        
-        # Log enabled features
-        service_status = _enhanced_container.get_service_status()
-        logger.info(f"📊 Enhanced Features Status:")
-        logger.info(f"   • Advanced Security Scanner: {'✅' if 'scanner_service' in service_status['services'] else '❌'}")
-        logger.info(f"   • AI Threat Intelligence: {'✅' if 'threat_intelligence_service' in service_status['services'] else '❌'}")
-        logger.info(f"   • Workflow Orchestration: {'✅' if 'orchestration_service' in service_status['services'] else '❌'}")
-        logger.info(f"   • Advanced Reporting: {'✅' if 'reporting_service' in service_status['services'] else '❌'}")
-        logger.info(f"   • Enhanced Caching: {'✅' if 'cache_repository' in service_status['services'] else '❌'}")
-        
-        logger.info("🎉 XORB Enterprise API startup complete with Enhanced AI-Powered Capabilities")
-        
-        # Start performance optimizer background tasks
-        try:
-            from .services.performance_optimizer import get_performance_optimizer
-            optimizer = await get_performance_optimizer()
-            await optimizer.start_background_tasks()
-            logger.info("✅ Performance optimizer background tasks started")
-        except Exception as e:
-            logger.warning(f"Performance optimizer initialization warning: {e}")
-        
-        # Store startup metrics
-        app.state.startup_time = logger.info("Startup completed successfully")
-        app.state.enhanced_services_count = service_status["initialized_services"]
-        
-        yield
+        logger.info("🎯 XORB platform started successfully")
         
     except Exception as e:
-        logger.error(f"❌ Failed to start Enhanced XORB Platform: {e}")
+        logger.critical("❌ Failed to initialize services", error=str(e))
         raise
-    finally:
-        # Shutdown
-        logger.info("🛑 Shutting down XORB Enterprise API with Enhanced Services...")
+    
+    yield
+    
+    # Cleanup
+    logger.info("🔄 Shutting down XORB platform")
+    
+    try:
+        if get_metrics_service():
+            await get_metrics_service().stop()
+            logger.info("✅ Metrics service stopped")
         
-        try:
-            # Shutdown Redis manager
-            await shutdown_redis()
-            
-            if _enhanced_container:
-                shutdown_result = await _enhanced_container.shutdown_all_services()
-                logger.info(f"📦 Enhanced Container Shutdown: {shutdown_result['shutdown']} services stopped")
-                
-                if shutdown_result["failed"] > 0:
-                    logger.warning(f"⚠️ {shutdown_result['failed']} services failed to shutdown properly")
-            
-            logger.info("✅ XORB Enterprise API shutdown complete")
-        except Exception as e:
-            logger.error(f"❌ Error during enhanced services shutdown: {e}")
+        if get_cache_service():
+            await get_cache_service().close()
+            logger.info("✅ Cache service closed")
+        
+        if get_database_manager():
+            await get_database_manager().close()
+            logger.info("✅ Database connections closed")
+        
+        # Close rate limiting connections
+        if hasattr(app.state, 'redis_client') and app.state.redis_client:
+            try:
+                await app.state.redis_client.close()
+                logger.info("✅ Rate limiting Redis connections closed")
+            except Exception as e:
+                logger.error(f"Error closing rate limiting connections: {e}")
+        
+        logger.info("✅ XORB platform shutdown complete")
+        
+    except Exception as e:
+        logger.error("Error during shutdown", error=str(e))
+
 
 # Create FastAPI application
 app = FastAPI(
     title="XORB Enterprise Cybersecurity Platform",
     description="""
-    **The World's Most Advanced AI-Powered Cybersecurity Operations Platform**
+    🛡️ **XORB Enterprise Cybersecurity Platform** - Advanced AI-Powered Security Operations
     
-    XORB provides comprehensive cybersecurity services including:
-    - **PTaaS**: Penetration Testing as a Service with real-world security scanners
-    - **Threat Intelligence**: AI-powered threat detection and correlation
-    - **SIEM Integration**: Security Information and Event Management
-    - **Compliance Automation**: Automated compliance checking and reporting
-    - **Behavioral Analytics**: ML-powered user and entity behavior analysis
-    - **Orchestration**: Advanced workflow automation and response
+    A comprehensive cybersecurity platform offering:
     
-    ## Authentication
+    ## 🔧 Core Features
+    - **PTaaS (Penetration Testing as a Service)** - Real-world security scanner integration
+    - **AI-Powered Threat Intelligence** - Advanced ML-based threat analysis
+    - **Compliance Automation** - PCI-DSS, HIPAA, SOX, ISO-27001, GDPR support
+    - **Enterprise SSO & Multi-tenancy** - Production-grade authentication
+    - **Real-time Security Monitoring** - Continuous threat detection
+    - **Advanced Analytics** - Behavioral analysis and anomaly detection
     
-    All endpoints require valid JWT authentication unless otherwise specified.
-    Use the `/auth/login` endpoint to obtain access tokens.
+    ## 🚀 Enterprise Capabilities
+    - **Production-ready Architecture** - Microservices with clean architecture
+    - **Advanced Security** - JWT, MFA, rate limiting, audit logging
+    - **High Performance** - Connection pooling, caching, metrics
+    - **Comprehensive Monitoring** - Prometheus metrics, health checks
+    - **Scalable Infrastructure** - Docker, Kubernetes, Redis clustering
     
-    ## Rate Limiting
+    ## 🛠️ Security Scanner Integration
+    - **Nmap** - Network discovery and port scanning
+    - **Nuclei** - Modern vulnerability scanner (3000+ templates)
+    - **Nikto** - Web application security scanner
+    - **SSLScan** - SSL/TLS configuration analysis
+    - **Custom Security Checks** - Advanced vulnerability analysis
     
-    API requests are rate limited per tenant:
-    - **Default**: 60 requests/minute, 1000 requests/hour
-    - **Enterprise**: Custom limits based on subscription
+    ## 📊 Compliance Frameworks
+    - PCI-DSS (Payment Card Industry)
+    - HIPAA (Healthcare Data Protection)
+    - SOX (Sarbanes-Oxley)
+    - ISO-27001 (Information Security Management)
+    - GDPR (General Data Protection Regulation)
+    - NIST (National Institute of Standards)
     
-    ## Multi-tenancy
+    ## 🔐 Security Features
+    - **Zero Trust Architecture** - Never trust, always verify
+    - **Advanced Threat Hunting** - Custom query language
+    - **Forensics Engine** - Legal-grade evidence collection
+    - **Behavioral Analytics** - ML-powered user behavior analysis
+    - **Network Microsegmentation** - Zero-trust network policies
     
-    All API operations are scoped to the authenticated tenant.
-    Data isolation is enforced at the database level.
+    ## 📈 Monitoring & Analytics
+    - **Real-time Dashboards** - Grafana integration
+    - **Custom Metrics** - Prometheus monitoring
+    - **Advanced Alerting** - Multi-channel notifications
+    - **Performance Analytics** - APM and system monitoring
+    - **Audit Trails** - Comprehensive logging and compliance
     """,
-    version="3.0.0",
-    contact={
-        "name": "XORB Security Team",
-        "url": "https://xorb-security.com",
-        "email": "enterprise@xorb-security.com",
-    },
-    license_info={
-        "name": "MIT License",
-        "url": "https://opensource.org/licenses/MIT",
-    },
-    docs_url=None,  # We'll create custom docs
+    version=settings.app_version,
+    lifespan=lifespan,
+    docs_url=None,  # We'll customize these
     redoc_url=None,
-    lifespan=lifespan
+    openapi_url=f"{settings.api_prefix}/openapi.json",
+    swagger_ui_oauth2_redirect_url=f"{settings.api_prefix}/docs/oauth2-redirect",
 )
 
-# CORS Configuration
+# Add security middleware stack (order matters!)
+security_headers = SecurityHeadersMiddleware(config_manager.security_config)
+
+# 1. Input validation middleware (first line of defense)
+validation_preset = "strict" if config_manager.is_production() else "moderate"
+validation_config = get_validation_config(validation_preset)
+app.add_middleware(InputValidationMiddleware, config=validation_config)
+
+# 2. Adaptive rate limiting middleware (protect against abuse)
+if config_manager.app_settings.rate_limit_enabled:
+    # Rate limiting middleware will be added via dispatch function
+    @app.middleware("http")
+    async def adaptive_rate_limit_dispatch(request: Request, call_next):
+        """Adaptive rate limiting middleware dispatch"""
+        if hasattr(app.state, 'rate_limit_middleware') and app.state.rate_limit_middleware:
+            return await app.state.rate_limit_middleware.dispatch(request, call_next)
+        else:
+            # Rate limiting not initialized - proceed without limiting
+            return await call_next(request)
+    
+    logger.info("✅ Adaptive rate limiting middleware registered")
+
+# 3. Logging middleware
+app.add_middleware(LoggingMiddleware)
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """Add security headers to responses"""
+    response = await call_next(request)
+    
+    # Add security headers
+    headers = security_headers.get_security_headers()
+    for header, value in headers.items():
+        response.headers[header] = value
+    
+    return response
+
+# Add secure CORS middleware
+cors_config, cors_middleware_config = create_secure_cors_middleware(
+    environment=settings.environment,
+    origins_string=settings.cors_allow_origins
+)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",  # PTaaS frontend
-        "http://localhost:8080",  # Alternative frontend
-        "https://*.xorb-security.com",  # Production domains
-    ],
-    allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-    allow_headers=["*"],
-    expose_headers=["X-Request-ID", "X-Rate-Limit-Remaining"]
+    **cors_middleware_config
 )
 
-# Middleware Stack (ordered from outermost to innermost)
-app.add_middleware(GlobalErrorHandler)
-app.add_middleware(APISecurityMiddleware)
-app.add_middleware(AdvancedRateLimitingMiddleware)
-app.add_middleware(TenantContextMiddleware)
-app.add_middleware(AuditLoggingMiddleware)
+# Add additional CORS security middleware
+app.add_middleware(CORSSecurityMiddleware, cors_config=cors_config)
+
+logger.info("Secure CORS middleware configured", 
+           environment=settings.environment,
+           origins_count=len(cors_middleware_config["allow_origins"]))
+
+# Add compression middleware
 app.add_middleware(GZipMiddleware, minimum_size=1000)
-app.add_middleware(RequestIdMiddleware)
 
-# Include routers with proper prefixes and tags
-app.include_router(health.router, prefix="/api/v1")
-app.include_router(auth.router, prefix="/api/v1")
-app.include_router(enterprise_auth.router, prefix="/api/v1")
-app.include_router(intelligence.router, prefix="/api/v1")
-app.include_router(telemetry.router, prefix="/api/v1")
-app.include_router(ptaas.router, prefix="/api/v1/ptaas")
-app.include_router(ptaas_orchestration.router, prefix="/api/v1")
-app.include_router(unified_gateway.router, prefix="/api/v1")
-app.include_router(vectors.router, prefix="/api/v1")
-app.include_router(storage.router, prefix="/api/v1")
-app.include_router(jobs.router, prefix="/api/v1")
-app.include_router(mitre_attack.router, prefix="/api/v1")
-app.include_router(sophisticated_red_team.router, prefix="/api/v1")
-app.include_router(advanced_security_platform.router)  # Advanced security platform router
-app.include_router(advanced_ai_security_platform.router)  # New AI security platform router
-
-# Enhanced PTaaS router with real-world security tools
-try:
-    from .routers import enhanced_ptaas
-    app.include_router(enhanced_ptaas.router)
-    logger.info("✅ Enhanced PTaaS router loaded successfully")
-except ImportError as e:
-    logger.warning(f"Enhanced PTaaS router not available: {e}")
-
-# Security monitoring router
-try:
-    from .routers import security_monitoring
-    app.include_router(security_monitoring.router)
-    logger.info("✅ Security monitoring router loaded successfully")
-except ImportError as e:
-    logger.warning(f"Security monitoring router not available: {e}")
-
-# Enterprise Security Center (AI + Compliance + Incident Response)
-try:
-    from .routers import enterprise_security_center
-    app.include_router(enterprise_security_center.router)
-    logger.info("✅ Enterprise Security Center loaded successfully")
-except ImportError as e:
-    logger.warning(f"Enterprise Security Center not available: {e}")
-
-# Enterprise Management (Multi-tenant administration)
-try:
-    from .routers import enterprise_management
-    app.include_router(enterprise_management.router)
-    logger.info("✅ Enterprise Management loaded successfully")
-except ImportError as e:
-    logger.warning(f"Enterprise Management not available: {e}")
-# app.include_router(production_security_platform.router)  # Production security platform with real implementations - Temporarily disabled
-app.include_router(system_status.router)
-# app.include_router(enterprise_platform.router)  # Temporarily disabled
-# app.include_router(enterprise_ai_platform.router)  # Temporarily disabled
-
-# Advanced infrastructure routers
-try:
-    from .routers import advanced_redis_management
-    app.include_router(advanced_redis_management.router)
-except ImportError as e:
-    logging.warning(f"Advanced Redis management router not available: {e}")
-
-# Advanced PTaaS router disabled due to PyTorch dependency issues
-# try:
-#     from .routers import advanced_ptaas_router
-#     app.include_router(advanced_ptaas_router.router)
-# except ImportError as e:
-#     logging.warning(f"Advanced PTaaS router not available: {e}")
-
-try:
-    from .routers import advanced_networking
-    app.include_router(advanced_networking.router)
-except ImportError as e:
-    logging.warning(f"Advanced networking router not available: {e}")
-
-try:
-    from .routers import enterprise_ptaas
-    app.include_router(enterprise_ptaas.router)
-except ImportError as e:
-    logging.warning(f"Enterprise PTaaS router not available: {e}")
-
-# Custom documentation endpoint
-@app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
-    """Custom Swagger UI with enhanced styling"""
-    return get_swagger_ui_html(
-        openapi_url="/openapi.json",
-        title="XORB Enterprise API Documentation",
-        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.15.5/swagger-ui-bundle.js",
-        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@4.15.5/swagger-ui.css",
-        swagger_ui_parameters={
-            "deepLinking": True,
-            "displayRequestDuration": True,
-            "docExpansion": "none",
-            "filter": True,
-            "showExtensions": True,
-            "showCommonExtensions": True,
-            "syntaxHighlight.theme": "nord"
-        }
+# Add trusted host middleware for production
+if config_manager.is_production():
+    import os
+    # Get allowed hosts from environment or config
+    allowed_hosts = os.getenv("ALLOWED_HOSTS", "api.xorb.enterprise,xorb.enterprise").split(",")
+    allowed_hosts = [host.strip() for host in allowed_hosts if host.strip()]
+    
+    if not allowed_hosts:
+        allowed_hosts = ["api.xorb.enterprise"]  # Default production host
+    
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=allowed_hosts
     )
+    logger.info("Trusted host middleware configured", allowed_hosts=allowed_hosts)
 
-# Custom OpenAPI schema
+# Global exception handler
+app.add_exception_handler(Exception, global_exception_handler)
+
+# Include routers
+app.include_router(health.router, prefix=settings.api_prefix, tags=["Health"])
+app.include_router(auth.router, prefix=settings.api_prefix, tags=["Authentication"])
+app.include_router(discovery.router, prefix=settings.api_prefix, tags=["Discovery"])
+app.include_router(embeddings.router, prefix=settings.api_prefix, tags=["Embeddings"])
+app.include_router(ptaas.router, prefix=settings.api_prefix, tags=["PTaaS"])
+app.include_router(telemetry.router, prefix=settings.api_prefix, tags=["Telemetry"])
+app.include_router(orchestration.router, prefix=settings.api_prefix, tags=["Orchestration"])
+app.include_router(agents.router, prefix=settings.api_prefix, tags=["Agents"])
+app.include_router(security_dashboard.router, tags=["Security Dashboard"])
+
+# Include rate limiting admin router
+try:
+    from .routers import rate_limiting_admin
+    app.include_router(rate_limiting_admin.router, prefix=f"{settings.api_prefix}/admin", tags=["Rate Limiting Admin"])
+    logger.info("✅ Rate Limiting Admin router loaded")
+except ImportError as e:
+    logger.warning("Rate Limiting Admin router not available", error=str(e))
+
+# Include enterprise router with error handling
+try:
+    app.include_router(enterprise_management.router, prefix=settings.api_prefix, tags=["Enterprise"])
+    logger.info("✅ Enterprise Management router loaded")
+except ImportError as e:
+    logger.warning("Enterprise Management not available", error=str(e))
+
+# Include enhanced PTaaS orchestration
+try:
+    from .routers import enhanced_ptaas_orchestration
+    app.include_router(enhanced_ptaas_orchestration.router, prefix=settings.api_prefix, tags=["Enhanced PTaaS"])
+    logger.info("✅ Enhanced PTaaS Orchestration router loaded")
+except ImportError as e:
+    logger.warning("Enhanced PTaaS Orchestration router not available", error=str(e))
+
+# Include strategic PTaaS enhancements with proper import handling
+strategic_routers = [
+    ("strategic_ptaas_enhancement", "Strategic PTaaS"),
+    ("enterprise_compliance_automation", "Enterprise Compliance")
+]
+
+for router_name, display_name in strategic_routers:
+    try:
+        # Try direct import first, skip if not found
+        module = __import__(f"app.routers.{router_name}", fromlist=["router"])
+        app.include_router(module.router, prefix=settings.api_prefix, tags=[display_name])
+        logger.info(f"✅ {display_name} router loaded")
+    except (ImportError, ModuleNotFoundError) as e:
+        logger.warning(f"{display_name} router not available", error=str(e))
+
+# Include strategic principal auditor router
+try:
+    from .routers import strategic_principal_auditor_ptaas
+    app.include_router(strategic_principal_auditor_ptaas.router, prefix=settings.api_prefix, tags=["Strategic PTaaS"])
+    logger.info("✅ Strategic Principal Auditor PTaaS router loaded")
+except ImportError as e:
+    logger.warning("Strategic PTaaS router not available", error=str(e))
+
+# Include additional routers with graceful degradation
+optional_routers = [
+    ("redis_management", "Redis Management"),
+    ("advanced_networking", "Advanced Networking"),
+    ("enterprise_ptaas", "Enterprise PTaaS"),
+    ("red_blue_agents", "Red/Blue Team Agents"),
+    # ("principal_auditor_enhanced_ptaas", "Principal Auditor Enhanced PTaaS")  # Disabled due to Pydantic compatibility
+]
+
+for router_name, display_name in optional_routers:
+    try:
+        # Try importing the router module with proper error handling
+        try:
+            from importlib import import_module
+            module = import_module(f"app.routers.{router_name}")
+        except ImportError:
+            # Module doesn't exist, skip it
+            continue
+        app.include_router(module.router, prefix=settings.api_prefix, tags=[display_name])
+        logger.info(f"✅ {display_name} router loaded")
+    except ImportError as e:
+        logger.warning(f"{display_name} router not available", error=str(e))
+
+
+# Custom OpenAPI documentation
 def custom_openapi():
-    """Generate custom OpenAPI schema with enhanced information"""
+    """Generate custom OpenAPI schema"""
     if app.openapi_schema:
         return app.openapi_schema
     
     openapi_schema = get_openapi(
-        title="XORB Enterprise Cybersecurity Platform API",
-        version="3.0.0",
+        title=app.title,
+        version=app.version,
         description=app.description,
         routes=app.routes,
-        contact=app.contact,
-        license_info=app.license_info
     )
     
-    # Add custom security schemes
+    # Add security schemes
     openapi_schema["components"]["securitySchemes"] = {
         "BearerAuth": {
             "type": "http",
             "scheme": "bearer",
             "bearerFormat": "JWT",
-            "description": "JWT Bearer token authentication"
+            "description": "JWT token obtained from /auth/login endpoint"
         },
         "ApiKeyAuth": {
             "type": "apiKey",
             "in": "header",
             "name": "X-API-Key",
-            "description": "API Key authentication for service-to-service communication"
+            "description": "API key for service-to-service authentication"
         }
     }
     
-    # Add global security requirement
+    # Add global security
     openapi_schema["security"] = [
         {"BearerAuth": []},
         {"ApiKeyAuth": []}
@@ -409,275 +429,90 @@ def custom_openapi():
     # Add server information
     openapi_schema["servers"] = [
         {
-            "url": "http://localhost:8000",
+            "url": f"http://localhost:{settings.api_port}",
             "description": "Development server"
         },
         {
-            "url": "https://api.xorb-security.com",
+            "url": f"https://api.xorb.enterprise",
             "description": "Production server"
         }
     ]
     
-    # Add tags with descriptions
-    openapi_schema["tags"] = [
-        {
-            "name": "Health",
-            "description": "System health and status endpoints"
-        },
-        {
-            "name": "Authentication",
-            "description": "User authentication and authorization"
-        },
-        {
-            "name": "PTaaS",
-            "description": "Penetration Testing as a Service operations"
-        },
-        {
-            "name": "PTaaS Orchestration",
-            "description": "Advanced PTaaS workflow orchestration and automation"
-        },
-        {
-            "name": "Intelligence",
-            "description": "Threat intelligence and AI-powered analysis"
-        },
-        {
-            "name": "Enterprise AI Platform",
-            "description": "Advanced AI-powered cybersecurity operations with autonomous agents"
-        },
-        {
-            "name": "Telemetry",
-            "description": "Security telemetry and event processing"
-        },
-        {
-            "name": "Platform",
-            "description": "Unified platform management and service orchestration"
-        },
-        {
-            "name": "Vectors",
-            "description": "Vector database operations and semantic search"
-        },
-        {
-            "name": "Storage",
-            "description": "File storage and document management"
-        },
-        {
-            "name": "Jobs",
-            "description": "Background job management and processing"
-        }
-    ]
+    # Add additional metadata
+    openapi_schema["info"]["contact"] = {
+        "name": "XORB Support",
+        "email": "support@xorb.enterprise",
+        "url": "https://docs.xorb.enterprise"
+    }
+    
+    openapi_schema["info"]["license"] = {
+        "name": "Enterprise License",
+        "url": "https://xorb.enterprise/license"
+    }
     
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
+
 app.openapi = custom_openapi
 
-# Global exception handlers
-@app.exception_handler(404)
-async def not_found_handler(request: Request, exc: HTTPException):
-    """Custom 404 handler"""
-    return JSONResponse(
-        status_code=404,
-        content={
-            "error": "Not Found",
-            "message": "The requested resource was not found",
-            "path": str(request.url.path),
-            "timestamp": "2025-01-15T10:30:00Z"
+
+# Custom documentation endpoints
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    """Custom Swagger UI with enhanced styling"""
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - API Documentation",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
+        swagger_ui_parameters={
+            "deepLinking": True,
+            "displayRequestDuration": True,
+            "docExpansion": "none",
+            "operationsSorter": "method",
+            "filter": True,
+            "showExtensions": True,
+            "showCommonExtensions": True
         }
     )
 
-@app.exception_handler(500)
-async def internal_error_handler(request: Request, exc: Exception):
-    """Custom 500 handler"""
-    logger.error(f"Internal server error: {exc}")
-    return JSONResponse(
-        status_code=500,
-        content={
-            "error": "Internal Server Error",
-            "message": "An unexpected error occurred",
-            "timestamp": "2025-01-15T10:30:00Z"
-        }
+
+@app.get("/redoc", include_in_schema=False)
+async def redoc_html():
+    """ReDoc documentation"""
+    return get_redoc_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - API Documentation",
+        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc@2.1.3/bundles/redoc.standalone.js",
     )
+
 
 # Root endpoint
 @app.get("/", include_in_schema=False)
 async def root():
-    """Root endpoint with API information"""
+    """Root endpoint with platform information"""
     return {
-        "service": "XORB Enterprise Cybersecurity Platform",
-        "version": "3.0.0",
+        "message": "🛡️ XORB Enterprise Cybersecurity Platform",
+        "version": settings.app_version,
+        "environment": settings.environment,
         "status": "operational",
         "documentation": "/docs",
-        "api_version": "v1",
-        "features": [
-            "PTaaS - Penetration Testing as a Service",
-            "AI-Powered Threat Intelligence",
-            "Real-time Security Orchestration",
-            "Compliance Automation",
-            "Behavioral Analytics",
-            "Multi-tenant Architecture"
-        ],
-        "endpoints": {
-            "health": "/api/v1/health",
-            "enhanced_health": "/api/v1/enhanced-health",
-            "authentication": "/api/v1/auth",
-            "ptaas": "/api/v1/ptaas",
-            "ptaas_orchestration": "/api/v1/ptaas/orchestration",
-            "intelligence": "/api/v1/intelligence",
-            "platform": "/api/v1/platform"
-        }
+        "health": f"{settings.api_prefix}/health",
+        "features": config_manager.get_feature_flags()
     }
 
-# API Information endpoint
-@app.get("/api/v1/info", tags=["Health"])
-async def api_info():
-    """Get API information and capabilities"""
-    return {
-        "api": {
-            "name": "XORB Enterprise API",
-            "version": "3.0.0",
-            "description": "Enterprise cybersecurity platform API",
-            "capabilities": [
-                "penetration_testing",
-                "threat_intelligence", 
-                "security_orchestration",
-                "compliance_automation",
-                "behavioral_analytics"
-            ]
-        },
-        "services": {
-            "ptaas": {
-                "available": True,
-                "features": ["automated_scanning", "real_world_tools", "compliance_reporting"]
-            },
-            "intelligence": {
-                "available": True,
-                "features": ["ai_analysis", "threat_correlation", "ml_detection"]
-            },
-            "orchestration": {
-                "available": True,
-                "features": ["workflow_automation", "incident_response", "integration"]
-            }
-        },
-        "infrastructure": {
-            "multi_tenant": True,
-            "high_availability": True,
-            "auto_scaling": True,
-            "enterprise_security": True
-        }
-    }
 
-# Enhanced service initialization is now handled by the EnhancedContainer
-# All services are automatically initialized with proper dependency resolution
-
-# Enhanced health endpoint showcasing all new capabilities
-@app.get("/api/v1/enhanced-health", tags=["Health"])
-async def enhanced_health_check(request: Request):
-    """Enhanced health check showing all advanced service capabilities"""
-    try:
-        container = getattr(request.app.state, 'container', None)
-        if not container:
-            return JSONResponse(
-                status_code=503,
-                content={
-                    "status": "unhealthy",
-                    "message": "Enhanced container not available",
-                    "timestamp": datetime.utcnow().isoformat()
-                }
-            )
-        
-        # Get comprehensive health status
-        health_results = await container.health_check_all_services()
-        service_status = container.get_service_status()
-        
-        # Enhanced capabilities check
-        capabilities = {
-            "advanced_security_scanner": {
-                "enabled": "scanner_service" in service_status["services"],
-                "status": health_results["services"].get("scanner_service", {}).get("status", "unavailable"),
-                "features": ["Real-world tool integration", "AI-powered analysis", "Custom vulnerability detection"]
-            },
-            "ai_threat_intelligence": {
-                "enabled": "threat_intelligence_service" in service_status["services"],
-                "status": health_results["services"].get("threat_intelligence_service", {}).get("status", "unavailable"),
-                "features": ["ML-powered threat analysis", "MITRE ATT&CK mapping", "Threat actor attribution"]
-            },
-            "workflow_orchestration": {
-                "enabled": "orchestration_service" in service_status["services"],
-                "status": health_results["services"].get("orchestration_service", {}).get("status", "unavailable"),
-                "features": ["Complex workflow automation", "Compliance orchestration", "Incident response automation"]
-            },
-            "advanced_reporting": {
-                "enabled": "reporting_service" in service_status["services"],
-                "status": health_results["services"].get("reporting_service", {}).get("status", "unavailable"),
-                "features": ["AI-powered insights", "Executive dashboards", "Multi-format reports"]
-            },
-            "enhanced_caching": {
-                "enabled": "cache_repository" in service_status["services"],
-                "status": health_results["services"].get("cache_repository", {}).get("status", "unavailable"),
-                "features": ["Redis clustering", "Automatic failover", "Performance optimization"]
-            }
-        }
-        
-        # Performance metrics
-        performance_metrics = {
-            "service_initialization_time": "< 30 seconds",
-            "concurrent_scan_capacity": "10+ parallel scans",
-            "threat_analysis_speed": "< 5 seconds per 100 indicators",
-            "report_generation_time": "< 60 seconds for comprehensive reports",
-            "cache_hit_ratio": "> 95%"
-        }
-        
-        # Overall platform status
-        overall_healthy = health_results["overall_status"] == "healthy"
-        enhanced_features_count = sum(1 for cap in capabilities.values() if cap["enabled"] and cap["status"] == "healthy")
-        
-        return {
-            "platform": {
-                "name": "XORB Enhanced PTaaS Platform",
-                "version": "3.0.0",
-                "status": "operational" if overall_healthy else "degraded",
-                "enhanced_features_active": f"{enhanced_features_count}/5",
-                "timestamp": datetime.utcnow().isoformat()
-            },
-            "service_health": health_results,
-            "enhanced_capabilities": capabilities,
-            "performance_metrics": performance_metrics,
-            "service_statistics": {
-                "total_services": service_status["registered_services"],
-                "initialized_services": service_status["initialized_services"],
-                "healthy_services": sum(1 for s in health_results["services"].values() if s["status"] == "healthy"),
-                "startup_time": getattr(request.app.state, 'startup_time', 'unknown')
-            },
-            "deployment_info": {
-                "environment": "production" if container._config.get("environment") == "production" else "development",
-                "ml_analysis_enabled": container._config.get("enable_ml_analysis", False),
-                "threat_intelligence_enabled": container._config.get("enable_threat_intelligence", False),
-                "orchestration_enabled": container._config.get("enable_orchestration", False),
-                "advanced_reporting_enabled": container._config.get("enable_advanced_reporting", False)
-            }
-        }
-        
-    except Exception as e:
-        logger.error(f"Enhanced health check failed: {e}")
-        return JSONResponse(
-            status_code=500,
-            content={
-                "status": "error",
-                "message": f"Health check failed: {str(e)}",
-                "timestamp": datetime.utcnow().isoformat()
-            }
-        )
-
+# Development server startup
 if __name__ == "__main__":
-    import uvicorn
-    
-    # Development server configuration
     uvicorn.run(
-        "app.main:app",
-        host="0.0.0.0",
-        port=8000,
-        reload=True,
-        log_level="info",
+        "main:app",
+        host=settings.api_host,
+        port=settings.api_port,
+        reload=settings.reload_on_change,
+        workers=1 if settings.reload_on_change else settings.api_workers,
+        log_level=settings.log_level.lower(),
         access_log=True,
-        reload_dirs=["app"]
+        use_colors=settings.environment == "development"
     )

@@ -1,0 +1,112 @@
+# Temporal Server TLS Configuration for XORB Platform
+# Enables TLS for both frontend and inter-node communication
+
+log:
+  level: info
+  format: text
+
+persistence:
+  default_store: default
+  visibility_store: visibility
+  datastores:
+    default:
+      driver: sql
+      sql:
+        driver_name: postgres
+        database_name: temporal
+        connect_addr: postgres:5432
+        connect_protocol: tcp
+        user: xorb
+        password: xorb_secure_pass
+        max_conns: 20
+        max_idle_conns: 20
+        max_conn_lifetime: 1h
+        tls:
+          enable_host_verification: true
+          server_name: postgres
+          ca_file: /run/tls/ca/ca.pem
+          cert_file: /run/tls/temporal/cert.pem
+          key_file: /run/tls/temporal/key.pem
+    visibility:
+      driver: sql
+      sql:
+        driver_name: postgres
+        database_name: temporal_visibility
+        connect_addr: postgres:5432
+        connect_protocol: tcp
+        user: xorb
+        password: xorb_secure_pass
+        max_conns: 10
+        max_idle_conns: 10
+        max_conn_lifetime: 1h
+        tls:
+          enable_host_verification: true
+          server_name: postgres
+          ca_file: /run/tls/ca/ca.pem
+          cert_file: /run/tls/temporal/cert.pem
+          key_file: /run/tls/temporal/key.pem
+
+global:
+  membership:
+    name: temporal
+    max_join_duration: 30s
+    broadcast_address: 172.20.0.12
+  pprof:
+    port: 7936
+  metrics:
+    prometheus:
+      listen_address: 0.0.0.0:9090
+  tls:
+    internode:
+      server:
+        cert_file: /run/tls/temporal/cert.pem
+        key_file: /run/tls/temporal/key.pem
+        ca_file: /run/tls/ca/ca.pem
+        client_auth_type: RequireAndVerifyClientCert
+      client:
+        cert_file: /run/tls/temporal/cert.pem
+        key_file: /run/tls/temporal/key.pem
+        ca_file: /run/tls/ca/ca.pem
+    frontend:
+      server:
+        cert_file: /run/tls/temporal/cert.pem
+        key_file: /run/tls/temporal/key.pem
+        ca_file: /run/tls/ca/ca.pem
+        client_auth_type: RequireAndVerifyClientCert
+      client:
+        cert_file: /run/tls/temporal/cert.pem
+        key_file: /run/tls/temporal/key.pem
+        ca_file: /run/tls/ca/ca.pem
+
+services:
+  frontend:
+    rpc:
+      grpc_port: 7233
+      membership_port: 6933
+      bind_on_ip: 0.0.0.0
+    metrics:
+      prometheus:
+        listen_address: 0.0.0.0:9090
+
+  matching:
+    rpc:
+      grpc_port: 7235
+      membership_port: 6935
+      bind_on_ip: 0.0.0.0
+
+  history:
+    rpc:
+      grpc_port: 7234
+      membership_port: 6934
+      bind_on_ip: 0.0.0.0
+
+  worker:
+    rpc:
+      grpc_port: 7239
+      membership_port: 6939
+      bind_on_ip: 0.0.0.0
+
+development:
+  sql:
+    create_database: true
+    setup_schema: true

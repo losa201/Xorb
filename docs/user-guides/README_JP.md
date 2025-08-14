@@ -34,13 +34,13 @@
   <a href="https://github.com/projectdiscovery/nuclei/blob/main/README_PT-BR.md">ポルトガル語</a>
 </p>
 
----
+- --
 
 Nucleiは、テンプレートに基づいてターゲット間でリクエストを送信するために使用され、偽陽性がゼロであり、多数のホストで高速なスキャンを提供します。Nucleiは、TCP、DNS、HTTP、SSL、ファイル、Whois、Websocket、Headless、Codeなど、さまざまなプロトコルのスキャンを提供します。強力で柔軟なテンプレートを使用して、Nucleiはすべての種類のセキュリティチェックをモデル化するために使用できます。
 
-**300人以上の** セキュリティ研究者およびエンジニアが提供するさまざまなタイプの脆弱性テンプレートを収容する[専用リポジトリ](https://github.com/projectdiscovery/nuclei-templates)を持っています。
+- *300人以上の** セキュリティ研究者およびエンジニアが提供するさまざまなタイプの脆弱性テンプレートを収容する[専用リポジトリ](https://github.com/projectdiscovery/nuclei-templates)を持っています。
 
-## 動作原理
+##  動作原理
 
 <h3 align="center">
   <img src="static/nuclei-flow.jpg" alt="nuclei-flow" width="700px"></a>
@@ -61,28 +61,28 @@ go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
 
 <details>
   <summary>Brew</summary>
-  
+
   ```sh
   brew install nuclei
   ```
-  
+
 </details>
 <details>
   <summary>Docker</summary>
-  
+
   ```sh
   docker pull projectdiscovery/nuclei:latest
   ```
-  
+
 </details>
 
-**より多くのインストール方法は[こちら](https://docs.projectdiscovery.io/tools/nuclei/install)で見つけることができます。**
+- *より多くのインストール方法は[こちら](https://docs.projectdiscovery.io/tools/nuclei/install)で見つけることができます。**
 
 <table>
 <tr>
-<td>  
+<td>
 
-### Nucleiテンプレート
+###  Nucleiテンプレート
 
 Nucleiは、バージョン[v2.5.2](https://github.com/projectdiscovery/nuclei/releases/tag/v2.5.2)以降、デフォルトでテンプレートの自動ダウンロード/更新をサポートしています。[**Nuclei-Templates**](https://github.com/projectdiscovery/nuclei-templates)プロジェクトは、常に更新されるコミュニティ提供の即時使用可能なテンプレートのリストを提供します。
 
@@ -94,7 +94,7 @@ YAML DSLの構文リファレンスは[こちら](SYNTAX-REFERENCE.md)で確認�
 </tr>
 </table>
 
-### 使用方法
+###  使用方法
 
 ```sh
 nuclei -h
@@ -170,4 +170,4 @@ Nucleiは、広範な設定可能性、大規模な拡張性、および使い�
 設定:
    -config string                        Nucleiの設定ファイルへのパス
    -fr, -follow-redirects                HTTPテンプレートのリダイレクトをフォローすることを有効にする
-   -fhr, -follow-host-redirects         
+   -fhr, -follow-host-redirects

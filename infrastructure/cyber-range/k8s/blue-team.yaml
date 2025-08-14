@@ -1,0 +1,926 @@
+---
+# Blue Team ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: blue-team-config
+  namespace: cyber-range-blue
+data:
+  config.yaml: |
+    blue_team:
+      team_name: "Blue Team Defense"
+      soc_mode: "active"
+      alert_thresholds:
+        critical: 5
+        high: 15
+        medium: 50
+        low: 100
+      
+    monitoring:
+      collection_interval: "10s"
+      retention_days: 30
+      real_time_analysis: true
+      ml_detection: true
+      
+    siem:
+      elasticsearch:
+        hosts: ["elasticsearch:9200"]
+        index_prefix: "cyber-range"
+      logstash:
+        input_ports: [5044, 5045, 5046]
+      kibana:
+        dashboards_auto_import: true
+        
+    ids_ips:
+      suricata:
+        enabled: true
+        ruleset: "emerging-threats"
+        custom_rules: true
+        alert_fast: true
+      zeek:
+        enabled: true
+        protocols: "all"
+        file_extraction: true
+        
+    threat_hunting:
+      jupyter:
+        enabled: true
+        kernels: ["python3", "powershell"]
+      misp:
+        enabled: true
+        auto_feed_update: true
+        sharing_groups: ["cyber-range"]
+        
+    incident_response:
+      automation: true
+      playbooks:
+        - "malware_detection"
+        - "lateral_movement"
+        - "data_exfiltration"
+        - "phishing_response"
+      case_management: true
+      
+    integration:
+      xorb_orchestrator:
+        endpoint: "http://xorb-orchestrator-service.cyber-range-control:8080"
+        api_key_secret: "xorb-api-key"
+      threat_feeds:
+        - "alienvault"
+        - "emergingthreats"
+        - "custom"
+---
+# ELK Stack - Elasticsearch
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: cyber-range-blue
+  labels:
+    app: elasticsearch
+    component: siem
+spec:
+  serviceName: elasticsearch
+  replicas: 3
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+        component: siem
+    spec:
+      securityContext:
+        fsGroup: 1000
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+        ports:
+        - containerPort: 9200
+          name: http
+        - containerPort: 9300
+          name: transport
+        env:
+        - name: cluster.name
+          value: "cyber-range-cluster"
+        - name: node.name
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: discovery.seed_hosts
+          value: "elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch,elasticsearch-2.elasticsearch"
+        - name: cluster.initial_master_nodes
+          value: "elasticsearch-0,elasticsearch-1,elasticsearch-2"
+        - name: ES_JAVA_OPTS
+          value: "-Xms2g -Xmx2g"
+        - name: xpack.security.enabled
+          value: "false"
+        - name: xpack.monitoring.collection.enabled
+          value: "true"
+        volumeMounts:
+        - name: elasticsearch-data
+          mountPath: /usr/share/elasticsearch/data
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 2
+            memory: 8Gi
+        livenessProbe:
+          httpGet:
+            path: /_cluster/health
+            port: 9200
+          initialDelaySeconds: 90
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /_cluster/health?wait_for_status=yellow
+            port: 9200
+          initialDelaySeconds: 30
+          periodSeconds: 10
+  volumeClaimTemplates:
+  - metadata:
+      name: elasticsearch-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 100Gi
+      storageClassName: fast-ssd
+---
+# Logstash
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+  namespace: cyber-range-blue
+  labels:
+    app: logstash
+    component: siem
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+        component: siem
+    spec:
+      containers:
+      - name: logstash
+        image: docker.elastic.co/logstash/logstash:8.8.0
+        ports:
+        - containerPort: 5044
+          name: beats
+        - containerPort: 5045
+          name: syslog
+        - containerPort: 5046
+          name: json
+        - containerPort: 9600
+          name: monitoring
+        env:
+        - name: LS_JAVA_OPTS
+          value: "-Xms1g -Xmx1g"
+        volumeMounts:
+        - name: logstash-config
+          mountPath: /usr/share/logstash/pipeline
+        - name: logstash-patterns
+          mountPath: /usr/share/logstash/patterns
+        resources:
+          requests:
+            cpu: 1
+            memory: 2Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 9600
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 9600
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: logstash-config
+        configMap:
+          name: logstash-config
+      - name: logstash-patterns
+        configMap:
+          name: logstash-patterns
+---
+# Kibana
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: cyber-range-blue
+  labels:
+    app: kibana
+    component: siem
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+        component: siem
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:8.8.0
+        ports:
+        - containerPort: 5601
+          name: ui
+        env:
+        - name: ELASTICSEARCH_HOSTS
+          value: "http://elasticsearch:9200"
+        - name: SERVER_NAME
+          value: "cyber-range-kibana"
+        - name: XPACK_MONITORING_ENABLED
+          value: "true"
+        - name: XPACK_SECURITY_ENABLED
+          value: "false"
+        volumeMounts:
+        - name: kibana-config
+          mountPath: /usr/share/kibana/config
+        - name: kibana-dashboards
+          mountPath: /usr/share/kibana/dashboards
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+        livenessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 120
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+          initialDelaySeconds: 60
+          periodSeconds: 10
+      volumes:
+      - name: kibana-config
+        configMap:
+          name: kibana-config
+      - name: kibana-dashboards
+        configMap:
+          name: kibana-dashboards
+---
+# Suricata IDS/IPS
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: suricata
+  namespace: cyber-range-blue
+  labels:
+    app: suricata
+    component: ids-ips
+spec:
+  selector:
+    matchLabels:
+      app: suricata
+  template:
+    metadata:
+      labels:
+        app: suricata
+        component: ids-ips
+      annotations:
+        security.xorb.io/network-monitoring: "enabled"
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: blue-team-sa
+      containers:
+      - name: suricata
+        image: jasonish/suricata:latest
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+            - SYS_NICE
+        env:
+        - name: SURICATA_OPTIONS
+          value: "-i any --runmode autofp"
+        - name: CYBER_RANGE_MODE
+          value: "true"
+        volumeMounts:
+        - name: suricata-config
+          mountPath: /etc/suricata
+        - name: suricata-rules
+          mountPath: /var/lib/suricata/rules
+        - name: suricata-logs
+          mountPath: /var/log/suricata
+        - name: dev
+          mountPath: /dev
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+      volumes:
+      - name: suricata-config
+        configMap:
+          name: suricata-config
+      - name: suricata-rules
+        configMap:
+          name: suricata-rules
+      - name: suricata-logs
+        hostPath:
+          path: /var/log/suricata
+          type: DirectoryOrCreate
+      - name: dev
+        hostPath:
+          path: /dev
+---
+# Zeek Network Security Monitor
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: zeek
+  namespace: cyber-range-blue
+  labels:
+    app: zeek
+    component: network-monitor
+spec:
+  selector:
+    matchLabels:
+      app: zeek
+  template:
+    metadata:
+      labels:
+        app: zeek
+        component: network-monitor
+      annotations:
+        security.xorb.io/network-analysis: "enabled"
+    spec:
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      serviceAccountName: blue-team-sa
+      containers:
+      - name: zeek
+        image: zeek/zeek:latest
+        securityContext:
+          privileged: true
+          capabilities:
+            add:
+            - NET_ADMIN
+            - NET_RAW
+        env:
+        - name: ZEEK_INTERFACE
+          value: "any"
+        - name: CYBER_RANGE_MODE
+          value: "true"
+        volumeMounts:
+        - name: zeek-config
+          mountPath: /usr/local/zeek/etc
+        - name: zeek-logs
+          mountPath: /usr/local/zeek/logs
+        - name: zeek-spool
+          mountPath: /usr/local/zeek/spool
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+      volumes:
+      - name: zeek-config
+        configMap:
+          name: zeek-config
+      - name: zeek-logs
+        hostPath:
+          path: /var/log/zeek
+          type: DirectoryOrCreate
+      - name: zeek-spool
+        hostPath:
+          path: /var/spool/zeek
+          type: DirectoryOrCreate
+---
+# Wazuh HIDS
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wazuh-manager
+  namespace: cyber-range-blue
+  labels:
+    app: wazuh-manager
+    component: hids
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wazuh-manager
+  template:
+    metadata:
+      labels:
+        app: wazuh-manager
+        component: hids
+    spec:
+      serviceAccountName: blue-team-sa
+      containers:
+      - name: wazuh-manager
+        image: wazuh/wazuh-manager:4.5.0
+        ports:
+        - containerPort: 1514
+          name: agents-tcp
+        - containerPort: 1514
+          protocol: UDP
+          name: agents-udp
+        - containerPort: 1515
+          name: agents-auth
+        - containerPort: 1516
+          name: cluster
+        - containerPort: 55000
+          name: api
+        env:
+        - name: WAZUH_MANAGER_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: CYBER_RANGE_MODE
+          value: "true"
+        volumeMounts:
+        - name: wazuh-config
+          mountPath: /wazuh-config-mount/etc/ossec.conf
+          subPath: ossec.conf
+        - name: wazuh-data
+          mountPath: /var/ossec/data
+        - name: wazuh-logs
+          mountPath: /var/ossec/logs
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2
+            memory: 4Gi
+        livenessProbe:
+          exec:
+            command:
+            - /var/ossec/bin/wazuh-control
+            - status
+          initialDelaySeconds: 60
+          periodSeconds: 30
+      volumes:
+      - name: wazuh-config
+        configMap:
+          name: wazuh-config
+      - name: wazuh-data
+        persistentVolumeClaim:
+          claimName: wazuh-data-pvc
+      - name: wazuh-logs
+        persistentVolumeClaim:
+          claimName: wazuh-logs-pvc
+---
+# Jupyter Threat Hunting Platform
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jupyter-hunting
+  namespace: cyber-range-blue
+  labels:
+    app: jupyter-hunting
+    component: threat-hunting
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jupyter-hunting
+  template:
+    metadata:
+      labels:
+        app: jupyter-hunting
+        component: threat-hunting
+    spec:
+      serviceAccountName: blue-team-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: jupyter
+        image: jupyter/datascience-notebook:latest
+        ports:
+        - containerPort: 8888
+          name: notebook
+        env:
+        - name: JUPYTER_ENABLE_LAB
+          value: "yes"
+        - name: JUPYTER_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: jupyter-secret
+              key: token
+        - name: ELASTICSEARCH_HOST
+          value: "elasticsearch:9200"
+        - name: CYBER_RANGE_MODE
+          value: "true"
+        volumeMounts:
+        - name: jupyter-notebooks
+          mountPath: /home/jovyan/work
+        - name: hunting-scripts
+          mountPath: /home/jovyan/hunting-scripts
+        - name: threat-intel-data
+          mountPath: /home/jovyan/threat-intel
+        resources:
+          requests:
+            cpu: 500m
+            memory: 2Gi
+          limits:
+            cpu: 2
+            memory: 8Gi
+        livenessProbe:
+          httpGet:
+            path: /api
+            port: 8888
+          initialDelaySeconds: 60
+          periodSeconds: 30
+      volumes:
+      - name: jupyter-notebooks
+        persistentVolumeClaim:
+          claimName: jupyter-notebooks-pvc
+      - name: hunting-scripts
+        configMap:
+          name: hunting-scripts
+      - name: threat-intel-data
+        persistentVolumeClaim:
+          claimName: threat-intel-data-pvc
+---
+# MISP Threat Intelligence Platform
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: misp
+  namespace: cyber-range-blue
+  labels:
+    app: misp
+    component: threat-intelligence
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: misp
+  template:
+    metadata:
+      labels:
+        app: misp
+        component: threat-intelligence
+    spec:
+      serviceAccountName: blue-team-sa
+      containers:
+      - name: misp
+        image: coolacid/misp-docker:core-latest
+        ports:
+        - containerPort: 80
+          name: http
+        - containerPort: 443
+          name: https
+        env:
+        - name: MISP_ADMIN_EMAIL
+          value: "admin@cyber-range.local"
+        - name: MISP_ADMIN_PASSPHRASE
+          valueFrom:
+            secretKeyRef:
+              name: misp-secret
+              key: admin-passphrase
+        - name: MISP_BASEURL
+          value: "https://misp.cyber-range.local"
+        - name: CYBER_RANGE_MODE
+          value: "true"
+        volumeMounts:
+        - name: misp-data
+          mountPath: /var/www/MISP/app/files
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+        resources:
+          requests:
+            cpu: 1
+            memory: 2Gi
+          limits:
+            cpu: 4
+            memory: 8Gi
+        livenessProbe:
+          httpGet:
+            path: /users/login
+            port: 80
+          initialDelaySeconds: 120
+          periodSeconds: 30
+      volumes:
+      - name: misp-data
+        persistentVolumeClaim:
+          claimName: misp-data-pvc
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: misp-mysql-pvc
+---
+# DFIR Workstation
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dfir-workstation
+  namespace: cyber-range-blue
+  labels:
+    app: dfir-workstation
+    component: incident-response
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dfir-workstation
+  template:
+    metadata:
+      labels:
+        app: dfir-workstation
+        component: incident-response
+    spec:
+      serviceAccountName: blue-team-sa
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+      containers:
+      - name: dfir-tools
+        image: xorb/dfir-workstation:latest
+        ports:
+        - containerPort: 8080
+          name: web-interface
+        - containerPort: 22
+          name: ssh
+        env:
+        - name: CYBER_RANGE_MODE
+          value: "true"
+        - name: CASE_MANAGEMENT_URL
+          value: "http://thehive:9000"
+        - name: CORTEX_URL
+          value: "http://cortex:9001"
+        volumeMounts:
+        - name: case-data
+          mountPath: /opt/cases
+        - name: forensic-images
+          mountPath: /opt/forensic-images
+        - name: dfir-tools
+          mountPath: /opt/dfir-tools
+        resources:
+          requests:
+            cpu: 1
+            memory: 4Gi
+          limits:
+            cpu: 4
+            memory: 16Gi
+      volumes:
+      - name: case-data
+        persistentVolumeClaim:
+          claimName: case-data-pvc
+      - name: forensic-images
+        persistentVolumeClaim:
+          claimName: forensic-images-pvc
+      - name: dfir-tools
+        configMap:
+          name: dfir-tools-config
+---
+# Services
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: cyber-range-blue
+  labels:
+    app: elasticsearch
+spec:
+  selector:
+    app: elasticsearch
+  ports:
+  - name: http
+    port: 9200
+    targetPort: 9200
+  - name: transport
+    port: 9300
+    targetPort: 9300
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: cyber-range-blue
+  labels:
+    app: kibana
+spec:
+  selector:
+    app: kibana
+  ports:
+  - name: ui
+    port: 5601
+    targetPort: 5601
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: logstash
+  namespace: cyber-range-blue
+  labels:
+    app: logstash
+spec:
+  selector:
+    app: logstash
+  ports:
+  - name: beats
+    port: 5044
+    targetPort: 5044
+  - name: syslog
+    port: 5045
+    targetPort: 5045
+  - name: json
+    port: 5046
+    targetPort: 5046
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wazuh-manager
+  namespace: cyber-range-blue
+  labels:
+    app: wazuh-manager
+spec:
+  selector:
+    app: wazuh-manager
+  ports:
+  - name: agents-tcp
+    port: 1514
+    targetPort: 1514
+    protocol: TCP
+  - name: agents-udp
+    port: 1514
+    targetPort: 1514
+    protocol: UDP
+  - name: agents-auth
+    port: 1515
+    targetPort: 1515
+  - name: api
+    port: 55000
+    targetPort: 55000
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jupyter-hunting
+  namespace: cyber-range-blue
+  labels:
+    app: jupyter-hunting
+spec:
+  selector:
+    app: jupyter-hunting
+  ports:
+  - name: notebook
+    port: 8888
+    targetPort: 8888
+  type: LoadBalancer
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: misp
+  namespace: cyber-range-blue
+  labels:
+    app: misp
+spec:
+  selector:
+    app: misp
+  ports:
+  - name: http
+    port: 80
+    targetPort: 80
+  - name: https
+    port: 443
+    targetPort: 443
+  type: LoadBalancer
+---
+# Persistent Volume Claims
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wazuh-data-pvc
+  namespace: cyber-range-blue
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: wazuh-logs-pvc
+  namespace: cyber-range-blue
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jupyter-notebooks-pvc
+  namespace: cyber-range-blue
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: threat-intel-data-pvc
+  namespace: cyber-range-blue
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 30Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: misp-data-pvc
+  namespace: cyber-range-blue
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: misp-mysql-pvc
+  namespace: cyber-range-blue
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: fast-ssd
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: case-data-pvc
+  namespace: cyber-range-blue
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Gi
+  storageClassName: standard
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: forensic-images-pvc
+  namespace: cyber-range-blue
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Gi
+  storageClassName: standard

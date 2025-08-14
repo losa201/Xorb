@@ -1,0 +1,462 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: cyber-range-control
+  labels:
+    app: prometheus
+    component: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      scrape_timeout: 10s
+      evaluation_interval: 15s
+      external_labels:
+        cluster: 'xorb-cyber-range'
+        environment: 'cyber-range'
+
+    rule_files:
+      - "/etc/prometheus/cyber-range-rules.yml"
+
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+              - alertmanager:9093
+
+    scrape_configs:
+      # Prometheus itself
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+        scrape_interval: 30s
+
+      # XORB Orchestrator
+      - job_name: 'xorb-orchestrator'
+        static_configs:
+          - targets: ['xorb-orchestrator-service:9090']
+        scrape_interval: 15s
+        metrics_path: '/metrics'
+        scheme: 'http'
+
+      # Kill Switch Controller
+      - job_name: 'kill-switch-controller'
+        static_configs:
+          - targets: ['kill-switch-service:8081']
+        scrape_interval: 10s
+        metrics_path: '/metrics'
+        scheme: 'http'
+
+      # Kubernetes API Server
+      - job_name: 'kubernetes-apiservers'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - default
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_namespace, __meta_kubernetes_service_name, __meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: default;kubernetes;https
+
+      # Kubernetes Nodes
+      - job_name: 'kubernetes-nodes'
+        kubernetes_sd_configs:
+          - role: node
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+          - target_label: __address__
+            replacement: kubernetes.default.svc:443
+          - source_labels: [__meta_kubernetes_node_name]
+            regex: (.+)
+            target_label: __metrics_path__
+            replacement: /api/v1/nodes/${1}/proxy/metrics
+
+      # Node Exporter
+      - job_name: 'node-exporter'
+        kubernetes_sd_configs:
+          - role: endpoints
+            namespaces:
+              names:
+                - cyber-range-control
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_service_name]
+            action: keep
+            regex: node-exporter
+          - source_labels: [__meta_kubernetes_endpoint_port_name]
+            action: keep
+            regex: metrics
+
+      # Red Team Infrastructure
+      - job_name: 'red-team-infrastructure'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - cyber-range-red
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+
+      # Blue Team Infrastructure  
+      - job_name: 'blue-team-infrastructure'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - cyber-range-blue
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+
+      # Target Environment
+      - job_name: 'target-environment'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - cyber-range-targets
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: true
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          - action: labelmap
+            regex: __meta_kubernetes_pod_label_(.+)
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: kubernetes_namespace
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: kubernetes_pod_name
+
+      # Elasticsearch (Blue Team SIEM)
+      - job_name: 'elasticsearch'
+        static_configs:
+          - targets: ['elasticsearch.cyber-range-blue:9200']
+        scrape_interval: 30s
+        metrics_path: '/_prometheus/metrics'
+        scheme: 'http'
+
+      # Logstash (Blue Team SIEM)
+      - job_name: 'logstash'
+        static_configs:
+          - targets: ['logstash.cyber-range-blue:9600']
+        scrape_interval: 30s
+        metrics_path: '/'
+        scheme: 'http'
+
+      # Suricata IDS/IPS (Blue Team)
+      - job_name: 'suricata'
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names:
+                - cyber-range-blue
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: keep
+            regex: suricata
+          - source_labels: [__meta_kubernetes_pod_ip]
+            target_label: __address__
+            replacement: '${1}:9090'
+
+      # Network monitoring
+      - job_name: 'network-monitoring'
+        static_configs:
+          - targets: 
+            - 'blackbox-exporter:9115'
+        params:
+          module: [http_2xx]
+        relabel_configs:
+          - source_labels: [__address__]
+            target_label: __param_target
+          - source_labels: [__param_target]
+            target_label: instance
+          - target_label: __address__
+            replacement: blackbox-exporter:9115
+
+      # Custom cyber range metrics
+      - job_name: 'cyber-range-metrics'
+        static_configs:
+          - targets: ['cyber-range-metrics-exporter:8080']
+        scrape_interval: 15s
+        scheme: 'http'
+
+  cyber-range-rules.yml: |
+    groups:
+      - name: cyber-range-alerts
+        rules:
+          # Kill Switch Alerts
+          - alert: KillSwitchActivated
+            expr: kill_switch_status == 1
+            for: 0s
+            labels:
+              severity: critical
+              team: white
+            annotations:
+              summary: "Cyber Range Kill Switch Activated"
+              description: "The emergency kill switch has been activated. All attacks are blocked."
+
+          # Campaign Management Alerts
+          - alert: CampaignDurationExceeded
+            expr: (time() - campaign_start_time) > (campaign_duration_hours * 3600)
+            for: 1m
+            labels:
+              severity: warning
+              team: white
+            annotations:
+              summary: "Campaign Duration Exceeded"
+              description: "Campaign {{ $labels.campaign_id }} has exceeded its planned duration."
+
+          - alert: CampaignFailure
+            expr: campaign_status == 4  # FAILED status
+            for: 0s
+            labels:
+              severity: critical
+              team: white
+            annotations:
+              summary: "Campaign Failed"
+              description: "Campaign {{ $labels.campaign_id }} has failed and requires attention."
+
+          # Red Team Activity Alerts
+          - alert: RedTeamHighActivity
+            expr: rate(red_team_attack_attempts[5m]) > 10
+            for: 2m
+            labels:
+              severity: warning
+              team: blue
+            annotations:
+              summary: "High Red Team Activity Detected"
+              description: "Red team attack rate is {{ $value }} attacks per minute over the last 5 minutes."
+
+          - alert: RedTeamBlockedInStaging
+            expr: red_team_attacks_blocked > 0 and cyber_range_mode == 0  # staging mode
+            for: 1m
+            labels:
+              severity: info
+              team: white
+            annotations:
+              summary: "Red Team Attacks Blocked in Staging"
+              description: "{{ $value }} red team attacks have been blocked in staging mode."
+
+          - alert: RedTeamSuccessfulCompromise
+            expr: target_compromised == 1
+            for: 0s
+            labels:
+              severity: warning
+              team: blue
+            annotations:
+              summary: "Target System Compromised"
+              description: "Red team has successfully compromised target {{ $labels.target_name }}."
+
+          # Blue Team Monitoring Alerts
+          - alert: BlueTeamSIEMDown
+            expr: up{job="elasticsearch"} == 0 or up{job="logstash"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              team: blue
+            annotations:
+              summary: "Blue Team SIEM Components Down"
+              description: "Critical SIEM components are down: {{ $labels.job }}"
+
+          - alert: BlueTeamHighAlertVolume
+            expr: rate(blue_team_alerts[1m]) > 5
+            for: 3m
+            labels:
+              severity: warning
+              team: blue
+            annotations:
+              summary: "High Alert Volume"
+              description: "Blue team is receiving {{ $value }} alerts per minute."
+
+          - alert: BlueTeamDetectionFailure
+            expr: red_team_successful_attacks > 0 and blue_team_detections == 0
+            for: 5m
+            labels:
+              severity: critical
+              team: blue
+            annotations:
+              summary: "Detection Failure"
+              description: "Red team attacks succeeded but no blue team detections were triggered."
+
+          # Infrastructure Alerts
+          - alert: HighPodRestarts
+            expr: rate(kube_pod_container_status_restarts_total[1h]) > 0.1
+            for: 5m
+            labels:
+              severity: warning
+              team: white
+            annotations:
+              summary: "High Pod Restart Rate"
+              description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} is restarting frequently."
+
+          - alert: NodeResourceExhaustion
+            expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.9
+            for: 5m
+            labels:
+              severity: critical
+              team: white
+            annotations:
+              summary: "Node Memory Exhaustion"
+              description: "Node {{ $labels.instance }} memory usage is above 90%."
+
+          - alert: NetworkPolicyViolation
+            expr: network_policy_violations > 0
+            for: 0s
+            labels:
+              severity: critical
+              team: white
+            annotations:
+              summary: "Network Policy Violation Detected"
+              description: "{{ $value }} network policy violations detected in the last minute."
+
+          # Target Environment Alerts
+          - alert: TargetSystemDown
+            expr: up{job="target-environment"} == 0
+            for: 2m
+            labels:
+              severity: warning
+              team: white
+            annotations:
+              summary: "Target System Unavailable"
+              description: "Target system {{ $labels.instance }} is down."
+
+          - alert: SuspiciousTargetActivity
+            expr: rate(target_suspicious_connections[5m]) > 1
+            for: 1m
+            labels:
+              severity: warning
+              team: blue
+            annotations:
+              summary: "Suspicious Activity on Target"
+              description: "Suspicious network activity detected on target {{ $labels.target_name }}."
+
+          - alert: TargetDataExfiltration
+            expr: target_data_egress_bytes > 100000000  # 100MB
+            for: 0s
+            labels:
+              severity: critical
+              team: blue
+            annotations:
+              summary: "Potential Data Exfiltration"
+              description: "Large data egress ({{ $value }} bytes) detected from target {{ $labels.target_name }}."
+
+          # Security Monitoring Alerts
+          - alert: MalwareDetected
+            expr: malware_detections > 0
+            for: 0s
+            labels:
+              severity: critical
+              team: blue
+            annotations:
+              summary: "Malware Detected"
+              description: "Malware detected on system {{ $labels.instance }}."
+
+          - alert: LateralMovementDetected
+            expr: lateral_movement_attempts > 0
+            for: 0s
+            labels:
+              severity: warning
+              team: blue
+            annotations:
+              summary: "Lateral Movement Detected"
+              description: "Lateral movement attempt detected from {{ $labels.source_ip }} to {{ $labels.dest_ip }}."
+
+          - alert: PrivilegeEscalationDetected
+            expr: privilege_escalation_attempts > 0
+            for: 0s
+            labels:
+              severity: critical
+              team: blue
+            annotations:
+              summary: "Privilege Escalation Detected"
+              description: "Privilege escalation attempt detected on {{ $labels.target_name }}."
+
+          # Performance and Scoring Alerts
+          - alert: ExercisePerformanceDegraded
+            expr: exercise_performance_score < 0.5
+            for: 5m
+            labels:
+              severity: warning
+              team: white
+            annotations:
+              summary: "Exercise Performance Degraded"
+              description: "Overall exercise performance score has dropped to {{ $value }}."
+
+          - alert: BlueTeamScoreLow
+            expr: blue_team_score < 0.3
+            for: 10m
+            labels:
+              severity: info
+              team: blue
+            annotations:
+              summary: "Blue Team Score Low"
+              description: "Blue team performance score is {{ $value }}. Consider reviewing detection strategies."
+
+          - alert: RedTeamScoreLow
+            expr: red_team_score < 0.3
+            for: 10m
+            labels:
+              severity: info
+              team: red
+            annotations:
+              summary: "Red Team Score Low"
+              description: "Red team performance score is {{ $value }}. Consider reviewing attack strategies."

@@ -1,24 +1,24 @@
 # XORB Platform Operational Runbooks
 
-**Version**: 2.0  
-**Last Updated**: January 2025  
-**Audience**: DevOps Engineers, SRE Teams, Operations Staff
+- **Version**: 2.0
+- **Last Updated**: January 2025
+- **Audience**: DevOps Engineers, SRE Teams, Operations Staff
 
-## 📋 **Overview**
+##  📋 **Overview**
 
 This document provides step-by-step operational procedures for managing the XORB cybersecurity platform in production environments. These runbooks are designed for 24/7 operations teams and incident response.
 
----
+- --
 
-## 🚨 **Incident Response Runbooks**
+##  🚨 **Incident Response Runbooks**
 
-### **Runbook 1: High CPU Usage Alert**
+###  **Runbook 1: High CPU Usage Alert**
 
-**Trigger**: CPU usage > 80% for 5+ minutes  
-**Severity**: Warning  
-**Response Time**: 15 minutes  
+- **Trigger**: CPU usage > 80% for 5+ minutes
+- **Severity**: Warning
+- **Response Time**: 15 minutes
 
-#### **Investigation Steps**
+####  **Investigation Steps**
 
 ```bash
 # 1. Check current CPU usage across all pods
@@ -34,7 +34,7 @@ curl -s https://api.your-domain.com/metrics | grep -E "(cpu_usage|process_cpu)"
 kubectl logs -l app=xorb-api -n xorb-production --since=15m | grep -E "(ERROR|WARN)"
 ```
 
-#### **Resolution Actions**
+####  **Resolution Actions**
 
 ```bash
 # Option 1: Scale horizontally (immediate relief)
@@ -63,30 +63,30 @@ kubectl patch deployment xorb-api -n xorb-production -p='
 }'
 ```
 
-#### **Follow-up Actions**
+####  **Follow-up Actions**
 
 1. Monitor CPU usage for next 30 minutes
 2. Check if HPA is properly configured
 3. Review application performance metrics
 4. Create Jira ticket if pattern continues
 
----
+- --
 
-### **Runbook 2: Database Connection Pool Exhaustion**
+###  **Runbook 2: Database Connection Pool Exhaustion**
 
-**Trigger**: "Connection pool exhausted" errors in logs  
-**Severity**: Critical  
-**Response Time**: 5 minutes  
+- **Trigger**: "Connection pool exhausted" errors in logs
+- **Severity**: Critical
+- **Response Time**: 5 minutes
 
-#### **Investigation Steps**
+####  **Investigation Steps**
 
 ```bash
 # 1. Check database connection status
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "
-    SELECT state, count(*) 
-    FROM pg_stat_activity 
-    WHERE datname = 'xorb_production' 
+    SELECT state, count(*)
+    FROM pg_stat_activity
+    WHERE datname = 'xorb_production'
     GROUP BY state;"
 
 # 2. Check application connection pool metrics
@@ -96,21 +96,21 @@ kubectl logs -l app=xorb-api -n xorb-production --since=10m | \
 # 3. Identify long-running queries
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "
-    SELECT pid, state, query_start, query 
-    FROM pg_stat_activity 
-    WHERE state = 'active' 
+    SELECT pid, state, query_start, query
+    FROM pg_stat_activity
+    WHERE state = 'active'
     AND query_start < NOW() - INTERVAL '30 seconds';"
 ```
 
-#### **Resolution Actions**
+####  **Resolution Actions**
 
 ```bash
 # Option 1: Kill long-running queries (emergency)
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "
-    SELECT pg_terminate_backend(pid) 
-    FROM pg_stat_activity 
-    WHERE query_start < NOW() - INTERVAL '2 minutes' 
+    SELECT pg_terminate_backend(pid)
+    FROM pg_stat_activity
+    WHERE query_start < NOW() - INTERVAL '2 minutes'
     AND state = 'active';"
 
 # Option 2: Restart application pods to reset connections
@@ -125,22 +125,22 @@ kubectl scale deployment xorb-api --replicas=3 -n xorb-production
 kubectl set env deployment/xorb-api DATABASE_POOL_SIZE=30 -n xorb-production
 ```
 
-#### **Follow-up Actions**
+####  **Follow-up Actions**
 
 1. Monitor database connections for 1 hour
 2. Review database performance metrics
 3. Optimize slow queries identified
 4. Consider increasing database resources
 
----
+- --
 
-### **Runbook 3: Redis Memory Usage Critical**
+###  **Runbook 3: Redis Memory Usage Critical**
 
-**Trigger**: Redis memory usage > 90%  
-**Severity**: Critical  
-**Response Time**: 10 minutes  
+- **Trigger**: Redis memory usage > 90%
+- **Severity**: Critical
+- **Response Time**: 10 minutes
 
-#### **Investigation Steps**
+####  **Investigation Steps**
 
 ```bash
 # 1. Check Redis memory usage
@@ -156,7 +156,7 @@ kubectl logs -l app=xorb-api -n xorb-production --since=15m | \
   grep -E "(cache|redis)" | head -20
 ```
 
-#### **Resolution Actions**
+####  **Resolution Actions**
 
 ```bash
 # Option 1: Flush specific cache namespaces (safest)
@@ -195,22 +195,22 @@ kubectl patch statefulset xorb-redis-master -n xorb-production -p='
 }'
 ```
 
-#### **Follow-up Actions**
+####  **Follow-up Actions**
 
 1. Monitor Redis memory for next 2 hours
 2. Review cache TTL policies
 3. Implement cache key expiration
 4. Consider Redis cluster setup
 
----
+- --
 
-### **Runbook 4: Application 5xx Error Rate High**
+###  **Runbook 4: Application 5xx Error Rate High**
 
-**Trigger**: 5xx error rate > 5% for 5+ minutes  
-**Severity**: High  
-**Response Time**: 10 minutes  
+- **Trigger**: 5xx error rate > 5% for 5+ minutes
+- **Severity**: High
+- **Response Time**: 10 minutes
 
-#### **Investigation Steps**
+####  **Investigation Steps**
 
 ```bash
 # 1. Check error rate by endpoint
@@ -229,7 +229,7 @@ kubectl logs -l app=xorb-api -n xorb-production --since=10m | \
 kubectl top pods -n xorb-production
 ```
 
-#### **Resolution Actions**
+####  **Resolution Actions**
 
 ```bash
 # Option 1: Restart failing pods
@@ -246,24 +246,24 @@ kubectl rollout undo deployment/xorb-api -n xorb-production
 kubectl set env deployment/xorb-api CIRCUIT_BREAKER_ENABLED=true -n xorb-production
 ```
 
-#### **Follow-up Actions**
+####  **Follow-up Actions**
 
 1. Monitor error rates for 30 minutes
 2. Review application and infrastructure metrics
 3. Check external dependencies
 4. Post-incident review if pattern continues
 
----
+- --
 
-## 🔧 **Maintenance Runbooks**
+##  🔧 **Maintenance Runbooks**
 
-### **Runbook 5: Planned Database Maintenance**
+###  **Runbook 5: Planned Database Maintenance**
 
-**Purpose**: Database upgrades, index maintenance, backup verification  
-**Duration**: 2-4 hours  
-**Downtime**: 15-30 minutes  
+- **Purpose**: Database upgrades, index maintenance, backup verification
+- **Duration**: 2-4 hours
+- **Downtime**: 15-30 minutes
 
-#### **Pre-Maintenance Checklist**
+####  **Pre-Maintenance Checklist**
 
 ```bash
 # 1. Verify backup integrity
@@ -273,9 +273,9 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
 # 2. Check database performance metrics
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "
-    SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del 
-    FROM pg_stat_user_tables 
-    ORDER BY n_tup_ins+n_tup_upd+n_tup_del DESC 
+    SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del
+    FROM pg_stat_user_tables
+    ORDER BY n_tup_ins+n_tup_upd+n_tup_del DESC
     LIMIT 10;"
 
 # 3. Scale application to minimum
@@ -286,7 +286,7 @@ kubectl scale deployment xorb-orchestrator --replicas=1 -n xorb-production
 kubectl set env deployment/xorb-api MAINTENANCE_MODE=true -n xorb-production
 ```
 
-#### **Maintenance Steps**
+####  **Maintenance Steps**
 
 ```bash
 # 1. Create full backup
@@ -307,7 +307,7 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "ANALYZE;"
 ```
 
-#### **Post-Maintenance Checklist**
+####  **Post-Maintenance Checklist**
 
 ```bash
 # 1. Verify database functionality
@@ -329,15 +329,15 @@ curl -f https://api.your-domain.com/readiness
 kubectl logs -l app=xorb-api -n xorb-production --follow
 ```
 
----
+- --
 
-### **Runbook 6: Certificate Renewal**
+###  **Runbook 6: Certificate Renewal**
 
-**Purpose**: SSL/TLS certificate renewal  
-**Duration**: 30 minutes  
-**Downtime**: None (rolling update)  
+- **Purpose**: SSL/TLS certificate renewal
+- **Duration**: 30 minutes
+- **Downtime**: None (rolling update)
 
-#### **Certificate Check**
+####  **Certificate Check**
 
 ```bash
 # 1. Check current certificate expiration
@@ -350,7 +350,7 @@ kubectl get certificates -n xorb-production
 kubectl describe certificate xorb-tls-secret -n xorb-production
 ```
 
-#### **Renewal Process**
+####  **Renewal Process**
 
 ```bash
 # 1. Force certificate renewal (cert-manager)
@@ -366,7 +366,7 @@ kubectl get secret xorb-tls-secret -n xorb-production -o yaml | \
   openssl x509 -noout -dates
 ```
 
-#### **Verification**
+####  **Verification**
 
 ```bash
 # 1. Test HTTPS connectivity
@@ -381,15 +381,15 @@ echo | openssl s_client -servername api.your-domain.com \
 # Update certificate expiration monitoring alerts
 ```
 
----
+- --
 
-## 📊 **Monitoring Runbooks**
+##  📊 **Monitoring Runbooks**
 
-### **Runbook 7: Grafana Dashboard Issues**
+###  **Runbook 7: Grafana Dashboard Issues**
 
-**Purpose**: Resolve Grafana dashboard and alerting issues  
+- **Purpose**: Resolve Grafana dashboard and alerting issues
 
-#### **Common Issues & Solutions**
+####  **Common Issues & Solutions**
 
 ```bash
 # 1. Grafana pod not starting
@@ -408,11 +408,11 @@ kubectl exec -it $(kubectl get pods -l app=grafana -n xorb-production -o jsonpat
 kubectl apply -f services/infrastructure/monitoring/grafana/dashboards/
 ```
 
-### **Runbook 8: Prometheus Storage Issues**
+###  **Runbook 8: Prometheus Storage Issues**
 
-**Purpose**: Resolve Prometheus storage and retention issues  
+- **Purpose**: Resolve Prometheus storage and retention issues
 
-#### **Storage Management**
+####  **Storage Management**
 
 ```bash
 # 1. Check Prometheus storage usage
@@ -432,17 +432,17 @@ kubectl exec -it prometheus-0 -n xorb-production -- \
   find /prometheus -name "*.tmp" -delete
 ```
 
----
+- --
 
-## 🔐 **Security Runbooks**
+##  🔐 **Security Runbooks**
 
-### **Runbook 9: Security Incident Response**
+###  **Runbook 9: Security Incident Response**
 
-**Purpose**: Respond to security incidents and breaches  
-**Severity**: Critical  
-**Response Time**: Immediate  
+- **Purpose**: Respond to security incidents and breaches
+- **Severity**: Critical
+- **Response Time**: Immediate
 
-#### **Immediate Actions**
+####  **Immediate Actions**
 
 ```bash
 # 1. Isolate affected components
@@ -465,15 +465,15 @@ kubectl get events -n xorb-production --sort-by='.lastTimestamp' > incident_even
 kubectl create job incident-backup --from=cronjob/postgres-backup -n xorb-production
 ```
 
-#### **Investigation**
+####  **Investigation**
 
 ```bash
 # 1. Check for unauthorized access
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "
-    SELECT * FROM auth_logs 
-    WHERE created_at > NOW() - INTERVAL '24 hours' 
-    AND status = 'failed' 
+    SELECT * FROM auth_logs
+    WHERE created_at > NOW() - INTERVAL '24 hours'
+    AND status = 'failed'
     ORDER BY created_at DESC;"
 
 # 2. Review audit logs
@@ -483,14 +483,14 @@ kubectl logs -l app=xorb-api -n xorb-production --since=24h | \
 # 3. Check for malicious activity
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "
-    SELECT DISTINCT user_agent, source_ip, COUNT(*) 
-    FROM request_logs 
-    WHERE created_at > NOW() - INTERVAL '24 hours' 
-    GROUP BY user_agent, source_ip 
+    SELECT DISTINCT user_agent, source_ip, COUNT(*)
+    FROM request_logs
+    WHERE created_at > NOW() - INTERVAL '24 hours'
+    GROUP BY user_agent, source_ip
     HAVING COUNT(*) > 1000;"
 ```
 
-#### **Recovery**
+####  **Recovery**
 
 ```bash
 # 1. Patch security vulnerabilities
@@ -511,14 +511,14 @@ kubectl patch networkpolicy xorb-network-policy -n xorb-production --type=merge 
 kubectl scale deployment xorb-api --replicas=3 -n xorb-production
 ```
 
----
+- --
 
-### **Runbook 10: Secret Rotation**
+###  **Runbook 10: Secret Rotation**
 
-**Purpose**: Regular rotation of secrets and credentials  
-**Frequency**: Quarterly or on-demand  
+- **Purpose**: Regular rotation of secrets and credentials
+- **Frequency**: Quarterly or on-demand
 
-#### **Rotation Process**
+####  **Rotation Process**
 
 ```bash
 # 1. Generate new secrets
@@ -549,41 +549,41 @@ sleep 60
 curl -f https://api.your-domain.com/health
 ```
 
----
+- --
 
-## 📈 **Performance Optimization Runbooks**
+##  📈 **Performance Optimization Runbooks**
 
-### **Runbook 11: Database Performance Tuning**
+###  **Runbook 11: Database Performance Tuning**
 
-**Purpose**: Optimize database performance during high load  
+- **Purpose**: Optimize database performance during high load
 
-#### **Performance Analysis**
+####  **Performance Analysis**
 
 ```bash
 # 1. Identify slow queries
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "
-    SELECT query, calls, total_time, mean_time 
-    FROM pg_stat_statements 
-    ORDER BY total_time DESC 
+    SELECT query, calls, total_time, mean_time
+    FROM pg_stat_statements
+    ORDER BY total_time DESC
     LIMIT 10;"
 
 # 2. Check index usage
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "
-    SELECT schemaname, tablename, indexname, idx_scan, idx_tup_read, idx_tup_fetch 
-    FROM pg_stat_user_indexes 
+    SELECT schemaname, tablename, indexname, idx_scan, idx_tup_read, idx_tup_fetch
+    FROM pg_stat_user_indexes
     WHERE idx_scan = 0;"
 
 # 3. Analyze table statistics
 kubectl exec -it xorb-postgres-0 -n xorb-production -- \
   psql -U postgres -d xorb_production -c "
-    SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del, n_live_tup, n_dead_tup 
-    FROM pg_stat_user_tables 
+    SELECT schemaname, tablename, n_tup_ins, n_tup_upd, n_tup_del, n_live_tup, n_dead_tup
+    FROM pg_stat_user_tables
     ORDER BY n_dead_tup DESC;"
 ```
 
-#### **Optimization Actions**
+####  **Optimization Actions**
 
 ```bash
 # 1. Create missing indexes
@@ -605,11 +605,11 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
     SELECT pg_reload_conf();"
 ```
 
----
+- --
 
-## 📚 **Reference Information**
+##  📚 **Reference Information**
 
-### **Key Contacts**
+###  **Key Contacts**
 
 | Role | Contact | Escalation |
 |------|---------|------------|
@@ -618,7 +618,7 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
 | Security Team | +1-555-0399 | Security incidents |
 | Platform Team Lead | +1-555-0499 | Major incidents |
 
-### **Key Metrics Thresholds**
+###  **Key Metrics Thresholds**
 
 | Metric | Warning | Critical |
 |--------|---------|----------|
@@ -628,7 +628,7 @@ kubectl exec -it xorb-postgres-0 -n xorb-production -- \
 | Error Rate | 2% | 5% |
 | Database Connections | 80% | 95% |
 
-### **Common Commands**
+###  **Common Commands**
 
 ```bash
 # Quick health check
@@ -649,9 +649,9 @@ kubectl scale deployment xorb-api --replicas=0 -n xorb-production
 kubectl scale deployment xorb-api --replicas=5 -n xorb-production
 ```
 
----
+- --
 
-**Document Revision History**:
+- **Document Revision History**:
 - v2.0 - January 2025 - Initial enterprise runbooks
 - v1.9 - December 2024 - Added security incident procedures
 - v1.8 - November 2024 - Added performance optimization runbooks

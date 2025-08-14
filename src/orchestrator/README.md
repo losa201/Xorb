@@ -2,7 +2,7 @@
 
 The Orchestrator Service is the core component of the XORB platform responsible for autonomous workflow execution and task coordination.
 
-## Overview
+##  Overview
 
 This service provides:
 - Autonomous task orchestration using Temporal
@@ -10,7 +10,7 @@ This service provides:
 - Dynamic response planning and execution
 - Workflow persistence and state management
 
-## Architecture
+##  Architecture
 
 The orchestrator follows a layered architecture pattern:
 
@@ -24,14 +24,14 @@ orchestrator/
 └── config/           # Configuration and settings
 ```
 
-## Key Features
+##  Key Features
 
 - **Temporal Integration**: Uses Temporal for workflow management and state persistence
 - **Autonomous Execution**: Self-coordinating task execution with failure recovery
 - **Dynamic Workflows**: Adaptable response plans based on threat intelligence
 - **Security Integration**: Connects to detection systems and response mechanisms
 
-## Configuration
+##  Configuration
 
 The service requires the following environment variables:
 
@@ -41,38 +41,38 @@ The service requires the following environment variables:
 | LOG_LEVEL | Logging level (INFO, DEBUG, etc.) | INFO |
 | MAX_PARALLEL_WORKFLOWS | Maximum concurrent workflows | 10 |
 
-## Usage
+##  Usage
 
-### Starting the Service
+###  Starting the Service
 
 ```bash
 python main.py
 ```
 
-### Docker Deployment
+###  Docker Deployment
 
 ```bash
 docker build -t xorb-orchestrator .
 docker run xorb-orchestrator
 ```
 
-## Development
+##  Development
 
-### Adding New Workflows
+###  Adding New Workflows
 
 1. Create a new workflow class in `workflows/`
 2. Define the workflow logic using Temporal's workflow decorators
 3. Create corresponding activities in `activities/`
 4. Update service layer to handle workflow initiation
 
-### Testing
+###  Testing
 
 Run unit tests:
 ```bash
 pytest tests/
 ```
 
-## Integration Points
+##  Integration Points
 
 The orchestrator integrates with:
 - API Service (for command initiation)
@@ -80,17 +80,17 @@ The orchestrator integrates with:
 - Security tools (for actual response execution)
 - Redis (for state caching)
 
-## Monitoring
+##  Monitoring
 
 The service exposes metrics at `/metrics` endpoint for Prometheus scraping.
 
-## Contributing
+##  Contributing
 
 1. Follow Temporal best practices
 2. Maintain clear separation between workflows and activities
 3. Write comprehensive tests for new workflows
 4. Document workflow logic and decision points
 
-## License
+##  License
 
 [License information]

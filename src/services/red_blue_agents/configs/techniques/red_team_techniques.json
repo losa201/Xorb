@@ -1,0 +1,393 @@
+{
+  "manifest_version": "1.0",
+  "description": "Red Team attack techniques following MITRE ATT&CK framework",
+  "techniques": [
+    {
+      "id": "recon.port_scan",
+      "name": "Port Scanning",
+      "category": "reconnaissance",
+      "description": "Discover open ports and services on target systems",
+      "mitre_id": "T1046",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "medium",
+      "detection_difficulty": "medium",
+      "parameters": [
+        {
+          "name": "target",
+          "type": "string",
+          "required": true,
+          "description": "Target IP address or hostname",
+          "constraints": {
+            "pattern": "^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$|^[a-zA-Z0-9.-]+$"
+          }
+        },
+        {
+          "name": "ports",
+          "type": "string",
+          "required": false,
+          "default": "1-1000",
+          "description": "Port range to scan",
+          "constraints": {
+            "pattern": "^\\d+(-\\d+)?(,\\d+(-\\d+)?)*$"
+          }
+        },
+        {
+          "name": "scan_type",
+          "type": "string",
+          "required": false,
+          "default": "tcp",
+          "description": "Type of scan to perform",
+          "constraints": {
+            "choices": ["tcp", "udp", "syn", "stealth"]
+          }
+        },
+        {
+          "name": "timing",
+          "type": "string",
+          "required": false,
+          "default": "normal",
+          "description": "Scan timing template",
+          "constraints": {
+            "choices": ["paranoid", "sneaky", "polite", "normal", "aggressive", "insane"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "recon.service_enum",
+      "name": "Service Enumeration",
+      "category": "reconnaissance",
+      "description": "Enumerate services and gather version information",
+      "mitre_id": "T1046",
+      "dependencies": ["recon.port_scan"],
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "low",
+      "detection_difficulty": "high",
+      "parameters": [
+        {
+          "name": "target",
+          "type": "string",
+          "required": true,
+          "description": "Target IP address or hostname"
+        },
+        {
+          "name": "ports",
+          "type": "list",
+          "required": true,
+          "description": "List of open ports to enumerate"
+        },
+        {
+          "name": "aggressive",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "description": "Use aggressive enumeration techniques"
+        }
+      ]
+    },
+    {
+      "id": "recon.web_crawl",
+      "name": "Web Application Crawling",
+      "category": "reconnaissance",
+      "description": "Crawl web applications to discover endpoints and technologies",
+      "mitre_id": "T1592.002",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "low",
+      "stealth_level": "high",
+      "detection_difficulty": "high",
+      "parameters": [
+        {
+          "name": "url",
+          "type": "string",
+          "required": true,
+          "description": "Target web application URL",
+          "constraints": {
+            "pattern": "^https?://.*"
+          }
+        },
+        {
+          "name": "depth",
+          "type": "int",
+          "required": false,
+          "default": 3,
+          "description": "Maximum crawl depth",
+          "constraints": {
+            "min": 1,
+            "max": 10
+          }
+        },
+        {
+          "name": "user_agent",
+          "type": "string",
+          "required": false,
+          "default": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+          "description": "HTTP User-Agent string"
+        }
+      ]
+    },
+    {
+      "id": "exploit.web_sqli",
+      "name": "SQL Injection",
+      "category": "initial_access",
+      "description": "Attempt SQL injection attacks on web applications",
+      "mitre_id": "T1190",
+      "dependencies": ["recon.web_crawl"],
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "high",
+      "stealth_level": "medium",
+      "detection_difficulty": "medium",
+      "parameters": [
+        {
+          "name": "url",
+          "type": "string",
+          "required": true,
+          "description": "Target URL with vulnerable parameter"
+        },
+        {
+          "name": "parameter",
+          "type": "string",
+          "required": true,
+          "description": "Vulnerable parameter name"
+        },
+        {
+          "name": "technique",
+          "type": "string",
+          "required": false,
+          "default": "boolean",
+          "description": "SQL injection technique",
+          "constraints": {
+            "choices": ["boolean", "union", "time", "error"]
+          }
+        },
+        {
+          "name": "database",
+          "type": "string",
+          "required": false,
+          "default": "auto",
+          "description": "Target database type",
+          "constraints": {
+            "choices": ["auto", "mysql", "postgresql", "mssql", "oracle", "sqlite"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "exploit.brute_force",
+      "name": "Credential Brute Force",
+      "category": "credential_access",
+      "description": "Perform brute force attacks against authentication systems",
+      "mitre_id": "T1110",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "medium",
+      "stealth_level": "low",
+      "detection_difficulty": "low",
+      "parameters": [
+        {
+          "name": "target",
+          "type": "string",
+          "required": true,
+          "description": "Target service (SSH, RDP, HTTP, etc.)"
+        },
+        {
+          "name": "usernames",
+          "type": "list",
+          "required": true,
+          "description": "List of usernames to try"
+        },
+        {
+          "name": "passwords",
+          "type": "list",
+          "required": true,
+          "description": "List of passwords to try"
+        },
+        {
+          "name": "threads",
+          "type": "int",
+          "required": false,
+          "default": 5,
+          "description": "Number of concurrent threads",
+          "constraints": {
+            "min": 1,
+            "max": 20
+          }
+        },
+        {
+          "name": "delay",
+          "type": "float",
+          "required": false,
+          "default": 1.0,
+          "description": "Delay between attempts (seconds)",
+          "constraints": {
+            "min": 0.1,
+            "max": 60.0
+          }
+        }
+      ]
+    },
+    {
+      "id": "persist.web_shell",
+      "name": "Web Shell Upload",
+      "category": "persistence",
+      "description": "Upload and deploy web shells for persistent access",
+      "mitre_id": "T1505.003",
+      "dependencies": ["exploit.web_sqli"],
+      "platforms": ["linux", "windows"],
+      "risk_level": "critical",
+      "stealth_level": "medium",
+      "detection_difficulty": "medium",
+      "parameters": [
+        {
+          "name": "upload_url",
+          "type": "string",
+          "required": true,
+          "description": "URL of file upload functionality"
+        },
+        {
+          "name": "shell_type",
+          "type": "string",
+          "required": false,
+          "default": "php",
+          "description": "Type of web shell to deploy",
+          "constraints": {
+            "choices": ["php", "asp", "aspx", "jsp", "python"]
+          }
+        },
+        {
+          "name": "filename",
+          "type": "string",
+          "required": false,
+          "default": "shell.php",
+          "description": "Filename for the web shell"
+        }
+      ]
+    },
+    {
+      "id": "persist.scheduled_task",
+      "name": "Scheduled Task Creation",
+      "category": "persistence",
+      "description": "Create scheduled tasks for persistence on Windows systems",
+      "mitre_id": "T1053.005",
+      "platforms": ["windows"],
+      "risk_level": "high",
+      "stealth_level": "medium",
+      "detection_difficulty": "medium",
+      "parameters": [
+        {
+          "name": "task_name",
+          "type": "string",
+          "required": true,
+          "description": "Name of the scheduled task"
+        },
+        {
+          "name": "command",
+          "type": "string",
+          "required": true,
+          "description": "Command to execute"
+        },
+        {
+          "name": "trigger",
+          "type": "string",
+          "required": false,
+          "default": "daily",
+          "description": "Task trigger schedule",
+          "constraints": {
+            "choices": ["startup", "logon", "daily", "weekly", "idle"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "evasion.process_hollowing",
+      "name": "Process Hollowing",
+      "category": "defense_evasion",
+      "description": "Inject malicious code into legitimate processes",
+      "mitre_id": "T1055.012",
+      "platforms": ["windows"],
+      "risk_level": "critical",
+      "stealth_level": "high",
+      "detection_difficulty": "high",
+      "parameters": [
+        {
+          "name": "target_process",
+          "type": "string",
+          "required": true,
+          "description": "Target process to hollow"
+        },
+        {
+          "name": "payload",
+          "type": "string",
+          "required": true,
+          "description": "Payload to inject"
+        }
+      ]
+    },
+    {
+      "id": "evasion.domain_fronting",
+      "name": "Domain Fronting",
+      "category": "command_control",
+      "description": "Use domain fronting to hide C2 communications",
+      "mitre_id": "T1090.004",
+      "platforms": ["linux", "windows", "macos"],
+      "risk_level": "high",
+      "stealth_level": "high",
+      "detection_difficulty": "high",
+      "parameters": [
+        {
+          "name": "front_domain",
+          "type": "string",
+          "required": true,
+          "description": "Domain to use for fronting"
+        },
+        {
+          "name": "real_c2",
+          "type": "string",
+          "required": true,
+          "description": "Real C2 server address"
+        },
+        {
+          "name": "cdn_provider",
+          "type": "string",
+          "required": false,
+          "default": "cloudflare",
+          "description": "CDN provider to use",
+          "constraints": {
+            "choices": ["cloudflare", "aws", "azure", "gcp"]
+          }
+        }
+      ]
+    },
+    {
+      "id": "collection.keylogging",
+      "name": "Keylogging",
+      "category": "collection",
+      "description": "Capture keystrokes from target systems",
+      "mitre_id": "T1056.001",
+      "platforms": ["windows", "linux", "macos"],
+      "risk_level": "critical",
+      "stealth_level": "medium",
+      "detection_difficulty": "medium",
+      "parameters": [
+        {
+          "name": "duration",
+          "type": "int",
+          "required": false,
+          "default": 3600,
+          "description": "Keylogging duration in seconds",
+          "constraints": {
+            "min": 60,
+            "max": 86400
+          }
+        },
+        {
+          "name": "output_file",
+          "type": "string",
+          "required": false,
+          "default": "keylog.txt",
+          "description": "Output file for captured keystrokes"
+        }
+      ]
+    }
+  ]
+}

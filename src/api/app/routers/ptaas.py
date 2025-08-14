@@ -12,12 +12,14 @@ from fastapi import APIRouter, Depends, HTTPException, BackgroundTasks, Query
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from ..services.ptaas_orchestrator_service import (
-    get_ptaas_orchestrator, 
-    PTaaSOrchestrator,
-    PTaaSTarget,
-    PTaaSSession
-)
+from ..services.ptaas_orchestrator_service import PTaaSTarget, PTaaSSession
+try:
+    from ..services.ptaas_orchestrator_service import get_ptaas_orchestrator, PTaaSOrchestrator
+except ImportError:
+    # Fallback for missing orchestrator
+    def get_ptaas_orchestrator():
+        from ..container import get_container
+        return get_container().get(PTaaSOrchestrator)
 from ..services.intelligence_service import IntelligenceService, get_intelligence_service
 from ..middleware.tenant_context import get_current_tenant_id
 from ..infrastructure.observability import add_trace_context, get_metrics_collector

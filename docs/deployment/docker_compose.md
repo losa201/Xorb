@@ -2,7 +2,7 @@
 
 This document explains the Docker Compose configuration files used in the XORB architecture.
 
-## Overview
+##  Overview
 
 XORB provides multiple Docker Compose configurations to support different deployment scenarios:
 
@@ -10,7 +10,7 @@ XORB provides multiple Docker Compose configurations to support different deploy
 2. **docker-compose.dev.yml** - Development environment with debug tools
 3. **docker-compose.fixed.yml** - Fixed configuration for specific deployment requirements
 
-## Main Configuration (docker-compose.yml)
+##  Main Configuration (docker-compose.yml)
 
 The main configuration defines the core services that make up the XORB architecture:
 
@@ -70,7 +70,7 @@ volumes:
   grafana_data:
 ```
 
-## Development Configuration (docker-compose.dev.yml)
+##  Development Configuration (docker-compose.dev.yml)
 
 The development configuration extends the main configuration with additional tools and debug capabilities:
 
@@ -116,7 +116,7 @@ volumes:
   testdb_data:
 ```
 
-## Fixed Configuration (docker-compose.fixed.yml)
+##  Fixed Configuration (docker-compose.fixed.yml)
 
 The fixed configuration contains immutable settings for specific deployment requirements:
 
@@ -160,9 +160,9 @@ volumes:
   log_data:
 ```
 
-## Usage Instructions
+##  Usage Instructions
 
-### Starting the System
+###  Starting the System
 
 To start the system in production mode:
 ```bash
@@ -179,7 +179,7 @@ For fixed infrastructure deployment:
 docker-compose -f docker-compose.yml -f docker-compose.fixed.yml up -d
 ```
 
-### Building Images
+###  Building Images
 
 To build all images:
 ```bash
@@ -191,7 +191,7 @@ To build specific services:
 docker-compose build fusion-orchestrator security-gateway
 ```
 
-## Configuration Management
+##  Configuration Management
 
 The configuration uses environment variables from the `.env` file for customization. Common configuration options include:
 
@@ -200,7 +200,7 @@ The configuration uses environment variables from the `.env` file for customizat
 - `TLS_ENABLED`: TLS configuration flag
 - `DEBUG_MODE`: Debugging flag for development
 
-## Monitoring and Maintenance
+##  Monitoring and Maintenance
 
 The monitoring stack provides insights into the system through:
 
@@ -217,7 +217,7 @@ To execute commands in a running container:
 docker exec -it xorb-orchestrator bash
 ```
 
-## Best Practices
+##  Best Practices
 
 1. **Environment Separation**: Use different compose files for development, testing, and production
 2. **Security**: Regularly update security components and rotate credentials
@@ -225,23 +225,23 @@ docker exec -it xorb-orchestrator bash
 4. **Backups**: Regularly test backup and restore procedures
 5. **Versioning**: Use image tags to track versions of deployed services
 
-## Troubleshooting
+##  Troubleshooting
 
-### Common Issues
+###  Common Issues
 
 - **Port Conflicts**: Check for conflicting services on ports 80, 443, 9090, and 3000
 - **Configuration Errors**: Verify environment variables in .env file
 - **Network Issues**: Ensure Docker network settings allow inter-container communication
 - **Permission Problems**: Check file permissions for mounted volumes
 
-### Debugging Tips
+###  Debugging Tips
 
 - Use `docker-compose config` to validate compose files
 - Check container logs with `docker logs <container-name>`
 - Use `docker inspect` to examine container configuration
 - For network issues, use `docker network inspect` to examine network settings
 
-## Next Steps
+##  Next Steps
 
 1. Review the [Agent Documentation](../agents/) to understand individual components
 2. Check the [Execution Guide](../execution/) for running the strategic fusion process

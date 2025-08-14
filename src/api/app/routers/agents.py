@@ -18,6 +18,7 @@ from ..security import (
     require_permission,
     Permission
 )
+from ..auth.rbac_dependencies import require_permission as rbac_require_permission
 
 
 class AgentType(str, Enum):
@@ -247,7 +248,7 @@ async def get_agent(
 async def update_agent(
     agent_id: str,
     request: UpdateAgentRequest,
-    context: SecurityContext = Depends(require_permission(Permission.AGENT_UPDATE))
+    current_user = Depends(rbac_require_permission("agent:update"))
 ) -> Agent:
     """Update agent configuration"""
     
@@ -279,7 +280,7 @@ async def update_agent(
 @router.delete("/{agent_id}")
 async def terminate_agent(
     agent_id: str,
-    context: SecurityContext = Depends(require_permission(Permission.AGENT_DELETE))
+    current_user = Depends(rbac_require_permission("agent:delete"))
 ) -> Dict[str, str]:
     """Safely terminate an agent"""
     
@@ -344,7 +345,7 @@ async def get_agent_status(
 async def send_agent_command(
     agent_id: str,
     request: AgentCommandRequest,
-    context: SecurityContext = Depends(require_permission(Permission.AGENT_UPDATE))
+    current_user = Depends(rbac_require_permission("agent:update"))
 ) -> AgentCommandResponse:
     """Send command to agent"""
     
