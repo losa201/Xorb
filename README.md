@@ -683,12 +683,36 @@ curl -X POST http://localhost:8000/api/v1/intelligence/analyze \
 
 ### **Security Audit Results**
 > **Latest Security Audit** (January 2025): ✅ **PRODUCTION-READY APPROVED**
->
+
 > - Production-grade security architecture validated
 > - Real-world penetration testing capabilities confirmed
 > - Enterprise multi-tenant isolation verified
 > - Compliance automation framework approved
 > - Advanced threat detection capabilities validated
+
+## 📊 **Monitoring, Alerting & Chaos Engineering**
+
+### **Post-Release Observability**
+- **Prometheus Alert Rules** for critical post-release metrics:
+  - Latency thresholds (`bus_publish_to_deliver_p95_ms > 50ms`)
+  - Evidence verification failures (`evidence_verify_fail_total` increase)
+  - System fairness (`fairness_jain_index < 0.85`)
+  - Replay impact (`replay_backlog_depth > 10k` with active replay)
+- **Grafana Dashboards** for release readiness monitoring
+- **Comprehensive Metrics Exposure** at `/metrics` endpoint
+
+### **CI/CD Guardrails**
+- **Automated Security Scanning** in GitHub Actions workflows
+- **Focused Test Coverage** requirements (40% minimum on key modules)
+- **Chaos Testing Integration** with dry-run validation in CI
+
+### **Chaos Engineering Framework**
+- **NATS Resilience Testing** with node kill scenarios
+- **Replay System Validation** under high-load conditions
+- **Evidence Verification Resilience** with corruption injection
+- **Deterministic Chaos Scenarios** with SLO validation
+
+For detailed operational procedures, see [RELEASE_OPERATIONS_QUICKSTART.md](docs/RELEASE_OPERATIONS_QUICKSTART.md)
 
 ---
 

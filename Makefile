@@ -1,6 +1,6 @@
 # Xorb developer Makefile
 
-.PHONY: help api orchestrator ptass up down test test-fast lint fmt token security-scan precommit-install sanitize-history integration-test integration-up integration-down backplane-lint nats-iac-plan nats-iac-apply nats-iac-destroy nats-test-isolation nats-generate-creds replay-plan replay-drill replay-validate replay-infrastructure replay-dashboard replay-runbook obs-instrument obs-dashboards obs-validate obs-report obs-test-alerts g6-tenant-plan g6-tenant-apply g6-tenant-test g6-tenant-validate g7-evidence-setup g7-evidence-test g7-merkle-rollup g7-verify-rollup sdks-test doctor ci
+.PHONY: help api orchestrator ptass up down test test-fast lint fmt token security-scan precommit-install sanitize-history integration-test integration-up integration-down backplane-lint nats-iac-plan nats-iac-apply nats-iac-destroy nats-test-isolation nats-generate-creds replay-plan replay-drill replay-validate replay-infrastructure replay-dashboard replay-runbook obs-instrument obs-dashboards obs-validate obs-report obs-test-alerts g6-tenant-plan g6-tenant-apply g6-tenant-test g6-tenant-validate g7-evidence-setup g7-evidence-test g7-merkle-rollup g7-verify-rollup sdks-test doctor ci chaos chaos-nats-kill chaos-replay-storm chaos-corrupt-evidence
 
 help:
 	@echo "Development Commands:"
@@ -293,9 +293,31 @@ g7-verify-rollup: ## Verify G7 evidence inclusion in Merkle roll-up
 	@echo ""
 	@echo "✅ Evidence Merkle proof verification completed"
 
-# ==========================================
+# =========================================
+# Chaos Testing Targets
+# =========================================
+
+.PHONY: chaos chaos-nats-kill chaos-replay-storm chaos-corrupt-evidence
+
+chaos: ## Run all chaos scenarios in dry-run mode
+	@echo "🌪️ Running all chaos scenarios (dry-run)"
+	@python3 tools/chaos/run.py --scenario all --compose --dry-run
+
+chaos-nats-kill: ## Run NATS node kill chaos scenario
+	@echo "🌪️ Running NATS node kill chaos scenario"
+	@python3 tools/chaos/run.py --scenario nats_node_kill --compose
+
+chaos-replay-storm: ## Run replay storm chaos scenario
+	@echo "🌪️ Running replay storm chaos scenario"
+	@python3 tools/chaos/run.py --scenario replay_storm --compose
+
+chaos-corrupt-evidence: ## Run corrupted evidence injection chaos scenario
+	@echo "🌪️ Running corrupted evidence injection chaos scenario"
+	@python3 tools/chaos/run.py --scenario corrupted_evidence_inject --compose
+
+# =========================================
 # API & Schema Compatibility Gate Targets
-# ==========================================
+# =========================================
 
 contract-check: ## Run both protobuf and OpenAPI compatibility checks
 	@echo "🔍 Running API & Schema Compatibility Checks..."

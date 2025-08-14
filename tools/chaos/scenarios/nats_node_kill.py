@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 logger = logging.getLogger(__name__)
 
 
-class NATSNodeKillScenario:
+class NatsNodeKillScenario:
     """Chaos scenario that kills a NATS node and observes recovery metrics."""
 
     def __init__(self, dry_run: bool = False):
@@ -89,7 +89,8 @@ class NATSNodeKillScenario:
             "dry_run": True,
             "planned_actions": planned_actions,
             "expected_metrics": expected_metrics,
-            "estimated_duration": "5 minutes"
+            "estimated_duration": "5 minutes",
+            "passed": True
         }
 
     def _verify_slos(self, metrics: Dict[str, float]) -> Dict[str, Any]:

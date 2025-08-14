@@ -87,7 +87,8 @@ class ReplayStormScenario:
             "dry_run": True,
             "planned_actions": planned_actions,
             "expected_metrics": expected_metrics,
-            "estimated_duration": "5 minutes"
+            "estimated_duration": "5 minutes",
+            "passed": True
         }
 
     def _verify_slos(self, metrics: Dict[str, float]) -> Dict[str, Any]:

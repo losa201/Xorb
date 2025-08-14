@@ -28,6 +28,23 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 - `GET /api/v1/metrics` - Platform metrics
 - `GET /api/v1/enhanced-health` - Detailed health diagnostics
 
+### 📊 Post-Release Monitoring
+- **Prometheus Alerting**: Comprehensive alert rules for post-release metrics
+- **Grafana Dashboards**: Release readiness monitoring with error budget burn rates
+- **Key Metrics**: `bus_publish_to_deliver_p95_ms`, `evidence_verify_fail_total`, `fairness_jain_index`
+
+### 🛡️ CI/CD Guardrails
+- **Security Scanning**: ruff, bandit, gitleaks, and safety integration
+- **Focused Coverage**: 40% minimum coverage on observability and G8 control plane modules
+- **Chaos Testing**: Integrated dry-run validation in CI pipeline
+
+### 🌪️ Chaos Engineering
+- **NATS Node Kill**: Test system resilience to messaging infrastructure failures
+- **Replay Storm**: Validate replay system performance under load
+- **Evidence Corruption**: Verify evidence verification resilience
+
+For detailed operational procedures, see [RELEASE_OPERATIONS_QUICKSTART.md](docs/RELEASE_OPERATIONS_QUICKSTART.md)
+
 ### 🎯 Penetration Testing as a Service (PTaaS)
 - `GET /api/v1/ptaas/profiles` - Available scan profiles
 - `POST /api/v1/ptaas/sessions` - Create new scan session

@@ -123,7 +123,7 @@ groups:
           alert_type: low_budget
         annotations:
           summary: "XORB Bus Latency SLO error budget critically low"
-          description: "Only {{ $value }}% error budget remaining for bus publish-to-deliver P95 latency SLO for tenant {{ $labels.tenant_id }}. Current burn rate: {{ query "slo_error_budget_burn_rate{sli_name='bus_publish_to_deliver_p95_ms',tenant_id='" }}{{ $labels.tenant_id }}{{ query "'}" }}x."
+          description: "Only {{ $value }}% error budget remaining for bus publish-to-deliver P95 latency SLO for tenant {{ $labels.tenant_id }}. Current burn rate exceeds threshold."
           runbook_url: "https://wiki.xorb.io/runbooks/slo-bus-latency-low-budget"
 
       - alert: XORBSLOEvidenceIngestBudgetLow
@@ -236,8 +236,8 @@ groups:
           summary: "XORB Bus Latency SLO multi-window burn rate alert"
           description: |
             Bus latency SLO is burning error budget across multiple time windows.
-            Current burn rate: {{ query "slo_error_budget_burn_rate{sli_name='bus_publish_to_deliver_p95_ms',tenant_id='" }}{{ $labels.tenant_id }}{{ query "'}" }}x
-            Remaining budget: {{ query "slo_error_budget_remaining_percent{sli_name='bus_publish_to_deliver_p95_ms',tenant_id='" }}{{ $labels.tenant_id }}{{ query "'}" }}%
+            Current burn rate: {{ query 'slo_error_budget_burn_rate{sli_name="bus_publish_to_deliver_p95_ms",tenant_id="' }}{{ $labels.tenant_id }}{{ query '"}' }}x
+            Remaining budget: {{ query 'slo_error_budget_remaining_percent{sli_name="bus_publish_to_deliver_p95_ms",tenant_id="' }}{{ $labels.tenant_id }}{{ query '"}' }}%
             Tenant: {{ $labels.tenant_id }}
           runbook_url: "https://wiki.xorb.io/runbooks/slo-multiwindow-burn-rate"
           playbook_url: "https://wiki.xorb.io/playbooks/slo-incident-response"
