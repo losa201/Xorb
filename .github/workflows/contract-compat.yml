@@ -1,0 +1,148 @@
+name: Contract Compatibility Check
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'proto/**'
+      - 'docs/api/xorb-openapi-spec.yaml'
+      - 'tools/contracts/**'
+
+jobs:
+  compatibility-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for git diff
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          # Install Python dependencies
+          pip install pyyaml
+          
+          # Install buf for protobuf checking
+          curl -sSL \
+            "https://github.com/bufbuild/buf/releases/download/v1.27.0/buf-$(uname -s)-$(uname -m)" \
+            -o "$RUNNER_TEMP/buf" && \
+            chmod +x "$RUNNER_TEMP/buf" && \
+            sudo mv "$RUNNER_TEMP/buf" /usr/local/bin/buf
+          
+          # Install protoc for protobuf descriptor generation
+          PROTOC_VERSION=21.12
+          PROTOC_ZIP="protoc-$PROTOC_VERSION-linux-x86_64.zip"
+          curl -sSL \
+            "https://github.com/protocolbuffers/protobuf/releases/download/v$PROTOC_VERSION/$PROTOC_ZIP" \
+            -o "$RUNNER_TEMP/$PROTOC_ZIP" && \
+            unzip -o "$RUNNER_TEMP/$PROTOC_ZIP" -d "$RUNNER_TEMP/protoc" && \
+            sudo cp -r "$RUNNER_TEMP/protoc/bin/." /usr/local/bin/ && \
+            sudo cp -r "$RUNNER_TEMP/protoc/include/." /usr/local/include/ && \
+            rm -rf "$RUNNER_TEMP/protoc" "$RUNNER_TEMP/$PROTOC_ZIP"
+
+      - name: Run contract compatibility checks
+        id: contract-check
+        run: |
+          # Create reports directory
+          mkdir -p tools/contracts/reports
+          
+          # Run protobuf compatibility check
+          echo "Running protobuf compatibility check..."
+          python3 tools/contracts/check_proto_compat.py
+          PROTO_EXIT_CODE=$?
+          
+          # Run OpenAPI compatibility check
+          echo "Running OpenAPI compatibility check..."
+          python3 tools/contracts/check_openapi_compat.py
+          OPENAPI_EXIT_CODE=$?
+          
+          # Save exit codes as outputs
+          echo "proto_exit_code=$PROTO_EXIT_CODE" >> $GITHUB_OUTPUT
+          echo "openapi_exit_code=$OPENAPI_EXIT_CODE" >> $GITHUB_OUTPUT
+          
+          # Exit with error if either check failed
+          if [ $PROTO_EXIT_CODE -ne 0 ] || [ $OPENAPI_EXIT_CODE -ne 0 ]; then
+            echo "Breaking changes detected!"
+            exit 1
+          fi
+
+      - name: Upload compatibility reports
+        uses: actions/upload-artifact@v3
+        if: always()  # Always upload reports, even if checks failed
+        with:
+          name: contract-compatibility-reports
+          path: tools/contracts/reports/
+
+      - name: Comment on PR with summary
+        uses: actions/github-script@v6
+        if: github.event_name == 'pull_request'
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const fs = require('fs');
+            
+            // Read report files
+            let protoReport = "No protobuf report generated";
+            let openapiReport = "No OpenAPI report generated";
+            
+            try {
+              if (fs.existsSync('tools/contracts/reports/proto_compat.md')) {
+                protoReport = fs.readFileSync('tools/contracts/reports/proto_compat.md', 'utf8');
+              }
+            } catch (error) {
+              protoReport = `Error reading protobuf report: ${error.message}`;
+            }
+            
+            try {
+              if (fs.existsSync('tools/contracts/reports/openapi_compat.md')) {
+                openapiReport = fs.readFileSync('tools/contracts/reports/openapi_compat.md', 'utf8');
+              }
+            } catch (error) {
+              openapiReport = `Error reading OpenAPI report: ${error.message}`;
+            }
+            
+            // Create summary comment
+            const protoExitCode = ${{ steps.contract-check.outputs.proto_exit_code }} || 0;
+            const openapiExitCode = ${{ steps.contract-check.outputs.openapi_exit_code }} || 0;
+            
+            const statusEmoji = (exitCode) => exitCode === 0 ? '✅' : '❌';
+            const statusText = (exitCode) => exitCode === 0 ? 'PASSED' : 'FAILED - Breaking changes detected';
+            
+            const comment = `
+            ## 📋 Contract Compatibility Check Results
+            
+            | Check | Status | Report |
+            |-------|--------|--------|
+            | Protobuf Compatibility | ${statusEmoji(protoExitCode)} ${statusText(protoExitCode)} | [View Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+            | OpenAPI Compatibility | ${statusEmoji(openapiExitCode)} ${statusText(openapiExitCode)} | [View Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) |
+            
+            ### Summary
+            
+            **Protobuf Check:** ${statusText(protoExitCode)}
+            **OpenAPI Check:** ${statusText(openapiExitCode)}
+            
+            ### Next Steps
+            
+            - ${protoExitCode === 0 && openapiExitCode === 0 
+              ? '✅ All checks passed! Ready to merge.' 
+              : '❌ Breaking changes detected. Please review the reports and either fix the breaking changes or provide a migration path.'}
+              
+            - Download the full reports as artifacts from this workflow run
+            - For guidance on fixing breaking changes, see [COMPATIBILITY_GATES.md](docs/contracts/COMPATIBILITY_GATES.md)
+            
+            ---
+            _This check is automatically run on PRs that modify .proto files or the OpenAPI spec_
+            `;
+            
+            // Post comment
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
