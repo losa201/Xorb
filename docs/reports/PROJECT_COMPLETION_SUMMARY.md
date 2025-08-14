@@ -25,7 +25,7 @@ Successfully delivered **8 comprehensive enhancement modules** for the Xorb back
 ### ✅ **Module 1: AuthN/AuthZ - OIDC Integration & RBAC**
 - **Status**: COMPLETE
 - **Files**: `app/auth/` (models.py, oidc.py, dependencies.py, routes.py)
-- **Key Features**: 
+- **Key Features**:
   - OIDC discovery with caching
   - JWT validation & role extraction
   - Per-route RBAC decorators
@@ -247,7 +247,7 @@ Successfully delivered **8 comprehensive enhancement modules** for the Xorb back
 ```bash
 # Clone and setup
 git clone <repository>
-cd xorb-platform
+cd xorb_platform
 
 # Configure environment
 cp .env.template .env
@@ -315,7 +315,7 @@ docker-compose -f infra/docker-compose.production.yml logs -f api
 bombardier -c 64 -n 20000 http://localhost:8000/health
 # Result: 99.9%+ success rate, avg 15ms response time
 
-# API endpoint performance  
+# API endpoint performance
 bombardier -c 32 -n 5000 http://localhost:8000/api/evidence
 # Result: Authenticated endpoints perform within targets
 ```

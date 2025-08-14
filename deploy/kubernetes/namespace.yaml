@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: xorb-platform
+  name: xorb_platform
   labels:
-    name: xorb-platform
+    name: xorb_platform
     tier: production
     security-level: high
     compliance: "pci-dss,hipaa,sox"

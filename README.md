@@ -20,7 +20,7 @@ XORB has been **strategically enhanced** with advanced AI-powered capabilities, 
 - **🔧 Advanced Security Tools**: Real-world integration with 12+ security scanners and tools
 - **🚀 Intelligent Orchestration**: Complex workflow automation with AI optimization
 - **📊 Advanced Reporting**: AI-generated insights with executive dashboards and visualizations
-- **🏢 Enterprise-Grade**: Multi-tenant architecture with complete data isolation  
+- **🏢 Enterprise-Grade**: Multi-tenant architecture with complete data isolation
 - **📋 Compliance Automation**: Built-in PCI-DSS, HIPAA, SOX, and ISO-27001 support
 - **⚡ Production Performance**: 10+ concurrent scans with intelligent load balancing
 - **🛡️ Advanced Security**: JWT auth, rate limiting, audit logging, and RBAC
@@ -62,7 +62,7 @@ docker-compose -f docker-compose.enterprise.yml up -d
 
 ### **3. Access the Platform**
 - **API Documentation**: http://localhost:8000/docs
-- **API Health Check**: http://localhost:8000/api/v1/health  
+- **API Health Check**: http://localhost:8000/api/v1/health
 - **Platform Status**: http://localhost:8000/api/v1/info
 - **PTaaS Endpoints**: http://localhost:8000/api/v1/ptaas
 
@@ -139,7 +139,7 @@ XORB Enterprise Platform/
 import requests
 
 # Create comprehensive security scan
-response = requests.post('http://localhost:8000/api/v1/ptaas/sessions', 
+response = requests.post('http://localhost:8000/api/v1/ptaas/sessions',
   headers={'Authorization': 'Bearer TOKEN'},
   json={
     'targets': [{
@@ -193,7 +193,7 @@ print(f"Scan started: {session['session_id']}")
 ### **Advanced Machine Learning Threat Analysis**
 ```python
 # Enhanced AI-powered threat correlation with 87%+ accuracy
-response = requests.post('http://localhost:8000/api/v1/intelligence/analyze', 
+response = requests.post('http://localhost:8000/api/v1/intelligence/analyze',
   json={
     'indicators': ['192.0.2.1', 'malicious-domain.com', 'hash_value'],
     'context': {
@@ -205,14 +205,14 @@ response = requests.post('http://localhost:8000/api/v1/intelligence/analyze',
 )
 
 analysis = response.json()
-# Enhanced Returns: ML confidence scores, threat actor attribution, 
+# Enhanced Returns: ML confidence scores, threat actor attribution,
 # MITRE ATT&CK mapping, risk predictions, automated recommendations
 ```
 
 ### **Advanced Behavioral Analytics Engine**
 - **🧠 ML-Powered Profiling**: Advanced user and entity behavior analysis with neural networks
 - **🔍 Anomaly Detection**: Multi-algorithm approach (Isolation Forest, DBSCAN, Random Forest)
-- **📊 Risk Scoring**: Dynamic risk assessment with temporal decay and context awareness  
+- **📊 Risk Scoring**: Dynamic risk assessment with temporal decay and context awareness
 - **🎯 Pattern Recognition**: Deep learning pattern identification for APT detection
 - **⚡ Real-Time Processing**: Stream processing with sub-second latency
 - **🔗 Integration Ready**: sklearn, numpy, pandas, PyTorch support with graceful fallbacks
@@ -336,7 +336,7 @@ Enhanced API Response Times:
   Status Queries: < 50ms (33% improvement)
   ML Vulnerability Analysis: < 2 seconds
   Report Generation: < 60 seconds (comprehensive)
-  
+
 Enhanced Scanning Performance:
   Parallel Execution: Up to 15 concurrent scans
   Network Discovery: 2000+ ports/minute
@@ -359,7 +359,7 @@ Advanced Vulnerability Detection:
   Zero-Day Discovery: ML-powered pattern recognition
   Compliance Coverage: 100% framework support
   AI Risk Scoring: Dynamic risk quantification
-  
+
 Enhanced Threat Intelligence:
   ML Accuracy: 87%+ confidence scores
   Correlation Speed: < 50ms analysis
@@ -367,7 +367,7 @@ Enhanced Threat Intelligence:
   Behavioral Analytics: Real-time ML profiling
   Threat Actor Attribution: 85%+ accuracy
   Predictive Accuracy: 82% threat forecasting
-  
+
 Advanced Analytics Performance:
   IOC Processing: 1000+ indicators/second
   Graph Analysis: 1M+ node networks
@@ -441,7 +441,7 @@ docker-compose -f docker-compose.monitoring.yml up -d
 kubectl apply -f deploy/kubernetes/
 
 # Using Helm charts
-helm install xorb-platform ./deploy/helm/xorb/
+helm install xorb_platform ./deploy/helm/xorb/
 
 # Production hardened deployment
 kubectl apply -f deploy/kubernetes/production/
@@ -449,7 +449,7 @@ kubectl apply -f deploy/kubernetes/production/
 
 ### **Cloud Deployment**
 - **AWS**: CloudFormation and EKS deployment
-- **Azure**: ARM templates and AKS deployment  
+- **Azure**: ARM templates and AKS deployment
 - **GCP**: Deployment Manager and GKE deployment
 - **Multi-Cloud**: Terraform modules for hybrid deployment
 
@@ -507,7 +507,7 @@ curl -X POST http://localhost:8000/api/v1/intelligence/analyze \
 
 ### **Security Audit Results**
 > **Latest Security Audit** (January 2025): ✅ **PRODUCTION-READY APPROVED**
-> 
+>
 > - Production-grade security architecture validated
 > - Real-world penetration testing capabilities confirmed
 > - Enterprise multi-tenant isolation verified

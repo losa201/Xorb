@@ -16,7 +16,7 @@ This document outlines the comprehensive restructuring of the XORB platform acco
 
 ### **Clean Architecture Structure**
 ```
-xorb-platform/
+xorb_platform/
 ├── 📁 domain/                    # Domain Layer (Business Logic)
 │   ├── entities/                 # Core business entities
 │   ├── value-objects/           # Value objects and domain primitives

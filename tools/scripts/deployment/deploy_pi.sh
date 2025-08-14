@@ -7,7 +7,7 @@ set -euo pipefail
 # Configuration
 PI_HOST="${1:-pi5.local}"
 VPS_IP="${2:-YOUR_VPS_IP}"
-REPO_URL="${3:-https://github.com/xorb-platform/xorb.git}"
+REPO_URL="${3:-https://github.com/xorb_platform/xorb.git}"
 
 echo "🚀 Deploying Xorb Edge Worker to $PI_HOST"
 echo "📡 VPS IP: $VPS_IP"
@@ -97,13 +97,13 @@ logger = logging.getLogger(__name__)
 
 class EdgeWorker:
     \"\"\"Edge worker for distributed task processing\"\"\"
-    
+
     def __init__(self):
         self.redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/1')
         self.node_id = os.getenv('NODE_ID', 'pi5-unknown')
         self.running = False
         self.redis_client: Optional[redis.Redis] = None
-        
+
     async def connect(self):
         \"\"\"Connect to Redis queue\"\"\"
         try:
@@ -113,33 +113,33 @@ class EdgeWorker:
         except Exception as e:
             logger.error(f\"Failed to connect to Redis: {e}\")
             raise
-    
+
     async def process_task(self, task_data: dict):
         \"\"\"Process a task from the queue\"\"\"
         try:
             task_type = task_data.get('type')
             logger.info(f\"Processing task: {task_type}\")
-            
+
             if task_type == 'lightweight_scan':
                 await self.process_lightweight_scan(task_data)
             elif task_type == 'finding_triage':
                 await self.process_finding_triage(task_data)
             else:
                 logger.warning(f\"Unknown task type: {task_type}\")
-                
+
         except Exception as e:
             logger.error(f\"Error processing task: {e}\")
-    
+
     async def process_lightweight_scan(self, task_data: dict):
         \"\"\"Process lightweight scanning tasks\"\"\"
         target = task_data.get('target')
         scan_type = task_data.get('scan_type', 'basic')
-        
+
         logger.info(f\"Running {scan_type} scan on {target}\")
-        
+
         # Simulate scanning work
         await asyncio.sleep(2)
-        
+
         # Report results back
         result = {
             'task_id': task_data.get('task_id'),
@@ -148,20 +148,20 @@ class EdgeWorker:
             'findings': [],
             'completed_at': datetime.utcnow().isoformat()
         }
-        
+
         await self.redis_client.lpush('scan_results', str(result))
         logger.info(f\"Scan completed for {target}\")
-    
+
     async def process_finding_triage(self, task_data: dict):
         \"\"\"Process finding triage tasks\"\"\"
         finding_id = task_data.get('finding_id')
         action = task_data.get('action', 'analyze')
-        
+
         logger.info(f\"Triaging finding {finding_id} with action {action}\")
-        
+
         # Simple triage logic
         await asyncio.sleep(1)
-        
+
         result = {
             'task_id': task_data.get('task_id'),
             'finding_id': finding_id,
@@ -170,36 +170,36 @@ class EdgeWorker:
             'status': 'completed',
             'completed_at': datetime.utcnow().isoformat()
         }
-        
+
         await self.redis_client.lpush('triage_results', str(result))
         logger.info(f\"Triage completed for finding {finding_id}\")
-    
+
     async def run(self):
         \"\"\"Main worker loop\"\"\"
         self.running = True
         logger.info(f\"Starting edge worker {self.node_id}\")
-        
+
         await self.connect()
-        
+
         while self.running:
             try:
                 # Blocking pop from task queue
                 result = await self.redis_client.brpop(['edge_tasks'], timeout=5)
-                
+
                 if result:
                     queue_name, task_data_str = result
                     task_data = eval(task_data_str.decode())  # In production, use json.loads
                     await self.process_task(task_data)
-                    
+
             except asyncio.CancelledError:
                 logger.info(\"Worker cancelled\")
                 break
             except Exception as e:
                 logger.error(f\"Error in worker loop: {e}\")
                 await asyncio.sleep(5)
-        
+
         logger.info(\"Edge worker stopped\")
-    
+
     def stop(self):
         \"\"\"Stop the worker\"\"\"
         self.running = False
@@ -208,15 +208,15 @@ class EdgeWorker:
 async def main():
     \"\"\"Main entry point\"\"\"
     worker = EdgeWorker()
-    
+
     # Setup signal handlers
     def signal_handler():
         logger.info(\"Received shutdown signal\")
         worker.stop()
-    
+
     for sig in [signal.SIGTERM, signal.SIGINT]:
         signal.signal(sig, lambda s, f: signal_handler())
-    
+
     try:
         await worker.run()
     except KeyboardInterrupt:

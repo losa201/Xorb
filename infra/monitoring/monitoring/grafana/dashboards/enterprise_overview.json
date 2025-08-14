@@ -1,0 +1,316 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "PTaaS Enterprise Overview",
+    "tags": ["ptaas", "overview", "enterprise", "penetration-testing"],
+    "style": "dark",
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "API Health & SLOs",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "1 - rate(http_requests_total{job=\"ptaas-api\",code=~\"5..\"}[5m]) / rate(http_requests_total{job=\"ptaas-api\"}[5m])",
+            "legendFormat": "API Availability"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"ptaas-api\"}[5m]))",
+            "legendFormat": "API P95 Latency"
+          },
+          {
+            "expr": "rate(http_requests_total{job=\"ptaas-api\"}[5m])",
+            "legendFormat": "Request Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.99},
+                {"color": "green", "value": 0.999}
+              ]
+            },
+            "unit": "percentunit"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Security Events",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(authentication_attempts_total{outcome=\"failure\"}[5m])",
+            "legendFormat": "Failed Logins"
+          },
+          {
+            "expr": "rate(authorization_failures_total[5m])",
+            "legendFormat": "Authorization Failures"
+          },
+          {
+            "expr": "rate(security_alerts_total[5m])",
+            "legendFormat": "Security Alerts"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "reqps"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Tenant Activity",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, sum by (tenant_id) (rate(api_requests_total[5m])))",
+            "legendFormat": "{{tenant_id}}",
+            "format": "table"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "displayMode": "list",
+              "filterable": true
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Penetration Test Performance",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "rate(scan_requests_total{status=\"success\"}[5m]) / rate(scan_requests_total[5m])",
+            "legendFormat": "Penetration Test Success Rate"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(pentest_duration_seconds_bucket[5m]))",
+            "legendFormat": "P95 Penetration Test Duration"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 0.9},
+                {"color": "green", "value": 0.95}
+              ]
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 8, "y": 8}
+      },
+      {
+        "id": 5,
+        "title": "SOC2 Compliance Status",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "sum by (status) (soc2_control_tests_total)",
+            "legendFormat": "{{status}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "hideFrom": {
+                "legend": false,
+                "tooltip": false,
+                "vis": false
+              }
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8}
+      },
+      {
+        "id": 6,
+        "title": "Infrastructure Health",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "up{job=\"postgres-exporter\"}",
+            "legendFormat": "Database"
+          },
+          {
+            "expr": "up{job=\"redis-exporter\"}",
+            "legendFormat": "Cache"
+          },
+          {
+            "expr": "up{job=\"temporal\"}",
+            "legendFormat": "Orchestrator"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "green", "value": 1}
+              ]
+            },
+            "mappings": [
+              {"options": {"0": {"text": "DOWN"}}, "type": "value"},
+              {"options": {"1": {"text": "UP"}}, "type": "value"}
+            ]
+          }
+        },
+        "gridPos": {"h": 4, "w": 24, "x": 0, "y": 16}
+      },
+      {
+        "id": 7,
+        "title": "Error Budget Burn Rate",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "slo:api_availability_5m / 0.001",
+            "legendFormat": "API Availability Burn Rate"
+          },
+          {
+            "expr": "(slo:api_latency_p95_5m > 0.3) * 1000",
+            "legendFormat": "API Latency Burn Rate"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "thresholdsStyle": {
+                "mode": "line"
+              }
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "transparent", "value": 0},
+                {"color": "yellow", "value": 6},
+                {"color": "red", "value": 14.4}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 20}
+      },
+      {
+        "id": 8,
+        "title": "Top Error Endpoints",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "topk(10, sum by (endpoint) (rate(http_requests_total{code=~\"5..\"}[5m])))",
+            "format": "table"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 20}
+      },
+      {
+        "id": 9,
+        "title": "Resource Utilization",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "rate(process_cpu_seconds_total{job=\"ptaas-api\"}[5m]) * 100",
+            "legendFormat": "CPU Usage %"
+          },
+          {
+            "expr": "process_resident_memory_bytes{job=\"ptaas-api\"} / 1024 / 1024",
+            "legendFormat": "Memory Usage MB"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "unit": "percent"
+          }
+        },
+        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 28}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 39,
+    "version": 1,
+    "links": [
+      {
+        "title": "Security Dashboard",
+        "url": "/d/security-overview",
+        "type": "dashboards"
+      },
+      {
+        "title": "Infrastructure Dashboard",
+        "url": "/d/infrastructure-overview",
+        "type": "dashboards"
+      },
+      {
+        "title": "SOC2 Compliance Dashboard",
+        "url": "/d/soc2-compliance",
+        "type": "dashboards"
+      }
+    ],
+    "annotations": {
+      "list": [
+        {
+          "name": "Deployments",
+          "datasource": "prometheus",
+          "expr": "changes(process_start_time_seconds{job=\"ptaas-api\"}[1h])",
+          "iconColor": "green",
+          "titleFormat": "Deployment"
+        },
+        {
+          "name": "Security Incidents",
+          "datasource": "prometheus",
+          "expr": "ALERTS{alertname=~\".*Security.*\",alertstate=\"firing\"}",
+          "iconColor": "red",
+          "titleFormat": "Security Incident"
+        }
+      ]
+    },
+    "templating": {
+      "list": [
+        {
+          "name": "environment",
+          "type": "query",
+          "query": "label_values(up, environment)",
+          "current": {"selected": true, "text": "production", "value": "production"},
+          "options": [],
+          "refresh": 1
+        },
+        {
+          "name": "tenant_id",
+          "type": "query",
+          "query": "label_values(api_requests_total, tenant_id)",
+          "current": {"selected": false, "text": "All", "value": "$__all"},
+          "options": [],
+          "refresh": 1,
+          "multi": true,
+          "includeAll": true
+        }
+      ]
+    }
+  }
+}

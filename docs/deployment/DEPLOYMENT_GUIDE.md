@@ -108,7 +108,7 @@ helm repo add xorb https://charts.xorb-security.com
 helm repo update
 
 # Install with custom values
-helm install xorb-platform xorb/xorb \
+helm install xorb_platform xorb/xorb \
   --namespace xorb-system \
   --create-namespace \
   --values production-values.yaml
@@ -150,7 +150,7 @@ terraform apply
 
 # Using CloudFormation
 aws cloudformation create-stack \
-  --stack-name xorb-platform \
+  --stack-name xorb_platform \
   --template-body file://infra/cloudformation/xorb-stack.yaml \
   --parameters file://production-parameters.json \
   --capabilities CAPABILITY_IAM
@@ -174,8 +174,8 @@ az deployment group create \
 ### **Google Cloud Deployment**
 ```bash
 # Using Cloud Deployment Manager
-gcloud deployment-manager deployments create xorb-platform \
-  --config infra/gcp/xorb-platform.yaml
+gcloud deployment-manager deployments create xorb_platform \
+  --config infra/gcp/xorb_platform.yaml
 
 # Using Terraform
 cd infra/terraform/gcp
@@ -221,7 +221,7 @@ postgresql.conf:
   ssl_cert_file: '/var/lib/postgresql/server.crt'
   ssl_key_file: '/var/lib/postgresql/server.key'
   ssl_ca_file: '/var/lib/postgresql/ca.crt'
-  
+
 pg_hba.conf:
   # Only allow SSL connections
   hostssl all all 0.0.0.0/0 md5
@@ -245,15 +245,15 @@ scrape_configs:
   - job_name: 'xorb-api'
     static_configs:
       - targets: ['api:8000']
-  
+
   - job_name: 'xorb-intelligence'
     static_configs:
       - targets: ['intelligence:8001']
-  
+
   - job_name: 'xorb-execution'
     static_configs:
       - targets: ['execution:8002']
-  
+
   - job_name: 'xorb-siem'
     static_configs:
       - targets: ['siem:8003']
@@ -422,13 +422,13 @@ metadata:
 spec:
   instances: 3
   primaryUpdateStrategy: unsupervised
-  
+
   postgresql:
     parameters:
       max_connections: "200"
       shared_buffers: "256MB"
       effective_cache_size: "1GB"
-  
+
   bootstrap:
     initdb:
       database: xorb

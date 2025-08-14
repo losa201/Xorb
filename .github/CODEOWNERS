@@ -1,0 +1,22 @@
+# Global code ownership for sensitive areas
+# Protect critical architectural and infrastructure paths
+
+# Architecture documentation and decisions
+/docs/architecture/ @losa201
+/docs/architecture/* @losa201
+
+# Protocol definitions and specifications
+/proto/ @losa201
+/proto/* @losa201
+
+# Platform bus implementation (ADR-002 compliance)
+/src/xorb_platform/bus/ @losa201
+/src/xorb_platform/bus/* @losa201
+
+# Infrastructure as code
+/infra/ @losa201
+/infra/* @losa201
+
+# Additional protected paths
+/.github/workflows/ @losa201
+/tools/policies/ @losa201

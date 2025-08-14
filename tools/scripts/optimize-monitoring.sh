@@ -50,26 +50,26 @@ scrape_configs:
     static_configs:
       - targets: ['localhost:9090']
     scrape_interval: 30s
-    
+
   - job_name: 'xorb-api'
     static_configs:
       - targets: ['host.docker.internal:8000']
     metrics_path: /metrics
     scrape_interval: 15s
     scrape_timeout: 10s
-    
+
   - job_name: 'xorb-orchestrator'
     static_configs:
       - targets: ['host.docker.internal:8080']
     metrics_path: /metrics
     scrape_interval: 15s
-    
+
   - job_name: 'xorb-worker'
     static_configs:
       - targets: ['host.docker.internal:9000']
     metrics_path: /metrics
     scrape_interval: 15s
-    
+
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['host.docker.internal:9100']
@@ -92,7 +92,7 @@ EOF
 mkdir -p monitoring/optimized/rules
 cat > monitoring/optimized/rules/xorb-alerts.yml << 'EOF'
 groups:
-  - name: xorb-platform
+  - name: xorb_platform
     rules:
       - alert: XORBServiceDown
         expr: up{job=~"xorb-.*"} == 0
@@ -102,7 +102,7 @@ groups:
         annotations:
           summary: "XORB service {{ $labels.job }} is down"
           description: "Service {{ $labels.job }} has been down for more than 1 minute"
-          
+
       - alert: XORBHighResponseTime
         expr: http_request_duration_seconds{job=~"xorb-.*"} > 0.5
         for: 2m
@@ -111,7 +111,7 @@ groups:
         annotations:
           summary: "High response time for {{ $labels.job }}"
           description: "Response time is {{ $value }}s for {{ $labels.job }}"
-          
+
       - alert: XORBHighMemoryUsage
         expr: process_resident_memory_bytes{job=~"xorb-.*"} / 1024 / 1024 > 500
         for: 5m

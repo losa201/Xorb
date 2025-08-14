@@ -1,5 +1,5 @@
 apiVersion: v2
-name: xorb-platform
+name: xorb_platform
 description: XORB Enterprise Cybersecurity Platform - Production-Ready PTaaS
 type: application
 version: 3.0.0
