@@ -94,6 +94,146 @@ curl "http://localhost:8000/api/v1/ptaas/sessions/{session_id}" \
 
 ---
 
+## 🛠️ **Developer Quickstart**
+
+### **Prerequisites for Development**
+- **Python 3.12+** with pip and venv
+- **Git** for version control
+- **Make** for build automation
+- **Docker** (optional, for full stack development)
+- **Pre-commit** for code quality hooks
+
+### **1. Development Environment Setup**
+```bash
+# Clone and enter repository
+git clone https://github.com/your-org/xorb.git
+cd xorb
+
+# Create and activate virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.lock
+
+# Install pre-commit hooks for code quality
+pre-commit install
+```
+
+### **2. Quick Development Commands**
+```bash
+# XORB Developer CLI (recommended)
+./tools/xorbctl/xorbctl --help           # Show all available commands
+./tools/xorbctl/xorbctl init             # Initialize development environment
+./tools/xorbctl/xorbctl test-fast        # Run fast unit tests
+./tools/xorbctl/xorbctl ci-fast          # Run lint + test-fast
+./tools/xorbctl/xorbctl security-scan    # Run comprehensive security scan
+./tools/xorbctl/xorbctl status           # Show platform status
+./tools/xorbctl/xorbctl up               # Start services with Docker
+
+# Traditional Make commands
+make doctor                              # Run repository health checks
+make lint                                # Run pre-commit linting
+make test-fast                          # Run fast unit tests without coverage
+make security-scan                      # Run comprehensive security scan
+make up                                 # Start development services
+make api                                # Start API server locally
+```
+
+### **3. Development Workflow**
+```bash
+# 1. Check repository health
+./tools/xorbctl/xorbctl doctor
+
+# 2. Run security scan
+./tools/xorbctl/xorbctl security-scan
+
+# 3. Start API server for development
+cd src/api && uvicorn app.main:app --reload --port 8000
+
+# 4. Run tests during development
+./tools/xorbctl/xorbctl test-fast
+
+# 5. Before committing, run full CI checks
+./tools/xorbctl/xorbctl ci-fast
+```
+
+### **4. Code Quality Standards**
+- **Pre-commit Hooks**: Automatic linting, secret detection, security checks
+- **Security Scanning**: gitleaks, bandit, ruff security rules, Dockerfile scanning
+- **ADR Compliance**: Automatic enforcement of Architecture Decision Records
+- **Test Coverage**: Minimum 75% coverage required for CI
+- **Conventional Commits**: Use conventional commit message format
+
+### **5. Testing Strategy**
+```bash
+# Fast unit tests (no coverage)
+pytest -m unit -q
+
+# Integration tests (requires services)
+pytest -m integration -v
+
+# Security-focused tests
+pytest -m security -v
+
+# End-to-end tests
+pytest -m e2e -v
+
+# All tests with coverage
+pytest --cov=src --cov-report=xml --cov-fail-under=75
+```
+
+### **6. Development Environment Validation**
+```bash
+# Validate development setup
+python tools/scripts/validate_environment.py
+
+# Check service health
+curl http://localhost:8000/api/v1/health
+
+# Test PTaaS endpoints
+curl http://localhost:8000/api/v1/ptaas/profiles
+```
+
+### **7. Common Development Tasks**
+```bash
+# Add new API endpoint
+# 1. Create route in src/api/app/routers/
+# 2. Add service logic in src/api/app/services/
+# 3. Update tests in tests/unit/ and tests/integration/
+# 4. Run ./tools/xorbctl/xorbctl ci-fast
+
+# Update security configuration
+# 1. Modify .pre-commit-config.yaml for new hooks
+# 2. Update tools/security/security_scan.py for new checks
+# 3. Test with make security-scan
+
+# Add new Make target
+# 1. Add target to Makefile with ## comment for help
+# 2. Optionally add to tools/xorbctl/cli.py for CLI access
+# 3. Test with make <target> and ./tools/xorbctl/xorbctl make <target>
+```
+
+### **8. Troubleshooting**
+```bash
+# Check repository status
+./tools/xorbctl/xorbctl status
+
+# Validate environment setup
+python tools/scripts/validate_environment.py
+
+# Check for common issues
+make doctor
+
+# View API logs
+cd src/api && uvicorn app.main:app --log-level debug
+
+# Check Docker services
+docker-compose -f deploy/configs/docker-compose.dev.yml logs -f
+```
+
+---
+
 ## 🏗️ **Production Architecture**
 
 ### **Service Structure**
