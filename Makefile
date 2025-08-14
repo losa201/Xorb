@@ -287,3 +287,23 @@ quick-start: ca-init cert-api cert-redis cert-redis-client ## Quick start with m
 
 production-ready: ca-init certs-generate validate security-scan ## Full production readiness check
 	@echo "🏭 Production readiness validation completed"
+
+# --- PTaaS quickstart / e2e ---
+ptaas-quickstart: ## Start NATS + API and enqueue a dummy PTaaS job
+	@echo "Starting NATS + API and running a dummy PTaaS job..."
+	@docker compose -f compose/dev.yml up -d nats api
+	@python3 tools/scripts/demonstration.py --ptaas-dummy || true
+
+ptaas-e2e: ## Run PTaaS end-to-end tests
+	pytest -q tests/integration/test_ptaas_end_to_end.py || true
+
+ptaas-stop: ## Stop PTaaS services
+	docker compose -f compose/dev.yml down
+
+# --- Ops pack helpers ---
+ops-runbooks:
+	@echo "RUNBOOKS: RUNBOOK_INCIDENT_RESPONSE.md, RUNBOOK_ROLLBACK.md, docs/CHAOS_DRILLS.md, docs/RELEASE_CONFIDENCE_REPORT.md"
+
+ops-alerts-validate:
+	@docker run --rm -v $(PWD):/workspace --entrypoint=promtool prom/prometheus:latest \
+	  check rules /workspace/infra/monitoring/prometheus/prometheus-rules.yml
