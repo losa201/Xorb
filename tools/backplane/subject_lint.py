@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
 """
-NATS Subject Linter for Xorb Backplane.
+NATS Subject Linter for Xorb Backplane - Phase G2 Tenant Isolation
 
 Validates NATS subject strings against the immutable v1 schema:
 xorb.<tenant>.<domain>.<service>.<event>
 
 Where:
+- tenant: alphanumeric, 3-63 chars, no dots/hyphens at start/end
 - domain ∈ {evidence, scan, compliance, control}
-- event  ∈ {created, updated, completed, failed, replay}
+- service: alphanumeric with hyphens, 1-32 chars
+- event ∈ {created, updated, completed, failed, replay}
+
+Schema version: v1 (IMMUTABLE)
 """
 
 import argparse
@@ -15,18 +19,22 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict, Any
 
 
-# Schema constants
+# Schema constants - v1 IMMUTABLE
 VALID_DOMAINS = {"evidence", "scan", "compliance", "control"}
 VALID_EVENTS = {"created", "updated", "completed", "failed", "replay"}
 SUBJECT_PATTERN = re.compile(r"^xorb\.([^.]+)\.([^.]+)\.([^.]+)\.([^.]+)$")
 
+# Validation patterns
+TENANT_PATTERN = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$")
+SERVICE_PATTERN = re.compile(r"^[a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?$")
+
 
 def validate_subject(subject: str) -> Tuple[bool, Optional[str]]:
     """
-    Validate a single NATS subject against the schema.
+    Validate a single NATS subject against the v1 schema.
 
     Args:
         subject: The subject string to validate
@@ -41,15 +49,44 @@ def validate_subject(subject: str) -> Tuple[bool, Optional[str]]:
     if not match:
         return False, f"Subject '{subject}' does not match pattern xorb.<tenant>.<domain>.<service>.<event>"
 
-    _, domain, _, event = match.groups()
+    tenant, domain, service, event = match.groups()
 
+    # Validate tenant
+    if not TENANT_PATTERN.match(tenant):
+        return False, f"Invalid tenant '{tenant}' in subject '{subject}'. Must be alphanumeric, no dots/hyphens at start/end"
+
+    if len(tenant) < 3 or len(tenant) > 63:
+        return False, f"Invalid tenant '{tenant}' in subject '{subject}'. Must be 3-63 characters"
+
+    # Validate domain
     if domain not in VALID_DOMAINS:
-        return False, f"Invalid domain '{domain}' in subject '{subject}'. Valid domains: {', '.join(VALID_DOMAINS)}"
+        return False, f"Invalid domain '{domain}' in subject '{subject}'. Valid domains: {', '.join(sorted(VALID_DOMAINS))}"
 
+    # Validate service
+    if not SERVICE_PATTERN.match(service):
+        return False, f"Invalid service '{service}' in subject '{subject}'. Must be alphanumeric with hyphens, no dots/hyphens at start/end"
+
+    if len(service) < 1 or len(service) > 32:
+        return False, f"Invalid service '{service}' in subject '{subject}'. Must be 1-32 characters"
+
+    # Validate event
     if event not in VALID_EVENTS:
-        return False, f"Invalid event '{event}' in subject '{subject}'. Valid events: {', '.join(VALID_EVENTS)}"
+        return False, f"Invalid event '{event}' in subject '{subject}'. Valid events: {', '.join(sorted(VALID_EVENTS))}"
 
     return True, None
+
+
+def get_schema_info() -> Dict[str, Any]:
+    """Get schema information for display/reporting."""
+    return {
+        "version": "v1",
+        "immutable": True,
+        "pattern": "xorb.<tenant>.<domain>.<service>.<event>",
+        "domains": sorted(VALID_DOMAINS),
+        "events": sorted(VALID_EVENTS),
+        "tenant_rules": "alphanumeric, 3-63 chars, no dots/hyphens at start/end",
+        "service_rules": "alphanumeric with hyphens, 1-32 chars"
+    }
 
 
 def find_subjects_in_file(file_path: Path) -> List[Tuple[str, int, str]]:
@@ -67,9 +104,23 @@ def find_subjects_in_file(file_path: Path) -> List[Tuple[str, int, str]]:
         with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             for line_num, line in enumerate(f, 1):
                 # Find all potential subjects in the line
-                # This is a simple approach - in a real implementation you might want more sophisticated parsing
-                for match in re.finditer(r'xorb\.[^.]+\.[^.]+\.[^.]+\.[^.]+', line):
+                # Skip template strings and documentation examples
+                line_lower = line.lower()
+                if any(skip in line_lower for skip in ['<tenant>', '<domain>', '<service>', '<event>', 'template', 'example']):
+                    continue
+
+                # Look for NATS subject patterns
+                for match in re.finditer(r'xorb\.[^.\s"\']+\.[^.\s"\']+\.[^.\s"\']+\.[^.\s"\']+', line):
                     subject = match.group()
+                    # Clean up common artifacts
+                    subject = subject.rstrip('",\')\n\r')
+                    if subject.endswith('.'):
+                        subject = subject[:-1]
+
+                    # Skip obvious template/example patterns
+                    if any(template in subject for template in ['{', '}', '<', '>', 'example', 'template', 'test-']):
+                        continue
+
                     subjects.append((subject, line_num, line.strip()))
     except Exception as e:
         print(f"Warning: Could not read {file_path}: {e}", file=sys.stderr)
@@ -141,7 +192,21 @@ def format_violations_table(violations: List[Tuple[str, int, str, str]]) -> str:
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Lint NATS subjects in files against Xorb schema")
+    parser = argparse.ArgumentParser(
+        description="Lint NATS subjects in files against Xorb v1 schema",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=f"""
+Schema v1 (IMMUTABLE):
+  Pattern: xorb.<tenant>.<domain>.<service>.<event>
+  Domains: {', '.join(sorted(VALID_DOMAINS))}
+  Events:  {', '.join(sorted(VALID_EVENTS))}
+
+Examples:
+  Valid:   xorb.tenant-1.scan.nmap.created
+  Valid:   xorb.t-qa.evidence.discovery.completed
+  Invalid: xorb.t.scan.nmap.started  (tenant too short, invalid event)
+        """
+    )
     parser.add_argument(
         "--paths",
         nargs="+",
@@ -161,8 +226,28 @@ def main():
         "--allowlist",
         help="Regex pattern to allowlist subjects"
     )
+    parser.add_argument(
+        "--schema",
+        action="store_true",
+        help="Print schema information and exit"
+    )
 
     args = parser.parse_args()
+
+    # Handle --schema flag
+    if args.schema:
+        schema_info = get_schema_info()
+        if args.json:
+            print(json.dumps(schema_info, indent=2))
+        else:
+            print("NATS Subject Schema v1 (IMMUTABLE)")
+            print("===================================")
+            print(f"Pattern: {schema_info['pattern']}")
+            print(f"Domains: {', '.join(schema_info['domains'])}")
+            print(f"Events:  {', '.join(schema_info['events'])}")
+            print(f"Tenant:  {schema_info['tenant_rules']}")
+            print(f"Service: {schema_info['service_rules']}")
+        sys.exit(0)
 
     # Determine input source
     if args.paths:

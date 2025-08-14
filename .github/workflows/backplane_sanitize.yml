@@ -1,0 +1,451 @@
+name: Backplane Subject Schema Sanitization
+
+on:
+  push:
+    branches: [ main, develop, 'backplane-*' ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  subject-lint:
+    name: NATS Subject Schema Validation
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for comprehensive scanning
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt || true  # Don't fail if requirements missing
+
+    - name: Make subject linter executable
+      run: chmod +x tools/backplane/subject_lint.py
+
+    - name: Display schema information
+      run: |
+        echo "=== NATS Subject Schema v1 (IMMUTABLE) ==="
+        python3 tools/backplane/subject_lint.py --schema
+
+    - name: Scan for off-paved subjects in source code
+      id: scan_sources
+      run: |
+        echo "Scanning source code for NATS subjects..."
+
+        # Scan all relevant source files
+        SCAN_PATHS=(
+          "src/"
+          "services/"
+          "xorb_platform_bus/"
+          "tests/"
+          "tools/"
+          "infra/"
+        )
+
+        # Create results file
+        RESULTS_FILE="subject_violations.json"
+
+        # Perform scan
+        python3 tools/backplane/subject_lint.py \
+          --paths "${SCAN_PATHS[@]}" \
+          --json \
+          --allowlist "test.*|example.*|TODO.*" \
+          > "$RESULTS_FILE" || SCAN_EXIT_CODE=$?
+
+        # Check results
+        if [ "${SCAN_EXIT_CODE:-0}" -ne 0 ]; then
+          echo "scan_failed=true" >> $GITHUB_OUTPUT
+          echo "results_file=$RESULTS_FILE" >> $GITHUB_OUTPUT
+        else
+          echo "scan_failed=false" >> $GITHUB_OUTPUT
+        fi
+
+        # Display results summary
+        if [ -f "$RESULTS_FILE" ]; then
+          VIOLATION_COUNT=$(python3 -c "import json; data=json.load(open('$RESULTS_FILE')); print(len(data.get('violations', [])))")
+          echo "violation_count=$VIOLATION_COUNT" >> $GITHUB_OUTPUT
+
+          if [ "$VIOLATION_COUNT" -gt 0 ]; then
+            echo "❌ Found $VIOLATION_COUNT subject schema violations"
+          else
+            echo "✅ No subject schema violations found"
+          fi
+        fi
+
+    - name: Display violations (if any)
+      if: steps.scan_sources.outputs.scan_failed == 'true'
+      run: |
+        echo "=== SUBJECT SCHEMA VIOLATIONS FOUND ==="
+        python3 tools/backplane/subject_lint.py \
+          --paths src/ services/ xorb_platform_bus/ tests/ tools/ infra/ \
+          --allowlist "test.*|example.*|TODO.*" || true
+
+        echo ""
+        echo "=== JSON FORMAT ==="
+        cat subject_violations.json | python3 -m json.tool
+
+    - name: Scan configuration files
+      id: scan_configs
+      run: |
+        echo "Scanning configuration files..."
+
+        CONFIG_PATHS=(
+          "config/"
+          "deploy/"
+          "docker-compose*.yml"
+          "*.yaml"
+          "*.yml"
+          "*.json"
+        )
+
+        # Find and scan config files
+        find . -name "*.yml" -o -name "*.yaml" -o -name "*.json" | \
+          grep -E "(config|deploy|compose)" | \
+          head -20 | \
+          xargs python3 tools/backplane/subject_lint.py \
+            --json \
+            --allowlist "test.*|example.*" \
+            > config_violations.json || CONFIG_EXIT_CODE=$?
+
+        if [ "${CONFIG_EXIT_CODE:-0}" -ne 0 ]; then
+          echo "config_violations=true" >> $GITHUB_OUTPUT
+
+          CONFIG_VIOLATION_COUNT=$(python3 -c "import json; data=json.load(open('config_violations.json')); print(len(data.get('violations', [])))")
+          echo "config_violation_count=$CONFIG_VIOLATION_COUNT" >> $GITHUB_OUTPUT
+
+          if [ "$CONFIG_VIOLATION_COUNT" -gt 0 ]; then
+            echo "❌ Found $CONFIG_VIOLATION_COUNT violations in config files"
+          fi
+        else
+          echo "config_violations=false" >> $GITHUB_OUTPUT
+          echo "✅ No violations in configuration files"
+        fi
+
+    - name: Check for hardcoded subjects in documentation
+      id: scan_docs
+      run: |
+        echo "Scanning documentation for subject examples..."
+
+        # Scan docs for subjects (more lenient - allow examples)
+        find docs/ -name "*.md" | \
+          xargs python3 tools/backplane/subject_lint.py \
+            --json \
+            --allowlist "example.*|test.*|demo.*|sample.*" \
+            > doc_violations.json || DOC_EXIT_CODE=$?
+
+        if [ "${DOC_EXIT_CODE:-0}" -ne 0 ]; then
+          DOC_VIOLATION_COUNT=$(python3 -c "import json; data=json.load(open('doc_violations.json')); print(len(data.get('violations', [])))")
+          if [ "$DOC_VIOLATION_COUNT" -gt 0 ]; then
+            echo "doc_violations=true" >> $GITHUB_OUTPUT
+            echo "⚠️  Found $DOC_VIOLATION_COUNT potential violations in documentation"
+          fi
+        else
+          echo "doc_violations=false" >> $GITHUB_OUTPUT
+          echo "✅ Documentation examples are compliant"
+        fi
+
+    - name: Generate compliance report
+      run: |
+        echo "=== BACKPLANE SUBJECT COMPLIANCE REPORT ===" > compliance_report.md
+        echo "" >> compliance_report.md
+        echo "**Schema Version:** v1 (IMMUTABLE)" >> compliance_report.md
+        echo "**Pattern:** \`xorb.<tenant>.<domain>.<service>.<event>\`" >> compliance_report.md
+        echo "**Scan Date:** $(date -u +"%Y-%m-%d %H:%M:%S UTC")" >> compliance_report.md
+        echo "" >> compliance_report.md
+
+        # Source code results
+        VIOLATION_COUNT="${{ steps.scan_sources.outputs.violation_count || 0 }}"
+        if [ "$VIOLATION_COUNT" -gt 0 ]; then
+          echo "❌ **Source Code:** $VIOLATION_COUNT violations found" >> compliance_report.md
+        else
+          echo "✅ **Source Code:** Compliant" >> compliance_report.md
+        fi
+
+        # Config results
+        CONFIG_VIOLATION_COUNT="${{ steps.scan_configs.outputs.config_violation_count || 0 }}"
+        if [ "$CONFIG_VIOLATION_COUNT" -gt 0 ]; then
+          echo "❌ **Configuration:** $CONFIG_VIOLATION_COUNT violations found" >> compliance_report.md
+        else
+          echo "✅ **Configuration:** Compliant" >> compliance_report.md
+        fi
+
+        # Documentation results
+        if [ "${{ steps.scan_docs.outputs.doc_violations }}" == "true" ]; then
+          echo "⚠️  **Documentation:** Potential violations (review needed)" >> compliance_report.md
+        else
+          echo "✅ **Documentation:** Compliant" >> compliance_report.md
+        fi
+
+        echo "" >> compliance_report.md
+        echo "### Schema Rules" >> compliance_report.md
+        echo "- **Tenant:** 3-63 chars, alphanumeric with hyphens, no leading/trailing hyphens" >> compliance_report.md
+        echo "- **Domain:** evidence | scan | compliance | control" >> compliance_report.md
+        echo "- **Service:** 1-32 chars, alphanumeric with hyphens, no leading/trailing hyphens" >> compliance_report.md
+        echo "- **Event:** created | updated | completed | failed | replay" >> compliance_report.md
+
+        cat compliance_report.md
+
+    - name: Upload compliance artifacts
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: backplane-compliance-report
+        path: |
+          compliance_report.md
+          subject_violations.json
+          config_violations.json
+          doc_violations.json
+        retention-days: 30
+
+    - name: Comment PR with results (if PR)
+      if: github.event_name == 'pull_request' && (steps.scan_sources.outputs.scan_failed == 'true' || steps.scan_configs.outputs.config_violations == 'true')
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+
+          let comment = '## 🔍 Backplane Subject Schema Compliance Report\n\n';
+
+          const violationCount = ${{ steps.scan_sources.outputs.violation_count || 0 }};
+          const configViolationCount = ${{ steps.scan_configs.outputs.config_violation_count || 0 }};
+
+          if (violationCount > 0 || configViolationCount > 0) {
+            comment += '❌ **Subject schema violations detected!**\n\n';
+
+            if (violationCount > 0) {
+              comment += `- **Source Code**: ${violationCount} violations\n`;
+            }
+
+            if (configViolationCount > 0) {
+              comment += `- **Configuration**: ${configViolationCount} violations\n`;
+            }
+
+            comment += '\n### Required Schema (v1 IMMUTABLE)\n';
+            comment += '```\n';
+            comment += 'xorb.<tenant>.<domain>.<service>.<event>\n';
+            comment += '\n';
+            comment += 'Where:\n';
+            comment += '- domain ∈ {evidence, scan, compliance, control}\n';
+            comment += '- event ∈ {created, updated, completed, failed, replay}\n';
+            comment += '```\n\n';
+            comment += '**Please fix violations before merging.**\n';
+            comment += 'Run `make backplane-lint` locally to see details.\n';
+          } else {
+            comment += '✅ **All subject schemas are compliant!**\n';
+          }
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: comment
+          });
+
+    - name: Fail if violations found
+      if: steps.scan_sources.outputs.scan_failed == 'true' || steps.scan_configs.outputs.config_violations == 'true'
+      run: |
+        echo "❌ Subject schema violations detected!"
+        echo "Total violations: ${{ steps.scan_sources.outputs.violation_count || 0 }} (source) + ${{ steps.scan_configs.outputs.config_violation_count || 0 }} (config)"
+        echo ""
+        echo "Fix violations using the v1 schema:"
+        echo "  xorb.<tenant>.<domain>.<service>.<event>"
+        echo ""
+        echo "Valid domains: evidence, scan, compliance, control"
+        echo "Valid events: created, updated, completed, failed, replay"
+        echo ""
+        exit 1
+
+  terraform-validation:
+    name: Terraform NATS Infrastructure Validation
+    runs-on: ubuntu-latest
+    needs: subject-lint  # Run after subject validation passes
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+      with:
+        terraform_version: '~> 1.5'
+
+    - name: Terraform Format Check
+      run: |
+        cd infra/iac/nats/
+        terraform fmt -check
+
+    - name: Terraform Init
+      run: |
+        cd infra/iac/nats/
+        terraform init
+
+    - name: Terraform Validate
+      run: |
+        cd infra/iac/nats/
+        terraform validate
+
+    - name: Terraform Plan (dry-run)
+      run: |
+        cd infra/iac/nats/
+        terraform plan -out=tfplan
+        echo "✅ Terraform plan successful"
+
+    - name: Upload Terraform plan
+      uses: actions/upload-artifact@v3
+      with:
+        name: terraform-plan
+        path: infra/iac/nats/tfplan
+        retention-days: 5
+
+  integration-test:
+    name: Subject Builder Integration Test
+    runs-on: ubuntu-latest
+    needs: subject-lint
+
+    services:
+      nats:
+        image: nats:2.9-alpine
+        ports:
+          - 4222:4222
+          - 8222:8222
+        options: >-
+          --health-cmd="wget --no-verbose --tries=1 --spider http://localhost:8222/healthz || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        env:
+          NATS_SERVER_ARGS: "-js"
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install nats-py pytest pytest-asyncio
+        pip install -r requirements.txt || true
+
+    - name: Wait for NATS to be ready
+      run: |
+        timeout 30 bash -c 'until curl -f http://localhost:8222/healthz; do sleep 1; done'
+
+    - name: Test subject builder and validation
+      run: |
+        cd xorb_platform_bus/bus/pubsub/
+        python3 -c "
+        import asyncio
+        from nats_client import SubjectBuilder, Domain, Event
+
+        # Test subject builder
+        builder = SubjectBuilder('t-qa')
+
+        # Valid subjects
+        valid_subjects = [
+            builder.build(Domain.SCAN, 'nmap', Event.CREATED),
+            builder.build(Domain.EVIDENCE, 'discovery', Event.COMPLETED),
+            builder.build(Domain.COMPLIANCE, 'pci-dss', Event.UPDATED),
+            builder.build(Domain.CONTROL, 'firewall', Event.FAILED)
+        ]
+
+        print('✅ Valid subjects generated:')
+        for subject in valid_subjects:
+            print(f'  {subject}')
+
+        # Test parsing
+        for subject in valid_subjects:
+            components = builder.parse(subject)
+            print(f'  Parsed {subject} -> {components}')
+
+        print('✅ Subject builder integration test passed')
+        "
+
+    - name: Test NATS client connection
+      run: |
+        cd xorb_platform_bus/bus/pubsub/
+        python3 -c "
+        import asyncio
+        from nats_client import create_nats_client, Domain, Event
+
+        async def test():
+            client = create_nats_client('integration-test', ['nats://localhost:4222'])
+
+            async with client.connection():
+                print('✅ NATS client connected successfully')
+
+                # Test subject validation
+                try:
+                    await client.publish(Domain.SCAN, 'test', Event.CREATED, {'test': 'data'})
+                    print('✅ Published test message with valid subject')
+                except Exception as e:
+                    print(f'❌ Failed to publish: {e}')
+                    raise
+
+        asyncio.run(test())
+        "
+
+  summary:
+    name: Compliance Summary
+    runs-on: ubuntu-latest
+    needs: [subject-lint, terraform-validation, integration-test]
+    if: always()
+
+    steps:
+    - name: Generate final status
+      run: |
+        echo "=== BACKPLANE PHASE G2 COMPLIANCE SUMMARY ==="
+
+        if [ "${{ needs.subject-lint.result }}" == "success" ]; then
+          echo "✅ Subject Schema Validation: PASSED"
+        else
+          echo "❌ Subject Schema Validation: FAILED"
+        fi
+
+        if [ "${{ needs.terraform-validation.result }}" == "success" ]; then
+          echo "✅ Terraform Infrastructure: PASSED"
+        else
+          echo "❌ Terraform Infrastructure: FAILED"
+        fi
+
+        if [ "${{ needs.integration-test.result }}" == "success" ]; then
+          echo "✅ Integration Tests: PASSED"
+        else
+          echo "❌ Integration Tests: FAILED"
+        fi
+
+        # Overall status
+        if [ "${{ needs.subject-lint.result }}" == "success" ] && [ "${{ needs.terraform-validation.result }}" == "success" ] && [ "${{ needs.integration-test.result }}" == "success" ]; then
+          echo ""
+          echo "🎉 **OVERALL STATUS: COMPLIANT**"
+          echo "Backplane Phase G2 tenant isolation is ready for deployment."
+        else
+          echo ""
+          echo "💥 **OVERALL STATUS: NON-COMPLIANT**"
+          echo "Fix violations before proceeding with deployment."
+          exit 1
+        fi
