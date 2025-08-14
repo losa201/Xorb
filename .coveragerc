@@ -1,0 +1,6 @@
+[run]
+omit =
+    src/api/app/services/*
+    src/api/app/infrastructure/advanced_*
+    src/api/app/routers/advanced_*
+    src/api/app/enhanced_*
