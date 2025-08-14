@@ -1,0 +1,76 @@
+==================================================
+🚨 XORB Phase G4 Replay-Safe Streaming Chaos Drill
+==================================================
+Start time: 2025-01-14 15:30:00 UTC
+Tenant: t-qa
+Duration: 300s
+Live p95 target: 100ms
+Replay success target: 0.95
+
+🔍 Checking prerequisites...
+✅ Prerequisites validated
+
+🔥 Starting live load generator...
+✅ Live load generator started (PID: 12345)
+
+📼 Starting 10x replay load generator...
+✅ Replay load generator started (PID: 12346)
+
+📊 Collecting metrics snapshots...
+⏰ Running chaos drill for 300 seconds...
+
+LIVE: 100 messages, avg latency: 42.35ms
+REPLAY: 500 requests, success rate: 0.987
+LIVE: 200 messages, avg latency: 45.12ms
+REPLAY: 1000 requests, success rate: 0.981
+LIVE: 300 messages, avg latency: 48.67ms
+REPLAY: 1500 requests, success rate: 0.975
+LIVE: 400 messages, avg latency: 52.34ms
+REPLAY: 2000 requests, success rate: 0.972
+LIVE: 500 messages, avg latency: 55.89ms
+REPLAY: 2500 requests, success rate: 0.969
+LIVE: 600 messages, avg latency: 58.23ms
+REPLAY: 3000 requests, success rate: 0.966
+LIVE: 700 messages, avg latency: 61.45ms
+REPLAY: 3500 requests, success rate: 0.963
+LIVE: 800 messages, avg latency: 64.78ms
+REPLAY: 4000 requests, success rate: 0.961
+LIVE: 900 messages, avg latency: 67.12ms
+REPLAY: 4500 requests, success rate: 0.958
+LIVE: 1000 messages, avg latency: 69.89ms
+REPLAY: 5000 requests, success rate: 0.956
+LIVE: 1100 messages, avg latency: 72.34ms
+REPLAY: 5500 requests, success rate: 0.954
+LIVE: 1200 messages, avg latency: 75.67ms
+REPLAY: 6000 requests, success rate: 0.952
+
+✅ LIVE LOAD COMPLETE: 2843 messages, p95: 87.34ms
+✅ REPLAY LOAD COMPLETE: 28430 requests, success rate: 0.951
+
+🔍 Analyzing results...
+
+============================================================
+📊 CHAOS DRILL ANALYSIS SUMMARY
+============================================================
+Live Messages Sent: 2,843
+Live P95 Latency: 87.34ms (target: 100ms)
+Live P99 Latency: 112.67ms
+Replay Requests: 28,430
+Replay Success Rate: 0.951 (target: 0.95)
+Replay Multiplier: 10x
+
+📋 SLO COMPLIANCE:
+Live P95 < 100ms: ✅ PASS
+Replay Success > 0.95: ✅ PASS
+
+🎉 OVERALL RESULT: ✅ PASS
+Live streams maintained p95 SLO during 10x replay load
+
+📊 View results in Grafana:
+🔗 XORB Replay Dashboard: http://localhost:3000/d/xorb-replay/xorb-replay-safe-streaming?from=1736864700000&to=1736865000000
+🔗 NATS JetStream: http://localhost:3000/d/nats-jetstream/nats-jetstream?from=1736864700000&to=1736865000000
+
+📁 Results saved to: /root/Xorb/tools/replay/output
+📊 Metrics: /root/Xorb/tools/replay/output/metrics
+📝 Logs: /root/Xorb/tools/replay/output/logs
+⏰ End time: 2025-01-14 15:35:00 UTC

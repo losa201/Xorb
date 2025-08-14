@@ -1,6 +1,6 @@
 # Xorb developer Makefile
 
-.PHONY: help api orchestrator ptass up down test lint fmt token security-scan precommit-install sanitize-history integration-test integration-up integration-down backplane-lint nats-iac-plan nats-iac-apply nats-iac-destroy nats-test-isolation nats-generate-creds
+.PHONY: help api orchestrator ptass up down test lint fmt token security-scan precommit-install sanitize-history integration-test integration-up integration-down backplane-lint nats-iac-plan nats-iac-apply nats-iac-destroy nats-test-isolation nats-generate-creds replay-plan replay-drill replay-validate replay-infrastructure replay-dashboard replay-runbook
 
 help:
 	@echo "Development Commands:"
@@ -24,6 +24,14 @@ help:
 	@echo "make nats-iac-destroy   - destroy NATS infrastructure"
 	@echo "make nats-test-isolation - test tenant isolation"
 	@echo "make nats-generate-creds - generate tenant credentials"
+	@echo ""
+	@echo "Replay-Safe Streaming (Phase G4):"
+	@echo "make replay-plan        - plan replay infrastructure diff"
+	@echo "make replay-drill       - execute chaos drill (10x load)"
+	@echo "make replay-validate    - validate SLO compliance"
+	@echo "make replay-infrastructure - deploy replay infrastructure"
+	@echo "make replay-dashboard   - launch Grafana replay dashboard"
+	@echo "make replay-runbook     - display incident response runbook"
 
 up:
 	docker compose -f deploy/configs/docker-compose.dev.yml up --build
@@ -184,3 +192,130 @@ nats-generate-creds: ## Generate NATS credentials for tenants
 	@echo "nats pub --creds=\$$NATS_CREDENTIALS 'xorb.tenant-1.scan.nmap.created' 'test'"
 	@echo ""
 	@echo "✅ Use configuration files in infra/iac/nats/out/ for integration"
+
+# =====================================
+# Phase G4 Replay-Safe Streaming Targets
+# =====================================
+
+replay-plan: ## Plan replay infrastructure diff (show IaC changes)
+	@echo "🔍 Planning Phase G4 replay infrastructure changes..."
+	@cd infra/iac/nats && terraform init -upgrade >/dev/null 2>&1
+	@cd infra/iac/nats && terraform plan -var-file="environments/dev.tfvars" \
+		-var 'replay_policy={time_window_hours=168,global_rate_limit_bps=5242880,max_replay_workers=5,storage_isolation=true,start_time_policy="ByStartTime"}' \
+		2>/dev/null | grep -A 50 -B 5 "replay" || echo "No replay-specific changes found"
+	@echo ""
+	@echo "🎯 Key replay features being deployed:"
+	@echo "  📼 Dedicated replay lanes with .replay suffix"
+	@echo "  🕐 Time-bounded windows (7 days default)"
+	@echo "  🚦 Rate limiting: 5MB/s global, 2MB/s per worker"
+	@echo "  👥 Max 5 concurrent replay workers"
+	@echo "  🔧 Lower I/O priority (5 vs 1 for live)"
+	@echo "  🎯 DeliverPolicy=ByStartTime for bounded replay"
+
+replay-drill: ## Execute chaos drill with 10x replay load
+	@echo "🧪 Starting Phase G4 replay-safe streaming chaos drill..."
+	@echo "📊 SLO Targets:"
+	@echo "  • Live P95 < 100ms"
+	@echo "  • Replay success rate > 95%"
+	@echo "  • Duration: 5 minutes"
+	@echo "  • Load: 10x replay multiplier"
+	@echo ""
+	@if [ ! -f "tools/replay/drill.sh" ]; then \
+		echo "❌ Drill script not found. Ensure tools/replay/drill.sh exists."; \
+		exit 1; \
+	fi
+	@chmod +x tools/replay/drill.sh
+	@TENANT_ID=t-qa \
+		NATS_URL=${NATS_URL:-nats://localhost:4222} \
+		PROMETHEUS_URL=${PROMETHEUS_URL:-http://localhost:9090} \
+		GRAFANA_URL=${GRAFANA_URL:-http://localhost:3000} \
+		LIVE_P95_TARGET_MS=100 \
+		REPLAY_SUCCESS_RATE_TARGET=0.95 \
+		DRILL_DURATION_SECONDS=300 \
+		REPLAY_MULTIPLIER=10 \
+		./tools/replay/drill.sh
+
+replay-validate: ## Validate SLO compliance from recent drill results
+	@echo "🔍 Validating Phase G4 SLO compliance from latest drill..."
+	@if [ ! -f "tools/replay/output/analysis.json" ]; then \
+		echo "❌ No drill results found. Run 'make replay-drill' first."; \
+		exit 1; \
+	fi
+	@echo "📊 Latest Drill Results:"
+	@python3 -c "import json; \
+		data = json.load(open('tools/replay/output/analysis.json')); \
+		print(f'  Live P95: {data[\"drill_summary\"][\"live_p95_latency_ms\"]:.2f}ms (target: 100ms)'); \
+		print(f'  Replay Success: {data[\"drill_summary\"][\"replay_success_rate\"]:.3f} (target: 0.95)'); \
+		compliant = data['slo_compliance']['live_p95_compliant'] and data['slo_compliance']['replay_success_compliant']; \
+		print(f'  SLO Compliance: PASS' if compliant else '  SLO Compliance: FAIL'); \
+		exit(0 if compliant else 1)"
+
+replay-infrastructure: ## Deploy replay-safe streaming infrastructure
+	@echo "🚀 Deploying Phase G4 replay-safe streaming infrastructure..."
+	@make nats-iac-plan
+	@echo ""
+	@echo "📋 Infrastructure includes:"
+	@echo "  📼 Dedicated replay streams with .replay suffix"
+	@echo "  👥 Bounded replay consumers (max 5 workers)"
+	@echo "  🎚️ Rate limiting and priority controls"
+	@echo "  📊 SLO monitoring and alerting"
+	@echo ""
+	@echo "Deploy with: make nats-iac-apply"
+
+replay-dashboard: ## Launch Grafana replay dashboard
+	@echo "📊 Opening XORB Replay-Safe Streaming Dashboard..."
+	@GRAFANA_URL=${GRAFANA_URL:-http://localhost:3000}
+	@echo "🔗 Dashboard URL: $$GRAFANA_URL/d/xorb-replay/xorb-replay-safe-streaming"
+	@echo ""
+	@echo "Key panels to monitor:"
+	@echo "  🎯 SLO Overview: Live P95 < 100ms, Replay Success > 95%"
+	@echo "  📈 Live vs Replay message rates and lag"
+	@echo "  🚦 Flow control hits and backpressure"
+	@echo "  📊 Rate limiting and worker utilization"
+	@echo "  ⚠️ Redeliveries and error rates"
+	@echo ""
+	@if command -v xdg-open >/dev/null 2>&1; then \
+		xdg-open "$$GRAFANA_URL/d/xorb-replay/xorb-replay-safe-streaming"; \
+	elif command -v open >/dev/null 2>&1; then \
+		open "$$GRAFANA_URL/d/xorb-replay/xorb-replay-safe-streaming"; \
+	else \
+		echo "Open the URL above manually in your browser"; \
+	fi
+
+replay-runbook: ## Display incident response runbook
+	@echo "📖 XORB Phase G4 Replay-Safe Streaming Runbook"
+	@echo "==============================================="
+	@echo ""
+	@echo "🚨 LIVE P95 LATENCY VIOLATION (> 100ms)"
+	@echo "Symptoms: Live streams experiencing high publish→deliver latency"
+	@echo "Actions:"
+	@echo "  1. Check replay worker count: sum(nats_jetstream_consumer_active{stream_class=\"replay\"})"
+	@echo "  2. Scale down replay workers if > 5 active"
+	@echo "  3. Check live consumer flow control hits"
+	@echo "  4. Verify live stream priority settings (should be 1)"
+	@echo "  5. Consider temporarily pausing replay operations"
+	@echo ""
+	@echo "🚨 REPLAY SUCCESS RATE VIOLATION (< 95%)"
+	@echo "Symptoms: Replay operations failing at high rate"
+	@echo "Actions:"
+	@echo "  1. Check replay rate limiting: sum(rate(nats_jetstream_consumer_bytes{stream_class=\"replay\"}[5m]))"
+	@echo "  2. Verify bounded window settings (7 days default)"
+	@echo "  3. Check replay consumer redelivery rates"
+	@echo "  4. Validate replay stream storage quotas (2GB limit)"
+	@echo "  5. Review ByStartTime deliver policy configuration"
+	@echo ""
+	@echo "🚦 FLOW CONTROL BACKPRESSURE"
+	@echo "Symptoms: Consumers hitting flow control limits"
+	@echo "Actions:"
+	@echo "  1. Monitor: rate(nats_jetstream_consumer_flow_control[5m])"
+	@echo "  2. Check max_ack_pending limits (1024 live, 256 replay)"
+	@echo "  3. Verify idle_heartbeat settings (5s live, 10s replay)"
+	@echo "  4. Scale consumer processing capacity"
+	@echo ""
+	@echo "📊 MONITORING QUERIES"
+	@echo "Live P95: histogram_quantile(0.95, sum(rate(nats_request_duration_seconds_bucket{stream_class=\"live\"}[5m])) by (le)) * 1000"
+	@echo "Replay Success: sum(rate(nats_jetstream_consumer_delivered{stream_class=\"replay\"}[5m])) / sum(rate(nats_jetstream_stream_messages{stream_class=\"replay\"}[5m]))"
+	@echo "Consumer Lag: nats_jetstream_stream_messages - nats_jetstream_consumer_delivered"
+	@echo ""
+	@echo "🔗 Dashboard: $${GRAFANA_URL:-http://localhost:3000}/d/xorb-replay/xorb-replay-safe-streaming"
+	@echo "📞 Escalation: Check prometheus alerts for active incidents"

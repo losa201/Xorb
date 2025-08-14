@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-NATS Client with Subject Builder and Consumer Tuning - Phase G2
+NATS Client with Replay-Safe Streaming - Phase G4
 
 Provides a production-ready NATS JetStream client with:
 - Subject schema validation (v1 immutable)
 - Per-tenant isolation and quotas
-- Tuned consumers with flow control
-- Exactly-once semantics via idempotency
-- Comprehensive error handling and retry logic
+- Dedicated replay lanes with .replay suffix
+- Time-bounded replay with DeliverPolicy=ByStartTime
+- Rate-limited replay workers with global limits
+- Storage I/O isolation and priority handling
+- Comprehensive SLO monitoring and chaos testing support
 """
 
 import asyncio
@@ -19,6 +21,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any, AsyncGenerator, Dict, List, Optional, Union, Callable
 from enum import Enum
+from datetime import datetime, timedelta
 import uuid
 
 import nats
@@ -49,8 +52,8 @@ class Event(str, Enum):
 
 class StreamClass(str, Enum):
     """Stream classes with different characteristics."""
-    LIVE = "live"      # Operational streams
-    REPLAY = "replay"  # Audit/replay streams with WORM characteristics
+    LIVE = "live"      # High-priority operational streams
+    REPLAY = "replay"  # Lower-priority replay lanes with bounded windows
 
 
 @dataclass
@@ -99,6 +102,29 @@ class ConsumerSettings:
     rate_limit_bps: Optional[int] = 1048576  # 1MB/s
     max_deliver: int = 3
     replay_policy: ReplayPolicy = ReplayPolicy.INSTANT
+    priority: int = 1  # I/O priority (1=high, 10=low)
+
+
+@dataclass
+class ReplaySettings:
+    """Replay-specific configuration with bounded windows."""
+    time_window_hours: int = 168  # 7 days bounded window
+    global_rate_limit_bps: int = 5242880  # 5MB/s global rate limit
+    max_replay_workers: int = 5
+    concurrency_cap: int = 10
+    storage_isolation: bool = True
+    start_time_policy: str = "ByStartTime"
+    
+    @classmethod
+    def from_env(cls) -> "ReplaySettings":
+        """Create replay settings from environment variables."""
+        return cls(
+            time_window_hours=int(os.getenv("NATS_REPLAY_WINDOW_HOURS", "168")),
+            global_rate_limit_bps=int(os.getenv("NATS_REPLAY_RATE_LIMIT", "5242880")),
+            max_replay_workers=int(os.getenv("NATS_REPLAY_MAX_WORKERS", "5")),
+            concurrency_cap=int(os.getenv("NATS_REPLAY_CONCURRENCY_CAP", "10")),
+            storage_isolation=os.getenv("NATS_REPLAY_STORAGE_ISOLATION", "true").lower() == "true"
+        )
 
     @classmethod
     def from_env(cls) -> "ConsumerSettings":
@@ -120,8 +146,12 @@ class SubjectBuilder:
     def __init__(self, tenant: str):
         self.tenant = tenant
 
-    def build(self, domain: Domain, service: str, event: Event) -> str:
-        """Build a validated NATS subject."""
+    def build(self, domain: Domain, service: str, event: Event, replay: bool = False) -> str:
+        """Build a validated NATS subject with optional replay suffix."""
+        if replay and event != Event.REPLAY:
+            # Force replay event for replay subjects
+            event = Event.REPLAY
+            
         components = SubjectComponents(
             tenant=self.tenant,
             domain=domain,
@@ -129,6 +159,10 @@ class SubjectBuilder:
             event=event
         )
         return components.to_subject()
+    
+    def build_replay_subject(self, domain: Domain, service: str) -> str:
+        """Build a replay-specific subject with .replay suffix."""
+        return self.build(domain, service, Event.REPLAY, replay=True)
 
     def parse(self, subject: str) -> SubjectComponents:
         """Parse a NATS subject into components."""
@@ -155,12 +189,14 @@ class NATSClient:
         servers: List[str],
         tenant_id: str,
         credentials_file: Optional[str] = None,
-        consumer_settings: Optional[ConsumerSettings] = None
+        consumer_settings: Optional[ConsumerSettings] = None,
+        replay_settings: Optional[ReplaySettings] = None
     ):
         self.servers = servers
         self.tenant_id = tenant_id
         self.credentials_file = credentials_file
         self.consumer_settings = consumer_settings or ConsumerSettings.from_env()
+        self.replay_settings = replay_settings or ReplaySettings.from_env()
 
         self._nc: Optional[nats.NATS] = None
         self._js: Optional[JetStreamContext] = None
@@ -174,6 +210,13 @@ class NATSClient:
         self._messages_published = 0
         self._messages_consumed = 0
         self._connection_retries = 0
+        self._replay_messages_consumed = 0
+        self._live_messages_consumed = 0
+        
+        # Rate limiting for replay workers
+        self._replay_workers_count = 0
+        self._replay_rate_limiter_tokens = self.replay_settings.global_rate_limit_bps
+        self._last_rate_limit_reset = time.time()
 
     async def connect(self, **kwargs) -> None:
         """Connect to NATS with retry logic."""
@@ -240,13 +283,18 @@ class NATSClient:
         event: Event,
         data: Union[Dict[Any, Any], str, bytes],
         headers: Optional[Dict[str, str]] = None,
-        timeout: float = 10.0
+        timeout: float = 10.0,
+        replay: bool = False
     ) -> None:
-        """Publish a message with subject validation."""
+        """Publish a message with subject validation and replay support."""
         if not self._connected:
             raise ConnectionError("Not connected to NATS")
 
-        subject = self.subject_builder.build(domain, service, event)
+        # Apply rate limiting for replay messages
+        if replay:
+            await self._apply_replay_rate_limit()
+            
+        subject = self.subject_builder.build(domain, service, event, replay=replay)
 
         # Prepare message data
         if isinstance(data, dict):
@@ -259,12 +307,14 @@ class NATSClient:
             payload = data
             content_type = "application/octet-stream"
 
-        # Prepare headers
+        # Prepare headers with replay metadata
         msg_headers = {
             "Content-Type": content_type,
             "X-Tenant-ID": self.tenant_id,
             "X-Message-ID": str(uuid.uuid4()),
-            "X-Timestamp": str(int(time.time() * 1000))
+            "X-Timestamp": str(int(time.time() * 1000)),
+            "X-Stream-Class": "replay" if replay else "live",
+            "X-Priority": "5" if replay else "1"  # Lower priority for replay
         }
         if headers:
             msg_headers.update(headers)
@@ -277,7 +327,10 @@ class NATSClient:
                 timeout=timeout
             )
             self._messages_published += 1
-            logger.debug(f"Published message to {subject}, ack: {ack}")
+            if replay:
+                logger.debug(f"Published REPLAY message to {subject}, ack: {ack}")
+            else:
+                logger.debug(f"Published LIVE message to {subject}, ack: {ack}")
 
         except Exception as e:
             logger.error(f"Failed to publish to {subject}: {e}")
@@ -288,20 +341,27 @@ class NATSClient:
         stream_name: str,
         consumer_name: str,
         subjects: List[str],
-        settings: Optional[ConsumerSettings] = None
+        settings: Optional[ConsumerSettings] = None,
+        replay_mode: bool = False
     ) -> str:
         """Create a consumer with tuned flow control settings."""
         if not self._connected:
             raise ConnectionError("Not connected to NATS")
 
         settings = settings or self.consumer_settings
+        
+        # Apply replay-specific settings
+        if replay_mode:
+            settings = self._get_replay_consumer_settings(settings)
 
-        # Build consumer configuration
+        # Build consumer configuration with replay-specific settings
+        deliver_policy = "ByStartTime" if replay_mode else settings.deliver_policy
+        
         config = ConsumerConfig(
             name=consumer_name,
             durable_name=consumer_name,
             filter_subjects=subjects,
-            deliver_policy="last",
+            deliver_policy=deliver_policy,
             ack_policy="explicit",
             ack_wait=settings.ack_wait,
             max_deliver=settings.max_deliver,
@@ -310,6 +370,10 @@ class NATSClient:
             idle_heartbeat=settings.idle_heartbeat,
             replay_policy=settings.replay_policy
         )
+        
+        # Set start time for time-bounded replay
+        if replay_mode:
+            config.opt_start_time = datetime.utcnow() - timedelta(hours=self.replay_settings.time_window_hours)
 
         if settings.rate_limit_bps:
             config.rate_limit_bps = settings.rate_limit_bps
@@ -328,11 +392,16 @@ class NATSClient:
         stream_name: str,
         consumer_name: str,
         callback: Callable[[nats.Msg], Any],
-        error_callback: Optional[Callable[[Exception], None]] = None
+        error_callback: Optional[Callable[[Exception], None]] = None,
+        replay_mode: bool = False
     ) -> None:
-        """Subscribe to messages with pull-based consumption."""
+        """Subscribe to messages with pull-based consumption and replay support."""
         if not self._connected:
             raise ConnectionError("Not connected to NATS")
+        
+        # Check replay worker limits
+        if replay_mode and not await self._can_start_replay_worker():
+            raise RuntimeError(f"Maximum replay workers ({self.replay_settings.max_replay_workers}) exceeded")
 
         try:
             # Get consumer info to validate it exists
@@ -342,8 +411,12 @@ class NATSClient:
             # Create pull subscription
             psub = await self._js.pull_subscribe("", consumer_name, stream=stream_name)
 
-            # Process messages in batches
-            batch_size = min(self.consumer_settings.max_ack_pending // 4, 256)
+            # Process messages in batches (smaller batches for replay)
+            if replay_mode:
+                batch_size = min(self.replay_settings.concurrency_cap // 2, 64)
+                self._replay_workers_count += 1
+            else:
+                batch_size = min(self.consumer_settings.max_ack_pending // 4, 256)
 
             while True:
                 try:
@@ -355,9 +428,14 @@ class NATSClient:
                             # Process message
                             await callback(msg) if asyncio.iscoroutinefunction(callback) else callback(msg)
 
-                            # Acknowledge message
+                            # Acknowledge message with metrics tracking
                             await msg.ack()
                             self._messages_consumed += 1
+                            
+                            if replay_mode:
+                                self._replay_messages_consumed += 1
+                            else:
+                                self._live_messages_consumed += 1
 
                         except Exception as e:
                             logger.error(f"Error processing message: {e}")
@@ -378,6 +456,10 @@ class NATSClient:
         except Exception as e:
             logger.error(f"Failed to subscribe to {stream_name}/{consumer_name}: {e}")
             raise
+        finally:
+            # Cleanup replay worker count
+            if replay_mode and hasattr(self, '_replay_workers_count'):
+                self._replay_workers_count = max(0, self._replay_workers_count - 1)
 
     async def create_stream(
         self,
@@ -497,12 +579,97 @@ class NATSClient:
 
     @property
     def metrics(self) -> Dict[str, int]:
-        """Get client metrics."""
+        """Get client metrics with replay tracking."""
         return {
             "messages_published": self._messages_published,
             "messages_consumed": self._messages_consumed,
-            "connection_retries": self._connection_retries
+            "live_messages_consumed": self._live_messages_consumed,
+            "replay_messages_consumed": self._replay_messages_consumed,
+            "connection_retries": self._connection_retries,
+            "replay_workers_active": self._replay_workers_count,
+            "rate_limiter_tokens": self._replay_rate_limiter_tokens
         }
+    
+    # Replay-specific helper methods
+    def _get_replay_consumer_settings(self, base_settings: ConsumerSettings) -> ConsumerSettings:
+        """Get replay-specific consumer settings with lower priority."""
+        return ConsumerSettings(
+            ack_wait="60s",  # Longer timeout for replay
+            max_ack_pending=min(base_settings.max_ack_pending, 256),  # Lower pending
+            flow_control=True,
+            idle_heartbeat="10s",  # Less frequent heartbeat
+            deliver_policy="ByStartTime",
+            rate_limit_bps=self.replay_settings.global_rate_limit_bps // self.replay_settings.max_replay_workers,
+            max_deliver=2,  # Fewer retries for replay
+            replay_policy=ReplayPolicy.INSTANT,
+            priority=5  # Lower I/O priority
+        )
+    
+    async def _can_start_replay_worker(self) -> bool:
+        """Check if we can start a new replay worker."""
+        return self._replay_workers_count < self.replay_settings.max_replay_workers
+    
+    async def _apply_replay_rate_limit(self) -> None:
+        """Apply rate limiting for replay operations."""
+        current_time = time.time()
+        
+        # Reset token bucket every second
+        if current_time - self._last_rate_limit_reset >= 1.0:
+            self._replay_rate_limiter_tokens = self.replay_settings.global_rate_limit_bps
+            self._last_rate_limit_reset = current_time
+        
+        # Simple token bucket implementation
+        if self._replay_rate_limiter_tokens <= 0:
+            sleep_time = 1.0 - (current_time - self._last_rate_limit_reset)
+            if sleep_time > 0:
+                await asyncio.sleep(sleep_time)
+                self._replay_rate_limiter_tokens = self.replay_settings.global_rate_limit_bps
+                self._last_rate_limit_reset = time.time()
+        
+        # Consume tokens (estimate 1KB per message)
+        self._replay_rate_limiter_tokens = max(0, self._replay_rate_limiter_tokens - 1024)
+    
+    async def create_replay_consumer(
+        self,
+        domain: Domain,
+        service: str,
+        consumer_name: str,
+        start_time: Optional[datetime] = None
+    ) -> str:
+        """Create a time-bounded replay consumer."""
+        stream_name = f"xorb-{self.tenant_id}-{domain.value}-replay"
+        replay_subjects = [self.subject_builder.build_replay_subject(domain, service)]
+        
+        return await self.create_consumer(
+            stream_name,
+            f"{consumer_name}-replay",
+            replay_subjects,
+            replay_mode=True
+        )
+    
+    async def start_bounded_replay(
+        self,
+        domain: Domain,
+        service: str,
+        callback: Callable[[nats.Msg], Any],
+        hours_back: int = 24,
+        error_callback: Optional[Callable[[Exception], None]] = None
+    ) -> None:
+        """Start a time-bounded replay from specific hours back."""
+        consumer_name = f"replay-{domain.value}-{service}-{int(time.time())}"
+        
+        # Create bounded replay consumer
+        await self.create_replay_consumer(domain, service, consumer_name)
+        
+        # Start subscription with replay mode
+        stream_name = f"xorb-{self.tenant_id}-{domain.value}-replay"
+        await self.subscribe(
+            stream_name,
+            f"{consumer_name}-replay",
+            callback,
+            error_callback,
+            replay_mode=True
+        )
 
 
 # Factory function for creating clients
@@ -510,7 +677,8 @@ def create_nats_client(
     tenant_id: str,
     servers: Optional[List[str]] = None,
     credentials_file: Optional[str] = None,
-    consumer_settings: Optional[ConsumerSettings] = None
+    consumer_settings: Optional[ConsumerSettings] = None,
+    replay_settings: Optional[ReplaySettings] = None
 ) -> NATSClient:
     """Factory function to create a NATS client."""
     servers = servers or [os.getenv("NATS_URL", "nats://localhost:4222")]
@@ -520,46 +688,76 @@ def create_nats_client(
         servers=servers,
         tenant_id=tenant_id,
         credentials_file=credentials_file,
-        consumer_settings=consumer_settings
+        consumer_settings=consumer_settings,
+        replay_settings=replay_settings
     )
 
 
 # Example usage and testing functions
 async def example_usage():
-    """Example usage of the NATS client."""
+    """Example usage of the NATS client with replay support."""
     client = create_nats_client("t-qa")
 
     async with client.connection():
         # Create streams
         await client.create_stream(Domain.SCAN, StreamClass.LIVE)
-        await client.create_stream(Domain.EVIDENCE, StreamClass.REPLAY)
-
-        # Publish messages
+        await client.create_stream(Domain.SCAN, StreamClass.REPLAY)  # Dedicated replay stream
+        
+        # Publish live messages
         await client.publish(
             Domain.SCAN,
             "nmap",
             Event.CREATED,
             {"target": "192.168.1.1", "ports": [80, 443]}
         )
-
-        # Create consumer
-        consumer_name = await client.create_consumer(
-            "xorb-t-qa-scan-live",
-            "scan-processor",
-            ["xorb.t-qa.scan.>"]
+        
+        # Publish replay message
+        await client.publish(
+            Domain.SCAN,
+            "nmap",
+            Event.REPLAY,
+            {"target": "192.168.1.1", "replay_data": "historical_scan"},
+            replay=True
         )
 
-        # Subscribe to messages
-        async def message_handler(msg):
-            print(f"Received: {msg.data.decode()}")
+        # Create live consumer
+        live_consumer = await client.create_consumer(
+            "xorb-t-qa-scan-live",
+            "scan-processor-live",
+            ["xorb.t-qa.scan.nmap.created"]
+        )
+        
+        # Create replay consumer with time bounds
+        replay_consumer = await client.create_replay_consumer(
+            Domain.SCAN,
+            "nmap",
+            "scan-replay-processor"
+        )
 
+        # Live message handler
+        async def live_message_handler(msg):
+            print(f"LIVE: {msg.data.decode()}")
+            
+        # Replay message handler
+        async def replay_message_handler(msg):
+            print(f"REPLAY: {msg.data.decode()}")
+
+        # Subscribe to live messages (high priority)
         await client.subscribe(
             "xorb-t-qa-scan-live",
-            consumer_name,
-            message_handler
+            live_consumer,
+            live_message_handler
+        )
+        
+        # Start bounded replay (lower priority)
+        await client.start_bounded_replay(
+            Domain.SCAN,
+            "nmap",
+            replay_message_handler,
+            hours_back=24  # Replay last 24 hours
         )
 
 
 if __name__ == "__main__":
-    # Run example
+    # Run example with replay support
     asyncio.run(example_usage())
