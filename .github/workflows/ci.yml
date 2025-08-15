@@ -170,11 +170,61 @@ jobs:
             echo "No contract changes detected"
           fi
 
+  # Performance smoke test for CI
+  ptaas-perf-smoke:
+    name: PTaaS Performance Smoke Test
+    runs-on: ubuntu-latest
+    needs: [ptaas-e2e]
+    if: github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'performance')
+    services:
+      nats:
+        image: nats:2.10
+        ports:
+          - 4222:4222
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8222/healthz || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock
+      - name: Run performance smoke test
+        run: |
+          # Set EPYC configuration for CI (scaled down)
+          export PTAAS_WORKERS=4
+          export PTAAS_CPU_POOL=2
+          export PTAAS_IO_CONCURRENCY=16
+          export PTAAS_TARGET_P95_MS=5000  # Relaxed for CI
+          export PTAAS_TARGET_ERROR_RATE=0.02  # Relaxed for CI
+          export PTAAS_TARGET_FAIRNESS=0.5  # Relaxed for CI
+
+          make ptaas-perf-smoke || true  # Don't fail CI on performance issues
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-smoke-results
+          path: tools/reports/perf/*/
+
   # Build Status Summary
   build-summary:
     name: Build Summary
     runs-on: ubuntu-latest
-    needs: [doctor, lint, test, ptaas-e2e, ops-validation, security, contract-check]
+    needs: [doctor, lint, test, ptaas-e2e, ops-validation, security, contract-check, ptaas-perf-smoke]
     if: always()
     steps:
       - name: Build Status
@@ -187,3 +237,4 @@ jobs:
           echo "- Ops Validation: ${{ needs.ops-validation.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- Security: ${{ needs.security.result }}" >> $GITHUB_STEP_SUMMARY
           echo "- Contracts: ${{ needs.contract-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance: ${{ needs.ptaas-perf-smoke.result }}" >> $GITHUB_STEP_SUMMARY

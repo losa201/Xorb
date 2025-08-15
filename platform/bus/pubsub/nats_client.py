@@ -52,9 +52,7 @@ class NATSJetStreamClient:
     - mTLS authentication and encryption
     """
 
-    def __init__(
-        self, nats_servers: List[str], redis_client: Any, tenant_id: str
-    ):
+    def __init__(self, nats_servers: List[str], redis_client: Any, tenant_id: str):
         self.nats_servers = nats_servers
         self.redis_client = redis_client
         self.tenant_id = tenant_id
@@ -105,7 +103,7 @@ class NATSJetStreamClient:
     async def _ensure_stream_exists(self) -> None:
         """Ensure tenant-specific stream exists with WORM configuration"""
         try:
-            stream_info = await self.js.stream_info(self.stream_config.name)
+            await self.js.stream_info(self.stream_config.name)
             logger.info(f"Stream {self.stream_config.name} exists")
         except Exception:
             # Stream doesn't exist, create it
@@ -322,7 +320,7 @@ class NATSJetStreamClient:
 async def example_usage():
     """Example usage of NATS JetStream client"""
 
-    # Note: Redis usage here is for caching/session management only 
+    # Note: Redis usage here is for caching/session management only
     # No Redis pub/sub allowed per ADR-002 (NATS-only messaging)
     redis = None  # Placeholder - implement proper cache interface
 
