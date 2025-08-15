@@ -1,0 +1,644 @@
+[
+  {
+    "file": "Makefile",
+    "target": "help",
+    "dependencies": [],
+    "line": 7
+  },
+  {
+    "file": "Makefile",
+    "target": "check-prereqs",
+    "dependencies": [],
+    "line": 13
+  },
+  {
+    "file": "Makefile",
+    "target": "ca-init",
+    "dependencies": [
+      "check-prereqs"
+    ],
+    "line": 21
+  },
+  {
+    "file": "Makefile",
+    "target": "certs-generate",
+    "dependencies": [
+      "ca-init"
+    ],
+    "line": 27
+  },
+  {
+    "file": "Makefile",
+    "target": "deploy-tls",
+    "dependencies": [
+      "certs-generate"
+    ],
+    "line": 56
+  },
+  {
+    "file": "Makefile",
+    "target": "deploy-dev",
+    "dependencies": [
+      "certs-generate"
+    ],
+    "line": 65
+  },
+  {
+    "file": "Makefile",
+    "target": "deploy-prod",
+    "dependencies": [
+      "certs-generate"
+    ],
+    "line": 71
+  },
+  {
+    "file": "Makefile",
+    "target": "validate",
+    "dependencies": [],
+    "line": 77
+  },
+  {
+    "file": "Makefile",
+    "target": "validate-tls",
+    "dependencies": [],
+    "line": 82
+  },
+  {
+    "file": "Makefile",
+    "target": "validate-mtls",
+    "dependencies": [],
+    "line": 87
+  },
+  {
+    "file": "Makefile",
+    "target": "validate-redis",
+    "dependencies": [],
+    "line": 92
+  },
+  {
+    "file": "Makefile",
+    "target": "validate-docker",
+    "dependencies": [],
+    "line": 97
+  },
+  {
+    "file": "Makefile",
+    "target": "security-scan",
+    "dependencies": [],
+    "line": 103
+  },
+  {
+    "file": "Makefile",
+    "target": "rotate-certs",
+    "dependencies": [],
+    "line": 112
+  },
+  {
+    "file": "Makefile",
+    "target": "rotate-all",
+    "dependencies": [],
+    "line": 117
+  },
+  {
+    "file": "Makefile",
+    "target": "emergency-rotation",
+    "dependencies": [],
+    "line": 122
+  },
+  {
+    "file": "Makefile",
+    "target": "performance",
+    "dependencies": [],
+    "line": 130
+  },
+  {
+    "file": "Makefile",
+    "target": "reports",
+    "dependencies": [],
+    "line": 136
+  },
+  {
+    "file": "Makefile",
+    "target": "logs",
+    "dependencies": [],
+    "line": 142
+  },
+  {
+    "file": "Makefile",
+    "target": "health",
+    "dependencies": [],
+    "line": 147
+  },
+  {
+    "file": "Makefile",
+    "target": "cert-status",
+    "dependencies": [],
+    "line": 154
+  },
+  {
+    "file": "Makefile",
+    "target": "k8s-deploy",
+    "dependencies": [],
+    "line": 166
+  },
+  {
+    "file": "Makefile",
+    "target": "k8s-status",
+    "dependencies": [],
+    "line": 174
+  },
+  {
+    "file": "Makefile",
+    "target": "dev-setup",
+    "dependencies": [],
+    "line": 180
+  },
+  {
+    "file": "Makefile",
+    "target": "dev-test",
+    "dependencies": [],
+    "line": 188
+  },
+  {
+    "file": "Makefile",
+    "target": "clean",
+    "dependencies": [],
+    "line": 195
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-quickstart",
+    "dependencies": [],
+    "line": 206
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-e2e",
+    "dependencies": [],
+    "line": 214
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-stop",
+    "dependencies": [],
+    "line": 220
+  },
+  {
+    "file": "Makefile",
+    "target": "clean-all",
+    "dependencies": [],
+    "line": 226
+  },
+  {
+    "file": "Makefile",
+    "target": "start",
+    "dependencies": [
+      "deploy-tls"
+    ],
+    "line": 237
+  },
+  {
+    "file": "Makefile",
+    "target": "stop",
+    "dependencies": [],
+    "line": 238
+  },
+  {
+    "file": "Makefile",
+    "target": "restart",
+    "dependencies": [
+      "stop",
+      "start"
+    ],
+    "line": 243
+  },
+  {
+    "file": "Makefile",
+    "target": "backup",
+    "dependencies": [],
+    "line": 246
+  },
+  {
+    "file": "Makefile",
+    "target": "restore",
+    "dependencies": [],
+    "line": 253
+  },
+  {
+    "file": "Makefile",
+    "target": "ci-validate",
+    "dependencies": [
+      "check-prereqs"
+    ],
+    "line": 263
+  },
+  {
+    "file": "Makefile",
+    "target": "ci-deploy",
+    "dependencies": [
+      "check-prereqs"
+    ],
+    "line": 269
+  },
+  {
+    "file": "Makefile",
+    "target": "docs",
+    "dependencies": [],
+    "line": 276
+  },
+  {
+    "file": "Makefile",
+    "target": "audit",
+    "dependencies": [],
+    "line": 293
+  },
+  {
+    "file": "Makefile",
+    "target": "quick-start",
+    "dependencies": [
+      "ca-init",
+      "cert-api",
+      "cert-redis",
+      "cert-redis-client"
+    ],
+    "line": 309
+  },
+  {
+    "file": "Makefile",
+    "target": "production-ready",
+    "dependencies": [
+      "ca-init",
+      "certs-generate",
+      "validate",
+      "security-scan"
+    ],
+    "line": 312
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-quickstart",
+    "dependencies": [],
+    "line": 316
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-e2e",
+    "dependencies": [],
+    "line": 321
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-stop",
+    "dependencies": [],
+    "line": 324
+  },
+  {
+    "file": "Makefile",
+    "target": "ops-runbooks",
+    "dependencies": [
+      "@echo",
+      "\"RUNBOOKS:",
+      "RUNBOOK_INCIDENT_RESPONSE.md,",
+      "RUNBOOK_ROLLBACK.md,",
+      "docs/CHAOS_DRILLS.md,",
+      "docs/RELEASE_CONFIDENCE_REPORT.md\""
+    ],
+    "line": 328
+  },
+  {
+    "file": "Makefile",
+    "target": "ops-alerts-validate",
+    "dependencies": [
+      "@docker",
+      "run",
+      "--rm",
+      "-v",
+      "$(PWD):/workspace",
+      "--entrypoint=promtool",
+      "prom/prometheus:latest",
+      "\\"
+    ],
+    "line": 331
+  },
+  {
+    "file": "Makefile",
+    "target": "help",
+    "dependencies": [],
+    "line": 7
+  },
+  {
+    "file": "Makefile",
+    "target": "check-prereqs",
+    "dependencies": [],
+    "line": 13
+  },
+  {
+    "file": "Makefile",
+    "target": "ca-init",
+    "dependencies": [
+      "check-prereqs"
+    ],
+    "line": 21
+  },
+  {
+    "file": "Makefile",
+    "target": "certs-generate",
+    "dependencies": [
+      "ca-init"
+    ],
+    "line": 27
+  },
+  {
+    "file": "Makefile",
+    "target": "deploy-tls",
+    "dependencies": [
+      "certs-generate"
+    ],
+    "line": 56
+  },
+  {
+    "file": "Makefile",
+    "target": "deploy-dev",
+    "dependencies": [
+      "certs-generate"
+    ],
+    "line": 65
+  },
+  {
+    "file": "Makefile",
+    "target": "deploy-prod",
+    "dependencies": [
+      "certs-generate"
+    ],
+    "line": 71
+  },
+  {
+    "file": "Makefile",
+    "target": "validate",
+    "dependencies": [],
+    "line": 77
+  },
+  {
+    "file": "Makefile",
+    "target": "validate-tls",
+    "dependencies": [],
+    "line": 82
+  },
+  {
+    "file": "Makefile",
+    "target": "validate-mtls",
+    "dependencies": [],
+    "line": 87
+  },
+  {
+    "file": "Makefile",
+    "target": "validate-redis",
+    "dependencies": [],
+    "line": 92
+  },
+  {
+    "file": "Makefile",
+    "target": "validate-docker",
+    "dependencies": [],
+    "line": 97
+  },
+  {
+    "file": "Makefile",
+    "target": "security-scan",
+    "dependencies": [],
+    "line": 103
+  },
+  {
+    "file": "Makefile",
+    "target": "rotate-certs",
+    "dependencies": [],
+    "line": 112
+  },
+  {
+    "file": "Makefile",
+    "target": "rotate-all",
+    "dependencies": [],
+    "line": 117
+  },
+  {
+    "file": "Makefile",
+    "target": "emergency-rotation",
+    "dependencies": [],
+    "line": 122
+  },
+  {
+    "file": "Makefile",
+    "target": "performance",
+    "dependencies": [],
+    "line": 130
+  },
+  {
+    "file": "Makefile",
+    "target": "reports",
+    "dependencies": [],
+    "line": 136
+  },
+  {
+    "file": "Makefile",
+    "target": "logs",
+    "dependencies": [],
+    "line": 142
+  },
+  {
+    "file": "Makefile",
+    "target": "health",
+    "dependencies": [],
+    "line": 147
+  },
+  {
+    "file": "Makefile",
+    "target": "cert-status",
+    "dependencies": [],
+    "line": 154
+  },
+  {
+    "file": "Makefile",
+    "target": "k8s-deploy",
+    "dependencies": [],
+    "line": 166
+  },
+  {
+    "file": "Makefile",
+    "target": "k8s-status",
+    "dependencies": [],
+    "line": 174
+  },
+  {
+    "file": "Makefile",
+    "target": "dev-setup",
+    "dependencies": [],
+    "line": 180
+  },
+  {
+    "file": "Makefile",
+    "target": "dev-test",
+    "dependencies": [],
+    "line": 188
+  },
+  {
+    "file": "Makefile",
+    "target": "clean",
+    "dependencies": [],
+    "line": 195
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-quickstart",
+    "dependencies": [],
+    "line": 206
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-e2e",
+    "dependencies": [],
+    "line": 214
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-stop",
+    "dependencies": [],
+    "line": 220
+  },
+  {
+    "file": "Makefile",
+    "target": "clean-all",
+    "dependencies": [],
+    "line": 226
+  },
+  {
+    "file": "Makefile",
+    "target": "start",
+    "dependencies": [
+      "deploy-tls"
+    ],
+    "line": 237
+  },
+  {
+    "file": "Makefile",
+    "target": "stop",
+    "dependencies": [],
+    "line": 238
+  },
+  {
+    "file": "Makefile",
+    "target": "restart",
+    "dependencies": [
+      "stop",
+      "start"
+    ],
+    "line": 243
+  },
+  {
+    "file": "Makefile",
+    "target": "backup",
+    "dependencies": [],
+    "line": 246
+  },
+  {
+    "file": "Makefile",
+    "target": "restore",
+    "dependencies": [],
+    "line": 253
+  },
+  {
+    "file": "Makefile",
+    "target": "ci-validate",
+    "dependencies": [
+      "check-prereqs"
+    ],
+    "line": 263
+  },
+  {
+    "file": "Makefile",
+    "target": "ci-deploy",
+    "dependencies": [
+      "check-prereqs"
+    ],
+    "line": 269
+  },
+  {
+    "file": "Makefile",
+    "target": "docs",
+    "dependencies": [],
+    "line": 276
+  },
+  {
+    "file": "Makefile",
+    "target": "audit",
+    "dependencies": [],
+    "line": 293
+  },
+  {
+    "file": "Makefile",
+    "target": "quick-start",
+    "dependencies": [
+      "ca-init",
+      "cert-api",
+      "cert-redis",
+      "cert-redis-client"
+    ],
+    "line": 309
+  },
+  {
+    "file": "Makefile",
+    "target": "production-ready",
+    "dependencies": [
+      "ca-init",
+      "certs-generate",
+      "validate",
+      "security-scan"
+    ],
+    "line": 312
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-quickstart",
+    "dependencies": [],
+    "line": 316
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-e2e",
+    "dependencies": [],
+    "line": 321
+  },
+  {
+    "file": "Makefile",
+    "target": "ptaas-stop",
+    "dependencies": [],
+    "line": 324
+  },
+  {
+    "file": "Makefile",
+    "target": "ops-runbooks",
+    "dependencies": [
+      "@echo",
+      "\"RUNBOOKS:",
+      "RUNBOOK_INCIDENT_RESPONSE.md,",
+      "RUNBOOK_ROLLBACK.md,",
+      "docs/CHAOS_DRILLS.md,",
+      "docs/RELEASE_CONFIDENCE_REPORT.md\""
+    ],
+    "line": 328
+  },
+  {
+    "file": "Makefile",
+    "target": "ops-alerts-validate",
+    "dependencies": [
+      "@docker",
+      "run",
+      "--rm",
+      "-v",
+      "$(PWD):/workspace",
+      "--entrypoint=promtool",
+      "prom/prometheus:latest",
+      "\\"
+    ],
+    "line": 331
+  }
+]

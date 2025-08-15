@@ -1,0 +1,307 @@
+{
+  "YAML": {
+    "files": 94,
+    "loc": 23718,
+    "size": 696485
+  },
+  "Python": {
+    "files": 1240,
+    "loc": 567029,
+    "size": 26762864
+  },
+  "Other(.txt)": {
+    "files": 20,
+    "loc": 1125,
+    "size": 22754
+  },
+  "Other(.unified)": {
+    "files": 1,
+    "loc": 93,
+    "size": 3407
+  },
+  "TOML": {
+    "files": 10,
+    "loc": 965,
+    "size": 24338
+  },
+  "JSON": {
+    "files": 82,
+    "loc": 66332,
+    "size": 1833989
+  },
+  "Other(.example)": {
+    "files": 2,
+    "loc": 149,
+    "size": 5253
+  },
+  "Other((no_ext))": {
+    "files": 40,
+    "loc": 2723,
+    "size": 16183498
+  },
+  "INI": {
+    "files": 4,
+    "loc": 171,
+    "size": 3624
+  },
+  "Markdown": {
+    "files": 291,
+    "loc": 88121,
+    "size": 3987831
+  },
+  "Other(.template)": {
+    "files": 2,
+    "loc": 92,
+    "size": 3737
+  },
+  "Other(.perf)": {
+    "files": 1,
+    "loc": 235,
+    "size": 10465
+  },
+  "Other(.patch)": {
+    "files": 1,
+    "loc": 963,
+    "size": 36189
+  },
+  "Other(.bundle)": {
+    "files": 1,
+    "loc": 0,
+    "size": 6999981
+  },
+  "Shell": {
+    "files": 97,
+    "loc": 33589,
+    "size": 1239324
+  },
+  "Other(.tsv)": {
+    "files": 1,
+    "loc": 27,
+    "size": 1176
+  },
+  "Config": {
+    "files": 1,
+    "loc": 5,
+    "size": 156
+  },
+  "TypeScript": {
+    "files": 30,
+    "loc": 3599,
+    "size": 138305
+  },
+  "JavaScript": {
+    "files": 4,
+    "loc": 605,
+    "size": 20751
+  },
+  "Other(.service)": {
+    "files": 2,
+    "loc": 54,
+    "size": 1215
+  },
+  "SQL": {
+    "files": 3,
+    "loc": 299,
+    "size": 12856
+  },
+  "Other(.verteidiq)": {
+    "files": 1,
+    "loc": 94,
+    "size": 2861
+  },
+  "Other(.rego)": {
+    "files": 2,
+    "loc": 371,
+    "size": 12396
+  },
+  "Other(.tag)": {
+    "files": 1,
+    "loc": 1,
+    "size": 43
+  },
+  "Other(.production)": {
+    "files": 1,
+    "loc": 94,
+    "size": 3697
+  },
+  "Other(.mako)": {
+    "files": 2,
+    "loc": 34,
+    "size": 1020
+  },
+  "Other(.framework)": {
+    "files": 1,
+    "loc": 203,
+    "size": 7043
+  },
+  "Other(.csv)": {
+    "files": 1,
+    "loc": 36,
+    "size": 8024
+  },
+  "Other(.mdx)": {
+    "files": 1,
+    "loc": 419,
+    "size": 16527
+  },
+  "HTML": {
+    "files": 6,
+    "loc": 1467,
+    "size": 98106
+  },
+  "Protobuf": {
+    "files": 5,
+    "loc": 1530,
+    "size": 46972
+  },
+  "Other(.multi-stage)": {
+    "files": 1,
+    "loc": 85,
+    "size": 3522
+  },
+  "Other(.csh)": {
+    "files": 1,
+    "loc": 17,
+    "size": 917
+  },
+  "Other(.fish)": {
+    "files": 1,
+    "loc": 56,
+    "size": 2192
+  },
+  "Other(.ps1)": {
+    "files": 1,
+    "loc": 198,
+    "size": 9033
+  },
+  "Other(.12)": {
+    "files": 2,
+    "loc": 8,
+    "size": 8022058
+  },
+  "Other(.typed)": {
+    "files": 1,
+    "loc": 4,
+    "size": 286
+  },
+  "Terraform": {
+    "files": 6,
+    "loc": 2666,
+    "size": 79201
+  },
+  "HCL": {
+    "files": 5,
+    "loc": 142,
+    "size": 3895
+  },
+  "Docker": {
+    "files": 2,
+    "loc": 82,
+    "size": 2627
+  },
+  "Other(.unified-execution)": {
+    "files": 1,
+    "loc": 21,
+    "size": 1212
+  },
+  "Other(.unified-intelligence)": {
+    "files": 1,
+    "loc": 20,
+    "size": 1200
+  },
+  "Other(.unified-core)": {
+    "files": 1,
+    "loc": 18,
+    "size": 915
+  },
+  "Other(.conf)": {
+    "files": 6,
+    "loc": 983,
+    "size": 34011
+  },
+  "Other(.webapp)": {
+    "files": 1,
+    "loc": 26,
+    "size": 765
+  },
+  "Other(.unified-api)": {
+    "files": 1,
+    "loc": 263,
+    "size": 10531
+  },
+  "Other(.ml-defense)": {
+    "files": 1,
+    "loc": 102,
+    "size": 3578
+  },
+  "Other(.researcher-api)": {
+    "files": 1,
+    "loc": 376,
+    "size": 17337
+  },
+  "Other(.company-api)": {
+    "files": 1,
+    "loc": 427,
+    "size": 19223
+  },
+  "Other(.adversarial)": {
+    "files": 1,
+    "loc": 71,
+    "size": 2356
+  },
+  "Other(.ptaas-core)": {
+    "files": 1,
+    "loc": 219,
+    "size": 9439
+  },
+  "Other(.analytics)": {
+    "files": 1,
+    "loc": 265,
+    "size": 12447
+  },
+  "Other(.development)": {
+    "files": 1,
+    "loc": 120,
+    "size": 4620
+  },
+  "Other(.autonomous)": {
+    "files": 1,
+    "loc": 47,
+    "size": 1510
+  },
+  "Other(.enhanced)": {
+    "files": 1,
+    "loc": 40,
+    "size": 1318
+  },
+  "Other(.ptaas)": {
+    "files": 1,
+    "loc": 18,
+    "size": 615
+  },
+  "Other(.local)": {
+    "files": 1,
+    "loc": 136,
+    "size": 3114
+  },
+  "Other(.php)": {
+    "files": 1,
+    "loc": 123,
+    "size": 5538
+  },
+  "Other(.rules)": {
+    "files": 1,
+    "loc": 73,
+    "size": 7200
+  },
+  "Other(.ndjson)": {
+    "files": 1,
+    "loc": 16,
+    "size": 11592
+  },
+  "Rust": {
+    "files": 13,
+    "loc": 3470,
+    "size": 137888
+  }
+}

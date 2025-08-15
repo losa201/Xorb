@@ -1,0 +1,202 @@
+{
+  "tmp": {
+    "files": 0,
+    "size": 0,
+    "subdirs": 1
+  },
+  "src": {
+    "files": 651,
+    "size": 16052559,
+    "subdirs": 91
+  },
+  "legacy": {
+    "files": 39,
+    "size": 575324,
+    "subdirs": 3
+  },
+  "docs": {
+    "files": 181,
+    "size": 2575765,
+    "subdirs": 30
+  },
+  "wargame": {
+    "files": 16,
+    "size": 133504,
+    "subdirs": 7
+  },
+  "ptaas-backend": {
+    "files": 30,
+    "size": 145630,
+    "subdirs": 11
+  },
+  "ui": {
+    "files": 2,
+    "size": 85472,
+    "subdirs": 4
+  },
+  "ptaas": {
+    "files": 16,
+    "size": 412160,
+    "subdirs": 4
+  },
+  "proto": {
+    "files": 5,
+    "size": 46972,
+    "subdirs": 10
+  },
+  "devops": {
+    "files": 4,
+    "size": 23281,
+    "subdirs": 2
+  },
+  "docker": {
+    "files": 1,
+    "size": 2749,
+    "subdirs": 1
+  },
+  "platform": {
+    "files": 3,
+    "size": 28703,
+    "subdirs": 3
+  },
+  "source": {
+    "files": 497,
+    "size": 30136675,
+    "subdirs": 63
+  },
+  "k8s": {
+    "files": 4,
+    "size": 13700,
+    "subdirs": 1
+  },
+  "monitoring": {
+    "files": 5,
+    "size": 49095,
+    "subdirs": 5
+  },
+  "examples": {
+    "files": 9,
+    "size": 107707,
+    "subdirs": 7
+  },
+  "htmlcov": {
+    "files": 233,
+    "size": 54112837,
+    "subdirs": 0
+  },
+  "packages": {
+    "files": 14,
+    "size": 146367,
+    "subdirs": 2
+  },
+  "tests": {
+    "files": 51,
+    "size": 674492,
+    "subdirs": 12
+  },
+  "infrastructure": {
+    "files": 28,
+    "size": 433656,
+    "subdirs": 10
+  },
+  "wargame-enterprise": {
+    "files": 15,
+    "size": 395576,
+    "subdirs": 10
+  },
+  "scripts": {
+    "files": 31,
+    "size": 509376,
+    "subdirs": 2
+  },
+  "compliance": {
+    "files": 3,
+    "size": 73406,
+    "subdirs": 1
+  },
+  "deploy": {
+    "files": 23,
+    "size": 200337,
+    "subdirs": 6
+  },
+  "archive": {
+    "files": 29,
+    "size": 466117,
+    "subdirs": 1
+  },
+  "runbooks": {
+    "files": 2,
+    "size": 14949,
+    "subdirs": 0
+  },
+  "infra": {
+    "files": 76,
+    "size": 639880,
+    "subdirs": 26
+  },
+  "config": {
+    "files": 16,
+    "size": 71649,
+    "subdirs": 6
+  },
+  "telemetry": {
+    "files": 1,
+    "size": 9116,
+    "subdirs": 0
+  },
+  "security": {
+    "files": 3,
+    "size": 31836,
+    "subdirs": 0
+  },
+  "policies": {
+    "files": 2,
+    "size": 16474,
+    "subdirs": 0
+  },
+  "requirements": {
+    "files": 2,
+    "size": 185,
+    "subdirs": 0
+  },
+  "services": {
+    "files": 197,
+    "size": 2324862,
+    "subdirs": 51
+  },
+  "security_checks": {
+    "files": 1,
+    "size": 1953,
+    "subdirs": 0
+  },
+  "reports": {
+    "files": 33,
+    "size": 234160,
+    "subdirs": 7
+  },
+  "dist": {
+    "files": 1,
+    "size": 68387,
+    "subdirs": 0
+  },
+  "envoy": {
+    "files": 2,
+    "size": 14830,
+    "subdirs": 0
+  },
+  "demo": {
+    "files": 65,
+    "size": 2296736,
+    "subdirs": 3
+  },
+  "agents": {
+    "files": 9,
+    "size": 55285,
+    "subdirs": 0
+  },
+  "tools": {
+    "files": 330,
+    "size": 7694625,
+    "subdirs": 23
+  }
+}
