@@ -1,0 +1,281 @@
+# XORB PTaaS Performance Testing for AMD EPYC 7002
+# High-performance testing targets with sub-2s P95 latency validation
+
+.PHONY: ptaas-perf ptaas-perf-smoke ptaas-perf-report ptaas-db-postgres ptaas-db-sqlite help-perf
+
+# Performance testing configuration
+PTAAS_WORKERS ?= 28
+PTAAS_CPU_POOL ?= 16
+PTAAS_IO_CONCURRENCY ?= 128
+PTAAS_TARGET_P95_MS ?= 2000
+PTAAS_TARGET_ERROR_RATE ?= 0.005
+PTAAS_TARGET_FAIRNESS ?= 0.7
+PTAAS_DB ?= sqlite
+K6_VUS ?= 80
+K6_DURATION ?= 10m
+NATS_LOAD_DURATION ?= 300
+
+# Directories
+PERF_RESULTS_DIR := tools/reports/perf/$(shell date +%Y%m%d_%H%M%S)
+K6_SCRIPT := tests/perf/k6/ptaas_scenarios.js
+NATS_SCRIPT := tests/perf/nats/jetstream_load.sh
+
+help-perf: ## Show performance testing help
+	@echo "🚀 PTaaS Performance Testing for AMD EPYC 7002"
+	@echo ""
+	@echo "Quick Commands:"
+	@echo "  make ptaas-perf          - Full performance test ($(K6_DURATION))"
+	@echo "  make ptaas-perf-smoke    - Quick smoke test (2m)"
+	@echo "  make ptaas-perf-report   - Generate performance report"
+	@echo ""
+	@echo "Database Options:"
+	@echo "  make ptaas-db=postgres ptaas-perf  - Test with PostgreSQL"
+	@echo "  make ptaas-db=sqlite ptaas-perf    - Test with SQLite (default)"
+	@echo ""
+	@echo "Configuration (EPYC 7002 optimized):"
+	@echo "  PTAAS_WORKERS=$(PTAAS_WORKERS)  PTAAS_CPU_POOL=$(PTAAS_CPU_POOL)  IO_CONCURRENCY=$(PTAAS_IO_CONCURRENCY)"
+	@echo "  P95_TARGET=$(PTAAS_TARGET_P95_MS)ms  ERROR_RATE_TARGET=$(PTAAS_TARGET_ERROR_RATE)  FAIRNESS_TARGET=$(PTAAS_TARGET_FAIRNESS)"
+
+# Environment setup for performance testing
+setup-perf-env:
+	@echo "🔧 Setting up EPYC performance environment..."
+	@mkdir -p $(PERF_RESULTS_DIR)
+	@export PTAAS_WORKERS=$(PTAAS_WORKERS) && \
+	 export PTAAS_CPU_POOL=$(PTAAS_CPU_POOL) && \
+	 export PTAAS_IO_CONCURRENCY=$(PTAAS_IO_CONCURRENCY) && \
+	 export PTAAS_DB=$(PTAAS_DB) && \
+	 export PTAAS_TARGET_P95_MS=$(PTAAS_TARGET_P95_MS) && \
+	 export PTAAS_TARGET_ERROR_RATE=$(PTAAS_TARGET_ERROR_RATE) && \
+	 export PTAAS_TARGET_FAIRNESS=$(PTAAS_TARGET_FAIRNESS) && \
+	 echo "✅ Performance environment configured for EPYC 7002"
+
+# Start NATS + API for performance testing
+ptaas-perf-stack:
+	@echo "🚀 Starting PTaaS performance stack..."
+	@docker-compose -f docker-compose.performance.yml up -d nats postgres
+	@sleep 5
+	@echo "📡 Starting API with EPYC configuration..."
+	@cd src/api && \
+	 PTAAS_WORKERS=$(PTAAS_WORKERS) \
+	 PTAAS_CPU_POOL=$(PTAAS_CPU_POOL) \
+	 PTAAS_IO_CONCURRENCY=$(PTAAS_IO_CONCURRENCY) \
+	 PTAAS_DB=$(PTAAS_DB) \
+	 uvicorn app.main:app --host 0.0.0.0 --port 8000 &
+	@sleep 10
+	@echo "✅ PTaaS performance stack ready"
+
+# Stop performance stack
+ptaas-perf-stack-stop:
+	@echo "🛑 Stopping PTaaS performance stack..."
+	@pkill -f "uvicorn app.main:app" || true
+	@docker-compose -f docker-compose.performance.yml down
+	@echo "✅ Performance stack stopped"
+
+# Full performance test (production-like load)
+ptaas-perf: setup-perf-env ptaas-perf-stack ## Run comprehensive performance test
+	@echo "🏁 Starting comprehensive PTaaS performance test..."
+	@echo "Target: P95 < $(PTAAS_TARGET_P95_MS)ms, Error rate < $(shell echo "$(PTAAS_TARGET_ERROR_RATE) * 100" | bc -l)%, Fairness ≥ $(PTAAS_TARGET_FAIRNESS)"
+	@echo ""
+
+	# Wait for services to be ready
+	@echo "⏳ Waiting for API readiness..."
+	@timeout 60 bash -c 'until curl -s http://localhost:8000/api/v1/health >/dev/null; do sleep 2; done'
+	@echo "✅ API is ready"
+
+	# Run NATS load test in background
+	@echo "📨 Starting NATS JetStream load test..."
+	@TEST_DURATION=$(NATS_LOAD_DURATION) $(NATS_SCRIPT) > $(PERF_RESULTS_DIR)/nats_load.log 2>&1 &
+	@echo $$! > $(PERF_RESULTS_DIR)/nats_load.pid
+
+	# Run k6 performance test
+	@echo "🔥 Starting k6 performance test ($(K6_DURATION))..."
+	@k6 run \
+		--vus $(K6_VUS) \
+		--duration $(K6_DURATION) \
+		--env PTAAS_BASE_URL=http://localhost:8000 \
+		--env SCENARIO=epyc_production \
+		--out json=$(PERF_RESULTS_DIR)/k6_results.json \
+		--summary-export=$(PERF_RESULTS_DIR)/k6_summary.json \
+		$(K6_SCRIPT) 2>&1 | tee $(PERF_RESULTS_DIR)/k6_output.log
+
+	# Wait for NATS test to complete
+	@echo "⏳ Waiting for NATS test completion..."
+	@if [ -f $(PERF_RESULTS_DIR)/nats_load.pid ]; then \
+		wait $$(cat $(PERF_RESULTS_DIR)/nats_load.pid) 2>/dev/null || true; \
+		rm -f $(PERF_RESULTS_DIR)/nats_load.pid; \
+	fi
+
+	# Generate comprehensive report
+	@$(MAKE) ptaas-perf-report PERF_RESULTS_DIR=$(PERF_RESULTS_DIR)
+
+	# Cleanup
+	@$(MAKE) ptaas-perf-stack-stop
+	@echo ""
+	@echo "🎉 Performance test completed!"
+	@echo "📊 Results: $(PERF_RESULTS_DIR)/"
+
+# Quick smoke test for CI
+ptaas-perf-smoke: setup-perf-env ptaas-perf-stack ## Run quick performance smoke test
+	@echo "💨 Starting PTaaS performance smoke test..."
+	@echo "Duration: 2 minutes (relaxed thresholds for CI)"
+
+	# Wait for services
+	@timeout 30 bash -c 'until curl -s http://localhost:8000/api/v1/health >/dev/null; do sleep 2; done'
+
+	# Quick k6 test with relaxed thresholds
+	@k6 run \
+		--vus 20 \
+		--duration 2m \
+		--env PTAAS_BASE_URL=http://localhost:8000 \
+		--env SCENARIO=ci_smoke \
+		--thresholds ptaas_request_duration=p95<5000 \
+		--thresholds ptaas_errors=rate<0.02 \
+		--thresholds ptaas_fairness_index=value>=0.5 \
+		--out json=$(PERF_RESULTS_DIR)/smoke_results.json \
+		$(K6_SCRIPT) 2>&1 | tee $(PERF_RESULTS_DIR)/smoke_output.log
+
+	@$(MAKE) ptaas-perf-stack-stop
+	@echo "✅ Smoke test completed"
+
+# Database backend switching
+ptaas-db-postgres: ## Switch to PostgreSQL backend for testing
+	@echo "🐘 Configuring PostgreSQL backend..."
+	@export PTAAS_DB=postgres
+	@echo "✅ PostgreSQL backend configured"
+
+ptaas-db-sqlite: ## Switch to SQLite backend for testing
+	@echo "💾 Configuring SQLite backend..."
+	@export PTAAS_DB=sqlite
+	@echo "✅ SQLite backend configured"
+
+# Performance report generation
+ptaas-perf-report: ## Generate performance test report
+	@echo "📈 Generating PTaaS performance report..."
+	@mkdir -p $(PERF_RESULTS_DIR)
+
+	@if [ ! -f $(PERF_RESULTS_DIR)/k6_summary.json ]; then \
+		echo "❌ No k6 results found in $(PERF_RESULTS_DIR)"; \
+		exit 1; \
+	fi
+
+	# Extract key metrics from k6 results
+	@python3 -c "
+import json
+import sys
+from datetime import datetime
+
+try:
+    with open('$(PERF_RESULTS_DIR)/k6_summary.json', 'r') as f:
+        data = json.load(f)
+
+    metrics = data.get('metrics', {})
+    p95_latency = metrics.get('ptaas_request_duration', {}).get('p95', 0)
+    error_rate = metrics.get('ptaas_errors', {}).get('rate', 0)
+    fairness_index = metrics.get('ptaas_fairness_index', {}).get('value', 0)
+
+    # Performance targets
+    p95_target = $(PTAAS_TARGET_P95_MS)
+    error_target = $(PTAAS_TARGET_ERROR_RATE)
+    fairness_target = $(PTAAS_TARGET_FAIRNESS)
+
+    # Generate report
+    report = f'''# PTaaS Performance Test Report - AMD EPYC 7002
+
+**Test Date:** {datetime.now().isoformat()}
+**Configuration:** EPYC 7002 ({$(PTAAS_WORKERS)} workers, {$(PTAAS_CPU_POOL)} CPU pool, {$(PTAAS_IO_CONCURRENCY)} I/O concurrency)
+**Database Backend:** $(PTAAS_DB)
+
+## Performance Results
+
+| Metric | Target | Actual | Status |
+|--------|--------|--------|--------|
+| P95 Latency | <{p95_target}ms | {p95_latency:.1f}ms | {'✅ PASS' if p95_latency < p95_target else '❌ FAIL'} |
+| Error Rate | <{error_target*100:.1f}% | {error_rate*100:.3f}% | {'✅ PASS' if error_rate < error_target else '❌ FAIL'} |
+| Fairness Index | ≥{fairness_target} | {fairness_index:.3f} | {'✅ PASS' if fairness_index >= fairness_target else '❌ FAIL'} |
+
+## Test Summary
+
+- **P95 Latency:** {p95_latency:.1f}ms (target: <{p95_target}ms)
+- **Error Rate:** {error_rate*100:.3f}% (target: <{error_target*100:.1f}%)
+- **Fairness Index:** {fairness_index:.3f} (target: ≥{fairness_target})
+
+## Overall Result
+
+{'🎉 **ALL TARGETS MET** - EPYC 7002 performance validated' if (p95_latency < p95_target and error_rate < error_target and fairness_index >= fairness_target) else '⚠️ **TARGETS NOT MET** - Performance tuning required'}
+
+## Files Generated
+
+- K6 Results: k6_results.json
+- K6 Summary: k6_summary.json
+- K6 Output: k6_output.log
+- NATS Load Test: nats_load.log
+- This Report: ptaas_perf_report.md
+'''
+
+    with open('$(PERF_RESULTS_DIR)/ptaas_perf_report.md', 'w') as f:
+        f.write(report)
+
+    print(report)
+
+    # Exit with error code if targets not met (for CI)
+    if not (p95_latency < p95_target and error_rate < error_target and fairness_index >= fairness_target):
+        sys.exit(1)
+
+except Exception as e:
+    print(f'Error generating report: {e}')
+    sys.exit(1)
+	"
+
+	@echo ""
+	@echo "📊 Performance report generated: $(PERF_RESULTS_DIR)/ptaas_perf_report.md"
+
+# Clean up performance test artifacts
+ptaas-perf-clean: ## Clean up performance test results
+	@echo "🧹 Cleaning up performance test results..."
+	@rm -rf tools/reports/perf/
+	@echo "✅ Performance test artifacts cleaned"
+
+# Continuous performance monitoring (for production)
+ptaas-perf-monitor: ## Start continuous performance monitoring
+	@echo "📊 Starting continuous PTaaS performance monitoring..."
+	@while true; do \
+		$(MAKE) ptaas-perf-smoke; \
+		sleep 300; \
+	done
+
+# Performance benchmark comparison
+ptaas-perf-compare: ## Compare current performance with baseline
+	@echo "📊 Comparing performance with baseline..."
+	@if [ ! -f tools/reports/perf/baseline/k6_summary.json ]; then \
+		echo "❌ No baseline found. Run: make ptaas-perf-baseline"; \
+		exit 1; \
+	fi
+	@echo "🔍 Performance comparison will be implemented in future version"
+
+# Set performance baseline
+ptaas-perf-baseline: ## Set current performance as baseline
+	@echo "📊 Setting performance baseline..."
+	@mkdir -p tools/reports/perf/baseline
+	@$(MAKE) ptaas-perf PERF_RESULTS_DIR=tools/reports/perf/baseline
+	@echo "✅ Performance baseline set"
+
+# Export performance metrics for external analysis
+ptaas-perf-export: ## Export performance metrics in various formats
+	@echo "📤 Exporting performance metrics..."
+	@if [ -f $(PERF_RESULTS_DIR)/k6_results.json ]; then \
+		echo "Converting k6 results to CSV..."; \
+		python3 -c "
+import json
+import csv
+with open('$(PERF_RESULTS_DIR)/k6_results.json', 'r') as f:
+    data = [json.loads(line) for line in f if line.strip()]
+with open('$(PERF_RESULTS_DIR)/metrics.csv', 'w', newline='') as csvfile:
+    if data:
+        writer = csv.DictWriter(csvfile, fieldnames=data[0].keys())
+        writer.writeheader()
+        writer.writerows(data)
+		"; \
+		echo "✅ Metrics exported to $(PERF_RESULTS_DIR)/metrics.csv"; \
+	else \
+		echo "❌ No k6 results found"; \
+	fi

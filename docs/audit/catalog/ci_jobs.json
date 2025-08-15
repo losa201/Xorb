@@ -1,0 +1,1578 @@
+{
+  "build_system": {
+    "makefile_targets": [
+      {
+        "file": "Makefile",
+        "target": "help",
+        "dependencies": [],
+        "line": 7
+      },
+      {
+        "file": "Makefile",
+        "target": "check-prereqs",
+        "dependencies": [],
+        "line": 13
+      },
+      {
+        "file": "Makefile",
+        "target": "ca-init",
+        "dependencies": [
+          "check-prereqs"
+        ],
+        "line": 21
+      },
+      {
+        "file": "Makefile",
+        "target": "certs-generate",
+        "dependencies": [
+          "ca-init"
+        ],
+        "line": 27
+      },
+      {
+        "file": "Makefile",
+        "target": "deploy-tls",
+        "dependencies": [
+          "certs-generate"
+        ],
+        "line": 56
+      },
+      {
+        "file": "Makefile",
+        "target": "deploy-dev",
+        "dependencies": [
+          "certs-generate"
+        ],
+        "line": 65
+      },
+      {
+        "file": "Makefile",
+        "target": "deploy-prod",
+        "dependencies": [
+          "certs-generate"
+        ],
+        "line": 71
+      },
+      {
+        "file": "Makefile",
+        "target": "validate",
+        "dependencies": [],
+        "line": 77
+      },
+      {
+        "file": "Makefile",
+        "target": "validate-tls",
+        "dependencies": [],
+        "line": 82
+      },
+      {
+        "file": "Makefile",
+        "target": "validate-mtls",
+        "dependencies": [],
+        "line": 87
+      },
+      {
+        "file": "Makefile",
+        "target": "validate-redis",
+        "dependencies": [],
+        "line": 92
+      },
+      {
+        "file": "Makefile",
+        "target": "validate-docker",
+        "dependencies": [],
+        "line": 97
+      },
+      {
+        "file": "Makefile",
+        "target": "security-scan",
+        "dependencies": [],
+        "line": 103
+      },
+      {
+        "file": "Makefile",
+        "target": "rotate-certs",
+        "dependencies": [],
+        "line": 112
+      },
+      {
+        "file": "Makefile",
+        "target": "rotate-all",
+        "dependencies": [],
+        "line": 117
+      },
+      {
+        "file": "Makefile",
+        "target": "emergency-rotation",
+        "dependencies": [],
+        "line": 122
+      },
+      {
+        "file": "Makefile",
+        "target": "performance",
+        "dependencies": [],
+        "line": 130
+      },
+      {
+        "file": "Makefile",
+        "target": "reports",
+        "dependencies": [],
+        "line": 136
+      },
+      {
+        "file": "Makefile",
+        "target": "logs",
+        "dependencies": [],
+        "line": 142
+      },
+      {
+        "file": "Makefile",
+        "target": "health",
+        "dependencies": [],
+        "line": 147
+      },
+      {
+        "file": "Makefile",
+        "target": "cert-status",
+        "dependencies": [],
+        "line": 154
+      },
+      {
+        "file": "Makefile",
+        "target": "k8s-deploy",
+        "dependencies": [],
+        "line": 166
+      },
+      {
+        "file": "Makefile",
+        "target": "k8s-status",
+        "dependencies": [],
+        "line": 174
+      },
+      {
+        "file": "Makefile",
+        "target": "dev-setup",
+        "dependencies": [],
+        "line": 180
+      },
+      {
+        "file": "Makefile",
+        "target": "dev-test",
+        "dependencies": [],
+        "line": 188
+      },
+      {
+        "file": "Makefile",
+        "target": "clean",
+        "dependencies": [],
+        "line": 195
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-quickstart",
+        "dependencies": [],
+        "line": 206
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-e2e",
+        "dependencies": [],
+        "line": 214
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-stop",
+        "dependencies": [],
+        "line": 220
+      },
+      {
+        "file": "Makefile",
+        "target": "clean-all",
+        "dependencies": [],
+        "line": 226
+      },
+      {
+        "file": "Makefile",
+        "target": "start",
+        "dependencies": [
+          "deploy-tls"
+        ],
+        "line": 237
+      },
+      {
+        "file": "Makefile",
+        "target": "stop",
+        "dependencies": [],
+        "line": 238
+      },
+      {
+        "file": "Makefile",
+        "target": "restart",
+        "dependencies": [
+          "stop",
+          "start"
+        ],
+        "line": 243
+      },
+      {
+        "file": "Makefile",
+        "target": "backup",
+        "dependencies": [],
+        "line": 246
+      },
+      {
+        "file": "Makefile",
+        "target": "restore",
+        "dependencies": [],
+        "line": 253
+      },
+      {
+        "file": "Makefile",
+        "target": "ci-validate",
+        "dependencies": [
+          "check-prereqs"
+        ],
+        "line": 263
+      },
+      {
+        "file": "Makefile",
+        "target": "ci-deploy",
+        "dependencies": [
+          "check-prereqs"
+        ],
+        "line": 269
+      },
+      {
+        "file": "Makefile",
+        "target": "docs",
+        "dependencies": [],
+        "line": 276
+      },
+      {
+        "file": "Makefile",
+        "target": "audit",
+        "dependencies": [],
+        "line": 293
+      },
+      {
+        "file": "Makefile",
+        "target": "quick-start",
+        "dependencies": [
+          "ca-init",
+          "cert-api",
+          "cert-redis",
+          "cert-redis-client"
+        ],
+        "line": 309
+      },
+      {
+        "file": "Makefile",
+        "target": "production-ready",
+        "dependencies": [
+          "ca-init",
+          "certs-generate",
+          "validate",
+          "security-scan"
+        ],
+        "line": 312
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-quickstart",
+        "dependencies": [],
+        "line": 316
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-e2e",
+        "dependencies": [],
+        "line": 321
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-stop",
+        "dependencies": [],
+        "line": 324
+      },
+      {
+        "file": "Makefile",
+        "target": "ops-runbooks",
+        "dependencies": [
+          "@echo",
+          "\"RUNBOOKS:",
+          "RUNBOOK_INCIDENT_RESPONSE.md,",
+          "RUNBOOK_ROLLBACK.md,",
+          "docs/CHAOS_DRILLS.md,",
+          "docs/RELEASE_CONFIDENCE_REPORT.md\""
+        ],
+        "line": 328
+      },
+      {
+        "file": "Makefile",
+        "target": "ops-alerts-validate",
+        "dependencies": [
+          "@docker",
+          "run",
+          "--rm",
+          "-v",
+          "$(PWD):/workspace",
+          "--entrypoint=promtool",
+          "prom/prometheus:latest",
+          "\\"
+        ],
+        "line": 331
+      },
+      {
+        "file": "Makefile",
+        "target": "help",
+        "dependencies": [],
+        "line": 7
+      },
+      {
+        "file": "Makefile",
+        "target": "check-prereqs",
+        "dependencies": [],
+        "line": 13
+      },
+      {
+        "file": "Makefile",
+        "target": "ca-init",
+        "dependencies": [
+          "check-prereqs"
+        ],
+        "line": 21
+      },
+      {
+        "file": "Makefile",
+        "target": "certs-generate",
+        "dependencies": [
+          "ca-init"
+        ],
+        "line": 27
+      },
+      {
+        "file": "Makefile",
+        "target": "deploy-tls",
+        "dependencies": [
+          "certs-generate"
+        ],
+        "line": 56
+      },
+      {
+        "file": "Makefile",
+        "target": "deploy-dev",
+        "dependencies": [
+          "certs-generate"
+        ],
+        "line": 65
+      },
+      {
+        "file": "Makefile",
+        "target": "deploy-prod",
+        "dependencies": [
+          "certs-generate"
+        ],
+        "line": 71
+      },
+      {
+        "file": "Makefile",
+        "target": "validate",
+        "dependencies": [],
+        "line": 77
+      },
+      {
+        "file": "Makefile",
+        "target": "validate-tls",
+        "dependencies": [],
+        "line": 82
+      },
+      {
+        "file": "Makefile",
+        "target": "validate-mtls",
+        "dependencies": [],
+        "line": 87
+      },
+      {
+        "file": "Makefile",
+        "target": "validate-redis",
+        "dependencies": [],
+        "line": 92
+      },
+      {
+        "file": "Makefile",
+        "target": "validate-docker",
+        "dependencies": [],
+        "line": 97
+      },
+      {
+        "file": "Makefile",
+        "target": "security-scan",
+        "dependencies": [],
+        "line": 103
+      },
+      {
+        "file": "Makefile",
+        "target": "rotate-certs",
+        "dependencies": [],
+        "line": 112
+      },
+      {
+        "file": "Makefile",
+        "target": "rotate-all",
+        "dependencies": [],
+        "line": 117
+      },
+      {
+        "file": "Makefile",
+        "target": "emergency-rotation",
+        "dependencies": [],
+        "line": 122
+      },
+      {
+        "file": "Makefile",
+        "target": "performance",
+        "dependencies": [],
+        "line": 130
+      },
+      {
+        "file": "Makefile",
+        "target": "reports",
+        "dependencies": [],
+        "line": 136
+      },
+      {
+        "file": "Makefile",
+        "target": "logs",
+        "dependencies": [],
+        "line": 142
+      },
+      {
+        "file": "Makefile",
+        "target": "health",
+        "dependencies": [],
+        "line": 147
+      },
+      {
+        "file": "Makefile",
+        "target": "cert-status",
+        "dependencies": [],
+        "line": 154
+      },
+      {
+        "file": "Makefile",
+        "target": "k8s-deploy",
+        "dependencies": [],
+        "line": 166
+      },
+      {
+        "file": "Makefile",
+        "target": "k8s-status",
+        "dependencies": [],
+        "line": 174
+      },
+      {
+        "file": "Makefile",
+        "target": "dev-setup",
+        "dependencies": [],
+        "line": 180
+      },
+      {
+        "file": "Makefile",
+        "target": "dev-test",
+        "dependencies": [],
+        "line": 188
+      },
+      {
+        "file": "Makefile",
+        "target": "clean",
+        "dependencies": [],
+        "line": 195
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-quickstart",
+        "dependencies": [],
+        "line": 206
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-e2e",
+        "dependencies": [],
+        "line": 214
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-stop",
+        "dependencies": [],
+        "line": 220
+      },
+      {
+        "file": "Makefile",
+        "target": "clean-all",
+        "dependencies": [],
+        "line": 226
+      },
+      {
+        "file": "Makefile",
+        "target": "start",
+        "dependencies": [
+          "deploy-tls"
+        ],
+        "line": 237
+      },
+      {
+        "file": "Makefile",
+        "target": "stop",
+        "dependencies": [],
+        "line": 238
+      },
+      {
+        "file": "Makefile",
+        "target": "restart",
+        "dependencies": [
+          "stop",
+          "start"
+        ],
+        "line": 243
+      },
+      {
+        "file": "Makefile",
+        "target": "backup",
+        "dependencies": [],
+        "line": 246
+      },
+      {
+        "file": "Makefile",
+        "target": "restore",
+        "dependencies": [],
+        "line": 253
+      },
+      {
+        "file": "Makefile",
+        "target": "ci-validate",
+        "dependencies": [
+          "check-prereqs"
+        ],
+        "line": 263
+      },
+      {
+        "file": "Makefile",
+        "target": "ci-deploy",
+        "dependencies": [
+          "check-prereqs"
+        ],
+        "line": 269
+      },
+      {
+        "file": "Makefile",
+        "target": "docs",
+        "dependencies": [],
+        "line": 276
+      },
+      {
+        "file": "Makefile",
+        "target": "audit",
+        "dependencies": [],
+        "line": 293
+      },
+      {
+        "file": "Makefile",
+        "target": "quick-start",
+        "dependencies": [
+          "ca-init",
+          "cert-api",
+          "cert-redis",
+          "cert-redis-client"
+        ],
+        "line": 309
+      },
+      {
+        "file": "Makefile",
+        "target": "production-ready",
+        "dependencies": [
+          "ca-init",
+          "certs-generate",
+          "validate",
+          "security-scan"
+        ],
+        "line": 312
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-quickstart",
+        "dependencies": [],
+        "line": 316
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-e2e",
+        "dependencies": [],
+        "line": 321
+      },
+      {
+        "file": "Makefile",
+        "target": "ptaas-stop",
+        "dependencies": [],
+        "line": 324
+      },
+      {
+        "file": "Makefile",
+        "target": "ops-runbooks",
+        "dependencies": [
+          "@echo",
+          "\"RUNBOOKS:",
+          "RUNBOOK_INCIDENT_RESPONSE.md,",
+          "RUNBOOK_ROLLBACK.md,",
+          "docs/CHAOS_DRILLS.md,",
+          "docs/RELEASE_CONFIDENCE_REPORT.md\""
+        ],
+        "line": 328
+      },
+      {
+        "file": "Makefile",
+        "target": "ops-alerts-validate",
+        "dependencies": [
+          "@docker",
+          "run",
+          "--rm",
+          "-v",
+          "$(PWD):/workspace",
+          "--entrypoint=promtool",
+          "prom/prometheus:latest",
+          "\\"
+        ],
+        "line": 331
+      }
+    ],
+    "target_count": 92
+  },
+  "ci_cd": {
+    "github_workflows": [
+      {
+        "file": ".github/workflows/security-scan.yml",
+        "name": "Security Scan & Build",
+        "triggers": [
+          ""
+        ],
+        "jobs": [
+          "security-analysis",
+          "code-quality",
+          "container-security",
+          "performance-test",
+          "compliance-report"
+        ],
+        "job_count": 5,
+        "uses_secrets": true,
+        "has_security_scans": true,
+        "has_artifacts": true,
+        "environment_usage": []
+      },
+      {
+        "file": ".github/workflows/production-security-pipeline.yml",
+        "name": "Production Security Pipeline",
+        "triggers": [
+          ""
+        ],
+        "jobs": [
+          "secret-scanning",
+          "static-analysis",
+          "dependency-scanning",
+          "container-security",
+          "infrastructure-security",
+          "dynamic-security-testing",
+          "compliance-scanning",
+          "security-report"
+        ],
+        "job_count": 8,
+        "uses_secrets": true,
+        "has_security_scans": true,
+        "has_artifacts": true,
+        "environment_usage": []
+      },
+      {
+        "file": ".github/workflows/ci.yml",
+        "name": "XORB CI Pipeline",
+        "triggers": [
+          ""
+        ],
+        "jobs": [
+          "doctor",
+          "lint",
+          "test",
+          "ptaas-e2e",
+          "ops-validation",
+          "security",
+          "contract-check",
+          "ptaas-perf-smoke",
+          "build-summary"
+        ],
+        "job_count": 9,
+        "uses_secrets": true,
+        "has_security_scans": true,
+        "has_artifacts": true,
+        "environment_usage": []
+      },
+      {
+        "file": ".github/workflows/enterprise-cicd.yml",
+        "name": "Enterprise CI/CD Pipeline",
+        "triggers": [
+          ""
+        ],
+        "jobs": [
+          "code-quality",
+          "frontend-tests",
+          "backend-tests",
+          "performance-tests",
+          "container-security",
+          "build-and-push",
+          "infrastructure-validation",
+          "deploy-staging",
+          "deploy-production",
+          "compliance-report",
+          "cleanup"
+        ],
+        "job_count": 11,
+        "uses_secrets": true,
+        "has_security_scans": true,
+        "has_artifacts": true,
+        "environment_usage": [
+          {
+            "job": "deploy-staging",
+            "environment": {
+              "name": "staging",
+              "url": "https://staging.ptaas.example.com"
+            }
+          },
+          {
+            "job": "deploy-production",
+            "environment": {
+              "name": "production",
+              "url": "https://ptaas.example.com"
+            }
+          }
+        ]
+      },
+      {
+        "file": ".github/workflows/security-push-protection.yml",
+        "name": "security-push-protection",
+        "triggers": [
+          ""
+        ],
+        "jobs": [
+          "gitleaks",
+          "adr-002-guard"
+        ],
+        "job_count": 2,
+        "uses_secrets": true,
+        "has_security_scans": false,
+        "has_artifacts": false,
+        "environment_usage": []
+      },
+      {
+        "file": ".github/workflows/best-practices-cicd.yml",
+        "name": "XORB Platform - Best Practices CI/CD Pipeline",
+        "triggers": [
+          ""
+        ],
+        "jobs": [
+          "security-scan",
+          "code-quality",
+          "dependency-scan",
+          "unit-tests",
+          "integration-tests",
+          "performance-tests",
+          "container-build",
+          "deploy-staging",
+          "deploy-production",
+          "notify"
+        ],
+        "job_count": 10,
+        "uses_secrets": true,
+        "has_security_scans": true,
+        "has_artifacts": false,
+        "environment_usage": [
+          {
+            "job": "deploy-staging",
+            "environment": "staging"
+          },
+          {
+            "job": "deploy-production",
+            "environment": "production"
+          }
+        ]
+      },
+      {
+        "file": ".github/workflows/enterprise-deployment.yml",
+        "name": "XORB Enterprise Deployment Pipeline",
+        "triggers": [
+          ""
+        ],
+        "jobs": [
+          "security-scan",
+          "code-quality",
+          "test-suite",
+          "build-images",
+          "deploy-staging",
+          "security-compliance",
+          "deploy-production",
+          "post-deployment"
+        ],
+        "job_count": 8,
+        "uses_secrets": true,
+        "has_security_scans": true,
+        "has_artifacts": true,
+        "environment_usage": [
+          {
+            "job": "deploy-staging",
+            "environment": "staging"
+          },
+          {
+            "job": "deploy-production",
+            "environment": "production"
+          }
+        ]
+      }
+    ],
+    "workflow_count": 7
+  },
+  "monitoring": {
+    "configs": [
+      {
+        "file": "config/prometheus-pristine.yml",
+        "type": "prometheus",
+        "size": 11212,
+        "contains_secrets": false
+      },
+      {
+        "file": "monitoring/prometheus/prometheus.yml",
+        "type": "prometheus",
+        "size": 4513,
+        "contains_secrets": true
+      },
+      {
+        "file": "infra/monitoring/prometheus.yml",
+        "type": "prometheus",
+        "size": 3392,
+        "contains_secrets": true
+      },
+      {
+        "file": "infra/monitoring/prometheus-tls.yml",
+        "type": "prometheus",
+        "size": 2582,
+        "contains_secrets": true
+      },
+      {
+        "file": "infra/monitoring/prometheus-rules.yml",
+        "type": "prometheus",
+        "size": 6709,
+        "contains_secrets": true
+      },
+      {
+        "file": "infra/config/prometheus-autonomous.yml",
+        "type": "prometheus",
+        "size": 189,
+        "contains_secrets": false
+      },
+      {
+        "file": "infra/monitoring/grafana/datasources/prometheus.yml",
+        "type": "prometheus",
+        "size": 609,
+        "contains_secrets": false
+      },
+      {
+        "file": "services/infrastructure/monitoring/prometheus.yml",
+        "type": "prometheus",
+        "size": 3392,
+        "contains_secrets": true
+      },
+      {
+        "file": "services/infrastructure/monitoring/prometheus-rules.yml",
+        "type": "prometheus",
+        "size": 6709,
+        "contains_secrets": true
+      },
+      {
+        "file": "services/infrastructure/monitoring/grafana/datasources/prometheus.yml",
+        "type": "prometheus",
+        "size": 609,
+        "contains_secrets": false
+      },
+      {
+        "file": "infrastructure/cyber-range/monitoring/prometheus-config.yaml",
+        "type": "prometheus",
+        "size": 16220,
+        "contains_secrets": true
+      },
+      {
+        "file": "monitoring/grafana/dashboards/enterprise_overview.json",
+        "type": "grafana",
+        "size": 8940,
+        "contains_secrets": false
+      },
+      {
+        "file": "infra/monitoring/grafana/grafana-dashboard-ptaas.json",
+        "type": "grafana",
+        "size": 28151,
+        "contains_secrets": true
+      },
+      {
+        "file": "infra/monitoring/grafana/dashboards/ptaas-scale.json",
+        "type": "grafana",
+        "size": 20330,
+        "contains_secrets": false
+      },
+      {
+        "file": "infra/monitoring/grafana/dashboards/json/xorb-overview.json",
+        "type": "grafana",
+        "size": 13414,
+        "contains_secrets": false
+      },
+      {
+        "file": "services/infrastructure/monitoring/grafana/grafana-dashboard-ptaas.json",
+        "type": "grafana",
+        "size": 28151,
+        "contains_secrets": true
+      },
+      {
+        "file": "services/infrastructure/monitoring/grafana/dashboards/json/xorb-overview.json",
+        "type": "grafana",
+        "size": 13414,
+        "contains_secrets": false
+      },
+      {
+        "file": "infra/monitoring/grafana/datasources/prometheus.yml",
+        "type": "prometheus",
+        "size": 609,
+        "contains_secrets": false
+      },
+      {
+        "file": "infra/monitoring/grafana/dashboards/dashboard-config.yml",
+        "type": "grafana",
+        "size": 264,
+        "contains_secrets": false
+      },
+      {
+        "file": "services/infrastructure/monitoring/grafana/datasources/prometheus.yml",
+        "type": "prometheus",
+        "size": 609,
+        "contains_secrets": false
+      },
+      {
+        "file": "services/infrastructure/monitoring/grafana/dashboards/dashboard-config.yml",
+        "type": "grafana",
+        "size": 264,
+        "contains_secrets": false
+      },
+      {
+        "file": "monitoring/alertmanager/alertmanager.yml",
+        "type": "alertmanager",
+        "size": 11630,
+        "contains_secrets": true
+      },
+      {
+        "file": "infra/monitoring/alertmanager.yml",
+        "type": "alertmanager",
+        "size": 5828,
+        "contains_secrets": true
+      },
+      {
+        "file": "services/infrastructure/monitoring/alertmanager.yml",
+        "type": "alertmanager",
+        "size": 5828,
+        "contains_secrets": true
+      },
+      {
+        "file": "infrastructure/cyber-range/monitoring/alertmanager-config.yaml",
+        "type": "alertmanager",
+        "size": 12093,
+        "contains_secrets": true
+      }
+    ],
+    "prometheus_rules": [
+      {
+        "file": "infra/monitoring/prometheus-rules.yml",
+        "valid_yaml": true,
+        "has_groups": true,
+        "rule_count": 19,
+        "alert_count": 19,
+        "recording_count": 0,
+        "errors": []
+      },
+      {
+        "file": "services/infrastructure/monitoring/prometheus-rules.yml",
+        "valid_yaml": true,
+        "has_groups": true,
+        "rule_count": 19,
+        "alert_count": 19,
+        "recording_count": 0,
+        "errors": []
+      },
+      {
+        "file": "config/falco/rules/xorb_custom_rules.yaml",
+        "valid_yaml": true,
+        "has_groups": false,
+        "rule_count": 0,
+        "alert_count": 0,
+        "recording_count": 0,
+        "errors": []
+      }
+    ],
+    "config_count": 25
+  },
+  "operations": {
+    "runbooks": [
+      {
+        "file": "runbooks/RUNBOOK_ROLLBACK.md",
+        "type": "rollback",
+        "size": 8851,
+        "word_count": 1179,
+        "has_procedures": true,
+        "has_contacts": true,
+        "last_updated": "unknown"
+      },
+      {
+        "file": "runbooks/RUNBOOK_INCIDENT_RESPONSE.md",
+        "type": "incident_response",
+        "size": 6098,
+        "word_count": 800,
+        "has_procedures": true,
+        "has_contacts": true,
+        "last_updated": "unknown"
+      },
+      {
+        "file": "docs/RELEASE_NOTES.md",
+        "type": "release_management",
+        "size": 8908,
+        "word_count": 1138,
+        "has_procedures": true,
+        "has_contacts": false,
+        "last_updated": "unknown"
+      }
+    ],
+    "runbook_count": 3
+  },
+  "deployment": {
+    "configs": [
+      {
+        "file": "docker-compose.yml",
+        "type": "docker-compose",
+        "size": 5228,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 15,
+        "service_count": 9,
+        "services": [
+          "postgres",
+          "redis",
+          "temporal",
+          "temporal-ui",
+          "api",
+          "orchestrator",
+          "worker",
+          "prometheus",
+          "grafana"
+        ]
+      },
+      {
+        "file": "docker-compose.enterprise.yml",
+        "type": "docker-compose",
+        "size": 6890,
+        "has_health_checks": true,
+        "has_resource_limits": false,
+        "has_secrets": true,
+        "environment_count": 9,
+        "service_count": 10,
+        "services": [
+          "ptaas-frontend",
+          "xorb-api",
+          "xorb-orchestrator",
+          "postgres",
+          "redis",
+          "temporal",
+          "vault",
+          "prometheus",
+          "grafana",
+          "traefik"
+        ]
+      },
+      {
+        "file": "docker-compose.production.yml",
+        "type": "docker-compose",
+        "size": 8450,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 8,
+        "service_count": 9,
+        "services": [
+          "xorb-api",
+          "postgres",
+          "redis",
+          "xorb-orchestrator",
+          "temporal",
+          "prometheus",
+          "grafana",
+          "nginx",
+          "fluentd"
+        ]
+      },
+      {
+        "file": "docker-compose.development.yml",
+        "type": "docker-compose",
+        "size": 7145,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 6,
+        "service_count": 8,
+        "services": [
+          "postgres-dev",
+          "redis-dev",
+          "api-dev",
+          "orchestrator-dev",
+          "worker-dev",
+          "temporal-dev",
+          "prometheus-dev",
+          "grafana-dev"
+        ]
+      },
+      {
+        "file": "infra/docker-compose.tls.yml",
+        "type": "docker-compose",
+        "size": 11326,
+        "has_health_checks": true,
+        "has_resource_limits": false,
+        "has_secrets": true,
+        "environment_count": 13,
+        "service_count": 12,
+        "services": [
+          "redis",
+          "postgres",
+          "temporal",
+          "envoy-api",
+          "api",
+          "orchestrator",
+          "envoy-agent",
+          "ptaas-agent",
+          "dind",
+          "scanner-executor",
+          "prometheus",
+          "grafana"
+        ]
+      },
+      {
+        "file": "devops/best-practices/docker-compose.best-practices.yml",
+        "type": "docker-compose",
+        "size": 11102,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 10,
+        "service_count": 10,
+        "services": [
+          "postgres",
+          "redis",
+          "vault",
+          "api-gateway",
+          "identity-service",
+          "threat-intelligence",
+          "prometheus",
+          "grafana",
+          "elasticsearch",
+          "nginx"
+        ]
+      },
+      {
+        "file": "deploy/configs/docker-compose.yml",
+        "type": "docker-compose",
+        "size": 12628,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 16,
+        "service_count": 12,
+        "services": [
+          "postgres",
+          "redis",
+          "xorb-api-gateway",
+          "xorb-orchestrator",
+          "xorb-adversarial-engine",
+          "xorb-ml-defense",
+          "node-exporter",
+          "prometheus",
+          "alertmanager",
+          "grafana",
+          "ptaas-frontend",
+          "nginx"
+        ]
+      },
+      {
+        "file": "deploy/configs/docker-compose.dev.yml",
+        "type": "docker-compose",
+        "size": 1789,
+        "has_health_checks": false,
+        "has_resource_limits": false,
+        "has_secrets": true,
+        "environment_count": 5,
+        "service_count": 6,
+        "services": [
+          "api",
+          "orchestrator",
+          "temporal",
+          "temporal-ui",
+          "postgres",
+          "redis"
+        ]
+      },
+      {
+        "file": "deploy/configs/docker-compose.fixed.yml",
+        "type": "docker-compose",
+        "size": 5897,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 8,
+        "service_count": 7,
+        "services": [
+          "postgres",
+          "redis",
+          "xorb-api-gateway",
+          "xorb-orchestrator",
+          "prometheus",
+          "grafana",
+          "nginx"
+        ]
+      },
+      {
+        "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+        "type": "docker-compose",
+        "size": 9621,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 8,
+        "service_count": 9,
+        "services": [
+          "falco",
+          "falco-sidekick",
+          "falco-sidekick-ui",
+          "falco-exporter",
+          "fim-agent",
+          "wazuh-manager",
+          "trivy-scanner",
+          "yara-scanner",
+          "runtime-dashboard"
+        ]
+      },
+      {
+        "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+        "type": "docker-compose",
+        "size": 15249,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 15,
+        "service_count": 17,
+        "services": [
+          "agent-scheduler",
+          "sandbox-orchestrator",
+          "telemetry-collector",
+          "red-recon-agent",
+          "red-exploit-agent",
+          "blue-detect-agent",
+          "blue-hunt-agent",
+          "postgres",
+          "redis",
+          "temporal",
+          "prometheus",
+          "grafana",
+          "jaeger",
+          "loki",
+          "promtail",
+          "vault",
+          "falco"
+        ]
+      },
+      {
+        "file": "infra/compose-configs/docker-compose.siem.yml",
+        "type": "docker-compose",
+        "size": 8740,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 7,
+        "service_count": 7,
+        "services": [
+          "elasticsearch",
+          "logstash",
+          "kibana",
+          "filebeat",
+          "metricbeat",
+          "auditbeat",
+          "fleet-server"
+        ]
+      },
+      {
+        "file": "deploy/kubernetes/secrets.yaml",
+        "type": "kubernetes",
+        "size": 2573,
+        "has_health_checks": false,
+        "has_resource_limits": false,
+        "has_secrets": true,
+        "environment_count": 0
+      },
+      {
+        "file": "deploy/kubernetes/postgres.yaml",
+        "type": "kubernetes",
+        "size": 12483,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 2
+      },
+      {
+        "file": "deploy/kubernetes/ptaas-deployment.yaml",
+        "type": "kubernetes",
+        "size": 14353,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 3
+      },
+      {
+        "file": "deploy/kubernetes/namespace.yaml",
+        "type": "kubernetes",
+        "size": 736,
+        "has_health_checks": false,
+        "has_resource_limits": false,
+        "has_secrets": false,
+        "environment_count": 0
+      },
+      {
+        "file": "deploy/kubernetes/configmap.yaml",
+        "type": "kubernetes",
+        "size": 4604,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": false,
+        "environment_count": 2
+      },
+      {
+        "file": "deploy/kubernetes/xorb-api.yaml",
+        "type": "kubernetes",
+        "size": 6932,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 1
+      },
+      {
+        "file": "deploy/kubernetes/redis.yaml",
+        "type": "kubernetes",
+        "size": 5346,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 2
+      },
+      {
+        "file": "infra/kubernetes/namespace.yaml",
+        "type": "kubernetes",
+        "size": 619,
+        "has_health_checks": false,
+        "has_resource_limits": false,
+        "has_secrets": false,
+        "environment_count": 0
+      },
+      {
+        "file": "devops/best-practices/kubernetes/namespace.yaml",
+        "type": "kubernetes",
+        "size": 2231,
+        "has_health_checks": false,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 1
+      },
+      {
+        "file": "devops/best-practices/kubernetes/deployment.yaml",
+        "type": "kubernetes",
+        "size": 6426,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 3
+      },
+      {
+        "file": "infrastructure/cyber-range/k8s/red-team.yaml",
+        "type": "kubernetes",
+        "size": 14929,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 5
+      },
+      {
+        "file": "infrastructure/cyber-range/k8s/namespace.yaml",
+        "type": "kubernetes",
+        "size": 7298,
+        "has_health_checks": false,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 5
+      },
+      {
+        "file": "infrastructure/cyber-range/k8s/network-policies.yaml",
+        "type": "kubernetes",
+        "size": 18152,
+        "has_health_checks": false,
+        "has_resource_limits": true,
+        "has_secrets": false,
+        "environment_count": 7
+      },
+      {
+        "file": "infrastructure/cyber-range/k8s/blue-team.yaml",
+        "type": "kubernetes",
+        "size": 20694,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 9
+      },
+      {
+        "file": "infrastructure/cyber-range/k8s/control-plane.yaml",
+        "type": "kubernetes",
+        "size": 12026,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 4
+      },
+      {
+        "file": "deploy/helm/xorb/values.yaml",
+        "type": "helm",
+        "size": 8214,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 5
+      },
+      {
+        "file": "deploy/helm/xorb/Chart.yaml",
+        "type": "helm",
+        "size": 1163,
+        "has_health_checks": false,
+        "has_resource_limits": false,
+        "has_secrets": false,
+        "environment_count": 0
+      },
+      {
+        "file": "deploy/helm/xorb-platform/Chart.yaml",
+        "type": "helm",
+        "size": 1144,
+        "has_health_checks": false,
+        "has_resource_limits": false,
+        "has_secrets": false,
+        "environment_count": 0
+      },
+      {
+        "file": ".github/workflows/enterprise-deployment.yml",
+        "type": "unknown",
+        "size": 13925,
+        "has_health_checks": true,
+        "has_resource_limits": false,
+        "has_secrets": true,
+        "environment_count": 20
+      },
+      {
+        "file": "devops/best-practices/kubernetes/deployment.yaml",
+        "type": "kubernetes",
+        "size": 6426,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 3
+      },
+      {
+        "file": "deploy/kubernetes/ptaas-deployment.yaml",
+        "type": "kubernetes",
+        "size": 14353,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 3
+      },
+      {
+        "file": "deploy/kubernetes/production/database-deployment.yaml",
+        "type": "kubernetes",
+        "size": 5023,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 2
+      },
+      {
+        "file": "deploy/kubernetes/production/orchestrator-deployment.yaml",
+        "type": "kubernetes",
+        "size": 4537,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 3
+      },
+      {
+        "file": "deploy/kubernetes/production/xorb-api-deployment.yaml",
+        "type": "kubernetes",
+        "size": 5013,
+        "has_health_checks": true,
+        "has_resource_limits": true,
+        "has_secrets": true,
+        "environment_count": 2
+      }
+    ],
+    "deployment_count": 36
+  },
+  "release_management": {
+    "artifacts": [
+      {
+        "file": "source/lib/python3.12/site-packages/pip/_vendor/packaging/version.py",
+        "type": "version",
+        "size": 14665,
+        "is_binary": false
+      },
+      {
+        "file": "source/lib/python3.12/site-packages/pip/_vendor/chardet/version.py",
+        "type": "version",
+        "size": 244,
+        "is_binary": false
+      },
+      {
+        "file": "source/lib/python3.12/site-packages/pip/_vendor/distlib/version.py",
+        "type": "version",
+        "size": 23747,
+        "is_binary": false
+      },
+      {
+        "file": "source/lib/python3.12/site-packages/pip/_vendor/platformdirs/version.py",
+        "type": "version",
+        "size": 160,
+        "is_binary": false
+      },
+      {
+        "file": "source/lib/python3.12/site-packages/pip/_internal/vcs/versioncontrol.py",
+        "type": "version",
+        "size": 22787,
+        "is_binary": false
+      }
+    ],
+    "artifact_count": 5
+  },
+  "summary": {
+    "total_makefile_targets": 92,
+    "total_workflows": 7,
+    "total_monitoring_configs": 25,
+    "total_runbooks": 3,
+    "total_deployments": 36,
+    "total_artifacts": 5
+  }
+}

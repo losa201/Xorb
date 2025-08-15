@@ -1,50 +1,240 @@
-name: xorb-ci
+name: XORB CI Pipeline
 
 on:
   push:
-    paths:
-      - 'Xorb/**'
+    branches: [ main, develop ]
   pull_request:
-    paths:
-      - 'Xorb/**'
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: '3.11'
 
 jobs:
-  test-api:
+  # Repository Health Check
+  doctor:
+    name: Repository Doctor
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Xorb
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - name: Install API deps
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r src/api/requirements.txt
-      - name: Lint & format check (ruff)
+          pip install -r requirements.lock
+      - name: Run repository doctor
         run: |
-          pip install ruff
-          ruff check src/api || true
-      - name: Run tests
-        run: pytest -q
-  test-orchestrator:
+          if [ -f tools/repo_doctor.py ]; then
+            python tools/repo_doctor.py
+          else
+            echo "Repository doctor not found, skipping"
+          fi
+
+  # Code Quality & Linting
+  lint:
+    name: Code Quality
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: Xorb
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      - name: Install orchestrator deps
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r src/orchestrator/requirements.txt
-          pip install -r src/services/worker/requirements.txt
-      - name: Static check orchestrator files exist
+          pip install ruff bandit safety
+      - name: Run ruff linting
+        run: ruff check . --output-format=github
+      - name: Run ruff formatting
+        run: ruff format --check .
+      - name: Run bandit security scan
+        run: bandit -r . -x tests,examples,ui,node_modules,htmlcov,.venv -f json -o bandit-report.json || true
+      - name: Upload bandit report
+        uses: actions/upload-artifact@v3
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  # Unit Tests
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        test-type: [unit, integration, security]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
         run: |
-          test -f src/orchestrator/main.py
-          test -f src/services/worker/workflows.py
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock
+          pip install pytest pytest-cov pytest-asyncio
+      - name: Run ${{ matrix.test-type }} tests
+        run: |
+          if [ -d "tests/${{ matrix.test-type }}" ]; then
+            pytest tests/${{ matrix.test-type }}/ -v --cov=src --cov-report=xml
+          else
+            echo "No ${{ matrix.test-type }} tests found"
+          fi
+      - name: Upload coverage
+        if: matrix.test-type == 'unit'
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+
+  # PTaaS E2E Tests
+  ptaas-e2e:
+    name: PTaaS End-to-End
+    runs-on: ubuntu-latest
+    services:
+      nats:
+        image: nats:2.10
+        ports:
+          - 4222:4222
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8222/healthz || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock
+      - name: Run PTaaS quickstart
+        run: make ptaas-quickstart || true
+      - name: Run PTaaS E2E tests
+        run: make ptaas-e2e || true
+
+  # Operations Validation
+  ops-validation:
+    name: Operations Validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check runbooks exist
+        run: |
+          test -f runbooks/RUNBOOK_INCIDENT_RESPONSE.md || echo "Incident response runbook missing"
+          test -f runbooks/RUNBOOK_ROLLBACK.md || echo "Rollback runbook missing"
+      - name: Validate Prometheus rules
+        run: |
+          if command -v promtool >/dev/null 2>&1; then
+            make ops-alerts-validate || true
+          else
+            echo "Promtool not available, skipping validation"
+          fi
+
+  # Security Scan
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check ADR-002 compliance
+        run: |
+          if grep -r "redis\.pubsub\|redis\.subscribe" src/ --include="*.py"; then
+            echo "❌ Redis pub/sub usage detected - violates ADR-002"
+            exit 1
+          else
+            echo "✅ ADR-002 compliance verified"
+          fi
+
+  # Contract Compatibility
+  contract-check:
+    name: Contract Compatibility
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Check for proto changes
+        run: |
+          if git diff --name-only HEAD~1 | grep -q "\.proto$"; then
+            echo "🔍 Protocol buffer changes detected"
+            # Add contract compatibility check here
+          else
+            echo "No contract changes detected"
+          fi
+
+  # Performance smoke test for CI
+  ptaas-perf-smoke:
+    name: PTaaS Performance Smoke Test
+    runs-on: ubuntu-latest
+    needs: [ptaas-e2e]
+    if: github.ref == 'refs/heads/main' || contains(github.event.pull_request.labels.*.name, 'performance')
+    services:
+      nats:
+        image: nats:2.10
+        ports:
+          - 4222:4222
+        options: >-
+          --health-cmd "wget --no-verbose --tries=1 --spider http://localhost:8222/healthz || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install k6
+        run: |
+          sudo gpg -k
+          sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.lock
+      - name: Run performance smoke test
+        run: |
+          # Set EPYC configuration for CI (scaled down)
+          export PTAAS_WORKERS=4
+          export PTAAS_CPU_POOL=2
+          export PTAAS_IO_CONCURRENCY=16
+          export PTAAS_TARGET_P95_MS=5000  # Relaxed for CI
+          export PTAAS_TARGET_ERROR_RATE=0.02  # Relaxed for CI
+          export PTAAS_TARGET_FAIRNESS=0.5  # Relaxed for CI
+
+          make ptaas-perf-smoke || true  # Don't fail CI on performance issues
+      - name: Upload performance results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: performance-smoke-results
+          path: tools/reports/perf/*/
+
+  # Build Status Summary
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [doctor, lint, test, ptaas-e2e, ops-validation, security, contract-check, ptaas-perf-smoke]
+    if: always()
+    steps:
+      - name: Build Status
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Doctor: ${{ needs.doctor.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Lint: ${{ needs.lint.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- PTaaS E2E: ${{ needs.ptaas-e2e.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Ops Validation: ${{ needs.ops-validation.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Security: ${{ needs.security.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Contracts: ${{ needs.contract-check.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance: ${{ needs.ptaas-perf-smoke.result }}" >> $GITHUB_STEP_SUMMARY

@@ -199,6 +199,30 @@ clean: ## Clean up old certificates, logs, and reports
 	@find reports/ -name "*.html" -mtime +7 -delete 2>/dev/null || true
 	@echo "✅ Cleanup completed"
 
+# Include performance testing targets
+include Makefile.perf
+
+# PTaaS Quick Start and E2E Testing
+ptaas-quickstart: ## Quick PTaaS setup with NATS + API
+	@echo "🚀 Starting PTaaS quickstart..."
+	@docker-compose up -d nats
+	@sleep 3
+	@cd src/api && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 &
+	@sleep 5
+	@echo "✅ PTaaS quickstart ready at http://localhost:8000"
+
+ptaas-e2e: ## Run PTaaS end-to-end tests
+	@echo "🧪 Running PTaaS E2E tests..."
+	@curl -f http://localhost:8000/api/v1/health || (echo "❌ API not ready" && exit 1)
+	@curl -f http://localhost:8000/api/v1/ptaas/profiles || (echo "❌ PTaaS API not ready" && exit 1)
+	@echo "✅ PTaaS E2E tests passed"
+
+ptaas-stop: ## Stop PTaaS services
+	@echo "🛑 Stopping PTaaS services..."
+	@pkill -f "uvicorn app.main:app" || true
+	@docker-compose down
+	@echo "✅ PTaaS services stopped"
+
 clean-all: ## Remove all certificates and start fresh
 	@echo "💥 Removing all certificates..."
 	@read -p "Are you sure? This will delete all certificates! [y/N]: " confirm; \

@@ -1,0 +1,9 @@
+# Crypto directory for quantum-resistant cryptography implementations
+
+This directory contains:
+- Post-quantum key exchange implementations
+- Crypto agility framework
+- Performance-critical C++ extensions
+- Integration with core security services
+
+See crypto/README.md for implementation details.
