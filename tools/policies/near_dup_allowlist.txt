@@ -1,0 +1,12 @@
+# Near-duplicate allowlist
+# Generated files and legitimate duplicates are listed here
+# Format: file1 <-> file2
+
+# Generated protobuf files (if any)
+# proto/*/v1/*_pb2.py <-> proto/*/v1/*_pb2.py
+
+# Template files that need to remain similar
+# services/ptaas/web/src/components/ui/* <-> services/ptaas/web/src/components/ui/*
+
+# Configuration templates (allowlisted patterns)
+# configs/docker/* <-> configs/k8s/*

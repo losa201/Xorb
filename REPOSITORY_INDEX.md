@@ -1,282 +1,179 @@
-# 🗂️ XORB Platform Repository Master Index
+# XORB Repository Index
 
-[![Repository Status](https://img.shields.io/badge/Repository-Enterprise%20Grade-green)](#enterprise-structure)
-[![Documentation](https://img.shields.io/badge/Documentation-Comprehensive-blue)](#documentation-structure)
-[![Organization](https://img.shields.io/badge/Organization-Professional-orange)](#organizational-excellence)
+**Last Updated:** 2025-08-15  
+**Post-Deduplication Canonical Layout**
 
-> **Master Repository Navigation**: Comprehensive index and navigation guide for the XORB Platform repository, showcasing enterprise-grade organization and sophisticated engineering excellence.
-
-## 🎯 Repository Overview
-
-The XORB Platform repository represents a **production-ready Penetration Testing as a Service (PTaaS)** implementation with enterprise-grade security, real-world scanner integration, and advanced AI-powered capabilities, organized with professional repository hygiene standards.
-
-### Key Platform Features
-- **Production-Ready PTaaS**: Real-world security scanner integration (Nmap, Nuclei, Nikto, SSLScan)
-- **Enterprise Security**: TLS/mTLS implementation with certificate management
-- **AI-Enhanced Intelligence**: Advanced threat intelligence and behavioral analytics
-- **Microservices Architecture**: Clean service boundaries with sophisticated orchestration
-- **Enterprise Scalability**: High-availability design with comprehensive monitoring
-
-## 📁 Repository Structure
+## Canonical Directory Structure
 
 ```
-XORB Platform Repository
-├── 📚 docs/                          # Comprehensive Documentation
-│   ├── architecture/                 # Platform architecture and design
-│   ├── implementation/               # Deployment and configuration guides
-│   ├── operations/                   # Operational runbooks and procedures
-│   ├── reports/                      # Analysis reports and assessments
-│   └── security/                     # Security documentation and compliance
-│
-├── 🎯 demo/                          # Demonstration Suite
-│   ├── scripts/                      # Platform demonstration scripts
-│   ├── reports/                      # Demonstration results and artifacts
-│   └── sample_data/                  # Sample data and generators
-│
-├── 🏗️ src/                           # Platform Source Code
-│   ├── api/                          # FastAPI REST API service
-│   ├── orchestrator/                 # Temporal workflow orchestration
-│   ├── xorb/                         # Core platform modules
-│   ├── common/                       # Shared utilities and configurations
-│   └── services/                     # Microservices implementations
-│
-├── 🔧 tools/                         # Development and Operations Tools
-│   ├── validation/                   # Platform validation and testing
-│   ├── compliance/                   # Compliance automation and monitoring
-│   ├── scripts-archive/              # Archived operational scripts
-│   └── scripts/                      # Active operational scripts
-│
-├── 🏭 infra/                         # Infrastructure Configuration
-│   ├── compose-configs/              # Specialized Docker Compose files
-│   ├── monitoring/                   # Monitoring and observability
-│   ├── vault/                        # HashiCorp Vault configuration
-│   └── docker/                       # Container configurations
-│
-├── 🧪 tests/                         # Comprehensive Test Suite
-│   ├── unit/                         # Unit tests
-│   ├── integration/                  # Integration tests
-│   ├── e2e/                          # End-to-end tests
-│   └── security/                     # Security tests
-│
-├── 🗄️ archive/                       # Historical Preservation
-│   ├── strategic-docs/               # Archived strategic documentation
-│   ├── demo-artifacts/               # Historical demonstration artifacts
-│   └── temp-reports/                 # Temporary reports archive
-│
-└── 📋 Configuration Files
-    ├── docker-compose.yml            # Development deployment
-    ├── docker-compose.production.yml # Production deployment
-    ├── requirements.lock             # Python dependencies
-    └── pytest.ini                   # Testing configuration
+/root/Xorb/
+├── src/                          # Python source code (CANONICAL)
+│   ├── api/                      # FastAPI application
+│   ├── orchestrator/             # Temporal orchestration service
+│   ├── common/                   # Shared utilities (CANONICAL)
+│   ├── xorb/                     # Core platform modules
+│   └── services/                 # Background services
+├── ui/                           # Web interfaces (CANONICAL)
+│   └── homepage/                 # Main homepage with i18n
+│       ├── index.html            # Language selector
+│       └── i18n/
+│           ├── en/               # English content
+│           └── de/               # German content
+├── services/                     # Microservices architecture
+│   ├── ptaas/                    # PTaaS service
+│   ├── xorb-core/               # Backend platform (with compat shims)
+│   └── infrastructure/           # Shared infrastructure
+├── packages/                     # Shared libraries (with compat shims)
+├── proto/                        # Protocol buffers (CANONICAL)
+│   ├── threat/v1/
+│   ├── compliance/v1/
+│   ├── discovery/v1/
+│   ├── audit/v1/
+│   └── vuln/v1/
+├── tests/                        # Test suite (CANONICAL)
+│   ├── unit/                     # Unit tests
+│   ├── integration/              # Integration tests
+│   ├── e2e/                      # End-to-end tests
+│   └── security/                 # Security tests
+├── docs/                         # Documentation (CANONICAL)
+│   ├── audit/                    # Audit reports
+│   ├── reports/                  # Generated reports
+│   └── QUICK_START.md            # Moved from root
+├── tools/                        # Development tools
+│   ├── repo_doctor.py            # Duplicate detection
+│   ├── repo_audit/               # Analysis outputs
+│   └── policies/                 # Repository policies
+├── configs/                      # Configuration files
+├── scripts/                      # Automation scripts
+└── infra/                        # Infrastructure as code
 ```
 
-## 📚 Documentation Structure
+## Consolidation Mapping (Post-Deduplication)
 
-### 🏗️ **Architecture Documentation** (`docs/architecture/`)
-Comprehensive platform architecture, design principles, and technical specifications.
+### Eliminated Duplicates
 
-**Key Documents:**
-- **[Comprehensive Platform Architecture](docs/architecture/COMPREHENSIVE_PLATFORM_ARCHITECTURE.md)** - Complete system architecture
-- **[Enhanced Architecture Blueprint](docs/architecture/ENHANCED_ARCHITECTURE_BLUEPRINT_2025.md)** - Detailed architectural blueprints
-- **[Enterprise Structure](docs/architecture/ENTERPRISE_STRUCTURE.md)** - Enterprise-grade architectural patterns
+| Category | Original Locations | Canonical Location | Status |
+|----------|-------------------|-------------------|---------|
+| **API Layer** | `services/xorb-core/api/` | `src/api/` | ✅ Consolidated |
+| **Orchestrator** | `services/xorb-core/orchestrator/` | `src/orchestrator/` | ✅ Consolidated |
+| **Common Utils** | `packages/common/` | `src/common/` | ✅ Consolidated |
+| **Unit Tests** | `src/api/tests/`, `services/xorb-core/api/tests/` | `tests/unit/` | ✅ Consolidated |
+| **Integration Tests** | Scattered locations | `tests/integration/` | ✅ Consolidated |
+| **UI Homepage** | `ui/homepage/homepage/`, `ui/homepage-de/` | `ui/homepage/i18n/` | ✅ Consolidated |
+| **Documentation** | Root `*.md` files | `docs/` | ✅ Consolidated |
 
-### 🚀 **Implementation Documentation** (`docs/implementation/`)
-Complete deployment guides, configuration instructions, and implementation procedures.
+### Compatibility Shims (Temporary - Remove in P06)
 
-**Key Documents:**
-- **[Implementation Guide](docs/implementation/IMPLEMENTATION_GUIDE.md)** - Comprehensive deployment guide
-- **[Enhanced PTaaS Agent Guide](docs/implementation/ENHANCED_PTAAS_AGENT_GUIDE.md)** - PTaaS-specific implementation
-- **[TLS Implementation Guide](docs/TLS_IMPLEMENTATION_GUIDE.md)** - TLS/mTLS security setup
+| Deprecated Path | Canonical Path | Shim Location |
+|----------------|----------------|---------------|
+| `services.xorb-core.api.gateway` | `src.api.gateway` | `services/xorb-core/api/gateway.py` |
+| `services.xorb-core.api.db_management` | `src.api.db_management` | `services/xorb-core/api/db_management.py` |
+| `services.xorb-core.api.dependencies` | `src.api.dependencies` | `services/xorb-core/api/dependencies.py` |
+| `services.xorb-core.orchestrator.main` | `src.orchestrator.main` | `services/xorb-core/orchestrator/main.py` |
+| `packages.common.*` | `src.common.*` | `packages/common/__init__.py` |
 
-### ⚙️ **Operations Documentation** (`docs/operations/`)
-Operational runbooks, procedures, and production management guides.
+## File Type Guidelines
 
-**Key Documents:**
-- **[Operational Runbook](docs/operations/OPERATIONAL_RUNBOOK.md)** - Day-to-day operations
-- **[Production Readiness Checklist](docs/operations/PRODUCTION_READINESS_CHECKLIST.md)** - Production deployment validation
-- **[TLS Operational Runbook](docs/TLS_OPERATIONAL_RUNBOOK.md)** - TLS/mTLS operations
+### Python Code
+- **Location:** `src/`
+- **Package Structure:** Follow Python package conventions
+- **Import Style:** Absolute imports from `src.`
+- **Testing:** Unit tests in `tests/unit/`, integration in `tests/integration/`
 
-### 📊 **Reports and Analysis** (`docs/reports/`)
-Platform assessments, enhancement reports, and strategic analysis.
+### Web Interfaces  
+- **Location:** `ui/`
+- **Structure:** Feature-based directories
+- **Internationalization:** Use `i18n/{lang}/` pattern
+- **Assets:** Co-located with components
 
-**Key Documents:**
-- **[Platform Enhancement Summary](docs/reports/PLATFORM_ENHANCEMENT_SUMMARY.md)** - Enhancement implementations
-- **[Audit Report](docs/reports/AUDIT_REPORT_20250811.md)** - Platform audit findings
-- **[Refactor Plan](docs/reports/REFACTOR_PLAN.md)** - Strategic refactoring documentation
+### Documentation
+- **Location:** `docs/`
+- **Structure:** Purpose-based organization
+- **Reports:** Generated content in `docs/reports/`
+- **API Docs:** Auto-generated in `docs/api/`
 
-### 🔐 **Security Documentation** (`docs/security/`)
-Security implementation, compliance, and validation documentation.
+### Protocol Buffers
+- **Location:** `proto/{domain}/v1/`
+- **Versioning:** Semantic versioning in path
+- **Generated Code:** Not committed to repository
+- **Documentation:** Inline comments required
 
-**Key Documents:**
-- **[Security Implementation Report](docs/SECURITY_IMPLEMENTATION_REPORT.md)** - Security controls
-- **[Security Validation Report](docs/security/security_validation_report.md)** - Security testing results
-- **[Dependency Security Report](docs/security/DEPENDENCY_SECURITY_REPORT.md)** - Dependency security analysis
+### Tests
+- **Location:** `tests/{type}/`
+- **Naming:** `test_*.py` pattern
+- **Structure:** Mirror source structure
+- **Fixtures:** Shared in `tests/fixtures/`
 
-## 🎯 Platform Components
+### Configuration
+- **Location:** `configs/`
+- **Environment:** Separate files per environment
+- **Secrets:** Use environment variables or vault
+- **Templates:** `.template` suffix for examples
 
-### 🚀 **API Service** (`src/api/`)
-Production-ready FastAPI REST API with comprehensive middleware stack and enterprise security.
+## Quality Gates
 
-**Key Features:**
-- **Clean Architecture**: Domain-driven design with dependency injection
-- **Advanced Security**: Multi-layer security middleware with rate limiting
-- **PTaaS Integration**: Real-world security scanner integration
-- **Comprehensive Monitoring**: Prometheus metrics and health checks
+### Duplicate Prevention
+- **CI Check:** `.github/workflows/ci.yml` includes duplicate detection
+- **Pre-commit:** Hooks in `src/api/.pre-commit-config.yaml`
+- **Tool:** `tools/repo_audit/near_dup_check.py`
+- **Policy:** Allowlist in `tools/policies/near_dup_allowlist.txt`
 
-### 🔄 **Orchestration Service** (`src/orchestrator/`)
-Temporal-based workflow orchestration with circuit breaker patterns and retry policies.
+### Code Quality
+- **Linting:** Ruff for Python, ESLint for TypeScript
+- **Formatting:** Black for Python, Prettier for web
+- **Type Checking:** mypy for Python, TypeScript compiler
+- **Security:** Bandit, Gitleaks, ADR compliance checks
 
-**Key Features:**
-- **Workflow Management**: Complex scan orchestration with priority handling
-- **Fault Tolerance**: Circuit breaker patterns with exponential backoff
-- **Error Handling**: Comprehensive error recovery and retry policies
-- **Performance Monitoring**: Workflow performance tracking and optimization
+### Testing Requirements
+- **Coverage:** Minimum 75% for new code
+- **Types:** Unit, integration, e2e, security tests required
+- **Performance:** Smoke tests in CI, full perf tests on demand
+- **Contracts:** Protocol buffer compatibility checking
 
-### 🧠 **Core Platform** (`src/xorb/`)
-Advanced platform modules including intelligence engines, security frameworks, and AI capabilities.
+## Development Workflow
 
-**Key Features:**
-- **Threat Intelligence**: Advanced correlation and analysis engines
-- **Security Framework**: Comprehensive security and compliance automation
-- **AI/ML Integration**: Machine learning threat detection and behavioral analytics
-- **Quantum-Safe Security**: Future-proofed cryptographic implementations
+### Adding New Code
+1. **Determine canonical location** using guidelines above
+2. **Check for existing similar code** using repository doctor
+3. **Follow established patterns** in similar modules
+4. **Add tests** in appropriate test directory
+5. **Update documentation** if adding new features
 
-## 🛠️ Development Tools
+### Import Conventions
+```python
+# Preferred: Canonical imports
+from src.api.gateway import APIGateway
+from src.common.config import Config
 
-### 🔍 **Validation Tools** (`tools/validation/`)
-Comprehensive platform validation, testing, and quality assurance tools.
+# Deprecated: Legacy imports (with warnings)
+from services.xorb_core.api.gateway import APIGateway  # Will warn
+from packages.common.config import Config             # Will warn
+```
 
-**Available Tools:**
-- **Security Validation**: `validate_security_implementation.py`
-- **Strategic Implementation Testing**: `validate_principal_auditor_strategic_implementation.py`
-- **MITRE Compliance**: `validate_sophisticated_mitre_implementation.py`
-- **Integration Testing**: Various test utilities and frameworks
+### Migration Path (P06)
+1. **Update imports** to canonical paths
+2. **Remove compatibility shims** 
+3. **Update documentation** and examples
+4. **Remove deprecation warnings**
 
-### 📋 **Compliance Tools** (`tools/compliance/`)
-Enterprise compliance automation and monitoring tools.
+## Tools & Automation
 
-**Available Tools:**
-- **Compliance Monitoring**: `compliance_monitoring.py`
-- **Report Generation**: `compliance_template.py`
-- **Framework Validation**: Support for SOC2, PCI-DSS, NIST, ISO 27001
+### Repository Maintenance
+- **`tools/repo_doctor.py`** - Comprehensive duplicate analysis
+- **`tools/repo_audit/near_dup_check.py`** - Real-time duplicate prevention
+- **`tools/policies/near_dup_allowlist.txt`** - Legitimate duplicate allowlist
 
-### 🚀 **Operational Scripts** (`tools/scripts/`)
-Active operational automation and monitoring scripts.
+### Build & Deploy
+- **`make doctor`** - Run repository health check
+- **`make test`** - Run all test suites
+- **`make lint`** - Code quality checks
+- **`make security-scan`** - Security analysis
 
-**Available Scripts:**
-- **Security Scanning**: `security-scan.sh`
-- **Deployment Automation**: `deploy.sh`
-- **Health Monitoring**: `health-monitor.sh`
-- **Performance Benchmarking**: `performance-benchmark.sh`
-
-## 🎭 Demonstration Suite
-
-### 🎯 **Demo Scripts** (`demo/scripts/`)
-Comprehensive demonstration suite showcasing platform capabilities.
-
-**Demo Categories:**
-- **Platform Capabilities**: Enhanced features and unified intelligence
-- **Security Demonstrations**: Red team automation and security operations
-- **AI Demonstrations**: Advanced AI capabilities and autonomous operations
-- **Deployment Scenarios**: Enterprise deployment and strategic implementations
-
-### 📊 **Demo Reports** (`demo/reports/`)
-Historical demonstration results and platform validation reports.
-
-**Report Types:**
-- **Demonstration Results**: Execution results and performance metrics
-- **Strategic Assessments**: Platform assessment and enhancement reports
-- **Validation Reports**: Security and compliance validation results
-
-## 🏭 Infrastructure Configuration
-
-### 🐋 **Docker Compose Configurations** (`infra/compose-configs/`)
-Specialized Docker Compose configurations for different deployment scenarios.
-
-**Available Configurations:**
-- **Red/Blue Team Agents**: `docker-compose.red-blue-agents.yml`
-- **Runtime Security**: `docker-compose.runtime-security.yml`
-- **SIEM Stack**: `docker-compose.siem.yml`
-- **TLS Security**: `docker-compose.tls.yml`
-
-### 📊 **Monitoring Stack** (`infra/monitoring/`)
-Comprehensive monitoring and observability configuration.
-
-**Components:**
-- **Prometheus**: Metrics collection and time-series database
-- **Grafana**: Visualization dashboards and alerting
-- **AlertManager**: Alert routing and notification management
-
-## 🧪 Testing Framework
-
-### 📋 **Test Organization** (`tests/`)
-Comprehensive test suite with categorized testing approaches.
-
-**Test Categories:**
-- **Unit Tests**: Component-level testing with high coverage
-- **Integration Tests**: Service interaction and API testing
-- **End-to-End Tests**: Complete workflow validation
-- **Security Tests**: Vulnerability and penetration testing
-- **Performance Tests**: Load testing and scalability validation
-
-## 🗄️ Historical Preservation
-
-### 📚 **Strategic Documentation Archive** (`archive/strategic-docs/`)
-Preserved strategic documentation maintaining complete historical context.
-
-**Archived Content:**
-- Principal auditor assessments and strategic reports
-- Implementation completion documentation
-- Enhancement and strategic planning documents
-- Historical development and assessment artifacts
-
-## 🚀 Quick Start Navigation
-
-### For New Developers
-1. **Start Here**: [README.md](README.md) - Platform overview and quick start
-2. **Architecture**: [Comprehensive Platform Architecture](docs/architecture/COMPREHENSIVE_PLATFORM_ARCHITECTURE.md)
-3. **Implementation**: [Implementation Guide](docs/implementation/IMPLEMENTATION_GUIDE.md)
-4. **Development**: [CLAUDE.md](CLAUDE.md) - Development guidance and commands
-
-### For Operations Teams
-1. **Operations**: [Operational Runbook](docs/operations/OPERATIONAL_RUNBOOK.md)
-2. **Deployment**: [Production Readiness Checklist](docs/operations/PRODUCTION_READINESS_CHECKLIST.md)
-3. **Security**: [Security Implementation Report](docs/SECURITY_IMPLEMENTATION_REPORT.md)
-4. **Monitoring**: [Monitoring Configuration](infra/monitoring/)
-
-### For Security Teams
-1. **Security Documentation**: [Security Implementation](docs/SECURITY_IMPLEMENTATION_REPORT.md)
-2. **TLS Configuration**: [TLS Implementation Guide](docs/TLS_IMPLEMENTATION_GUIDE.md)
-3. **Validation Tools**: [Security Validation](tools/validation/)
-4. **Compliance**: [Compliance Tools](tools/compliance/)
-
-### For Platform Users
-1. **API Documentation**: http://localhost:8000/docs (when running)
-2. **Demo Suite**: [Demo README](demo/README.md)
-3. **Platform Guide**: [Enhanced PTaaS Agent Guide](docs/implementation/ENHANCED_PTAAS_AGENT_GUIDE.md)
-
-## 🏆 Repository Excellence
-
-### Enterprise-Grade Organization
-- **Professional Structure**: Clear categorization and intuitive navigation
-- **Comprehensive Documentation**: Complete coverage of all platform aspects
-- **Historical Preservation**: Maintained audit trail and development history
-- **Developer Experience**: Optimized for productivity and clarity
-
-### Quality Standards
-- **Consistent Organization**: Standardized structure across all directories
-- **Comprehensive Coverage**: Complete documentation for all components
-- **Professional Presentation**: Enterprise-grade repository structure
-- **Maintenance Excellence**: Optimized for ongoing development and operations
-
-### Strategic Success
-- **Production Ready**: Enterprise-grade platform with real-world capabilities
-- **Security First**: Comprehensive security implementation and documentation
-- **AI Enhanced**: Advanced intelligence and automation capabilities
-- **Scalable Architecture**: Designed for enterprise deployment and growth
+### Monitoring
+- **Daily:** Automated duplicate detection in CI
+- **Weekly:** Repository health reports
+- **Monthly:** Canonical layout compliance review
 
 ---
 
-**XORB Platform Repository**: A showcase of enterprise-grade repository organization supporting sophisticated production-ready cybersecurity platform development and operations.
-
-*This master index demonstrates the transformation from a cluttered repository to a professional, enterprise-grade structure while maintaining the sophisticated engineering excellence of the XORB platform.*
+**Note:** This index reflects the post-deduplication state. All 98 duplicate files have been eliminated and canonical locations established. Compatibility shims provide backward compatibility during migration period.

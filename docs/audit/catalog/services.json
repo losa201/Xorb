@@ -1,0 +1,5457 @@
+{
+  "docker_services": {
+    "docker-compose.yml:postgres": {
+      "name": "postgres",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "postgres:16-alpine",
+      "build": "",
+      "ports": [
+        "5432:5432"
+      ],
+      "environment": {
+        "POSTGRES_DB": "${POSTGRES_DB:-xorb}",
+        "POSTGRES_USER": "${POSTGRES_USER:-xorb}",
+        "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:-secure_password}",
+        "POSTGRES_INITDB_ARGS": "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      },
+      "volumes": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./legacy/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-xorb}"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    "docker-compose.yml:redis": {
+      "name": "redis",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "redis:7-alpine",
+      "build": "",
+      "ports": [
+        "6379:6379"
+      ],
+      "environment": {},
+      "volumes": [
+        "redis_data:/data"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    "docker-compose.yml:temporal": {
+      "name": "temporal",
+      "file": "docker-compose.yml",
+      "image": "temporalio/temporal:1.22.4",
+      "build": "",
+      "ports": [
+        "7233:7233"
+      ],
+      "environment": [
+        "DB=postgresql",
+        "DB_PORT=5432",
+        "POSTGRES_USER=xorb",
+        "POSTGRES_PWD=${DB_PASSWORD:-xorb_password}",
+        "POSTGRES_SEEDS=postgres",
+        "DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml"
+      ],
+      "volumes": [
+        "./infra/temporal:/etc/temporal/config/dynamicconfig"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.yml:temporal-ui": {
+      "name": "temporal-ui",
+      "file": "docker-compose.yml",
+      "image": "temporalio/ui:2.21.3",
+      "build": "",
+      "ports": [
+        "8233:8080"
+      ],
+      "environment": [
+        "TEMPORAL_ADDRESS=temporal:7233",
+        "TEMPORAL_CORS_ORIGINS=http://localhost:3000"
+      ],
+      "volumes": [],
+      "depends_on": [
+        "temporal"
+      ],
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.yml:api": {
+      "name": "api",
+      "file": "docker-compose.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "target": "${BUILD_TARGET:-development}"
+      },
+      "ports": [
+        "8000:8000"
+      ],
+      "environment": {
+        "ENVIRONMENT": "${ENVIRONMENT:-development}",
+        "LOG_LEVEL": "${LOG_LEVEL:-INFO}",
+        "DATABASE_URL": "postgresql://xorb:${DB_PASSWORD:-xorb_password}@postgres:5432/${DB_NAME:-xorb}",
+        "REDIS_URL": "redis://redis:6379/0",
+        "JWT_SECRET": "${JWT_SECRET:-dev-secret-change-in-production}",
+        "TEMPORAL_HOST": "temporal:7233",
+        "API_HOST": "0.0.0.0",
+        "API_PORT": 8000,
+        "CORS_ORIGINS": "${CORS_ORIGINS:-http://localhost:3000,http://localhost:8080}"
+      },
+      "volumes": [
+        "./logs:/app/logs",
+        "./data:/app/data"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 5
+      }
+    },
+    "docker-compose.yml:orchestrator": {
+      "name": "orchestrator",
+      "file": "docker-compose.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/orchestrator/Dockerfile"
+      },
+      "ports": [],
+      "environment": {
+        "ENVIRONMENT": "${ENVIRONMENT:-development}",
+        "LOG_LEVEL": "${LOG_LEVEL:-INFO}",
+        "DATABASE_URL": "postgresql://xorb:${DB_PASSWORD:-xorb_password}@postgres:5432/${DB_NAME:-xorb}",
+        "REDIS_URL": "redis://redis:6379/0",
+        "JWT_SECRET": "${JWT_SECRET:-dev-secret-change-in-production}",
+        "TEMPORAL_HOST": "temporal:7233",
+        "SERVICE_NAME": "orchestrator"
+      },
+      "volumes": [
+        "./logs:/app/logs",
+        "./data:/app/data"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "temporal": {
+          "condition": "service_started"
+        }
+      },
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.yml:worker": {
+      "name": "worker",
+      "file": "docker-compose.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/worker/Dockerfile"
+      },
+      "ports": [],
+      "environment": {
+        "ENVIRONMENT": "${ENVIRONMENT:-development}",
+        "LOG_LEVEL": "${LOG_LEVEL:-INFO}",
+        "DATABASE_URL": "postgresql://xorb:${DB_PASSWORD:-xorb_password}@postgres:5432/${DB_NAME:-xorb}",
+        "REDIS_URL": "redis://redis:6379/0",
+        "JWT_SECRET": "${JWT_SECRET:-dev-secret-change-in-production}",
+        "TEMPORAL_HOST": "temporal:7233",
+        "SERVICE_NAME": "worker",
+        "WORKER_ID": "${WORKER_ID:-worker-001}"
+      },
+      "volumes": [
+        "./logs:/app/logs",
+        "./data:/app/data"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.yml:prometheus": {
+      "name": "prometheus",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "prom/prometheus:v2.47.0",
+      "build": "",
+      "ports": [
+        "9090:9090"
+      ],
+      "environment": {},
+      "volumes": [
+        "prometheus_data:/prometheus",
+        "./legacy/config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
+        "./legacy/config/prometheus/rules:/etc/prometheus/rules:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy"
+        ],
+        "interval": "30s",
+        "timeout": "5s",
+        "retries": 3
+      }
+    },
+    "docker-compose.yml:grafana": {
+      "name": "grafana",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "grafana/grafana:10.1.0",
+      "build": "",
+      "ports": [
+        "3000:3000"
+      ],
+      "environment": [
+        "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-xorb-admin-2024}",
+        "GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}",
+        "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource",
+        "GF_SERVER_ROOT_URL=http://localhost:3000"
+      ],
+      "volumes": [
+        "grafana_data:/var/lib/grafana",
+        "./legacy/config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro",
+        "./legacy/config/grafana/datasources:/etc/grafana/provisioning/datasources:ro"
+      ],
+      "depends_on": [
+        "prometheus"
+      ],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -f http://localhost:3000/api/health || exit 1"
+        ],
+        "interval": "30s",
+        "timeout": "5s",
+        "retries": 3
+      }
+    },
+    "docker-compose.enterprise.yml:ptaas-frontend": {
+      "name": "ptaas-frontend",
+      "file": "docker-compose.enterprise.yml",
+      "image": "",
+      "build": {
+        "context": "./services/ptaas/web",
+        "dockerfile": "Dockerfile"
+      },
+      "ports": [
+        "8080:8080"
+      ],
+      "environment": [
+        "REACT_APP_XORB_API_URL=http://xorb-api:8000",
+        "REACT_APP_XORB_WS_URL=ws://xorb-api:8000/ws",
+        "NODE_ENV=production"
+      ],
+      "volumes": [],
+      "depends_on": [
+        "xorb-api"
+      ],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8080/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.enterprise.yml:xorb-api": {
+      "name": "xorb-api",
+      "file": "docker-compose.enterprise.yml",
+      "image": "",
+      "build": {
+        "context": "./services/xorb-core/api",
+        "dockerfile": "Dockerfile"
+      },
+      "ports": [
+        "8000:8000"
+      ],
+      "environment": [
+        "DATABASE_URL=postgresql://xorb_user:${POSTGRES_PASSWORD}@postgres:5432/xorb_db",
+        "REDIS_URL=redis://redis:6379/0",
+        "TEMPORAL_HOST=temporal:7233",
+        "VAULT_ADDR=http://vault:8200",
+        "ENVIRONMENT=production",
+        "LOG_LEVEL=INFO",
+        "JWT_SECRET_KEY=vault:secret/xorb/config#jwt_secret_key",
+        "RATE_LIMIT_PER_MINUTE=1000",
+        "RATE_LIMIT_PER_HOUR=50000",
+        "ENABLE_METRICS=true"
+      ],
+      "volumes": [],
+      "depends_on": [
+        "postgres",
+        "redis",
+        "temporal",
+        "vault"
+      ],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.enterprise.yml:xorb-orchestrator": {
+      "name": "xorb-orchestrator",
+      "file": "docker-compose.enterprise.yml",
+      "image": "",
+      "build": {
+        "context": "./services/xorb-core/orchestrator",
+        "dockerfile": "Dockerfile"
+      },
+      "ports": [
+        "8080:8080"
+      ],
+      "environment": [
+        "TEMPORAL_HOST=temporal:7233",
+        "DATABASE_URL=postgresql://xorb_user:${POSTGRES_PASSWORD}@postgres:5432/xorb_db",
+        "REDIS_URL=redis://redis:6379/1",
+        "LOG_LEVEL=INFO"
+      ],
+      "volumes": [],
+      "depends_on": [
+        "temporal",
+        "postgres",
+        "redis"
+      ],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8080/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.enterprise.yml:postgres": {
+      "name": "postgres",
+      "file": "docker-compose.enterprise.yml",
+      "image": "ankane/pgvector:v0.5.1",
+      "build": "",
+      "ports": [
+        "5432:5432"
+      ],
+      "environment": [
+        "POSTGRES_DB=xorb_db",
+        "POSTGRES_USER=xorb_user",
+        "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}"
+      ],
+      "volumes": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./services/infrastructure/databases/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U xorb_user -d xorb_db"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    "docker-compose.enterprise.yml:redis": {
+      "name": "redis",
+      "file": "docker-compose.enterprise.yml",
+      "image": "redis:7.2-alpine",
+      "build": "",
+      "ports": [
+        "6379:6379"
+      ],
+      "environment": {},
+      "volumes": [
+        "redis_data:/data"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "--raw",
+          "incr",
+          "ping"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    "docker-compose.enterprise.yml:temporal": {
+      "name": "temporal",
+      "file": "docker-compose.enterprise.yml",
+      "image": "temporalio/temporal-dev:latest",
+      "build": "",
+      "ports": [
+        "7233:7233",
+        "8233:8233"
+      ],
+      "environment": [
+        "DB=postgresql",
+        "DB_PORT=5432",
+        "POSTGRES_USER=xorb_user",
+        "POSTGRES_PWD=${POSTGRES_PASSWORD}",
+        "POSTGRES_SEEDS=postgres"
+      ],
+      "volumes": [],
+      "depends_on": [
+        "postgres"
+      ],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "temporal",
+          "server",
+          "start-dev",
+          "--headless"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.enterprise.yml:vault": {
+      "name": "vault",
+      "file": "docker-compose.enterprise.yml",
+      "image": "vault:1.15",
+      "build": "",
+      "ports": [
+        "8200:8200"
+      ],
+      "environment": [
+        "VAULT_DEV_ROOT_TOKEN_ID=${VAULT_ROOT_TOKEN}",
+        "VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200"
+      ],
+      "volumes": [
+        "vault_data:/vault/data",
+        "./services/infrastructure/vault/vault-config.hcl:/vault/config/vault-config.hcl"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "vault",
+          "status"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.enterprise.yml:prometheus": {
+      "name": "prometheus",
+      "file": "docker-compose.enterprise.yml",
+      "image": "prom/prometheus:latest",
+      "build": "",
+      "ports": [
+        "9092:9090"
+      ],
+      "environment": {},
+      "volumes": [
+        "./services/infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml",
+        "./services/infrastructure/monitoring/prometheus-rules.yml:/etc/prometheus/rules.yml",
+        "prometheus_data:/prometheus"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.enterprise.yml:grafana": {
+      "name": "grafana",
+      "file": "docker-compose.enterprise.yml",
+      "image": "grafana/grafana:latest",
+      "build": "",
+      "ports": [
+        "3010:3000"
+      ],
+      "environment": [
+        "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}",
+        "GF_USERS_ALLOW_SIGN_UP=false",
+        "GF_SECURITY_DISABLE_GRAVATAR=true"
+      ],
+      "volumes": [
+        "grafana_data:/var/lib/grafana",
+        "./services/infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards",
+        "./services/infrastructure/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources"
+      ],
+      "depends_on": [
+        "prometheus"
+      ],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -f http://localhost:3000/api/health || exit 1"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.enterprise.yml:traefik": {
+      "name": "traefik",
+      "file": "docker-compose.enterprise.yml",
+      "image": "traefik:v2.10",
+      "build": "",
+      "ports": [
+        "80:80",
+        "8090:8080"
+      ],
+      "environment": {},
+      "volumes": [
+        "/var/run/docker.sock:/var/run/docker.sock:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.production.yml:xorb-api": {
+      "name": "xorb-api",
+      "file": "docker-compose.production.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "Dockerfile.unified",
+        "target": "production",
+        "args": {
+          "BUILD_DATE": "${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}",
+          "VERSION": "${VERSION:-3.2.0}",
+          "VCS_REF": "${VCS_REF:-$(git rev-parse --short HEAD)}"
+        }
+      },
+      "ports": [
+        "127.0.0.1:8000:8000",
+        "127.0.0.1:9090:9090"
+      ],
+      "environment": [
+        "ENVIRONMENT=production",
+        "DATABASE_URL=postgresql://xorb_user:${POSTGRES_PASSWORD}@postgres:5432/xorb_db",
+        "REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0",
+        "JWT_SECRET=${JWT_SECRET}",
+        "LOG_LEVEL=INFO",
+        "ENABLE_METRICS=true",
+        "PROMETHEUS_PORT=9090",
+        "API_WORKERS=4",
+        "CORS_ALLOW_ORIGINS=${CORS_ALLOW_ORIGINS:-https://app.xorb.enterprise}",
+        "TZ=UTC"
+      ],
+      "volumes": [
+        "./logs:/app/logs:rw",
+        "./secrets:/app/secrets:ro"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-backend",
+        "xorb-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/api/v1/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3,
+        "start_period": "40s"
+      }
+    },
+    "docker-compose.production.yml:postgres": {
+      "name": "postgres",
+      "file": "docker-compose.production.yml",
+      "image": "postgres:15-alpine",
+      "build": "",
+      "ports": [
+        "127.0.0.1:5432:5432"
+      ],
+      "environment": [
+        "POSTGRES_DB=xorb_db",
+        "POSTGRES_USER=xorb_user",
+        "POSTGRES_PASSWORD=${POSTGRES_PASSWORD}",
+        "POSTGRES_INITDB_ARGS=--auth-local=trust"
+      ],
+      "volumes": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./scripts/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U xorb_user -d xorb_db"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    "docker-compose.production.yml:redis": {
+      "name": "redis",
+      "file": "docker-compose.production.yml",
+      "image": "redis:7-alpine",
+      "build": "",
+      "ports": [
+        "127.0.0.1:6379:6379"
+      ],
+      "environment": [
+        "REDIS_PASSWORD=${REDIS_PASSWORD}"
+      ],
+      "volumes": [
+        "redis_data:/data",
+        "./config/redis.conf:/usr/local/etc/redis/redis.conf:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "--raw",
+          "incr",
+          "ping"
+        ],
+        "interval": "10s",
+        "timeout": "3s",
+        "retries": 5
+      }
+    },
+    "docker-compose.production.yml:xorb-orchestrator": {
+      "name": "xorb-orchestrator",
+      "file": "docker-compose.production.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/orchestrator/Dockerfile"
+      },
+      "ports": [],
+      "environment": [
+        "ENVIRONMENT=production",
+        "DATABASE_URL=postgresql://xorb_user:${POSTGRES_PASSWORD}@postgres:5432/xorb_db",
+        "REDIS_URL=redis://redis:6379/0",
+        "TEMPORAL_HOST=temporal:7233",
+        "LOG_LEVEL=INFO"
+      ],
+      "volumes": [
+        "./logs:/app/logs"
+      ],
+      "depends_on": [
+        "postgres",
+        "redis",
+        "temporal"
+      ],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.production.yml:temporal": {
+      "name": "temporal",
+      "file": "docker-compose.production.yml",
+      "image": "temporalio/auto-setup:1.22.0",
+      "build": "",
+      "ports": [
+        "7233:7233",
+        "8233:8233"
+      ],
+      "environment": [
+        "DB=postgresql",
+        "DB_PORT=5432",
+        "POSTGRES_USER=xorb_user",
+        "POSTGRES_PWD=${POSTGRES_PASSWORD}",
+        "POSTGRES_SEEDS=postgres",
+        "DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml",
+        "ENABLE_ES=false",
+        "SKIP_SCHEMA_SETUP=false"
+      ],
+      "volumes": [
+        "./config/temporal:/etc/temporal/config/dynamicconfig"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "tctl",
+          "--address",
+          "temporal:7233",
+          "cluster",
+          "health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.production.yml:prometheus": {
+      "name": "prometheus",
+      "file": "docker-compose.production.yml",
+      "image": "prom/prometheus:v2.47.0",
+      "build": "",
+      "ports": [
+        "9092:9090"
+      ],
+      "environment": {},
+      "volumes": [
+        "./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
+        "./config/prometheus/rules.yml:/etc/prometheus/rules.yml:ro",
+        "prometheus_data:/prometheus"
+      ],
+      "depends_on": [
+        "xorb-api"
+      ],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.production.yml:grafana": {
+      "name": "grafana",
+      "file": "docker-compose.production.yml",
+      "image": "grafana/grafana:10.1.0",
+      "build": "",
+      "ports": [
+        "3010:3000"
+      ],
+      "environment": [
+        "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}",
+        "GF_USERS_ALLOW_SIGN_UP=false",
+        "GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=false",
+        "GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel"
+      ],
+      "volumes": [
+        "grafana_data:/var/lib/grafana",
+        "./config/grafana/provisioning:/etc/grafana/provisioning:ro",
+        "./config/grafana/dashboards:/var/lib/grafana/dashboards:ro"
+      ],
+      "depends_on": [
+        "prometheus"
+      ],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.production.yml:nginx": {
+      "name": "nginx",
+      "file": "docker-compose.production.yml",
+      "image": "nginx:alpine",
+      "build": "",
+      "ports": [
+        "80:80",
+        "443:443"
+      ],
+      "environment": {},
+      "volumes": [
+        "./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+        "./config/nginx/conf.d:/etc/nginx/conf.d:ro",
+        "./ssl:/etc/ssl/certs:ro",
+        "./logs/nginx:/var/log/nginx"
+      ],
+      "depends_on": [
+        "xorb-api",
+        "grafana"
+      ],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.production.yml:fluentd": {
+      "name": "fluentd",
+      "file": "docker-compose.production.yml",
+      "image": "fluentd:v1.16.2-debian-1.0",
+      "build": "",
+      "ports": [
+        "24224:24224",
+        "24224:24224/udp"
+      ],
+      "environment": {},
+      "volumes": [
+        "./config/fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro",
+        "./logs:/fluentd/log"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.development.yml:postgres-dev": {
+      "name": "postgres-dev",
+      "file": "docker-compose.development.yml",
+      "image": "ankane/pgvector:v0.5.1",
+      "build": "",
+      "ports": [
+        "5432:5432"
+      ],
+      "environment": {
+        "POSTGRES_DB": "xorb_dev",
+        "POSTGRES_USER": "xorb_dev",
+        "POSTGRES_PASSWORD": "dev_password_123",
+        "POSTGRES_INITDB_ARGS": "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      },
+      "volumes": [
+        "postgres_dev_data:/var/lib/postgresql/data",
+        "./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ],
+      "depends_on": [],
+      "networks": [],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U xorb_dev -d xorb_dev"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5,
+        "start_period": "15s"
+      }
+    },
+    "docker-compose.development.yml:redis-dev": {
+      "name": "redis-dev",
+      "file": "docker-compose.development.yml",
+      "image": "redis:7-alpine",
+      "build": "",
+      "ports": [
+        "6379:6379"
+      ],
+      "environment": {},
+      "volumes": [
+        "redis_dev_data:/data"
+      ],
+      "depends_on": [],
+      "networks": [],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 5
+      }
+    },
+    "docker-compose.development.yml:api-dev": {
+      "name": "api-dev",
+      "file": "docker-compose.development.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/api/Dockerfile",
+        "target": "development",
+        "cache_from": [
+          "xorb/api:dev-cache"
+        ]
+      },
+      "ports": [
+        "8000:8000"
+      ],
+      "environment": [
+        "XORB_ENV=development",
+        "DEBUG=true",
+        "LOG_LEVEL=DEBUG",
+        "DATABASE_HOST=postgres-dev",
+        "DATABASE_PORT=5432",
+        "DATABASE_NAME=xorb_dev",
+        "DATABASE_USERNAME=xorb_dev",
+        "DATABASE_PASSWORD=dev_password_123",
+        "REDIS_HOST=redis-dev",
+        "REDIS_PORT=6379",
+        "JWT_SECRET=dev_jwt_secret_key_very_long_for_development_only",
+        "ENCRYPTION_KEY=dev_encryption_key_32_chars_long!!",
+        "CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:5173",
+        "SKIP_MIGRATIONS=false"
+      ],
+      "volumes": [
+        "./src/api:/app:ro",
+        "./config:/app/config:ro",
+        "./src/common:/app/src/common:ro",
+        "api_dev_logs:/app/logs"
+      ],
+      "depends_on": {
+        "postgres-dev": {
+          "condition": "service_healthy"
+        },
+        "redis-dev": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/health"
+        ],
+        "interval": "15s",
+        "timeout": "5s",
+        "retries": 3,
+        "start_period": "30s"
+      }
+    },
+    "docker-compose.development.yml:orchestrator-dev": {
+      "name": "orchestrator-dev",
+      "file": "docker-compose.development.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/orchestrator/Dockerfile",
+        "target": "development",
+        "cache_from": [
+          "xorb/orchestrator:dev-cache"
+        ]
+      },
+      "ports": [
+        "8001:8001"
+      ],
+      "environment": [
+        "XORB_ENV=development",
+        "DEBUG=true",
+        "LOG_LEVEL=DEBUG",
+        "TEMPORAL_HOST=temporal-dev:7233",
+        "DATABASE_HOST=postgres-dev",
+        "DATABASE_PORT=5432",
+        "DATABASE_NAME=xorb_dev",
+        "DATABASE_USERNAME=xorb_dev",
+        "DATABASE_PASSWORD=dev_password_123",
+        "REDIS_HOST=redis-dev",
+        "REDIS_PORT=6379"
+      ],
+      "volumes": [
+        "./src/orchestrator:/app:ro",
+        "./config:/app/config:ro",
+        "./src/common:/app/src/common:ro",
+        "orchestrator_dev_logs:/app/logs"
+      ],
+      "depends_on": {
+        "temporal-dev": {
+          "condition": "service_healthy"
+        },
+        "postgres-dev": {
+          "condition": "service_healthy"
+        },
+        "redis-dev": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.development.yml:worker-dev": {
+      "name": "worker-dev",
+      "file": "docker-compose.development.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/worker/Dockerfile",
+        "target": "development",
+        "cache_from": [
+          "xorb/worker:dev-cache"
+        ]
+      },
+      "ports": [],
+      "environment": [
+        "XORB_ENV=development",
+        "DEBUG=true",
+        "LOG_LEVEL=DEBUG",
+        "DATABASE_HOST=postgres-dev",
+        "DATABASE_PORT=5432",
+        "DATABASE_NAME=xorb_dev",
+        "DATABASE_USERNAME=xorb_dev",
+        "DATABASE_PASSWORD=dev_password_123",
+        "REDIS_HOST=redis-dev",
+        "REDIS_PORT=6379",
+        "WORKER_CONCURRENCY=4",
+        "WORKER_MAX_MEMORY=256m"
+      ],
+      "volumes": [
+        "./src/services/worker:/app:ro",
+        "./config:/app/config:ro",
+        "./src/common:/app/src/common:ro",
+        "worker_dev_logs:/app/logs"
+      ],
+      "depends_on": {
+        "postgres-dev": {
+          "condition": "service_healthy"
+        },
+        "redis-dev": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.development.yml:temporal-dev": {
+      "name": "temporal-dev",
+      "file": "docker-compose.development.yml",
+      "image": "temporalio/auto-setup:1.22.4",
+      "build": "",
+      "ports": [
+        "7233:7233",
+        "8233:8233"
+      ],
+      "environment": [
+        "DB=postgresql",
+        "DB_PORT=5432",
+        "POSTGRES_USER=xorb_dev",
+        "POSTGRES_PWD=dev_password_123",
+        "POSTGRES_SEEDS=postgres-dev",
+        "POSTGRES_DB=temporal_dev",
+        "DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml"
+      ],
+      "volumes": [
+        "temporal_dev_data:/etc/temporal/config/dynamicconfig"
+      ],
+      "depends_on": {
+        "postgres-dev": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "tctl",
+          "--address",
+          "temporal-dev:7233",
+          "cluster",
+          "health"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 10,
+        "start_period": "30s"
+      }
+    },
+    "docker-compose.development.yml:prometheus-dev": {
+      "name": "prometheus-dev",
+      "file": "docker-compose.development.yml",
+      "image": "prom/prometheus:latest",
+      "build": "",
+      "ports": [
+        "9090:9090"
+      ],
+      "environment": {},
+      "volumes": [
+        "./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml",
+        "./infra/monitoring/prometheus-rules.yml:/etc/prometheus/rules.yml",
+        "prometheus_dev_data:/prometheus"
+      ],
+      "depends_on": [],
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.development.yml:grafana-dev": {
+      "name": "grafana-dev",
+      "file": "docker-compose.development.yml",
+      "image": "grafana/grafana:latest",
+      "build": "",
+      "ports": [
+        "3000:3000"
+      ],
+      "environment": [
+        "GF_SECURITY_ADMIN_PASSWORD=dev_admin_123",
+        "GF_USERS_ALLOW_SIGN_UP=false"
+      ],
+      "volumes": [
+        "./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning",
+        "./infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards",
+        "grafana_dev_data:/var/lib/grafana"
+      ],
+      "depends_on": [],
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.tls.yml:redis": {
+      "name": "redis",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "redis:7.2-alpine",
+      "build": "",
+      "ports": [
+        "6380:6379"
+      ],
+      "environment": {
+        "REDIS_TLS_ENABLED": "yes"
+      },
+      "volumes": [
+        "redis-data:/data",
+        "./redis/redis-tls.conf:/etc/redis/redis.conf:ro",
+        "../secrets/tls/redis:/run/tls/redis:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ],
+      "depends_on": [],
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.10"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "--tls",
+          "--cert",
+          "/run/tls/redis/cert.pem",
+          "--key",
+          "/run/tls/redis/key.pem",
+          "--cacert",
+          "/run/tls/ca/ca.pem",
+          "-h",
+          "localhost",
+          "-p",
+          "6379",
+          "ping"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    "docker-compose.tls.yml:postgres": {
+      "name": "postgres",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "ankane/pgvector:v0.5.1",
+      "build": "",
+      "ports": [
+        "5433:5432"
+      ],
+      "environment": {
+        "POSTGRES_DB": "xorb",
+        "POSTGRES_USER": "xorb",
+        "POSTGRES_PASSWORD": "xorb_secure_pass",
+        "POSTGRES_TLS_CERT": "/run/tls/postgres/cert.pem",
+        "POSTGRES_TLS_KEY": "/run/tls/postgres/key.pem",
+        "POSTGRES_TLS_CA": "/run/tls/ca/ca.pem"
+      },
+      "volumes": [
+        "postgres-data:/var/lib/postgresql/data",
+        "../secrets/tls/postgres:/run/tls/postgres:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "./infra/postgres/init-tls.sql:/docker-entrypoint-initdb.d/init-tls.sql:ro"
+      ],
+      "depends_on": [],
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.11"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U xorb -d xorb -h localhost"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    "docker-compose.tls.yml:temporal": {
+      "name": "temporal",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "temporalio/auto-setup:1.22",
+      "build": "",
+      "ports": [
+        "7234:7233",
+        "8234:8233"
+      ],
+      "environment": {
+        "DB": "postgresql",
+        "DB_PORT": 5432,
+        "POSTGRES_USER": "xorb",
+        "POSTGRES_PWD": "xorb_secure_pass",
+        "POSTGRES_SEEDS": "postgres",
+        "TEMPORAL_TLS_ENABLED": "true",
+        "TEMPORAL_TLS_CERT": "/run/tls/temporal/cert.pem",
+        "TEMPORAL_TLS_KEY": "/run/tls/temporal/key.pem",
+        "TEMPORAL_TLS_CA": "/run/tls/ca/ca.pem"
+      },
+      "volumes": [
+        "temporal-data:/tmp/temporal",
+        "../secrets/tls/temporal:/run/tls/temporal:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "./temporal/config-tls.yaml:/etc/temporal/config/docker.yaml:ro"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.12"
+        }
+      },
+      "healthcheck": {}
+    },
+    "docker-compose.tls.yml:envoy-api": {
+      "name": "envoy-api",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "envoyproxy/envoy:v1.28-latest",
+      "build": "",
+      "ports": [
+        "8443:8443",
+        "9901:9901"
+      ],
+      "environment": {
+        "ENVOY_UID": 0
+      },
+      "volumes": [
+        "./envoy/api.envoy.yaml:/etc/envoy/envoy.yaml:ro",
+        "../secrets/tls/api:/run/tls/api:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ],
+      "depends_on": {
+        "api": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.20"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "--no-check-certificate",
+          "-qO-",
+          "http://localhost:9901/ready"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 3
+      }
+    },
+    "docker-compose.tls.yml:api": {
+      "name": "api",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/api/Dockerfile",
+        "target": "production"
+      },
+      "ports": [],
+      "environment": {
+        "REDIS_URL": "rediss://redis:6379",
+        "REDIS_TLS_CERT_FILE": "/run/tls/redis-client/cert.pem",
+        "REDIS_TLS_KEY_FILE": "/run/tls/redis-client/key.pem",
+        "REDIS_TLS_CA_FILE": "/run/tls/ca/ca.pem",
+        "TLS_ENABLED": "true",
+        "TLS_VERIFY_MODE": "strict",
+        "DATABASE_URL": "postgresql://xorb:xorb_secure_pass@postgres:5432/xorb?sslmode=require&sslcert=/run/tls/postgres-client/cert.pem&sslkey=/run/tls/postgres-client/key.pem&sslrootcert=/run/tls/ca/ca.pem",
+        "TEMPORAL_HOST": "temporal:7233",
+        "TEMPORAL_TLS_ENABLED": "true",
+        "TEMPORAL_TLS_CERT": "/run/tls/temporal-client/cert.pem",
+        "TEMPORAL_TLS_KEY": "/run/tls/temporal-client/key.pem",
+        "TEMPORAL_TLS_CA": "/run/tls/ca/ca.pem",
+        "API_TLS_CERT": "/run/tls/api/cert.pem",
+        "API_TLS_KEY": "/run/tls/api/key.pem",
+        "API_TLS_CA": "/run/tls/ca/ca.pem",
+        "LOG_LEVEL": "INFO",
+        "ENVIRONMENT": "production"
+      },
+      "volumes": [
+        "../secrets/tls/api:/run/tls/api:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "../secrets/tls/redis-client:/run/tls/redis-client:ro"
+      ],
+      "depends_on": {
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "temporal": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.21"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "--cacert",
+          "/run/tls/ca/ca.pem",
+          "--cert",
+          "/run/tls/api/cert.pem",
+          "--key",
+          "/run/tls/api/key.pem",
+          "https://localhost:8000/api/v1/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.tls.yml:orchestrator": {
+      "name": "orchestrator",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/orchestrator/Dockerfile"
+      },
+      "ports": [],
+      "environment": {
+        "REDIS_URL": "rediss://redis:6379",
+        "REDIS_TLS_CERT_FILE": "/run/tls/redis-client/cert.pem",
+        "REDIS_TLS_KEY_FILE": "/run/tls/redis-client/key.pem",
+        "REDIS_TLS_CA_FILE": "/run/tls/ca/ca.pem",
+        "TLS_ENABLED": "true",
+        "TLS_VERIFY_MODE": "strict",
+        "TEMPORAL_HOST": "temporal:7233",
+        "TEMPORAL_TLS_ENABLED": "true",
+        "TEMPORAL_TLS_CERT": "/run/tls/temporal-client/cert.pem",
+        "TEMPORAL_TLS_KEY": "/run/tls/temporal-client/key.pem",
+        "TEMPORAL_TLS_CA": "/run/tls/ca/ca.pem",
+        "API_BASE_URL": "https://envoy-api:8443",
+        "API_TLS_CA": "/run/tls/ca/ca.pem",
+        "API_CLIENT_CERT": "/run/tls/orchestrator/client-cert.pem",
+        "API_CLIENT_KEY": "/run/tls/orchestrator/client-key.pem"
+      },
+      "volumes": [
+        "../secrets/tls/orchestrator:/run/tls/orchestrator:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "../secrets/tls/redis-client:/run/tls/redis-client:ro",
+        "../secrets/tls/temporal-client:/run/tls/temporal-client:ro"
+      ],
+      "depends_on": {
+        "temporal": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "envoy-api": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.22"
+        }
+      },
+      "healthcheck": {}
+    },
+    "docker-compose.tls.yml:envoy-agent": {
+      "name": "envoy-agent",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "envoyproxy/envoy:v1.28-latest",
+      "build": "",
+      "ports": [
+        "8444:8443"
+      ],
+      "environment": {
+        "ENVOY_UID": 0
+      },
+      "volumes": [
+        "./envoy/agent.envoy.yaml:/etc/envoy/envoy.yaml:ro",
+        "../secrets/tls/agent:/run/tls/agent:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ],
+      "depends_on": {
+        "ptaas-agent": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.30"
+        }
+      },
+      "healthcheck": {}
+    },
+    "docker-compose.tls.yml:ptaas-agent": {
+      "name": "ptaas-agent",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "agents/Dockerfile"
+      },
+      "ports": [],
+      "environment": {
+        "REDIS_URL": "rediss://redis:6379",
+        "REDIS_TLS_CERT_FILE": "/run/tls/redis-client/cert.pem",
+        "REDIS_TLS_KEY_FILE": "/run/tls/redis-client/key.pem",
+        "REDIS_TLS_CA_FILE": "/run/tls/ca/ca.pem",
+        "TLS_ENABLED": "true",
+        "TLS_VERIFY_MODE": "strict",
+        "AGENT_TLS_CERT": "/run/tls/agent/cert.pem",
+        "AGENT_TLS_KEY": "/run/tls/agent/key.pem",
+        "AGENT_TLS_CA": "/run/tls/ca/ca.pem",
+        "API_BASE_URL": "https://envoy-api:8443",
+        "API_CLIENT_CERT": "/run/tls/agent/client-cert.pem",
+        "API_CLIENT_KEY": "/run/tls/agent/client-key.pem"
+      },
+      "volumes": [
+        "../secrets/tls/agent:/run/tls/agent:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "../secrets/tls/redis-client:/run/tls/redis-client:ro"
+      ],
+      "depends_on": {
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.31"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "--cacert",
+          "/run/tls/ca/ca.pem",
+          "--cert",
+          "/run/tls/agent/cert.pem",
+          "--key",
+          "/run/tls/agent/key.pem",
+          "https://localhost:8080/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.tls.yml:dind": {
+      "name": "dind",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "docker:24-dind",
+      "build": "",
+      "ports": [
+        "2376:2376"
+      ],
+      "environment": {
+        "DOCKER_TLS_CERTDIR": "/certs",
+        "DOCKER_TLS_VERIFY": 1,
+        "DOCKERD_ROOTLESS_ROOTLESSKIT_NET": "host"
+      },
+      "volumes": [
+        "../secrets/tls/dind:/certs/server:ro",
+        "../secrets/tls/dind-client:/certs/client:ro",
+        "../secrets/tls/ca:/certs/ca:ro"
+      ],
+      "depends_on": [],
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.40"
+        }
+      },
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "docker",
+          "--tlsverify",
+          "--tlscacert=/certs/ca/ca.pem",
+          "--tlscert=/certs/client/cert.pem",
+          "--tlskey=/certs/client/key.pem",
+          "-H=tcp://localhost:2376",
+          "version"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.tls.yml:scanner-executor": {
+      "name": "scanner-executor",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/scanner/Dockerfile"
+      },
+      "ports": [],
+      "environment": {
+        "REDIS_URL": "rediss://redis:6379",
+        "REDIS_TLS_CERT_FILE": "/run/tls/redis-client/cert.pem",
+        "REDIS_TLS_KEY_FILE": "/run/tls/redis-client/key.pem",
+        "REDIS_TLS_CA_FILE": "/run/tls/ca/ca.pem",
+        "TLS_ENABLED": "true",
+        "TLS_VERIFY_MODE": "strict",
+        "DOCKER_HOST": "tcp://dind:2376",
+        "DOCKER_TLS_VERIFY": 1,
+        "DOCKER_CERT_PATH": "/certs/client",
+        "SCANNER_TLS_CERT": "/run/tls/scanner/cert.pem",
+        "SCANNER_TLS_KEY": "/run/tls/scanner/key.pem",
+        "SCANNER_TLS_CA": "/run/tls/ca/ca.pem"
+      },
+      "volumes": [
+        "../secrets/tls/scanner:/run/tls/scanner:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "../secrets/tls/dind-client:/certs/client:ro"
+      ],
+      "depends_on": {
+        "dind": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.41"
+        }
+      },
+      "healthcheck": {}
+    },
+    "docker-compose.tls.yml:prometheus": {
+      "name": "prometheus",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "prom/prometheus:v2.47.0",
+      "build": "",
+      "ports": [
+        "9093:9090"
+      ],
+      "environment": {},
+      "volumes": [
+        "./monitoring/prometheus-tls.yml:/etc/prometheus/prometheus.yml:ro",
+        "../secrets/tls/prometheus:/run/tls/prometheus:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ],
+      "depends_on": [],
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.50"
+        }
+      },
+      "healthcheck": {}
+    },
+    "docker-compose.tls.yml:grafana": {
+      "name": "grafana",
+      "file": "infra/docker-compose.tls.yml",
+      "image": "grafana/grafana:10.1.0",
+      "build": "",
+      "ports": [
+        "3001:3000"
+      ],
+      "environment": {
+        "GF_SECURITY_ADMIN_PASSWORD": "SecureAdminPass123!",
+        "GF_SERVER_PROTOCOL": "https",
+        "GF_SERVER_CERT_FILE": "/run/tls/grafana/cert.pem",
+        "GF_SERVER_CERT_KEY": "/run/tls/grafana/key.pem"
+      },
+      "volumes": [
+        "./monitoring/grafana-tls.ini:/etc/grafana/grafana.ini:ro",
+        "../secrets/tls/grafana:/run/tls/grafana:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ],
+      "depends_on": {
+        "prometheus": {
+          "condition": "service_started"
+        }
+      },
+      "networks": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.51"
+        }
+      },
+      "healthcheck": {}
+    },
+    "docker-compose.best-practices.yml:postgres": {
+      "name": "postgres",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "postgres:15-alpine",
+      "build": "",
+      "ports": [
+        "127.0.0.1:5432:5432"
+      ],
+      "environment": {
+        "POSTGRES_DB": "${POSTGRES_DB:-xorb}",
+        "POSTGRES_USER": "${POSTGRES_USER:-xorb}",
+        "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}",
+        "POSTGRES_INITDB_ARGS": "--auth-host=scram-sha-256"
+      },
+      "volumes": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "database"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-xorb} -d ${POSTGRES_DB:-xorb}"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5,
+        "start_period": "30s"
+      }
+    },
+    "docker-compose.best-practices.yml:redis": {
+      "name": "redis",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "redis:7-alpine",
+      "build": "",
+      "ports": [
+        "127.0.0.1:6379:6379"
+      ],
+      "environment": {},
+      "volumes": [
+        "redis_data:/data"
+      ],
+      "depends_on": [],
+      "networks": [
+        "backend",
+        "database"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "--raw",
+          "incr",
+          "ping"
+        ],
+        "interval": "10s",
+        "timeout": "3s",
+        "retries": 5
+      }
+    },
+    "docker-compose.best-practices.yml:vault": {
+      "name": "vault",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "vault:1.15",
+      "build": "",
+      "ports": [
+        "127.0.0.1:8200:8200"
+      ],
+      "environment": {
+        "VAULT_DEV_ROOT_TOKEN_ID": "${VAULT_ROOT_TOKEN:?VAULT_ROOT_TOKEN is required}",
+        "VAULT_DEV_LISTEN_ADDRESS": "0.0.0.0:8200"
+      },
+      "volumes": [
+        "vault_data:/vault/data",
+        "./config/vault:/vault/config:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "backend"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "vault",
+          "status"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.best-practices.yml:api-gateway": {
+      "name": "api-gateway",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "devops/best-practices/Dockerfile.multi-stage",
+        "target": "production"
+      },
+      "ports": [
+        "8000:8000"
+      ],
+      "environment": {
+        "ENVIRONMENT": "${ENVIRONMENT:-production}",
+        "LOG_LEVEL": "${LOG_LEVEL:-INFO}",
+        "PROMETHEUS_ENABLED": "true",
+        "VAULT_URL": "http://vault:8200",
+        "SERVICE_NAME": "api-gateway",
+        "DATABASE_URL": "postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL": "redis://:${REDIS_PASSWORD}@redis:6379/0"
+      },
+      "volumes": [],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "vault": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "frontend",
+        "backend"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3,
+        "start_period": "60s"
+      }
+    },
+    "docker-compose.best-practices.yml:identity-service": {
+      "name": "identity-service",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "devops/best-practices/Dockerfile.multi-stage",
+        "target": "production"
+      },
+      "ports": [],
+      "environment": {
+        "ENVIRONMENT": "${ENVIRONMENT:-production}",
+        "LOG_LEVEL": "${LOG_LEVEL:-INFO}",
+        "PROMETHEUS_ENABLED": "true",
+        "VAULT_URL": "http://vault:8200",
+        "SERVICE_NAME": "identity-service",
+        "DATABASE_URL": "postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL": "redis://:${REDIS_PASSWORD}@redis:6379/1"
+      },
+      "volumes": [],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "backend",
+        "database"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8001/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.best-practices.yml:threat-intelligence": {
+      "name": "threat-intelligence",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "devops/best-practices/Dockerfile.multi-stage",
+        "target": "production"
+      },
+      "ports": [],
+      "environment": {
+        "ENVIRONMENT": "${ENVIRONMENT:-production}",
+        "LOG_LEVEL": "${LOG_LEVEL:-INFO}",
+        "PROMETHEUS_ENABLED": "true",
+        "VAULT_URL": "http://vault:8200",
+        "SERVICE_NAME": "threat-intelligence",
+        "DATABASE_URL": "postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL": "redis://:${REDIS_PASSWORD}@redis:6379/2"
+      },
+      "volumes": [],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "backend",
+        "database"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8002/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.best-practices.yml:prometheus": {
+      "name": "prometheus",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "prom/prometheus:v2.47.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:9090:9090"
+      ],
+      "environment": {},
+      "volumes": [
+        "./config/prometheus:/etc/prometheus:ro",
+        "prometheus_data:/prometheus"
+      ],
+      "depends_on": [],
+      "networks": [
+        "monitoring",
+        "backend"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.best-practices.yml:grafana": {
+      "name": "grafana",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "grafana/grafana:10.1.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:3000:3000"
+      ],
+      "environment": {
+        "GF_SECURITY_ADMIN_PASSWORD": "${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}",
+        "GF_USERS_ALLOW_SIGN_UP": false,
+        "GF_SECURITY_DISABLE_GRAVATAR": true,
+        "GF_SECURITY_COOKIE_SECURE": true,
+        "GF_SECURITY_COOKIE_SAMESITE": "strict",
+        "GF_LOG_LEVEL": "warn"
+      },
+      "volumes": [
+        "grafana_data:/var/lib/grafana",
+        "./config/grafana:/etc/grafana/provisioning:ro"
+      ],
+      "depends_on": [
+        "prometheus"
+      ],
+      "networks": [
+        "monitoring",
+        "frontend"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:3000/api/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.best-practices.yml:elasticsearch": {
+      "name": "elasticsearch",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "docker.elastic.co/elasticsearch/elasticsearch:8.9.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:9200:9200"
+      ],
+      "environment": [
+        "discovery.type=single-node",
+        "xpack.security.enabled=true",
+        "ELASTIC_PASSWORD=${ELASTIC_PASSWORD:?ELASTIC_PASSWORD is required}",
+        "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      ],
+      "volumes": [
+        "elasticsearch_data:/usr/share/elasticsearch/data"
+      ],
+      "depends_on": [],
+      "networks": [
+        "monitoring"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:9200/_cluster/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.best-practices.yml:nginx": {
+      "name": "nginx",
+      "file": "devops/best-practices/docker-compose.best-practices.yml",
+      "image": "nginx:1.25-alpine",
+      "build": "",
+      "ports": [
+        "80:80",
+        "443:443"
+      ],
+      "environment": {},
+      "volumes": [
+        "./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+        "./config/nginx/conf.d:/etc/nginx/conf.d:ro",
+        "./ssl:/etc/nginx/ssl:ro"
+      ],
+      "depends_on": [
+        "api-gateway"
+      ],
+      "networks": [
+        "frontend"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "nginx",
+          "-t"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.yml:xorb-api-gateway": {
+      "name": "xorb-api-gateway",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "",
+      "build": {
+        "context": "./legacy",
+        "dockerfile": "./compose/Dockerfile.api"
+      },
+      "ports": [
+        "8000:8000"
+      ],
+      "environment": [
+        "ENVIRONMENT=${ENVIRONMENT:-production}",
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-xorb-secure-2025}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379",
+        "JWT_SECRET=${JWT_SECRET:-xorb-jwt-secret-2025}",
+        "CORS_ORIGINS=${CORS_ORIGINS:-https://ptaas.verteidiq.com}",
+        "SECURE_COOKIES=true",
+        "CSRF_PROTECTION=true",
+        "REQUEST_RATE_LIMIT=\"100/minute;200/5-minute\"",
+        "REQUEST_SIZE_LIMIT=10485760"
+      ],
+      "volumes": [
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro",
+        "./secrets:/run/secrets:ro"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.yml:xorb-orchestrator": {
+      "name": "xorb-orchestrator",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "",
+      "build": {
+        "context": "./legacy",
+        "dockerfile": "./compose/Dockerfile.orchestrator"
+      },
+      "ports": [
+        "8001:8001"
+      ],
+      "environment": [
+        "ENVIRONMENT=${ENVIRONMENT:-production}",
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379",
+        "ORCHESTRATION_MODE=enhanced",
+        "OMP_NUM_THREADS=8",
+        "MKL_NUM_THREADS=8",
+        "OPENBLAS_NUM_THREADS=8"
+      ],
+      "volumes": [
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ],
+      "depends_on": [
+        "xorb-api-gateway"
+      ],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.yml:xorb-adversarial-engine": {
+      "name": "xorb-adversarial-engine",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "",
+      "build": {
+        "context": "./legacy",
+        "dockerfile": "./compose/Dockerfile.adversarial"
+      },
+      "ports": [],
+      "environment": [
+        "ENVIRONMENT=${ENVIRONMENT:-production}",
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379",
+        "ADVERSARIAL_MODE=enhanced",
+        "ML_DEFENSE_ENABLED=true",
+        "OMP_NUM_THREADS=8",
+        "MKL_NUM_THREADS=8",
+        "OPENBLAS_NUM_THREADS=8",
+        "NUMEXPR_NUM_THREADS=8",
+        "TF_NUM_INTEROP_THREADS=2",
+        "TF_NUM_INTRAOP_THREADS=8"
+      ],
+      "volumes": [
+        "xorb_models:/app/models",
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ],
+      "depends_on": [
+        "xorb-orchestrator"
+      ],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.yml:xorb-ml-defense": {
+      "name": "xorb-ml-defense",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "",
+      "build": {
+        "context": "./legacy",
+        "dockerfile": "./compose/Dockerfile.ml-defense"
+      },
+      "ports": [],
+      "environment": [
+        "ENVIRONMENT=${ENVIRONMENT:-production}",
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379",
+        "ML_TRAINING_ENABLED=true",
+        "ADVERSARIAL_TRAINING=true",
+        "USE_GPU=false",
+        "OMP_NUM_THREADS=16",
+        "MKL_NUM_THREADS=16",
+        "OPENBLAS_NUM_THREADS=16",
+        "TORCH_NUM_THREADS=16",
+        "NUMEXPR_NUM_THREADS=16",
+        "TF_NUM_INTEROP_THREADS=4",
+        "TF_NUM_INTRAOP_THREADS=16"
+      ],
+      "volumes": [
+        "xorb_models:/app/models",
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ],
+      "depends_on": [
+        "xorb-orchestrator"
+      ],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.yml:node-exporter": {
+      "name": "node-exporter",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "quay.io/prometheus/node-exporter:v1.6.1",
+      "build": "",
+      "ports": [
+        "9100:9100"
+      ],
+      "environment": {},
+      "volumes": [
+        "/:/host:ro,rslave"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.yml:alertmanager": {
+      "name": "alertmanager",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "prom/alertmanager:v0.25.0",
+      "build": "",
+      "ports": [
+        "9093:9093"
+      ],
+      "environment": {},
+      "volumes": [
+        "./legacy/config/alertmanager:/etc/alertmanager:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.yml:ptaas-frontend": {
+      "name": "ptaas-frontend",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "",
+      "build": {
+        "context": "./ptaas-frontend",
+        "dockerfile": "Dockerfile"
+      },
+      "ports": [
+        "3000:80"
+      ],
+      "environment": [
+        "VITE_API_URL=https://ptaas.verteidiq.com/api",
+        "NODE_ENV=production"
+      ],
+      "volumes": [
+        "./ptaas-frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost/health"
+        ],
+        "interval": "30s",
+        "timeout": "5s",
+        "retries": 3
+      }
+    },
+    "docker-compose.yml:nginx": {
+      "name": "nginx",
+      "file": "deploy/configs/docker-compose.yml",
+      "image": "nginx:alpine",
+      "build": "",
+      "ports": [
+        "80:80",
+        "443:443"
+      ],
+      "environment": [
+        "NGINX_TLS13_CIPHERS=TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256:TLS_AES_128_GCM_SHA256",
+        "OQS_PROVIDER_PATH=/usr/local/lib/oqs-provider.so"
+      ],
+      "volumes": [
+        "./legacy/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+        "./ssl:/etc/nginx/ssl:ro",
+        "./secrets/kyber-certs:/etc/nginx/kyber:ro"
+      ],
+      "depends_on": [
+        "xorb-api-gateway",
+        "grafana",
+        "ptaas-frontend"
+      ],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost/health"
+        ],
+        "interval": "15s",
+        "timeout": "3s",
+        "retries": 3
+      }
+    },
+    "docker-compose.dev.yml:api": {
+      "name": "api",
+      "file": "deploy/configs/docker-compose.dev.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/api/Dockerfile",
+        "target": "development"
+      },
+      "ports": [
+        "8000:8000"
+      ],
+      "environment": [
+        "PYTHONPATH=/app/src",
+        "LOG_LEVEL=INFO",
+        "DATABASE_URL=postgresql://temporal:temporal@postgres:5432/temporal",
+        "REDIS_URL=redis://redis:6379"
+      ],
+      "volumes": [
+        "./src:/app/src"
+      ],
+      "depends_on": [
+        "temporal",
+        "redis",
+        "postgres"
+      ],
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.dev.yml:orchestrator": {
+      "name": "orchestrator",
+      "file": "deploy/configs/docker-compose.dev.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/orchestrator/Dockerfile",
+        "target": "development"
+      },
+      "ports": [],
+      "environment": [
+        "PYTHONPATH=/app/src",
+        "TEMPORAL_HOST=temporal:7233"
+      ],
+      "volumes": [
+        "./src:/app/src",
+        "./targets.json:/app/targets.json:rw"
+      ],
+      "depends_on": [
+        "temporal"
+      ],
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.dev.yml:temporal": {
+      "name": "temporal",
+      "file": "deploy/configs/docker-compose.dev.yml",
+      "image": "temporalio/auto-setup:1.22.0",
+      "build": "",
+      "ports": [
+        "7233:7233",
+        "8080:8080"
+      ],
+      "environment": [
+        "DB=postgresql",
+        "DB_PORT=5432",
+        "POSTGRES_USER=temporal",
+        "POSTGRES_PWD=temporal",
+        "POSTGRES_SEEDS=postgres",
+        "DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development-sql.yaml"
+      ],
+      "volumes": [
+        "./temporal-config:/etc/temporal/config/dynamicconfig"
+      ],
+      "depends_on": [
+        "postgres"
+      ],
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.dev.yml:temporal-ui": {
+      "name": "temporal-ui",
+      "file": "deploy/configs/docker-compose.dev.yml",
+      "image": "temporalio/ui:2.21.3",
+      "build": "",
+      "ports": [
+        "8081:8080"
+      ],
+      "environment": [
+        "TEMPORAL_ADDRESS=temporal:7233",
+        "TEMPORAL_CORS_ORIGINS=http://localhost:3000"
+      ],
+      "volumes": [],
+      "depends_on": [
+        "temporal"
+      ],
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.dev.yml:postgres": {
+      "name": "postgres",
+      "file": "deploy/configs/docker-compose.dev.yml",
+      "image": "postgres:16",
+      "build": "",
+      "ports": [
+        "5434:5432"
+      ],
+      "environment": [
+        "POSTGRES_USER=temporal",
+        "POSTGRES_PASSWORD=temporal",
+        "POSTGRES_DB=temporal"
+      ],
+      "volumes": [
+        "postgres_data:/var/lib/postgresql/data"
+      ],
+      "depends_on": [],
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.dev.yml:redis": {
+      "name": "redis",
+      "file": "deploy/configs/docker-compose.dev.yml",
+      "image": "redis:7-alpine",
+      "build": "",
+      "ports": [
+        "6381:6379"
+      ],
+      "environment": {},
+      "volumes": [
+        "redis_data:/data"
+      ],
+      "depends_on": [],
+      "networks": [],
+      "healthcheck": {}
+    },
+    "docker-compose.fixed.yml:postgres": {
+      "name": "postgres",
+      "file": "deploy/configs/docker-compose.fixed.yml",
+      "image": "postgres:16-alpine",
+      "build": "",
+      "ports": [
+        "5432:5432"
+      ],
+      "environment": {
+        "POSTGRES_DB": "${POSTGRES_DB:-xorb}",
+        "POSTGRES_USER": "${POSTGRES_USER:-xorb}",
+        "POSTGRES_PASSWORD": "${POSTGRES_PASSWORD:-secure_password}",
+        "POSTGRES_INITDB_ARGS": "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      },
+      "volumes": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./legacy/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-xorb}"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    "docker-compose.fixed.yml:redis": {
+      "name": "redis",
+      "file": "deploy/configs/docker-compose.fixed.yml",
+      "image": "redis:7-alpine",
+      "build": "",
+      "ports": [
+        "6379:6379"
+      ],
+      "environment": {},
+      "volumes": [
+        "redis_data:/data"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "ping"
+        ],
+        "interval": "10s",
+        "timeout": "5s",
+        "retries": 5
+      }
+    },
+    "docker-compose.fixed.yml:xorb-api-gateway": {
+      "name": "xorb-api-gateway",
+      "file": "deploy/configs/docker-compose.fixed.yml",
+      "image": "",
+      "build": {
+        "context": "./legacy",
+        "dockerfile": "./compose/Dockerfile.api"
+      },
+      "ports": [
+        "8080:8000"
+      ],
+      "environment": [
+        "ENVIRONMENT=${ENVIRONMENT:-production}",
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379",
+        "JWT_SECRET=${JWT_SECRET:-your-secret-key}",
+        "CORS_ORIGINS=${CORS_ORIGINS:-*}"
+      ],
+      "volumes": [
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.fixed.yml:xorb-orchestrator": {
+      "name": "xorb-orchestrator",
+      "file": "deploy/configs/docker-compose.fixed.yml",
+      "image": "",
+      "build": {
+        "context": "./legacy",
+        "dockerfile": "./compose/Dockerfile.orchestrator"
+      },
+      "ports": [
+        "8001:8001"
+      ],
+      "environment": [
+        "ENVIRONMENT=${ENVIRONMENT:-production}",
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379",
+        "ORCHESTRATION_MODE=enhanced"
+      ],
+      "volumes": [
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ],
+      "depends_on": [
+        "xorb-api-gateway"
+      ],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.fixed.yml:prometheus": {
+      "name": "prometheus",
+      "file": "deploy/configs/docker-compose.fixed.yml",
+      "image": "prom/prometheus:v2.47.0",
+      "build": "",
+      "ports": [
+        "9090:9090"
+      ],
+      "environment": {},
+      "volumes": [
+        "prometheus_data:/prometheus",
+        "./legacy/config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
+        "./legacy/config/prometheus/rules:/etc/prometheus/rules:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:9090/-/healthy"
+        ],
+        "interval": "30s",
+        "timeout": "5s",
+        "retries": 3
+      }
+    },
+    "docker-compose.fixed.yml:grafana": {
+      "name": "grafana",
+      "file": "deploy/configs/docker-compose.fixed.yml",
+      "image": "grafana/grafana:10.1.0",
+      "build": "",
+      "ports": [
+        "3000:3000"
+      ],
+      "environment": [
+        "GF_SECURITY_ADMIN__PASSWORD=${GRAFANA_PASSWORD:-xorb-admin-2024}",
+        "GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}",
+        "GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource",
+        "GF_SERVER_ROOT_URL=http://localhost:3000"
+      ],
+      "volumes": [
+        "grafana_data:/var/lib/grafana",
+        "./legacy/config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro",
+        "./legacy/config/grafana/datasources:/etc/grafana/provisioning/datasources:ro"
+      ],
+      "depends_on": [
+        "prometheus"
+      ],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -f http://localhost:3000/api/health || exit 1"
+        ],
+        "interval": "30s",
+        "timeout": "5s",
+        "retries": 3
+      }
+    },
+    "docker-compose.fixed.yml:nginx": {
+      "name": "nginx",
+      "file": "deploy/configs/docker-compose.fixed.yml",
+      "image": "nginx:alpine",
+      "build": "",
+      "ports": [
+        "80:80",
+        "443:443"
+      ],
+      "environment": {},
+      "volumes": [
+        "./legacy/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+        "./legacy/config/nginx/ssl:/etc/nginx/ssl:ro"
+      ],
+      "depends_on": [
+        "xorb-api-gateway",
+        "grafana"
+      ],
+      "networks": [
+        "xorb-net"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.runtime-security.yml:falco": {
+      "name": "falco",
+      "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+      "image": "falcosecurity/falco:0.36.2",
+      "build": "",
+      "ports": [
+        "127.0.0.1:5060:5060",
+        "127.0.0.1:8765:8765"
+      ],
+      "environment": [
+        "FALCO_GRPC_ENABLED=true",
+        "FALCO_GRPC_BIND_ADDRESS=0.0.0.0:5060",
+        "FALCO_K8S_AUDIT_ENDPOINT=/k8s-audit",
+        "FALCO_BUFFERED_OUTPUTS=true",
+        "FALCO_OUTPUTS_RATE=200",
+        "FALCO_OUTPUTS_MAX_BURST=1000"
+      ],
+      "volumes": [
+        "/var/run/docker.sock:/host/var/run/docker.sock:ro",
+        "/dev:/host/dev:ro",
+        "/proc:/host/proc:ro",
+        "/boot:/host/boot:ro",
+        "/lib/modules:/host/lib/modules:ro",
+        "/usr:/host/usr:ro",
+        "/etc:/host/etc:ro",
+        "./config/falco/falco.yaml:/etc/falco/falco.yaml:ro",
+        "./config/falco/rules:/etc/falco/rules:ro",
+        "./logs/falco:/var/log/falco"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-runtime-security"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8765/healthz"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.runtime-security.yml:falco-sidekick": {
+      "name": "falco-sidekick",
+      "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+      "image": "falcosecurity/falco-sidekick:2.28.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:2801:2801"
+      ],
+      "environment": [
+        "WEBUI_URL=http://falco-sidekick-ui:2802",
+        "ELASTICSEARCH_HOSTPORT=elasticsearch:9200",
+        "ELASTICSEARCH_USERNAME=falco_writer",
+        "ELASTICSEARCH_PASSWORD=${ELASTIC_PASSWORD}",
+        "ELASTICSEARCH_INDEX=falco-security",
+        "ELASTICSEARCH_TYPE=_doc",
+        "ELASTICSEARCH_MINIMUMPRIORITY=notice",
+        "ELASTICSEARCH_SUFFIX=daily",
+        "SLACK_WEBHOOKURL=${SLACK_WEBHOOK_URL}",
+        "SLACK_CHANNEL=#security-alerts",
+        "SLACK_USERNAME=Falco",
+        "SLACK_ICONURL=https://falco.org/img/falco.png",
+        "SLACK_MINIMUMPRIORITY=warning",
+        "WEBHOOK_ADDRESS=http://xorb-api:8000/api/v1/security/falco-webhook",
+        "WEBHOOK_MINIMUMPRIORITY=notice",
+        "PAGERDUTY_ROUTINGKEY=${PAGERDUTY_ROUTING_KEY}",
+        "PAGERDUTY_MINIMUMPRIORITY=critical",
+        "ALERTMANAGER_HOSTPORT=prometheus-alertmanager:9093",
+        "ALERTMANAGER_MINIMUMPRIORITY=warning"
+      ],
+      "volumes": [
+        "./config/falco-sidekick:/config:ro"
+      ],
+      "depends_on": [
+        "falco"
+      ],
+      "networks": [
+        "xorb-runtime-security",
+        "xorb-siem",
+        "xorb-backend"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "-q",
+          "--spider",
+          "http://localhost:2801/ping"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.runtime-security.yml:falco-sidekick-ui": {
+      "name": "falco-sidekick-ui",
+      "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+      "image": "falcosecurity/falco-sidekick-ui:v2.2.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:2802:2802"
+      ],
+      "environment": [
+        "REDIS_URL=redis://redis:6379/2",
+        "REDIS_PASSWORD=${REDIS_PASSWORD}",
+        "PORT=2802",
+        "LOGLEVEL=info",
+        "CREDENTIALS=${FALCO_UI_CREDENTIALS}"
+      ],
+      "volumes": [],
+      "depends_on": [
+        "falco-sidekick"
+      ],
+      "networks": [
+        "xorb-runtime-security",
+        "xorb-data"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "-q",
+          "--spider",
+          "http://localhost:2802/healthz"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.runtime-security.yml:falco-exporter": {
+      "name": "falco-exporter",
+      "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+      "image": "falcosecurity/falco-exporter:0.8.3",
+      "build": "",
+      "ports": [
+        "127.0.0.1:9376:9376"
+      ],
+      "environment": [
+        "FALCO_ENDPOINT=falco:5060",
+        "PORT=9376",
+        "TIMEOUT=2s",
+        "LOGLEVEL=info"
+      ],
+      "volumes": [],
+      "depends_on": [
+        "falco"
+      ],
+      "networks": [
+        "xorb-runtime-security",
+        "xorb-siem"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "wget",
+          "-q",
+          "--spider",
+          "http://localhost:9376/metrics"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.runtime-security.yml:fim-agent": {
+      "name": "fim-agent",
+      "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+      "image": "wazuh/wazuh-agent:4.7.0",
+      "build": "",
+      "ports": [],
+      "environment": [
+        "WAZUH_MANAGER=wazuh-manager",
+        "WAZUH_AGENT_GROUP=docker",
+        "WAZUH_REGISTRATION_SERVER=wazuh-manager",
+        "WAZUH_REGISTRATION_PASSWORD=${WAZUH_PASSWORD}"
+      ],
+      "volumes": [
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "/:/rootfs:ro",
+        "./config/wazuh/ossec.conf:/var/ossec/etc/ossec.conf:ro",
+        "./logs/wazuh:/var/ossec/logs"
+      ],
+      "depends_on": [
+        "wazuh-manager"
+      ],
+      "networks": [
+        "xorb-runtime-security"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.runtime-security.yml:wazuh-manager": {
+      "name": "wazuh-manager",
+      "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+      "image": "wazuh/wazuh-manager:4.7.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:1514:1514",
+        "127.0.0.1:1515:1515",
+        "127.0.0.1:55000:55000"
+      ],
+      "environment": [
+        "WAZUH_CLUSTER_NODE_TYPE=master",
+        "WAZUH_CLUSTER_NODE_NAME=master-node",
+        "WAZUH_CLUSTER_DISABLED=true",
+        "WAZUH_API_GENERATED_CERTS=false"
+      ],
+      "volumes": [
+        "wazuh_api_configuration:/var/ossec/api/configuration",
+        "wazuh_etc:/var/ossec/etc",
+        "wazuh_logs:/var/ossec/logs",
+        "wazuh_queue:/var/ossec/queue",
+        "wazuh_var_multigroups:/var/ossec/var/multigroups",
+        "wazuh_integrations:/var/ossec/integrations",
+        "wazuh_active_response:/var/ossec/active-response/bin",
+        "wazuh_agentless:/var/ossec/agentless",
+        "wazuh_wodles:/var/ossec/wodles",
+        "./config/wazuh/etc:/wazuh-config-mount/etc:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-runtime-security"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -f https://localhost:55000/security/user/authenticate || exit 1"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 5
+      }
+    },
+    "docker-compose.runtime-security.yml:trivy-scanner": {
+      "name": "trivy-scanner",
+      "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+      "image": "aquasec/trivy:0.48.3",
+      "build": "",
+      "ports": [
+        "127.0.0.1:8084:8080"
+      ],
+      "environment": [
+        "TRIVY_DEBUG=false",
+        "TRIVY_CACHE_DIR=/tmp/trivy/.cache",
+        "TRIVY_DB_REPOSITORY=ghcr.io/aquasecurity/trivy-db",
+        "TRIVY_JAVA_DB_REPOSITORY=ghcr.io/aquasecurity/trivy-java-db"
+      ],
+      "volumes": [
+        "trivy_cache:/tmp/trivy/.cache",
+        "/var/run/docker.sock:/var/run/docker.sock:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-runtime-security"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "trivy",
+          "--help"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.runtime-security.yml:yara-scanner": {
+      "name": "yara-scanner",
+      "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+      "image": "blacktop/yara:4.4",
+      "build": "",
+      "ports": [],
+      "environment": {},
+      "volumes": [
+        "./config/yara/rules:/rules:ro",
+        "./logs/yara:/var/log/yara",
+        "/var/lib/docker:/var/lib/docker:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-runtime-security"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.runtime-security.yml:runtime-dashboard": {
+      "name": "runtime-dashboard",
+      "file": "infra/compose-configs/docker-compose.runtime-security.yml",
+      "image": "grafana/grafana:10.2.2",
+      "build": "",
+      "ports": [
+        "127.0.0.1:3011:3000"
+      ],
+      "environment": [
+        "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}",
+        "GF_USERS_ALLOW_SIGN_UP=false",
+        "GF_SECURITY_DISABLE_INITIAL_ADMIN_CREATION=false",
+        "GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel,marcusolsson-json-datasource",
+        "GF_FEATURE_TOGGLES_ENABLE=ngalert"
+      ],
+      "volumes": [
+        "runtime_dashboard_data:/var/lib/grafana",
+        "./config/grafana/runtime-security:/etc/grafana/provisioning:ro"
+      ],
+      "depends_on": [
+        "falco-exporter"
+      ],
+      "networks": [
+        "xorb-runtime-security",
+        "xorb-siem"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.red-blue-agents.yml:agent-scheduler": {
+      "name": "agent-scheduler",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/red_blue_agents/docker/Dockerfile.framework",
+        "target": "production"
+      },
+      "ports": [
+        "8000:8000"
+      ],
+      "environment": [
+        "XORB_ENV=${XORB_ENV:-production}",
+        "DEBUG=${DEBUG:-false}",
+        "LOG_LEVEL=${LOG_LEVEL:-INFO}",
+        "DATABASE_URL=${DATABASE_URL}",
+        "REDIS_URL=${REDIS_URL}",
+        "TEMPORAL_HOST=temporal:7233",
+        "JWT_SECRET=${JWT_SECRET}",
+        "ENCRYPTION_KEY=${ENCRYPTION_KEY}",
+        "DOCKER_HOST=unix:///var/run/docker.sock",
+        "MAX_SANDBOXES_GLOBAL=${MAX_SANDBOXES_GLOBAL:-100}",
+        "PROMETHEUS_ENABLED=true",
+        "AUDIT_LOG_ENABLED=true"
+      ],
+      "volumes": [
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "./configs:/app/configs:ro",
+        "./logs:/app/logs",
+        "./models:/app/models"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "temporal": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-agents",
+        "xorb-infrastructure"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8000/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3,
+        "start_period": "60s"
+      }
+    },
+    "docker-compose.red-blue-agents.yml:sandbox-orchestrator": {
+      "name": "sandbox-orchestrator",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/red_blue_agents/docker/Dockerfile.framework",
+        "target": "sandbox-orchestrator"
+      },
+      "ports": [
+        "8001:8001"
+      ],
+      "environment": [
+        "XORB_ENV=${XORB_ENV:-production}",
+        "DEBUG=${DEBUG:-false}",
+        "LOG_LEVEL=${LOG_LEVEL:-INFO}",
+        "REDIS_URL=${REDIS_URL}",
+        "DOCKER_HOST=unix:///var/run/docker.sock",
+        "MAX_SANDBOXES_GLOBAL=${MAX_SANDBOXES_GLOBAL:-100}",
+        "DEFAULT_SANDBOX_TTL=${DEFAULT_SANDBOX_TTL:-3600}",
+        "KATA_RUNTIME_ENABLED=${KATA_ENABLED:-false}",
+        "PROMETHEUS_ENABLED=true"
+      ],
+      "volumes": [
+        "/var/run/docker.sock:/var/run/docker.sock",
+        "./configs:/app/configs:ro",
+        "./logs:/app/logs"
+      ],
+      "depends_on": {
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-agents",
+        "sandbox-network"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8001/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.red-blue-agents.yml:telemetry-collector": {
+      "name": "telemetry-collector",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/red_blue_agents/docker/Dockerfile.framework",
+        "target": "telemetry-collector"
+      },
+      "ports": [
+        "8002:8002"
+      ],
+      "environment": [
+        "XORB_ENV=${XORB_ENV:-production}",
+        "DEBUG=${DEBUG:-false}",
+        "LOG_LEVEL=${LOG_LEVEL:-INFO}",
+        "DATABASE_URL=${DATABASE_URL}",
+        "REDIS_URL=${REDIS_URL}",
+        "ML_ENABLED=${ML_ENABLED:-true}",
+        "ANALYTICS_ENABLED=${ANALYTICS_ENABLED:-true}",
+        "PROMETHEUS_ENABLED=true"
+      ],
+      "volumes": [
+        "./configs:/app/configs:ro",
+        "./logs:/app/logs",
+        "./models:/app/models",
+        "./data:/app/data"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-agents",
+        "xorb-infrastructure"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "curl",
+          "-f",
+          "http://localhost:8002/health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 3
+      }
+    },
+    "docker-compose.red-blue-agents.yml:red-recon-agent": {
+      "name": "red-recon-agent",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "xorb/red-recon:latest",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/red_blue_agents/docker/Dockerfile.framework",
+        "target": "red-recon"
+      },
+      "ports": [],
+      "environment": [
+        "AGENT_TYPE=red_recon",
+        "AGENT_SCHEDULER_URL=http://agent-scheduler:8000",
+        "TELEMETRY_COLLECTOR_URL=http://telemetry-collector:8002"
+      ],
+      "volumes": [],
+      "depends_on": [],
+      "networks": [
+        "sandbox-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:red-exploit-agent": {
+      "name": "red-exploit-agent",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "xorb/red-exploit:latest",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/red_blue_agents/docker/Dockerfile.framework",
+        "target": "red-exploit"
+      },
+      "ports": [],
+      "environment": [
+        "AGENT_TYPE=red_exploit",
+        "AGENT_SCHEDULER_URL=http://agent-scheduler:8000",
+        "TELEMETRY_COLLECTOR_URL=http://telemetry-collector:8002"
+      ],
+      "volumes": [],
+      "depends_on": [],
+      "networks": [
+        "sandbox-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:blue-detect-agent": {
+      "name": "blue-detect-agent",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "xorb/blue-detect:latest",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/red_blue_agents/docker/Dockerfile.framework",
+        "target": "blue-detect"
+      },
+      "ports": [],
+      "environment": [
+        "AGENT_TYPE=blue_detect",
+        "AGENT_SCHEDULER_URL=http://agent-scheduler:8000",
+        "TELEMETRY_COLLECTOR_URL=http://telemetry-collector:8002"
+      ],
+      "volumes": [],
+      "depends_on": [],
+      "networks": [
+        "sandbox-network",
+        "monitoring-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:blue-hunt-agent": {
+      "name": "blue-hunt-agent",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "xorb/blue-hunt:latest",
+      "build": {
+        "context": ".",
+        "dockerfile": "src/services/red_blue_agents/docker/Dockerfile.framework",
+        "target": "blue-hunt"
+      },
+      "ports": [],
+      "environment": [
+        "AGENT_TYPE=blue_hunt",
+        "AGENT_SCHEDULER_URL=http://agent-scheduler:8000",
+        "TELEMETRY_COLLECTOR_URL=http://telemetry-collector:8002"
+      ],
+      "volumes": [],
+      "depends_on": [],
+      "networks": [
+        "sandbox-network",
+        "monitoring-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:postgres": {
+      "name": "postgres",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "ankane/pgvector:v0.5.1",
+      "build": "",
+      "ports": [
+        "5432:5432"
+      ],
+      "environment": {
+        "POSTGRES_DB": "${DATABASE_NAME:-xorb_agents}",
+        "POSTGRES_USER": "${DATABASE_USER:-xorb}",
+        "POSTGRES_PASSWORD": "${DATABASE_PASSWORD}",
+        "POSTGRES_INITDB_ARGS": "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+      },
+      "volumes": [
+        "postgres_agents_data:/var/lib/postgresql/data",
+        "./configs/postgres:/docker-entrypoint-initdb.d:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-infrastructure"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "pg_isready -U ${DATABASE_USER:-xorb} -d ${DATABASE_NAME:-xorb_agents}"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 5,
+        "start_period": "30s"
+      }
+    },
+    "docker-compose.red-blue-agents.yml:redis": {
+      "name": "redis",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "redis:7-alpine",
+      "build": "",
+      "ports": [
+        "6379:6379"
+      ],
+      "environment": {},
+      "volumes": [
+        "redis_agents_data:/data"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-infrastructure"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "redis-cli",
+          "--no-auth-warning",
+          "-a",
+          "${REDIS_PASSWORD}",
+          "ping"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 5
+      }
+    },
+    "docker-compose.red-blue-agents.yml:temporal": {
+      "name": "temporal",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "temporalio/auto-setup:1.22.4",
+      "build": "",
+      "ports": [
+        "7233:7233",
+        "8233:8233"
+      ],
+      "environment": [
+        "DB=postgresql",
+        "DB_PORT=5432",
+        "POSTGRES_USER=${DATABASE_USER:-xorb}",
+        "POSTGRES_PWD=${DATABASE_PASSWORD}",
+        "POSTGRES_SEEDS=postgres",
+        "POSTGRES_DB=temporal_agents",
+        "DYNAMIC_CONFIG_FILE_PATH=config/dynamicconfig/development.yaml"
+      ],
+      "volumes": [
+        "./configs/temporal:/etc/temporal/config/dynamicconfig:ro"
+      ],
+      "depends_on": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-infrastructure"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD",
+          "tctl",
+          "--address",
+          "temporal:7233",
+          "cluster",
+          "health"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 5,
+        "start_period": "60s"
+      }
+    },
+    "docker-compose.red-blue-agents.yml:prometheus": {
+      "name": "prometheus",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "prom/prometheus:latest",
+      "build": "",
+      "ports": [
+        "9090:9090"
+      ],
+      "environment": {},
+      "volumes": [
+        "./configs/prometheus/prometheus-agents.yml:/etc/prometheus/prometheus.yml:ro",
+        "./configs/prometheus/rules-agents.yml:/etc/prometheus/rules.yml:ro",
+        "prometheus_agents_data:/prometheus"
+      ],
+      "depends_on": [],
+      "networks": [
+        "monitoring-network",
+        "xorb-infrastructure"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:grafana": {
+      "name": "grafana",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "grafana/grafana:latest",
+      "build": "",
+      "ports": [
+        "3000:3000"
+      ],
+      "environment": [
+        "GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}",
+        "GF_USERS_ALLOW_SIGN_UP=false",
+        "GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel"
+      ],
+      "volumes": [
+        "./configs/grafana/provisioning:/etc/grafana/provisioning:ro",
+        "./configs/grafana/dashboards:/var/lib/grafana/dashboards:ro",
+        "grafana_agents_data:/var/lib/grafana"
+      ],
+      "depends_on": [
+        "prometheus"
+      ],
+      "networks": [
+        "monitoring-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:jaeger": {
+      "name": "jaeger",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "jaegertracing/all-in-one:latest",
+      "build": "",
+      "ports": [
+        "16686:16686",
+        "14268:14268",
+        "14250:14250"
+      ],
+      "environment": [
+        "COLLECTOR_OTLP_ENABLED=true"
+      ],
+      "volumes": [],
+      "depends_on": [],
+      "networks": [
+        "monitoring-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:loki": {
+      "name": "loki",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "grafana/loki:latest",
+      "build": "",
+      "ports": [
+        "3100:3100"
+      ],
+      "environment": {},
+      "volumes": [
+        "./configs/loki/loki-config.yml:/etc/loki/local-config.yaml:ro",
+        "loki_agents_data:/loki"
+      ],
+      "depends_on": [],
+      "networks": [
+        "monitoring-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:promtail": {
+      "name": "promtail",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "grafana/promtail:latest",
+      "build": "",
+      "ports": [],
+      "environment": {},
+      "volumes": [
+        "./configs/promtail/promtail-config.yml:/etc/promtail/config.yml:ro",
+        "./logs:/var/log/xorb:ro",
+        "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      ],
+      "depends_on": [
+        "loki"
+      ],
+      "networks": [
+        "monitoring-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:vault": {
+      "name": "vault",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "vault:latest",
+      "build": "",
+      "ports": [
+        "8200:8200"
+      ],
+      "environment": [
+        "VAULT_DEV_ROOT_TOKEN_ID=${VAULT_ROOT_TOKEN:-root}",
+        "VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200"
+      ],
+      "volumes": [
+        "vault_agents_data:/vault/data",
+        "./configs/vault:/vault/config:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-infrastructure"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.red-blue-agents.yml:falco": {
+      "name": "falco",
+      "file": "infra/compose-configs/docker-compose.red-blue-agents.yml",
+      "image": "falcosecurity/falco:latest",
+      "build": "",
+      "ports": [],
+      "environment": {},
+      "volumes": [
+        "/var/run/docker.sock:/host/var/run/docker.sock",
+        "/dev:/host/dev",
+        "/proc:/host/proc:ro",
+        "/boot:/host/boot:ro",
+        "/lib/modules:/host/lib/modules:ro",
+        "/usr:/host/usr:ro",
+        "/etc:/host/etc:ro",
+        "./configs/falco/falco.yaml:/etc/falco/falco.yaml:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "monitoring-network"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.siem.yml:elasticsearch": {
+      "name": "elasticsearch",
+      "file": "infra/compose-configs/docker-compose.siem.yml",
+      "image": "docker.elastic.co/elasticsearch/elasticsearch:8.11.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:9200:9200",
+        "127.0.0.1:9300:9300"
+      ],
+      "environment": [
+        "discovery.type=single-node",
+        "ES_JAVA_OPTS=-Xms2g -Xmx2g",
+        "xpack.security.enabled=true",
+        "xpack.security.authc.api_key.enabled=true",
+        "ELASTIC_PASSWORD=${ELASTIC_PASSWORD}",
+        "xpack.security.transport.ssl.enabled=true",
+        "xpack.security.http.ssl.enabled=true",
+        "xpack.security.transport.ssl.verification_mode=certificate",
+        "xpack.security.transport.ssl.client_authentication=required",
+        "xpack.security.transport.ssl.keystore.path=certs/elastic-certificates.p12",
+        "xpack.security.transport.ssl.truststore.path=certs/elastic-certificates.p12",
+        "xpack.security.http.ssl.keystore.path=certs/elastic-certificates.p12",
+        "xpack.license.self_generated.type=trial"
+      ],
+      "volumes": [
+        "elasticsearch_data:/usr/share/elasticsearch/data",
+        "./secrets/elastic/certs:/usr/share/elasticsearch/config/certs:ro",
+        "./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro"
+      ],
+      "depends_on": [],
+      "networks": [
+        "xorb-siem"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -s https://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s || exit 1"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 5
+      }
+    },
+    "docker-compose.siem.yml:logstash": {
+      "name": "logstash",
+      "file": "infra/compose-configs/docker-compose.siem.yml",
+      "image": "docker.elastic.co/logstash/logstash:8.11.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:5044:5044",
+        "127.0.0.1:5000:5000",
+        "127.0.0.1:9600:9600"
+      ],
+      "environment": [
+        "LS_JAVA_OPTS=-Xms1g -Xmx1g",
+        "ELASTIC_PASSWORD=${ELASTIC_PASSWORD}",
+        "MONITORING_ELASTICSEARCH_HOSTS=https://elasticsearch:9200",
+        "MONITORING_ENABLED=true"
+      ],
+      "volumes": [
+        "./config/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro",
+        "./config/logstash/pipeline:/usr/share/logstash/pipeline:ro",
+        "./secrets/elastic/certs:/usr/share/logstash/config/certs:ro",
+        "logstash_data:/usr/share/logstash/data"
+      ],
+      "depends_on": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-siem",
+        "xorb-backend"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -f http://localhost:9600/_node/stats || exit 1"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 5
+      }
+    },
+    "docker-compose.siem.yml:kibana": {
+      "name": "kibana",
+      "file": "infra/compose-configs/docker-compose.siem.yml",
+      "image": "docker.elastic.co/kibana/kibana:8.11.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:5601:5601"
+      ],
+      "environment": [
+        "ELASTICSEARCH_HOSTS=https://elasticsearch:9200",
+        "ELASTICSEARCH_USERNAME=kibana_system",
+        "ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}",
+        "ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES=/usr/share/kibana/config/certs/ca.pem",
+        "SERVER_SSL_ENABLED=true",
+        "SERVER_SSL_CERTIFICATE=/usr/share/kibana/config/certs/kibana.pem",
+        "SERVER_SSL_KEY=/usr/share/kibana/config/certs/kibana-key.pem",
+        "XPACK_SECURITY_ENABLED=true",
+        "XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY=${KIBANA_ENCRYPTION_KEY}",
+        "XPACK_REPORTING_ENCRYPTIONKEY=${KIBANA_REPORTING_KEY}",
+        "XPACK_SECURITY_ENCRYPTIONKEY=${KIBANA_SECURITY_KEY}"
+      ],
+      "volumes": [
+        "./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro",
+        "./secrets/elastic/certs:/usr/share/kibana/config/certs:ro",
+        "kibana_data:/usr/share/kibana/data"
+      ],
+      "depends_on": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-siem"
+      ],
+      "healthcheck": {
+        "test": [
+          "CMD-SHELL",
+          "curl -f https://localhost:5601/api/status || exit 1"
+        ],
+        "interval": "30s",
+        "timeout": "10s",
+        "retries": 5
+      }
+    },
+    "docker-compose.siem.yml:filebeat": {
+      "name": "filebeat",
+      "file": "infra/compose-configs/docker-compose.siem.yml",
+      "image": "docker.elastic.co/beats/filebeat:8.11.0",
+      "build": "",
+      "ports": [],
+      "environment": [
+        "ELASTIC_PASSWORD=${ELASTIC_PASSWORD}",
+        "KIBANA_PASSWORD=${KIBANA_PASSWORD}"
+      ],
+      "volumes": [
+        "./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro",
+        "./secrets/elastic/certs:/usr/share/filebeat/config/certs:ro",
+        "filebeat_data:/usr/share/filebeat/data",
+        "/var/lib/docker/containers:/var/lib/docker/containers:ro",
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "./logs:/var/log/xorb:ro"
+      ],
+      "depends_on": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        },
+        "logstash": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-siem",
+        "xorb-backend"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.siem.yml:metricbeat": {
+      "name": "metricbeat",
+      "file": "infra/compose-configs/docker-compose.siem.yml",
+      "image": "docker.elastic.co/beats/metricbeat:8.11.0",
+      "build": "",
+      "ports": [],
+      "environment": [
+        "ELASTIC_PASSWORD=${ELASTIC_PASSWORD}"
+      ],
+      "volumes": [
+        "./config/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro",
+        "./secrets/elastic/certs:/usr/share/metricbeat/config/certs:ro",
+        "metricbeat_data:/usr/share/metricbeat/data",
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro",
+        "/proc:/hostfs/proc:ro",
+        "/:/hostfs:ro"
+      ],
+      "depends_on": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-siem",
+        "xorb-backend"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.siem.yml:auditbeat": {
+      "name": "auditbeat",
+      "file": "infra/compose-configs/docker-compose.siem.yml",
+      "image": "docker.elastic.co/beats/auditbeat:8.11.0",
+      "build": "",
+      "ports": [],
+      "environment": [
+        "ELASTIC_PASSWORD=${ELASTIC_PASSWORD}"
+      ],
+      "volumes": [
+        "./config/auditbeat/auditbeat.yml:/usr/share/auditbeat/auditbeat.yml:ro",
+        "./secrets/elastic/certs:/usr/share/auditbeat/config/certs:ro",
+        "auditbeat_data:/usr/share/auditbeat/data"
+      ],
+      "depends_on": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-siem"
+      ],
+      "healthcheck": {}
+    },
+    "docker-compose.siem.yml:fleet-server": {
+      "name": "fleet-server",
+      "file": "infra/compose-configs/docker-compose.siem.yml",
+      "image": "docker.elastic.co/beats/elastic-agent:8.11.0",
+      "build": "",
+      "ports": [
+        "127.0.0.1:8220:8220"
+      ],
+      "environment": [
+        "FLEET_SERVER_ENABLE=1",
+        "FLEET_SERVER_ELASTICSEARCH_HOST=https://elasticsearch:9200",
+        "FLEET_SERVER_SERVICE_TOKEN=${FLEET_SERVICE_TOKEN}",
+        "FLEET_SERVER_POLICY_ID=fleet-server-policy",
+        "FLEET_SERVER_ELASTICSEARCH_CA=/usr/share/elastic-agent/config/certs/ca.pem",
+        "FLEET_SERVER_CERT=/usr/share/elastic-agent/config/certs/fleet-server.pem",
+        "FLEET_SERVER_CERT_KEY=/usr/share/elastic-agent/config/certs/fleet-server-key.pem"
+      ],
+      "volumes": [
+        "./secrets/elastic/certs:/usr/share/elastic-agent/config/certs:ro",
+        "fleet_data:/usr/share/elastic-agent/data"
+      ],
+      "depends_on": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        },
+        "kibana": {
+          "condition": "service_healthy"
+        }
+      },
+      "networks": [
+        "xorb-siem"
+      ],
+      "healthcheck": {}
+    }
+  },
+  "dependencies": {
+    "docker-compose.yml:postgres": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./legacy/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ]
+    },
+    "docker-compose.yml:redis": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "redis_data:/data"
+      ]
+    },
+    "docker-compose.yml:temporal": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": [],
+      "volume_deps": [
+        "./infra/temporal:/etc/temporal/config/dynamicconfig"
+      ]
+    },
+    "docker-compose.yml:temporal-ui": {
+      "declared_deps": [
+        "temporal"
+      ],
+      "env_deps": [
+        "TEMPORAL_CORS_ORIGINS=http://localhost:3000"
+      ],
+      "network_deps": [],
+      "volume_deps": []
+    },
+    "docker-compose.yml:api": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "DATABASE_URL=postgresql://xorb:${DB_PASSWORD:-xorb_password}@postgres:5432/${DB_NAME:-xorb}",
+        "REDIS_URL=redis://redis:6379/0",
+        "TEMPORAL_HOST=temporal:7233",
+        "API_HOST=0.0.0.0"
+      ],
+      "network_deps": [],
+      "volume_deps": [
+        "./logs:/app/logs",
+        "./data:/app/data"
+      ]
+    },
+    "docker-compose.yml:orchestrator": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "temporal": {
+          "condition": "service_started"
+        }
+      },
+      "env_deps": [
+        "DATABASE_URL=postgresql://xorb:${DB_PASSWORD:-xorb_password}@postgres:5432/${DB_NAME:-xorb}",
+        "REDIS_URL=redis://redis:6379/0",
+        "TEMPORAL_HOST=temporal:7233",
+        "SERVICE_NAME=orchestrator"
+      ],
+      "network_deps": [],
+      "volume_deps": [
+        "./logs:/app/logs",
+        "./data:/app/data"
+      ]
+    },
+    "docker-compose.yml:worker": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "DATABASE_URL=postgresql://xorb:${DB_PASSWORD:-xorb_password}@postgres:5432/${DB_NAME:-xorb}",
+        "REDIS_URL=redis://redis:6379/0",
+        "TEMPORAL_HOST=temporal:7233",
+        "SERVICE_NAME=worker"
+      ],
+      "network_deps": [],
+      "volume_deps": [
+        "./logs:/app/logs",
+        "./data:/app/data"
+      ]
+    },
+    "docker-compose.yml:prometheus": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "prometheus_data:/prometheus",
+        "./legacy/config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
+        "./legacy/config/prometheus/rules:/etc/prometheus/rules:ro"
+      ]
+    },
+    "docker-compose.yml:grafana": {
+      "declared_deps": [
+        "prometheus"
+      ],
+      "env_deps": [
+        "GF_SERVER_ROOT_URL=http://localhost:3000"
+      ],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "grafana_data:/var/lib/grafana",
+        "./legacy/config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro",
+        "./legacy/config/grafana/datasources:/etc/grafana/provisioning/datasources:ro"
+      ]
+    },
+    "docker-compose.enterprise.yml:ptaas-frontend": {
+      "declared_deps": [
+        "xorb-api"
+      ],
+      "env_deps": [
+        "REACT_APP_XORB_API_URL=http://xorb-api:8000",
+        "REACT_APP_XORB_WS_URL=ws://xorb-api:8000/ws"
+      ],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.enterprise.yml:xorb-api": {
+      "declared_deps": [
+        "postgres",
+        "redis",
+        "temporal",
+        "vault"
+      ],
+      "env_deps": [
+        "DATABASE_URL=postgresql://xorb_user:${POSTGRES_PASSWORD}@postgres:5432/xorb_db",
+        "REDIS_URL=redis://redis:6379/0",
+        "TEMPORAL_HOST=temporal:7233"
+      ],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.enterprise.yml:xorb-orchestrator": {
+      "declared_deps": [
+        "temporal",
+        "postgres",
+        "redis"
+      ],
+      "env_deps": [
+        "TEMPORAL_HOST=temporal:7233",
+        "DATABASE_URL=postgresql://xorb_user:${POSTGRES_PASSWORD}@postgres:5432/xorb_db",
+        "REDIS_URL=redis://redis:6379/1"
+      ],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.enterprise.yml:postgres": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./services/infrastructure/databases/postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql"
+      ]
+    },
+    "docker-compose.enterprise.yml:redis": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "redis_data:/data"
+      ]
+    },
+    "docker-compose.enterprise.yml:temporal": {
+      "declared_deps": [
+        "postgres"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.enterprise.yml:vault": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "vault_data:/vault/data",
+        "./services/infrastructure/vault/vault-config.hcl:/vault/config/vault-config.hcl"
+      ]
+    },
+    "docker-compose.enterprise.yml:prometheus": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "./services/infrastructure/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml",
+        "./services/infrastructure/monitoring/prometheus-rules.yml:/etc/prometheus/rules.yml",
+        "prometheus_data:/prometheus"
+      ]
+    },
+    "docker-compose.enterprise.yml:grafana": {
+      "declared_deps": [
+        "prometheus"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "grafana_data:/var/lib/grafana",
+        "./services/infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards",
+        "./services/infrastructure/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources"
+      ]
+    },
+    "docker-compose.enterprise.yml:traefik": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "/var/run/docker.sock:/var/run/docker.sock:ro"
+      ]
+    },
+    "docker-compose.production.yml:xorb-api": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "DATABASE_URL=postgresql://xorb_user:${POSTGRES_PASSWORD}@postgres:5432/xorb_db",
+        "REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0"
+      ],
+      "network_deps": [
+        "xorb-backend",
+        "xorb-data"
+      ],
+      "volume_deps": [
+        "./logs:/app/logs:rw",
+        "./secrets:/app/secrets:ro"
+      ]
+    },
+    "docker-compose.production.yml:postgres": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-data"
+      ],
+      "volume_deps": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./scripts/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ]
+    },
+    "docker-compose.production.yml:redis": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-data"
+      ],
+      "volume_deps": [
+        "redis_data:/data",
+        "./config/redis.conf:/usr/local/etc/redis/redis.conf:ro"
+      ]
+    },
+    "docker-compose.production.yml:xorb-orchestrator": {
+      "declared_deps": [
+        "postgres",
+        "redis",
+        "temporal"
+      ],
+      "env_deps": [
+        "DATABASE_URL=postgresql://xorb_user:${POSTGRES_PASSWORD}@postgres:5432/xorb_db",
+        "REDIS_URL=redis://redis:6379/0",
+        "TEMPORAL_HOST=temporal:7233"
+      ],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "./logs:/app/logs"
+      ]
+    },
+    "docker-compose.production.yml:temporal": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "./config/temporal:/etc/temporal/config/dynamicconfig"
+      ]
+    },
+    "docker-compose.production.yml:prometheus": {
+      "declared_deps": [
+        "xorb-api"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
+        "./config/prometheus/rules.yml:/etc/prometheus/rules.yml:ro",
+        "prometheus_data:/prometheus"
+      ]
+    },
+    "docker-compose.production.yml:grafana": {
+      "declared_deps": [
+        "prometheus"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "grafana_data:/var/lib/grafana",
+        "./config/grafana/provisioning:/etc/grafana/provisioning:ro",
+        "./config/grafana/dashboards:/var/lib/grafana/dashboards:ro"
+      ]
+    },
+    "docker-compose.production.yml:nginx": {
+      "declared_deps": [
+        "xorb-api",
+        "grafana"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+        "./config/nginx/conf.d:/etc/nginx/conf.d:ro",
+        "./ssl:/etc/ssl/certs:ro",
+        "./logs/nginx:/var/log/nginx"
+      ]
+    },
+    "docker-compose.production.yml:fluentd": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-network"
+      ],
+      "volume_deps": [
+        "./config/fluentd/fluent.conf:/fluentd/etc/fluent.conf:ro",
+        "./logs:/fluentd/log"
+      ]
+    },
+    "docker-compose.development.yml:postgres-dev": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [],
+      "volume_deps": [
+        "postgres_dev_data:/var/lib/postgresql/data",
+        "./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ]
+    },
+    "docker-compose.development.yml:redis-dev": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [],
+      "volume_deps": [
+        "redis_dev_data:/data"
+      ]
+    },
+    "docker-compose.development.yml:api-dev": {
+      "declared_deps": {
+        "postgres-dev": {
+          "condition": "service_healthy"
+        },
+        "redis-dev": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "DATABASE_HOST=postgres-dev",
+        "REDIS_HOST=redis-dev",
+        "CORS_ALLOW_ORIGINS=http://localhost:3000,http://localhost:5173"
+      ],
+      "network_deps": [],
+      "volume_deps": [
+        "./src/api:/app:ro",
+        "./config:/app/config:ro",
+        "./src/common:/app/src/common:ro",
+        "api_dev_logs:/app/logs"
+      ]
+    },
+    "docker-compose.development.yml:orchestrator-dev": {
+      "declared_deps": {
+        "temporal-dev": {
+          "condition": "service_healthy"
+        },
+        "postgres-dev": {
+          "condition": "service_healthy"
+        },
+        "redis-dev": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "TEMPORAL_HOST=temporal-dev:7233",
+        "DATABASE_HOST=postgres-dev",
+        "REDIS_HOST=redis-dev"
+      ],
+      "network_deps": [],
+      "volume_deps": [
+        "./src/orchestrator:/app:ro",
+        "./config:/app/config:ro",
+        "./src/common:/app/src/common:ro",
+        "orchestrator_dev_logs:/app/logs"
+      ]
+    },
+    "docker-compose.development.yml:worker-dev": {
+      "declared_deps": {
+        "postgres-dev": {
+          "condition": "service_healthy"
+        },
+        "redis-dev": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "DATABASE_HOST=postgres-dev",
+        "REDIS_HOST=redis-dev"
+      ],
+      "network_deps": [],
+      "volume_deps": [
+        "./src/services/worker:/app:ro",
+        "./config:/app/config:ro",
+        "./src/common:/app/src/common:ro",
+        "worker_dev_logs:/app/logs"
+      ]
+    },
+    "docker-compose.development.yml:temporal-dev": {
+      "declared_deps": {
+        "postgres-dev": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": [],
+      "volume_deps": [
+        "temporal_dev_data:/etc/temporal/config/dynamicconfig"
+      ]
+    },
+    "docker-compose.development.yml:prometheus-dev": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [],
+      "volume_deps": [
+        "./infra/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml",
+        "./infra/monitoring/prometheus-rules.yml:/etc/prometheus/rules.yml",
+        "prometheus_dev_data:/prometheus"
+      ]
+    },
+    "docker-compose.development.yml:grafana-dev": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [],
+      "volume_deps": [
+        "./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning",
+        "./infra/monitoring/grafana/dashboards:/var/lib/grafana/dashboards",
+        "grafana_dev_data:/var/lib/grafana"
+      ]
+    },
+    "docker-compose.tls.yml:redis": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.10"
+        }
+      },
+      "volume_deps": [
+        "redis-data:/data",
+        "./redis/redis-tls.conf:/etc/redis/redis.conf:ro",
+        "../secrets/tls/redis:/run/tls/redis:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ]
+    },
+    "docker-compose.tls.yml:postgres": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.11"
+        }
+      },
+      "volume_deps": [
+        "postgres-data:/var/lib/postgresql/data",
+        "../secrets/tls/postgres:/run/tls/postgres:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "./infra/postgres/init-tls.sql:/docker-entrypoint-initdb.d/init-tls.sql:ro"
+      ]
+    },
+    "docker-compose.tls.yml:temporal": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.12"
+        }
+      },
+      "volume_deps": [
+        "temporal-data:/tmp/temporal",
+        "../secrets/tls/temporal:/run/tls/temporal:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "./temporal/config-tls.yaml:/etc/temporal/config/docker.yaml:ro"
+      ]
+    },
+    "docker-compose.tls.yml:envoy-api": {
+      "declared_deps": {
+        "api": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.20"
+        }
+      },
+      "volume_deps": [
+        "./envoy/api.envoy.yaml:/etc/envoy/envoy.yaml:ro",
+        "../secrets/tls/api:/run/tls/api:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ]
+    },
+    "docker-compose.tls.yml:api": {
+      "declared_deps": {
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "temporal": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "REDIS_URL=rediss://redis:6379",
+        "DATABASE_URL=postgresql://xorb:xorb_secure_pass@postgres:5432/xorb?sslmode=require&sslcert=/run/tls/postgres-client/cert.pem&sslkey=/run/tls/postgres-client/key.pem&sslrootcert=/run/tls/ca/ca.pem",
+        "TEMPORAL_HOST=temporal:7233"
+      ],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.21"
+        }
+      },
+      "volume_deps": [
+        "../secrets/tls/api:/run/tls/api:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "../secrets/tls/redis-client:/run/tls/redis-client:ro"
+      ]
+    },
+    "docker-compose.tls.yml:orchestrator": {
+      "declared_deps": {
+        "temporal": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "envoy-api": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "REDIS_URL=rediss://redis:6379",
+        "TEMPORAL_HOST=temporal:7233",
+        "API_BASE_URL=https://envoy-api:8443"
+      ],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.22"
+        }
+      },
+      "volume_deps": [
+        "../secrets/tls/orchestrator:/run/tls/orchestrator:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "../secrets/tls/redis-client:/run/tls/redis-client:ro",
+        "../secrets/tls/temporal-client:/run/tls/temporal-client:ro"
+      ]
+    },
+    "docker-compose.tls.yml:envoy-agent": {
+      "declared_deps": {
+        "ptaas-agent": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.30"
+        }
+      },
+      "volume_deps": [
+        "./envoy/agent.envoy.yaml:/etc/envoy/envoy.yaml:ro",
+        "../secrets/tls/agent:/run/tls/agent:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ]
+    },
+    "docker-compose.tls.yml:ptaas-agent": {
+      "declared_deps": {
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "REDIS_URL=rediss://redis:6379",
+        "API_BASE_URL=https://envoy-api:8443"
+      ],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.31"
+        }
+      },
+      "volume_deps": [
+        "../secrets/tls/agent:/run/tls/agent:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "../secrets/tls/redis-client:/run/tls/redis-client:ro"
+      ]
+    },
+    "docker-compose.tls.yml:dind": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.40"
+        }
+      },
+      "volume_deps": [
+        "../secrets/tls/dind:/certs/server:ro",
+        "../secrets/tls/dind-client:/certs/client:ro",
+        "../secrets/tls/ca:/certs/ca:ro"
+      ]
+    },
+    "docker-compose.tls.yml:scanner-executor": {
+      "declared_deps": {
+        "dind": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "REDIS_URL=rediss://redis:6379",
+        "DOCKER_HOST=tcp://dind:2376"
+      ],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.41"
+        }
+      },
+      "volume_deps": [
+        "../secrets/tls/scanner:/run/tls/scanner:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro",
+        "../secrets/tls/dind-client:/certs/client:ro"
+      ]
+    },
+    "docker-compose.tls.yml:prometheus": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.50"
+        }
+      },
+      "volume_deps": [
+        "./monitoring/prometheus-tls.yml:/etc/prometheus/prometheus.yml:ro",
+        "../secrets/tls/prometheus:/run/tls/prometheus:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ]
+    },
+    "docker-compose.tls.yml:grafana": {
+      "declared_deps": {
+        "prometheus": {
+          "condition": "service_started"
+        }
+      },
+      "env_deps": [],
+      "network_deps": {
+        "xorb-secure": {
+          "ipv4_address": "172.20.0.51"
+        }
+      },
+      "volume_deps": [
+        "./monitoring/grafana-tls.ini:/etc/grafana/grafana.ini:ro",
+        "../secrets/tls/grafana:/run/tls/grafana:ro",
+        "../secrets/tls/ca:/run/tls/ca:ro"
+      ]
+    },
+    "docker-compose.best-practices.yml:postgres": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "database"
+      ],
+      "volume_deps": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./scripts/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ]
+    },
+    "docker-compose.best-practices.yml:redis": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "backend",
+        "database"
+      ],
+      "volume_deps": [
+        "redis_data:/data"
+      ]
+    },
+    "docker-compose.best-practices.yml:vault": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "backend"
+      ],
+      "volume_deps": [
+        "vault_data:/vault/data",
+        "./config/vault:/vault/config:ro"
+      ]
+    },
+    "docker-compose.best-practices.yml:api-gateway": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "vault": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "VAULT_URL=http://vault:8200",
+        "SERVICE_NAME=api-gateway",
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/0"
+      ],
+      "network_deps": [
+        "frontend",
+        "backend"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.best-practices.yml:identity-service": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "VAULT_URL=http://vault:8200",
+        "SERVICE_NAME=identity-service",
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/1"
+      ],
+      "network_deps": [
+        "backend",
+        "database"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.best-practices.yml:threat-intelligence": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "VAULT_URL=http://vault:8200",
+        "SERVICE_NAME=threat-intelligence",
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://:${REDIS_PASSWORD}@redis:6379/2"
+      ],
+      "network_deps": [
+        "backend",
+        "database"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.best-practices.yml:prometheus": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "monitoring",
+        "backend"
+      ],
+      "volume_deps": [
+        "./config/prometheus:/etc/prometheus:ro",
+        "prometheus_data:/prometheus"
+      ]
+    },
+    "docker-compose.best-practices.yml:grafana": {
+      "declared_deps": [
+        "prometheus"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "monitoring",
+        "frontend"
+      ],
+      "volume_deps": [
+        "grafana_data:/var/lib/grafana",
+        "./config/grafana:/etc/grafana/provisioning:ro"
+      ]
+    },
+    "docker-compose.best-practices.yml:elasticsearch": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "monitoring"
+      ],
+      "volume_deps": [
+        "elasticsearch_data:/usr/share/elasticsearch/data"
+      ]
+    },
+    "docker-compose.best-practices.yml:nginx": {
+      "declared_deps": [
+        "api-gateway"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "frontend"
+      ],
+      "volume_deps": [
+        "./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+        "./config/nginx/conf.d:/etc/nginx/conf.d:ro",
+        "./ssl:/etc/nginx/ssl:ro"
+      ]
+    },
+    "docker-compose.yml:xorb-api-gateway": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-xorb-secure-2025}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379"
+      ],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro",
+        "./secrets:/run/secrets:ro"
+      ]
+    },
+    "docker-compose.yml:xorb-orchestrator": {
+      "declared_deps": [
+        "xorb-api-gateway"
+      ],
+      "env_deps": [
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379"
+      ],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ]
+    },
+    "docker-compose.yml:xorb-adversarial-engine": {
+      "declared_deps": [
+        "xorb-orchestrator"
+      ],
+      "env_deps": [
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379"
+      ],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "xorb_models:/app/models",
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ]
+    },
+    "docker-compose.yml:xorb-ml-defense": {
+      "declared_deps": [
+        "xorb-orchestrator"
+      ],
+      "env_deps": [
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379"
+      ],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "xorb_models:/app/models",
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ]
+    },
+    "docker-compose.yml:node-exporter": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "/:/host:ro,rslave"
+      ]
+    },
+    "docker-compose.yml:alertmanager": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "./legacy/config/alertmanager:/etc/alertmanager:ro"
+      ]
+    },
+    "docker-compose.yml:ptaas-frontend": {
+      "declared_deps": [],
+      "env_deps": [
+        "VITE_API_URL=https://ptaas.verteidiq.com/api"
+      ],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "./ptaas-frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro"
+      ]
+    },
+    "docker-compose.yml:nginx": {
+      "declared_deps": [
+        "xorb-api-gateway",
+        "grafana",
+        "ptaas-frontend"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "./legacy/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+        "./ssl:/etc/nginx/ssl:ro",
+        "./secrets/kyber-certs:/etc/nginx/kyber:ro"
+      ]
+    },
+    "docker-compose.dev.yml:api": {
+      "declared_deps": [
+        "temporal",
+        "redis",
+        "postgres"
+      ],
+      "env_deps": [
+        "DATABASE_URL=postgresql://temporal:temporal@postgres:5432/temporal",
+        "REDIS_URL=redis://redis:6379"
+      ],
+      "network_deps": [],
+      "volume_deps": [
+        "./src:/app/src"
+      ]
+    },
+    "docker-compose.dev.yml:orchestrator": {
+      "declared_deps": [
+        "temporal"
+      ],
+      "env_deps": [
+        "TEMPORAL_HOST=temporal:7233"
+      ],
+      "network_deps": [],
+      "volume_deps": [
+        "./src:/app/src",
+        "./targets.json:/app/targets.json:rw"
+      ]
+    },
+    "docker-compose.dev.yml:temporal": {
+      "declared_deps": [
+        "postgres"
+      ],
+      "env_deps": [],
+      "network_deps": [],
+      "volume_deps": [
+        "./temporal-config:/etc/temporal/config/dynamicconfig"
+      ]
+    },
+    "docker-compose.dev.yml:temporal-ui": {
+      "declared_deps": [
+        "temporal"
+      ],
+      "env_deps": [
+        "TEMPORAL_CORS_ORIGINS=http://localhost:3000"
+      ],
+      "network_deps": [],
+      "volume_deps": []
+    },
+    "docker-compose.dev.yml:postgres": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [],
+      "volume_deps": [
+        "postgres_data:/var/lib/postgresql/data"
+      ]
+    },
+    "docker-compose.dev.yml:redis": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [],
+      "volume_deps": [
+        "redis_data:/data"
+      ]
+    },
+    "docker-compose.fixed.yml:postgres": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "postgres_data:/var/lib/postgresql/data",
+        "./legacy/init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+      ]
+    },
+    "docker-compose.fixed.yml:redis": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "redis_data:/data"
+      ]
+    },
+    "docker-compose.fixed.yml:xorb-api-gateway": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379"
+      ],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ]
+    },
+    "docker-compose.fixed.yml:xorb-orchestrator": {
+      "declared_deps": [
+        "xorb-api-gateway"
+      ],
+      "env_deps": [
+        "DATABASE_URL=postgresql://${POSTGRES_USER:-xorb}:${POSTGRES_PASSWORD:-secure_password}@postgres:5432/${POSTGRES_DB:-xorb}",
+        "REDIS_URL=redis://redis:6379"
+      ],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "xorb_logs:/app/logs",
+        "./legacy/config:/app/config:ro"
+      ]
+    },
+    "docker-compose.fixed.yml:prometheus": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "prometheus_data:/prometheus",
+        "./legacy/config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro",
+        "./legacy/config/prometheus/rules:/etc/prometheus/rules:ro"
+      ]
+    },
+    "docker-compose.fixed.yml:grafana": {
+      "declared_deps": [
+        "prometheus"
+      ],
+      "env_deps": [
+        "GF_SERVER_ROOT_URL=http://localhost:3000"
+      ],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "grafana_data:/var/lib/grafana",
+        "./legacy/config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro",
+        "./legacy/config/grafana/datasources:/etc/grafana/provisioning/datasources:ro"
+      ]
+    },
+    "docker-compose.fixed.yml:nginx": {
+      "declared_deps": [
+        "xorb-api-gateway",
+        "grafana"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-net"
+      ],
+      "volume_deps": [
+        "./legacy/config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro",
+        "./legacy/config/nginx/ssl:/etc/nginx/ssl:ro"
+      ]
+    },
+    "docker-compose.runtime-security.yml:falco": {
+      "declared_deps": [],
+      "env_deps": [
+        "FALCO_K8S_AUDIT_ENDPOINT=/k8s-audit"
+      ],
+      "network_deps": [
+        "xorb-runtime-security"
+      ],
+      "volume_deps": [
+        "/var/run/docker.sock:/host/var/run/docker.sock:ro",
+        "/dev:/host/dev:ro",
+        "/proc:/host/proc:ro",
+        "/boot:/host/boot:ro",
+        "/lib/modules:/host/lib/modules:ro",
+        "/usr:/host/usr:ro",
+        "/etc:/host/etc:ro",
+        "./config/falco/falco.yaml:/etc/falco/falco.yaml:ro",
+        "./config/falco/rules:/etc/falco/rules:ro",
+        "./logs/falco:/var/log/falco"
+      ]
+    },
+    "docker-compose.runtime-security.yml:falco-sidekick": {
+      "declared_deps": [
+        "falco"
+      ],
+      "env_deps": [
+        "WEBUI_URL=http://falco-sidekick-ui:2802",
+        "ELASTICSEARCH_HOSTPORT=elasticsearch:9200",
+        "SLACK_WEBHOOKURL=${SLACK_WEBHOOK_URL}",
+        "SLACK_ICONURL=https://falco.org/img/falco.png",
+        "ALERTMANAGER_HOSTPORT=prometheus-alertmanager:9093"
+      ],
+      "network_deps": [
+        "xorb-runtime-security",
+        "xorb-siem",
+        "xorb-backend"
+      ],
+      "volume_deps": [
+        "./config/falco-sidekick:/config:ro"
+      ]
+    },
+    "docker-compose.runtime-security.yml:falco-sidekick-ui": {
+      "declared_deps": [
+        "falco-sidekick"
+      ],
+      "env_deps": [
+        "REDIS_URL=redis://redis:6379/2"
+      ],
+      "network_deps": [
+        "xorb-runtime-security",
+        "xorb-data"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.runtime-security.yml:falco-exporter": {
+      "declared_deps": [
+        "falco"
+      ],
+      "env_deps": [
+        "FALCO_ENDPOINT=falco:5060"
+      ],
+      "network_deps": [
+        "xorb-runtime-security",
+        "xorb-siem"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.runtime-security.yml:fim-agent": {
+      "declared_deps": [
+        "wazuh-manager"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-runtime-security"
+      ],
+      "volume_deps": [
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "/:/rootfs:ro",
+        "./config/wazuh/ossec.conf:/var/ossec/etc/ossec.conf:ro",
+        "./logs/wazuh:/var/ossec/logs"
+      ]
+    },
+    "docker-compose.runtime-security.yml:wazuh-manager": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-runtime-security"
+      ],
+      "volume_deps": [
+        "wazuh_api_configuration:/var/ossec/api/configuration",
+        "wazuh_etc:/var/ossec/etc",
+        "wazuh_logs:/var/ossec/logs",
+        "wazuh_queue:/var/ossec/queue",
+        "wazuh_var_multigroups:/var/ossec/var/multigroups",
+        "wazuh_integrations:/var/ossec/integrations",
+        "wazuh_active_response:/var/ossec/active-response/bin",
+        "wazuh_agentless:/var/ossec/agentless",
+        "wazuh_wodles:/var/ossec/wodles",
+        "./config/wazuh/etc:/wazuh-config-mount/etc:ro"
+      ]
+    },
+    "docker-compose.runtime-security.yml:trivy-scanner": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-runtime-security"
+      ],
+      "volume_deps": [
+        "trivy_cache:/tmp/trivy/.cache",
+        "/var/run/docker.sock:/var/run/docker.sock:ro"
+      ]
+    },
+    "docker-compose.runtime-security.yml:yara-scanner": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-runtime-security"
+      ],
+      "volume_deps": [
+        "./config/yara/rules:/rules:ro",
+        "./logs/yara:/var/log/yara",
+        "/var/lib/docker:/var/lib/docker:ro"
+      ]
+    },
+    "docker-compose.runtime-security.yml:runtime-dashboard": {
+      "declared_deps": [
+        "falco-exporter"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-runtime-security",
+        "xorb-siem"
+      ],
+      "volume_deps": [
+        "runtime_dashboard_data:/var/lib/grafana",
+        "./config/grafana/runtime-security:/etc/grafana/provisioning:ro"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:agent-scheduler": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        },
+        "temporal": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "DATABASE_URL=${DATABASE_URL}",
+        "REDIS_URL=${REDIS_URL}",
+        "TEMPORAL_HOST=temporal:7233",
+        "DOCKER_HOST=unix:///var/run/docker.sock"
+      ],
+      "network_deps": [
+        "xorb-agents",
+        "xorb-infrastructure"
+      ],
+      "volume_deps": [
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "./configs:/app/configs:ro",
+        "./logs:/app/logs",
+        "./models:/app/models"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:sandbox-orchestrator": {
+      "declared_deps": {
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "REDIS_URL=${REDIS_URL}",
+        "DOCKER_HOST=unix:///var/run/docker.sock"
+      ],
+      "network_deps": [
+        "xorb-agents",
+        "sandbox-network"
+      ],
+      "volume_deps": [
+        "/var/run/docker.sock:/var/run/docker.sock",
+        "./configs:/app/configs:ro",
+        "./logs:/app/logs"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:telemetry-collector": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        },
+        "redis": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "DATABASE_URL=${DATABASE_URL}",
+        "REDIS_URL=${REDIS_URL}"
+      ],
+      "network_deps": [
+        "xorb-agents",
+        "xorb-infrastructure"
+      ],
+      "volume_deps": [
+        "./configs:/app/configs:ro",
+        "./logs:/app/logs",
+        "./models:/app/models",
+        "./data:/app/data"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:red-recon-agent": {
+      "declared_deps": [],
+      "env_deps": [
+        "AGENT_SCHEDULER_URL=http://agent-scheduler:8000",
+        "TELEMETRY_COLLECTOR_URL=http://telemetry-collector:8002"
+      ],
+      "network_deps": [
+        "sandbox-network"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.red-blue-agents.yml:red-exploit-agent": {
+      "declared_deps": [],
+      "env_deps": [
+        "AGENT_SCHEDULER_URL=http://agent-scheduler:8000",
+        "TELEMETRY_COLLECTOR_URL=http://telemetry-collector:8002"
+      ],
+      "network_deps": [
+        "sandbox-network"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.red-blue-agents.yml:blue-detect-agent": {
+      "declared_deps": [],
+      "env_deps": [
+        "AGENT_SCHEDULER_URL=http://agent-scheduler:8000",
+        "TELEMETRY_COLLECTOR_URL=http://telemetry-collector:8002"
+      ],
+      "network_deps": [
+        "sandbox-network",
+        "monitoring-network"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.red-blue-agents.yml:blue-hunt-agent": {
+      "declared_deps": [],
+      "env_deps": [
+        "AGENT_SCHEDULER_URL=http://agent-scheduler:8000",
+        "TELEMETRY_COLLECTOR_URL=http://telemetry-collector:8002"
+      ],
+      "network_deps": [
+        "sandbox-network",
+        "monitoring-network"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.red-blue-agents.yml:postgres": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-infrastructure"
+      ],
+      "volume_deps": [
+        "postgres_agents_data:/var/lib/postgresql/data",
+        "./configs/postgres:/docker-entrypoint-initdb.d:ro"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:redis": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-infrastructure"
+      ],
+      "volume_deps": [
+        "redis_agents_data:/data"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:temporal": {
+      "declared_deps": {
+        "postgres": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": [
+        "xorb-infrastructure"
+      ],
+      "volume_deps": [
+        "./configs/temporal:/etc/temporal/config/dynamicconfig:ro"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:prometheus": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "monitoring-network",
+        "xorb-infrastructure"
+      ],
+      "volume_deps": [
+        "./configs/prometheus/prometheus-agents.yml:/etc/prometheus/prometheus.yml:ro",
+        "./configs/prometheus/rules-agents.yml:/etc/prometheus/rules.yml:ro",
+        "prometheus_agents_data:/prometheus"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:grafana": {
+      "declared_deps": [
+        "prometheus"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "monitoring-network"
+      ],
+      "volume_deps": [
+        "./configs/grafana/provisioning:/etc/grafana/provisioning:ro",
+        "./configs/grafana/dashboards:/var/lib/grafana/dashboards:ro",
+        "grafana_agents_data:/var/lib/grafana"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:jaeger": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "monitoring-network"
+      ],
+      "volume_deps": []
+    },
+    "docker-compose.red-blue-agents.yml:loki": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "monitoring-network"
+      ],
+      "volume_deps": [
+        "./configs/loki/loki-config.yml:/etc/loki/local-config.yaml:ro",
+        "loki_agents_data:/loki"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:promtail": {
+      "declared_deps": [
+        "loki"
+      ],
+      "env_deps": [],
+      "network_deps": [
+        "monitoring-network"
+      ],
+      "volume_deps": [
+        "./configs/promtail/promtail-config.yml:/etc/promtail/config.yml:ro",
+        "./logs:/var/log/xorb:ro",
+        "/var/lib/docker/containers:/var/lib/docker/containers:ro"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:vault": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-infrastructure"
+      ],
+      "volume_deps": [
+        "vault_agents_data:/vault/data",
+        "./configs/vault:/vault/config:ro"
+      ]
+    },
+    "docker-compose.red-blue-agents.yml:falco": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "monitoring-network"
+      ],
+      "volume_deps": [
+        "/var/run/docker.sock:/host/var/run/docker.sock",
+        "/dev:/host/dev",
+        "/proc:/host/proc:ro",
+        "/boot:/host/boot:ro",
+        "/lib/modules:/host/lib/modules:ro",
+        "/usr:/host/usr:ro",
+        "/etc:/host/etc:ro",
+        "./configs/falco/falco.yaml:/etc/falco/falco.yaml:ro"
+      ]
+    },
+    "docker-compose.siem.yml:elasticsearch": {
+      "declared_deps": [],
+      "env_deps": [],
+      "network_deps": [
+        "xorb-siem"
+      ],
+      "volume_deps": [
+        "elasticsearch_data:/usr/share/elasticsearch/data",
+        "./secrets/elastic/certs:/usr/share/elasticsearch/config/certs:ro",
+        "./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro"
+      ]
+    },
+    "docker-compose.siem.yml:logstash": {
+      "declared_deps": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "MONITORING_ELASTICSEARCH_HOSTS=https://elasticsearch:9200"
+      ],
+      "network_deps": [
+        "xorb-siem",
+        "xorb-backend"
+      ],
+      "volume_deps": [
+        "./config/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml:ro",
+        "./config/logstash/pipeline:/usr/share/logstash/pipeline:ro",
+        "./secrets/elastic/certs:/usr/share/logstash/config/certs:ro",
+        "logstash_data:/usr/share/logstash/data"
+      ]
+    },
+    "docker-compose.siem.yml:kibana": {
+      "declared_deps": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "ELASTICSEARCH_HOSTS=https://elasticsearch:9200"
+      ],
+      "network_deps": [
+        "xorb-siem"
+      ],
+      "volume_deps": [
+        "./config/kibana/kibana.yml:/usr/share/kibana/config/kibana.yml:ro",
+        "./secrets/elastic/certs:/usr/share/kibana/config/certs:ro",
+        "kibana_data:/usr/share/kibana/data"
+      ]
+    },
+    "docker-compose.siem.yml:filebeat": {
+      "declared_deps": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        },
+        "logstash": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": [
+        "xorb-siem",
+        "xorb-backend"
+      ],
+      "volume_deps": [
+        "./config/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro",
+        "./secrets/elastic/certs:/usr/share/filebeat/config/certs:ro",
+        "filebeat_data:/usr/share/filebeat/data",
+        "/var/lib/docker/containers:/var/lib/docker/containers:ro",
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "./logs:/var/log/xorb:ro"
+      ]
+    },
+    "docker-compose.siem.yml:metricbeat": {
+      "declared_deps": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": [
+        "xorb-siem",
+        "xorb-backend"
+      ],
+      "volume_deps": [
+        "./config/metricbeat/metricbeat.yml:/usr/share/metricbeat/metricbeat.yml:ro",
+        "./secrets/elastic/certs:/usr/share/metricbeat/config/certs:ro",
+        "metricbeat_data:/usr/share/metricbeat/data",
+        "/var/run/docker.sock:/var/run/docker.sock:ro",
+        "/sys/fs/cgroup:/hostfs/sys/fs/cgroup:ro",
+        "/proc:/hostfs/proc:ro",
+        "/:/hostfs:ro"
+      ]
+    },
+    "docker-compose.siem.yml:auditbeat": {
+      "declared_deps": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [],
+      "network_deps": [
+        "xorb-siem"
+      ],
+      "volume_deps": [
+        "./config/auditbeat/auditbeat.yml:/usr/share/auditbeat/auditbeat.yml:ro",
+        "./secrets/elastic/certs:/usr/share/auditbeat/config/certs:ro",
+        "auditbeat_data:/usr/share/auditbeat/data"
+      ]
+    },
+    "docker-compose.siem.yml:fleet-server": {
+      "declared_deps": {
+        "elasticsearch": {
+          "condition": "service_healthy"
+        },
+        "kibana": {
+          "condition": "service_healthy"
+        }
+      },
+      "env_deps": [
+        "FLEET_SERVER_ELASTICSEARCH_HOST=https://elasticsearch:9200",
+        "FLEET_SERVER_SERVICE_TOKEN=${FLEET_SERVICE_TOKEN}"
+      ],
+      "network_deps": [
+        "xorb-siem"
+      ],
+      "volume_deps": [
+        "./secrets/elastic/certs:/usr/share/elastic-agent/config/certs:ro",
+        "fleet_data:/usr/share/elastic-agent/data"
+      ]
+    }
+  },
+  "service_summary": {
+    "total_docker_services": 112,
+    "total_fastapi_routes": 984,
+    "total_express_routes": 5,
+    "total_grpc_services": 5,
+    "total_openapi_specs": 1,
+    "message_bus_patterns": 279
+  }
+}
