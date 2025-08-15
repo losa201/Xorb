@@ -120,3 +120,14 @@ ci:
   autoupdate_schedule: weekly
   skip: []
   submodules: false
+
+  # Repository deduplication hooks
+  - repo: local
+    hooks:
+      - id: check-duplicates
+        name: Block duplicate files
+        entry: python3 ../../tools/repo_audit/near_dup_check.py
+        language: system
+        pass_filenames: false
+        stages: [commit]
+        verbose: true

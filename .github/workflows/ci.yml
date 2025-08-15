@@ -30,6 +30,24 @@ jobs:
           else
             echo "Repository doctor not found, skipping"
           fi
+      - name: Check for duplicates
+        run: |
+          if [ -f tools/repo_audit/duplicates.csv ]; then
+            if [ $(wc -l < tools/repo_audit/duplicates.csv) -gt 1 ]; then
+              echo "❌ Exact duplicates detected:"
+              cat tools/repo_audit/duplicates.csv
+              exit 1
+            else
+              echo "✅ No exact duplicates found"
+            fi
+          fi
+      - name: Check for near-duplicates
+        run: |
+          if [ -f tools/repo_audit/near_dup_check.py ]; then
+            python tools/repo_audit/near_dup_check.py
+          else
+            echo "Near-duplicate checker not found, skipping"
+          fi
 
   # Code Quality & Linting
   lint:

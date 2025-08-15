@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XORB Platform</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .language-switch { text-align: right; margin-bottom: 20px; }
+        .language-switch a { margin: 0 10px; text-decoration: none; }
+        .content { max-width: 800px; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <div class="language-switch">
+        <a href="i18n/en/index.html">English</a>
+        <a href="i18n/de/index.html">Deutsch</a>
+    </div>
+    
+    <div class="content">
+        <h1>XORB Platform</h1>
+        <p>Unified cybersecurity platform with comprehensive threat detection and analysis capabilities.</p>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <p>Select your language:</p>
+            <a href="i18n/en/index.html" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">English</a>
+            <a href="i18n/de/index.html" style="display: inline-block; margin: 10px; padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">Deutsch</a>
+        </div>
+        
+        <script>
+            // Auto-redirect based on browser language
+            const userLang = navigator.language || navigator.userLanguage;
+            if (userLang.startsWith('de')) {
+                window.location.href = 'i18n/de/index.html';
+            } else {
+                window.location.href = 'i18n/en/index.html';
+            }
+        </script>
+    </div>
+</body>
+</html>
